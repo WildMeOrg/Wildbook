@@ -261,13 +261,6 @@ public class TrainNetwork extends HttpServlet {
    myShepherd.beginDBTransaction();
    //set up for response
  
-   
-   
-   
-   
-   
-   
-   
    SummaryStatistics intersectionStats=new SummaryStatistics();
    SummaryStatistics dtwStats=new SummaryStatistics();
    SummaryStatistics i3sStats=new SummaryStatistics();
@@ -449,6 +442,50 @@ public class TrainNetwork extends HttpServlet {
 
     
    return score; 
+  }
+  
+  public static SummaryStatistics getMatchedIntersectionPerformance(Shepherd myShepherd, double intersectionProportion){
+    SummaryStatistics stats=new SummaryStatistics();
+    
+    Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
+    int numEncs=encounters.size();
+    for(int i=0;i<(numEncs-1);i++){
+      for(int j=(i+1);j<numEncs;j++){
+        
+        Encounter enc1=(Encounter)encounters.get(i);
+        Encounter enc2=(Encounter)encounters.get(j);
+        if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
+          
+          try{
+              
+            if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
+              if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
+                //train a match
+                if(enc1.getIndividualID().equals(enc2.getIndividualID())){
+                  
+                  EncounterLite el1=new EncounterLite(enc1);
+                  EncounterLite el2=new EncounterLite(enc2);
+                  
+                  //HolmbergIntersection
+                  Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+                  double finalInter=-1;
+                  if(numIntersections!=null){finalInter=numIntersections.intValue();}
+                 
+                  stats.addValue(finalInter);
+                }
+              }
+              
+            }
+              
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+        }
+      }
+    }
+    
+    return stats;
   }
 
 
