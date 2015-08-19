@@ -32,11 +32,6 @@ context=ServletUtilities.getContext(request);
 
 	Shepherd myShepherd=new Shepherd(context);
 
-// pg_dump -Ft sharks > sharks.out
-
-//pg_restore -d sharks2 /home/webadmin/sharks.out
-
-
 ArrayList<String> suspectValues=new ArrayList<String>();
 
 %>
@@ -123,13 +118,14 @@ for(int i=0;i<(numEncs-1);i++){
 //populateNewHashtable(dtwHashtable,3);
 //Hashtable<Integer,Integer> i3sHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(i3sHashtable,3);
-Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(proportionHashtable,3);
+//Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(proportionHashtable,3);
 Hashtable<Integer,Integer> overallHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallHashtable,12);	
 ArrayList<Double> intersectionValues=new ArrayList<Double>();
 ArrayList<Double> dtwValues=new ArrayList<Double>();
 ArrayList<Double> i3sValues=new ArrayList<Double>();
+ArrayList<Double> proportionValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
@@ -138,13 +134,14 @@ ArrayList<Double> i3sValues=new ArrayList<Double>();
 //populateNewHashtable(dtwCorrectHashtable,3);	
 //Hashtable<Integer,Integer> i3sCorrectHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(i3sCorrectHashtable,3);	
-Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(proportionCorrectHashtable,3);	
+//Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(proportionCorrectHashtable,3);	
 Hashtable<Integer,Integer> overallCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallCorrectHashtable,12);	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
 ArrayList<Double> i3sCorrectValues=new ArrayList<Double>();
+ArrayList<Double> proportionCorrectValues=new ArrayList<Double>();
 
 
 
@@ -226,6 +223,9 @@ for(int i=0;i<mergedLinks.size();i++){
             	//I3S
             	i3sCorrectValues.add(i3sScore);
             	
+            	//Proportion
+            	proportionCorrectValues.add(proportion);
+            	
             }
             else{
             	
@@ -243,7 +243,8 @@ for(int i=0;i<mergedLinks.size();i++){
             	//I3S
             	i3sValues.add(i3sScore);
             	
-            	
+            	//Proportion
+            	proportionValues.add(proportion);
             }
             
           
@@ -598,6 +599,89 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawProportionsChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawProportionsChart() {
+
+        // Create the data table.
+        var proportionCorrectData = new google.visualization.DataTable();
+        proportionCorrectData.addColumn('number', 'score');
+        proportionCorrectData.addColumn('number', 'matching');
+        
+        proportionCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(proportionCorrectValues);
+        
+      	  for(int y=0;y<proportionCorrectValues.size();y++){
+      		double position=(double)y/proportionCorrectValues.size();
+    		  
+      		  %>
+      		  [<%=position %>,<%=proportionCorrectValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var proportionIncorrectData = new google.visualization.DataTable();
+       proportionIncorrectData.addColumn('number', 'score');
+       proportionIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       proportionIncorrectData.addRows([
+		<%
+         Collections.sort(proportionValues);
+        
+      	  for(int y=0;y<proportionValues.size();y++){
+      		  double position=(double)y/proportionValues.size();
+      		  %>
+      		  [<%=position %>,<%=proportionValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(proportionIncorrectData, proportionCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: Fluke Proportions (height-width)',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (lower is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('proportionchart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
 
 <h1>Algorithm Analysis</h1>
 
@@ -614,6 +698,8 @@ myShepherd.rollbackDBTransaction();
 <div id="i3schart_div"></div>
 
 <div id="dtwchart_div"></div>
+
+<div id="proportionchart_div"></div>
 
 <h2>Match Links (<%=matchLinks.size() %>)</h2>
 <%
