@@ -119,8 +119,8 @@ for(int i=0;i<(numEncs-1);i++){
 //create our hashmaps of incorrect match scores
 //Hashtable<Double,Integer> intersectionHashtable = new Hashtable<Double,Integer>();
 //populateNewHashtable(intersectionHashtable,3);
-Hashtable<Integer,Integer> dtwHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(dtwHashtable,3);
+//Hashtable<Integer,Integer> dtwHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(dtwHashtable,3);
 Hashtable<Integer,Integer> i3sHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(i3sHashtable,3);
 Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
@@ -128,12 +128,13 @@ populateNewHashtable(proportionHashtable,3);
 Hashtable<Integer,Integer> overallHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallHashtable,12);	
 ArrayList<Double> intersectionValues=new ArrayList<Double>();
+ArrayList<Double> dtwValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
 //populateNewHashtable(intersectionCorrectHashtable,3);	
-Hashtable<Integer,Integer> dtwCorrectHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(dtwCorrectHashtable,3);	
+//Hashtable<Integer,Integer> dtwCorrectHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(dtwCorrectHashtable,3);	
 Hashtable<Integer,Integer> i3sCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(i3sCorrectHashtable,3);	
 Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
@@ -141,6 +142,7 @@ populateNewHashtable(proportionCorrectHashtable,3);
 Hashtable<Integer,Integer> overallCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallCorrectHashtable,12);	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
+ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
 
 
 
@@ -216,6 +218,9 @@ for(int i=0;i<mergedLinks.size();i++){
             	//intersection
             	intersectionCorrectValues.add(numIntersections);
             	
+            	//FastDTW
+            	dtwCorrectValues.add(distance);
+            	
             }
             else{
             	
@@ -226,6 +231,9 @@ for(int i=0;i<mergedLinks.size();i++){
             	
             	//intersection
             	intersectionValues.add(numIntersections);
+            	
+            	//FastDTW
+            	dtwValues.add(distance);
             	
             	
             }
@@ -415,9 +423,96 @@ myShepherd.rollbackDBTransaction();
       	              
       	              
 </script>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawDTWChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawDTWChart() {
+
+        // Create the data table.
+        var dtwCorrectData = new google.visualization.DataTable();
+        dtwCorrectData.addColumn('number', 'score');
+        dtwCorrectData.addColumn('number', 'matching');
+        
+        dtwCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(dtwCorrectValues);
+        
+      	  for(int y=0;y<dtwCorrectValues.size();y++){
+      		double position=(double)y/dtwCorrectValues.size();
+    		  
+      		  %>
+      		  [<%=position %>,<%=dtwCorrectValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var dtwIncorrectData = new google.visualization.DataTable();
+       dtwIncorrectData.addColumn('number', 'score');
+       dtwIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       dtwIncorrectData.addRows([
+		<%
+         Collections.sort(dtwValues);
+        
+      	  for(int y=0;y<dtwValues.size();y++){
+      		  double position=(double)y/dtwValues.size();
+      		  %>
+      		  [<%=position %>,<%=dtwValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(dtwIncorrectData, dtwCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: FastDTW',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (lower is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('dtwchart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
+
 <div id="overallchart_div"></div>
 
 <div id="intersectchart_div"></div>
+
+<div id="dtwchart_div"></div>
 
 <h2>Match Links (<%=matchLinks.size() %>)</h2>
 <%
