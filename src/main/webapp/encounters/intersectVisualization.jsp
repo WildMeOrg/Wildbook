@@ -90,7 +90,7 @@ try {
   
   
 
-  
+  double stdDev=0.1;
 
 
 
@@ -343,9 +343,9 @@ try {
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
 	    int thisPrintSize=spots.size();
-	    Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2,intersectionProportion);
-	    int finalInter=-1;
-	   	if(numIntersections!=null){finalInter=numIntersections.intValue();}
+	    java.lang.Double numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2,intersectionProportion);
+	    double finalInter=-1;
+	   	if(numIntersections!=null){finalInter=numIntersections;}
 	   
 	   	
 	   	//Fast DTW analysis
@@ -370,8 +370,8 @@ try {
     
     %>
 	    
-	    <h2>Comparison: <%=enc1MI %> vs <%=enc2MI %></h2>
-	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, 0.1) %>
+	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
+	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, stdDev, TrainNetwork.getIntersectionStats(request),TrainNetwork.getDTWStats(request),TrainNetwork.getI3SStats(request), TrainNetwork.getProportionStats(request)) %>
 </h3>
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 
@@ -383,8 +383,8 @@ try {
 	    
 	  <h4>Holmberg Intersection (prop=<%=intersectionProportion %>)</h4>  
 	    
-	    <p><i>Higher is better</i></p>
-	    <p>Num. intersections is: <%=finalInter %>
+	    <p><i>Higher is better. 1 is the max score.</i></p>
+	    <p>Num. intersections/total possible is: <%=finalInter %>
 	    
 	    </p>
 

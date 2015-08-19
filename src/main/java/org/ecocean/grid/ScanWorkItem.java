@@ -290,7 +290,7 @@ public class ScanWorkItem implements java.io.Serializable {
     }
     
     if(algorithms.indexOf("HolmbergIntersection")>-1){
-      Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
+      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
       int finalInter=-1;
       if(numIntersections!=null){finalInter=numIntersections.intValue();}
       

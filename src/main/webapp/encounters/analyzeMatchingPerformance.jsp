@@ -11,6 +11,7 @@ org.ecocean.neural.*,
 	com.fastdtw.util.Distances,
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
+	org.apache.commons.math.stat.descriptive.SummaryStatistics,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
 <%!
 
@@ -36,6 +37,8 @@ context=ServletUtilities.getContext(request);
 //pg_restore -d sharks2 /home/webadmin/sharks.out
 
 
+ArrayList<String> suspectValues=new ArrayList<String>();
+
 %>
 
 <html>
@@ -50,7 +53,8 @@ context=ServletUtilities.getContext(request);
 
 //training metrics
 double intersectionProportion=0.2;
-double stdDev=0.2;
+double stdDev=0.05;
+
 
 int chartWidth=800;
 
@@ -76,7 +80,7 @@ for(int i=0;i<(numEncs-1);i++){
     
     if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
         try{
-          System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
+          //System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
           
           //if both have spots, then we need to compare them
        
@@ -113,7 +117,7 @@ for(int i=0;i<(numEncs-1);i++){
 
 
 //create our hashmaps of incorrect match scores
-Hashtable<Integer,Integer> intersectionHashtable = new Hashtable<Integer,Integer>();
+//Hashtable<Double,Integer> intersectionHashtable = new Hashtable<Double,Integer>();
 //populateNewHashtable(intersectionHashtable,3);
 Hashtable<Integer,Integer> dtwHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(dtwHashtable,3);
@@ -123,9 +127,10 @@ Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>(
 populateNewHashtable(proportionHashtable,3);
 Hashtable<Integer,Integer> overallHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallHashtable,12);	
+ArrayList<Double> intersectionValues=new ArrayList<Double>();
 
 //create hastables of coreect
-Hashtable<Integer,Integer> intersectionCorrectHashtable = new Hashtable<Integer,Integer>();
+//Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
 //populateNewHashtable(intersectionCorrectHashtable,3);	
 Hashtable<Integer,Integer> dtwCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(dtwCorrectHashtable,3);	
@@ -134,7 +139,16 @@ populateNewHashtable(i3sCorrectHashtable,3);
 Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(proportionCorrectHashtable,3);	
 Hashtable<Integer,Integer> overallCorrectHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(overallCorrectHashtable,12);		
+populateNewHashtable(overallCorrectHashtable,12);	
+ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
+
+
+
+SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
+SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
+SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
+SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
+
 
 //render data for matches and nonmatches
 mergedLinks.addAll(matchLinks);
@@ -168,10 +182,8 @@ for(int i=0;i<mergedLinks.size();i++){
           EncounterLite el2=new EncounterLite(enc2);
           
           //HolmbergIntersection
-          Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
-          int totInter=-1;
-          if(numIntersections!=null){totInter=numIntersections.intValue();}
-         
+          Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+          if((numIntersections>0.7)&&(output==1)){suspectValues.add(mergedLinks.get(i));}
           
           //FastDTW
           TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
@@ -191,8 +203,8 @@ for(int i=0;i<mergedLinks.size();i++){
           //Proportion metric
           Double proportion=EncounterLite.getFlukeProportion(el1,el2);
           
-          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, totInter, distance.doubleValue(), i3sScore, new Double(proportion), stdDev);
-            
+          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion), stdDev,intersectionStats,dtwStats,i3sStats, proportionStats);
+            //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
             	
             	
@@ -202,11 +214,7 @@ for(int i=0;i<mergedLinks.size();i++){
             	overallCorrectHashtable.put(score, numValue);
             	
             	//intersection
-            	int interValue=1;
-            	if(intersectionCorrectHashtable.containsKey(totInter)){
-            		interValue=intersectionCorrectHashtable.get(totInter)+1;
-            	}
-            	intersectionCorrectHashtable.put(totInter, interValue);
+            	intersectionCorrectValues.add(numIntersections);
             	
             }
             else{
@@ -217,11 +225,7 @@ for(int i=0;i<mergedLinks.size();i++){
             	overallHashtable.put(score, numValue);
             	
             	//intersection
-            	int interValue=1;
-            	if(intersectionHashtable.containsKey(totInter)){
-            		interValue=intersectionHashtable.get(totInter)+1;
-            	}
-            	intersectionHashtable.put(totInter, interValue);
+            	intersectionValues.add(numIntersections);
             	
             	
             }
@@ -344,10 +348,15 @@ myShepherd.rollbackDBTransaction();
         interCorrectData.addColumn('number', 'matching');
         
         interCorrectData.addRows([
-      	<%
-      	  for(int i=1;i<intersectionCorrectHashtable.size();i++){
+                                  
+         <%
+         Collections.sort(intersectionCorrectValues);
+        
+      	  for(int y=0;y<intersectionCorrectValues.size();y++){
+      		double position=(double)y/intersectionCorrectValues.size();
+    		  
       		  %>
-      		  [<%=i %>,<%=(intersectionCorrectHashtable.get(i)) %>],
+      		  [<%=position %>,<%=intersectionCorrectValues.get(y) %>],
       		  <%
       	  }           
       	%>              
@@ -363,12 +372,15 @@ myShepherd.rollbackDBTransaction();
        
        interIncorrectData.addRows([
 		<%
-		  for(int i=1;i<intersectionHashtable.size();i++){
-			  %>
-			  [<%=i %>,<%=(intersectionHashtable.get(i)) %>],
-			  <%
-		  }           
-		%>           
+         Collections.sort(intersectionValues);
+        
+      	  for(int y=0;y<intersectionValues.size();y++){
+      		  double position=(double)y/intersectionValues.size();
+      		  %>
+      		  [<%=position %>,<%=intersectionValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>           
      	               
      	               
 		]);
@@ -380,7 +392,7 @@ myShepherd.rollbackDBTransaction();
       	
 
 	        
-	        var options = {'title':'Overall Scoring Performance: Holmberg Intersection',
+	        var options = {'title':'Overall Scoring Distribution: Holmberg Intersection',
                     'width':chartWidth,
                     'height':chartHeight,
                     'pointSize': 5,
@@ -391,8 +403,8 @@ myShepherd.rollbackDBTransaction();
 
                        
                       },
-                      vAxis: {title: "% of type (match or non-match) total"},
-                      hAxis: {title: "Overall Score"},
+                      vAxis: {title: "Score (higher is better)"},
+                      hAxis: {title: "fraction matches"},
                     };
 
 	        // Instantiate and draw our chart, passing in some options.
@@ -431,7 +443,22 @@ for(int i=0;i<falseLinks.size();i++){
 }
 %>
 
+<h2>High False Matches (<%=suspectValues.size() %>)</h2>
 <%
+for(int i=0;i<suspectValues.size();i++){
+	int colonNum=suspectValues.get(i).indexOf(":");
+	String enc1Number=suspectValues.get(i).substring(0, (colonNum));
+	String enc2Number=suspectValues.get(i).substring(colonNum+1, (suspectValues.get(i).length()));
+%>
+	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>">Link</a><br />
+<%
+}
+
+
+
+
+
+
 } 
 catch(Exception ex) {
 

@@ -80,7 +80,7 @@ public class TrainStdDev extends HttpServlet {
   //create text file so we can also use this training data in the Neuroph UI
     BufferedWriter writer = null;
     
-    double stdDev=0.1;
+    double stdDev=0.05;
     double bestStdDev=stdDev;
     double maxPointsDifference=0;
     
@@ -100,12 +100,17 @@ public class TrainStdDev extends HttpServlet {
         StringBuffer writeMe=new StringBuffer();
         
         // create new perceptron network
+        
+        SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
+        SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
+        SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
+        SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
        
         
         
         // add training data to training set (logical OR function)
      
-       while(stdDev<=2){
+       while(stdDev<=1){
          
          int numMatches=0;
          int numNonMatches=0;
@@ -145,7 +150,7 @@ public class TrainStdDev extends HttpServlet {
                 EncounterLite el2=new EncounterLite(enc2);
                 
                 //HolmbergIntersection
-                Integer numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+                Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
                 int totInter=-1;
                 if(numIntersections!=null){totInter=numIntersections.intValue();}
                
@@ -168,7 +173,7 @@ public class TrainStdDev extends HttpServlet {
                 //Proportion metric
                 Double proportion=EncounterLite.getFlukeProportion(el1,el2);
                 
-                double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, totInter, distance.doubleValue(), i3sScore, new Double(proportion), stdDev);
+                double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, totInter, distance.doubleValue(), i3sScore, new Double(proportion), stdDev, intersectionStats,dtwStats,i3sStats, proportionStats);
                   
                   if(output==0){numMatches++;totalMatchScores+=thisScore;}
                   else{numNonMatches++;totalFalseMatchScores+=thisScore;}
@@ -196,9 +201,11 @@ public class TrainStdDev extends HttpServlet {
          if((totalMatchScores-totalFalseMatchScores)>maxPointsDifference){
            maxPointsDifference=totalMatchScores-totalFalseMatchScores;
            bestStdDev=stdDev;
+           
+           System.out.println("\n\n\nBest std dev so far: "+bestStdDev+" with a difference of "+maxPointsDifference+"\n\n\n");
          }
         
-        stdDev=stdDev+0.1;
+        stdDev=stdDev+0.05;
       } //end std dev iterating for loop
       
       
