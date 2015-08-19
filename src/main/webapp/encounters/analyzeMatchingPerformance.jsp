@@ -121,28 +121,30 @@ for(int i=0;i<(numEncs-1);i++){
 //populateNewHashtable(intersectionHashtable,3);
 //Hashtable<Integer,Integer> dtwHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(dtwHashtable,3);
-Hashtable<Integer,Integer> i3sHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(i3sHashtable,3);
+//Hashtable<Integer,Integer> i3sHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(i3sHashtable,3);
 Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(proportionHashtable,3);
 Hashtable<Integer,Integer> overallHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallHashtable,12);	
 ArrayList<Double> intersectionValues=new ArrayList<Double>();
 ArrayList<Double> dtwValues=new ArrayList<Double>();
+ArrayList<Double> i3sValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
 //populateNewHashtable(intersectionCorrectHashtable,3);	
 //Hashtable<Integer,Integer> dtwCorrectHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(dtwCorrectHashtable,3);	
-Hashtable<Integer,Integer> i3sCorrectHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(i3sCorrectHashtable,3);	
+//Hashtable<Integer,Integer> i3sCorrectHashtable = new Hashtable<Integer,Integer>();
+//populateNewHashtable(i3sCorrectHashtable,3);	
 Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(proportionCorrectHashtable,3);	
 Hashtable<Integer,Integer> overallCorrectHashtable = new Hashtable<Integer,Integer>();
 populateNewHashtable(overallCorrectHashtable,12);	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
+ArrayList<Double> i3sCorrectValues=new ArrayList<Double>();
 
 
 
@@ -221,6 +223,9 @@ for(int i=0;i<mergedLinks.size();i++){
             	//FastDTW
             	dtwCorrectValues.add(distance);
             	
+            	//I3S
+            	i3sCorrectValues.add(i3sScore);
+            	
             }
             else{
             	
@@ -234,6 +239,9 @@ for(int i=0;i<mergedLinks.size();i++){
             	
             	//FastDTW
             	dtwValues.add(distance);
+            	
+            	//I3S
+            	i3sValues.add(i3sScore);
             	
             	
             }
@@ -507,10 +515,103 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawI3SChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawI3SChart() {
+
+        // Create the data table.
+        var i3sCorrectData = new google.visualization.DataTable();
+        i3sCorrectData.addColumn('number', 'score');
+        i3sCorrectData.addColumn('number', 'matching');
+        
+        i3sCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(i3sCorrectValues);
+        
+      	  for(int y=0;y<i3sCorrectValues.size();y++){
+      		double position=(double)y/i3sCorrectValues.size();
+    		  
+      		  %>
+      		  [<%=position %>,<%=i3sCorrectValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var i3sIncorrectData = new google.visualization.DataTable();
+       i3sIncorrectData.addColumn('number', 'score');
+       i3sIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       i3sIncorrectData.addRows([
+		<%
+         Collections.sort(i3sValues);
+        
+      	  for(int y=0;y<i3sValues.size();y++){
+      		  double position=(double)y/i3sValues.size();
+      		  %>
+      		  [<%=position %>,<%=i3sValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(i3sIncorrectData, i3sCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: Modified I3S with Improved Affine Transform',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (lower is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('dtwchart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
+
+<h1>Algorithm Analysis</h1>
+
+<h2>Overall Scoring</h2>
 
 <div id="overallchart_div"></div>
 
+<h2>Individual Algorithm Behavior</h2>
+
 <div id="intersectchart_div"></div>
+
+<div id="dtwchart_div"></div>
+
+<div id="i3schart_div"></div>
 
 <div id="dtwchart_div"></div>
 
