@@ -35,24 +35,29 @@ import com.reijns.I3S.FingerPrint;
 import com.reijns.I3S.Point2D;
 
 import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.awt.geom.Line2D.*;
 import java.awt.geom.Point2D.*;
 import java.lang.Double;
-
 import java.awt.geom.*;
-import org.apache.commons.math3.linear.LUDecomposition;
+
 import org.apache.commons.math3.linear.*;
 import org.apache.commons.math.linear.LUDecompositionImpl;
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 import java.util.Collections;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 //a class...
@@ -2175,7 +2180,7 @@ private double amplifyY(double origValue, double s){
     }
   }
     
-    public static Integer getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
+    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -2276,7 +2281,12 @@ private double amplifyY(double origValue, double s){
           //let's try some fun intersection analysis
           int newPrintSize=spots2.size();
           int thisPrintSize=spots.size();
-          int numIntersections=0;
+          
+          //calculate smallest array size and then -1 for max number of potential lines to match
+          int maxIntersectingLines=newPrintSize-1;
+          if(thisPrintSize<newPrintSize){maxIntersectingLines=thisPrintSize-1;}
+          
+          double numIntersections=0;
           StringBuffer anglesOfIntersection=new StringBuffer("");
           for(int i=0;i<(newPrintSize-1);i++){
             //for(int j=i+1;j<newPrintSize;j++){
@@ -2352,7 +2362,7 @@ private double amplifyY(double origValue, double s){
             
             
           }
-          return (new Integer(numIntersections));
+          return (numIntersections/maxIntersectingLines);
          
       
     }
@@ -3326,7 +3336,9 @@ private double amplifyY(double origValue, double s){
     
   }
     
+
+
     
-  
+    
 }
 
