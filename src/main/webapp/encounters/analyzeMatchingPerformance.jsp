@@ -48,7 +48,16 @@ ArrayList<String> suspectValues=new ArrayList<String>();
 
 //training metrics
 double intersectionProportion=0.2;
-double stdDev=0.05;
+//double stdDev=0.05;
+
+double intersectionStdDev=0.05;
+if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new Double(request.getParameter("intersectionStdDev"))).doubleValue();}
+double dtwStdDev=0.41;
+if(request.getParameter("dtwStdDev")!=null){dtwStdDev=(new Double(request.getParameter("dtwStdDev"))).doubleValue();}
+double i3sStdDev=0.01;
+if(request.getParameter("i3sStdDev")!=null){i3sStdDev=(new Double(request.getParameter("i3sStdDev"))).doubleValue();}
+double proportionStdDev=0.01;
+if(request.getParameter("proportionStdDev")!=null){proportionStdDev=(new Double(request.getParameter("proportionStdDev"))).doubleValue();}
 
 
 int chartWidth=800;
@@ -204,7 +213,7 @@ for(int i=0;i<mergedLinks.size();i++){
           //Proportion metric
           Double proportion=EncounterLite.getFlukeProportion(el1,el2);
           
-          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion), stdDev,intersectionStats,dtwStats,i3sStats, proportionStats);
+          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev);
             //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
             	
@@ -591,7 +600,7 @@ myShepherd.rollbackDBTransaction();
                     };
 
 	        // Instantiate and draw our chart, passing in some options.
-	        var chart = new google.visualization.LineChart(document.getElementById('dtwchart_div'));
+	        var chart = new google.visualization.LineChart(document.getElementById('i3schart_div'));
 	        chart.draw(joinedData, options);
 	        
 	      }

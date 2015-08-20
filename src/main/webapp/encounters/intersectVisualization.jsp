@@ -58,6 +58,11 @@ String encNum = request.getParameter("enc1");
 String encNum2 = request.getParameter("enc2");
 
 
+SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
+SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
+SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
+SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
+
 
 Shepherd myShepherd = new Shepherd(context);
 		  
@@ -371,7 +376,7 @@ try {
     %>
 	    
 	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
-	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, stdDev, TrainNetwork.getIntersectionStats(request),TrainNetwork.getDTWStats(request),TrainNetwork.getI3SStats(request), TrainNetwork.getProportionStats(request)) %>
+	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, intersectionStats,dtwStats,i3sStats, proportionStats,0.05,0.05,0.05,0.05) %>
 </h3>
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 

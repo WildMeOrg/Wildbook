@@ -690,7 +690,7 @@ public class TrainNetwork extends HttpServlet {
       return proportionStats;
    }
   
-  public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats){
+  public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats, double numIntersectionStdDev,double numDTWStdDev,double numI3SStdDev,double numProportionStdDev){
     double score=0;
      
     String context="context0";
@@ -713,10 +713,10 @@ public class TrainNetwork extends HttpServlet {
         //just do simple single std dev tests
         
         //score intersections
-        if((intersectionsValue>=(intersectionStats.getMean()-intersectionStdDev*numStandardDevs))){
+        if((intersectionsValue>=(intersectionStats.getMean()-intersectionStdDev*numIntersectionStdDev))){
           
           //exceptionally strong score!
-          if(intersectionsValue>=(intersectionStats.getMean()+intersectionStdDev*numStandardDevs)){
+          if(intersectionsValue>=(intersectionStats.getMean()+intersectionStdDev*numIntersectionStdDev)){
             score=score+3;
           }
           //strong score
@@ -731,9 +731,9 @@ public class TrainNetwork extends HttpServlet {
         }
         
         //score FastDTW
-        if((dtwValue<=(dtwStats.getMean()+dtwStdDev*numStandardDevs))){
+        if((dtwValue<=(dtwStats.getMean()+dtwStdDev*numDTWStdDev))){
         //exceptionally strong score!
-          if(dtwValue<=(dtwStats.getMean()-dtwStdDev*numStandardDevs)){
+          if(dtwValue<=(dtwStats.getMean()-dtwStdDev*numDTWStdDev)){
             score=score+3;
           }
           //strong score
@@ -748,9 +748,9 @@ public class TrainNetwork extends HttpServlet {
         
         
         //score I3S
-        if((i3sValue<=(i3sStats.getMean()+i3sStdDev*numStandardDevs))){
+        if((i3sValue<=(i3sStats.getMean()+i3sStdDev*numI3SStdDev))){
         //exceptionally strong score!
-          if(i3sValue<=(i3sStats.getMean()-i3sStdDev*numStandardDevs)){
+          if(i3sValue<=(i3sStats.getMean()-i3sStdDev*numI3SStdDev)){
             score=score+3;
           }
           //strong score
@@ -764,9 +764,9 @@ public class TrainNetwork extends HttpServlet {
         }
         
         //score Proportions
-        if((proportionsValue<=(proportionStats.getMean()+proportionStdDev*numStandardDevs))){
+        if((proportionsValue<=(proportionStats.getMean()+proportionStdDev*numProportionStdDev))){
         //exceptionally strong score!
-          if(proportionsValue<=(proportionStats.getMean()-proportionStdDev*numStandardDevs)){
+          if(proportionsValue<=(proportionStats.getMean()-proportionStdDev*numProportionStdDev)){
             score=score+3;
           }
           //strong score
