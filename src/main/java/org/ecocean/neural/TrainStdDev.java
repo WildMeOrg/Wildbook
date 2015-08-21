@@ -87,7 +87,10 @@ public class TrainStdDev extends HttpServlet {
     double[] bestStdDev=new double[5];
     double maxPointsDifference=0;
     
-    
+    double intersectHandicap=0;
+    double dtwHandicap=0;
+    double i3sHandicap=0;
+    double proportionHandicap=0;
     
     
     myShepherd.beginDBTransaction();
@@ -197,20 +200,20 @@ public class TrainStdDev extends HttpServlet {
 
          
                  
-                 while(intersectStdDev<=1){
+                 while(intersectStdDev<=0.5){
                    System.out.println("Checking: "+intersectStdDev);
-                   double dtwStdDev=0.01;
+                   double dtwStdDev=0.0;
                    
-                   while(dtwStdDev<=1){
+                   while(dtwStdDev<=0.5){
                      System.out.println("Checking: "+intersectStdDev+" "+dtwStdDev);
-                     double i3sStdDev=0.01;
+                     double i3sStdDev=0.0;
                      
-                     while(i3sStdDev<=1){
+                     while(i3sStdDev<=0.01){
                        System.out.println("Checking: "+intersectStdDev+" "+dtwStdDev+" "+i3sStdDev);
-                       double proportionStdDev=0.01;
+                       double proportionStdDev=0.0;
                        
                          
-                         while(proportionStdDev<=1){   
+                         while(proportionStdDev<=0.01){   
                            System.out.println("Checking: "+intersectStdDev+" "+dtwStdDev+" "+i3sStdDev+" "+proportionStdDev);
                            
                            int numMatches=0;
@@ -228,7 +231,7 @@ public class TrainStdDev extends HttpServlet {
                              double i3sScore=resultsArray[i][3];
                              double proportionScore=resultsArray[i][4];
                              
-                               double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, intersectScore, dtwScore, i3sScore, proportionScore, intersectionStats,dtwStats,i3sStats, proportionStats,intersectStdDev,dtwStdDev,i3sStdDev,proportionStdDev);
+                               double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, intersectScore, dtwScore, i3sScore, proportionScore, intersectionStats,dtwStats,i3sStats, proportionStats,intersectStdDev,dtwStdDev,i3sStdDev,proportionStdDev, intersectHandicap, dtwHandicap, i3sHandicap, proportionHandicap);
                                
                               
                               //start the process again 
@@ -240,7 +243,7 @@ public class TrainStdDev extends HttpServlet {
                                
                                
                              
-                       }
+                           }
                        
                            totalMatchScores=totalMatchScores/numMatches;
                            totalFalseMatchScores=totalFalseMatchScores/numNonMatches;
@@ -259,9 +262,9 @@ public class TrainStdDev extends HttpServlet {
                  
                  
                  
-                 proportionStdDev=proportionStdDev+0.05;
+                 proportionStdDev=proportionStdDev+0.005;
                } //end intersect std dev iterating for loop
-           i3sStdDev=i3sStdDev+0.05;
+           i3sStdDev=i3sStdDev+0.005;
           } //end intersect std dev iterating for loop
             dtwStdDev=dtwStdDev+0.05;
         } //end dtw std dev iterating for loop

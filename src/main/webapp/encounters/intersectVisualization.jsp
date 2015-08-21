@@ -63,6 +63,24 @@ SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
 SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
 SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
 
+double intersectionStdDev=0.05;
+if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new java.lang.Double(request.getParameter("intersectionStdDev"))).doubleValue();}
+double dtwStdDev=0.41;
+if(request.getParameter("dtwStdDev")!=null){dtwStdDev=(new java.lang.Double(request.getParameter("dtwStdDev"))).doubleValue();}
+double i3sStdDev=0.01;
+if(request.getParameter("i3sStdDev")!=null){i3sStdDev=(new java.lang.Double(request.getParameter("i3sStdDev"))).doubleValue();}
+double proportionStdDev=0.01;
+if(request.getParameter("proportionStdDev")!=null){proportionStdDev=(new java.lang.Double(request.getParameter("proportionStdDev"))).doubleValue();}
+double intersectHandicap=0;
+if(request.getParameter("intersectHandicap")!=null){intersectHandicap=(new java.lang.Double(request.getParameter("intersectHandicap"))).doubleValue();}
+double dtwHandicap=0;
+if(request.getParameter("dtwHandicap")!=null){dtwHandicap=(new java.lang.Double(request.getParameter("dtwHandicap"))).doubleValue();}
+double i3sHandicap=0;
+if(request.getParameter("i3sHandicap")!=null){i3sHandicap=(new java.lang.Double(request.getParameter("i3sHandicap"))).doubleValue();}
+double proportionHandicap=0;
+if(request.getParameter("proportionHandicap")!=null){proportionHandicap=(new java.lang.Double(request.getParameter("proportionHandicap"))).doubleValue();}
+
+
 
 Shepherd myShepherd = new Shepherd(context);
 		  
@@ -376,7 +394,7 @@ try {
     %>
 	    
 	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
-	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, intersectionStats,dtwStats,i3sStats, proportionStats,0.05,0.05,0.05,0.05) %>
+	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, intersectionStats,dtwStats,i3sStats, proportionStats,intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap,dtwHandicap,i3sHandicap,proportionHandicap) %>
 </h3>
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 

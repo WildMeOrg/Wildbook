@@ -690,7 +690,7 @@ public class TrainNetwork extends HttpServlet {
       return proportionStats;
    }
   
-  public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats, double numIntersectionStdDev,double numDTWStdDev,double numI3SStdDev,double numProportionStdDev){
+  public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats, double numIntersectionStdDev,double numDTWStdDev,double numI3SStdDev,double numProportionStdDev, double intersectHandicap, double dtwHandicap, double i3sHandicap, double proportionHandicap){
     double score=0;
      
     String context="context0";
@@ -716,16 +716,20 @@ public class TrainNetwork extends HttpServlet {
         if((intersectionsValue>=(intersectionStats.getMean()-intersectionStdDev*numIntersectionStdDev))){
           
           //exceptionally strong score!
+          
           if(intersectionsValue>=(intersectionStats.getMean()+intersectionStdDev*numIntersectionStdDev)){
-            score=score+3;
+            if(intersectHandicap>3){intersectHandicap=3;}
+            score=score+3-intersectHandicap;
           }
           //strong score
           else if(intersectionsValue>=intersectionStats.getMean()){
-            score=score+2;
+            if(intersectHandicap>2){intersectHandicap=2;}
+            score=score+2-intersectHandicap;
           }
           //moderate score
           else{
-            score++;
+            if(intersectHandicap>1){intersectHandicap=1;}
+            score=score+1-intersectHandicap;
           }
           
         }
@@ -734,15 +738,18 @@ public class TrainNetwork extends HttpServlet {
         if((dtwValue<=(dtwStats.getMean()+dtwStdDev*numDTWStdDev))){
         //exceptionally strong score!
           if(dtwValue<=(dtwStats.getMean()-dtwStdDev*numDTWStdDev)){
-            score=score+3;
+            if(dtwHandicap>3){dtwHandicap=3;}
+            score=score+3-dtwHandicap;
           }
           //strong score
           else if(dtwValue<=dtwStats.getMean()){
-            score=score+2;
+            if(dtwHandicap>2){dtwHandicap=2;}
+            score=score+2-dtwHandicap;
           }
           //moderate score
           else{
-            score++;
+            if(dtwHandicap>1){dtwHandicap=1;}
+            score=score+1-dtwHandicap;
           }
         }
         
@@ -751,15 +758,18 @@ public class TrainNetwork extends HttpServlet {
         if((i3sValue<=(i3sStats.getMean()+i3sStdDev*numI3SStdDev))){
         //exceptionally strong score!
           if(i3sValue<=(i3sStats.getMean()-i3sStdDev*numI3SStdDev)){
-            score=score+3;
+            if(i3sHandicap>3){i3sHandicap=3;}
+            score=score+3-i3sHandicap;
           }
           //strong score
           else if(i3sValue<=i3sStats.getMean()){
-            score=score+2;
+            if(i3sHandicap>2){i3sHandicap=2;}
+            score=score+2-i3sHandicap;
           }
           //moderate score
           else{
-            score++;
+            if(i3sHandicap>1){i3sHandicap=1;}
+            score=score+1-i3sHandicap;
           }
         }
         
@@ -767,15 +777,18 @@ public class TrainNetwork extends HttpServlet {
         if((proportionsValue<=(proportionStats.getMean()+proportionStdDev*numProportionStdDev))){
         //exceptionally strong score!
           if(proportionsValue<=(proportionStats.getMean()-proportionStdDev*numProportionStdDev)){
-            score=score+3;
+            if(proportionHandicap>3){proportionHandicap=3;}
+            score=score+3-proportionHandicap;
           }
           //strong score
           else if(proportionsValue<=proportionStats.getMean()){
-            score=score+2;
+            if(proportionHandicap>2){proportionHandicap=2;}
+            score=score+2-proportionHandicap;
           }
           //moderate score
           else{
-            score++;
+            if(proportionHandicap>1){proportionHandicap=1;}
+            score=score+1-proportionHandicap;
           }
         }
        

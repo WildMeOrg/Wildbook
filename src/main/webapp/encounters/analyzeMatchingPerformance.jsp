@@ -58,6 +58,14 @@ double i3sStdDev=0.01;
 if(request.getParameter("i3sStdDev")!=null){i3sStdDev=(new Double(request.getParameter("i3sStdDev"))).doubleValue();}
 double proportionStdDev=0.01;
 if(request.getParameter("proportionStdDev")!=null){proportionStdDev=(new Double(request.getParameter("proportionStdDev"))).doubleValue();}
+double intersectHandicap=0;
+if(request.getParameter("intersectHandicap")!=null){intersectHandicap=(new Double(request.getParameter("intersectHandicap"))).doubleValue();}
+double dtwHandicap=0;
+if(request.getParameter("dtwHandicap")!=null){dtwHandicap=(new Double(request.getParameter("dtwHandicap"))).doubleValue();}
+double i3sHandicap=0;
+if(request.getParameter("i3sHandicap")!=null){i3sHandicap=(new Double(request.getParameter("i3sHandicap"))).doubleValue();}
+double proportionHandicap=0;
+if(request.getParameter("proportionHandicap")!=null){proportionHandicap=(new Double(request.getParameter("proportionHandicap"))).doubleValue();}
 
 
 int chartWidth=800;
@@ -159,6 +167,12 @@ SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
 SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
 SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
 
+double correctScoreTotal=0;
+int numCorrectScores=0;
+
+double incorrectScoreTotal=0;
+int numIncorrectScores=0;
+
 
 //render data for matches and nonmatches
 mergedLinks.addAll(matchLinks);
@@ -213,15 +227,18 @@ for(int i=0;i<mergedLinks.size();i++){
           //Proportion metric
           Double proportion=EncounterLite.getFlukeProportion(el1,el2);
           
-          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev);
+          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
             //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
+            	
             	
             	
             	//overall
             	int score=(new Double(thisScore)).intValue(); 
             	Integer numValue=overallCorrectHashtable.get(score).intValue()+1;
             	overallCorrectHashtable.put(score, numValue);
+            	correctScoreTotal+=score;
+            	numCorrectScores++;
             	
             	//intersection
             	intersectionCorrectValues.add(numIntersections);
@@ -242,6 +259,8 @@ for(int i=0;i<mergedLinks.size();i++){
             	int score=(new Double(thisScore)).intValue(); 
             	Integer numValue=overallHashtable.get(score).intValue()+1;
             	overallHashtable.put(score, numValue);
+            	incorrectScoreTotal+=score;
+            	numIncorrectScores++;
             	
             	//intersection
             	intersectionValues.add(numIntersections);
@@ -697,6 +716,7 @@ myShepherd.rollbackDBTransaction();
 <h2>Overall Scoring</h2>
 
 <div id="overallchart_div"></div>
+<p>Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
 
 <h2>Individual Algorithm Behavior</h2>
 
@@ -729,7 +749,7 @@ for(int i=0;i<falseLinks.size();i++){
 	String enc1Number=falseLinks.get(i).substring(0, (colonNum));
 	String enc2Number=falseLinks.get(i).substring(colonNum+1, (falseLinks.get(i).length()));
 %>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>">Link</a><br />
+	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>&intersectionStdDev=<%=intersectionStdDev %>&dtwStdDev=<%=dtwStdDev %>&i3sStdDev=<%=i3sStdDev %>&proportionStdDev=<%=proportionStdDev %>&intersectHandicap=<%=intersectHandicap %>&dtwHandicap=<%=dtwHandicap %>&i3sHandicap=<%=i3sHandicap %>&proportionHandicap=<%=proportionHandicap %>">Link</a><br />
 <%
 }
 %>
@@ -741,7 +761,7 @@ for(int i=0;i<suspectValues.size();i++){
 	String enc1Number=suspectValues.get(i).substring(0, (colonNum));
 	String enc2Number=suspectValues.get(i).substring(colonNum+1, (suspectValues.get(i).length()));
 %>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>">Link</a><br />
+	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>&intersectionStdDev=<%=intersectionStdDev %>&dtwStdDev=<%=dtwStdDev %>&i3sStdDev=<%=i3sStdDev %>&proportionStdDev=<%=proportionStdDev %>&intersectHandicap=<%=intersectHandicap %>&dtwHandicap=<%=dtwHandicap %>&i3sHandicap=<%=i3sHandicap %>&proportionHandicap=<%=proportionHandicap %>">Link</a><br />
 <%
 }
 
