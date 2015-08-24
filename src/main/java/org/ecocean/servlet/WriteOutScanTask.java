@@ -881,7 +881,7 @@ public class WriteOutScanTask extends HttpServlet {
             
             
             
-            match.addAttribute("intersectionCount", Integer.toString(mo.getIntersectionCount()));
+            match.addAttribute("intersectionCount", Double.toString(mo.getIntersectionCount()));
             match.addAttribute("anglesofIntersection", mo.getAnglesOfIntersection());
             
             match.addAttribute("evaluation", mo.getEvaluation());

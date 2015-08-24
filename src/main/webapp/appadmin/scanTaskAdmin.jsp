@@ -326,20 +326,9 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
-    if(CommonConfiguration.getProperty("algorithms", context)!=null){
-        String algorithms=CommonConfiguration.getProperty("algorithms", context);
-        if(algorithms.indexOf("ModifiedGroth")!=-1){gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";}
-        else if(algorithms.indexOf("I3S")!=-1){gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/i3sScanEndApplet.jsp";}
-        else if(algorithms.indexOf("HolmbergIntersection")!=-1){gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/intersectionScanEndApplet.jsp";}
-        else if(algorithms.indexOf("FastDTW")!=-1){gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/FastDTWScanEndApplet.jsp";}
-        
-         
-    }
-    
-    if (st.getUniqueNumber().equals("TuningTask")) {
-        gotoURL = "endTuningTask.jsp";
-      }
+      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
+
+
     %>
 
     <td>

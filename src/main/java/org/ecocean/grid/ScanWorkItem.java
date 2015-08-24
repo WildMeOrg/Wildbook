@@ -199,6 +199,8 @@ public class ScanWorkItem implements java.io.Serializable {
     
     
     MatchObject result=new MatchObject();
+    result.encounterNumber=existingEncounter.getEncounterNumber();
+    result.individualName=existingEncounter.getIndividualID();
     if(algorithms.indexOf("ModifedGroth")>-1){
       result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan,newRefSpots);
     
@@ -279,6 +281,11 @@ public class ScanWorkItem implements java.io.Serializable {
       //}
       
       System.out.println("     FastDTW result is: "+distance);
+      
+      //set proportion Value
+      result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
+      
+      
     }
     
     if(algorithms.indexOf("Whitehead")>-1){
@@ -291,11 +298,11 @@ public class ScanWorkItem implements java.io.Serializable {
     
     if(algorithms.indexOf("HolmbergIntersection")>-1){
       Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
-      int finalInter=-1;
-      if(numIntersections!=null){finalInter=numIntersections.intValue();}
+      //int finalInter=-1;
+      //if(numIntersections!=null){finalInter=numIntersections;}
       
       
-      result.setIntersectionCount(finalInter);
+      result.setIntersectionCount(numIntersections);
       result.setAnglesOfIntersections("");
     }
     
