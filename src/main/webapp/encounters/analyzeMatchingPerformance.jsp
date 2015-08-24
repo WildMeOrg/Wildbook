@@ -48,6 +48,8 @@ ArrayList<String> suspectValues=new ArrayList<String>();
 
 //training metrics
 double intersectionProportion=0.2;
+if(request.getParameter("intersectionProportion")!=null){intersectionProportion=(new Double(request.getParameter("intersectionProportion"))).doubleValue();}
+
 //double stdDev=0.05;
 
 double intersectionStdDev=0.05;
