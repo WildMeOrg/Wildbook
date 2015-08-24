@@ -52,8 +52,10 @@ public class MatchObject implements java.io.Serializable {
   
   public Double geroMatchDistance;
   
-  public int intersectionCount=0;
+  public Double intersectionCount=0.0;
   public String anglesOfIntersection="";
+  
+  public Double proportionValue=0.0;
 
   //used for JDO enhance
   public MatchObject() {
@@ -279,10 +281,14 @@ public class MatchObject implements java.io.Serializable {
   
   public void setFastDTWPath(String path){this.fastDTWPath=path;}
   
-  public void setIntersectionCount(int count){intersectionCount=count;}
-  public int getIntersectionCount(){return intersectionCount;}
+  public void setIntersectionCount(Double count){intersectionCount=count;}
+  public Double getIntersectionCount(){return intersectionCount;}
   
   public String getAnglesOfIntersection(){return anglesOfIntersection;}
   public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
+  
+  public void setProportionValue(Double value){proportionValue=value;}
+  public Double getProportionValue(){return proportionValue;}
+  
   
 }

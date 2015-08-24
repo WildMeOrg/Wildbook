@@ -1779,6 +1779,16 @@
     <servlet-name>TrainStdDev</servlet-name>
     <url-pattern>/TrainStdDev</url-pattern>
   </servlet-mapping>
+  
+    <servlet>
+    <servlet-name>WriteOutFlukeMatchingJSON</servlet-name>
+    <servlet-class>org.ecocean.servlet.WriteOutFlukeMatchingJSON</servlet-class>
+  </servlet>
+  
+   <servlet-mapping>
+    <servlet-name>WriteOutFlukeMatchingJSON</servlet-name>
+    <url-pattern>/WriteOutFlukeMatchingJSON</url-pattern>
+  </servlet-mapping>
    
   
 </web-app>
