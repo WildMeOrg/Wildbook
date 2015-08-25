@@ -774,7 +774,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     <div id="advancedInformation" fade="1" style="display: none;">
     
-      <h3>About the manta</h3>
+      <h3>About the animal</h3>
       
       <fieldset>
       
