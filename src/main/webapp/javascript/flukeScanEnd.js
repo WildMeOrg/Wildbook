@@ -1,5 +1,7 @@
 
 
+var encounter = {};
+
 //adjust this as algorithms are added. same format as colDefn will be, keyed off header row names
 var columnInfo = {
     individualID: {
@@ -42,7 +44,9 @@ var columnInfo = {
 
 
 var colDefn = [];
-$(document).ready(function() {
+$(document).ready(function() { wildbook.init(function() { init(); }); });
+
+function init() {
     console.log('ok %o', flukeMatchingData);
     if (!Array.isArray(flukeMatchingData)) {
         alert('do not have flukeMatchingData json');
@@ -58,8 +62,15 @@ $(document).ready(function() {
             console.warn("no columnInfo for %s", headerRow[i]);
         }
     }
+
+    $('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
+    $('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
     doTable();
-});
+
+    displayImage(encounterNumber, $('#image-main'));
+    displayImage(flukeMatchingData[results[0]][columnInfo.encounterID.i], $('#image-compare'));
+    setImageMeta(flukeMatchingData[results[0]][columnInfo.overall_score.i]);
+}
 
 
 
@@ -200,11 +211,20 @@ function doTable() {
 
 }
 
+function setImageMeta(score) {
+    $('#image-meta #score').html('Score: ' + score);
+}
+
 function rowClick(el) {
 	console.log(el);
+	displayImage(el.getAttribute('data-id'), $('#image-compare'));
+        setImageMeta($(el).find('.ptcol-overall_score').text());
+        return false;
+/*
 	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
 	w.focus();
 	return false;
+*/
 }
 
 function headerClick(ev, c) {
@@ -228,6 +248,59 @@ function headerClick(ev, c) {
 console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 	newSlice(sortCol, sortReverse);
 	show();
+}
+
+
+//will append to el
+function addImage(enc, el) {
+console.info('addImage(%o, %o)', enc, el);
+    var imgs = enc.get('images');
+    if (!imgs || imgs.length < 0) {
+        $(el).find('.note').html('No images on encounter<br />' + enc.id);
+        return;
+    }
+    var spv = new wildbook.Model.SinglePhotoVideo(imgs[0]);
+    el.find('.note').remove();
+    el.append('<img src="' + spv.url() + '"/>');
+    var inf = {
+        catalogNumber: 'Number',
+        individualID: 'Assigned to',
+        date: 'Date',
+        sex: 'Sex',
+        size: 'Size',
+        verbatimLocality: 'Location',
+        locationID: 'Location ID'
+    };
+    var h = '<div class="image-info">';
+    for (var k in inf) {
+        var v = enc.get(k);
+        if (k == 'date') v = enc.date();
+        if ((v === false) || (v == '')) v = 'None';
+        h += '<div class="image-info-' + k + '">' + inf[k] + ': <b>' + v + '</b></div>';
+    }
+    h += '</div>';
+    el.append(h);
+}
+
+//loads (if needed) enc data and replaces existing compared image (i.e. right side)
+function displayImage(encID, el) {
+    el.html('<div class="note">loading ' + encID + '</div>');
+    if (encounter[encID]) {
+        if (encounter[encID].errorMsg) {
+            el.find('.note').html(encounter[encID].errorMsg);
+        } else {
+            addImage(encounter[encID], el);
+        }
+        return;
+    }
+    encounter[encID] = new wildbook.Model.Encounter({catalogNumber: encID});
+    encounter[encID].fetch({
+        success: function() { addImage(encounter[encID], el); },
+        error: function(a,b,c) {
+            encounter[encID].errorMsg = '<b>' + encID + '</b><br />' + b.status + ' ERROR: ' + b.statusText;
+            el.find('.note').html(encounter[encID].errorMsg);
+        }
+    });
 }
 
 
@@ -449,7 +522,8 @@ function xdoTable() {
 	var addedCount = 0;
 	encs.on('add', function(o) {
 		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
+		//row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
+		//row.click(function() { displayImage(row.data('id'), $('#image-compare')); });
 		row.addClass('clickable');
 		row.appendTo(tableContents);
 		addedCount++;

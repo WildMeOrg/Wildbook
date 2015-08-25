@@ -84,6 +84,62 @@ td.ptcol-score_proportion {
 	text-align: right;
 }
 
+
+#result-images {
+	height: 300px;
+	position: relative;
+}
+
+.result-image-wrapper {
+	padding: 4px;
+	background-color: #DDD;
+	border-radius: 4px;
+	width: 47%;
+	margin: 4px;
+	float: left;
+	height: 90%;
+	top: 0;
+}
+
+.result-image-wrapper img {
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+.result-image-wrapper .note {
+	background-color: rgba(0,0,0,0.5);
+	border-radius: 10px;
+	padding: 5px;
+	margin: 50px 10px 0 10px;
+	text-align: center;
+	color: #FFF;
+	font-size: 0.9em;
+}
+
+
+.image-info {
+	padding: 5px;
+	margin: 8px;
+	width: 43%;
+	background-color: rgba(255,255,255,0.7);
+	font-size: 0.8em;
+	position: absolute;
+	bottom: 0;
+}
+
+
+#image-meta {
+	width: 100%;
+	text-align:center;
+}
+#image-meta #score {
+	display: inline-block;
+	padding: 3px 15px;
+	border-radius: 12px;
+	background-color: rgba(0,0,0,0.7);
+	color: #FFF;
+}
 	
   #tabmenu {
     color: #000;
@@ -139,6 +195,7 @@ td.ptcol-score_proportion {
 %>
 <script>
 var flukeMatchingData = <%=json%>;
+var encounterNumber = '<%=num%>';
 </script>
 
 
@@ -322,8 +379,13 @@ var flukeMatchingData = <%=json%>;
 */
   %>
   
-      <a name="resultstable"/>
+      <a name="resultstable"></a>
 
+
+<div id="result-images"></div>
+<div id="image-meta">
+	<div id="score"></div>
+</div>
 
 <div class="pageableTable-wrapper">
 	<div id="progress">loading...</div>
@@ -364,6 +426,11 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
 </div>
 <!-- end page --></div>
 <!--end wrapper -->
+
+<script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
 
 <script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
 <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
