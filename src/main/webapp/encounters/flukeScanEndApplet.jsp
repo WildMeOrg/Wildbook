@@ -76,6 +76,15 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <style type="text/css">
  
+td.ptcol-overall_score,
+td.ptcol-score_holmbergIntersection,
+td.ptcol-score_fastDTW,
+td.ptcol-score_I3S,
+td.ptcol-score_proportion {
+	text-align: right;
+}
+
+	
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -292,9 +301,8 @@ var flukeMatchingData = <%=json%>;
 
 <p>
 
-<p>
-
 <%
+/*
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
@@ -311,203 +319,17 @@ var flukeMatchingData = <%=json%>;
       rightSA = "&filePrefix=extractRight";
     }
     System.out.println("I made it to the Flash without exception.");
+*/
   %>
-  <OBJECT id=sharkflash
-          codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
-          height=450 width=800 classid=clsid:D27CDB6E-AE6D-11cf-96B8-444553540000>
-    <PARAM NAME="movie"
-           VALUE="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%><%=rightSA%>">
-    <PARAM NAME="qualidty" VALUE="high">
-    <PARAM NAME="scale" VALUE="exactfit">
-    <PARAM NAME="bgcolor" VALUE="#ddddff">
-    <EMBED
-      src="tracker.swf?sessionId=<%=sessionId%>&rootURL=<%=CommonConfiguration.getURLLocation(request)%>&baseURL=<%=baseURL%>&feedurl=<%=feedURL%>&time=<%=System.currentTimeMillis()%><%=rightSA%>"
-      quality=high scale=exactfit bgcolor=#ddddff swLiveConnect=TRUE
-      WIDTH="800" HEIGHT="450" NAME="sharkflash" ALIGN=""
-      TYPE="application/x-shockwave-flash"
-      PLUGINSPAGE="http://www.macromedia.com/go/getflashplayer"></EMBED>
-  </OBJECT>
-</p>
   
-      <a name="resultstable"/><table class="tablesorter">
-      <thead>
-        <tr align="left" valign="top">
-          <th><strong>Individual ID</strong></th>
-          <th><strong> Encounter</strong></th>
-          <th><strong>Fraction Matched Triangles </strong></th>
-          <th><strong>Match Score </strong></th>
-    
-          <th><strong>logM std. dev.</strong></th>
-          <th><strong>Confidence</strong></th>
-          <th><strong>Matched Keywords</strong></th>
-
-        </tr>
-        </thead>
-        <tbody>
-        <%
-          if (!xmlOK) {
-
-            MatchObject[] results = new MatchObject[1];
-            results = matches;
-            Arrays.sort(results, new MatchComparator());
-            for (int p = 0; p < results.length; p++) {
-              if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
-        <tr>
-          <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
-                </a></td>
-              </tr>
-            </table>
-          </td>
-          <%if (results[p].encounterNumber.equals("N/A")) {%>
-          <td>N/A</td>
-          <%} else {%>
-          <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
-          </a></td>
-          <%
-            }
-            String adjustedMatchValueString = (new Double(results[p].adjustedMatchValue)).toString();
-            if (adjustedMatchValueString.length() > 5) {
-              adjustedMatchValueString = adjustedMatchValueString.substring(0, 5);
-            }
-          %>
-          <td><%=(adjustedMatchValueString)%><br>
-          </td>
-          <%
-            String finalscore2 = (new Double(results[p].matchValue * results[p].adjustedMatchValue)).toString();
-
-            //trim the length of finalscore
-            if (finalscore2.length() > 7) {
-              finalscore2 = finalscore2.substring(0, 6);
-            }
-          %>
-          <td><%=finalscore2%>
-          </td>
-
-          <td><font size="-2"><%=results[p].getLogMStdDev()%>
-          </font></td>
-          <td><font size="-2"><%=results[p].getEvaluation()%>
-          </font></td>
-
-        </tr>
-
-        <%
-              //end if matchValue!=0 loop
-            }
-            //end for loop
-          }
-
-//or use XML output here	
-        } else {
-          doc = xmlReader.read(file);
-          root = doc.getRootElement();
-
-          Iterator matchsets = root.elementIterator("match");
-          while (matchsets.hasNext()) {
-            Element match = (Element) matchsets.next();
-            List encounters = match.elements("encounter");
-            Element enc1 = (Element) encounters.get(0);
-            Element enc2 = (Element) encounters.get(1);
-        %>
-        <tr align="left" valign="top">
-          <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
-                </a></td>
-              </tr>
-            </table>
-          </td>
-          <%if (enc1.attributeValue("number").equals("N/A")) {%>
-          <td>N/A</td>
-          <%} else {%>
-          <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
-          </a></td>
-          <%
-            }
-            String adjustedpoints = "No Adj.";
-            adjustedpoints = match.attributeValue("adjustedpoints");
-            if (adjustedpoints == null) {
-              adjustedpoints = "&nbsp;";
-            }
-            if (adjustedpoints.length() > 5) {
-              adjustedpoints = adjustedpoints.substring(0, 5);
-            } else {
-              adjustedpoints = adjustedpoints + "<br>";
-            }
-          %>
-          <td><%=adjustedpoints%>
-          </td>
-          <%
-            String finalscore = "&nbsp;";
-            try {
-              if (match.attributeValue("finalscore") != null) {
-                finalscore = match.attributeValue("finalscore");
-              }
-            } catch (NullPointerException npe) {
-            }
-
-            //trim the length of finalscore
-            if (finalscore.length() > 7) {
-              finalscore = finalscore.substring(0, 6);
-            }
-
-          %>
-          <td><%=finalscore%>
-          </td>
+      <a name="resultstable"/>
 
 
-          <td><font size="-2"><%=match.attributeValue("logMStdDev")%>
-          </font></td>
-          <%
-            String evaluation = "No Adj.";
-            evaluation = match.attributeValue("evaluation");
-            if (evaluation == null) {
-              evaluation = "&nbsp;";
-            }
-
-          %>
-          <td><font size="-2"><%=evaluation%>
-          </font></td>
-          <td>
-            <%
-              String keywords = "";
-              for (Iterator i = match.elementIterator("keywords"); i.hasNext();) {
-                Element kws = (Element) i.next();
-                // iterate the keywords themselves
-                for (Iterator j = kws.elementIterator("keyword"); j.hasNext();) {
-                  Element kws2 = (Element) j.next();
-                  keywords = keywords + "<li>" + kws2.attributeValue("name") + "</li>";
-                }
-              }
-              if (keywords.length() <= 1) {
-                keywords = "&nbsp;";
-              }
-            %> <font size="-2">
-            <ul><%=keywords%>
-            </ul>
-          </font></td>
-        </tr>
-
-        <%
-
-
-            }
-          }
-
-        %>
-</tbody>
-      </table>
-
-
+<div class="pageableTable-wrapper">
+	<div id="progress">loading...</div>
+	<table id="results-table"></table>
+	<div id="results-slider"></div>
+</div>
 
   <%
 
@@ -542,6 +364,14 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
 </div>
 <!-- end page --></div>
 <!--end wrapper -->
+
+<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="../css/pageableTable.css" />
+<script src="../javascript/tsrt.js"></script>
 <script src="../javascript/flukeScanEnd.js"></script>
+
 </body>
 </html>
