@@ -20,7 +20,6 @@ import org.apache.shiro.subject.Subject;
 
 import org.pac4j.core.client.*;
 import org.pac4j.core.context.*;
-import org.pac4j.oauth.*;
 import org.pac4j.oauth.client.*;
 import org.pac4j.oauth.credentials.*;
 import org.pac4j.oauth.profile.facebook.*;

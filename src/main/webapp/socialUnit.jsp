@@ -1,31 +1,7 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
-
-<html>
-<head>
   <%
   String context="context0";
   context=ServletUtilities.getContext(request);
@@ -57,20 +33,7 @@
 
 
   %>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-
-</head>
+ 
 <style type="text/css">
   #tabmenu {
     color: #000;
@@ -119,28 +82,19 @@
     border-bottom: 2px solid #000000;
   }
 </style>
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="main">
 
-<table width="810" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
+<jsp:include page="header.jsp" flush="true" />
 
-       <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("community") %></strong>: <%=request.getParameter("name")%></h1>
+   <div class="container maincontent">
+
+<h1><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("community") %> <%=request.getParameter("name")%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
 
-    </td>
-  </tr>
-</table>
+  
 
 
-<table width="810" id="results">
+<table id="results">
   <tr class="lineitem">
     <td class="lineitem" bgcolor="#99CCFF"></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF">
@@ -265,16 +219,9 @@ if(indie.getSex()!=null){sexValue=indie.getSex();}
 %>
 
 
+</div>
 
-
-
-<p></p>
 <jsp:include page="footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+
 
 
