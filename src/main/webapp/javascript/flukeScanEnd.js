@@ -188,7 +188,18 @@ function doTable() {
 		$('#results-table').append(r);
 	}
 
-	$('.ptcol-thumb.tdw').removeClass('tdw');
+        $('td.ptcol-encounterID').click(function(ev) {
+            ev.stopPropagation();
+	    var w = window.open('encounter.jsp?number=' + ev.target.innerText, '_blank');
+            w.focus();
+        });
+
+        $('td.ptcol-individualID').click(function(ev) {
+            ev.stopPropagation();
+	    var w = window.open('../individuals.jsp?number=' + ev.target.innerText, '_blank');
+            w.focus();
+        });
+	//$('.ptcol-thumb.tdw').removeClass('tdw');
 
 	sTable.initSort();
 	sTable.initValues();
