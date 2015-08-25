@@ -117,6 +117,7 @@
 	
 		/GenePopExport = authc, roles[researcher]
 		
+		/AdoptionAction = authc, roles[adoption]
 
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
@@ -243,6 +244,7 @@
 
   <filter-mapping>
     <filter-name>ImgFilter</filter-name>
+    <url-pattern>/di/ImgFilter/*</url-pattern>
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
 
