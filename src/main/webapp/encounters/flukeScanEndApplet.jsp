@@ -84,6 +84,10 @@ td.ptcol-score_proportion {
 	text-align: right;
 }
 
+td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
+	background-color: #FF0 !important;
+	outline: solid black 2px;
+}
 
 #result-images {
 	height: 300px;
@@ -393,34 +397,7 @@ var encounterNumber = '<%=num%>';
 	<div id="results-slider"></div>
 </div>
 
-  <%
 
-
-
-//myShepherd.rollbackDBTransaction();
-    myShepherd = null;
-    doc = null;
-    root = null;
-    initresults = null;
-    file = null;
-    xmlReader = null;
-    
-if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != null)) {%>
-      <p><font size="+1">Custom Scan</font></p>
-      <%} else {%>
-      <p><font size="+1">Standard Scan</font></p>
-      <%}%>
-      <p>For this scan, the following variables were used:</p>
-      <ul>
-
-
-        <li>epsilon (<%=epsilon%>)</li>
-        <li>R (<%=R%>)</li>
-        <li>Sizelim (<%=Sizelim%>)</li>
-        <li>C (<%=C%>)</li>
-        <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
-
-      </ul>
 <jsp:include page="../footer.jsp" flush="true"/>
 </div>
 </div>
