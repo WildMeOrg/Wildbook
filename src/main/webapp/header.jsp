@@ -138,7 +138,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="/">MantaMatcher the Wildbook for Manta Rays</a>
+                  <a class="navbar-brand" href="/">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
               
@@ -163,7 +163,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Mantas</a></li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Your Project</a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
                                  
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
@@ -173,8 +173,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/adoptamanta.jsp">Adopt a Manta</a></li>
-                          <li><a href="<%=CommonConfiguration.getWikiLocation(context) %>mantamatcher_library_access_policy"><%=props.getProperty("accessPolicy")%></a></li>
+                          <li><a href="<%=urlLoc %>/adoptananimal.jsp">Adoption</a></li>
                           <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
                           
                           <!--  examples of navigation dividers

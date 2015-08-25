@@ -134,84 +134,82 @@
 				   /UpdateEmailAddress = authc, roles[admin]
 		      			
 				
-				/BatchUpload/** = authc, roles[RegionalManager]
-				/appadmin/batch* = authc, roles[RegionalManager]
-				/MantaMatcher = authc, roles[admin]
-				/EncounterSetSubmitterID = authc, roles[manager]
+				/BatchUpload/** = authc, roles[admin]
+				/appadmin/batch* = authc, roles[admin]
+				/EncounterSetSubmitterID = authc, roles[admin]
 				 
-				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
-		        /GenePopExport = authc, roles[researcher]
-				/individualSearchResultsExport.jsp = authc, roles[researcher]
-				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
-				/encounters/searchComparison.jsp = authc, roles[researcher]
-				/encounters/searchComparisonResults.jsp = authc, roles[researcher]
-		        /IndividualSetAlternateID = authc, roles[researcher]
-				/EncounterSetScarring = authc, roles[researcher]
-				  /EncounterSetVerbatimEventDate = authc, roles[researcher]
-				  /EncounterSetLifeStage = authc, roles[researcher]
-				  /EncounterSetCountry = authc, roles[researcher]
-				  /EncounterSetTissueSample = authc, roles[researcher]
-				   /TissueSampleSetHaplotype = authc, roles[researcher]
-				   /TissueSampleSetMeasurement = authc, roles[researcher]
-				  /TissueSampleRemoveHaplotype = authc, roles[researcher]
-				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
-					/IndividualCreate = authc, roles[researcher]
-				        /OccurrenceCreate = authc, roles[researcher]
-				        /OccurrenceRemoveEncounter = authc, roles[researcher]
-				        /IndividualRemoveEncounter = authc, roles[researcher]
-				        /OccurrenceAddEncounter = authc, roles[researcher]
-				        /IndividualAddEncounter = authc, roles[researcher]
-				         /TissueSampleSetSexAnalysis = authc, roles[researcher]
-				        /TissueSampleRemoveSexAnalysis = authc, roles[researcher]
-				         /EncounterRemoveTissueSample = authc, roles[researcher]
-				         /EncounterSearchExportGeneGISFormat = authc, roles[researcher]
-				         /EncounterSearchExportKML = authc, roles[researcher]
-				         /EncounterSearchExportExcelFile = authc, roles[researcher]
-				         /EncounterSearchExportShapefile = authc, roles[researcher]
-				         /EncounterSearchExportEmailAddresses = authc, roles[researcher]
-						/OccurrenceSetIndividualCount = authc, roles[researcher]
-				         /IndividualAddComment = authc, roles[researcher]
-				         /SimpleCMROutput = authc, roles[researcher]
-				             /GenalexExportCodominantMSDataBySize = authc, roles[researcher]
-				             /SOCPROGExport = authc, roles[researcher]
-				             /OccurrenceSetGroupBehavior = authc, roles[researcher]
-				             /EncounterSetBehavior = authc, roles[researcher]
-				      /CJS = authc, roles[researcher]
-				      /software.jsp = authc, roles[researcher]
+				 /EncounterSetTapirLinkExposure = authc, roles[admin]
+		        /GenePopExport = authc, roles[admin]
+				/individualSearchResultsExport.jsp = authc, roles[admin]
+				 /encounters/exportSearchResults.jsp = authc, roles[admin]
+				/encounters/searchComparison.jsp = authc, roles[admin]
+				/encounters/searchComparisonResults.jsp = authc, roles[admin]
+		        /IndividualSetAlternateID = authc, roles[admin]
+				/EncounterSetScarring = authc, roles[admin]
+				  /EncounterSetVerbatimEventDate = authc, roles[admin]
+				  /EncounterSetLifeStage = authc, roles[admin]
+				  /EncounterSetCountry = authc, roles[admin]
+				  /EncounterSetTissueSample = authc, roles[admin]
+				   /TissueSampleSetHaplotype = authc, roles[admin]
+				   /TissueSampleSetMeasurement = authc, roles[admin]
+				  /TissueSampleRemoveHaplotype = authc, roles[admin]
+				   /TissueSampleRemoveBiologicalMeasurement = authc, roles[admin]
+					/IndividualCreate = authc, roles[admin]
+				        /OccurrenceCreate = authc, roles[admin]
+				        /OccurrenceRemoveEncounter = authc, roles[admin]
+				        /IndividualRemoveEncounter = authc, roles[admin]
+				        /OccurrenceAddEncounter = authc, roles[admin]
+				        /IndividualAddEncounter = authc, roles[admin]
+				         /TissueSampleSetSexAnalysis = authc, roles[admin]
+				        /TissueSampleRemoveSexAnalysis = authc, roles[admin]
+				         /EncounterRemoveTissueSample = authc, roles[admin]
+				         /EncounterSearchExportGeneGISFormat = authc, roles[admin]
+				         /EncounterSearchExportKML = authc, roles[admin]
+				         /EncounterSearchExportExcelFile = authc, roles[admin]
+				         /EncounterSearchExportShapefile = authc, roles[admin]
+				         /EncounterSearchExportEmailAddresses = authc, roles[admin]
+						/OccurrenceSetIndividualCount = authc, roles[admin]
+				         /IndividualAddComment = authc, roles[admin]
+				         /SimpleCMROutput = authc, roles[admin]
+				             /GenalexExportCodominantMSDataBySize = authc, roles[admin]
+				             /SOCPROGExport = authc, roles[admin]
+				             /OccurrenceSetGroupBehavior = authc, roles[admin]
+				             /EncounterSetBehavior = authc, roles[admin]
+				      /CJS = authc, roles[admin]
+				      /software.jsp = authc, roles[admin]
 				      
 		      			
-						/SinglePhotoVideoRemoveKeyword = authc, roles[imageProcessor]
-				         /SinglePhotoVideoAddKeyword = authc, roles[imageProcessor]
-						 /EncounterRemoveImage = authc, roles[imageProcessor]
-						/EncounterAddImage = authc, roles[imageProcessor]
-						/EncounterAddMantaPattern = authc, roles[imageProcessor]
-						/KeywordHandler = authc, roles[imageProcessor]
+						/SinglePhotoVideoRemoveKeyword = authc, roles[admin]
+				         /SinglePhotoVideoAddKeyword = authc, roles[admin]
+						 /EncounterRemoveImage = authc, roles[admin]
+						/EncounterAddImage = authc, roles[admin]
+						/KeywordHandler = authc, roles[admin]
 						
-						/AdoptionAction = authc, roles[adoption]
-						/AdoptionForm = authc, roles[adoption]
-						/DeleteAdoption = authc, roles[adoption]
-						/ResurrectDeletedAdoption = authc, roles[adoption]
+						/AdoptionAction = authc, roles[admin]
+						/AdoptionForm = authc, roles[admin]
+						/DeleteAdoption = authc, roles[admin]
+						/ResurrectDeletedAdoption = authc, roles[admin]
 						
 						 /EncounterSetState = authc, roles[approve]
 						 /EncounterDelete = authc, roles[approve]
 					
-					       /xcalendar/** = authc, roles[local]
-						   /individualSearch.jsp = authc, roles[local]
-						   /individualSearchResultsAnalysis.jsp = authc, roles[local]
-						   /individualMappedSearchResults.jsp = authc, roles[local]
-				/individualThumbnailSearchResults.jsp = authc, roles[local]
-				 /encounters/encounterSearch.jsp = authc, roles[local]
-				 /encounters/searchResults.jsp = authc, roles[local]
-				 /encounters/searchResultsAnalysis.jsp = authc, roles[local]
-				 /encounters/mappedSearchResults.jsp = authc, roles[local]
-				 /encounters/mappedSearchResultsSex.jsp = authc, roles[local]
-				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[local]
-				 /googleSearch.jsp = authc, roles[local]
-				 /googleSearchResults.jsp = authc, roles[local]
-				 				         /EncounterAddComment = authc, roles[local]
-				         /OccurrenceAddComment = authc, roles[local]
-						 /CalendarXMLServer = authc, roles[local]
-				 /CalendarXMLServer2 = authc, roles[local]
+					       /xcalendar/** = authc, roles[admin]
+						   /individualSearch.jsp = authc, roles[admin]
+						   /individualSearchResultsAnalysis.jsp = authc, roles[admin]
+						   /individualMappedSearchResults.jsp = authc, roles[admin]
+				/individualThumbnailSearchResults.jsp = authc, roles[admin]
+				 /encounters/encounterSearch.jsp = authc, roles[admin]
+				 /encounters/searchResults.jsp = authc, roles[admin]
+				 /encounters/searchResultsAnalysis.jsp = authc, roles[admin]
+				 /encounters/mappedSearchResults.jsp = authc, roles[admin]
+				 /encounters/mappedSearchResultsSex.jsp = authc, roles[admin]
+				 /encounters/mappedSearchResultsHaplotype.jsp = authc, roles[admin]
+				 /googleSearch.jsp = authc, roles[admin]
+				 /googleSearchResults.jsp = authc, roles[admin]
+				 				         /EncounterAddComment = authc, roles[admin]
+				         /OccurrenceAddComment = authc, roles[admin]
+						 /CalendarXMLServer = authc, roles[admin]
+				 /CalendarXMLServer2 = authc, roles[admin]
 				 
 						   
 						   /welcome.jsp = authc
@@ -226,6 +224,10 @@
 					
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
+					
+					/IndividualSetNickname = authc, roles[admin]
+					/AdoptionAction = authc,roles[admin]
+					
 
             </param-value>
         </init-param>
@@ -427,16 +429,7 @@
     <servlet-name>AdoptionAction</servlet-name>
     <servlet-class>org.ecocean.servlet.AdoptionAction</servlet-class>
   </servlet>
-  
-    <servlet>
-    <servlet-name>MantaMatcher</servlet-name>
-    <servlet-class>org.ecocean.servlet.MantaMatcher</servlet-class>
-  </servlet>
-  
-    <servlet-mapping>
-    <servlet-name>MantaMatcher</servlet-name>
-    <url-pattern>/MantaMatcher/*</url-pattern>
-  </servlet-mapping>
+
   
     <servlet>
     <servlet-name>BatchUpload</servlet-name>
@@ -499,10 +492,7 @@
         <servlet-class>org.ecocean.servlet.EncounterRemoveTissueSample</servlet-class>
   </servlet>
   
-      <servlet>
-          <servlet-name>EncounterAddMantaPattern</servlet-name>
-          <servlet-class>org.ecocean.servlet.EncounterAddMantaPattern</servlet-class>
-  </servlet>
+
   
 
     <servlet>
@@ -1019,10 +1009,6 @@
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
   
-    <servlet-mapping>
-      <servlet-name>EncounterAddMantaPattern</servlet-name>
-      <url-pattern>/EncounterAddMantaPattern</url-pattern>
-  </servlet-mapping>
 
 
   <servlet-mapping>

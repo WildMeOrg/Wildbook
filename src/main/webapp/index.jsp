@@ -343,8 +343,8 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Manta Matcher</h1>
-            <h2>You can help photograph, <br/> identify and protect mantas!</h2>
+            <h1 class="hidden">Wildbook</h1>
+            <h2>Wildbook helps you study, <br/> identify and protect wildlife populations!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie 
@@ -371,7 +371,7 @@ finally{
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph a manta<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
@@ -380,9 +380,9 @@ finally{
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Photograph the belly of a manta</h3>
+					<h3>Photograph the ID area</h3>
 					<p class="lead">
-						Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their &ldquo;bellyprint&rdquo; and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.
+						Each animal should have an individual fingerprint: the pattern of spots or other markings. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your animal might be completely new to the database.
 					</p>
 					<p class="lead">
 						<a href="photographing.jsp" title="">See the photography guide</a>
@@ -396,7 +396,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Submit photo/video</h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the manta, and add other information, such as species or sex, if you can. You will receive email updates when your manta is processed by a researcher.
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed by a researcher.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -407,7 +407,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Researcher verification</h3>
 					<p class="lead">
-						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
+						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -418,7 +418,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching process</h3>
 					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will run the Manta Matcher algorithm. The algorithm is like facial recognition software for manta bellies.
+						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, sometimes using a computer vision algorithm. The algorithm is like facial recognition software for animal paterns.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -429,7 +429,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Match Result</h3>
 					<p class="lead">
-						The algorithm provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing manta in the database, or create a new manta profile. 
+						The algorithm (or manual comparison) provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing animal in the database, or create a new individual profile. 
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -483,7 +483,7 @@ finally{
             
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest manta encounters</h2>
+                    <h2>Latest animal encounters</h2>
                     <ul class="encounter-list list-unstyled">
                        
                        <%
@@ -601,7 +601,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.&rdquo;</i> - Dr. Andrea Marshall, co-founder</p>
+                            <i>&ldquo;This is an inspiration quote from you.&rdquo;</i> - Your Name, Project Leader</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
@@ -625,13 +625,13 @@ finally{
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt a manta</h3>
+                <h3 class="uppercase">Adopt an animal</h3>
                 <ul>
                     <li>Support individual research programs in different regions</li>
-					<li>Receive email updates when we resight your adopted manta</li>
-					<li>Display your photo and a quote on the manta's page in our database</li>
+					<li>Receive email updates when we resight your adopted animal</li>
+					<li>Display your photo and a quote on the animal's page in our database</li>
 </ul>
-                <a href="adoptamanta.jsp" title="">Learn more about adopting a manta</a>
+                <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
             </div>
             <%
             myShepherd.beginDBTransaction();
@@ -669,11 +669,11 @@ finally{
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of MantaMatcher and can support effective, science-based conservation management, and safeguard these rays.</p>
-                <a href="adoptamanta.jsp" title="More information about donations">Learn more about how to donate</a>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
+                <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptamanta.jsp">
+                <a href="adoptananimal.jsp">
 	                <button class="large contrast">
 	                    Donate
 	                    <span class="button-icon" aria-hidden="true">
