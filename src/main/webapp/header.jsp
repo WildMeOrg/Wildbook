@@ -28,7 +28,8 @@
              java.util.ArrayList,
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
-             org.ecocean.security.Collaboration
+             org.ecocean.security.Collaboration,
+             org.ecocean.ContextConfiguration
               "
 %>
 
@@ -126,6 +127,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <% 
                       } 
                       %>
+                      <li><a href="http://www.wildme.org/wildbook" target="_blank">v.<%=ContextConfiguration.getVersion() %></a></li>
                     </ul>
                     
                     <div class="search-wrapper">
@@ -138,7 +140,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="/">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" target="_blank" href="http://www.wildme.org/wildbook">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
               
@@ -272,6 +274,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </li>
                     </ul>
                   </div>
+                  
                 </div>
               </div>
             </nav>
