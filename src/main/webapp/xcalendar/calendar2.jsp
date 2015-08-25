@@ -1,24 +1,3 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Calendar, java.util.Properties" %>
 
@@ -54,25 +33,6 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<html>
-
-<head>
-
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-
-</head>
 <style type="text/css">
    #tabmenu {
     color: #000;
@@ -120,6 +80,10 @@ context=ServletUtilities.getContext(request);
     border-bottom: 1px solid #8DBDD8;
   }
 </style>
+
+
+ <jsp:include page="../header.jsp" flush="true"/>
+
 
 <script src="codebase/dhtmlxscheduler.js?v=091201"
         type="text/javascript" charset="utf-8"></script>
@@ -192,29 +156,13 @@ context=ServletUtilities.getContext(request);
   }
 </script>
 
-<body onload="init();"
-      style='padding: 0; text-align: center; margin: 0 auto; overflow: auto;'>
-<div id="wrapper" style=''>
-  <div id="page" style=''>
-    <jsp:include page="../header.jsp" flush="true">
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
+<div class="container maincontent">
 
-    <div id="main" style='overflow: auto;'>
     
-      
-    
-  <table width="810px" border="0" cellspacing="0" cellpadding="0">
-  <tr>
-    <td>
-      <p>
 
       <h1><%=calprops.getProperty("titleSearch") %></h1>
-      </h1>
-    </p>
-    </td>
-  </tr>
-</table>
+
+
 
       <ul id="tabmenu">
 
@@ -245,31 +193,30 @@ context=ServletUtilities.getContext(request);
         
           <div align="center" id="scheduler_here" class="dhx_cal_container"
                style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>
-            <div align="center" class="dhx_cal_navline" style='z-index: 0;'>
+            	
+            	<div align="center" class="dhx_cal_navline" style='z-index: 0;'>
 
-              <div class="dhx_cal_prev_button" style='z-index: 0;'>&nbsp;</div>
-              <div class="dhx_cal_next_button" style='z-index: 0;'>&nbsp;</div>
+              		<div class="dhx_cal_prev_button" style='z-index: 0;'>&nbsp;</div>
+              		<div class="dhx_cal_next_button" style='z-index: 0;'>&nbsp;</div>
 
-              <div class="dhx_cal_date" style='z-index: 0;'></div>
+              		<div class="dhx_cal_date" style='z-index: 0;'></div>
 
-              <div class="dhx_cal_tab" name="month_tab"
-                   style="right: 204px; z-index: 0;"></div>
+              		<div class="dhx_cal_tab" name="month_tab" style="right: 204px; z-index: 0;"></div>
 
 
-            </div>
-            <div class="dhx_cal_header"></div>
-            <div class="dhx_cal_data" style="overflow: auto;"></div>
-          </div>
-
+            	</div>
+         <div class="dhx_cal_header"></div>
+      <div class="dhx_cal_data" style="overflow: auto;"></div>
+    </div>
+</div>
 
         </div>
-        <!-- end maintext -->
-        <jsp:include page="../footer.jsp" flush="true"/>
+        </div>
 
-      </div>
-      <!-- end main-wide --></div>
-    <!-- end page --></div>
-  <!--end wrapper -->
-</body>
-</html>
+<jsp:include page="../footer.jsp" flush="true" />
+
+<script>
+
+init();
+</script>
 

@@ -1,31 +1,4 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
-
-
-
-<html>
-<head>
-
 
 
   <%
@@ -87,24 +60,10 @@
     int numSpeciesColors=allSpeciesColors.size();
 %>
 
-  <title><%=CommonConfiguration.getHTMLTitle(context)%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
-
 
     <style type="text/css">
 
-      body {
-        margin: 0;
-        padding: 10px 20px 20px;
-     
-      }
-
+   
 
 .full_screen_map {
 position: absolute !important;
@@ -184,6 +143,8 @@ margin-bottom: 8px !important;
         //test comment
   </script>
   
+  
+  <jsp:include page="header.jsp" flush="true"/>
   
 
 <script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode %>"></script>
@@ -573,31 +534,13 @@ function setOverlays() {
 
 </script>
 
-    
-  </head>
- <body>
- <div id="wrapper">
- <div id="page">
 
-<jsp:include page="header.jsp" flush="true">
 
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-
- <div id="main">
+<div class="container maincontent">
  
-  <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=map_props.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
 
-
+       <h1 class="intro"><%=map_props.getProperty("title")%></h1>
+     
  
 <ul id="tabmenu">
 <%
@@ -743,11 +686,11 @@ if (request.getQueryString() != null) {
  
 %>
 
+</div>
+
+
 <jsp:include page="footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
+
 
 <script>
 
@@ -760,5 +703,3 @@ $( window ).load(function() {
 
 </script>
 
-</body>
-</html>
