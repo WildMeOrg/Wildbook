@@ -201,6 +201,9 @@
 					
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
+					
+					/IndividualSetNickname = authc,roles[researcher]
+					/AdoptionAction = authc,roles[adoption]
 
             </param-value>
         </init-param>
