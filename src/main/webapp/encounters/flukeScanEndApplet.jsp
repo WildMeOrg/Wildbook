@@ -20,7 +20,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 <html>
 <%
 
@@ -123,6 +123,15 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   }
   
 </style>
+
+<%
+	//Path json = Paths.get(encountersDir.getAbsolutePath()+"/" + encSubdir + "/flukeMatching.json");
+	String json = new String(Files.readAllBytes(Paths.get(encountersDir.getAbsolutePath()+"/" + encSubdir + "/flukeMatching.json")));
+%>
+<script>
+var flukeMatchingData = <%=json%>;
+</script>
+
 
 <body>
 <div id="wrapper">
@@ -533,5 +542,6 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
 </div>
 <!-- end page --></div>
 <!--end wrapper -->
+<script src="../javascript/flukeScanEnd.js"></script>
 </body>
 </html>
