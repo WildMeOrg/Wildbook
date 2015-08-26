@@ -125,7 +125,6 @@
   
 </style>
 
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
 
 <jsp:include page="header.jsp" flush="true"/>
 
