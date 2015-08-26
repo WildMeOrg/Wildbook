@@ -620,8 +620,8 @@ finally{
 
 <div class="container-fluid">
     <section class="container main-section">
-        <h2 class="section-header">How can i Help out of the water</h2>
-        <p class="lead text-center">If you are not getting into the blue, there are still other ways to get engaged</p>
+        <h2 class="section-header">How can I help?</h2>
+        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
