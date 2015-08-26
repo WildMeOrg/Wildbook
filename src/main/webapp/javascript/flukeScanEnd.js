@@ -309,14 +309,22 @@ console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 //will append to el
 function addImage(enc, el) {
 console.info('addImage(%o, %o)', enc, el);
+    if (!enc.get('spotImageFileName')) {
+        $(el).find('.note').html('No spotImageFileName on encounter<br />' + enc.id);
+        console.warn(enc.attributes);
+        return;
+    }
+    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/' + enc.get('spotImageFileName');
+/*
     var imgs = enc.get('images');
     if (!imgs || imgs.length < 0) {
         $(el).find('.note').html('No images on encounter<br />' + enc.id);
         return;
     }
     var spv = new wildbook.Model.SinglePhotoVideo(imgs[0]);
-    el.find('.note').remove();
     var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + spv.get('spotImageFileName');
+*/
+    el.find('.note').remove();
     el.append('<img src="' + imgSrc + '"/>');
     var inf = {
         catalogNumber: 'Number',
@@ -716,7 +724,7 @@ function _textExtraction(n) {
 }
 
 function _getValue(obj, key) {
-console.log('_getValue(%o,%o)', obj, key);
+//console.log('_getValue(%o,%o)', obj, key);
     if (colDefn[key].i == undefined) return '-?-';
     return obj[colDefn[key].i];
 }
