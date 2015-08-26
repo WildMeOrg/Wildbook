@@ -57,6 +57,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 %>
 
 <head>
+
   <title><%=CommonConfiguration.getHTMLTitle(context) %>
   </title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -111,7 +112,7 @@ td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
 	width: 100%;
 }
 
-.result-image-wrapper .note {
+.result-image-wrapper .note, #chart .note {
 	background-color: rgba(0,0,0,0.5);
 	border-radius: 10px;
 	padding: 5px;
@@ -144,7 +145,18 @@ td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
 	background-color: rgba(0,0,0,0.7);
 	color: #FFF;
 }
-	
+
+
+/* makes up for nudging of chart */
+#chart .note {
+	width: 80%;
+}
+
+#chart {
+	margin: -30px 0 -30px 70px;
+	height: 400px;
+}
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
@@ -391,6 +403,9 @@ var encounterNumber = '<%=num%>';
 	<div id="score"></div>
 </div>
 
+<div id="chart"></div>
+
+
 <div class="pageableTable-wrapper">
 	<div id="progress">loading...</div>
 	<table id="results-table"></table>
@@ -416,6 +431,12 @@ var encounterNumber = '<%=num%>';
 <link rel="stylesheet" href="../css/pageableTable.css" />
 <script src="../javascript/tsrt.js"></script>
 <script src="../javascript/flukeScanEnd.js"></script>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
+    	google.setOnLoadCallback(initChart);
+</script>
 
 </body>
 </html>

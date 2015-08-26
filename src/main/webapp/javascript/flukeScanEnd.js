@@ -46,7 +46,44 @@ var columnInfo = {
 var colDefn = [];
 $(document).ready(function() { wildbook.init(function() { init(); }); });
 
+
+function displayChart(enc1, enc2) {
+console.warn('****** displayChart(%s,%s) ***********', enc1, enc2);
+    $('#chart').html('<div class="note">loading chart data</div>');
+    $.ajax({
+        url: 'flukeScanIntersectVisualization.jsp?enc1=' + enc1 + '&enc2=' + enc2,
+        type: 'GET',
+        dataType: 'json',
+        error: function(e) {
+            var msg = '<b>Error loading chart data</b><br />' + e.status + ' ERROR: <b>' + e.statusText + '</b>';
+            $('#chart .note').html(msg);
+            console.error(e);
+        },
+        success: function(d) {
+            $('#chart').html('');
+console.info('success? %o', d);
+            drawChart(d[0].spots, d[1].transformedSpots);
+        }
+    });
+}
+
+var chartInitialized = false;
+var chartShownFirstTime = false;
+var tableCreated = false;
+function initChart() {
+console.warn('chart init!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+    chartInitialized = true;
+    if (tableCreated && !chartShownFirstTime) {
+        chartShownFirstTime = true;
+        displayChart(encounterNumber, flukeMatchingData[results[0]][columnInfo.encounterID.i]);
+    }
+}
+
 function init() {
+    //google.load('visualization', '1.1', {packages: ['line', 'corechart']});
+    //google.load("visualization", "1", {packages:['line', "corechart"]});
+    //google.setOnLoadCallback(initChart);
+
     console.log('ok %o', flukeMatchingData);
     if (!Array.isArray(flukeMatchingData)) {
         alert('do not have flukeMatchingData json');
@@ -66,10 +103,16 @@ function init() {
     $('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
     $('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
     doTable();
+    tableCreated = true;
 
     displayImage(encounterNumber, $('#image-main'));
     displayImage(flukeMatchingData[results[0]][columnInfo.encounterID.i], $('#image-compare'));
     setImageMeta(flukeMatchingData[results[0]][columnInfo.overall_score.i]);
+
+    if (chartInitialized && !chartShownFirstTime) {
+        chartShownFirstTime = true;
+        displayChart(encounterNumber, flukeMatchingData[results[0]][columnInfo.encounterID.i]);
+    }
 }
 
 
@@ -230,6 +273,7 @@ function rowClick(el) {
 	console.log(el);
 	displayImage(el.getAttribute('data-id'), $('#image-compare'));
         setImageMeta($(el).find('.ptcol-overall_score').text());
+	displayChart(encounterNumber, el.getAttribute('data-id'));
         return false;
 /*
 	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
@@ -696,4 +740,35 @@ console.log(t);
 	displayCounts();
 }
 
+
+
+function drawChart(d1, d2) {
+    var data = new google.visualization.DataTable();
+    data.addColumn('number', 'x');
+    data.addColumn('number', 'y');
+    data.addRows(d1);
+
+    var data2 = new google.visualization.DataTable();
+    data2.addColumn('number', 'x');
+    data2.addColumn('number', 'y');
+    data2.addRows(d2);
+
+    var joinedData = google.visualization.data.join(data, data2, 'full', [[0, 0]], [1], [1]);
+    var options = {
+        title: 'Render Fluke',
+        width: 600,
+        height: 400,
+        pointSize: 5,
+        backgroundColor: { fill: 'transparent' },
+        color: 'yellow',
+        series: {
+            0: { color: 'blue' },
+            1: { color: 'yellow' },
+            2: { color: 'green' },
+            3: { color: 'green' }
+        }
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('chart'));
+    chart.draw(joinedData, options);
+}
 
