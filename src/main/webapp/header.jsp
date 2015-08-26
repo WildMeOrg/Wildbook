@@ -60,6 +60,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
@@ -96,7 +98,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     	  if(user.getFullName()!=null){fullname=user.getFullName();}
                     	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
                           if(user.getUserImage()!=null){
-                          	profilePhotoURL=urlLoc+"/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
                           } 
                       %>
                       
@@ -132,10 +134,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                              <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-                            <input placeholder="record nr., encounter nr., nickname or id" name="number" />
-                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                            <input type="submit" value="search" />
+                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
+	                            <input type="text" id="search-site" placeholder="nickname or animal id, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
+	                            <input type="submit" value="search" />
                           </form>
                       </label>
                     </div>
@@ -279,4 +281,60 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
               </div>
             </nav>
         </header>
+        
+        <script>
+        $('#search-site').autocomplete({
+            appendTo: $('#navbar-top'),
+            response: function(ev, ui) {
+                if (ui.content.length < 1) {
+                    $('#search-help').show();
+                } else {
+                    $('#search-help').hide();
+                }
+            },
+            select: function(ev, ui) {
+                if (ui.item.type == "individual") {
+                    window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                } 
+                /*
+                //restore user later
+                else if (ui.item.type == "user") {
+                    window.location.replace("/user/" + ui.item.value);
+                } 
+                else {
+                    alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
+                }
+                */
+                return false;
+            },
+            //source: app.config.wildbook.proxyUrl + "/search"
+            source: function( request, response ) {
+                $.ajax({
+                    url: '<%=("http://" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                    dataType: "json",
+                    data: {
+                        term: request.term
+                    },
+                    success: function( data ) {
+                        var res = $.map(data, function(item) {
+                            var label;
+                            if ((item.type == "individual")&&(item.species!=null)) {
+//                                label = item.species + ": ";
+                            } else if (item.type == "user") {
+                                label = "User: ";
+                            } else {
+                                label = "";
+                            }
+                            return {label: label + item.label,
+                                    value: item.value,
+                                    type: item.type};
+                            });
+
+                        response(res);
+                    }
+                });
+            }
+        });
+        </script>
+        
         <!-- ****/header**** -->

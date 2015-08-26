@@ -687,6 +687,11 @@
   </servlet>
   
       <servlet>
+    <servlet-name>SiteSearch</servlet-name>
+    <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
+  </servlet>
+  
+      <servlet>
     <servlet-name>RelationshipDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.RelationshipDelete</servlet-class>
   </servlet>
@@ -1680,19 +1685,10 @@
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
   
-
-  
-
-  <!-- Struts 1 Action Servlet Mapping 
-  <servlet-mapping>
-    <servlet-name>action</servlet-name>
-    <url-pattern>*.do</url-pattern>
+    <servlet-mapping>
+    <servlet-name>SiteSearch</servlet-name>
+    <url-pattern>/SiteSearch</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>uploadAction</servlet-name>
-    <url-pattern>*.jh</url-pattern>
-  </servlet-mapping>
--->
 
 </web-app>
