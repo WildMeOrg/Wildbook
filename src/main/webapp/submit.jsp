@@ -434,7 +434,7 @@ function showUploadBox() {
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
-              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(http://www.mantamatcher.org/images/computer.png);background-repeat: no-repeat;">
+              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
     

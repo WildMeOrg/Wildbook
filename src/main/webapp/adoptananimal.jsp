@@ -24,6 +24,6 @@ context=ServletUtilities.getContext(request);
 			
 			<p>You can support the ongoing research of our team by adopting one of our animals. You can provide program specifics here.</p>
 		
-	
+	   </div>
 <jsp:include page="footer.jsp" flush="true" />
 
