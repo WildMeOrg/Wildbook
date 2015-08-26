@@ -288,7 +288,10 @@ try {
 
 
 	    
-} finally {}
+} finally {
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+}
 %><%=jsonOut%><%
 }
 
