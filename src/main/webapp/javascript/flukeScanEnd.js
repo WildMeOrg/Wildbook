@@ -316,7 +316,8 @@ console.info('addImage(%o, %o)', enc, el);
     }
     var spv = new wildbook.Model.SinglePhotoVideo(imgs[0]);
     el.find('.note').remove();
-    el.append('<img src="' + spv.url() + '"/>');
+    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + spv.get('spotImageFileName');
+    el.append('<img src="' + imgSrc + '"/>');
     var inf = {
         catalogNumber: 'Number',
         individualID: 'Assigned to',
