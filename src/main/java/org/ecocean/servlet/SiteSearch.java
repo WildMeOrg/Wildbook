@@ -36,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
 import org.ecocean.User;
+import org.ecocean.CommonConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +124,9 @@ public class SiteSearch extends HttpServlet {
             }
             list.add(hm);
         }
+        query.closeAll();
 
+        /*
         //
         // Query on Users
         //
@@ -149,6 +152,31 @@ public class SiteSearch extends HttpServlet {
             hm.put("type", "user");
             list.add(hm);
         }
+        
+        query.closeAll();
+        */
+        
+        //query locationIDs
+        boolean moreLocationIDs=true;
+        int siteNum=0;
+        while(moreLocationIDs) {
+          String currentLocationID = "locationID"+siteNum;
+          
+          if (CommonConfiguration.getProperty(currentLocationID,context)!=null) {
+            HashMap<String, String> hm = new HashMap<String, String>();
+            String locID=CommonConfiguration.getProperty(currentLocationID,context);
+            hm.put("label", locID);            
+            hm.put("value", locID);
+            hm.put("type", "locationID");
+            list.add(hm);
+            siteNum++;
+          }
+          else{
+            moreLocationIDs=false;
+          }
+          
+        }
+        //end query locationIDs
 
         //
         // return our results

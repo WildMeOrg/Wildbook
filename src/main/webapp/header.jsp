@@ -100,6 +100,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           if(user.getUserImage()!=null){
                           	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
                           } 
+                          myShepherd.rollbackDBTransaction();
+                          myShepherd.closeDBTransaction();
                       %>
                       
                       	<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
@@ -135,7 +137,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="nickname or animal id, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
 	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
 	                            <input type="submit" value="search" />
                           </form>
@@ -218,6 +220,29 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           <% } %>
                         </ul>
                       </li>
+                      
+                      <!-- start locationID sites -->
+                       <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Sites <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                         
+                        
+                        <!-- list sites by locationID -->
+                          <% boolean moreLocationIDs=true;
+                             int siteNum=0;
+                             while(moreLocationIDs) {
+                                 String currentLocationID = "locationID"+siteNum;
+                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
+                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
+                                 <% siteNum++;
+                                 } else {
+                                	 moreLocationIDs=false;
+                                 }
+                            } //end while %>
+                        
+                        </ul>
+                      </li>
+                      <!-- end locationID sites -->
                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
@@ -296,6 +321,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 if (ui.item.type == "individual") {
                     window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
                 } 
+                else if (ui.item.type == "locationID") {
+                	window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                } 
                 /*
                 //restore user later
                 else if (ui.item.type == "user") {
@@ -320,7 +348,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             var label;
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
-                            } else if (item.type == "user") {
+                            } 
+                            else if (item.type == "user") {
                                 label = "User: ";
                             } else {
                                 label = "";
