@@ -24,7 +24,19 @@ import java.util.Comparator;
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.neural.TrainNetwork;
 
+import weka.classifiers.meta.AdaBoostM1;
+import weka.core.Instance;
+import weka.core.Instances;
+
 import javax.servlet.http.HttpServletRequest;
+
+//train weka
+import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instances;
+import weka.core.Instance;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.Evaluation;
 
 
 public class FlukeMatchComparator implements Comparator {
@@ -60,40 +72,75 @@ public class FlukeMatchComparator implements Comparator {
     
     MatchObject a1 = (MatchObject) a;
     MatchObject b1 = (MatchObject) b;
-
-    double a1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, a1.getIntersectionCount(), a1.getLeftFastDTWResult().doubleValue(), a1.getI3SMatchValue(), new Double(a1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
     
-    double b1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, b1.getIntersectionCount(), b1.getLeftFastDTWResult().doubleValue(), b1.getI3SMatchValue(), new Double(b1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+    Instance a1Example = new Instance(5);
+    Instance b1Example = new Instance(5);
+    Instances myInstances=GridManager.getAdaBoostInstances(request);
+    AdaBoostM1 booster=GridManager.getAdaBoostM1(request,myInstances);
     
+    
+    a1Example.setDataset(myInstances);
+    a1Example.setValue(0, a1.getIntersectionCount());
+    a1Example.setValue(1, a1.getLeftFastDTWResult().doubleValue());
+    a1Example.setValue(2,  a1.getI3SMatchValue());
+    a1Example.setValue(3, (new Double(a1.getProportionValue()).doubleValue()));
+    
+    
+    b1Example.setDataset(myInstances);
+    b1Example.setValue(0, b1.getIntersectionCount());
+    b1Example.setValue(1, b1.getLeftFastDTWResult().doubleValue());
+    b1Example.setValue(2,  b1.getI3SMatchValue());
+    b1Example.setValue(3, (new Double(b1.getProportionValue()).doubleValue()));
+    
+    double a1_adjustedValue=0;
+    double b1_adjustedValue=0;
+    
+    try{
+      a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
+      b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
+    }
+    catch(Exception e){System.out.println("Failed in an AdaBoost calculation in FlukeMatchComparator!");e.printStackTrace();}
 
-    if (a1_adjustedValue > b1_adjustedValue) {
-      return -1;
-    } else if (a1_adjustedValue == b1_adjustedValue) {
+    if(a1_adjustedValue > b1_adjustedValue){return -1;}
+    else if(a1_adjustedValue == b1_adjustedValue){
+      a1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, a1.getIntersectionCount(), a1.getLeftFastDTWResult().doubleValue(), a1.getI3SMatchValue(), new Double(a1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
       
-      //if a tie, try again with stricter std devs
-      a1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, a1.getIntersectionCount(), a1.getLeftFastDTWResult().doubleValue(), a1.getI3SMatchValue(), new Double(a1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
-      b1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, b1.getIntersectionCount(), b1.getLeftFastDTWResult().doubleValue(), b1.getI3SMatchValue(), new Double(b1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+      b1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, b1.getIntersectionCount(), b1.getLeftFastDTWResult().doubleValue(), b1.getI3SMatchValue(), new Double(b1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
       
-      
+  
       if (a1_adjustedValue > b1_adjustedValue) {
         return -1;
-      } 
-      else if (a1_adjustedValue == b1_adjustedValue) {
+      } else if (a1_adjustedValue == b1_adjustedValue) {
         
+        //if a tie, try again with stricter std devs
+        a1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, a1.getIntersectionCount(), a1.getLeftFastDTWResult().doubleValue(), a1.getI3SMatchValue(), new Double(a1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+        b1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, b1.getIntersectionCount(), b1.getLeftFastDTWResult().doubleValue(), b1.getI3SMatchValue(), new Double(b1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+        
+        
+        if (a1_adjustedValue > b1_adjustedValue) {
+          return -1;
+        } 
+        else if (a1_adjustedValue == b1_adjustedValue) {
+          
+        
+          //if a tie, sort on I3S score
+          if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return -1;}
+          else if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return 1;}
+          return 0;
+        }
+        else{
+          return 1;
+        }
+       
       
-        //if a tie, sort on I3S score
-        if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return -1;}
-        else if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return 1;}
-        return 0;
-      }
-      else{
+      
+      } else {
         return 1;
       }
-     
-    
-    
-    } else {
-      return 1;
+      
     }
+    else{return 1;}
+    
+          
   }
 }
