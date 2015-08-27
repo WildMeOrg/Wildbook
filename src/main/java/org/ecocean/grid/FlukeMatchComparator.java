@@ -70,11 +70,26 @@ public class FlukeMatchComparator implements Comparator {
       return -1;
     } else if (a1_adjustedValue == b1_adjustedValue) {
       
-      //if a tie, sort on I3S score
-      if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return -1;}
-      else if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return 1;}
+      //if a tie, try again with stricter std devs
+      a1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, a1.getIntersectionCount(), a1.getLeftFastDTWResult().doubleValue(), a1.getI3SMatchValue(), new Double(a1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+      b1_adjustedValue=TrainNetwork.getOverallFlukeMatchScore(request, b1.getIntersectionCount(), b1.getLeftFastDTWResult().doubleValue(), b1.getI3SMatchValue(), new Double(b1.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev/2,dtwStdDev/2,i3sStdDev/2,proportionStdDev/2,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
       
-      return 0;
+      
+      if (a1_adjustedValue > b1_adjustedValue) {
+        return -1;
+      } 
+      else if (a1_adjustedValue == b1_adjustedValue) {
+        
+      
+        //if a tie, sort on I3S score
+        if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return -1;}
+        else if(a1.getI3SMatchValue()<b1.getI3SMatchValue()){return 1;}
+        return 0;
+      }
+      else{
+        return 1;
+      }
+     
     
     
     } else {
