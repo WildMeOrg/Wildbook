@@ -53,6 +53,9 @@ function SortTable(opts) {
 		if ((end == undefined) || (end > this.matchesFilter.length)) end = this.matchesFilter.length;
 		if ((start == undefined) || (start > this.matchesFilter.length)) start = 0;
 console.log('start %o end %o', start, end);
+
+                if (col < 0) return this.matchesFilter.slice(start, end);  //means do not sort, so return as passed basically
+
 		var at = -1;
 		var s = [];
 /*
