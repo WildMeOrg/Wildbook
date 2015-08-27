@@ -15,7 +15,7 @@ var columnInfo = {
         value: _encValue,
     },
     overall_score: {
-        label: 'overall score',
+        label: 'std dev score',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
