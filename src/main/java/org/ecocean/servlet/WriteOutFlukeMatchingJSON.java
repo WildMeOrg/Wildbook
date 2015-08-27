@@ -20,10 +20,10 @@
 package org.ecocean.servlet;
 
 import com.reijns.I3S.Pair;
+
 import org.ecocean.*;
 import org.ecocean.grid.*;
 import org.ecocean.neural.*;
-
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 import javax.servlet.ServletConfig;
@@ -31,6 +31,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,16 @@ import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import com.google.gson.*;
+
+import org.ecocean.grid.GridManager;
+
+//train weka
+import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instances;
+import weka.core.Instance;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.Evaluation;
 
 
 
@@ -179,7 +190,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       int resultsSize = swirs.length;
       MatchObject[] matches = swirs;
 
-      //Arrays.sort(matches, new MatchComparator());
+      Arrays.sort(swirs, new FlukeMatchComparator(request));
       
       
       StringBuffer resultsJSON = new StringBuffer();
@@ -187,10 +198,10 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       //need stats
       //TBD cache these later so writes are faster
-      SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
-      SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
-      SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
-      SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
+      SummaryStatistics intersectionStats=GridManager.getIntersectionStats(request);
+      SummaryStatistics dtwStats=GridManager.getDTWStats(request);
+      SummaryStatistics proportionStats=GridManager.getProportionStats(request);
+      SummaryStatistics i3sStats=GridManager.getI3SStats(request);
       
       
       double intersectionStdDev=0.05;
@@ -229,8 +240,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       
           
-       String[] header= {"individualID", "encounterID", "overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion"};
-       jsonOut.append(gson.toJson(header)+"\n");
+       String[] header= {"individualID", "encounterID", "overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion","adaboost_match","adaboost_nonmatch"};
+       jsonOut.append(gson.toJson(header)+",\n");
        
        
        
@@ -248,9 +259,28 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(individualID));
         result.add(new JsonPrimitive(enc.getCatalogNumber()));
         
-        //overall score
+        //overall score - std dev method
         double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, mo.getIntersectionCount(), mo.getLeftFastDTWResult().doubleValue(), mo.getI3SMatchValue(), new Double(mo.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
         
+        //adaboost classifier
+      //prep weka for AdaBoost
+       
+        
+        
+        
+        Instance iExample = new Instance(5);
+        Instances myInstances=GridManager.getAdaBoostInstances(request);
+        
+        iExample.setDataset(myInstances);
+        iExample.setValue(0, mo.getIntersectionCount());
+        iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
+        iExample.setValue(2,  mo.getI3SMatchValue());
+        iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
+        
+        
+        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,myInstances);
+        
+        double[] fDistribution = booster.distributionForInstance(iExample);
         
         //individual scores
         result.add(new JsonPrimitive(thisScore));
@@ -258,8 +288,10 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(mo.getLeftFastDTWResult()));
         result.add(new JsonPrimitive(mo.getI3SMatchValue()));
         result.add(new JsonPrimitive(mo.getProportionValue()));
+        result.add(new JsonPrimitive(fDistribution[0]));
+        result.add(new JsonPrimitive(fDistribution[1]));
         
-        jsonOut.append(gson.toJson(result)+"\n");
+        jsonOut.append(gson.toJson(result)+",\n");
          
         
       }
