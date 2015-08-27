@@ -333,7 +333,7 @@ var encounterNumber = '<%=num%>';
                        alt="Help" border="0" align="absmiddle"></a></h2>
 </p>
 <p>The following encounter(s) received the highest
-  match values against a <%=side%>-side scan of encounter <a
+  match values against encounter <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
