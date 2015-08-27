@@ -85,9 +85,36 @@ td.ptcol-score_proportion {
 	text-align: right;
 }
 
+/*
 td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
 	background-color: #FF0 !important;
 	outline: solid black 2px;
+}
+*/
+
+td.ptcol-encounterID, td.ptcol-individualID {
+	position: relative;
+}
+tr.clickable:hover .link-button {
+	display: inline-block;
+}
+
+.link-button, .link-button:hover {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+	background-color: #FFA;
+	display: none;
+	padding: 1px 4px;
+	border: solid #444 1px;
+	border-radius: 4px;
+	margin: 0 3px;
+	color: #444;
+	text-decoration: none;
+}
+.link-button:hover {
+	color: #000;
+	background-color: #FF0;
 }
 
 #result-images {
