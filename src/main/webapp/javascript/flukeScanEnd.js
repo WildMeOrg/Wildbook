@@ -202,7 +202,7 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = 2;
+var sortCol = -1; // 2;
 var sortReverse = true;
 
 var counts = {
@@ -227,7 +227,7 @@ function doTable() {
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			var cls = 'ptcol-' + colDefn[c].key;
 			if (!colDefn[c].nosort) {
-				if (sortCol < 0) { //init
+				if (sortCol === false) { //init
 					sortCol = c;
 					cls += ' headerSortUp';
 				}
