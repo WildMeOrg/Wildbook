@@ -784,8 +784,8 @@ function _getValue(obj, key) {
 
 
 function _encValue(obj, key) {
-    var id = _getValue(obj, key);
-    return id + ' <div class="enc-button link-button" target="_new">ENC</div>';
+    //var id = _getValue(obj, key);
+    return '<div class="enc-button link-button" target="_new">encounter</div>';
 }
 
 function _indivValue(obj, key) {

@@ -99,12 +99,17 @@ tr.clickable:hover .link-button {
 	display: inline-block;
 }
 
+.indiv-button {
+	display: none;
+}
+.enc-button {
+	display: inline-block;
+}
 .link-button, .link-button:hover {
 	position: absolute;
 	right: 2px;
 	bottom: 2px;
 	background-color: #FFA;
-	display: none;
 	padding: 1px 4px;
 	border: solid #444 1px;
 	border-radius: 4px;
