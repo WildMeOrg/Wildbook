@@ -359,11 +359,13 @@ console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 //will append to el
 function addImage(enc, el) {
 console.info('addImage(%o, %o)', enc, el);
+/*
     if (!enc.get('spotImageFileName')) {
         $(el).find('.note').html('No spotImageFileName on encounter<br />' + enc.id);
         console.warn(enc.attributes);
         return;
     }
+*/
     //var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/' + enc.get('spotImageFileName');
     var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/extract' + enc.id + '.jpg';
 /*
