@@ -314,7 +314,8 @@ console.info('addImage(%o, %o)', enc, el);
         console.warn(enc.attributes);
         return;
     }
-    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/' + enc.get('spotImageFileName');
+    //var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/' + enc.get('spotImageFileName');
+    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/extract' + enc.id + '.jpg';
 /*
     var imgs = enc.get('images');
     if (!imgs || imgs.length < 0) {
