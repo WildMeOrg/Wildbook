@@ -2,16 +2,18 @@
 function ImageTools(opts) {
     this.containerElement = false;
     this.imageElement = false;
-    this.transform = {
-        scale: 1,
-        rotate: 0,
-        translate: [0,0]
-    };
+    this.transform = [
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ];
 
     this.createContainerElement = function(el) {
         this.containerElement = document.createElement('div');
         this.containerElement.className = 'imageTools-containerElement';
         this.containerElement.style.position = 'absolute';
+        this.containerElement.style.overflow = 'hidden';
+this.containerElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
         this.containerElement.style.top = el.offsetTop;
         this.containerElement.style.left = el.offsetLeft;
         this.containerElement.style.width = el.offsetWidth;
@@ -35,12 +37,22 @@ this.imageElement.style.opacity = '0.4';
         return this.imageElement;
     };
 
+
+    this.transformReset = function() {
+        this.transform = [
+            [1, 0, 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ];
+    };
+
     //this rotates this much *more*... see also rotateTo
     this.rotate = function(d) {
         this.transform.rotate += d;
         return this.doTransform();
     };
     this.rotateTo = function(d) {
+        var s = this.getScale();
         this.transform.rotate = d;
         return this.doTransform();
     };
@@ -58,16 +70,83 @@ this.imageElement.style.opacity = '0.4';
         return this.doTransform();
     };
     this.translateTo = function(x,y) {
-        this.transform.translate[0] = x;
-        this.transform.translate[1] = y;
+        this.transform[0][2] = x;
+        this.transform[1][2] = y;
         return this.doTransform();
     };
+
+    this.rotationToMatrix = function(r) {
+        var c = Math.cos(r);
+        var s = Math.sin(r);
+        return [ [c, -s, 0], [s, c, 0], [0, 0, 1] ];
+    };
+    this.scaleToMatrix = function(s) {
+        return [ [s, 0, 0], [0, s, 0], [0, 0, 1] ];
+    };
+    this.setTransform = function(rotation, scale, x, y) {
+        var rs = this.matrixMultiply(this.rotationToMatrix(rotation), this.scaleToMatrix(scale));
+console.log('setTransform(%o,%o,%o,%o) -> rs = %o', rotation, scale, x, y, rs);
+        rs[0][2] = x;
+        rs[1][2] = y;
+        this.transform = rs;
+        return rs;
+    };
+
     this.doTransform = function() {
         if (!this.imageElement) return;
-        this.imageElement.style.left = this.transform.translate[0] + 'px';
-        this.imageElement.style.top = this.transform.translate[1] + 'px';
-        this.imageElement.style.transform = 'rotate(' + this.transform.rotate + 'deg) scale(' + this.transform.scale + ')';
+        var m = this.matrixToCss(this.transform);
+console.log('doTransform() -> %o', m);
+        this.imageElement.style.transform = m;
         return this.transform;
+    };
+
+    this.getScale = function() {
+        return Math.sqrt(this.transform[0][0] * this.transform[0][0] + this.transform[1][0] * this.transform[1][0]);
+    };
+    this.getRotation = function() {
+        return Math.atan2(this.transform[1][0], this.transform[0][0]);
+    };
+
+
+    //handles the case where it is two matrices *and* where m2 is a row vector (e.g. point)
+    this.matrixMultiply = function(m2, m1) {
+        if (Array.isArray(m1[0])) {
+            var result = [];
+            for(var j = 0; j < m2.length; j++) {
+                result[j] = [];
+                for(var k = 0; k < m1[0].length; k++) {
+                    var sum = 0;
+                    for(var i = 0; i < m1.length; i++) {
+                        sum += m1[i][k] * m2[j][i];
+                    }
+                    result[j].push(sum);
+                }
+            }
+            return result;
+
+        } else {
+            return [m2[0][0] * m1[0] + m2[0][1] * m1[1] + m2[0][2], m2[1][0] * m2[0][1] + m2[1][1] * m1[1] + m2[1][2], 1];
+        }
+    };
+
+    this.matrixToCss = function(m) {
+        return this.transformToCss(this.matrixToTransform(m));
+    };
+    this.transformToCss = function(t) {
+        return 'matrix(' + t.join(', ') + ')';
+    };
+
+    this.transformToMatrix = function(t) {
+        return [ [t[0], t[2], t[4]], [t[1], t[3], t[5]], [0, 0, 1] ];
+    };
+    this.matrixToTransform = function(m) {
+        return [ m[0][0], m[1][0], m[0][1], m[1][1], m[0][2], m[1][2] ];
+    };
+
+    //uses the 6-element 1-dim array format of css
+    this.transformMultiply = function(t1, t2) {
+        var m = this.matrixMultiply(this.transformToMatrix(t1), this.transformToMatrix(t2));
+        return this.matrixToTransform(m);
     };
 
     this.init = function(opts) {
