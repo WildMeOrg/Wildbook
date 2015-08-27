@@ -53,6 +53,11 @@ var columnInfo = {
         value: _cleanFloatValue,
         sortValue: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+    rank: {
+        label: 'rank',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     }
 };
 
@@ -202,7 +207,8 @@ var howMany = 10;
 var start = 0;
 var results = [];
 
-var sortCol = -1; // 2;
+var sortCol = -1; //by default, no sort
+
 var sortReverse = true;
 
 var counts = {
@@ -215,6 +221,11 @@ var counts = {
 var sTable = false;
 
 function doTable() {
+        if (columnInfo && columnInfo.rank) {  //sort by rank if we have it
+            sortCol = columnInfo.rank.i;
+            sortReverse = false;
+        }
+
 	sTable = new SortTable({
 		data: flukeMatchingData,
 		perPage: howMany,
