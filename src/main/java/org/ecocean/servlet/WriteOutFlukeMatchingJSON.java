@@ -40,6 +40,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import com.google.gson.*;
 
+import org.ecocean.grid.GridManager;
+
 
 
 public class WriteOutFlukeMatchingJSON extends HttpServlet {
@@ -179,7 +181,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       int resultsSize = swirs.length;
       MatchObject[] matches = swirs;
 
-      //Arrays.sort(matches, new MatchComparator());
+      Arrays.sort(swirs, new FlukeMatchComparator(request));
       
       
       StringBuffer resultsJSON = new StringBuffer();
@@ -187,10 +189,10 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       //need stats
       //TBD cache these later so writes are faster
-      SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
-      SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
-      SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
-      SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
+      SummaryStatistics intersectionStats=GridManager.getIntersectionStats(request);
+      SummaryStatistics dtwStats=GridManager.getDTWStats(request);
+      SummaryStatistics proportionStats=GridManager.getProportionStats(request);
+      SummaryStatistics i3sStats=GridManager.getI3SStats(request);
       
       
       double intersectionStdDev=0.05;
@@ -230,7 +232,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
           
        String[] header= {"individualID", "encounterID", "overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion"};
-       jsonOut.append(gson.toJson(header)+"\n");
+       jsonOut.append(gson.toJson(header)+",\n");
        
        
        
@@ -259,7 +261,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(mo.getI3SMatchValue()));
         result.add(new JsonPrimitive(mo.getProportionValue()));
         
-        jsonOut.append(gson.toJson(result)+"\n");
+        jsonOut.append(gson.toJson(result)+",\n");
          
         
       }
