@@ -47,31 +47,25 @@ this.imageElement.style.opacity = '0.4';
     };
 
     //this rotates this much *more*... see also rotateTo
-    this.rotate = function(d) {
-        this.transform.rotate += d;
-        return this.doTransform();
+    this.rotate = function(r) {
+        return this.rotateTo(r + this.getRotation());
     };
-    this.rotateTo = function(d) {
-        var s = this.getScale();
-        this.transform.rotate = d;
+    this.rotateTo = function(r) {
+        this.setTransform(r, this.getScale(), this.getTranslateX(), this.getTranslateY());
         return this.doTransform();
     };
     this.scale = function(s) {
-        this.transform.scale *= s;
-        return this.doTransform();
+        return this.scaleTo(this.getScale() * s);
     };
     this.scaleTo = function(s) {
-        this.transform.scale = s;
+        this.setTransform(this.getRotation(), s, this.getTranslateX(), this.getTranslateY());
         return this.doTransform();
     };
     this.translate = function(x,y) {
-        this.transform.translate[0] += x;
-        this.transform.translate[1] += y;
-        return this.doTransform();
+        return this.translateTo(this.getTranslateX() + x, this.getTranslateY() + y);
     };
     this.translateTo = function(x,y) {
-        this.transform[0][2] = x;
-        this.transform[1][2] = y;
+        this.setTransform(this.getRotation(), this.getScale(), x, y);
         return this.doTransform();
     };
 
@@ -105,6 +99,12 @@ console.log('doTransform() -> %o', m);
     };
     this.getRotation = function() {
         return Math.atan2(this.transform[1][0], this.transform[0][0]);
+    };
+    this.getTranslateX = function() {
+        return this.transform[0][2];
+    };
+    this.getTranslateY = function() {
+        return this.transform[1][2];
     };
 
 
