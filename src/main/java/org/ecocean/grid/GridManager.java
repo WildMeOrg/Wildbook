@@ -23,6 +23,14 @@ import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.Shepherd;
 import org.ecocean.neural.TrainNetwork;
 
+//train weka
+import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instances;
+import weka.core.Instance;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.Evaluation;
+
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
@@ -63,6 +71,10 @@ public class GridManager {
   private static SummaryStatistics i3sStats=null;
   private static SummaryStatistics proportionStats=null;
   private static SummaryStatistics intersectionStats=null;
+  
+  //AdaBoost
+  private static AdaBoostM1 adaBoostClassifier=null;
+  private static Instances adaBoostInstances=null;
   
 
   //hold uncompleted scanWorkItems
@@ -605,6 +617,16 @@ public class GridManager {
   public static SummaryStatistics getProportionStats(HttpServletRequest request){
     if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
     return proportionStats;
+  }
+  
+  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, Instances instances){
+    if(adaBoostClassifier==null){adaBoostClassifier=TrainNetwork.getAdaBoostClassifier(request,getAdaBoostInstances(request));}
+    return adaBoostClassifier;
+  }
+  
+  public static Instances getAdaBoostInstances(HttpServletRequest request){
+    if(adaBoostInstances==null){adaBoostInstances=TrainNetwork.getAdaBoostInstances(request);}
+    return adaBoostInstances;
   }
     
 

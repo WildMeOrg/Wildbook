@@ -32,10 +32,6 @@ import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 import java.io.*;
 
-import org.neuroph.core.*;
-import org.neuroph.nnet.*;
-import org.neuroph.nnet.learning.*;
-import org.neuroph.core.data.*;
 import org.ecocean.grid.*;
 
 import java.util.Vector;
