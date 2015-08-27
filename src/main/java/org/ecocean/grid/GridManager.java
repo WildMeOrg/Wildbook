@@ -19,10 +19,15 @@
 
 package org.ecocean.grid;
 
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.Shepherd;
+import org.ecocean.neural.TrainNetwork;
 
 import javax.servlet.http.HttpServletRequest;
+
 import java.util.ArrayList;
+
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 public class GridManager {
 
@@ -52,6 +57,13 @@ public class GridManager {
   private String maxTriangleRotation = "10";
   private String C = "0.99";
   private String secondRun = "true";
+  
+  //SummaryStatistics
+  private static SummaryStatistics dtwStats=null;
+  private static SummaryStatistics i3sStats=null;
+  private static SummaryStatistics proportionStats=null;
+  private static SummaryStatistics intersectionStats=null;
+  
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -574,6 +586,27 @@ public class GridManager {
     return numProcessors;
 
   }
+  
+  public static SummaryStatistics getDTWStats(HttpServletRequest request){
+    if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
+    return dtwStats;
+  }
+  
+  public static SummaryStatistics getI3SStats(HttpServletRequest request){
+    if(i3sStats==null){i3sStats=TrainNetwork.getI3SStats(request);}
+    return i3sStats;
+  }
+  
+  public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
+    if(intersectionStats==null){intersectionStats=TrainNetwork.getIntersectionStats(request);}
+    return intersectionStats;
+  }
+  
+  public static SummaryStatistics getProportionStats(HttpServletRequest request){
+    if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
+    return proportionStats;
+  }
+    
 
 }
 
