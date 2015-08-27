@@ -755,7 +755,7 @@ public class TrainNetwork extends HttpServlet {
         
         
         //score I3S
-        if((i3sValue<=(i3sStats.getMean()+i3sStdDev*numI3SStdDev))){
+        if((i3sValue>0)&&(i3sValue<=(i3sStats.getMean()+i3sStdDev*numI3SStdDev))){
         //exceptionally strong score!
           if(i3sValue<=(i3sStats.getMean()-i3sStdDev*numI3SStdDev)){
             if(i3sHandicap>3){i3sHandicap=3;}
