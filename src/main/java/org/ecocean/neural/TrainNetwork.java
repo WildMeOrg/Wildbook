@@ -47,8 +47,10 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
+import weka.core.SerializationHelper;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
+import weka.classifiers.Classifier;
 
 
 public class TrainNetwork extends HttpServlet {
@@ -1036,6 +1038,32 @@ public class TrainNetwork extends HttpServlet {
       }
     
       }
+  
+    public static void serialieWekaClassifier(HttpServletRequest request, Classifier cls, String absolutePath){
+      
+   // serialize model
+      try {
+        weka.core.SerializationHelper.write(absolutePath, cls);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      
+    }
+    
+    private static Classifier deserialieWekaClassifier(HttpServletRequest request, String absolutePath){
+      
+   // serialize model
+      try {
+        return  (Classifier) weka.core.SerializationHelper.read(absolutePath);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return null;
+    }
+  
+  
 }
 	
 	
