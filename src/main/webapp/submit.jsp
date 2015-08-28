@@ -1,12 +1,15 @@
-<jsp:include page="headerfull.jsp" flush="true"/>
 
-<%@ page contentType="text/html; charset=utf-8" import="java.util.GregorianCalendar,
+<%@ page contentType="text/html; charset=utf-8" 
+		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
+<jsp:include page="header.jsp" flush="true"/>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -135,20 +138,25 @@ function validate() {
       return false;
     }
 
-		$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
-		var s = $('.social-photo-input');
-		if (s.length) {
-			var iframeUrl = 'SocialGrabFiles?';
-			s.each(function(i, el) {
-				iframeUrl += '&fileUrl=' + escape($(el).val());
-			});
+	//this is negated cuz we want to halt validation (submit action) if we are sending via background iframe --
+	// it will do the submit via on('load')
+	return !sendSocialPhotosBackground();
+}
+
+
+//returns true if we are sending stuff via iframe background magic
+function sendSocialPhotosBackground() {
+	$('#submit-button').prop('disabled', 'disabled').css('opacity', '0.3').after('<div class="throbbing" style="display: inline-block; width: 24px; vertical-align: top; margin-left: 10px; height: 24px;"></div>');
+	var s = $('.social-photo-input');
+	if (s.length < 1) return false;
+	var iframeUrl = 'SocialGrabFiles?';
+	s.each(function(i, el) {
+		iframeUrl += '&fileUrl=' + escape($(el).val());
+	});
 
 console.log('iframeUrl %o', iframeUrl);
-			document.getElementById('social_files_iframe').src = iframeUrl;
-			return false;  //on('load') for the iframe will do actual form submission
-		}
-
-		return true;
+	document.getElementById('social_files_iframe').src = iframeUrl;
+	return true;
 }
 </script>
 
@@ -319,22 +327,37 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 </script>
 
-<div id="main">
+<div class="container-fluid page-content" role="main">
 
-<div id="maincol-wide-solo" style="padding: 5px;">
+<div class="container maincontent">
+ 
+  <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
+      <h1 class="intro">Report an encounter</h1>
 
-<div id="maintext">
-  <h1 class="intro"><%=props.getProperty("submit_report")%>
-  </h1>
-</div>
+      <p>
+        Use the online form below to record the details of your encounter. Be as accurate and specific as possible. Please note that by submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.
+      </p>
+
+      <p class="bg-danger text-danger">
+        <strong>Note</strong>: The fields labelled in Red are required.
+      </p>
+  </div>
+  
+
+  <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
-<form id="encounterForm" action="EncounterForm" method="post" enctype="multipart/form-data"
-      name="encounter_submission" target="_self" dir="ltr" lang="en"
-      onsubmit="return false;">
+<form id="encounterForm" 
+	  action="EncounterForm" 
+	  method="post" 
+	  enctype="multipart/form-data"
+      name="encounter_submission" 
+      target="_self" dir="ltr" 
+      lang="en"
+      onsubmit="return false;"
+      class="form-horizontal"
+>
+      
 <div class="dz-message"></div>
-
-<p><%=props.getProperty("submit_overview")%>
-</p>
 
 
 
@@ -356,12 +379,27 @@ $('#social_files_iframe').on('load', function(ev) {
 
 	$('#encounterForm').append('<input type="hidden" name="social_files_id" value="' + j.id + '" />');
 	//now do actual submit
-	document.forms['encounterForm'].submit();
+	submitForm();
 });
 
 
-function socialPhotoGrab() {
+//this is a simple wrapper to this, as it is called from 2 places (so far)
+function submitForm() {
+	document.forms['encounterForm'].submit();
 }
+
+
+//we need to first check here if we need to do the background social image send... in which case,
+// we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+function sendButtonClicked() {
+console.log('sendButtonClicked()');
+	if (sendSocialPhotosBackground()) return false;
+console.log('fell through -- must be no social!');
+	submitForm();
+	return true;
+}
+
+
 
 
 function updateList(inp) {
@@ -389,19 +427,21 @@ function showUploadBox() {
 
 </script>
 
-<h3><strong><%=props.getProperty("submit_image")%></strong></h3>
-<p><%=props.getProperty("submit_pleaseadd")%>
-<div class="container-fluid">
-    <div class="row">
-        <ul id="social_image_buttons" class="list-inline" style="text-align: center;">
-            <li class="active">
-                <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()"
-                        style="background:url(images/computer.png);">
-                </button>
-            </li>
+
+<fieldset>
+<h3><%=props.getProperty("submit_image")%></h3>
+<p><%=props.getProperty("submit_pleaseadd")%></p>
+	<div class="center-block">
+        <ul id="social_image_buttons" class="list-inline text-center">
+          <li class="active">
+              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
+              </button>
+          </li>
+    
         </ul>
     </div>
-    <div class="row" >
+    
+    <div>
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
             <div><%=props.getProperty("dragInstructionsIE")%></div>
@@ -419,68 +459,81 @@ function showUploadBox() {
             </div>
         </div>
     </div>
+
+</fieldset>
+
+<hr />
+
+<fieldset>
+<h3><%=props.getProperty("dateAndLocation")%></h3>
+
+<div class="form-group required">
+
+    <div class="form-group required">
+      
+      <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <label class="control-label text-danger">Encounter date</label>
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 </div>
-<br />
-<h3><strong><%=props.getProperty("dateAndLocation")%></strong></h3>
 
-<p><%=props.getProperty("submit_note_red")%>
+      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <p class="help-block">
+          Examples:
+          <ul>
+            <li>2014-01-05 12:30</li>
+            <li>2014-03-23</li>
+            <li>2013-12</li>
+            <li>2010</li>
+          </ul>
+        </p>
+      </div>
 
-<table id="encounter_report" style="border:0">
-<tr class="form_row">
-  <td class="form_label" style="border-bottom: #ffffff;"><strong><font color="#CC0000"><%=props.getProperty("submit_date")%></font></strong>
-  </td>
-  <td style="border-bottom: #ffffff;">
-  
-     <input type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-
-    </td>
-    <td style="border-bottom: #ffffff;">
-    <%=props.getProperty("examples") %>
-    <ul>
-    <li>2014-01-05 12:30</li>
-    <li>2014-03-23</li>
-    <li>2013-12</li>
-    <li>2010</li>
-    </ul>
-    
-    </td>
-</tr>
+    </div>
 
 <%
 if(CommonConfiguration.showReleaseDate(context)){
 %>
-
-    <tr class="form_row">
-    <td class="form_label" style="border-bottom: #ffffff;"><strong><%=props.getProperty("submit_releasedate") %>:</strong></td>
-    <td colspan="2" style="border-bottom: #ffffff;">  
-        <input type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20" />
-    </td>
-    </tr>
+    
+    <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
+        <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
+      </div>
+    
 <%
 }
 %>
 
+</fieldset>
 
+<hr />
 
+<fieldset>
+    <h3><%=props.getProperty("submit_location")%></h3>
 
-<tr>
-  <td class="form_label" rowspan="7" style="border-bottom: #ffffff;"><strong><font
-    color="#CC0000"><%=props.getProperty("submit_location")%></font></strong></td>
-    </tr>
+    <div class="form-group required">  
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label text-danger"><%=props.getProperty("where") %></label>
+      </div>
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+        <input name="location" type="text" id="location" size="40" class="form-control">
+      </div>
+    </div>
     
-    <tr>
-  <td ><em><%=props.getProperty("where") %></em><br /><input name="location" type="text" id="location" size="40"/></td>
-</tr>
+
 <%
 //add locationID to fields selectable
 
 
 if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
 %>
-<tr>
-            <td class="form_label1"><em><%=props.getProperty("locationID")%></em><br />
-              <select name="locationID" id="locationID">
-                  <option value="" selected="selected"></option>
+    <div class="form-group required">
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label">Was this one of our study sites?</label>
+      </div>
+      
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+        <select name="locationID" id="locationID" class="form-control">
+            <option value="" selected="selected"></option>
                   <%
                          boolean hasMoreLocationsIDs=true;
                          int locNum=0;
@@ -502,20 +555,22 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
                        
      %>
       </select>
-    
-</td>
-    </tr>
+      </div>
+    </div>
 <%
 }
 
 if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
-        <tr >
-            <td class="form_label1"><em><%=props.getProperty("country")%></em></td>
-        <td>
-              <select name="country" id="country">
-                  <option value="" selected="selected"></option>
+          <div class="form-group required">
+      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+        <label class="control-label"><%=props.getProperty("country") %></label>
+      </div>
+      
+      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+        <select name="locationID" id="locationID" class="form-control">
+            <option value="" selected="selected"></option>
                   <%
                          boolean hasMoreCountries=true;
                          int taxNum=0;
@@ -536,20 +591,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                        }
                        
      %>
-      </select>
-    
-</td>
-    </tr>
-    
-    
-    
+   </select>
+      </div>
+    </div>
 
 <%
 }  //end if showCountry
 
 %>
 
-<tr><td colspan="2">
+<div>
     <p id="map">
     <!--  
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
@@ -558,60 +609,53 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     -->
     <p id="map_canvas" style="width: 578px; height: 383px; "></p>
     <p id="map_overlay_buttons"></p>
-</td>
-</tr>
+</div>
 
-<tr>
-        <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_gpslatitude")%></em>
-        <input name="lat" type="text" id="lat" size="10" />
-        &deg;
-        &nbsp;<em><%=props.getProperty("submit_gpslongitude")%></em>
-            <input name="longitude" type="text" id="longitude" size="10" /> &deg;
+    <div>
+      <div class=" form-group form-inline">
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label pull-left">GPS Latitude</label>
+          <input class="form-control" name="lat" type="text" id="lat"> ??
+        </div>
 
-        <br/><br /> <%=props.getProperty("gpsConverter") %><br /><br />
-        </td>
-    </tr>
+        <div class="col-xs-12 col-sm-6">
+          <label class="control-label  pull-left">GPS Longitude</label>
+          <input class="form-control" name="longitude" type="text" id="longitude"> ??
+        </div>
+      </div>
+
+      <p class="help-block">
+        GPS coordinates are in the decimal degrees format. Do you have GPS coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+      </p> 
+    </div>
     
     
-          <%
-
-
-
+<%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
-<tr class="">
-  <td colspan="2"><em><%=props.getProperty("submit_depth")%></em> 
-<input name="depth" type="text" id="depth" size="10" />
-  &nbsp;<%=props.getProperty("submit_meters")%> <br />
-    </td>
-</tr>
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
+      <input class="form-control" name="depth" type="text" id="depth">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+    </div>
 <%
 }
 
 if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
-<tr>
-  <td class="form_label1" colspan="2"><em><%=props.getProperty("submit_elevation")%></em> 
-<input name="elevation" type="text" id="elevation" size="10" />
-  &nbsp;<%=props.getProperty("submit_meters")%>
- 
-    </td>
-</tr>
+ <div class="form-inline">
+      <label class="control-label"><%=props.getProperty("submit_elevation")%></label>
+      <input class="form-control" name="elevation" type="text" id="elevation">
+      &nbsp;<%=props.getProperty("submit_meters")%> <br>
+    </div>
 <%
 }
 %>
 
-</table>
-<br />
-<h3><strong><%=props.getProperty("aboutYou")%></strong></h3>
+</fieldset>
+<hr />
 
-<table style="border:0;">
-<tr>
-    <td class="you" colspan="2"><strong><%=props.getProperty("submit_contactinfo")%>*</strong></td>
-    <td class="photo" colspan="2"><strong><%=props.getProperty("submit_contactphoto")%>
-    </strong><br/><%=props.getProperty("submit_ifyou")%>
-    </td>
-  </tr>
+
     <%
     //let's pre-populate important info for logged in users
     String submitterName="";
@@ -630,67 +674,142 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         }
     }
     %>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_name")%></font></td>
-    <td><input name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName%>"/></td>
-    <td><%=props.getProperty("submit_name")%></td>
-    <td><input name="photographerName" type="text" id="photographerName" size="24"/></td>
-  </tr>
-  <tr>
-    <td><font color="#CC0000"><%=props.getProperty("submit_email")%></font></td>
+ 
 
-    <td><input name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>"/></td>
-    <td><%=props.getProperty("submit_email")%>:</td>
-    <td><input name="photographerEmail" type="text" id="photographerEmail" size="24"/></td>
-  </tr>
-</table>
-<table style="border:0;">
-  <tr>
-    <td ><br /><strong><%=props.getProperty("submitterOrganization")%></strong><br />
-    <input name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation%>"/>
-    </td>
-  </tr>
+
+  <fieldset>
+    <div class="row">  
+      <div class="col-xs-12 col-lg-6">
+        <h3>About You</h3>
+        <p class="help-block">Your contact information</p>
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="text-danger control-label">Name</label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
+          </div>
+        </div>
+
+        <div class="form-group form-inline">
+
+          <div class="col-xs-6 col-md-4">
+            <label class="text-danger control-label">Email</label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>">
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xs-12 col-lg-6">
+        <h3>About the photographer</h3>
+        <p class="help-block">
+          If you didn't take these pictures
+        </p>
+        
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Name</label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="photographerName" type="text" id="photographerName" size="24">
+          </div>
+        </div>
+
+        <div class="form-group form-inline">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Email</label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </fielset>
+
+  <hr/>
+
+  <fieldset>
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label">Organization</label>
+      </div>
+
+      <div class="col-xs-6 col-lg-8">
+        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label">Project</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
+      </div>
+    </div>
+        
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label">Additional comments</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+      </div>
+    </div>
+  </fieldset>
+ 
+ 
+ 
   
-    <tr>
-      <td><br /><strong><%=props.getProperty("submitterProject")%></strong><br />
-      <input name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project%>"/>
-      </td>
-  </tr>
-  <tr>
-  <td><br><strong><%=props.getProperty("submit_comments")%></strong><br><textarea name="comments" cols="75" id="comments"
-                            rows="5"></textarea></td>
-</tr>
-  </table>
-  
-  <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none"><img
-      src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=props.getProperty("advancedInformation") %></font></a></h4>
+  <h4 class="accordion">
+    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+      <img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+      <%=props.getProperty("advancedInformation") %>
+    </a>
+  </h4>
 
-<div id="advancedInformation" style="display:none;">
-<table style="border:0;">
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_sex")%>:</strong></td>
-  <td colspan="2" class="form_label"><label> <input type="radio" name="sex"
-                                 value="male"/> <%=props.getProperty("submit_male")%>
-  </label> <label>
-    <input type="radio" name="sex" value="female"/> <%=props.getProperty("submit_female")%>
-  </label>
+    <div id="advancedInformation" fade="1" style="display: none;">
+    
+      <h3>About the animal</h3>
+      
+      <fieldset>
+      
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Sex</label>
+          </div>
 
-    <label> <input name="sex" type="radio" value="unknown"
-                   checked="checked"/> <%=props.getProperty("submit_unknown")%>
-    </label></td>
-</tr>
+          <div class="col-xs-6 col-lg-8">
+            <label class="radio-inline"> 
+              <input type="radio" name="sex" value="male"> Male
+            </label> 
+            <label class="radio-inline">
+              <input type="radio" name="sex" value="female"> Female
+            </label>
+            <label class="radio-inline"> 
+              <input name="sex" type="radio" value="unknown" checked="checked"> Unknown
+            </label>
+          </div>
+        </div>
+        </fieldset>
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("species")%></strong></td>
-  <td colspan="2">
-  <select name="genusSpecies" id="genusSpecies">
-      <option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+<fieldset>
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Species</label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	<option value="" selected="selected">unknown</option>
   <%
                      boolean hasMoreTax=true;
                      int taxNum=0;
@@ -699,7 +818,6 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
                            String currentGenuSpecies = "genusSpecies"+taxNum;
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
                                %>
-                                
                                  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
                                <%
                              taxNum++;
@@ -711,34 +829,59 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
                    }
                    }
  %>
-  </select></td>
-</tr>
-<%
+  </select>
+    </div>
+        </div>
+     
+        <%
 }
 
 %>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("status") %></strong></td>
-  <td colspan="2"><select name="livingStatus" id="livingStatus">
-    <option value="alive" selected="selected">Alive</option>
-    <option value="dead">Dead</option>
-  </select></td>
-</tr>
+  <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Status</label>
+          </div>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_behavior")%></strong></td>
-  <td colspan="2">
-    <input name="behavior" type="text" id="scars" size="75"/></td>
-</tr>
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="livingStatus" id="livingStatus">
+              <option value="alive" selected="selected">Alive</option>
+              <option value="dead">Dead</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Observed behavior</label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+          </div>
+        </div>
+        
+        
+           <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label">Noticeable scarring</label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8"> 
+            <input class="form-control" name="scars" type="text" id="scars" size="75">
+          </div>
+        </div>
+        
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("lifeStage")%></strong></td>
-  <td colspan="2">
+<div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("lifeStage") %></label>
+          </div>
+          <div class="col-xs-6 col-lg-8">
   <select name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
   <%
@@ -761,22 +904,34 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
                    }
                    
  %>
-  </select></td>
-</tr>
+  </select>   
+  </div>
+        </div>
+       
+         
 <%
 }
 %>
+
+
+
+</fieldset>
 <%
     pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurements}">
+<hr>
+ <fieldset>
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("measurements")%>:</strong></td>
-  <td colspan="2">
+
+ <div class="form-group">
+           <h3>Measurements</h3>
+
+
+<div class="col-xs-12 col-lg-8"> 
   <table class="measurements">
   <tr>
   <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
@@ -798,10 +953,19 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     </tr>
   </c:forEach>
   </table>
-  </td>
-</tr>
+   </div>
+        </div>
+         </fieldset>
 </c:if>
-<%
+
+ 
+
+
+      <hr/>
+      
+       <fieldset>
+        <h3>Tags</h3>
+      <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
@@ -809,9 +973,13 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 
 <c:if test="${showMetalTags and !empty metalTags}">
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("physicalTags") %></strong></td>
-  <td colspan="2">
+
+ <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label><%=props.getProperty("physicalTags") %></label>
+          </div>
+
+<div class="col-xs-12 col-lg-8"> 
     <table class="metalTags">
     <tr>
       <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
@@ -823,14 +991,16 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </tr>
     </c:forEach>
     </table>
-  </td>
-</tr>
+  </div>
+  </div>
 </c:if>
 
 <c:if test="${showAcousticTag}">
-<tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("acousticTag") %></strong></td>
-    <td colspan="2">
+ <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label><%=props.getProperty("acousticTag") %></label>
+          </div>
+<div class="col-xs-12 col-lg-8"> 
       <table class="acousticTag">
       <tr>
       <td><%=props.getProperty("serialNumber") %></td>
@@ -841,17 +1011,19 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         <td><input name="acousticTagId"/></td>
       </tr>
       </table>
-    </td>
-</tr>
+    </div>
+    </div>
 </c:if>
 
 <c:if test="${showSatelliteTag}">
+ <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label><%=props.getProperty("satelliteTag") %></label>
+          </div>
 <%
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
-<tr class="form_row">
-    <td class="form_label"><strong><%=props.getProperty("satelliteTag") %></strong></td>
-    <td colspan="2">
+<div class="col-xs-12 col-lg-8"> 
       <table class="satelliteTag">
       <tr>
         <td><%=props.getProperty("name") %></td>
@@ -872,50 +1044,45 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         <td><input name="satelliteTagArgosPttNumber"/></td>
       </tr>
       </table>
-    </td>
-</tr>
+    </div>
+    </div>
 </c:if>
+      
+      </fieldset>
 
-<tr class="form_row">
-  <td class="form_label"><strong><%=props.getProperty("submit_scars")%>:</strong></td>
-  <td colspan="2">
-    <input name="scars" type="text" id="scars" size="75"/></td>
-</tr>
-
-<tr>
-  <td></td>
-  <td></td>
-  <td></td>
-</tr>
-</table>
-<table id="encounter_contact">
-  
-
-  <tr>
-    <td colspan="4"><br /><strong><%=props.getProperty("otherEmails")%></strong><br />
-    <input name="informothers" type="text" id="informothers" size="75"/>
-    </td>
-  </tr>
-  
-</table>
-<p><em><%=props.getProperty("multipleEmailNote")%></em>.</p>
 <hr/>
-</div>
+        
+      <div class="form-group">  
+        <label class="control-label">Other email addresses to inform of resightings and status</label>
+        <input class="form-control" name="informothers" type="text" id="informothers" size="75">
+        <p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
+      </div>
+      </div>
+
+      <p class="text-center">
+        <button class="large" type="submit" onclick="return sendButtonClicked();">
+          Send encounter report 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+      </p>
 
 
 <p>&nbsp;</p>
-<%if (request.getRemoteUser() != null) {%> <input name="submitterID"
-                                                  type="hidden"
-                                                  value="<%=request.getRemoteUser()%>"/> <%} else {%>
-<input
-  name="submitterID" type="hidden" value="N/A"/> <%}%>
-<p align="center">
-<button id="submit-button" onclick="if (validate()) {document.forms['encounterForm'].submit();}"><%=props.getProperty("submit_send")%></button>
-</p>
+<%if (request.getRemoteUser() != null) {%> 
+	<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/> 
+<%} 
+else {%>
+	<input name="submitterID" type="hidden" value="N/A"/> 
+<%
+}
+%>
+
 
 <p>&nbsp;</p>
 </form>
+
 </div>
-<!-- end maintext --></div>
-<!-- end maincol -->
-<jsp:include page="footerfull.jsp" flush="true"/>
+</div>
+</div>
+
+<jsp:include page="footer.jsp" flush="true"/>

@@ -1,70 +1,178 @@
 <!--
-  ~ Wild Me - A Mark-Recapture Framework
-  ~ Copyright (C) 2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  ~ Wild Me - A Mark-Recapture Framework  ~ Copyright (C) 2014 Jason Holmberg
+  ~  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.  ~
+  ~ This program is distributed in the hope that it will be useful,  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the  ~ GNU General Public License for more details.
+  ~  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html>
-<head>
-  <title>Results</title>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <link href="CSSURL" rel="stylesheet" type="text/css"/>
-</head>
+  xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Wildbook </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="images/favicon.ico" />
+    <link href="http://fonts.googleapis.com/css?family=Oswald:400,300,700" rel="stylesheet"
 
+      type="text/css" />
+    <link rel="stylesheet" href="cust/mantamatcher/css/manta.css" />
+    <link href="tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css" />
+    <link href="tools/hello/css/zocial.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="tools/jquery-ui/css/themes/smoothness/jquery-ui.css"
 
-<body>
+      type="text/css" />
+    <script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
+    <script type="text/javascript" src="tools/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="javascript/core.js"></script>
+    <script type="text/javascript" src="tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="tools/hello/javascript/hello.all.js"></script>
+    <script type="text/javascript" src="JavascriptGlobals.js"></script>
+    <script type="text/javascript" src="javascript/collaboration.js"></script>
+    <script type="text/javascript" src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>
+    <script type="text/javascript" src="cust/mantamatcher/js/behaviour.js"></script>
+  </head>
+  <body>
+    <!-- ****header**** -->
+    <header class="page-header clearfix">
+      <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="header-top-wrapper">
+          <div class="container"> <a href="http://www.wildme.org" id="wild-me-badge">A
+              Wild me project</a>
+            <div class="search-and-secondary-wrapper">
+              <ul class="secondary-nav hor-ul no-bullets">
+                <li><a href="welcome.jsp" title="">Login</a></li>
+                <!--  
+                      <li><a href="#" title="">English</a></li>                     -->
+                <li><a href="http://www.wildme.org/wildbook" target="_blank">v.${pom.version}</a></li>
+              </ul>
+              <div class="search-wrapper"> <label class="search-field-header">
+                  <form name="form2" method="get" action="http://localhost:8080/wildbook-5.4.0-DEVELOPMENT/individuals.jsp">
+                    <input type="text" id="search-site" placeholder="nickname or animal id, encounter nr., etc."
 
-<div id="wrapper">
-<div id="page">
-<div id="main">
+                      class="search-query form-control navbar-search ui-autocomplete-input"
 
-	<div id="maincol-wide-solo">
-<center>
-  <table BORDER="0" CELLPADDING="0" CELLSPACING="0">
-    <tr>
-      <td><img src="TOPGRAPHIC" width="810" height="150"/></td>
-    </tr>
-  </table>
-</center>
-<br>
-<center>
-  <table width="720">
-    <tr>
-      <td>
-        <p align="left">
+                      autocomplete="off" name="number" /> <input type="hidden"
 
-        <h1 class="intro">Action results</h1>
-        </p>
-        <p align="left">INSERT_HERE</p>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <p align="left"><img src="BOTTOMGRAPHIC"/></p>
-      </td>
-    </tr>
-  </table>
-</center>
-</div>
-</div>
-</div>
-<br />
-<br />
-</div>
-</body>
+                      name="langCode" value="en" /> <input type="submit" value="search" />
+                  </form>
+                </label> </div>
+            </div>
+            <a class="navbar-brand" target="_blank" href="http://www.wildme.org/wildbook">Wildbook
+              for Mark-Recapture Studies</a> </div>
+        </div>
+        <div class="nav-bar-wrapper">
+          <div class="container">
+            <div class="navbar-header clearfix"> <button type="button" class="navbar-toggle collapsed"
+
+                data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+
+                aria-controls="navbar"> <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span> <span class="icon-bar"></span> <span
+
+                  class="icon-bar"></span> </button> </div>
+            <div id="navbar" class="navbar-collapse collapse">
+              <ul class="nav navbar-nav">
+                <!--                -->
+                <li class="active home text-hide"><a href="index.jsp">Home</a></li>
+                <li><a href="submit.jsp">Report an encounter</a></li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Learn <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li class="dropdown"><a href="overview.jsp">About Your
+                        Project</a></li>
+                    <li><a href="photographing.jsp">How to Photograph</a></li>
+                    <li><a target="_blank" href="http://www.wildme.org/wildbook">Learn
+                        about Wildbook</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Participate <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="adoptananimal.jsp">Adoption</a></li>
+                    <li><a href="userAgreement.jsp">User Agreement</a></li>
+                    <!--  examples of navigation dividers
+                          <li class="divider"></li>                          <li class="dropdown-header">Nav header</li>
+                           -->
+                  </ul>
+                </li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="individualSearchResults.jsp">View All</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Encounters <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li class="dropdown-header">By State</li>
+                    <!-- list encounters by state -->
+                    <li><a href="encounters/searchResults.jsp?state=unapproved">View
+                        Unapproved Encounters</a></li>
+                    <li><a href="encounters/searchResults.jsp?state=approved">View
+                        Approved Encounters</a></li>
+                    <li><a href="encounters/searchResults.jsp?state=unidentifiable">View
+                        Unidentifiable Encounters</a></li>
+                    <li class="divider"><br />
+                    </li>
+                    <li><a href="encounters/thumbnailSearchResults.jsp?noQuery=true">View
+                        Images</a></li>
+                    <li><a href="xcalendar/calendar.jsp">Encounter Calendar</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Search <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                    <li><a href="encounters/encounterSearch.jsp">Encounter
+                        Search</a></li>
+                    <li><a href="individualSearch.jsp">Individual Search</a></li>
+                    <li><a href="encounters/searchComparison.jsp">Search
+                        Comparison</a></li>
+                  </ul>
+                </li>
+                <li> <a href="contactus.jsp">Contact Us </a> </li>
+                <li class="dropdown"> <a href="#" class="dropdown-toggle" data-toggle="dropdown"
+
+                    role="button" aria-expanded="false">Administer <span class="caret"></span></a>
+                  <ul class="dropdown-menu" role="menu">
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </header>
+    <!-- ****/header**** -->
+    <div class="container maincontent">
+      <h1 class="intro">Action results</h1>
+      <p align="left">INSERT_HERE</p>
+      <!-- end maintext --> </div>
+    <!-- footer -->
+    <footer class="page-footer">
+      <div class="container-fluid">
+        <div class="container main-section">
+          <hr />
+          <div class="row">
+            <p class="col-sm-8 col-md-8 col-lg-8"> <small>This software is
+                distributed under the GPL v3 license and is intended to support
+                mark-recapture field studies.</small> </p>
+            <a title="This site is Powered by Wildbook" class="col-sm-4 col-md-4 col-lg-4"
+
+              href="http://www.wildme.org/wildbook"> <img class="pull-right" alt=" logo"
+
+                src="images/logo_wildbook.jpg" /> </a> </div>
+        </div>
+      </div>
+    </footer>
+    <!-- /footer -->
+  </body>
 </html>

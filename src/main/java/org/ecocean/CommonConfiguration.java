@@ -21,22 +21,29 @@ package org.ecocean;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import javax.servlet.ServletContext;
+
+
 
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
-
+  
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
-
+  
   //class setup
   //private static Properties props = new Properties();
-
+  
   //private static volatile int propsSize = 0;
-
+  
   //private static String currentContext;
 
 
@@ -48,8 +55,9 @@ public class CommonConfiguration {
   }
 
 
-
+  
   public static synchronized Properties loadProps(String context) {
+      InputStream resourceAsStream = null;
       Properties props=new Properties();
       try {
         //resourceAsStream = CommonConfiguration.class.getResourceAsStream("/bundles/" + COMMON_CONFIGURATION_PROPERTIES);
@@ -63,8 +71,8 @@ public class CommonConfiguration {
 
     return props;
   }
-
-
+  
+  
 
   private static Properties loadOverrideProps(String shepherdDataDir) {
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
@@ -77,7 +85,7 @@ public class CommonConfiguration {
       //System.out.println("Fixing the bin issue in CommonConfiguration.");
       //System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
     }
-
+    
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
@@ -110,10 +118,49 @@ public class CommonConfiguration {
     return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
   }
 
-  public static String getMailHost(String context) {
-    return getProperty("mailHost", context).trim();
+
+  /**
+   * Utility method to return a {@code URI} instance for the specified
+   * context path of the server relating to the servlet request.
+   * This method ensures all appropriate encoding is performed for the respective
+   * parts of the URI.
+   * @param req HttpServletRequest for which to return server root URI
+   * @param contextPath context path for the URI (must start with '/')
+   * @return URI for the specified context path
+   * @throws URISyntaxException if thrown when creating URI
+   */
+  public static URI getServerURI(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return new URI(req.getScheme(), null, req.getServerName(), req.getServerPort(), contextPath, null, null).normalize();
   }
 
+  /**
+   * Utility method to return a URL string for the specified
+   * context path of the server relating to the servlet request.
+   * This method ensures all appropriate encoding is performed for the respective
+   * parts of the URI.
+   * @param req HttpServletRequest for which to return server root URL
+   * @param contextPath context path for the URI (must start with '/')
+   * @return URI string for the server's root (without context path)
+   * @throws URISyntaxException if thrown when creating URI
+   */
+  public static String getServerURL(HttpServletRequest req, String contextPath) throws URISyntaxException {
+    return getServerURI(req, contextPath).toASCIIString();
+  }
+
+  
+  public static String getMailHost(String context) {
+    String s = getProperty("mailHost", context);
+    return s != null ? s.trim() : s;
+  }
+
+  public static boolean getMailHostSslOption(String context) {
+    return parseBoolean(getProperty("mailHostSSL",context), false);
+  }
+
+  public static String getMailAuth(String context) {
+    String s = getProperty("mailAuth", context);
+    return s != null ? s.trim() : s;
+  }
 
   public static String getWikiLocation(String context) {
     Properties props=initialize(context);
@@ -156,10 +203,10 @@ public class CommonConfiguration {
   public static String getHTMLDescription(String context) {
     return getProperty("htmlDescription",context).trim();
   }
-
+  
   public static int getMaxMediaSizeInMegabytes(String context){
     int maxSize=10;
-
+    
     try{
       String sMaxSize=getProperty("maxMediaSize", context);
       if(sMaxSize!=null){
@@ -228,7 +275,7 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-
+  
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
@@ -237,19 +284,19 @@ public class CommonConfiguration {
     Properties myProps=initialize(context);
     //System.out.println(myProps.toString());
     ArrayList<String> returnThese=new ArrayList<String>();
-
+    
     //System.out.println("Looking for: "+propertyPrefix);
-
+    
     int iter=0;
     while(myProps.getProperty(propertyPrefix+iter)!=null){
       //System.out.println("Found: "+propertyPrefix+iter);
       returnThese.add(myProps.getProperty((propertyPrefix+iter)));
       iter++;
     }
-
+    
     return returnThese;
   }
-
+  
 
   /*
    * This method is used to determined the show/hide condition of an element of the UI.
@@ -278,6 +325,70 @@ public class CommonConfiguration {
     }
     return canAdopt;
   }
+  
+  
+  /**
+   * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
+   *
+   * @return true if batch upload functionality should be displayed. False if batch upload are not supported in this catalog.
+   */
+  public static boolean allowBatchUpload(String context) {
+    return parseBoolean(getProperty("allowBatchUpload",context), false);
+  }
+
+
+  
+  /**
+   * Helper method to parse boolean from string.
+   * @param s string to parse
+   * @param def default value
+   * @return true if s is one of { true, yes, ok, 1 }
+   */
+  private static boolean parseBoolean(String s, boolean def) {
+    if (s == null)
+      return def;
+    String prop = s.trim().toLowerCase(Locale.US);
+    if ("true".equals(prop) || "yes".equals(prop) || "ok".equals(prop) || "1".equals(prop)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * This configuration option defines the class name of the batch data plugin
+   * to use (must implement {@link org.ecocean.batch.BatchProcessorPlugin}).
+   *
+   * @return Fully-qualified class name of the plugin to use, or null.
+   */
+  public static String getBatchUploadPlugin(String context) {
+    //initialize(context);
+    if (getProperty("batchUploadPlugin", context) != null) {
+      return getProperty("batchUploadPlugin", context).trim();
+    }
+    return null;
+  }
+
+  /**
+   * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
+   *
+   * @return true if batch upload functionality should be displayed. False if batch upload are not supported in this catalog.
+   */
+  public static int getBatchUploadProgressRefresh(String context) {
+    initialize(context);
+    int def = 10;
+    String prop = getProperty("batchUploadProgressRefresh", context);
+    if (prop == null || "".equals(prop.trim())) {
+      return def;
+    }
+    try {
+      return Integer.parseInt(prop.trim());
+    } catch (NumberFormatException ex) {
+      return def;
+    }
+  }
+
+
+  
 
   public static boolean sendEmailNotifications(String context) {
     initialize(context);
@@ -357,23 +468,23 @@ public class CommonConfiguration {
     }
     return useTapirLink;
   }
-
+  
   public static boolean showMeasurements(String context) {
     return showCategory("showMeasurements",context);
   }
-
+  
   public static boolean showMetalTags(String context) {
     return showCategory("showMetalTags",context);
   }
-
+  
   public static boolean showAcousticTag(String context) {
     return showCategory("showAcousticTag",context);
   }
-
+  
   public static boolean showSatelliteTag(String context) {
     return showCategory("showSatelliteTag",context);
   }
-
+  
   public static boolean showReleaseDate(String context) {
     return showCategory("showReleaseDate",context);
   }
@@ -385,6 +496,26 @@ public class CommonConfiguration {
       originalString=originalString.replaceAll("REMOVEME",("\n\n" + getProperty("removeEmailString",context) + "\nhttp://" + getURLLocation(request) + "/removeEmailAddress.jsp?hashedEmail=" + Encounter.getHashOfEmailString(emailAddress)));
     }
     return originalString;
+  }
+
+  public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
+    Map<String, String> map = new TreeMap<>();
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index++;
+      String value = CommonConfiguration.getProperty(key, context);
+      if (value != null) {
+        value = value.trim();
+        if (value.length() > 0) {
+          map.put(key, value.trim());
+        }
+      }
+      else {
+        hasMore = false;
+      }
+    }
+    return map;
   }
 
   public static List<String> getIndexedValues(String baseKey, String context) {
@@ -406,7 +537,7 @@ public class CommonConfiguration {
     }
     return list;
   }
-
+  
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
@@ -427,28 +558,28 @@ public class CommonConfiguration {
     }
     return null;
   }
-
-
+  
+  
   private static boolean showCategory(final String category, String context) {
     String showMeasurements = getProperty(category,context);
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
 
-
-
+  
+  
   public static String getDataDirectoryName(String context) {
     initialize(context);
     String dataDirectoryName="shepherd_data_dir";
-
+    
     //new context code here
-
+    
     //if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
-
+    
     if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){dataDirectoryName=ContextConfiguration.getDataDirForContext(context);}
-
+    
     return dataDirectoryName;
   }
-
+  
   /**
    * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
    *
@@ -462,10 +593,57 @@ public class CommonConfiguration {
     }
     return showUsersToPublic;
   }
+  
+  /**
+   * Gets the directory for holding website data ('shepherd_data_dir').
+   * @param sc ServletContext as reference for finding directory
+   * @return The data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getDataDirectory(ServletContext sc, String context) throws FileNotFoundException {
+    String webappRoot = sc.getRealPath("/");
+    File dataDir = new File(webappRoot).getParentFile();
+    File f = new File(dataDir, getDataDirectoryName(context));
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
 
+  /**
+   * Gets the directory for holding user-specific data folders (i.e. parent
+   * folder of each user-specific folder).
+   * @param sc ServletContext as reference for finding directory
+   * @return The user-specific data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getUsersDataDirectory(ServletContext sc, String context) throws FileNotFoundException {
+    File f = new File(getDataDirectory(sc, context), "users");
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
 
+  /**
+   * Gets the directory for holding user-specific data (e.g. profile photo).
+   * @param sc ServletContext as reference for finding directory
+   * @param username username for which to locate directory
+   * @return The user-specific data directory used for web application storage.
+   * @throws FileNotFoundException if folder not found (or unable to create)
+   */
+  public static File getDataDirectoryForUser(ServletContext sc, String username, String context) throws FileNotFoundException {
+    if (username == null)
+      throw new NullPointerException();
+    if ("".equals(username.trim()))
+      throw new IllegalArgumentException();
+    File f = new File(getUsersDataDirectory(sc, context), username);
+    if (!f.exists() && !f.mkdir())
+      throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
+    return f;
+  }
+  
+  
   public static boolean isIntegratedWithWildMe(String context){
-
+    
     initialize(context);
     boolean integrated = true;
     if ((getProperty("isIntegratedWithWildMe",context) != null) && (getProperty("isIntegratedWithWildMe",context).equals("false"))) {
@@ -473,6 +651,6 @@ public class CommonConfiguration {
     }
     return integrated;
   }
-
-
+  
+  
 }

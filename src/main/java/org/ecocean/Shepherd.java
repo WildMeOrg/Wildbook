@@ -26,8 +26,6 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 
-import com.ecostats.flukes.Fluke;
-
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
 
@@ -97,7 +95,8 @@ public class Shepherd {
   //public PersistenceManagerFactory getPMF() {
   //  return pmf;
   //}
- 
+
+
   /**
    * Stores a new, unassigned encounter in the database for later retrieval and analysis.
    * Each new encounter is assigned a unique number which is also its unique retrievable ID in the database.
@@ -309,7 +308,8 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
-  } 
+  }
+  
   
   
   public Relationship getRelationship(String type, String indie1,String indie2) {
@@ -653,7 +653,7 @@ public class Shepherd {
     Iterator keywords = getAllKeywords();
 	while (keywords.hasNext()) {
       Keyword kw = (Keyword) keywords.next();
-      if((kw.getReadableName().trim().equals(readableName.trim()))||(kw.getIndexname().trim().equals(readableName.trim()))){return kw;}
+      if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
 
@@ -3142,6 +3142,110 @@ public class Shepherd {
     Collection c = (Collection) (samples.execute());
     if((c!=null)&&(c.size()>0)){return c.iterator();}
     else{return null;}
+  }
+  
+  public User getRandomUserWithPhotoAndStatement(){
+    //(username.toLowerCase().indexOf('demo') == -1)
+    String filter = "fullName != null && userImage != null && userStatement != null && (username.toLowerCase().indexOf('demo') == -1) && (username.toLowerCase().indexOf('test') == -1)";
+    Extent encClass = pm.getExtent(User.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<User> matchingUsers=new ArrayList<>(c);
+      q.closeAll();
+      int numUsers=matchingUsers.size();
+      Random rn = new Random();
+      int userNumber = rn.nextInt(numUsers);
+      return matchingUsers.get(userNumber);
+    }
+    q.closeAll();
+    return null;
+  }
+  
+  public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
+    ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
+    String filter = "individualID != null";
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setOrdering("dwcDateAddedLong descending");
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      
+      int numAdded=0;
+      while(numAdded<numToReturn){
+        ArrayList<Encounter> results=new ArrayList<Encounter>(c); 
+        matchingEncounters.add(results.get(numAdded));
+        numAdded++;
+      }
+      
+    }
+    
+    q.closeAll();
+    return matchingEncounters;
+  }
+  
+  public Map<String,Integer> getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(long startTime){
+
+    
+    Map<String,Integer> matchingUsers=new HashMap<String,Integer>();
+    
+    
+    String filter = "submitterID != null && dwcDateAddedLong >= "+startTime;
+    System.out.println("     My filter is: "+filter);
+    Extent encClass = pm.getExtent(Encounter.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    q.setResult("distinct submitterID");
+    Collection c = (Collection) (q.execute());
+    ArrayList<String> allUsers = new ArrayList<String>(c);
+    q.closeAll();
+    int numAllUsers=allUsers.size();
+    //System.out.println("     All users: "+numAllUsers);
+    for(int i=0;i<numAllUsers;i++){
+      String thisUser=allUsers.get(i);
+      if((!thisUser.trim().equals(""))&&(getUser(thisUser)!=null)){
+        
+        String userFilter = "submitterID == \"" + thisUser + "\" && dwcDateAddedLong >= "+startTime;
+        Extent userClass = pm.getExtent(Encounter.class, true);
+        Query subq = pm.newQuery(userClass, userFilter);
+        Collection userC = (Collection) (subq.execute());
+        matchingUsers.put(thisUser, (new Integer(userC.size())));
+        //System.out.println("     Adding user:"+thisUser+" with "+userC.size());
+        subq.closeAll();
+      }
+    }
+    
+    return sortByValues(matchingUsers);
+  }
+  
+  public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
+    Comparator<K> valueComparator =  new Comparator<K>() {
+        public int compare(K k1, K k2) {
+            int compare = map.get(k2).compareTo(map.get(k1));
+            if (compare == 0) return 1;
+            else return compare;
+        }
+    };
+    Map<K, V> sortedByValues = new TreeMap<K, V>(valueComparator);
+    sortedByValues.putAll(map);
+    return sortedByValues;
+}
+  
+  
+  public Adoption getRandomAdoptionWithPhotoAndStatement(){
+    String filter = "adopterName != null && adopterImage != null && adopterQuote != null";
+    Extent encClass = pm.getExtent(Adoption.class, true);
+    Query q = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (q.execute());
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<Adoption> matchingAdoptions=new ArrayList<>(c);
+      q.closeAll();
+      int numUsers=matchingAdoptions.size();
+      Random rn = new Random();
+      int adoptNumber = rn.nextInt(numUsers);
+      return matchingAdoptions.get(adoptNumber);
+    }
+    q.closeAll();
+    return null;
   }
 
   

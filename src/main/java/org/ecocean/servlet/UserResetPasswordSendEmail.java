@@ -41,6 +41,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 
@@ -119,31 +121,18 @@ public class UserResetPasswordSendEmail extends HttpServlet {
           String otpString=myUser.getPassword()+time+myUser.getSalt();
           otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
           
-          //let's build the link
-          
-          String emailLink="<a href=\"http://" + CommonConfiguration.getURLLocation(request)+"/setNewPassword.jsp?username="+myUser.getUsername()+"&time="+time+"&OTP="+otpString+"\">Reset my password</a>";
-          
-          
-          String resetmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"passwordreset.html",ServletUtilities.getLanguageCode(request));
-          resetmessage=resetmessage.replaceAll("INSERTTEXT", emailLink);
-          
-          Vector e_images = new Vector();
-          
-          //OK, let's generate our link and send our email!!!
-          //get the email thread handler
+          // Build the link and send email.
+          final String npLink = String.format("http://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
-           NotificationMailer mailer=new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), myUser.getEmailAddress(), ("("+CommonConfiguration.getHTMLTitle(context)+") Password reset request"), resetmessage, e_images,context);
-          //email the new submission address defined in commonConfiguration.properties
+          Map<String, String> tagMap = new HashMap<String, String>(){{
+            put("@RESET_LINK@", npLink);
+          }};
+          String mailTo = myUser.getEmailAddress();
+          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap);
           es.execute(mailer);
-
-          
+          es.shutdown();
           
           out.println("If a user with that username or email address was found, we just sent them an email. Please check your Inbox and follow the link in the email to reset your password. If you don't see an email, don't forget to check your spam folder. Thank you!");
-          
-          
-          
-          
           
         }
         else{

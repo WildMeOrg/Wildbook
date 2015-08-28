@@ -31,8 +31,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.jdo.*;
@@ -58,6 +61,7 @@ public class IndividualAddEncounter extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -120,162 +124,65 @@ public class IndividualAddEncounter extends HttpServlet {
           if (!locked) {
 
             myShepherd.commitDBTransaction();
-            Vector e_images = new Vector();
 
-            String updateMessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"markedIndividualUpdate.html",ServletUtilities.getLanguageCode(request));
-			
-            String thanksmessage = ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
-
-            String add2update=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"add2MarkedIndividual.html",ServletUtilities.getLanguageCode(request));
-            
-            String adopterUpdate=ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request));
-            
-            //let's get ready for emailing
+            // Retrieve background service for processing emails
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-
 
             myShepherd.beginDBTransaction();
 
-            //String emailUpdate = "\nPreviously identified record: " + request.getParameter("individual");
-            //emailUpdate = emailUpdate + altID;
-            String emailUpdate = "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">"+request.getParameter("individual")+" "+nickname+"</a><br><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">See the new encounter</a><br>";
-
-            thanksmessage =thanksmessage.replaceAll("INSERTTEXT", emailUpdate);
-            updateMessage=updateMessage.replaceAll("INSERTTEXT",  emailUpdate);
-            add2update=add2update.replaceAll("INSERTTEXT",  emailUpdate);
-            adopterUpdate=add2update.replaceAll("INSERTTEXT",  emailUpdate);
-            
-            
-            
-            //updateMessage += emailUpdate;
-
-			ArrayList allAssociatedEmails=addToMe.getAllEmailsToUpdate();
-
-            int numEncounters = addToMe.totalEncounters();
+      			ArrayList<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
 
             //inform all encounter submitters for this Marked Individual about the modification to their animal
 
             if (request.getParameter("noemail") == null) {
 
+              // Specify email template type.
+              String emailTemplate = "individualAddEncounter";
 
-              //notify the administrators
-              NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getAutoEmailAddress(context), ("Encounter update sent to submitters: " + request.getParameter("number")), add2update.replaceAll("REMOVEME", ""), e_images,context);
-			  es.execute(mailer);
+              // Notify administrator address
+              Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
+              String mailTo = CommonConfiguration.getAutoEmailAddress(context);
+              NotificationMailer mailer = new NotificationMailer(context, null, mailTo, emailTemplate, tagMap);
+              mailer.appendToSubject(" (sent to submitters)");
+      			  es.execute(mailer);
 
-			  //notify submitters, photographers, and informOthers values
-	          int emailSize=allAssociatedEmails.size();
-	          for(int z=0;z<emailSize;z++){
-				  String submitter=(String)allAssociatedEmails.get(z);
-
-				if((enc2add.getSubmitterEmail().indexOf(submitter)!=-1)||(enc2add.getPhotographerEmail().indexOf(submitter)!=-1)||(enc2add.getInformOthers().indexOf(submitter)!=-1)){
-
-				  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter,context);
-				  	personalizedThanksMessage=personalizedThanksMessage.replaceAll("INSERTTEXT",  emailUpdate);
-				  	es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
-				}
-				else{
-					  	String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, updateMessage, submitter,context);
-					  	personalizedThanksMessage=personalizedThanksMessage.replaceAll("INSERTTEXT",  emailUpdate);
-	            
-					  	es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images,context));
-
-				}
-
-
-			  }
-
-              //StringBuffer allSubs = new StringBuffer();
-			  /**
-              //notify other submitters
-              for (int l = 0; l < numEncounters; l++) {
-                Encounter tempEnc = addToMe.getEncounter(l);
-
-
-                if (allSubs.indexOf(tempEnc.getSubmitterEmail()) == -1) {
-
-                  String submitter = tempEnc.getSubmitterEmail();
-                  if (submitter.indexOf(",") != -1) {
-                    StringTokenizer str = new StringTokenizer(submitter, ",");
-                    while (str.hasMoreTokens()) {
-                      String token = str.nextToken().trim();
-                      if (!token.equals("")) {
-                        String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token);
-
-                        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                        allSubs.append(token);
-                      }
-                    }
-                  } else {
-                    String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
-
-                    es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                    allSubs.append(submitter);
-                  }
-
-
+      			  // Notify submitters, photographers, and informOthers values
+              Set<String> cSubmitters = new HashSet<>();
+              if (enc2add.getSubmitterEmail() != null)
+                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getSubmitterEmail()));
+              if (enc2add.getPhotographerEmail() != null)
+                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getPhotographerEmail()));
+              if (enc2add.getInformOthers() != null)
+                cSubmitters.addAll(NotificationMailer.splitEmails(enc2add.getInformOthers()));
+              for (String emailTo : cSubmitters) {
+                if (!"".equals(emailTo)) {
+                  tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                  tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                  es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
                 }
-                if ((tempEnc.getPhotographerEmail() != null) && (!tempEnc.getPhotographerEmail().equals("")) && (!tempEnc.getPhotographerEmail().equals(enc2add.getPhotographerEmail())) && (allSubs.indexOf(tempEnc.getPhotographerEmail()) == -1)) {
-
-                  String submitter = tempEnc.getPhotographerEmail();
-                  if (submitter.indexOf(",") != -1) {
-                    StringTokenizer str = new StringTokenizer(submitter, ",");
-                    while (str.hasMoreTokens()) {
-                      String token = str.nextToken().trim();
-                      if (!token.equals("")) {
-                        String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token);
-
-                        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                        allSubs.append(token);
-                      }
-                    }
-                  } else {
-                    String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
-                    es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                    allSubs.append(submitter);
-                  }
-
-                }
-
-
-                if ((tempEnc.getInformOthers() != null) && (!tempEnc.getInformOthers().equals("")) && (allSubs.indexOf(tempEnc.getInformOthers()) == -1)) {
-
-                  String submitter = tempEnc.getInformOthers();
-                  if (submitter.indexOf(",") != -1) {
-                    StringTokenizer str = new StringTokenizer(submitter, ",");
-                    while (str.hasMoreTokens()) {
-                      String token = str.nextToken().trim();
-                      if (!token.equals("")) {
-                        String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token);
-
-                        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), token, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                        allSubs.append(token);
-                      }
-                    }
-                  } else {
-                    String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, submitter);
-
-                    es.execute(new NotificationMailer(CommonConfiguration.getMailHost(), CommonConfiguration.getAutoEmailAddress(), submitter, ("Encounter update: " + request.getParameter("number")), personalizedThanksMessage, e_images));
-                    allSubs.append(submitter);
-                  }
-                }
-
-
               }
-              */
 
+      			  // Notify other who need to know
+              Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
+              cOthers.removeAll(cSubmitters);
+              for (String emailTo : cOthers) {
+                tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
+              }
 
-              //notify adopters
+              // Notify adopters
 	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
 	            Query query = myShepherd.getPM().newQuery(encClass);
-              ArrayList adopters = myShepherd.getAdopterEmailsForMarkedIndividual(query,request.getParameter("individual"));
-              for (int t = 0; t < adopters.size(); t++) {
-                String adEmail = (String) adopters.get(t);
-                if ((allAssociatedEmails.indexOf(adEmail) == -1)) {
-                  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), adEmail, ("Sighting update: " + request.getParameter("individual")), ServletUtilities.getText(CommonConfiguration.getDataDirectoryName(context),"adopterUpdate.html",ServletUtilities.getLanguageCode(request)) + adopterUpdate, e_images,context));
-                  allAssociatedEmails.add(adEmail);
-                }
-              }
+              ArrayList<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, addToMe.getIndividualID());
               query.closeAll();
+              cAdopters.removeAll(allAssociatedEmails);
+              for (String emailTo : cAdopters) {
+                tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
+                tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+                tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
+                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate + "-adopter", tagMap));
+              }
 
               String rssTitle = request.getParameter("individual") + " Resight";
               String rssLink = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number");

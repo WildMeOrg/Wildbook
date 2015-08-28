@@ -89,6 +89,12 @@ public class ShepherdProperties {
       //System.out.println("Fixing the bin issue in Shepherd PMF. ");
       //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
     }
+    if((configDir.getAbsolutePath().contains("/logs/")) || (configDir.getAbsolutePath().contains("\\logs\\"))){
+      String fixedPath=configDir.getAbsolutePath().replaceAll("/logs", "").replaceAll("\\\\logs", "");
+      configDir=new File(fixedPath);
+      //System.out.println("Fixing the logs directory issue in Shepherd PMF. ");
+      //System.out.println("The fix abs path is: "+configDir.getAbsolutePath());
+    }
     //System.out.println("ShepherdProps: "+configDir.getAbsolutePath());
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, fileName);
@@ -110,6 +116,9 @@ public class ShepherdProperties {
           }
         }
       }
+    }
+    else{
+      //System.out.println("I could not find the override files that I was expecting at: "+configFile.getAbsolutePath());
     }
     return myProps;
   }

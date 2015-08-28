@@ -121,15 +121,16 @@ System.out.println(collabs);
 				//TODO move emailing to .create()  ??
 				User recip = myShepherd.getUser(username);
 				if ((recip != null) && recip.getReceiveEmails() && (recip.getEmailAddress() != null) && !recip.getEmailAddress().equals("")) {
-					String toAddress = recip.getEmailAddress();
-					String emailSubject = props.getProperty("inviteEmailSubject").replaceFirst("%s", ContextConfiguration.getNameForContext(context));
-					String emailBody = props.getProperty("inviteEmailBody").replaceFirst("%s", ContextConfiguration.getNameForContext(context)).replaceFirst("%s", username).replaceFirst("%s", "http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp");
-					if ((optionalMessage != null) && !optionalMessage.equals("")) {
-						emailBody += "\n\n" + props.getProperty("inviteEmailHasMessage") + "\n" + optionalMessage;
-					}
-					System.out.println("/Collaborate: attempting email to (" + username + ") " + toAddress);
+					String mailTo = recip.getEmailAddress();
+          Map<String, String> tagMap = new HashMap<>();
+          tagMap.put("@CONTEXT_NAME@", ContextConfiguration.getNameForContext(context));
+          tagMap.put("@USER@", username);
+          tagMap.put("@LINK@", String.format("http://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
+          tagMap.put("@TEXT_CONTENT@", optionalMessage == null ? "" : optionalMessage);
+					System.out.println("/Collaborate: attempting email to (" + username + ") " + mailTo);
 					ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-					es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), toAddress, emailSubject, emailBody, null, context));
+					es.execute(new NotificationMailer(context, null, mailTo, "collaborationInvite", tagMap));
+          es.shutdown();
 				} else {
 					System.out.println("/Collaborate: skipping email to uid=" + username);
 				}
