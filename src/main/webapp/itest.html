@@ -1,0 +1,86 @@
+<html>
+<head>
+	<title>imagetest</title>
+
+<script src="javascript/imageTools2.js"></script>
+
+<script>
+
+	var t;
+
+function setTool() {
+	var opts = {
+		el: document.getElementById('fluke-img'),
+		eventListeners: {
+			mousemove: function(ev) {
+				if (!t._mouseDown) return;
+//console.log('(%d,%d)', ev.offsetX, ev.offsetY);
+//console.log(ev);
+ev.preventDefault();
+				var r = t.angleFromCenter(ev.offsetX, ev.offsetY) - t._startAngle;
+				//if (r < 0) r += 360;
+console.log('%.1f (%.3f)', r * (180/Math.PI), r);
+				t.rotate(t._originalRotation + r);
+			},
+			click: function(ev) { console.warn('%o %o', ev.type, ev); },
+/*
+			mouseover: function(ev) {
+				console.log('over!');
+			},
+*/
+			mousedown: function(ev) {
+				t._mouseDown = [ev.offsetX, ev.offsetY];
+				t._startAngle = t.angleFromCenter(ev.offsetX, ev.offsetY);
+				t._originalRotation = t.getRotation();
+console.log(t._startAngle);
+			},
+			mouseup: function(ev) {
+				t._mouseDown = false;
+			},
+			mouseout: function(ev) {
+				t._mouseDown = false;
+				//t.rotate(t._originalRotation);
+			},
+				
+		}
+	};
+
+
+	t= new ImageTools(opts);
+//t.imageElement.addEventListener('mousemove', function() { console.log('mm'); }, false);
+	console.info('created imageTools t');
+}
+
+</script>
+
+<style>
+	#leaveMeAlone {
+		position: relative;
+		padding: 30px;
+		margin: 40px;
+		background-color: #CCC;
+		height: 200px;
+	}
+
+	img#fluke-img {
+		position: absolute;
+		top: 30px;
+		left: 100px;
+		width: 300px;
+	}
+
+	.imageTools-containerElement {
+		outline: solid 3px rgba(100, 255, 10, 0.8);
+	}
+</style>
+
+</head>
+<body>
+hello!
+
+<div id="leaveMeAlone">
+	<img id="fluke-img" src="images/test-fluke-mid.jpg" onLoad="setTool()" />
+</div>
+
+</body>
+</html>
