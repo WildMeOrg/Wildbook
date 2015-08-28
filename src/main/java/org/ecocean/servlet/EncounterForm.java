@@ -620,7 +620,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
       List<Measurement> measurements = getMeasurements(fv, encID, context);
       for (Measurement measurement : measurements) {
-        enc.addMeasurement(measurement);
+        enc.setMeasurement(measurement, myShepherd);
       }
 
 
@@ -653,9 +653,11 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
             }
 
 
-
-      enc.setDistinguishingScar(fv.get("scars").toString());
-
+      if(fv.get("scars")!=null){
+        enc.setDistinguishingScar(fv.get("scars").toString());
+      }
+      
+      
       int sizePeriod=0;
       if ((fv.get("measureUnits") != null) && fv.get("measureUnits").toString().equals("Feet")) {
 

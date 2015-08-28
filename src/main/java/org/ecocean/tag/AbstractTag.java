@@ -1,6 +1,9 @@
 package org.ecocean.tag;
 
-public class AbstractTag {
+import java.io.Serializable;
+
+public class AbstractTag implements Serializable {
+  static final long serialVersionUID = 8844223450447994780L;
 
   public String getId() {
     return id;

@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import java.util.Vector;
 
 
@@ -49,6 +50,7 @@ public class DontTrack extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context=ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -57,13 +59,14 @@ public class DontTrack extends HttpServlet {
 
     String email = "None", encounterNumber = "None", shark = "None";
 
+    Encounter enc = null;
     myShepherd.beginDBTransaction();
     if ((request.getParameter("number") != null) && (myShepherd.isEncounter(request.getParameter("number"))) && (request.getParameter("email") != null)) {
       email = request.getParameter("email");
       encounterNumber = request.getParameter("number");
 
 
-      Encounter enc = myShepherd.getEncounter(encounterNumber);
+      enc = myShepherd.getEncounter(encounterNumber);
       //int positionInList=0;
       try {
 
@@ -94,9 +97,12 @@ public class DontTrack extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Go to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-        Vector e_images = new Vector();
-        String message = "This is a confirmation that e-mail tracking of data changes to encounter " + encounterNumber + " has now been stopped.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Encounter data tracking stopped for encounter: " + encounterNumber), message, e_images,context);
+        // Send email
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+        NotificationMailer mailer = new NotificationMailer(context, null, email, "encounterTrackingStopped", tagMap);
+//        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+//        es.execute(mailer);
+//        es.shutdown();
       } else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -145,9 +151,13 @@ public class DontTrack extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + shark + "\">Go to " + shark + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-        Vector e_images = new Vector();
+
         String message = "This is a confirmation that e-mail tracking of data changes to " + shark + " has now been stopped.";
-        NotificationMailer mailer = new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), email, ("Data tracking stopped for: " + shark), message, e_images,context);
+        Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+        NotificationMailer mailer = new NotificationMailer(context, null, email, "encounterTrackingStopped", tagMap);
+//        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+//        es.execute(mailer);
+//        es.shutdown();
       } else {
 
         out.println(ServletUtilities.getHeader(request));

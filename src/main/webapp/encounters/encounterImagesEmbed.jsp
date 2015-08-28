@@ -61,10 +61,56 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 
 %>
 
+ <script type="text/javascript">
+  
 
-<p><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
-                     height="25px"><strong>&nbsp;<%=encprops.getProperty("images")%>
-</strong><br/> <%
+  
+      hs.graphicsDir = '../highslide/highslide/graphics/';
+      hs.align = 'auto';
+      hs.transitions = ['expand', 'crossfade'];
+      hs.outlineType = 'rounded-white';
+      hs.fadeInOut = true;
+      hs.anchor = 'top';
+
+
+    //block right-click user copying if no permissions available
+    <%
+    if(request.getUserPrincipal()!=null){
+    %>
+    hs.blockRightClick = false;
+    <%
+    }
+    else{
+    %>
+    hs.blockRightClick = true;
+	<%
+    }
+	%>
+    // Add the controlbar
+    hs.addSlideshow({
+      //slideshowGroup: 'group1',
+      interval: 5000,
+      repeat: false,
+      useControls: true,
+      fixedControls: 'fit',
+      overlayOptions: {
+        opacity: 0.75,
+        position: 'bottom center',
+        hideOnMouseOut: true
+      }
+    });
+    
+  
+
+
+  </script>
+
+
+
+
+<h2><img align="absmiddle" src="../images/Crystal_Clear_device_camera.gif" width="37px"
+                     height="25px">&nbsp;<%=encprops.getProperty("images")%></h2>
+<p> <%
   if (session.getAttribute("logged") != null) {
 %> <em><%=encprops.getProperty("click2view")%>
 </em>
@@ -524,6 +570,19 @@ System.out.println("trying to fork/create " + thumbPath);
 
 </table>
 
+<%
+	if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
+		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
+		if (tryCR.exists()) {
+			String crimg = addTextFile.replaceFirst(".([^.]+)$", "_CR.$1");
+%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="<%=encUrlDir%>/<%=crimg%>" /></a><div class="note">Candidate Region</div></div><%
+		} else {
+%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>" class="cr-button">[<%=encprops.getProperty("crButton")%>]</a></div><%
+		}
+	}
+%>
+
+
   <%
 						}
 				else {
@@ -639,19 +698,6 @@ catch (Exception e) {
     </td>
   </tr>
 </table>
-
-<!-- ***** START EDITS ***** 
-
-     Ecological Software Solutions LLC Fluke Tracer.-->
-<!-- Requires jQuery. Also get the lastest version of jQuery if needed.  -->
-<!-- <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.js"></script> -->
-<script type="text/javascript" src="../tracing/js/paper.js"></script>
-<script type="text/javascript" src="../tracing/js/tracing.js"></script>
-<script type="text/javascript">
-  comEcostatsTracing.addFlukeTrace('.highslide','<%=imageEncNum%>');
-</script>
-
-<!-- ***** END EDITS *****  -->
 
 <%
   }

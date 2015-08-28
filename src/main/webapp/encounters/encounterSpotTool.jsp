@@ -665,12 +665,9 @@ function allGood(d) {
 			
 			<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
-<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
  <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
- <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
- 
+
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
  
 <script src="../javascript/imageTools.js"></script>
