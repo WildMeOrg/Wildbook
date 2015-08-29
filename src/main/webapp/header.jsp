@@ -169,7 +169,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Your Project</a></li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Flukebook</a></li>
                           	<li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
                                  
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
