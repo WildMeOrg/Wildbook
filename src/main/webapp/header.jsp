@@ -180,7 +180,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/adoptananimal.jsp">Adoption</a></li>
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+                          <li><a href="<%=urlLoc %>/userAgreement.jsp">User Agreement</a></li>
                           
                           <!--  examples of navigation dividers
                           <li class="divider"></li>
