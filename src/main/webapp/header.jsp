@@ -67,6 +67,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+      
+     <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
+	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+      
+      
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
@@ -132,6 +137,56 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       } 
                       %>
                       <li><a href="http://www.wildme.org/wildbook" target="_blank">v.<%=ContextConfiguration.getVersion() %></a></li>
+                    	<%		ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                		int numContexts=contextNames.size();
+                		if(numContexts>1){
+                		%>
+                		
+                		<li>
+                						<form>
+                						<%=props.getProperty("switchContext") %>&nbsp;
+                							<select style="color: black;" id="context" name="context">
+			                					<%
+			                					for(int h=0;h<numContexts;h++){
+			                						String selected="";
+			                						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
+			                					%>
+			                					
+			                						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
+			                					<%
+			                					}
+			                					%>
+                							</select>
+                						</form>
+                			</li>
+                			<script type="text/javascript">
+                		
+	                			$( "#context" ).change(function() {
+	                			
+		                  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
+		                  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
+		                  			   path    : '/',          //The value of the path attribute of the cookie 
+		                  			                           //(default: path of page that created the cookie).
+		                			   
+		                  			   secure  : false          //If set to true the secure attribute of the cookie
+		                  			                           //will be set and the cookie transmission will
+		                  			                           //require a secure protocol (defaults to false).
+		                  			});
+		                  			
+		                  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+		                  			location.reload(true);
+		                  			
+	                			});
+	                	
+                			</script>
+                			<%
+                		}
+                		%>
+                		
+                	
+                    
+                    
+                    
                     </ul>
                     
                     <div class="search-wrapper">
