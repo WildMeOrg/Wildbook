@@ -209,7 +209,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" target="_blank" href="http://www.wildme.org/wildbook">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
               
