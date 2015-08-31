@@ -113,7 +113,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 		                      		%>
 		                      
 		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-		             				<li><a href="<%=urlLoc %>/logout.jsp" >Logout</a></li>
+		             				<li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 		                      
 		                      		<%
 	                          }
@@ -126,7 +126,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 	                      else{
 	                      %>
 	                      
-	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title="">Login</a></li>
+	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
 	                      
 	                      <%
 	                      }
@@ -279,19 +279,19 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                    
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Your Project</a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
+                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                                  
-                          	<li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
+                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
                       
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp">Adoption</a></li>
+                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
                           <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
                           
                           <!--  examples of navigation dividers
@@ -308,9 +308,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Encounters <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li class="dropdown-header">By State</li>
+                          <li class="dropdown-header"><%=props.getProperty("states")%></li>
                         
                         <!-- list encounters by state -->
                           <% boolean moreStates=true;
@@ -335,7 +335,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       
                       <!-- start locationID sites -->
                        <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Sites <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                          
                         
@@ -406,7 +406,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                 <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp">Data Import</a></li>
+                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                 <% }
                             } //end if admin %>
                         </ul>
