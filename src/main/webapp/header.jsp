@@ -1,5 +1,5 @@
 <%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
+  ~ Wildbook - A Mark-Recapture Framework
   ~ Copyright (C) 2008-2015 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
@@ -145,9 +145,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
                       <% 
                       } 
-                      %>
-                      <li><a href="http://www.wildme.org/wildbook" target="_blank">v.<%=ContextConfiguration.getVersion() %></a></li>
-                    	<%		ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                     	
+                      
+                      
+                      ArrayList<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
                 		%>
@@ -192,7 +193,53 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 			<%
                 		}
                 		%>
-                		
+                		   <!-- Can we inject language functionality here? -->
+                    <%
+                    
+            		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+            		int numSupportedLanguages=supportedLanguages.size();
+            		
+            		if(numSupportedLanguages>1){
+            		%>
+            			<li>
+            					
+            					
+            					<%
+            					for(int h=0;h<numSupportedLanguages;h++){
+            						String selected="";
+            						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
+            						String myLang=supportedLanguages.get(h);
+            					%>
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<script type="text/javascript">
+            	
+            							$( "#flag_<%=myLang%>" ).click(function() {
+            		
+            								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
+            								$.cookie("wildbookLangCode", "<%=myLang%>", {
+            			   						path    : '/',          //The value of the path attribute of the cookie 
+            			                           //(default: path of page that created the cookie).
+            		   
+            			   						secure  : false          //If set to true the secure attribute of the cookie
+            			                           //will be set and the cookie transmission will
+            			                           //require a secure protocol (defaults to false).
+            								});
+            			
+            								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+            								location.reload(true);
+            			
+            							});
+            	
+            						</script>
+            					<%
+            					}
+            					%>
+            				
+            		</li>
+            		<%
+            		}
+            		%>
+            		<!-- end language functionality injection -->
                 	
                     
                     
@@ -365,6 +412,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                     </ul>
+                    
+                 
+            		
+                    
                   </div>
                   
                 </div>
