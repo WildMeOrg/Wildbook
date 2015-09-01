@@ -297,7 +297,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     	
     </p>
     
-    <h3><%=props.getProperty("myData") %></h3>
+    <h2><%=props.getProperty("myData") %></h2>
     
 
 <%
