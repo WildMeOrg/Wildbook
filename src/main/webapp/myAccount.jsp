@@ -205,7 +205,7 @@ if (session.getAttribute("message") != null) {
             </tr>
             </table>
 <br ></br>
-<h1><%=props.getProperty("socialMediaConnections") %></h1>
+<h2><%=props.getProperty("socialMediaConnections") %></h2>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
