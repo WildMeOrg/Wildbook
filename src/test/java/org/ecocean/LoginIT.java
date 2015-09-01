@@ -53,22 +53,22 @@ public class LoginIT {
   public void testLogin() {
     setScriptingEnabled(false);
     beginAt("/index.jsp");
-    clickLinkWithExactText("Log in");
+    clickLinkWithExactText("Login");
     setTextField("username", "tomcat");
     setTextField("password", "tomcat123");
     submit();
     assertTextPresent("User Agreement");
     submit("acceptUserAgreement");
-    assertLinkPresentWithExactText("Log out");
-    clickLinkWithExactText("Log out");
-    assertTextPresent("Home");
+    assertLinkPresentWithExactText("Logout");
+    clickLinkWithExactText("Logout");
+    assertTextPresent("Logout");
   }
 
   @Test
   public void testUnsuccessfulLogin() {
     setScriptingEnabled(false);
     beginAt("/index.jsp");
-    clickLinkWithExactText("Log in");
+    clickLinkWithExactText("Login");
     setTextField("username", "foo");
     setTextField("password", "bar");
     submit();
