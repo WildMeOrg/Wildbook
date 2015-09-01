@@ -45,13 +45,13 @@ this.imageElement.style.opacity = '0.4';
     };
 
     //relative to the ui/dom world
-    this.center = function() {
+    this.getCenter = function() {
         if (!this.imageElement) return;
         return [this.imageElement.offsetWidth / 2, this.imageElement.offsetHeight / 2];
     };
 
     this.angleFromCenter = function(x, y) {
-        var cp = this.center();
+        var cp = this.getCenter();
         var a = Math.atan2(cp[1] - y, cp[0] - x);
         if (a < 0) a += Math.PI*2;
         return a;
@@ -116,11 +116,13 @@ this.imageElement.style.opacity = '0.4';
         return [ [s, 0, 0], [0, s, 0], [0, 0, 1] ];
     };
     this.setTransform = function(rotation, scale, x, y) {
+        this.transform = this.computeTransformMatrix(rotation, scale, x, y);
+    };
+    this.computeTransformMatrix = function(rotation, scale, x, y) {
         var rs = this.matrixMultiply(this.rotationToMatrix(rotation), this.scaleToMatrix(scale));
-console.log('setTransform(%o,%o,%o,%o) -> rs = %o', rotation, scale, x, y, rs);
+console.log('computeTransformMatrix(%o,%o,%o,%o) -> rs = %o', rotation, scale, x, y, rs);
         rs[0][2] = x;
         rs[1][2] = y;
-        this.transform = rs;
         return rs;
     };
 
