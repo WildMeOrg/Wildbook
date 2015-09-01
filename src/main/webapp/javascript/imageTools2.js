@@ -169,6 +169,32 @@ console.log('doTransform() -> %o', m);
         }
     };
 
+    // h/t http://snipplr.com/view/101612/3x3-matrix-algebra/
+    this.matrixInverse = function(m) {
+        var A = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+        var B = m[1][2] * m[2][0] - m[1][0] * m[2][2];
+        var C = m[1][0] * m[2][1] - m[1][1] * m[2][0];
+        var determinant = m[0][0] * A + m[0][1] * B + m[0][2] * C;
+console.info('determinant = %f', determinant);
+        if (determinant == 0) return false; //singular dude
+        var invd = 1 / determinant;
+        return [
+            [
+                A * invd,
+                (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invd,
+                (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invd
+            ], [
+                B * invd,
+                (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invd,
+                (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * invd
+            ], [
+                C * invd,
+                (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * invd,
+                (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * invd
+            ]
+        ];
+    };
+
     this.matrixToCss = function(m) {
         return this.transformToCss(this.matrixToTransform(m));
     };
