@@ -894,6 +894,11 @@
     <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>SinglePhotoVideoTransform</servlet-name>
+    <servlet-class>org.ecocean.servlet.SinglePhotoVideoTransform</servlet-class>
+  </servlet>
   
     <servlet>
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
@@ -1358,6 +1363,10 @@
         <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
   </servlet-mapping>
 
+     <servlet-mapping>
+        <servlet-name>SinglePhotoVideoTransform</servlet-name>
+        <url-pattern>/SinglePhotoVideoTransform</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocationID</servlet-name>
