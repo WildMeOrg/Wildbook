@@ -19,10 +19,13 @@
 
 package org.ecocean;
 
-import java.io.*;
-import java.util.*;
 
-import javax.servlet.ServletContext;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Does actual comparison processing of batch-uploaded images.
@@ -30,28 +33,23 @@ import javax.servlet.ServletContext;
  * @author Jon Van Oast
  */
 public final class ImageProcessor implements Runnable {
-  //private static Logger log = LoggerFactory.getLogger(BatchProcessor.class);
+    private static Logger log = LoggerFactory.getLogger(ImageProcessor.class);
 
-  /** ServletContext for web application, to allow access to resources. */
-  private ServletContext servletContext;
-
-
-  /** Enumeration representing possible status values for the batch processor. */
-  public enum Status { WAITING, INIT, RUNNING, FINISHED, ERROR };
-  /** Enumeration representing possible processing phases. */
-  public enum Phase { NONE, MEDIA_DOWNLOAD, PERSISTENCE, THUMBNAILS, PLUGIN, DONE };
-  /** Current status of the batch processor. */
-  private Status status = Status.WAITING;
-  /** Current phase of the batch processor. */
-  private Phase phase = Phase.NONE;
-  /** Throwable instance produced by the batch processor (if any). */
-  private Throwable thrown;
+//  /** Enumeration representing possible status values for the batch processor. */
+//  public enum Status { WAITING, INIT, RUNNING, FINISHED, ERROR };
+//  /** Enumeration representing possible processing phases. */
+//  public enum Phase { NONE, MEDIA_DOWNLOAD, PERSISTENCE, THUMBNAILS, PLUGIN, DONE };
+//  /** Current status of the batch processor. */
+//  private Status status = Status.WAITING;
+//  /** Current phase of the batch processor. */
+//  private Phase phase = Phase.NONE;
+//  /** Throwable instance produced by the batch processor (if any). */
+//  private Throwable thrown;
   
   private String context = "context0";
 	private String command = null;
 	private String imageSourcePath = null;
 	private String imageTargetPath = null;
-	private String action = null;
 	private String arg = null;
 	private int width = 0;
 	private int height = 0;
@@ -59,7 +57,6 @@ public final class ImageProcessor implements Runnable {
 
   public ImageProcessor(String context, String action, int width, int height, String imageSourcePath, String imageTargetPath, String arg) {
 		this.context = context;
-		this.action = action;
 		this.width = width;
 		this.height = height;
 		this.imageSourcePath = imageSourcePath;
@@ -70,21 +67,44 @@ public final class ImageProcessor implements Runnable {
 		} else {
 			this.command = CommonConfiguration.getProperty("imageResizeCommand", this.context);
 		}
-System.out.println("in ImageProcessor(), cmd =" + this.command);
-
 	}
 
 
-	public void run() {
-    status = Status.INIT;
+	public void run()
+	{
+//	    status = Status.INIT;
 
-		if (isBlank(this.command) || isBlank(this.imageSourcePath) || isBlank(this.imageTargetPath)) return;
+		if (StringUtils.isBlank(this.command)) {
+		    log.warn("Can't run processor due to empty command");
+		    return;
+		}
+        
+        if (StringUtils.isBlank(this.imageSourcePath)) {
+            log.warn("Can't run processor due to empty source path");
+            return;            
+        }
+        
+        if (StringUtils.isBlank(this.imageTargetPath)) {
+            log.warn("Can't run processor due to empty target path");
+            return;            
+        }
 
-		String fullCommand = this.command.replaceAll("%width", Integer.toString(this.width)).replaceAll("%height", Integer.toString(this.height)).replaceAll("%imagesource", this.imageSourcePath).replaceAll("%imagetarget", this.imageTargetPath).replaceAll("%arg", this.arg);
-System.out.println("start run(): " + fullCommand);
+		String fullCommand;
+		fullCommand = this.command.replaceAll("%width", Integer.toString(this.width))
+		                          .replaceAll("%height", Integer.toString(this.height))
+		                          //.replaceAll("%imagesource", this.imageSourcePath)
+		                          //.replaceAll("%imagetarget", this.imageTargetPath)
+		                          .replaceAll("%arg", this.arg);
+//System.out.println("start run(): " + fullCommand);
 		String[] command = fullCommand.split("\\s+");
 
-System.out.println("done run()");
+		//we have to do this *after* the split-on-space cuz files may have spaces!
+		for (int i = 0 ; i < command.length ; i++) {
+			if (command[i].equals("%imagesource")) command[i] = this.imageSourcePath;
+			if (command[i].equals("%imagetarget")) command[i] = this.imageTargetPath;
+		}
+
+//System.out.println("done run()");
 
 		ProcessBuilder pb = new ProcessBuilder();
 		pb.command(command);
@@ -92,7 +112,7 @@ System.out.println("done run()");
 		Map<String, String> env = pb.environment();
 		env.put("LD_LIBRARY_PATH", "/home/jon/opencv2.4.7");
 */
-System.out.println("before!");
+//System.out.println("before!");
 
 		try {
 			Process proc = pb.start();
@@ -106,19 +126,11 @@ System.out.println("before!");
 				System.out.println("!!!! " + line);
 			}
 			proc.waitFor();
-System.out.println("DONE?????");
+//System.out.println("DONE?????");
 			////int returnCode = p.exitValue();
-
 		} catch (Exception ioe) {
-			System.out.println("oops: " + ioe.toString());
+		    log.error("Trouble running processor [" + command + "]", ioe);
 		}
-
-System.out.println("RETURN");
+//System.out.println("RETURN");
 	}
-
-
-	private boolean isBlank(String s) {
-		return ((s == null) || s.equals(""));
-	}
-
 }

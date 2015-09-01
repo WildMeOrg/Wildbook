@@ -1,26 +1,8 @@
-<%--
-  ~ Wildbook - A Mark-Recapture Framework
-  ~ Copyright (C) 2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
+javax.servlet.http.HttpSession,
+java.io.*" %>
 
 
 <%
@@ -34,6 +16,19 @@ String langCode = ServletUtilities.getLanguageCode(request);
 //load user props
 Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
 
+if (session.getAttribute("error") != null) {
+	%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%
+	session.removeAttribute("error");
+} else {
+	%><script>var errorMessage = false;</script><%
+}
+
+if (session.getAttribute("message") != null) {
+	%><script>var message = '<%=session.getAttribute("message").toString().replaceAll("'", "\\'")%>';</script><%
+	session.removeAttribute("message");
+} else {
+	%><script>var message = false;</script><%
+}
 
 
   	
@@ -52,39 +47,9 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+<jsp:include page="header.jsp" flush="true"/>
 
-  <style type="text/css">
-    <!--
-    .style1 {
-      color: #FF0000
-    }
-
-    -->
-  </style>
-</head>
-
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="header.jsp" flush="true">
-
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
+<div class="container maincontent">
 
 	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
 
@@ -239,6 +204,33 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
             </form>
             </tr>
             </table>
+<br ></br>
+<h2><%=props.getProperty("socialMediaConnections") %></h2>
+<div style="padding-bottom: 10px;">
+<%
+	String types[] = new String[] {"facebook", "flickr"};
+
+if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFacebookLogin", "context0").equals("true"))){
+
+		String socialType="facebook";
+		if (thisUser.getSocial(socialType) == null) {
+			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+		} else {
+			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+		}
+}
+if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
+
+	String socialType="flickr";
+	if (thisUser.getSocial(socialType) == null) {
+		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+	} else {
+		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+	}
+}
+%>
+</div>
+
 <%
 	if((CommonConfiguration.getProperty("collaborationSecurityEnabled", context)!=null)&&(CommonConfiguration.getProperty("collaborationSecurityEnabled", context).equals("true"))){
 
@@ -305,23 +297,43 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
     	
     </p>
     
-    <h3><%=props.getProperty("myData") %></h3>
+    <h2><%=props.getProperty("myData") %></h2>
     
-    <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
+
+<%
+String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+thisUser.getUsername()+"'";
+%>
+    <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
+    	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
+    </jsp:include>
+    
+    <p><strong>Links to My Data</strong></p>
+        <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
     
     <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
     
 
-      <jsp:include page="footer.jsp" flush="true"/>
-    </div>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
 <%
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 %>
-</body>
-</html>
+<script>
+if (errorMessage) wildbook.showAlert(errorMessage, '', 'Error');
+if (message) wildbook.showAlert(message);
+
+function socialDisconnect(svc) {
+//console.info('disconnect %s', svc);
+	window.location.href = 'SocialConnect?disconnect=1&type=' + svc;
+}
+
+function socialConnect(svc) {
+//console.info('connect %s', svc);
+	window.location.href = 'SocialConnect?type=' + svc;
+}
+
+</script>
+</div>
+
+<jsp:include page="footer.jsp" flush="true"/>
 
 

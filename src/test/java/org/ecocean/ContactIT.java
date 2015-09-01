@@ -45,7 +45,7 @@ public class ContactIT {
     beginAt("/index.jsp");
     clickLinkWithExactText("Contact Us");
     assertResponseCode(200);
-    assertTextPresent("Provide information about how to contact your organization.");
+    assertTextPresent("The team at Manta Matcher");
   }
   
   @After

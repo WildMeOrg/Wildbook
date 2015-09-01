@@ -1,6 +1,7 @@
 package org.ecocean;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.io.Serializable;
 import org.ecocean.SinglePhotoVideo;
 
@@ -49,6 +50,8 @@ public class User implements Serializable {
   	private boolean acceptedUserAgreement=false;
   
   private boolean receiveEmails=true; 
+
+	private HashMap<String,String> social;
   	
   	//JDOQL required empty instantiator
   	public User(){}
@@ -228,6 +231,27 @@ public class User implements Serializable {
     public boolean getAcceptedUserAgreement(){return acceptedUserAgreement;}
     
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
+
+
+		public String getSocial(String type) {
+			if (social == null) return null;
+			return social.get(type);
+		}
+		public void setSocial(String type, String s) {
+        if ((s == null) || s.equals("")) {
+            unsetSocial(type);
+            return;
+        }
+        if (social == null) social = new HashMap<String,String>();
+        social.put(type, s);
+		}
+		public void setSocial(String type) {
+			unsetSocial(type);
+		}
+		public void unsetSocial(String type) {
+			if (social == null) return;
+			social.remove(type);
+		}
 
 
 		//TODO this needs to be dealt with better.  see: rant about saving usernames from forms

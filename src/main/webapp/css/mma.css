@@ -44,13 +44,15 @@ body {
 	border-collapse: separate;
   background-color: #E0E0F0;
 }
+#mma-resultsTable tr.ind-match {
+  background-color: #E0F0E0;
+}
 #mma-results th, #mma-results td {
   margin: 0;
 	border-width: 1px;
 	padding: 5px;
 	border-style: inset;
 	border-color: gray;
-  background-color: #E0E0F0;
   vertical-align: middle;
   text-align: center;
 }
@@ -96,10 +98,14 @@ body {
 }
 #mma-resultDetailsTable td {
 }
+#mma-resultDetailsTable td .enc-date {
+  word-break: keep-all;
+  -ms-word-break: keep-all;
+}
 #mma-resultDetailsTable a {
   text-decoration: none;
 }
 #mma-footer {
-  margin: 1em 0;
+  margin: 0.8em 0;
   font-style: italic;
 }

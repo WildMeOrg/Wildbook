@@ -1,26 +1,8 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.*,java.io.File,java.util.Properties, java.util.StringTokenizer, java.util.Vector, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
+         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+
+<jsp:include page="header.jsp" flush="true"/>
 
 <%
 String context="context0";
@@ -65,43 +47,17 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
-</head>
-
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-
-<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-
-</jsp:include>
-<div id="main">
-
-<div id="maincol-wide-solo">
-
-<div id="maintext">
+<div class="container maincontent">
 <%
   StringBuffer new_message = new StringBuffer();
+new_message.append("<html><body>");
+
   new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
-    "view it at:\nhttp://" + CommonConfiguration.getURLLocation(request) +
+    "view it at:<br>http://" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
     ".jsp?number="+ number);
-  new_message.append("\n\nQuick stats:\n");
+  new_message.append("<br><br>Quick stats:<br>");
   String photographer = "None";
   boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
@@ -114,11 +70,13 @@ context=ServletUtilities.getContext(request);
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir);
 
+  Encounter enc = null;
+
   if (!number.equals("fail")) {
 
     myShepherd.beginDBTransaction();
     try {
-      Encounter enc = myShepherd.getEncounter(number);
+      enc = myShepherd.getEncounter(number);
       
       
 			thisEncounterDir = new File(enc.dir(baseDir));
@@ -144,16 +102,17 @@ context=ServletUtilities.getContext(request);
       } else {
         hasImages = false;
       }
-      new_message.append("Location: " + enc.getLocation() + "\n");
-      new_message.append("Date: " + enc.getDate() + "\n");
+      new_message.append("Location: " + enc.getLocation() + "<br>");
+      new_message.append("Date: " + enc.getDate() + "<br>");
       if(enc.getSex()!=null){
-      	new_message.append("Sex: " + enc.getSex() + "\n");
+      	new_message.append("Sex: " + enc.getSex() + "<br>");
       }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "\n");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "\n");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "\n");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "\n");
-      new_message.append("Comments: " + enc.getComments() + "\n");
+      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
+      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
+      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
+      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
+      new_message.append("Comments: " + enc.getComments() + "<br>");
+      new_message.append("</body></html>");
       submitter = enc.getSubmitterEmail();
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
@@ -254,105 +213,54 @@ context=ServletUtilities.getContext(request);
 
 if(CommonConfiguration.sendEmailNotifications(context)){
 
-  Vector e_images = new Vector();
-
-
-
-
-  //get the email thread handler
+  // Retrieve background service for processing emails
   ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
 
+  // Email new submission address(es) defined in commonConfiguration.properties
+  Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc);
+  List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
+  String mailSubj = "New encounter submission: " + number;
+  for (String emailTo : mailTo) {
+    NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+    es.execute(mailer);
+  }
 
-  //email the new submission address defined in commonConfiguration.properties
-  es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), CommonConfiguration.getNewSubmissionEmail(context), ("New encounter submission: " + number), new_message.toString(), e_images,context));
-
-  //now email those assigned this location code
+  // Email those assigned this location code
   if (informMe != null) {
-
-    if (informMe.indexOf(",") != -1) {
-
-      StringTokenizer str = new StringTokenizer(informMe, ",");
-      while (str.hasMoreTokens()) {
-        String token = str.nextToken().trim();
-        if (!token.equals("")) {
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), token, ("New encounter submission: " + number), new_message.toString(), e_images,context));
-
-        }
-      }
-
-    } else {
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), informMe, ("New encounter submission: " + number), new_message.toString(), e_images,context));
+    List<String> cOther = NotificationMailer.splitEmails(informMe);
+    for (String emailTo : cOther) {
+      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap));
     }
   }
 
-  //thank the submitter and photographer
-  String thanksmessage = ServletUtilities.getText("thankyou.txt");
+  // Add encounter dont-track tag for remaining notifications (still needs email-hash assigned).
+  tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc.getCatalogNumber());
 
-  //add the encounter link
-  thanksmessage += "\nEncounter :" + number + "\nhttp://" + CommonConfiguration.getURLLocation
-    (request) + "/encounters/encounter.jsp?number=" + number;
-
-  //add the removal message
-
-  if (submitter.indexOf(",") != -1) {
-
-    StringTokenizer str = new StringTokenizer(submitter, ",");
-    while (str.hasMoreTokens()) {
-      String token = str.nextToken().trim();
-      if (!token.equals("")) {
-        String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token,context);
-        //System.out.println(personalizedThanksMessage);
-
-        es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), token, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
-
-      }
+  // Email submitter and photographer
+  if (submitter != null) {
+    List<String> cOther = NotificationMailer.splitEmails(submitter);
+    for (String emailTo : cOther) {
+      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
     }
-
-  } 
-  else {
-    String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString
-      (request, thanksmessage, submitter,context);
-
-    //System.out.println(personalizedThanksMessage);
-
-    es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), submitter, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
   }
-
-
-  if (emailPhoto) {
-    if (photographer.indexOf(",") != -1) {
-      StringTokenizer str = new StringTokenizer(photographer, ",");
-      while (str.hasMoreTokens()) {
-        String token = str.nextToken().trim();
-        if (!token.equals("")) {
-          String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString
-            (request, thanksmessage, token,context);
-
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), token, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
-        }
-      }
-    } else {
-      String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, photographer,context);
-
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), photographer, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
+  if (emailPhoto && photographer != null) {
+    List<String> cOther = NotificationMailer.splitEmails(photographer);
+    for (String emailTo : cOther) {
+      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
     }
   }
 
-  if (!informOthers.equals("")) {
-    if (informOthers.indexOf(",") != -1) {
-      StringTokenizer str = new StringTokenizer(informOthers, ",");
-      while (str.hasMoreTokens()) {
-        String token = str.nextToken().trim();
-        if (!token.equals("")) {
-          String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, token,context);
-
-          es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), token, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
-        }
-      }
-    } else {
-      String personalizedThanksMessage = CommonConfiguration.appendEmailRemoveHashString(request, thanksmessage, informOthers,context);
-
-      es.execute(new NotificationMailer(CommonConfiguration.getMailHost(context), CommonConfiguration.getAutoEmailAddress(context), informOthers, ("New encounter submission: " + number), personalizedThanksMessage, e_images,context));
+  // Email interested others
+  if (informOthers != null) {
+    List<String> cOther = NotificationMailer.splitEmails(informOthers);
+    for (String emailTo : cOther) {
+      String msg = CommonConfiguration.appendEmailRemoveHashString(request, "", emailTo, context);
+      tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
+      es.execute(new NotificationMailer(context, null, emailTo, "newSubmission", tagMap));
     }
   }
   es.shutdown();
@@ -362,11 +270,6 @@ myShepherd=null;
 
 %>
 </div>
-<!-- end maintext --></div>
-<!-- end maincol -->
+
 <jsp:include page="footer.jsp" flush="true"/>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+
