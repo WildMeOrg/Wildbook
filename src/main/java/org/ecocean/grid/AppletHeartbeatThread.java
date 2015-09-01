@@ -66,7 +66,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
         sendHeartbeat(appletID);
         Thread.sleep(90000);
       } catch (Exception e) {
-        System.out.println("Heartbeat thread registering an exception while trying to sleep!");
+        System.out.println("     Heartbeat thread registering an exception while trying to sleep!");
       }
     }
   }
@@ -84,7 +84,7 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     
     
     //prep our streaming variables
-    URL u;
+    URL u=null;
     InputStream inputStreamFromServlet=null;
     BufferedReader in=null;
     URLConnection finishConnection=null;
@@ -100,7 +100,9 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
       inputStreamFromServlet = finishConnection.getInputStream();
       in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));
       String line = in.readLine();
-      in.close();
+      //in.close();
+      //inputStreamFromServlet.close();
+
 
       //process the returned line however needed
 
@@ -109,22 +111,31 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     catch (MalformedURLException mue) {
       System.out.println("!!!!!I hit a MalformedURLException in the heartbeat thread!!!!!");
       mue.printStackTrace();
+      System.exit(0);
 
     } 
     catch (IOException ioe) {
       System.out.println("!!!!!I hit an IO exception in the heartbeat thread!!!!!");
       ioe.printStackTrace();
+      System.exit(0);
     } 
     catch (Exception e) {
       System.out.println("!!!!!I hit an Exception in the heartbeat thread!!!!!");
       e.printStackTrace();
+      System.exit(0);
     }
     finally{
       try{
-        inputStreamFromServlet.close();
-        in.close();
+        if(inputStreamFromServlet!=null)inputStreamFromServlet.close();
+        if(in!=null)in.close();
+        in=null;
+        inputStreamFromServlet=null;
+        finishConnection=null;
+        u=null;
       }
-      catch(Exception ex){}
+      catch(Exception ex){
+        System.exit(0);
+      }
     }
   }
 

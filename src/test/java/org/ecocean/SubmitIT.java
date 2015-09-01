@@ -57,7 +57,7 @@ public class SubmitIT {
     setTextField("submitterName", "john");
     setTextField("submitterEmail", "john.doe@johnnydoe.com");
     //setTextField("theFiles", "src/main/webapp/images/logbook.gif");
-    submit("Submit");
+    clickButton("submit-button");
     assertResponseCode(200);
   }
   

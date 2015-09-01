@@ -81,14 +81,14 @@ var GeoJSON = function( geojson, options, map, bounds,aspect ){
 	 				       visible: true,
 	 				       geodesic: true,
 	 				       strokeOpacity: 0.0,
-	 				       strokeColor: polyLineStrokeColor,
+	 				       strokeColor: ('#'+polyLineStrokeColor),
 	 				       icons: [{
 	 				         icon: {
 	 				           path: 'M -1,1 0,0 1,1',
 	 				           strokeOpacity: 1,
 	 				           strokeWeight: 1.5,
-	 				           scale: 6
-	 				           
+	 				           scale: 6,
+	 				          
 	 				         },
 	 				         repeat: '20px'
 	 				         

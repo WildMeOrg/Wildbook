@@ -1,23 +1,3 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
@@ -100,31 +80,6 @@ context=ServletUtilities.getContext(request);
 	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
-
-<html>
-<head prefix="og:http://ogp.me/ns#">
-
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-        
-
-<!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
-
-<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
-
-<meta itemprop="name" content="<%=props.getProperty("markedIndividualTypeCaps")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
 <%
 if (request.getParameter("number")!=null) {
 	myShepherd.beginDBTransaction();
@@ -194,17 +149,6 @@ if (request.getParameter("number")!=null) {
 }
 %>
 
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=props.getProperty("markedIndividualTypeCaps") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-
-<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" />
-
-
-<meta property="og:type" content="website" />
-
-<!-- social meta end -->
- 
-  
   <style type="text/css">
     <!--
     .style1 {
@@ -278,6 +222,9 @@ table.tissueSample td {
   </style>
 
 
+    <jsp:include page="header.jsp" flush="true"/>
+
+
   <!--
     1 ) Reference to the files containing the JavaScript and CSS.
     These files must be located on your server.
@@ -293,16 +240,19 @@ table.tissueSample td {
 
   <script type="text/javascript">
     hs.graphicsDir = 'highslide/highslide/graphics/';
-    hs.align = 'center';
+    
     hs.transitions = ['expand', 'crossfade'];
     hs.outlineType = 'rounded-white';
     hs.fadeInOut = true;
     //hs.dimmingOpacity = 0.75;
 
+    hs.align = 'auto';
+  	hs.anchor = 'top';
+    
     //define the restraining box
     hs.useBox = true;
     hs.width = 810;
-    hs.height = 500;
+    hs.height = 250;
 
     //block right-click user copying if no permissions available
     <%
@@ -347,26 +297,6 @@ table.tissueSample td {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
   })();
 </script>
-
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-
-
-
-</head>
-
-<body <%if (request.getParameter("noscript") == null) {%>
-onunload="GUnload()" <%}%>>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
-
-<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-
 
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
@@ -823,26 +753,10 @@ function dataTypes(obj, fieldName) {
 
 
 
-<div id="main">
+<div class="container maincontent">
+    
 <%=blocker%>
 
-<%
-  if (CommonConfiguration.allowAdoptions(context)) {
-	  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-	  int numAdoptions = adoptions.size();
-	  if(numAdoptions>0){
-%>
-<div id="maincol-wide">
-<%
-}
-  }
-  else {
-%>
-<div id="maincol-wide-solo">
-<%
-}
-%>
-<div id="maintext">
 <%
   myShepherd.beginDBTransaction();
   try {
@@ -854,14 +768,9 @@ function dataTypes(obj, fieldName) {
 
 %>
 
-<table><tr>
-<td>
-<span class="para"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/></span>
-</td>
-<td valign="middle">
- <h1><strong> <%=markedIndividualTypeCaps %></strong>: <%=sharky.getIndividualID()%></h1>
+<h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps %> <%=sharky.getIndividualID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
- </td></tr></table>
+ 
  <p> <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
@@ -1755,6 +1664,11 @@ xxxxxx
 <br />
 <%
 if(CommonConfiguration.showUsersToPublic(context)){
+	
+	
+	Shepherd userShepherd=new Shepherd("context0");	
+	userShepherd.beginDBTransaction();
+
 %>
 <p>
   <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
@@ -1767,9 +1681,9 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          
                          
                          <%
-                         myShepherd.beginDBTransaction();
+                         //myShepherd.beginDBTransaction();
                          
-                         ArrayList<User> relatedUsers =  myShepherd.getAllUsersForMarkedIndividual(sharky);
+                         ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
                          for(int userNum=0;userNum<numUsers;userNum++){	
@@ -1785,7 +1699,7 @@ if(CommonConfiguration.showUsersToPublic(context)){
                                 	String profilePhotoURL="images/empty_profile.jpg";
                     		    
                          		if(thisUser.getUserImage()!=null){
-                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 
                          		}
                          		%>
@@ -1872,7 +1786,12 @@ if(CommonConfiguration.showUsersToPublic(context)){
     
     </tr></table></p>
   <%
+  userShepherd.rollbackDBTransaction();
+  userShepherd.closeDBTransaction();
 } //end if showUsersToGeneralPublic
+
+//myShepherd.beginDBTransaction();
+
   %>
   
   
@@ -2552,8 +2471,7 @@ else {
 </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
+
 <%
   if (CommonConfiguration.allowAdoptions(context)) {
 %>
@@ -2724,7 +2642,8 @@ else {
       
       <%
     }
-  } catch (Exception eSharks_jsp) {
+  } 
+  catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in individuals.jsp!");
     eSharks_jsp.printStackTrace();
   }
@@ -2734,17 +2653,13 @@ else {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
+  
 %>
-<jsp:include page="footer.jsp" flush="true"/>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
-
 </div>
 
 
 
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+
+<jsp:include page="footer.jsp" flush="true"/>
+
 

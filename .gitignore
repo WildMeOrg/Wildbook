@@ -19,4 +19,5 @@ src/main/webapp/encounters/*20*
 /buildOut.txt
 /src/main/shepherd_data_dir
 /webapps
+node_modules
 

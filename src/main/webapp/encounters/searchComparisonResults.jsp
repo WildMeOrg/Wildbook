@@ -1,32 +1,7 @@
-<%--
-  ~ Wildbook - A Mark-Recapture Framework
-  ~ Copyright (C) 2011-2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SummaryStatistics,javax.jdo.Query,org.springframework.mock.web.MockHttpServletRequest,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
 
-
-
-
-<html>
-<head>
+<jsp:include page="../header.jsp" flush="true" />
 
 
   <%
@@ -443,16 +418,6 @@
  	 
   %>
 
-  <title><%=CommonConfiguration.getHTMLTitle(context)%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context)%>"/>
-  <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context)%>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context)%>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context)%>" rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context)%>"/>
-
-
     <style type="text/css">
       body {
         margin: 0;
@@ -783,26 +748,11 @@ var selectedRectangle2;
 
 
 
-    
-  </head>
- <body onunload="GUnload()">
- <div id="wrapper">
- <div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
- <div id="main">
+
+     <div class="container maincontent">
  
- <table width="810px" border="0" cellspacing="0" cellpadding="0">
-   <tr>
-     <td>
-       <br/>
- 
-       <h1 class="intro"><%=encprops.getProperty("title")%>
-       </h1>
-     </td>
-   </tr>
-</table>
+<h1><%=encprops.getProperty("title")%></h1>
+      
 <table width="810px">
 	<tr>
 		<td bgcolor="#EEEEFF">
@@ -1336,15 +1286,10 @@ else{
    query2Individuals = null;
 %>
 
+ </div>
  
 <jsp:include page="../footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
 
-</body>
-</html>
 <%
     }
     else{

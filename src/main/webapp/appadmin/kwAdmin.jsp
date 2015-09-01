@@ -1,24 +1,3 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.CommonConfiguration, org.ecocean.Keyword, org.ecocean.Shepherd" %>
 <%@ page import="javax.jdo.Extent" %>
@@ -26,8 +5,7 @@
 <%@ page import="java.util.Iterator" %>
 <%
 
-String context="context0";
-context=ServletUtilities.getContext(request);
+	String context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
@@ -39,46 +17,19 @@ context=ServletUtilities.getContext(request);
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-
-</head>
-
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="../header.jsp" flush="true">
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
+    <jsp:include page="../header.jsp" flush="true" />
+     
+     <div class="container maincontent">
       <%
         myShepherd.beginDBTransaction();
       %>
-      <p>
 
-      <h1 class="intro">
-        <table>
-          <tr>
-            <td><img src="../images/keyword_icon_large.gif" width="50" height="50"
+      <h1><img src="../images/keyword_icon_large.gif" width="50" height="50"
                      hspace="3" vspace="3" align="absmiddle"/> Image Keyword
               Administration
-            </td>
-          </tr>
-        </table>
+          
       </h1>
-      </p>
+
       <p>There are currently <%=myShepherd.getNumKeywords()%> keywords
         defined in the database.</p>
       <table width="720" border="1" cellpadding="3" bordercolor="#000000"
@@ -117,11 +68,12 @@ context=ServletUtilities.getContext(request);
                     Keyword word = (Keyword) keys.next();
                 %>
 
-                <option value="<%=word.getReadableName()%>"><%=word.getReadableName()%>
+                <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
                 </option>
                 <%}%>
 
-              </select> <input name="action" type="hidden" id="action" value="removeWord"></p>
+              </select> 
+              <input name="action" type="hidden" id="action" value="removeWord"></p>
               <p><input name="Submit2" type="submit" id="Submit2" value="Remove"></p>
             </form>
           </td>
@@ -166,12 +118,12 @@ context=ServletUtilities.getContext(request);
         kwQuery = null;
         myShepherd = null;
       %>
+      
+       </div>
+     
+      
       <jsp:include page="../footer.jsp" flush="true"/>
-    </div>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+   
+
 
 
