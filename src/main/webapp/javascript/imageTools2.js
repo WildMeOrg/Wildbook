@@ -2,6 +2,8 @@
 function ImageTools(opts) {
     this.containerElement = false;
     this.imageElement = false;
+    this.canvasElement = false;
+    this.ctx = false;  //just for convenience
     this.transform = [
         [1, 0, 0],
         [0, 1, 0],
@@ -13,7 +15,7 @@ function ImageTools(opts) {
         this.containerElement.className = 'imageTools-containerElement';
         this.containerElement.style.position = 'absolute';
         this.containerElement.style.overflow = 'hidden';
-this.containerElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
+//this.containerElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
         this.containerElement.style.top = el.offsetTop;
         this.containerElement.style.left = el.offsetLeft;
         this.containerElement.style.width = el.offsetWidth;
@@ -28,13 +30,30 @@ this.containerElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
         this.imageElement = new Image();
         this.imageElement.src = el.src;
         this.imageElement.className = 'imageTools-imageElement';
-        this.imageElement.style.position = 'relative';
+        this.imageElement.style.position = 'absolute';
         this.imageElement.style.width = '100%';
         this.imageElement.style.height = '100%';
         this.imageElement.style.transformOrigin = '50% 50%';
-this.imageElement.style.opacity = '0.4';
+this.imageElement.style.opacity = '0.8';
         this.containerElement.appendChild(this.imageElement);
         return this.imageElement;
+    };
+
+    this.createCanvasElement = function() {
+        if (!this.containerElement) return;
+        this.canvasElement = document.createElement('canvas');
+        this.canvasElement.className = 'imageTools-canvasElement';
+        this.canvasElement.style.position = 'absolute';
+        this.canvasElement.style.pointerEvents = 'none';
+        this.canvasElement.style.width = '100%';
+        this.canvasElement.style.height = '100%';
+        this.canvasElement.style.transformOrigin = '50% 50%';
+ this.canvasElement.style.outline = 'dashed 7px red';
+        this.canvasElement.width = parseFloat(this.containerElement.style.width);
+        this.canvasElement.height = parseFloat(this.containerElement.style.height);
+        this.containerElement.appendChild(this.canvasElement);
+        this.ctx = this.canvasElement.getContext('2d');
+        return this.canvasElement;
     };
 
 
@@ -165,8 +184,16 @@ console.log('doTransform() -> %o', m);
             return result;
 
         } else {
-            return [m2[0][0] * m1[0] + m2[0][1] * m1[1] + m2[0][2], m2[1][0] * m2[0][1] + m2[1][1] * m1[1] + m2[1][2], 1];
+            return [
+                m2[0][0] * m1[0] + m2[0][1] * m1[1] + m2[0][2] * m1[2],
+                m2[1][0] * m1[0] + m2[1][1] * m1[1] + m2[1][2] * m1[2],
+                m2[2][0] * m1[0] + m2[2][1] * m1[1] + m2[2][2] * m1[2]
+            ];
         }
+    };
+
+    this.transformInverse = function() {
+        return this.matrixInverse(this.transform);
     };
 
     // h/t http://snipplr.com/view/101612/3x3-matrix-algebra/
@@ -175,8 +202,10 @@ console.log('doTransform() -> %o', m);
         var B = m[1][2] * m[2][0] - m[1][0] * m[2][2];
         var C = m[1][0] * m[2][1] - m[1][1] * m[2][0];
         var determinant = m[0][0] * A + m[0][1] * B + m[0][2] * C;
-console.info('determinant = %f', determinant);
-        if (determinant == 0) return false; //singular dude
+        if (determinant == 0) {
+            console.warn('%o is a singular matrix; no determinant!', m);
+            return false;
+        }
         var invd = 1 / determinant;
         return [
             [
@@ -260,6 +289,7 @@ console.info('determinant = %f', determinant);
         var me = this;
         this.createContainerElement(opts.el);
         var imgEl = this.createImageElement(opts.el);
+        var canvas = this.createCanvasElement();
         if (opts.eventListeners) {
             for (var evType in opts.eventListeners) {
 console.info('adding event listener type %s', evType);
