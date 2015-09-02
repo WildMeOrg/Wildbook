@@ -1,5 +1,5 @@
 <%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
+  ~ Wildbook - A Mark-Recapture Framework
   ~ Copyright (C) 2008-2015 Jason Holmberg
   ~
   ~ This program is free software; you can redistribute it and/or
@@ -28,7 +28,8 @@
              java.util.ArrayList,
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
-             org.ecocean.security.Collaboration
+             org.ecocean.security.Collaboration,
+             org.ecocean.ContextConfiguration
               "
 %>
 
@@ -59,11 +60,18 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
+	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
       <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
+      
+     <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
+	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
+      
+      
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
@@ -86,31 +94,43 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <ul class="secondary-nav hor-ul no-bullets">
                     
                    
-                                            <%
-                      if(request.getUserPrincipal()!=null){
-                    	  String username = request.getUserPrincipal().toString();
-                    	  Shepherd myShepherd = new Shepherd(context);
-                    	  User user = myShepherd.getUser(username);
-                    	  String fullname=username;
-                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
-                          if(user.getUserImage()!=null){
-                          	profilePhotoURL=urlLoc+"/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-                          } 
-                      %>
-                      
-                      	<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-             			<li><a href="<%=urlLoc %>/logout.jsp" >Logout</a></li>
-                      
                       <%
-                      }
-                      else{
-                      %>
                       
-                      	<li><a href="<%=urlLoc %>/welcome.jsp" title="">Login</a></li>
+	                      if(request.getUserPrincipal()!=null){
+	                    	  Shepherd myShepherd = new Shepherd(context);
+	                          
+	                          try{
+	                        	  myShepherd.beginDBTransaction();
+		                    	  String username = request.getUserPrincipal().toString();
+		                    	  User user = myShepherd.getUser(username);
+		                    	  String fullname=username;
+		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
+		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
+		                          if(user.getUserImage()!=null){
+		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
+		                          } 
+		                          
+		                      		%>
+		                      
+		                      		<li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+		             				<li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+		                      
+		                      		<%
+	                          }
+	                          catch(Exception e){e.printStackTrace();}
+	                          finally{
+	                        	  myShepherd.rollbackDBTransaction();
+	                        	  myShepherd.closeDBTransaction();
+	                          }
+	                      }
+	                      else{
+	                      %>
+	                      
+	                      	<li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login") %></a></li>
+	                      
+	                      <%
+	                      }
                       
-                      <%
-                      }
                       %>
                       
                        <!--  
@@ -125,20 +145,118 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
                       <% 
                       } 
-                      %>
+                     	
+                      
+                      
+                      ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                		int numContexts=contextNames.size();
+                		if(numContexts>1){
+                		%>
+                		
+                		<li>
+                						<form>
+                						<%=props.getProperty("switchContext") %>&nbsp;
+                							<select style="color: black;" id="context" name="context">
+			                					<%
+			                					for(int h=0;h<numContexts;h++){
+			                						String selected="";
+			                						if(ServletUtilities.getContext(request).equals(("context"+h))){selected="selected=\"selected\"";}
+			                					%>
+			                					
+			                						<option value="context<%=h%>" <%=selected %>><%=contextNames.get(h) %></option>
+			                					<%
+			                					}
+			                					%>
+                							</select>
+                						</form>
+                			</li>
+                			<script type="text/javascript">
+                		
+	                			$( "#context" ).change(function() {
+	                			
+		                  			//alert( "Handler for .change() called with new value: "+$( "#context option:selected" ).text() +" with value "+ $( "#context option:selected").val());
+		                  			$.cookie("wildbookContext", $( "#context option:selected").val(), {
+		                  			   path    : '/',          //The value of the path attribute of the cookie 
+		                  			                           //(default: path of page that created the cookie).
+		                			   
+		                  			   secure  : false          //If set to true the secure attribute of the cookie
+		                  			                           //will be set and the cookie transmission will
+		                  			                           //require a secure protocol (defaults to false).
+		                  			});
+		                  			
+		                  			//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+		                  			location.reload(true);
+		                  			
+	                			});
+	                	
+                			</script>
+                			<%
+                		}
+                		%>
+                		   <!-- Can we inject language functionality here? -->
+                    <%
+                    
+            		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+            		int numSupportedLanguages=supportedLanguages.size();
+            		
+            		if(numSupportedLanguages>1){
+            		%>
+            			<li>
+            					
+            					
+            					<%
+            					for(int h=0;h<numSupportedLanguages;h++){
+            						String selected="";
+            						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
+            						String myLang=supportedLanguages.get(h);
+            					%>
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<script type="text/javascript">
+            	
+            							$( "#flag_<%=myLang%>" ).click(function() {
+            		
+            								//alert( "Handler for .change() called with new value: "+$( "#langCode option:selected" ).text() +" with value "+ $( "#langCode option:selected").val());
+            								$.cookie("wildbookLangCode", "<%=myLang%>", {
+            			   						path    : '/',          //The value of the path attribute of the cookie 
+            			                           //(default: path of page that created the cookie).
+            		   
+            			   						secure  : false          //If set to true the secure attribute of the cookie
+            			                           //will be set and the cookie transmission will
+            			                           //require a secure protocol (defaults to false).
+            								});
+            			
+            								//alert("I have set the wildbookContext cookie to value: "+$.cookie("wildbookContext"));
+            								location.reload(true);
+            			
+            							});
+            	
+            						</script>
+            					<%
+            					}
+            					%>
+            				
+            		</li>
+            		<%
+            		}
+            		%>
+            		<!-- end language functionality injection -->
+                	
+                    
+                    
+                    
                     </ul>
                     
                     <div class="search-wrapper">
                       <label class="search-field-header">
-                              <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-                            <input placeholder="record nr., encounter nr., nickname or id" name="number" />
-                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-                            <input type="submit" value="search" />
+                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
+	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
+	                            <input type="submit" value="search" />
                           </form>
                       </label>
                     </div>
                   </div>
-                  <a class="navbar-brand" href="/">MantaMatcher the Wildbook for Manta Rays</a>
+                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
               
@@ -161,20 +279,19 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                    
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Learn <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp">About Mantas</a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp">How to Photograph</a></li>
+                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
+                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                                  
-                          	<li><a target="_blank" href="http://www.wildme.org/wildbook">Learn about Wildbook</a></li>
+                          	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
                       </li>
                       
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a href="<%=urlLoc %>/adoptamanta.jsp">Adopt a Manta</a></li>
-                          <li><a href="<%=CommonConfiguration.getWikiLocation(context) %>mantamatcher_library_access_policy"><%=props.getProperty("accessPolicy")%></a></li>
+                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
                           <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
                           
                           <!--  examples of navigation dividers
@@ -191,9 +308,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Encounters <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("encounters")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li class="dropdown-header">By State</li>
+                          <li class="dropdown-header"><%=props.getProperty("states")%></li>
                         
                         <!-- list encounters by state -->
                           <% boolean moreStates=true;
@@ -215,6 +332,29 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                           <% } %>
                         </ul>
                       </li>
+                      
+                      <!-- start locationID sites -->
+                       <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                         
+                        
+                        <!-- list sites by locationID -->
+                          <% boolean moreLocationIDs=true;
+                             int siteNum=0;
+                             while(moreLocationIDs) {
+                                 String currentLocationID = "locationID"+siteNum;
+                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
+                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
+                                 <% siteNum++;
+                                 } else {
+                                	 moreLocationIDs=false;
+                                 }
+                            } //end while %>
+                        
+                        </ul>
+                      </li>
+                      <!-- end locationID sites -->
                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
@@ -238,7 +378,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
                             <% }
-                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin") || request.isUserInRole("RegionalManager"))) { %>
+                            if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
                             <% }
                             if(request.isUserInRole("admin")) { %>
@@ -266,15 +406,80 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                 <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp">Data Import</a></li>
+                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                 <% }
                             } //end if admin %>
                         </ul>
                       </li>
                     </ul>
+                    
+                 
+            		
+                    
                   </div>
+                  
                 </div>
               </div>
             </nav>
         </header>
+        
+        <script>
+        $('#search-site').autocomplete({
+            appendTo: $('#navbar-top'),
+            response: function(ev, ui) {
+                if (ui.content.length < 1) {
+                    $('#search-help').show();
+                } else {
+                    $('#search-help').hide();
+                }
+            },
+            select: function(ev, ui) {
+                if (ui.item.type == "individual") {
+                    window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                } 
+                else if (ui.item.type == "locationID") {
+                	window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                } 
+                /*
+                //restore user later
+                else if (ui.item.type == "user") {
+                    window.location.replace("/user/" + ui.item.value);
+                } 
+                else {
+                    alertplus.alert("Unknown result [" + ui.item.value + "] of type [" + ui.item.type + "]");
+                }
+                */
+                return false;
+            },
+            //source: app.config.wildbook.proxyUrl + "/search"
+            source: function( request, response ) {
+                $.ajax({
+                    url: '<%=("http://" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                    dataType: "json",
+                    data: {
+                        term: request.term
+                    },
+                    success: function( data ) {
+                        var res = $.map(data, function(item) {
+                            var label;
+                            if ((item.type == "individual")&&(item.species!=null)) {
+//                                label = item.species + ": ";
+                            } 
+                            else if (item.type == "user") {
+                                label = "User: ";
+                            } else {
+                                label = "";
+                            }
+                            return {label: label + item.label,
+                                    value: item.value,
+                                    type: item.type};
+                            });
+
+                        response(res);
+                    }
+                });
+            }
+        });
+        </script>
+        
         <!-- ****/header**** -->

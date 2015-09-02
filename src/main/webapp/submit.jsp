@@ -434,7 +434,7 @@ function showUploadBox() {
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
-              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(http://www.mantamatcher.org/images/computer.png);background-repeat: no-repeat;">
+              <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
     
@@ -774,7 +774,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     <div id="advancedInformation" fade="1" style="display: none;">
     
-      <h3>About the manta</h3>
+      <h3>About the animal</h3>
       
       <fieldset>
       

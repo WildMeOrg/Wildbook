@@ -51,11 +51,6 @@ if (session.getAttribute("message") != null) {
 
 <div class="container maincontent">
 
-
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
-
 	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
 
 	<p>
@@ -210,7 +205,7 @@ if (session.getAttribute("message") != null) {
             </tr>
             </table>
 <br ></br>
-<h1><%=props.getProperty("socialMediaConnections") %></h1>
+<h2><%=props.getProperty("socialMediaConnections") %></h2>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
@@ -302,7 +297,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     	
     </p>
     
-    <h3><%=props.getProperty("myData") %></h3>
+    <h2><%=props.getProperty("myData") %></h2>
     
 
 <%

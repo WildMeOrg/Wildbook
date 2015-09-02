@@ -226,6 +226,9 @@
 					
 				    /MyAccountAddProfileImage = authc
 				    /MyAccountRemoveProfileImage = authc
+					
+					/IndividualSetNickname = authc, roles[identifier]
+					/AdoptionAction = authc,roles[adoption]
 
             </param-value>
         </init-param>
@@ -1694,7 +1697,17 @@
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
   
+	<servlet>
+		<servlet-name>SiteSearch</servlet-name>
+		<servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
+	</servlet>
 
+					
+					
+	<servlet-mapping>
+		<servlet-name>SiteSearch</servlet-name>
+		<url-pattern>/SiteSearch</url-pattern>
+	</servlet-mapping>
   
 
   <!-- Struts 1 Action Servlet Mapping 
