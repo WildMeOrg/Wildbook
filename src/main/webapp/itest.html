@@ -9,17 +9,72 @@
 <script>
 
 	var t;
+	var defaultCursor = 'crosshair';
+
+	var spotStyle = {
+		null: {
+			strokeStyle: 'blue',
+			fillStyle: 'rgba(0,0,0,0.4)'
+		},
+		tip: {
+		},
+		_ghost: {
+			strokeStyle: 'black',
+			fillStyle: 'rgba(255,255,255,0.7)',
+			lineWidth: 3,
+			setLineDash: [4,4]
+		},
+		_hilite: {
+			strokeStyle: '#FCA',
+			fillStyle: 'rgba(255,200,0,0.4)'
+		}
+	};
 
 // mode, bits -> RST
 function setTool() {
 	var opts = {
 		el: document.getElementById('fluke-img'),
 		eventListeners: {
+			contextmenu: function(ev) {
+	console.log('menu!!!');
+				t._addingSpot = false;
+				ev.preventDefault();
+				ev.stopPropagation();
+			},
+
 			mousemove: function(ev) {
+				ev.preventDefault();
+
+				//t._insideSpot refers to if mouse went *down* on a spot
+				if (t._insideSpot > -1) {
+					clearLabelCanvas();
+					t.imageElement.style.cursor = 'grabbing';
+					t.imageElement.style.cursor = '-moz-grabbing';
+					t.imageElement.style.cursor = '-webkit-grabbing';
+console.log('dragging spot %d', t._insideSpot);
+					t._labelCanvasNeedsClearing = true;
+
+					drawSpot(t.lctx, t.spots[t._insideSpot], '_ghost');
+					drawSpot(t.lctx, [ev.offsetX, ev.offsetY], '_hilite');
+					return;
+				}
+
+				var s = t.isNearSpot(ev.offsetX, ev.offsetY);
+				if (s > -1) {
+console.log(s);
+					//t.imageElement.style.cursor = 'context-menu';
+					t.imageElement.style.cursor = 'grab';
+					t.imageElement.style.cursor = '-moz-grab';
+					t.imageElement.style.cursor = '-webkit-grab';
+				} else {
+					t.imageElement.style.cursor = defaultCursor;
+				}
+
+				clearLabelCanvas();
 				if (!t._mouseDown) return;
+				t.imageElement.style.cursor = 'move';
 //console.log('(%d,%d)', ev.offsetX, ev.offsetY);
 //console.log(ev);
-ev.preventDefault();
 				//note: never ever do translate with either rotate/scale. i.e. no odd numbers other than 1
 				if (t._mode & 4) {
 					var r = t.angleFromCenter(ev.offsetX, ev.offsetY) - t._startAngle;
@@ -44,6 +99,13 @@ console.log('%.1f (%.3f)', r * (180/Math.PI), r);
 			},
 */
 			mousedown: function(ev) {
+				t._addingSpot = false;
+				t._insideSpot = t.isNearSpot(ev.offsetX, ev.offsetY);
+if (t._insideSpot > -1) {
+	console.log('spot=%d', t._insideSpot);
+	return false;
+}
+				t._addingSpot = true;
 				if (!t._mode) return;
 				t._mouseDown = [ev.offsetX, ev.offsetY];
 				t._startAngle = t.angleFromCenter(ev.offsetX, ev.offsetY);
@@ -53,10 +115,22 @@ console.log('%.1f (%.3f)', r * (180/Math.PI), r);
 				t._originalScale = t.getScale();
 			},
 			mouseup: function(ev) {
-				if (!t._moved) {
+				t.imageElement.style.cursor = defaultCursor;
+
+				if (t._insideSpot > -1) {
+					var s = t.isNearSpot(ev.offsetX, ev.offsetY);
+					if (s != t._insideSpot) {
+						t.spots[t._insideSpot][0] = ev.offsetX;
+						t.spots[t._insideSpot][1] = ev.offsetY;
+					}
+					clearLabelCanvas();
+				}
+				if (t._addingSpot && !t._moved) {
 					addSpot(ev.offsetX, ev.offsetY);
 				}
 				refreshCanvas();
+				t._addingSpot = false;
+				t._insideSpot = -1;
 				t._mouseDown = false;
 				t._moved = false;
 			},
@@ -126,18 +200,55 @@ function refreshCanvas() {
 function clearCanvas() {
 	t.ctx.clearRect(0, 0, t.canvasElement.width, t.canvasElement.height);
 }
+
+function clearLabelCanvas() {
+	if (!t._labelCanvasNeedsClearing) return;
+	t.lctx.clearRect(0, 0, t.labelCanvasElement.width, t.labelCanvasElement.height);
+	t._labelCanvasNeedsClearing = false;
+}
+
 function drawSpots() {
 	for (var i = 0 ; i < t.spots.length ; i++) {
+/*
 //var m = t.computeTransformMatrix(2 * Math.PI - t.getRotation(), 1, 0, 0);
 //var m = t.computeTransformMatrix(t.getRotation(), 1, 0, 0);
 //var m = t.transformInverse();
 var m = t.transform;
 		var p = t.matrixMultiply(m, [t.spots[i][0] - 150, t.spots[i][1] - 150, 1]);
 console.log('%d,%d -> %o', t.spots[i][0], t.spots[i][1], p);
+*/
+		drawSpot(t.ctx, t.spots[i], t.spots[i][2]);
+/*
+		contextSetStyles(t.ctx, 
 		t.ctx.beginPath();
-		t.ctx.arc(p[0] + 150, p[1] + 150, 20, 0, 2 * Math.PI);
+		var p = t.toCanvasPoint(t.spots[i]);
+		t.ctx.arc(p[0], p[1], 20, 0, 2 * Math.PI);
+		t.ctx.fill();
 		t.ctx.stroke();
+*/
 	}
+}
+
+
+function contextSetStyles(ctx, style) {
+	if (!style) return;
+	for (var s in style) {
+		if (s == 'setLineDash') {
+			ctx.setLineDash(style[s]);
+		} else {
+			ctx[s] = style[s];
+		}
+	}
+}
+
+
+function drawSpot(ctx, p, styleKey) {
+	contextSetStyles(ctx, spotStyle[styleKey]);
+	ctx.beginPath();
+	var cp = t.toCanvasPoint(p);
+	ctx.arc(cp[0], cp[1], 8, 0, 2 * Math.PI);
+	ctx.fill();
+	ctx.stroke();
 }
 
 
@@ -160,7 +271,9 @@ console.log('%d,%d -> %o', t.spots[i][0], t.spots[i][1], p);
 	}
 
 	.imageTools-containerElement {
-		outline: solid 3px rgba(100, 255, 10, 0.8);
+		xoutline: solid 3px rgba(100, 255, 10, 0.8);
+	}
+	.imageTools-imageElement {
 	}
 </style>
 

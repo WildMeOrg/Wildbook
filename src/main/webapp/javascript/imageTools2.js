@@ -4,6 +4,8 @@ function ImageTools(opts) {
     this.imageElement = false;
     this.canvasElement = false;
     this.ctx = false;  //just for convenience
+    this.labelCanvasElement = false;
+    this.lctx = false;
     this.transform = [
         [1, 0, 0],
         [0, 1, 0],
@@ -47,13 +49,26 @@ this.imageElement.style.opacity = '0.8';
         this.canvasElement.style.pointerEvents = 'none';
         this.canvasElement.style.width = '100%';
         this.canvasElement.style.height = '100%';
-        this.canvasElement.style.transformOrigin = '50% 50%';
- this.canvasElement.style.outline = 'dashed 7px red';
         this.canvasElement.width = parseFloat(this.containerElement.style.width);
         this.canvasElement.height = parseFloat(this.containerElement.style.height);
         this.containerElement.appendChild(this.canvasElement);
         this.ctx = this.canvasElement.getContext('2d');
         return this.canvasElement;
+    };
+
+    this.createLabelCanvasElement = function() {
+        if (!this.containerElement) return;
+        this.labelCanvasElement = document.createElement('canvas');
+        this.labelCanvasElement.className = 'imageTools-labelCanvasElement';
+        this.labelCanvasElement.style.position = 'absolute';
+        this.labelCanvasElement.style.pointerEvents = 'none';
+        this.labelCanvasElement.style.width = '100%';
+        this.labelCanvasElement.style.height = '100%';
+        this.labelCanvasElement.width = parseFloat(this.containerElement.style.width);
+        this.labelCanvasElement.height = parseFloat(this.containerElement.style.height);
+        this.containerElement.appendChild(this.labelCanvasElement);
+        this.lctx = this.labelCanvasElement.getContext('2d');
+        return this.labelCanvasElement;
     };
 
 
@@ -79,6 +94,22 @@ this.imageElement.style.opacity = '0.8';
     this.midpoint = function(x1, y1, x2, y2) {
         return [(x1+x2)/2, (y1+y2)/2];
     };
+
+    this.toCanvasPoint = function(p) {
+        var w = t.canvasElement.width / 2;
+        var h = t.canvasElement.height / 2;
+	var cp = t.matrixMultiply(t.transform, [p[0] - w, p[1] - h, 1]);
+        return [cp[0] + w, cp[1] + h];
+    };
+
+    this.isNearSpot = function(x, y) {
+        var d = 10;
+        for (var i = 0 ; i < this.spots.length ; i++) {
+            if (this.dist(x, y, this.spots[i][0], this.spots[i][1]) <= d) return i;
+        }
+        return -1;
+    };
+
 
 /*
     this.nearMidpoint = function(x, y) {
@@ -289,7 +320,8 @@ console.log('doTransform() -> %o', m);
         var me = this;
         this.createContainerElement(opts.el);
         var imgEl = this.createImageElement(opts.el);
-        var canvas = this.createCanvasElement();
+        this.createCanvasElement();
+        this.createLabelCanvasElement();
         if (opts.eventListeners) {
             for (var evType in opts.eventListeners) {
 console.info('adding event listener type %s', evType);
