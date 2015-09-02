@@ -86,7 +86,12 @@ public class SiteSearch extends HttpServlet {
         filter = "this.nickName.toLowerCase().matches('"
                 + regex
                 + "') || this.individualID.matches('"
-                + regex + "')";
+                + regex
+                + "') || this.alternateid.matches('"
+                + regex + "')"
+                
+                
+                ;
 
         query = myShepherd.getPM().newQuery(MarkedIndividual.class);
         query.setFilter(filter);
@@ -165,10 +170,12 @@ public class SiteSearch extends HttpServlet {
           if (CommonConfiguration.getProperty(currentLocationID,context)!=null) {
             HashMap<String, String> hm = new HashMap<String, String>();
             String locID=CommonConfiguration.getProperty(currentLocationID,context);
-            hm.put("label", locID);            
-            hm.put("value", locID);
-            hm.put("type", "locationID");
-            list.add(hm);
+            if(locID.toLowerCase().indexOf(term.toLowerCase())!=-1){
+              hm.put("label", locID);            
+              hm.put("value", locID);
+              hm.put("type", "locationID");
+              list.add(hm);
+            }
             siteNum++;
           }
           else{
