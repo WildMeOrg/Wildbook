@@ -182,15 +182,38 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
   public boolean writeResult(MatchObject[] swirs, String num,  String newEncDate, String newEncIndividualID, Shepherd myShepherd, String context, HttpServletRequest request) {
 
+    
+  //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+    File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    File file = new File(Encounter.dir(shepherdDataDir, num) + "/flukeMatching.json");
+
+    
+    
+    
     FileWriter mywriter=null;
     try {
+      
+      
+      //get the Encounter and genus and species
+      myShepherd.beginDBTransaction();
+      Encounter gsEnc=myShepherd.getEncounter(num);
+      String genusSpecies="undefined";
+      if((gsEnc.getGenus()!=null)&&(!gsEnc.getGenus().trim().equals(""))&&(gsEnc.getSpecificEpithet()!=null)&&(!gsEnc.getSpecificEpithet().trim().equals(""))){
+        genusSpecies=gsEnc.getGenus()+gsEnc.getSpecificEpithet();
+      }
+      String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
+      
+      
       //System.out.println("Prepping to write XML file for encounter "+num);
 
       //now setup the XML write for the encounter
       int resultsSize = swirs.length;
       MatchObject[] matches = swirs;
 
-      Arrays.sort(swirs, new FlukeMatchComparator(request));
+      Arrays.sort(swirs, new FlukeMatchComparator(request,pathToClassifierFile));
       
       
       StringBuffer resultsJSON = new StringBuffer();
@@ -223,14 +246,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
       
       
-      //setup data dir
-      String rootWebappPath = getServletContext().getRealPath("/");
-      File webappsDir = new File(rootWebappPath).getParentFile();
-      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-      File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
       
-      File file = new File(Encounter.dir(shepherdDataDir, num) + "/flukeMatching.json");
-
+      
+      
       //build our JSON with GSON
       Gson gson = new GsonBuilder().create();
       StringBuffer jsonOut=new StringBuffer("[\n");
@@ -269,7 +287,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         Instance iExample = new Instance(5);
-        Instances myInstances=GridManager.getAdaBoostInstances(request);
+        Instances myInstances=TrainNetwork.getAdaBoostInstances(request);
         
         iExample.setDataset(myInstances);
         iExample.setValue(0, mo.getIntersectionCount());
@@ -278,7 +296,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         
         
-        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,myInstances);
+        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,pathToClassifierFile);
         
         double[] fDistribution = booster.distributionForInstance(iExample);
         
@@ -322,6 +340,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         }
         catch(Exception e){e.printStackTrace();}
       }
+      
     }
   } //end writeResult method
 

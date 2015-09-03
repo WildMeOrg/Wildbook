@@ -863,16 +863,39 @@ public class TrainNetwork extends HttpServlet {
     return score; 
    }
    
-  public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, Instances instances){
+  public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile){
+    
+    
+    //FIRST
+    //first check for file and return it if it exists
+    File classifierFile=new File(fullPathToClassifierFile);
+    try{
+    
+      if(classifierFile.exists()){
+        AdaBoostM1 booster = (AdaBoostM1)deserializeWekaClassifier(request,fullPathToClassifierFile);
+        return booster;
+      }
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
+    
+    //SECOND
+    //next build it if it does not exist or if you hit an exception
     AdaBoostM1 booster=new AdaBoostM1();
     try {
-      booster.buildClassifier(instances);
-    } catch (Exception e) {
+      booster.buildClassifier(getAdaBoostInstances(request));
+      //serialize out the classifier
+      serializeWekaClassifier(request,booster,fullPathToClassifierFile);
+    } 
+    catch (Exception e) {
       // TODO Auto-generated catch block
       e.printStackTrace();
       return null;
     }
     return booster;
+    
+    
   }
   
   public static Instances getAdaBoostInstances(HttpServletRequest request){
@@ -929,7 +952,7 @@ public class TrainNetwork extends HttpServlet {
         Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
         int numEncs=encounters.size();
         
-        Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (numEncs*(numEncs-1)/2));
+        Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
         isTrainingSet.setClassIndex(4);
         AdaBoostM1 booster=new AdaBoostM1();
         
@@ -959,6 +982,8 @@ public class TrainNetwork extends HttpServlet {
                   
                   EncounterLite el1=new EncounterLite(enc1);
                   EncounterLite el2=new EncounterLite(enc2);
+                  
+                  //FIRST PASS
                   
                   //HolmbergIntersection
                   Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
@@ -1015,6 +1040,70 @@ public class TrainNetwork extends HttpServlet {
                   // add the instance
                   isTrainingSet.add(iExample);
                   
+                  //END FIRST PASS
+                  
+                  //SECOND PASS-reverse order
+
+                  
+                  //HolmbergIntersection
+                  Double numIntersections2=EncounterLite.getHolmbergIntersectionScore(el2, el1,intersectionProportion);
+                  double finalInter2=-1;
+                  if(numIntersections2!=null){finalInter2=numIntersections2.intValue();}
+                 
+                  
+                  //FastDTW
+                  TimeWarpInfo twi2=EncounterLite.fastDTW(el2, el1, 30);
+                  
+                  java.lang.Double distance2 = new java.lang.Double(-1);
+                  if(twi2!=null){
+                    WarpPath wp2=twi2.getPath();
+                      String myPath2=wp2.toString();
+                    distance2=new java.lang.Double(twi2.getDistance());
+                  }   
+                  
+                  //I3S
+                  I3SMatchObject newDScore2=EncounterLite.improvedI3SScan(el2, el1);
+                  double i3sScore2=-1;
+                  if(newDScore2!=null){i3sScore2=newDScore2.getI3SMatchValue();}
+                  
+                  //Proportion metric
+                  Double proportion2=EncounterLite.getFlukeProportion(el2,el1);
+                  
+                  //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
+                  /*
+                  if((output==0)||(numNonMatches<numMatches)){
+                    trainingSet. addRow (
+                        new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
+                        new double[]{output}));
+                    
+                    //write the line too
+                    writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
+                    
+                    if(output==0){numMatches++;}
+                    else{numNonMatches++;}
+                    
+                  }
+                  */
+                  // Create the instance
+                  Instance iExample2 = new Instance(5);
+                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
+                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
+                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
+                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
+                  
+                  if(output==0){
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
+                  }
+                  else{
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
+                  }
+                  // add the instance
+                  isTrainingSet.add(iExample2);
+                  
+                  
+                  
+                  //END SECOND PASS
+                  
                   
                   
                 }
@@ -1039,7 +1128,7 @@ public class TrainNetwork extends HttpServlet {
     
       }
   
-    public static void serialieWekaClassifier(HttpServletRequest request, Classifier cls, String absolutePath){
+    public static void serializeWekaClassifier(HttpServletRequest request, Classifier cls, String absolutePath){
       
    // serialize model
       try {
@@ -1051,7 +1140,7 @@ public class TrainNetwork extends HttpServlet {
       
     }
     
-    private static Classifier deserialieWekaClassifier(HttpServletRequest request, String absolutePath){
+    private static Classifier deserializeWekaClassifier(HttpServletRequest request, String absolutePath){
       
    // serialize model
       try {
@@ -1061,6 +1150,15 @@ public class TrainNetwork extends HttpServlet {
         e.printStackTrace();
       }
       return null;
+    }
+    
+    public static String getAbsolutePathToClassifier(String genusSpecies,HttpServletRequest request){
+      String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
+      File classifiersDir = new File(shepherdDataDir,"classifiers");
+      File classifierFile=new File(classifiersDir,(genusSpecies+".adaboostM1"));
+      return classifierFile.getAbsolutePath();
     }
   
   

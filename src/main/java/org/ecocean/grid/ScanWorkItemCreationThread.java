@@ -134,6 +134,11 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
             String uniqueNum = swi.getUniqueNumber();
 
             gm.addWorkItem(swi);
+            
+            
+            //scan the reverse as well
+            ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), wiIdentifier, taskID, props2, algorithms);
+            gm.addWorkItem(swi2);
 
             //System.out.println("Added a new right-side scan task!");
             count++;
