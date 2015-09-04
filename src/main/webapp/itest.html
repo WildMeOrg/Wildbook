@@ -132,10 +132,12 @@ if (t._insideSpot > -1) {
 				t.imageElement.style.cursor = defaultCursor;
 
 				if (t._insideSpot > -1) {
-					var s = t.isNearSpot(ev.offsetX, ev.offsetY);
+					var s = -2;
+					//var s = t.isNearSpot(ev.offsetX, ev.offsetY);
 					if (s != t._insideSpot) {
 						t.spots[t._insideSpot][0] = ev.offsetX;
 						t.spots[t._insideSpot][1] = ev.offsetY;
+if (t.spots.length == 3) doEdge();
 					}
 					clearLabelCanvas();
 				}
@@ -165,7 +167,7 @@ if (t._insideSpot > -1) {
 	t._mode = 4;
 //t.imageElement.addEventListener('mousemove', function() { console.log('mm'); }, false);
 	console.info('created imageTools t');
-	CTX = doEdge();
+	//CTX = doEdge();
 }
 
 
@@ -204,6 +206,7 @@ console.log('(%d,%d) -> (%d,%d)', x, y, s[0], s[1]);
 	t.spots.push([s[0], s[1], type]);
 */
 console.info('addSpots(%d,%d) -> %o', x, y, t.spots);
+	if (t.spots.length == 3) doEdge();
 }
 
 
@@ -270,14 +273,39 @@ function drawSpot(ctx, p, styleKey, r) {
 
 var fctx;
 var PATH;
+var edgeCanvas;
+
+var edgeA = 20;
+var edgeB = 50;
+var edgeScrubbing = false;
+
 function doEdge() {
-	var c = document.createElement('canvas');
-	c.width = t.imageElement.naturalWidth;
-	c.height = t.imageElement.naturalHeight;
-        document.getElementsByTagName('body')[0].appendChild(c);
-	var ctx = c.getContext('2d');
+	if (!edgeCanvas) {
+		edgeCanvas = document.createElement('canvas');
+		edgeCanvas.width = t.imageElement.naturalWidth;
+		edgeCanvas.height = t.imageElement.naturalHeight;
+        	document.getElementsByTagName('body')[0].appendChild(edgeCanvas);
+		$('#edge-scrub').on('mousedown', function() { edgeScrubbing = true; });
+		$('#edge-scrub').on('mouseup', function(ev) {
+			ev.preventDefault();
+			edgeScrubbing = false;
+			doEdge();
+		});
+		$('#edge-scrub').on('mousemove', function(ev) {
+			ev.preventDefault();
+			if (!edgeScrubbing) return;
+			edgeA = 0 + 120 * (ev.offsetX / ev.target.offsetWidth);
+			edgeB = 0 + 200 * (ev.offsetY / ev.target.offsetHeight);
+			var ctx = edgeCanvas.getContext('2d');
+			var ctx2 = edgeDetect(ctx);
+			var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+			ctx.putImageData(imageData, 0, 0);
+		});
+		
+	}
+	var ctx = edgeCanvas.getContext('2d');
 fctx = ctx;
-	ctx.drawImage(t.imageElement, 0, 0);
+	//ctx.drawImage(t.imageElement, 0, 0);
 	var ctx2 = edgeDetect(ctx);
 /*
 var spots = [  //-mid
@@ -286,28 +314,37 @@ var spots = [  //-mid
 	[604,136]
 ];
 */
+
+/*
 var spots = [   // -B
 	[239,111],
 	[374,211],
 	[563,119]
 ];
+*/
 
+	var scale = t.imageElement.naturalWidth / t.imageElement.width;
+	var spots = [];
+	for (var i = 0 ; i < 3 ; i++) {
+		spots[i] = [Math.floor(t.spots[i][0] * scale), Math.floor(t.spots[i][1] * scale)];
+	}
+	spots.sort(function(a,b) { return a[0] - b[0]; });  //sorts based on x value
+console.log('spots %o', spots);
 	var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-var path = bestPath(imageData, spots[0], spots[1]);
-PATH = path;
-for (var i = 0 ; i < path.length ; i++) {
-	var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
-	imageData.data[offset] = 255;
-	imageData.data[offset+1] = 255;
-	imageData.data[offset+2] = 30;
-}
-console.log('path -> %o', path);
-	fctx.putImageData(imageData, 0, 0);
-return;
+	var pathLeft = bestPath(imageData, spots[0], spots[1]);
+PATH = pathLeft;
+console.log('left path -> %o', pathLeft);
+	drawPath(imageData, pathLeft, [255,255,100]);
+	var pathRight = bestPath(imageData, spots[2], spots[1]);
+console.log('right path -> %o', pathRight);
+	drawPath(imageData, pathRight, [100,200,255]);
+	ctx.putImageData(imageData, 0, 0);
+
+/*
 	var s = findSpotsOnLine(spots[0], spots[1], imageData);
 	var s2 = findSpotsOnLine(spots[1], spots[2], imageData);
 	var foundSpots = s.concat(s2);
-/*
+
 console.log(imageData);
 	var m = (spots[1][1] - spots[0][1]) / (spots[1][0] - spots[0][0]);
 	var b = spots[0][1] - m * spots[0][0];
@@ -322,11 +359,13 @@ console.warn('===(%d,%d)===================', x,y);
 */
 
 	for (var i = 0 ; i < spots.length ; i++) {
-		drawSpot(ctx2, spots[i], '_hilite');
+		drawSpot(ctx2, spots[i], '_hilite', 9);
 	}
+/*
 	for (var i = 0 ; i < foundSpots.length ; i++) {
 		drawSpot(ctx2, foundSpots[i], '_dim', 3);
 	}
+*/
 
 	return ctx2;
 }
@@ -340,16 +379,16 @@ function bestPath(imageData, p1, p2, skipped) {
 	imageData.data[offset+1] = 128;  //mark visited
 	imageData.data[offset+2] = 128;
 
-if (t.dist(p1[0],p1[1],p2[0],p2[1]) < 10) {
+if (t.dist(p1[0],p1[1],p2[0],p2[1]) < 8) {
 console.warn('found a near-end! %d,%d', p1[0], p1[1]);
 return [p1];
 }
 
 	var thisPt = false;
 	if (imageData.data[offset]) {
-console.log('(%d,%d) -> %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+//console.log('(%d,%d) -> %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
 		thisPt = p1;
-	} else if (skipped > 3) {  //too big a gap
+	} else if (skipped > 8) {  //too big a gap
 		return false;
 	} else {
 		skipped++; //we are skipping a point, but will keep trying
@@ -393,6 +432,15 @@ console.info('bailing');
 	//return pts;
 }
 
+
+function drawPath(imageData, path, rgb) {
+	for (var i = 0 ; i < path.length ; i++) {
+		var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
+		for (var c = 0 ; c < 3 ; c++) {
+			imageData.data[offset + c] = rgb[c];
+		}
+	}
+}
 
 function MEHtrace(imageData, p1, p2) {
 	var pts = crawl(imageData, p1, p2, 3);
@@ -581,6 +629,7 @@ return ctx2;
 */
 
 function edgeDetect(ctx) {
+	ctx.drawImage(t.imageElement, 0, 0);
 	var w = ctx.canvas.width;
 	var h = ctx.canvas.height;
 	var img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
@@ -588,11 +637,12 @@ function edgeDetect(ctx) {
 
 	jsfeat.imgproc.grayscale(imageData.data, w, h, img_u8);
 
-	var blur_radius = 2;
+	var blur_radius = 5;
 	var kernel_size = (blur_radius + 1) << 1;
 	jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
 
-	jsfeat.imgproc.canny(img_u8, img_u8, 20, 50);
+	jsfeat.imgproc.canny(img_u8, img_u8, edgeA, edgeB);
+	//kernel_size = (2) << 1;
 	//jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
 
 /* 2,20,50
@@ -654,21 +704,52 @@ function edgeDetect(ctx) {
 		width: 300px;
 	}
 
+	img#fluke-img2 {
+		position: absolute;
+		top: 30px;
+		left: 500px;
+		width: 300px;
+	}
+
 	.imageTools-containerElement {
 		xoutline: solid 3px rgba(100, 255, 10, 0.8);
 	}
 	.imageTools-imageElement {
 	}
+
+	#edge-scrub {
+		position: absolute;
+		right: 100px;
+		top: 350px;
+		width: 50px;
+		height: 50px;
+		background-color: #999;
+		font-size: 0.65em;
+		text-align: center;
+	}
 </style>
 
 </head>
 <body>
-hello!
+
 
 <div id="leaveMeAlone">
-	<ximg xid="fluke-img" src="/shepherd_data_dir/encounters/1/d/1d29894f-50f4-47df-b444-a7619394aa28/test-pattern-mid.jpg" onLoad="setTool()" />
-	<img id="fluke-img" src="images/test-fluke-B.jpg" onLoad="setTool()" />
+<div style="float: right; width: 400px; font-size: 0.8em;">
+<ul>
+<li>pick 3 points on fluke (tips and valley, order doesnt matter) and edge detection output will show up below
+<li>you can (try!) to scrub settings on edge detection in the little gray square -- it is kinda lame interface, drag around inside it
+<li>you can drag/move spots in top image to adjust
+<li>yellowish line should be left fluke, blueish is right
+</ul>
 </div>
+	<ximg xid="fluke-img" src="/shepherd_data_dir/encounters/1/d/1d29894f-50f4-47df-b444-a7619394aa28/test-pattern-mid.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img" src="images/test-fluke-mid.jpg" onLoad="setTool()" />
+	<img id="fluke-img" src="images/test-fluke-B.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img2" src="images/test-fluke-C.jpg" onLoad="setTool()" />
+	<ximg xid="fluke-img2" src="images/test-fluke-D.jpg" onLoad="setTool()" />
+</div>
+
+<div id="edge-scrub">scrub for edge settings</div>
 
 </body>
 </html>
