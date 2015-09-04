@@ -2362,8 +2362,8 @@ private double amplifyY(double origValue, double s){
             
             
           }
-          return (numIntersections/maxIntersectingLines);
-         
+          //return (numIntersections/maxIntersectingLines);
+          return (numIntersections);
       
     }
      catch(Exception e){

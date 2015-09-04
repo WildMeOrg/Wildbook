@@ -287,7 +287,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         Instance iExample = new Instance(5);
-        Instances myInstances=TrainNetwork.getAdaBoostInstances(request);
+        Instances myInstances=GridManager.getAdaboostInstances(request);
         
         iExample.setDataset(myInstances);
         iExample.setValue(0, mo.getIntersectionCount());

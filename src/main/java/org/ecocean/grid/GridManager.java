@@ -78,6 +78,7 @@ public class GridManager {
   private static SummaryStatistics intersectionStats=null;
   
   
+  private static Instances adaboostInstances=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -623,21 +624,18 @@ public class GridManager {
   
   public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpecies){
     
-  //setup data dir
-    String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-    File classifiersDataDir = new File(shepherdDataDir, "classifiers");
-    if(!classifiersDataDir.exists()){classifiersDataDir.mkdirs();}
-    File specificClassifier=new File(classifiersDataDir,genusSpecies);
-    
-    
-    return TrainNetwork.getAdaBoostClassifier(request,specificClassifier.getAbsolutePath());
+    return TrainNetwork.getAdaBoostClassifier(request,genusSpecies);
     
   
   
   
+  }
+  
+  public static Instances getAdaboostInstances(HttpServletRequest request){
+    if(adaboostInstances==null){
+      adaboostInstances=TrainNetwork.getAdaboostInstances(request);
+    }
+    return adaboostInstances;
   }
   
 

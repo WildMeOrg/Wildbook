@@ -76,9 +76,8 @@ public class FlukeMatchComparator implements Comparator {
     
     Instance a1Example = new Instance(5);
     Instance b1Example = new Instance(5);
-    Instances myInstances=TrainNetwork.getAdaBoostInstances(request);
+    Instances myInstances=GridManager.getAdaboostInstances(request);
     AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToFile);
-    
     
     a1Example.setDataset(myInstances);
     a1Example.setValue(0, a1.getIntersectionCount());

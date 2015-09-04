@@ -884,7 +884,7 @@ public class TrainNetwork extends HttpServlet {
     //next build it if it does not exist or if you hit an exception
     AdaBoostM1 booster=new AdaBoostM1();
     try {
-      booster.buildClassifier(getAdaBoostInstances(request));
+      booster.buildClassifier(GridManager.getAdaboostInstances(request));
       //serialize out the classifier
       serializeWekaClassifier(request,booster,fullPathToClassifierFile);
     } 
@@ -898,7 +898,7 @@ public class TrainNetwork extends HttpServlet {
     
   }
   
-  public static Instances getAdaBoostInstances(HttpServletRequest request){
+  public static Instances getAdaboostInstances(HttpServletRequest request){
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
@@ -1129,6 +1129,13 @@ public class TrainNetwork extends HttpServlet {
       }
   
     public static void serializeWekaClassifier(HttpServletRequest request, Classifier cls, String absolutePath){
+      
+      String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
+      File classifiersDir = new File(shepherdDataDir,"classifiers");
+      if(!classifiersDir.exists()){classifiersDir.mkdirs();}
+      
       
    // serialize model
       try {
