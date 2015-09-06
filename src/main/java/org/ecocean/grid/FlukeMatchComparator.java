@@ -42,8 +42,9 @@ import weka.classifiers.Evaluation;
 public class FlukeMatchComparator implements Comparator {
   
   private HttpServletRequest request;
+  private String pathToFile;
   
-  public FlukeMatchComparator(HttpServletRequest request){this.request=request;}
+  public FlukeMatchComparator(HttpServletRequest request,String pathToFile){this.request=request;this.pathToFile=pathToFile;}
 
   public int compare(Object a, Object b) {
     
@@ -75,9 +76,8 @@ public class FlukeMatchComparator implements Comparator {
     
     Instance a1Example = new Instance(5);
     Instance b1Example = new Instance(5);
-    Instances myInstances=GridManager.getAdaBoostInstances(request);
-    AdaBoostM1 booster=GridManager.getAdaBoostM1(request,myInstances);
-    
+    Instances myInstances=GridManager.getAdaboostInstances(request);
+    AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToFile);
     
     a1Example.setDataset(myInstances);
     a1Example.setValue(0, a1.getIntersectionCount());

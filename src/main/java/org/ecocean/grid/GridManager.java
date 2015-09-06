@@ -20,8 +20,12 @@
 package org.ecocean.grid;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.neural.TrainNetwork;
+
+
+import org.ecocean.servlet.ServletUtilities;
 
 //train weka
 import weka.core.Attribute;
@@ -33,6 +37,7 @@ import weka.classifiers.Evaluation;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
@@ -72,10 +77,8 @@ public class GridManager {
   private static SummaryStatistics proportionStats=null;
   private static SummaryStatistics intersectionStats=null;
   
-  //AdaBoost
-  private static AdaBoostM1 adaBoostClassifier=null;
-  private static Instances adaBoostInstances=null;
   
+  private static Instances adaboostInstances=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -619,15 +622,23 @@ public class GridManager {
     return proportionStats;
   }
   
-  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, Instances instances){
-    if(adaBoostClassifier==null){adaBoostClassifier=TrainNetwork.getAdaBoostClassifier(request,getAdaBoostInstances(request));}
-    return adaBoostClassifier;
+  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpecies){
+    
+    return TrainNetwork.getAdaBoostClassifier(request,genusSpecies);
+    
+  
+  
+  
   }
   
-  public static Instances getAdaBoostInstances(HttpServletRequest request){
-    if(adaBoostInstances==null){adaBoostInstances=TrainNetwork.getAdaBoostInstances(request);}
-    return adaBoostInstances;
+  public static Instances getAdaboostInstances(HttpServletRequest request){
+    if(adaboostInstances==null){
+      adaboostInstances=TrainNetwork.getAdaboostInstances(request);
+    }
+    return adaboostInstances;
   }
+  
+
     
 
 }
