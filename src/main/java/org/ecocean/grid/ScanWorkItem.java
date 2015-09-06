@@ -238,6 +238,11 @@ public class ScanWorkItem implements java.io.Serializable {
       double newScore=-1;
       if(newDScore!=null){
         newScore=newDScore.getI3SMatchValue();
+        
+        
+        //
+        if(newScore<0.0000001){newScore=2.0;}
+        
         //create a Vector of Points
         Vector points = new Vector();
         
