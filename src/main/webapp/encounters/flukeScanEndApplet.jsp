@@ -266,64 +266,7 @@ var encounterNumber = '<%=num%>';
 
 </ul>
 
-<%
-  Vector initresults = new Vector();
-  Document doc;
-  Element root;
-  String side = "left";
 
-  if (request.getParameter("writeThis") == null) {
-    initresults = myShepherd.matches;
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      side = "right";
-    }
-  } else {
-
-//read from the written XML here if flagged
-    try {
-      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
-
-
-        side = "right";
-      } else {
-        //file=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullScan.xml");
-        file = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
-
-      }
-      doc = xmlReader.read(file);
-      root = doc.getRootElement();
-      scanDate = root.attributeValue("scanDate");
-      xmlOK = true;
-      R = root.attributeValue("R");
-      C = root.attributeValue("C");
-      maxTriangleRotation = root.attributeValue("maxTriangleRotation");
-      Sizelim = root.attributeValue("Sizelim");
-      epsilon = root.attributeValue("epsilon");
-    } catch (Exception ioe) {
-      System.out.println("Error accessing the stored scan XML data for encounter: " + num);
-      ioe.printStackTrace();
-      initresults = myShepherd.matches;
-      xmlOK = false;
-    }
-
-  }
-  MatchObject[] matches = new MatchObject[0];
-  if (!xmlOK) {
-    int resultsSize = initresults.size();
-    System.out.println(resultsSize);
-    matches = new MatchObject[resultsSize];
-    for (int a = 0; a < resultsSize; a++) {
-      matches[a] = (MatchObject) initresults.get(a);
-    }
-    R = request.getParameter("R");
-    C = request.getParameter("C");
-    maxTriangleRotation = request.getParameter("maxTriangleRotation");
-    Sizelim = request.getParameter("Sizelim");
-    epsilon = request.getParameter("epsilon");
-  }
-%>
 
 <p>
 
