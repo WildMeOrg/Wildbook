@@ -205,7 +205,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         genusSpecies=gsEnc.getGenus()+gsEnc.getSpecificEpithet();
       }
       String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
+      String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
       
+      Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
       
       //System.out.println("Prepping to write XML file for encounter "+num);
 
@@ -213,7 +215,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       int resultsSize = swirs.length;
       MatchObject[] matches = swirs;
 
-      Arrays.sort(swirs, new FlukeMatchComparator(request,pathToClassifierFile));
+      Arrays.sort(swirs, new FlukeMatchComparator(request,pathToClassifierFile,instances));
       
       
       StringBuffer resultsJSON = new StringBuffer();
@@ -287,7 +289,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         Instance iExample = new Instance(5);
-        Instances myInstances=GridManager.getAdaboostInstances(request);
+        Instances myInstances=GridManager.getAdaboostInstances(request,genusSpecies);
         
         iExample.setDataset(myInstances);
         iExample.setValue(0, mo.getIntersectionCount());
@@ -296,7 +298,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         
         
-        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,pathToClassifierFile);
+        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,pathToClassifierFile,myInstances);
         
         double[] fDistribution = booster.distributionForInstance(iExample);
         
