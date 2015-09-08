@@ -144,6 +144,45 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			padding: 8px;
 		}
 
+		.tool b.tool-head {
+			color: #444;
+			display: block;
+			background-color: #DDD;
+			padding: 4px 10px;
+			margin: 15px 0px 8px -10px;
+			width: 100%;
+		}
+
+		#user-message {
+			margin-top: -5px;
+			text-align: center;
+			font-size: 0.8em;
+			padding: 5px;
+			color: #888;
+			height: 1.2em;
+			background-color: #FFA;
+			border-radius: 10px;
+			width: 98%;
+		}
+
+		#image-message {
+			pointer-events: none;
+			position: absolute;
+			right: 25px;
+			top: 40px;
+			background-color: rgba(0,0,0,0.5);
+			color: #FFA;
+			text-weight: bold;
+			z-index: 2;
+			font-size: 0.9em;
+			padding: 2px 8px;
+			border-radius: 4px;
+			display: none;
+		}
+
+		#main {
+			position: relative;
+		}
 	</style>
 
 
@@ -232,16 +271,28 @@ console.log(pdata);
 
 			
 <div id="tools">
-	<select onChange="return modeMenuChange(this);">
-		<option value="8">spots</option>
+	<div class="tool"><b class="tool-head">edit mode</b>
+	<select id="edit-mode-menu" onChange="return modeMenuChange(this);">
+		<option value="0">spots (only)</option>
+		<option value="8">delete spots</option>
 		<option value="1">move image</option>
 		<option value="2">zoom</option>
 		<option value="4">rotate</option>
 		<option value="6">zoom & rotate</option>
 	</select>
+	</div>
+
+	<div class="tool"><b class="tool-head">edge mode</b>
+		<input type="radio" name="edge-mode" value="auto" checked /> auto-detect edge<br />
+		<input type="radio" name="edge-mode" value="manual" /> manually select points
+		<div style="margin: 12px 0 7px 0; font-size: 0.8em;">edge detection settings:</div>
+		<div id="edge-params"></div>
+	</div>
 </div>
 
 <div id="main">
+	<div id="user-message"></div>
+	<div id="image-message"></div>
 	<img id="target-img" src="<%=imgSrc%>" onLoad="setTool()" />
 </div>
 
