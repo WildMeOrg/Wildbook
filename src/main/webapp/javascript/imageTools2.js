@@ -11,6 +11,7 @@ function ImageTools(opts) {
         [0, 1, 0],
         [0, 0, 1]
     ];
+    this.opts = {};
 
     this.createContainerElement = function(el) {
         this.containerElement = document.createElement('div');
@@ -18,10 +19,10 @@ function ImageTools(opts) {
         this.containerElement.style.position = 'absolute';
         this.containerElement.style.overflow = 'hidden';
 //this.containerElement.style.backgroundColor = 'rgba(0,0,0,0.8)';
-        this.containerElement.style.top = el.offsetTop;
-        this.containerElement.style.left = el.offsetLeft;
-        this.containerElement.style.width = el.offsetWidth;
-        this.containerElement.style.height = el.offsetHeight;
+        this.containerElement.style.top = el.offsetTop + 'px';
+        this.containerElement.style.left = el.offsetLeft + 'px';
+        this.containerElement.style.width = el.offsetWidth + 'px';
+        this.containerElement.style.height = el.offsetHeight + 'px';
         var p = el.parentNode;  //TODO no parent?  is this possible?
         p.appendChild(this.containerElement);
         return this.containerElement;
@@ -31,12 +32,12 @@ function ImageTools(opts) {
         if (!this.containerElement) return;
         this.imageElement = new Image();
         this.imageElement.src = el.src;
-        this.imageElement.className = 'imageTools-imageElement';
+        this.imageElement.className = 'imageTools-imageElement';  //should we do this no matter what?
         this.imageElement.style.position = 'absolute';
         this.imageElement.style.width = '100%';
         this.imageElement.style.height = '100%';
         this.imageElement.style.transformOrigin = '50% 50%';
-this.imageElement.style.opacity = '0.8';
+//this.imageElement.style.opacity = '0.8';
         this.containerElement.appendChild(this.imageElement);
         return this.imageElement;
     };
@@ -96,9 +97,9 @@ this.imageElement.style.opacity = '0.8';
     };
 
     this.toCanvasPoint = function(p) {
-        var w = t.canvasElement.width / 2;
-        var h = t.canvasElement.height / 2;
-	var cp = t.matrixMultiply(t.transform, [p[0] - w, p[1] - h, 1]);
+        var w = this.canvasElement.width / 2;
+        var h = this.canvasElement.height / 2;
+	var cp = this.matrixMultiply(this.transform, [p[0] - w, p[1] - h, 1]);
         return [cp[0] + w, cp[1] + h];
     };
 
@@ -318,8 +319,9 @@ console.log('doTransform() -> %o', m);
 
     this.init = function(opts) {
         var me = this;
+        this.opts = opts;
         this.createContainerElement(opts.el);
-        var imgEl = this.createImageElement(opts.el);
+        var imgEl = this.createImageElement(opts.el, opts.useExistingImage);
         this.createCanvasElement();
         this.createLabelCanvasElement();
         if (opts.eventListeners) {
