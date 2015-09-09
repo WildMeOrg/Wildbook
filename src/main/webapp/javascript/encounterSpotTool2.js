@@ -359,6 +359,12 @@ function resetAll() {
     edgeCanvas = null;
 }
 
+
+function backToEncounter() {
+    //TODO check for changes and confirm
+    window.location = 'encounter.jsp?number=' + encounterNumber;
+}
+
 function refreshCanvas() {
     clearCanvas();
     drawSpots();
