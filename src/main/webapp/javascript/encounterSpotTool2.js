@@ -267,20 +267,21 @@ function save() {
         cp[1] *= scale;
         data.points.push(cp);
     }
-console.warn('data %o', data); //return;
+console.warn('sending data: %o', data); //return;
     $.ajax({
         url: '../SubmitSpotsAndTransformImage',
         type: 'POST',
         data: JSON.stringify(data),
         complete: function(d) {
-            if (d.responseJSON && d.responseJSON.success) {
+            var j = JSON.parse(d.responseText);
+            if (j && j.success) {
                 console.info('looks like it worked');
-            } else if (d.responseJSON && d.responseJSON.error) {
-                alert('ERROR saving: ' + d.responseJSON.error);
+            } else if (j && j.error) {
+                alert('ERROR saving: ' + j.error);
             } else {
                 alert('ERROR ' + d.status + ' saving: ' + d.statusText);
             }
-console.log('ok! %o', d);
+console.log('save returned: %o', d);
         },
         dataType: 'json',
         contentType: 'application/json'
