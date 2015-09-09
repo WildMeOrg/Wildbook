@@ -30,6 +30,7 @@ import weka.core.Instances;
 
 import javax.servlet.http.HttpServletRequest;
 
+
 //train weka
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -43,8 +44,13 @@ public class FlukeMatchComparator implements Comparator {
   
   private HttpServletRequest request;
   private String pathToFile;
+  private Instances myInstances=null;
   
-  public FlukeMatchComparator(HttpServletRequest request,String pathToFile){this.request=request;this.pathToFile=pathToFile;}
+  public FlukeMatchComparator(HttpServletRequest request,String pathToFile,Instances myInstances){
+    this.request=request;
+    this.pathToFile=pathToFile;
+    this.myInstances=myInstances;
+  }
 
   public int compare(Object a, Object b) {
     
@@ -76,8 +82,10 @@ public class FlukeMatchComparator implements Comparator {
     
     Instance a1Example = new Instance(5);
     Instance b1Example = new Instance(5);
-    Instances myInstances=GridManager.getAdaboostInstances(request);
-    AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToFile);
+    //Instances myInstances=GridManager.getAdaboostInstances(request);
+    AdaBoostM1 booster=GridManager.getAdaBoostM1(request, pathToFile, myInstances);
+    //public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpecies,Instances instances){
+    
     
     a1Example.setDataset(myInstances);
     a1Example.setValue(0, a1.getIntersectionCount());
