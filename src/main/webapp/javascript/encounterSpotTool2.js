@@ -183,7 +183,7 @@ if (itool._insideSpot > -1) {
         range: true,
         stop: function() { if (edgeCanvas) doEdge(); },
         min: 0,
-        max: 125,
+        max: 200,
         values: [edgeA, edgeB],
         slide: function(ev, ui) {
             if (!edgeCanvas) return;
@@ -383,8 +383,22 @@ var edgeScrubbing = false;
 function doEdge() {
     if (!edgeCanvas) {
         edgeCanvas = document.createElement('canvas');
-        edgeCanvas.width = itool.imageElement.naturalWidth;
-        edgeCanvas.height = itool.imageElement.naturalHeight;
+        var w = itool.imageElement.width;
+        var h = itool.imageElement.height;
+/*
+        var w = itool.imageElement.naturalWidth;
+        var h = itool.imageElement.naturalHeight;
+        if (w > 1200) {
+            h = (1200 / w) * h;
+            w = 1200;
+        }
+        if (h > 900) {
+            w = (900 / h) * w;
+            h = 900;
+        }
+*/
+        edgeCanvas.width = w;
+        edgeCanvas.height = h;
         edgeCanvas.style.position = 'absolute';
         edgeCanvas.style.width = '100%';
         edgeCanvas.style.height = '100%';
@@ -419,7 +433,9 @@ function doEdge() {
 fctx = ctx;
 
     var ctx2 = edgeDetect(ctx);
-    var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
+    //var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
+    var scale = ctx2.canvas.width / itool.imageElement.width;
+console.log('scale = %f', scale);
     if (itool.spots.length < 3) {
         console.warn('not enough spots to look for edge');
         return;
@@ -790,9 +806,9 @@ return ctx2;
 */
 
 function edgeDetect(ctx) {
-    ctx.drawImage(itool.imageElement, 0, 0);
     var w = ctx.canvas.width;
     var h = ctx.canvas.height;
+    ctx.drawImage(itool.imageElement, 0, 0, w, h);
     var img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
     var imageData = ctx.getImageData(0, 0, w, h);
 
