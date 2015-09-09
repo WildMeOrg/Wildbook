@@ -97,19 +97,22 @@ console.log(s);
                 if (itool._mode & 4) {
                     var r = itool.angleFromCenter(ev.offsetX, ev.offsetY) - itool._startAngle;
                 //if (r < 0) r += 360;
-console.log('%.1f (%.3f)', r * (180/Math.PI), r);
+/////console.log('%.1f (%.3f)', r * (180/Math.PI), r);
                     itool.rotate(itool._originalRotation + r);
-                                        refreshEdgeCanvas();
+                    refreshEdgeCanvas();
+                    updateSaveStatus();
                 }
                 if (itool._mode & 2) {
                     var c = itool.getCenter();
                     var d = itool.dist(c[0], c[1], ev.offsetX, ev.offsetY);
                     itool.scale(d / itool._startDist);// * itool._originalScale);
-                                        refreshEdgeCanvas();
+                    refreshEdgeCanvas();
+                    updateSaveStatus();
                 }
                 if (itool._mode & 1) {
                     itool.translate(ev.offsetX - itool._mouseDown[0], ev.offsetY - itool._mouseDown[1]);
-                                        refreshEdgeCanvas();
+                    refreshEdgeCanvas();
+                    updateSaveStatus();
                 }
                 if (!itool._moved) clearCanvas();  //only on first move
                 itool._moved = true;
@@ -240,9 +243,23 @@ function refreshEdgeCanvas() {
     edgeCanvas.style.transform = itool.imageElement.style.transform;
 }
 
+var alreadySaved = false;
+function updateSaveStatus(noChangesMade) {
+    if (!noChangesMade) alreadySaved = false;
+    if (!alreadySaved && ((itool.spots.length > 0) || (itool.transformToCss(itool.transform) != 'matrix(1,0,0, 0,1,0, 0,0,1)'))) {
+        $('#save-button').prop('disabled', null);
+    } else {
+        $('#save-button').prop('disabled', 'disabled');
+    }
+}
+
 
 function save() {
     var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
+    alreadySaved = true;
+    updateSaveStatus(true);
+    imageMessage();
+    userMessage('saving...');
     var data = {
         id: imageID,
         name: imageID + '-' + new Date().getTime() + '.jpg',
@@ -252,7 +269,7 @@ function save() {
         paths: [null, null]
     };
     for (var i = 0 ; i < 2 ; i++) {
-        if (!itool.paths[i]) continue;
+        if (!itool.paths || !itool.paths[i]) continue;
         data.paths[i] = [];
         for (var j = 0 ; j < itool.paths[i].length ; j++) {
             var cp = itool.toCanvasPoint(itool.paths[i][j]);
@@ -275,10 +292,20 @@ console.warn('sending data: %o', data); //return;
         complete: function(d) {
             var j = JSON.parse(d.responseText);
             if (j && j.success) {
-                console.info('looks like it worked');
+                //console.info('looks like it worked');
+                imageMessage('saved!');
+                var i = itool.imageElement.src.lastIndexOf('/');
+                var url = itool.imageElement.src.substring(0, i+1) + j.name;
+                userMessage('<b>saved successfully.</b>  <a target="_new" title="view image in new window" href="' + url + '">[view image]</a>');
             } else if (j && j.error) {
+                imageMessage('ERROR saving');
+                userMessage('ERROR saving: <b>' + j.error + '</b>');
+                updateSaveStatus();
                 alert('ERROR saving: ' + j.error);
             } else {
+                updateSaveStatus();
+                imageMessage('ERROR saving');
+                userMessage('ERROR ' + d.status + ' saving: <b>' + d.statusText + '</b>');
                 alert('ERROR ' + d.status + ' saving: ' + d.statusText);
             }
 console.log('save returned: %o', d);
@@ -302,11 +329,13 @@ console.log('(%d,%d) -> (%d,%d)', x, y, s[0], s[1]);
 */
 console.info('addSpots(%d,%d) -> %o', x, y, itool.spots);
     spotsUpdate();
+    updateSaveStatus();
 }
 
 function removeSpot(i) {
     itool.spots.splice(i, 1);
     spotsUpdate();
+    updateSaveStatus();
     if (itool.spots.length < 1) modeMenuSet(0);
 }
 
@@ -318,6 +347,17 @@ function spotsUpdate() {
     }
 }
 
+
+function resetAll() {
+    itool.transformReset();
+    itool.doTransform();
+    itool.spots = [];
+    spotsUpdate();
+    updateSaveStatus();
+    clearCanvas();
+    $(edgeCanvas).remove();
+    edgeCanvas = null;
+}
 
 function refreshCanvas() {
     clearCanvas();

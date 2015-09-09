@@ -33,6 +33,8 @@ import java.io.PrintWriter;
 import com.google.gson.*;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 
 
 public class SubmitSpotsAndTransformImage extends HttpServlet {
@@ -69,17 +71,72 @@ System.out.println("GOT " + jb.toString());
     JsonObject jobj = jel.getAsJsonObject();
     String id = jobj.get("id").getAsString();
 
+    myShepherd.beginDBTransaction();
     SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(id);
     if (spv == null) {
         out.print("{\"error\": \"invalid id " + id + "\"}");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
     String num = spv.getCorrespondingEncounterNumber();
     Encounter enc = myShepherd.getEncounter(num);
     if (spv == null) {
         out.print("{\"error\": \"invalid encounter " + num + "\"}");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return;
     }
+
+//List<List<Individual>> group = new ArrayList<List<Individual>>
+    List<ArrayList<SuperSpot>> spots = new ArrayList<ArrayList<SuperSpot>>();
+    ArrayList<SuperSpot> refSpots = new ArrayList<SuperSpot>();
+/*
+            double ref3x = (new Double(request.getParameter("ref3x"))).doubleValue();
+            double ref3y = (new Double(request.getParameter("ref3y"))).doubleValue();
+
+            ArrayList<SuperSpot> refs = new ArrayList<SuperSpot>();
+            refs.add(new SuperSpot(ref1x, ref1y));
+*/
+    JsonArray paths = jobj.getAsJsonArray("paths");
+    for (int i = 0 ; i < paths.size() ; i++) {  //should be only 0-2 (left, right)
+        if (paths.get(i) != null) {
+            spots.add(new ArrayList<SuperSpot>());
+            JsonArray p = paths.get(i).getAsJsonArray();
+            for (int j = 0 ; j < p.size() ; j++) {
+                JsonArray pt = p.get(j).getAsJsonArray();
+                double x = pt.get(0).getAsDouble();
+                double y = pt.get(1).getAsDouble();
+System.out.println("pathspot[" + i + "]: " + x + ", " + y);
+                spots.get(i).add(new SuperSpot(x, y));
+            }
+        }
+    }
+    JsonArray jspots = jobj.getAsJsonArray("points");
+    if (jspots != null) {
+        for (int i = 0 ; i < jspots.size() ; i++) {
+            JsonArray pt = jspots.get(i).getAsJsonArray();
+            double x = pt.get(0).getAsDouble();
+            double y = pt.get(1).getAsDouble();
+            //String type = pt.get(2).getAsString();
+System.out.println("refspot: " + x + ", " + y);
+            refSpots.add(new SuperSpot(x, y));
+        }
+    }
+
+    if ((spots.get(0) != null) && (spots.get(0).size() > 0)) {
+        enc.setRightSpots(spots.get(0));
+        enc.setNumRightSpots(spots.get(0).size());
+    }
+    if ((spots.get(1) != null) && (spots.get(1).size() > 0)) {
+        enc.setSpots(spots.get(1));
+        enc.setNumLeftSpots(spots.get(1).size());
+    }
+    if (refSpots.size() > 0) {  ///not sure this logic is right
+        enc.setRightReferenceSpots(refSpots);
+        enc.setLeftReferenceSpots(refSpots);
+    }
+
 
     String name = jobj.get("name").getAsString();
     float clientWidth = jobj.get("clientWidth").getAsFloat();
@@ -92,13 +149,14 @@ System.out.println("GOT " + jb.toString());
     String targetPath = f.getParent() + "/" + name;
     boolean trying = spv.transformTo(context, transform, clientWidth, targetPath);
 
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
+
     HashMap m = new HashMap();
     m.put("success", trying);
     m.put("name", name);
     Gson gson = new Gson();
     out.println(gson.toJson(m));
-    //myShepherd.closeDBTransaction();
-    //myShepherd = null;
     out.flush();
     out.close();
   }
