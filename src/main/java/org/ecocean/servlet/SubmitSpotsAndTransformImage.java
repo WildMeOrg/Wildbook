@@ -108,7 +108,7 @@ System.out.println("GOT " + jb.toString());
                 double x = pt.get(0).getAsDouble();
                 double y = pt.get(1).getAsDouble();
 System.out.println("pathspot[" + i + "]: " + x + ", " + y);
-                spots.get(i).add(new SuperSpot(x, y, new Double(0)));
+                spots.get(i).add(new SuperSpot(x, y, new Double(-2.0)));
             }
         }
     }
@@ -120,7 +120,7 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
             double y = pt.get(1).getAsDouble();
             //String type = pt.get(2).getAsString();
 System.out.println("refspot: " + x + ", " + y);
-            refSpots.add(new SuperSpot(x, y, new Double(i + 1)));
+            refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
         }
     }
 
