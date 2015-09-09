@@ -300,7 +300,10 @@ console.log(pdata);
 
 	<div class="tool"><b class="tool-head">actions</b>
 		<div><input id="save-button" type="button" value="save" disabled="disabled" onClick="save()" /></div>
-		<div style="margin-top: 15px;" ><input type="button" value="reset all" onClick="resetAll()" /></div>
+		<div style="margin-top: 15px;" >
+			<input type="button" value="reset all" onClick="resetAll()" />
+			<input type="button" value="back to encounter" onClick="backToEncounter()" />
+		</div>
 	</div>
 </div>
 

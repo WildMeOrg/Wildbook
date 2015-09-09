@@ -125,12 +125,12 @@ System.out.println("refspot: " + x + ", " + y);
     }
 
     if ((spots.get(0) != null) && (spots.get(0).size() > 0)) {
-        enc.setRightSpots(spots.get(0));
-        enc.setNumRightSpots(spots.get(0).size());
+        enc.setSpots(spots.get(0));
+        enc.setNumLeftSpots(spots.get(0).size());
     }
     if ((spots.get(1) != null) && (spots.get(1).size() > 0)) {
-        enc.setSpots(spots.get(1));
-        enc.setNumLeftSpots(spots.get(1).size());
+        enc.setRightSpots(spots.get(1));
+        enc.setNumRightSpots(spots.get(1).size());
     }
     if (refSpots.size() > 0) {  ///not sure this logic is right
         enc.setRightReferenceSpots(refSpots);
