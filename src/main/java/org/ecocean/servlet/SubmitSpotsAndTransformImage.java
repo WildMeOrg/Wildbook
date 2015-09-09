@@ -138,7 +138,11 @@ System.out.println("refspot: " + x + ", " + y);
     }
 
 
-    String name = jobj.get("name").getAsString();
+    //String name = jobj.get("name").getAsString();
+    String name = "extract" + num + ".jpg";
+    enc.setRightSpotImageFileName(name);
+    enc.setSpotImageFileName(name);
+
     float clientWidth = jobj.get("clientWidth").getAsFloat();
     JsonArray t = jobj.getAsJsonArray("transform");
     float[] transform = new float[t.size()];
