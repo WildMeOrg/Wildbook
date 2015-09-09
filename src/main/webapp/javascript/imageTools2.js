@@ -100,7 +100,11 @@ function ImageTools(opts) {
         var w = this.canvasElement.width / 2;
         var h = this.canvasElement.height / 2;
 	var cp = this.matrixMultiply(this.transform, [p[0] - w, p[1] - h, 1]);
-        return [cp[0] + w, cp[1] + h];
+        cp = [cp[0] + w, cp[1] + h];
+        for (var i = 2 ; i < p.length ; i++) {  //carry over any additional elements beyond x,y (e.g. spot type)
+            cp[i] = p[i];
+        }
+        return cp;
     };
 
     this.isNearSpot = function(x, y) {

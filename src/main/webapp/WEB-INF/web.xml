@@ -899,6 +899,11 @@
     <servlet-name>SinglePhotoVideoTransform</servlet-name>
     <servlet-class>org.ecocean.servlet.SinglePhotoVideoTransform</servlet-class>
   </servlet>
+
+  <servlet>
+    <servlet-name>SubmitSpotsAndTransformImage</servlet-name>
+    <servlet-class>org.ecocean.servlet.SubmitSpotsAndTransformImage</servlet-class>
+  </servlet>
   
     <servlet>
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
@@ -1364,8 +1369,8 @@
   </servlet-mapping>
 
      <servlet-mapping>
-        <servlet-name>SinglePhotoVideoTransform</servlet-name>
-        <url-pattern>/SinglePhotoVideoTransform</url-pattern>
+        <servlet-name>SubmitSpotsAndTransformImage</servlet-name>
+        <url-pattern>/SubmitSpotsAndTransformImage</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

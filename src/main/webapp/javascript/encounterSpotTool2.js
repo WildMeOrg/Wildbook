@@ -242,15 +242,36 @@ function refreshEdgeCanvas() {
 
 
 function save() {
+    var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
+    var data = {
+        id: imageID,
+        name: imageID + '-' + new Date().getTime() + '.jpg',
+        clientWidth: itool.imageElement.width,
+        transform: itool.matrixToTransform(itool.transform),
+        points: [],
+        paths: [null, null]
+    };
+    for (var i = 0 ; i < 2 ; i++) {
+        if (!itool.paths[i]) continue;
+        data.paths[i] = [];
+        for (var j = 0 ; j < itool.paths[i].length ; j++) {
+            var cp = itool.toCanvasPoint(itool.paths[i][j]);
+            cp[0] *= scale;
+            cp[1] *= scale;
+            data.paths[i].push(cp);
+        }
+    }
+    for (var i = 0 ; i < itool.spots.length ; i++) {
+        var cp = itool.toCanvasPoint(itool.spots[i]);
+        cp[0] *= scale;
+        cp[1] *= scale;
+        data.points.push(cp);
+    }
+console.warn('data %o', data); //return;
     $.ajax({
-        url: 'SinglePhotoVideoTransform',
+        url: '../SubmitSpotsAndTransformImage',
         type: 'POST',
-        data: JSON.stringify({
-            id: 'ff8081814f87d20f014f87d20f000000',
-            name: 'foo.jpg',
-            clientWidth: itool.imageElement.width,
-            transform: itool.matrixToTransform(itool.transform)
-        }),
+        data: JSON.stringify(data),
         complete: function(d) {
             if (d.responseJSON && d.responseJSON.success) {
                 console.info('looks like it worked');
@@ -450,22 +471,23 @@ console.log('scale = %f', scale);
     }
 console.log('spots: %o', spots);
     var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-    var pathLeft = bestPath(imageData, spots[0], spots[1]);
+    itool.paths = [];
+    itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
 //PATH = pathLeft;
-console.log('left path -> %o', pathLeft);
-    drawPath(imageData, pathLeft, [255,255,100]);
-    var pathRight = bestPath(imageData, spots[2], spots[1]);
-console.log('right path -> %o', pathRight);
-    drawPath(imageData, pathRight, [100,200,255]);
+console.log('left path -> %o', itool.paths[0]);
+    drawPath(imageData, itool.paths[0], [255,255,100]);
+    itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
+console.log('right path -> %o', itool.paths[1]);
+    drawPath(imageData, itool.paths[1], [100,200,255]);
     ctx.putImageData(imageData, 0, 0);
 
-    if (pathLeft && pathRight) {
+    if (itool.paths[0] && itool.paths[1]) {
         userMessage('<b>left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('edges found! :)');
 /*
         var id = itool.ctx.getImageData(0, 0, itool.canvasElement.width, itool.canvasElement.height);
-        drawPath(id, pathLeft, [255,255,100]);
-        drawPath(id, pathRight, [100,200,255]);
+        drawPath(id, itool.paths[0], [255,255,100]);
+        drawPath(id, itool.paths[1], [100,200,255]);
         itool.ctx.putImageData(id, 0, 0);
 */
     } else {

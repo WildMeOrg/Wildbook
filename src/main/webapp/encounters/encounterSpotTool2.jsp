@@ -197,6 +197,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 var encounterNumber = '<%=num%>';
+var imageID = '<%=imageID%>';
 
 
 
