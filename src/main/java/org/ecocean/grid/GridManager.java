@@ -79,6 +79,7 @@ public class GridManager {
   
   
   private static Instances adaboostInstances=null;
+  private static AdaBoostM1 adaboostClassifier=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -622,18 +623,16 @@ public class GridManager {
     return proportionStats;
   }
   
-  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpecies){
-    
-    return TrainNetwork.getAdaBoostClassifier(request,genusSpecies);
-    
-  
-  
-  
+  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpeciesFilePath,Instances instances){
+    if(adaboostClassifier==null){
+      return TrainNetwork.getAdaBoostClassifier(request,genusSpeciesFilePath,instances);
+    }
+    return adaboostClassifier;
   }
   
-  public static Instances getAdaboostInstances(HttpServletRequest request){
+  public static Instances getAdaboostInstances(HttpServletRequest request,String instancesFileFullPath){
     if(adaboostInstances==null){
-      adaboostInstances=TrainNetwork.getAdaboostInstances(request);
+      adaboostInstances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
     }
     return adaboostInstances;
   }

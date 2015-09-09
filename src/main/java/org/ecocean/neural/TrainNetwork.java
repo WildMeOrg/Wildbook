@@ -863,7 +863,7 @@ public class TrainNetwork extends HttpServlet {
     return score; 
    }
    
-  public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile){
+  public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
     
     //FIRST
@@ -884,7 +884,8 @@ public class TrainNetwork extends HttpServlet {
     //next build it if it does not exist or if you hit an exception
     AdaBoostM1 booster=new AdaBoostM1();
     try {
-      booster.buildClassifier(GridManager.getAdaboostInstances(request));
+      //getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request)
+      booster.buildClassifier(instances);
       //serialize out the classifier
       serializeWekaClassifier(request,booster,fullPathToClassifierFile);
     } 
@@ -898,11 +899,28 @@ public class TrainNetwork extends HttpServlet {
     
   }
   
-  public static Instances getAdaboostInstances(HttpServletRequest request){
+  public static Instances getAdaboostInstances(HttpServletRequest request, String fullPathToInstancesFile){
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    
+    
+    //FIRST
+    //first check for file and return it if it exists
+    File classifierFile=new File(fullPathToInstancesFile);
+    try{
+    
+      if(classifierFile.exists()){
+        Instances instances= (Instances)deserializeWekaInstances(request,fullPathToInstancesFile);
+        return instances;
+      }
+    }
+    catch(Exception e){
+      e.printStackTrace();
+    }
    
+    
+    //SECOND - build the instances if they can't be pulled
     double intersectionProportion=0.2;
     
   //create text file so we can also use this training data in the Neuroph UI
@@ -1117,7 +1135,20 @@ public class TrainNetwork extends HttpServlet {
          
             }
           }
-          return isTrainingSet;
+        
+        //write it out
+        try {
+          serializeWekaInstances(request,isTrainingSet,fullPathToInstancesFile);
+        } 
+        catch (Exception e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+          return null;
+        }
+        
+         
+        //DONE-return newly trained instances!
+        return isTrainingSet;
         
         }
         catch(Exception e){return null;}
@@ -1167,7 +1198,48 @@ public class TrainNetwork extends HttpServlet {
       File classifierFile=new File(classifiersDir,(genusSpecies+".adaboostM1"));
       return classifierFile.getAbsolutePath();
     }
+    
+    public static String getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request){
+      String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
+      File classifiersDir = new File(shepherdDataDir,"classifiers");
+      File classifierFile=new File(classifiersDir,(genusSpecies+".instances"));
+      return classifierFile.getAbsolutePath();
+    }
   
+    
+    public static void serializeWekaInstances(HttpServletRequest request, Instances instances, String absolutePath){
+      
+      String rootWebappPath = request.getSession().getServletContext().getRealPath("/");
+      File webappsDir = new File(rootWebappPath).getParentFile();
+      File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
+      File classifiersDir = new File(shepherdDataDir,"classifiers");
+      if(!classifiersDir.exists()){classifiersDir.mkdirs();}
+      
+      
+   // serialize model
+      try {
+        weka.core.SerializationHelper.write(absolutePath, instances);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      
+    }
+    
+    private static Instances deserializeWekaInstances(HttpServletRequest request, String absolutePath){
+      
+   // serialize model
+      try {
+        return  (Instances) weka.core.SerializationHelper.read(absolutePath);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      return null;
+    }
+    
   
 }
 	
