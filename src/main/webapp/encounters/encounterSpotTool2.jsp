@@ -183,6 +183,11 @@ String langCode=ServletUtilities.getLanguageCode(request);
 		#main {
 			position: relative;
 		}
+
+		.detail {
+			margin: 12px 0 7px 0;
+			font-size: 0.8em;
+		}
 	</style>
 
 
@@ -272,6 +277,7 @@ console.log(pdata);
 			
 <div id="tools">
 	<div class="tool"><b class="tool-head">edit mode</b>
+		<div class="detail">hint: use first character for shortcut</div>
 	<select id="edit-mode-menu" onChange="return modeMenuChange(this);">
 		<option value="0">spots (only)</option>
 		<option value="8">delete spots</option>
@@ -285,8 +291,10 @@ console.log(pdata);
 	<div class="tool"><b class="tool-head">edge mode</b>
 		<input type="radio" name="edge-mode" value="auto" checked /> auto-detect edge<br />
 		<input type="radio" name="edge-mode" value="manual" /> manually select points
-		<div style="margin: 12px 0 7px 0; font-size: 0.8em;">edge detection settings:</div>
+		<div class="detail">edge detection settings:</div>
 		<div id="edge-params"></div>
+		<div class="detail">edge transparency:</div>
+		<div id="edge-transparency"></div>
 	</div>
 </div>
 

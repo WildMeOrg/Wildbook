@@ -42,6 +42,12 @@
 
 // mode, bits -> RST
 function setTool() {
+    $('body').on('keyup', function(ev) {
+        var map = {83: 0, 68: 8, 77: 1, 90: 2, 82: 4, 88: 6};
+        if (map[ev.which] == undefined) return;
+        modeMenuSet(map[ev.which]);
+    });
+
     var opts = {
         el: document.getElementById('target-img'),
         eventListeners: {
@@ -181,8 +187,8 @@ if (itool._insideSpot > -1) {
         values: [edgeA, edgeB],
         slide: function(ev, ui) {
             if (!edgeCanvas) return;
-            edgeA = $('#edge-params').slider('values', 0);
-            edgeB = $('#edge-params').slider('values', 1);
+            edgeA = ui.values[0];
+            edgeB = ui.values[1];
 console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
             var ctx = edgeCanvas.getContext('2d');
             var ctx2 = edgeDetect(ctx);
@@ -190,6 +196,17 @@ console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
             ctx.putImageData(imageData, 0, 0);
         }
     });
+
+    $('#edge-transparency').slider({
+        min: 0,
+        max: 100,
+        value: 85,
+        slide: function(ev, ui) {
+            if (!edgeCanvas) return;
+            edgeCanvas.style.opacity = ui.value / 100;
+        }
+    });
+
 //t.imageElement.addEventListener('mousemove', function() { console.log('mm'); }, false);
     userMessage('ready to pick <b>3 spots</b> at <b>tips</b> and <b>center</b>');
     //CTX = doEdge();
@@ -209,6 +226,12 @@ function setMode(m) {
 
 function modeMenuChange(el) {
     setMode(el.value);
+}
+
+//also sets the menu accordingly
+function modeMenuSet(i) {
+    $('#edit-mode-menu').val(i);
+    setMode(i);
 }
 
 
@@ -262,10 +285,7 @@ console.info('addSpots(%d,%d) -> %o', x, y, itool.spots);
 function removeSpot(i) {
     itool.spots.splice(i, 1);
     spotsUpdate();
-    if (itool.spots.length < 1) {
-        $('#edit-mode-menu').val(0);
-        setMode(0);
-    }
+    if (itool.spots.length < 1) modeMenuSet(0);
 }
 
 function spotsUpdate() {
@@ -425,7 +445,13 @@ console.log('right path -> %o', pathRight);
 
     if (pathLeft && pathRight) {
         userMessage('<b>left and right fluke edges found!</b> you can save now if results are correct.');
-        imageMessage();
+        imageMessage('edges found! :)');
+/*
+        var id = itool.ctx.getImageData(0, 0, itool.canvasElement.width, itool.canvasElement.height);
+        drawPath(id, pathLeft, [255,255,100]);
+        drawPath(id, pathRight, [100,200,255]);
+        itool.ctx.putImageData(id, 0, 0);
+*/
     } else {
         userMessage('fluke edges were <b>not found</b>.  adjust points and/or alter edge tolerance settings. you may <b>manually select points</b> also.');
         imageMessage('no edges. :(');
@@ -571,6 +597,7 @@ console.info('bailing');
 function drawPath(imageData, path, rgb) {
     for (var i = 0 ; i < path.length ; i++) {
         var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
+console.log('%d -> %d', i, offset);
         for (var c = 0 ; c < 3 ; c++) {
             imageData.data[offset + c] = rgb[c];
         }
