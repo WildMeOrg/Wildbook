@@ -10,7 +10,7 @@
             strokeStyle: 'yellow',
             fillStyle: 'rgba(255,255,0,0.4)'
         },
-        valley: {
+        notch: {
             strokeStyle: '#888',
             fillStyle: 'rgba(128,128,128,0.4)'
         },
@@ -493,7 +493,7 @@ console.warn('===(%d,%d)===================', x,y);
 }
 
 
-//desired outcome: (tipLeft, valley, tipRight[, ... others... ])
+//desired outcome: (tipLeft, notch, tipRight[, ... others... ])
 function sortSpots(s) {
     var spots = [];
     var len = s.length;
@@ -502,7 +502,7 @@ function sortSpots(s) {
             spots[0] = s[i];
             s.splice(i, 1);
             len--;
-        } else if (s[i][2] == 'valley') {
+        } else if (s[i][2] == 'notch') {
             spots[1] = s[i];
             s.splice(i, 1);
             len--;
@@ -522,7 +522,7 @@ function sortSpots(s) {
     }
     if (!spots[1]) {
         spots[1] = s.shift();
-        spots[1][2] = 'valley';
+        spots[1][2] = 'notch';
     }
     if (!spots[2]) {
         spots[2] = s.shift();
@@ -597,7 +597,6 @@ console.info('bailing');
 function drawPath(imageData, path, rgb) {
     for (var i = 0 ; i < path.length ; i++) {
         var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
-console.log('%d -> %d', i, offset);
         for (var c = 0 ; c < 3 ; c++) {
             imageData.data[offset + c] = rgb[c];
         }
