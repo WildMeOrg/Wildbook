@@ -175,7 +175,7 @@ function ImageTools(opts) {
     };
     this.computeTransformMatrix = function(rotation, scale, x, y) {
         var rs = this.matrixMultiply(this.rotationToMatrix(rotation), this.scaleToMatrix(scale));
-console.log('computeTransformMatrix(%o,%o,%o,%o) -> rs = %o', rotation, scale, x, y, rs);
+//console.log('computeTransformMatrix(%o,%o,%o,%o) -> rs = %o', rotation, scale, x, y, rs);
         rs[0][2] = x;
         rs[1][2] = y;
         return rs;
@@ -184,7 +184,7 @@ console.log('computeTransformMatrix(%o,%o,%o,%o) -> rs = %o', rotation, scale, x
     this.doTransform = function() {
         if (!this.imageElement) return;
         var m = this.matrixToCss(this.transform);
-console.log('doTransform() -> %o', m);
+//console.log('doTransform() -> %o', m);
         this.imageElement.style.transform = m;
         return this.transform;
     };

@@ -297,6 +297,11 @@ console.log(pdata);
 		<div class="detail">edge transparency:</div>
 		<div id="edge-transparency"></div>
 	</div>
+
+	<div class="tool"><b class="tool-head">actions</b>
+		<div><input id="save-button" type="button" value="save" disabled="disabled" onClick="save()" /></div>
+		<div style="margin-top: 15px;" ><input type="button" value="reset all" onClick="resetAll()" /></div>
+	</div>
 </div>
 
 <div id="main">
