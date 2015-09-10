@@ -259,6 +259,27 @@ function updateScanTool() {
     $('#scan-tool').show();
 }
 
+
+function drawFinalPaths() {
+    if (!itool.paths || (!itool.paths[0] && !itool.paths[1])) return;
+    var imageData = itool.ctx.getImageData(0, 0, itool.ctx.canvas.width, itool.ctx.canvas.height);
+    var rgb = [ [255,255,100], [0,100,255] ];
+    var paths = [];
+    for (var i = 0 ; i < 2 ; i++) {
+        if (!itool.paths[i]) continue;
+        paths[i] = [];
+        for (var j = 0 ; j < itool.paths[i].length ; j++) {
+            var cp = itool.toCanvasPoint(itool.paths[i][j]);
+//console.info('(%f,%f) -> (%f,%f)', itool.paths[i][j][0], itool.paths[i][j][1], cp[0], cp[1]);
+            //cp[0] *= scale;
+            //cp[1] *= scale;
+            paths[i].push(cp);
+        }
+        drawPath(imageData, paths[i], rgb[i]);
+    }
+    itool.ctx.putImageData(imageData, 0, 0);
+}
+
 function save() {
     var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
     alreadySaved = true;
@@ -358,6 +379,7 @@ function resetAll() {
     itool.transformReset();
     itool.doTransform();
     itool.spots = [];
+    delete(itool.paths);
     spotsUpdate();
     updateSaveStatus();
     clearCanvas();
@@ -374,6 +396,7 @@ function backToEncounter() {
 function refreshCanvas() {
     clearCanvas();
     drawSpots();
+    drawFinalPaths();
 }
 
 function clearCanvas() {
@@ -687,10 +710,14 @@ console.info('bailing');
 
 function drawPath(imageData, path, rgb) {
     for (var i = 0 ; i < path.length ; i++) {
-        var offset = (path[i][1] * imageData.width + path[i][0]) * 4;
+        var x = Math.floor(path[i][0]);
+        var y = Math.floor(path[i][1]);
+        if ((x < 0) || (y < 0) || (x >= imageData.width) || (y >= imageData.height)) continue;
+        var offset = (y * imageData.width + x) * 4;
         for (var c = 0 ; c < 3 ; c++) {
             imageData.data[offset + c] = rgb[c];
         }
+        imageData.data[offset + 3] = 255;  //dont forget the alpha!
     }
 }
 
