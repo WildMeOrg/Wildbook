@@ -19,10 +19,28 @@
 
 package org.ecocean.grid;
 
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.neural.TrainNetwork;
+
+
+import org.ecocean.servlet.ServletUtilities;
+
+//train weka
+import weka.core.Attribute;
+import weka.core.FastVector;
+import weka.core.Instances;
+import weka.core.Instance;
+import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.Evaluation;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.io.File;
 import java.util.ArrayList;
+
+import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 public class GridManager {
 
@@ -47,11 +65,21 @@ public class GridManager {
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
-  private String R = "8";
-  private String Sizelim = "0.85";
+  private String R = "50";
+  private String Sizelim = "0.9999";
   private String maxTriangleRotation = "10";
   private String C = "0.99";
   private String secondRun = "true";
+  
+  //SummaryStatistics
+  private static SummaryStatistics dtwStats=null;
+  private static SummaryStatistics i3sStats=null;
+  private static SummaryStatistics proportionStats=null;
+  private static SummaryStatistics intersectionStats=null;
+  
+  
+  private static Instances adaboostInstances=null;
+  private static AdaBoostM1 adaboostClassifier=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -574,6 +602,43 @@ public class GridManager {
     return numProcessors;
 
   }
+  
+  public static SummaryStatistics getDTWStats(HttpServletRequest request){
+    if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
+    return dtwStats;
+  }
+  
+  public static SummaryStatistics getI3SStats(HttpServletRequest request){
+    if(i3sStats==null){i3sStats=TrainNetwork.getI3SStats(request);}
+    return i3sStats;
+  }
+  
+  public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
+    if(intersectionStats==null){intersectionStats=TrainNetwork.getIntersectionStats(request);}
+    return intersectionStats;
+  }
+  
+  public static SummaryStatistics getProportionStats(HttpServletRequest request){
+    if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
+    return proportionStats;
+  }
+  
+  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpeciesFilePath,Instances instances){
+    if(adaboostClassifier==null){
+      return TrainNetwork.getAdaBoostClassifier(request,genusSpeciesFilePath,instances);
+    }
+    return adaboostClassifier;
+  }
+  
+  public static Instances getAdaboostInstances(HttpServletRequest request,String instancesFileFullPath){
+    if(adaboostInstances==null){
+      adaboostInstances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+    }
+    return adaboostInstances;
+  }
+  
+
+    
 
 }
 

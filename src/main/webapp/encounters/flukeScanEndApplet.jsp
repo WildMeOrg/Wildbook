@@ -1,0 +1,362 @@
+<%--
+  ~ The Shepherd Project - A Mark-Recapture Framework
+  ~ Copyright (C) 2011 Jason Holmberg
+  ~
+  ~ This program is free software; you can redistribute it and/or
+  ~ modify it under the terms of the GNU General Public License
+  ~ as published by the Free Software Foundation; either version 2
+  ~ of the License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program; if not, write to the Free Software
+  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+  --%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+<html>
+<%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
+
+//let's set up references to our file system components
+String rootWebappPath = getServletContext().getRealPath("/");
+File webappsDir = new File(rootWebappPath).getParentFile();
+File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+
+
+
+  session.setMaxInactiveInterval(6000);
+  String num = request.getParameter("number");
+	String encSubdir = Encounter.subdir(num);
+  Shepherd myShepherd = new Shepherd(context);
+  if (request.getParameter("writeThis") == null) {
+    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
+  }
+  //Shepherd altShepherd = new Shepherd(context);
+  String sessionId = session.getId();
+  boolean xmlOK = false;
+  SAXReader xmlReader = new SAXReader();
+  File file = new File("foo");
+  String scanDate = "";
+  String C = "";
+  String R = "";
+  String epsilon = "";
+  String Sizelim = "";
+  String maxTriangleRotation = "";
+  String side2 = "";
+%>
+
+<head>
+
+  <title><%=CommonConfiguration.getHTMLTitle(context) %>
+  </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="Description"
+        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+  <meta name="Keywords"
+        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
+        rel="stylesheet" type="text/css"/>
+  <link rel="shortcut icon"
+        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+          <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+      
+</head>
+
+<style type="text/css">
+ 
+td.ptcol-overall_score,
+td.ptcol-score_holmbergIntersection,
+td.ptcol-score_fastDTW,
+td.ptcol-score_I3S,
+td.ptcol-score_proportion {
+	text-align: right;
+}
+
+/*
+td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
+	background-color: #FF0 !important;
+	outline: solid black 2px;
+}
+*/
+
+td.ptcol-encounterID, td.ptcol-individualID {
+	position: relative;
+}
+tr.clickable:hover .link-button {
+	display: inline-block;
+}
+
+.indiv-button {
+	display: none;
+}
+.enc-button {
+	display: inline-block;
+}
+.link-button, .link-button:hover {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+	background-color: #FFA;
+	padding: 1px 4px;
+	border: solid #444 1px;
+	border-radius: 4px;
+	margin: 0 3px;
+	color: #444;
+	text-decoration: none;
+}
+.link-button:hover {
+	color: #000;
+	background-color: #FF0;
+}
+
+#result-images {
+	height: 300px;
+	position: relative;
+}
+
+.result-image-wrapper {
+	padding: 4px;
+	background-color: #DDD;
+	border-radius: 4px;
+	width: 47%;
+	margin: 4px;
+	float: left;
+	height: 90%;
+	top: 0;
+}
+
+.result-image-wrapper img {
+	top: 0;
+	left: 0;
+	width: 100%;
+}
+
+.result-image-wrapper .note, #chart .note {
+	background-color: rgba(0,0,0,0.5);
+	border-radius: 10px;
+	padding: 5px;
+	margin: 50px 10px 0 10px;
+	text-align: center;
+	color: #FFF;
+	font-size: 0.9em;
+}
+
+
+.image-info {
+	padding: 5px;
+	margin: 8px;
+	width: 43%;
+	background-color: rgba(255,255,255,0.7);
+	font-size: 0.8em;
+	position: absolute;
+	bottom: 0;
+}
+
+
+#image-meta {
+	width: 100%;
+	text-align:center;
+}
+#image-meta #score {
+	display: inline-block;
+	padding: 3px 15px;
+	border-radius: 12px;
+	background-color: rgba(0,0,0,0.7);
+	color: #FFF;
+}
+
+
+/* makes up for nudging of chart */
+#chart .note {
+	width: 80%;
+}
+
+#chart {
+	margin: -30px 0 -30px 70px;
+	height: 400px;
+}
+
+  #tabmenu {
+    color: #000;
+    border-bottom: 1px solid #CDCDCD;
+    margin: 12px 0px 0px 0px;
+    padding: 0px;
+    z-index: 1;
+    padding-left: 10px
+  }
+
+  #tabmenu li {
+    display: inline;
+    overflow: hidden;
+    list-style-type: none;
+  }
+
+  #tabmenu a, a.active {
+    color: #000;
+    background: #E6EEEE;
+    font: 0.5em "Arial, sans-serif;
+    border: 1px solid #CDCDCD;
+    padding: 2px 5px 0px 5px;
+    margin: 0;
+    text-decoration: none;
+    border-bottom: 0px solid #FFFFFF;
+  }
+
+  #tabmenu a.active {
+    background: #8DBDD8;
+    color: #000000;
+    border-bottom: 1px solid #8DBDD8;
+  }
+
+  #tabmenu a:hover {
+    color: #000;
+    background: #8DBDD8;
+  }
+
+  #tabmenu a:visited {
+    
+  }
+
+  #tabmenu a.active:hover {
+    color: #000;
+    border-bottom: 1px solid #8DBDD8;
+  }
+  
+</style>
+
+<%
+	//Path json = Paths.get(encountersDir.getAbsolutePath()+"/" + encSubdir + "/flukeMatching.json");
+	String json = new String(Files.readAllBytes(Paths.get(encountersDir.getAbsolutePath()+"/" + encSubdir + "/flukeMatching.json")));
+%>
+<script>
+var flukeMatchingData = <%=json%>;
+var encounterNumber = '<%=num%>';
+</script>
+
+
+<body>
+<div id="wrapper">
+<div id="page">
+<jsp:include page="../header.jsp" flush="true">
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
+</jsp:include>
+<div id="page">
+
+
+<div id="main">
+
+<ul id="tabmenu">
+  <li><a
+    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
+    
+  </a></li>
+
+</ul>
+
+
+
+<p>
+
+<h2>Edge Scan Results <a
+  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
+  target="_blank"><img src="../images/information_icon_svg.gif"
+                       alt="Help" border="0" align="absmiddle"></a></h2>
+</p>
+<p>The following encounter(s) received the highest
+  match values against encounter <a
+    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+
+
+<%
+  if (xmlOK) {%>
+<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle">&nbsp;<strong>Saved
+  scan data may be old and invalid. Check the date below and run a fresh
+  scan for the latest results.</strong></p>
+
+<p><em>Date of scan: <%=scanDate%>
+</em></p>
+<%}%>
+
+<p><a href="#resultstable">See the table below for score breakdowns.</a></p>
+
+<p>
+
+<%
+/*
+    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
+
+    System.out.println("Base URL is: " + baseURL);
+    if (xmlOK) {
+      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
+      } else {
+        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
+      }
+    }
+    String rightSA = "";
+    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
+      rightSA = "&filePrefix=extractRight";
+    }
+    System.out.println("I made it to the Flash without exception.");
+*/
+  %>
+  
+      <a name="resultstable"></a>
+
+
+<div id="result-images"></div>
+<div id="image-meta">
+	<div id="score"></div>
+</div>
+
+<div id="chart"></div>
+
+
+<div class="pageableTable-wrapper">
+	<div id="progress">loading...</div>
+	<table id="results-table"></table>
+	<div id="results-slider"></div>
+</div>
+
+
+<jsp:include page="../footer.jsp" flush="true"/>
+</div>
+</div>
+<!-- end page --></div>
+<!--end wrapper -->
+
+<script src="../javascript/underscore-min.js"></script>
+<script src="../javascript/backbone-min.js"></script>
+<script src="../javascript/core.js"></script>
+<script src="../javascript/classes/Base.js"></script>
+
+<script src="../javascript/tablesorter/jquery.tablesorter.js"></script>
+<script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
+<link rel="stylesheet" href="../css/pageableTable.css" />
+<script src="../javascript/tsrt.js"></script>
+<script src="../javascript/flukeScanEnd.js"></script>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript">
+	google.load('visualization', '1.1', {packages: ['line', 'corechart']});
+    	google.setOnLoadCallback(initChart);
+</script>
+
+</body>
+</html>

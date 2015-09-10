@@ -30,7 +30,9 @@ var comEcostatsTracing = (function(){
 			tolerance: 5
 		};
 	var first_load=true;
+	//var node_types={0:'point',1:'tip',2:'notch',3:'nick',4:'gouge_start',5:'gouge_end',6:'scallop_start',7:'scallop_end',8:'wave_start',9:'wave_end',10:'missing_start',11:'missing_end',12:'scar',13:'hole',14:'invisible_start',15:'invisible_end'};
 	var node_types={0:'point',1:'tip',2:'notch',3:'nick',4:'gouge_start',5:'gouge_end',6:'scallop_start',7:'scallop_end',8:'wave_start',9:'wave_end',10:'missing_start',11:'missing_end',12:'scar',13:'hole',14:'invisible_start',15:'invisible_end'};
+
 	var segment, path, current_point;
 	var movePath=false;
 	var is_drawing=false;
@@ -157,7 +159,7 @@ var comEcostatsTracing = (function(){
 		// save tracing
 		add_menu_option(main_menu,'Save All','fluke_trace_save');
 		// save tracing
-		add_menu_option(main_menu,'Try Matching','fluke_trace_match');
+		//add_menu_option(main_menu,'Try Matching','fluke_trace_match');
 		// close window menu item
 		add_menu_option(main_menu,'Close','fluke_trace_close');
 		var dmenu=document.createElement('div');
@@ -638,6 +640,7 @@ var comEcostatsTracing = (function(){
 		modified = false;
 		var fluke_tracer = $("#fluke_tracer");
 		fluke_tracer.hide('fast');
+		location.reload();
 	};
 
 	// dynamically add needed CSS for the menus
@@ -657,14 +660,20 @@ var comEcostatsTracing = (function(){
 		addFlukeTrace : function(src_img_class,encounterid){
 			addCss();
 			var imgs=$(src_img_class);
-			for (var i=0;imgs.length;i++){
+			for (var i=0;i<imgs.length;i++){
+				//alert("addFlukeTrace: "+encounterid);
 				// set an ID value for each image, so the same image does not get more than one button
-				var id = imgs[i].getAttribute("href").replace(/[://\\.]/g, "");
-				var button = document.getElementById(id);
-				if (button == null || button == undefined){
+				
+				//var id = imgs[i].getAttribute("href").replace(/[://\\.]/g, "");
+				
+				var id = imgs[i].getAttribute("id");
+				console.log(id);
+				
+				//var button = null;
+				//if (button == null || button == undefined){
 					// create a button element above each image that will be used to open the tracing window
 					var button=document.createElement('input');
-					button.setAttribute("id",id);
+					button.setAttribute("id",(id+'-button'));
 					button.setAttribute("type","button");
 					button.setAttribute("class","fluke_trace");
 					button.setAttribute("value","Trace Fluke");
@@ -675,8 +684,8 @@ var comEcostatsTracing = (function(){
 					var p=document.createElement('p');
 					p.appendChild(button);
 					// insert the button just above the image
-					imgs[i].parentNode.insertBefore(p,imgs[i]);
-				}
+					//imgs[i].parentNode.insertBefore(p,imgs[i]);
+				//}
 			}
 		},
 		
@@ -685,7 +694,7 @@ var comEcostatsTracing = (function(){
 			var target = event_target(event);
 			imgurl = target.getAttribute('imgurl');
 			encounter_id = target.getAttribute('encounter_id');
-			photo_id = target.getAttribute('id'); // uninque path and name for an encounter's photo
+			photo_id = target.getAttribute('id').replace('-button',''); 
 			var fluke_tracer = $("#fluke_tracer");
 			if (fluke_tracer.length==0){
 				// if the fluke_tracer div (pseudo-window) does not yet exist, create it

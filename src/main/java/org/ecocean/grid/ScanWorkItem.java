@@ -24,12 +24,23 @@ package org.ecocean.grid;
 //test 3
 
 
-import com.reijns.I3S.Pair;
+import com.reijns.I3S.*;
+
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
+import com.fastdtw.timeseries.*;
+import com.fastdtw.timeseries.TimeSeriesBase.*;
+import com.fastdtw.dtw.FastDTW;
+import com.fastdtw.util.Distances;
 
 import java.util.*;
+
+import com.fastdtw.timeseries.TimeSeries;
+import com.fastdtw.timeseries.TimeSeriesBase;
+import com.fastdtw.timeseries.TimeSeriesBase.Builder;
+import com.fastdtw.dtw.*;
+import com.fastdtw.util.Distances;
 
 
 /**
@@ -58,9 +69,12 @@ public class ScanWorkItem implements java.io.Serializable {
   private boolean secondRun;
   public boolean rightScan;
   private MatchObject result;
-  private I3SMatchObject i3sResult;
+  //private I3SMatchObject i3sResult;
+  private Double fastDTWResult;
   private int totalWorkItemsInTask;
   private int workItemsCompleteInTask;
+  
+  String algorithms="";
 
 
   /**
@@ -71,7 +85,7 @@ public class ScanWorkItem implements java.io.Serializable {
 
   //test comment
 
-  public ScanWorkItem(Encounter newEnc, Encounter existingEnc, String uniqueNum, String taskID, Properties props) {
+  public ScanWorkItem(Encounter newEnc, Encounter existingEnc, String uniqueNum, String taskID, Properties props, String algorithms) {
     this.newEncounter = new EncounterLite(newEnc);
     this.existingEncounter = new EncounterLite(existingEnc);
     this.uniqueNum = uniqueNum;
@@ -97,6 +111,7 @@ public class ScanWorkItem implements java.io.Serializable {
     }
 
     createTime = System.currentTimeMillis();
+    this.algorithms=algorithms;
 
   }
 
@@ -144,12 +159,16 @@ public class ScanWorkItem implements java.io.Serializable {
     //determine which spots to pass in
     SuperSpot[] newspotsTemp = new SuperSpot[0];
     SuperSpot[] oldspotsTemp = new SuperSpot[0];
+    SuperSpot[] newRefSpots = new SuperSpot[0];
+    
     if (!rightScan) {
       newspotsTemp = (SuperSpot[]) newEncounter.getSpots().toArray(newspotsTemp);
       oldspotsTemp = (SuperSpot[]) existingEncounter.getSpots().toArray(oldspotsTemp);
+      newRefSpots=newEncounter.getLeftReferenceSpots();
     } else {
       newspotsTemp = (SuperSpot[]) newEncounter.getRightSpots().toArray(newspotsTemp);
       oldspotsTemp = (SuperSpot[]) existingEncounter.getRightSpots().toArray(oldspotsTemp);
+      newRefSpots=newEncounter.getRightReferenceSpots();
     }
 
     //create a re-write of the new spots
@@ -165,10 +184,28 @@ public class ScanWorkItem implements java.io.Serializable {
     for (int t = 0; t < spotLength2; t++) {
       existingGrothSpots.add(new SuperSpot(new Spot(0, oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY())));
     }
+    
+    
+    
+    //start DTW array creation
+    
+    //com.reijns.I3S.Point2D[] newEncRefSpots=newEncounter.getThreeRightFiducialPoints();
+    //com.reijns.I3S.Point2D[] existingEncRefSpots=existingEncounter.getThreeRightFiducialPoints();
+    
+    //we need to create a 0 to 1 time series for each one using the right hand spot
+    
 
-
-    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
-
+    
+    
+    
+    MatchObject result=new MatchObject();
+    result.encounterNumber=existingEncounter.getEncounterNumber();
+    result.individualName=existingEncounter.getIndividualID();
+    if(algorithms.indexOf("ModifedGroth")>-1){
+      result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan,newRefSpots);
+    
+      System.out.println("     Groth score was: "+result.getAdjustedMatchValue());
+    }
     //I3S processing
 
     //reset the spot patterns after Groth processing
@@ -192,21 +229,88 @@ public class ScanWorkItem implements java.io.Serializable {
     //comapare2mePoints=existingEncounter.getThreeLeftFiducialPoints();
     //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
     //}
-    i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
-
-    //create a Vector of Points
-    Vector points = new Vector();
-    TreeMap map = i3sResult.getMap();
-    //int treeSize=map.size();
-    Iterator map_iter = map.values().iterator();
-    while (map_iter.hasNext()) {
-      points.add((Pair) map_iter.next());
+    //i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
+    
+    if(algorithms.indexOf("I3S")>-1){
+      I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
+      newDScore.setEncounterNumber(getNewEncNumber());
+      //newDScore.setIndividualID(id);
+      double newScore=-1;
+      if(newDScore!=null){
+        newScore=newDScore.getI3SMatchValue();
+        
+        
+        //
+        if(newScore<0.0000001){newScore=2.0;}
+        
+        //create a Vector of Points
+        Vector points = new Vector();
+        
+        
+        //TBD_CRAP WE NEED
+        TreeMap map = newDScore.getMap();
+        
+        
+        //int treeSize=map.size();
+        Iterator map_iter = map.values().iterator();
+        while (map_iter.hasNext()) {
+          points.add((Pair) map_iter.next());
+        }
+  
+        //add the I3S results to the matchObject sent back
+        result.setI3SValues(points, newScore);
+      }
+      System.out.println("     I3S score is: "+newScore);
     }
-
-    //add the I3S results to the matchObject sent back
-    result.setI3SValues(points, i3sResult.getI3SMatchValue());
-
-
+    
+    if(algorithms.indexOf("FastDTW")>-1){
+      TimeWarpInfo twi=EncounterLite.fastDTW(existingEncounter, newEncounter, 30);
+      
+      java.lang.Double distance = new java.lang.Double(-1);
+      if(twi!=null){
+        WarpPath wp=twi.getPath();
+          String myPath=wp.toString();
+        distance=new java.lang.Double(twi.getDistance());
+      }   
+      
+      result.setFastDTWPath(distance.toString());
+      
+      //calculate FastDTW
+      //Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
+      
+      //if(rightScan){
+        result.setRightFastDTWResult(distance);
+      //}
+      //else{
+        result.setLeftFastDTWResult(distance);
+      //}
+      
+      System.out.println("     FastDTW result is: "+distance);
+      
+      //set proportion Value
+      result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
+      
+      
+    }
+    
+    if(algorithms.indexOf("Whitehead")>-1){
+      Double geroMatch=new Double(-1);
+      result.setGeroMatchDistance(geroMatch);
+      geroMatch=EncounterLite.geroMatch(existingEncounter, newEncounter);
+      
+      if(geroMatch!=null)result.setGeroMatchDistance(geroMatch);
+    }
+    
+    if(algorithms.indexOf("HolmbergIntersection")>-1){
+      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
+      //int finalInter=-1;
+      //if(numIntersections!=null){finalInter=numIntersections;}
+      
+      
+      result.setIntersectionCount(numIntersections);
+      result.setAnglesOfIntersections("");
+    }
+    
     done = true;
     return result;
   }
@@ -264,9 +368,6 @@ public class ScanWorkItem implements java.io.Serializable {
     return result;
   }
 
-  public I3SMatchObject getI3SResult() {
-    return i3sResult;
-  }
 
   public void setResult(MatchObject newResult) {
     newResult.setTaskID(this.taskID);
@@ -313,5 +414,8 @@ public class ScanWorkItem implements java.io.Serializable {
   public void setNewEncounter(EncounterLite el) {
     this.newEncounter = el;
   }
+  
+  public Double getFastDTWResult(){return fastDTWResult;}
+  
 }
 	

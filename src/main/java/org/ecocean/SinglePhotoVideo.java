@@ -17,7 +17,6 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.output.*;
 import org.apache.commons.io.FilenameUtils;
 
-
 public class SinglePhotoVideo extends DataCollectionEvent {
 
   private static final long serialVersionUID = 7999349137348568641L;
@@ -204,5 +203,17 @@ System.out.println("yes. out. ))");
 		t.start();
 		return true;
 	}
+
+        //this creates an image the size of the original, since scaling is assumed in transform right?
+        public boolean transformTo(String context, float[] transform, float clientWidth, String targetPath) {
+		String cmd = CommonConfiguration.getProperty("imageTransformCommand", context);
+		if ((cmd == null) || cmd.equals("")) return false;
+		String sourcePath = this.getFullFileSystemPath();
+		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
+		ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform, clientWidth);
+		Thread t = new Thread(iproc);
+		t.start();
+		return true;
+        }
 
 }

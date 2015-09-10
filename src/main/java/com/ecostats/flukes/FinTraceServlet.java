@@ -14,9 +14,16 @@ import javax.servlet.http.HttpServletResponse;
 import org.ecocean.servlet.ServletUtilities;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.mongodb.morphia.query.Query;
 
-import com.ecostats.flukes.FlukeMongodb;
+//why add a whole new database just because you didn't understand Wildbook?
+//import org.mongodb.morphia.query.Query;
+
+import org.ecocean.*;
+import java.util.ArrayList;
+
+
+
+//import com.ecostats.flukes.FlukeMongodb;
 
 /**
  * Servlet implementation class FinTraceServlet
@@ -66,12 +73,17 @@ public class FinTraceServlet extends HttpServlet {
 	    //set up for response
 	    response.setContentType("text/html;charset=utf-8"); //("application/json;charset=utf-8");
 	    PrintWriter out = response.getWriter();
-    	FlukeMongodb datasource = new FlukeMongodb("localhost",0);
+    	//FlukeMongodb datasource = new FlukeMongodb("localhost",0);
+	    String context=ServletUtilities.getContext(request);
+	    Shepherd myShepherd=new Shepherd(context);
+	    myShepherd.beginDBTransaction();
 	    try{
 		    if (request.getParameter("path_left") != null) {
+		      
 		    	// get the passed parameter values
 		    	String encounter_id = request.getParameter("encounter_id");
-		    	String photo_id = datasource.sha1(encounter_id + request.getParameter("photo_id"));
+		    	Encounter enc=myShepherd.getEncounter(encounter_id);
+		    	String photo_id = request.getParameter("photo_id");
 		    	boolean notch_open = request.getParameter("notch_open").equals("true");
 		    	int trace_type = Integer.parseInt(request.getParameter("trace_type"));
 		    	boolean curled_left = request.getParameter("curled_left").equals("true");
@@ -81,6 +93,31 @@ public class FinTraceServlet extends HttpServlet {
 		    	// get the right path and node information
 		    	FinTrace finTraceRight = getFinTrace(request, out, "right", trace_type, notch_open, curled_right);
 		    	// get a query object to locate the current fluke tracing if any
+		    	
+		    	//let's persist this the right way - we're going to create a 
+		    	ArrayList<SuperSpot> leftSpots=convertFinTraceToSuperSpotArray(finTraceLeft);
+		    	ArrayList<SuperSpot> rightSpots=convertFinTraceToSuperSpotArray(finTraceRight);
+		    	
+		    	ArrayList<SuperSpot> referenceSpots=convertFinTraceToReferenceSuperSpotArray(finTraceLeft, finTraceRight);
+		    	
+		    	//since one pattern is used to set left and right spot patterns, 
+		    	//then the same reference points can be used for each
+		    	enc.setLeftReferenceSpots(referenceSpots);
+		    	enc.setRightReferenceSpots(referenceSpots);
+		    	
+		    	enc.setSpots(leftSpots);
+		    	SinglePhotoVideo spv=myShepherd.getSinglePhotoVideo(photo_id);
+		    	enc.setSpotImageFileName(spv.getFilename());
+		    	
+		    	enc.setRightSpots(rightSpots);
+		    	enc.setRightSpotImageFileName(spv.getFilename());
+		    	
+		    	enc.setDynamicProperty("leftCurled", (new Boolean(finTraceLeft.getCurled()).toString()));
+		    	enc.setDynamicProperty("rightCurled", (new Boolean(finTraceRight.getCurled()).toString()));
+		    	
+		    	
+		    	/*
+		    	 Kevin - don't add a new database to a project where one isn't needed!!!!
 		    	Query<Fluke> query = getFlukeTracing(datasource, encounter_id, photo_id);
 		    	List<Fluke> flukequery = query.asList();
 		    	if (flukequery.size()==0){ // the object does not exist in the database, so add it
@@ -97,13 +134,27 @@ public class FinTraceServlet extends HttpServlet {
 		    		//datasource.datastore().update(fluke, datasource.datastore().createUpdateOperations(Fluke.class).set("right_fluke", finTraceRight));
 			    	out.println("Fin tracing updated.");
 		    	}
+		    	*/
+		    	
+		    	
+		    	
+		    	
 		    }
-	    }catch (Exception e) {
+		    myShepherd.commitDBTransaction();
+	    }
+	    catch (Exception e) {
 	    	out.println("Failed to add tracing. Check database accessibility.");
+	    	myShepherd.rollbackDBTransaction();
 	    }finally{
-	    	datasource.close();
+	    	//datasource.close();
+	      
+	      myShepherd.closeDBTransaction();
 	    	out.close();
 	    }
+	    
+	    out.println("Tracing successfully saved!");
+	    
+	    
 	}
 
 	/**
@@ -127,6 +178,7 @@ public class FinTraceServlet extends HttpServlet {
 		for (int i=0;i<pathArray.length();i++){
 			x[i]=pathArray.getJSONArray(i).getInt(0);
 			y[i]=pathArray.getJSONArray(i).getInt(1);
+			//shift down 2 integers to match Javascript node types values to the node type values of the paper/Java 
 			n[i]=nodeArray.getInt(i);
 		}
 		// create new fin tracings from the passed tracing node X,Y locations and node Types 
@@ -143,6 +195,8 @@ public class FinTraceServlet extends HttpServlet {
 	 * @param photo_id
 	 * @return MongoDB Morphia Query
 	 */
+	
+	/*
 	public Query<Fluke> getFlukeTracing(FlukeMongodb datasource, String encounter_id, String photo_id) {
 		// Build a query to see if a tracing on the current encounter photo already exists
 		// alternate query syntax :  Query query = this.datastore.createQuery(Fluke.class)field("photo").equals(photo_id).field("encounter").equals(encounter_id);           
@@ -153,5 +207,63 @@ public class FinTraceServlet extends HttpServlet {
 		);
 		return query;
 	}
+	*/
+	
+	private ArrayList<SuperSpot> convertFinTraceToSuperSpotArray(FinTrace fintrace){
+	  ArrayList<SuperSpot> superspots=new ArrayList<SuperSpot>();
+	  
+	  double[] x=fintrace.getX();
+	  double[] y=fintrace.getY();
+	  double[] types=fintrace.getTypes();
+	  boolean curled=fintrace.getCurled();
+	  boolean notchOpen=fintrace.getNotchOpen();
+	  
+	  int size=x.length;
+	  for(int i=0;i<size;i++){
+	    superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	    System.out.println("[Spot:"+x[i]+","+y[i]+","+types[i]+"]");
+	  }
+	  return superspots;
+	}
+	
+	//Retrieve the spots of type tip and notch
+	 private ArrayList<SuperSpot> convertFinTraceToReferenceSuperSpotArray(FinTrace fintraceLeft,FinTrace fintraceRight){
+	    ArrayList<SuperSpot> superspots=new ArrayList<SuperSpot>();
+	    
+	    
+	    //get any reference point on the left side
+	    double[] x=fintraceLeft.getX();
+	    double[] y=fintraceLeft.getY();
+	    double[] types=fintraceLeft.getTypes();
+	    int size=x.length;
+	    for(int i=0;i<size;i++){
+	      if((types[i]==-1)||(types[i]==0)){
+	        superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	        System.out.println("[Reference Spot created:"+x[i]+","+y[i]+","+types[i]+"]");
+	      }
+	    }
+	    
+	    
+	    //get any reference point on the right side
+	     x=fintraceRight.getX();
+	     y=fintraceRight.getY();
+	     types=fintraceRight.getTypes();
+	     size=x.length;
+	     
+	      for(int i=0;i<size;i++){
+	        if((types[i]==-1)||(types[i]==0)){
+	          superspots.add(new SuperSpot(x[i],y[i],new Double(types[i])));
+	          System.out.println("[Reference Spot created:"+x[i]+","+y[i]+","+types[i]+"]");
+	        }
+	      }
+	    
+	    
+	    
+	    
+	    return superspots;
+	  }
+	
+	
+	
 
 }

@@ -311,16 +311,17 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
+    <a id="<%=images.get(myImage).getDataCollectionEventID() %>" href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
        title="<%=encprops.getProperty("clickEnlarge")%>">
       <%
-      } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
+      } 
+      else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>"
+      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" id="<%=images.get(myImage).getDataCollectionEventID() %>"
         <%
         if(!isVideo){
         %>
-      class="highslide" onclick="return hs.expand(this)"
+      class="highslide" onclick="return hs.expand(this)" 
 		<%
             }
 		%>
@@ -407,7 +408,7 @@ System.out.println("trying to fork/create " + thumbPath);
                  fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
         </di:text>
       </di:img>
-      <img width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
+      <img id="<%= images.get(myImage).getDataCollectionEventID()%>" width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
            src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
 				}
 
@@ -441,7 +442,7 @@ System.out.println("trying to fork/create " + thumbPath);
             <%
             if(!isVideo){
             %>
-            class="highslide-caption"
+            class="highslide-caption" 
             <%
             }
             %>
@@ -698,6 +699,19 @@ catch (Exception e) {
     </td>
   </tr>
 </table>
+
+<!-- ***** START EDITS ***** 
+
+     Ecological Software Solutions LLC Fluke Tracer.-->
+<!-- Requires jQuery. Also get the lastest version of jQuery if needed.  -->
+<!-- <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.3.js"></script> -->
+<script type="text/javascript" src="../tracing/js/paper.js"></script>
+<script type="text/javascript" src="../tracing/js/tracing.js"></script>
+<script type="text/javascript">
+  comEcostatsTracing.addFlukeTrace('.highslide','<%=imageEncNum%>');
+</script>
+
+<!-- ***** END EDITS *****  -->
 
 <%
   }

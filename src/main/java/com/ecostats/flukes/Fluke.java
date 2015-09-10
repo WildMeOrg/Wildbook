@@ -21,10 +21,13 @@ package com.ecostats.flukes;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
+//import org.bson.types.ObjectId;
+//import org.mongodb.morphia.annotations.Embedded;
+//import org.mongodb.morphia.annotations.Entity;
+//import org.mongodb.morphia.annotations.Id;
+
+import org.ecocean.*;
+import org.ecocean.grid.*;
 
 /**
  * Fluke
@@ -32,7 +35,7 @@ import org.mongodb.morphia.annotations.Id;
  * Fluke class for points along a fluke tracing, left and right side. 
  */
 
-@Entity("flukes")
+//@Entity("flukes")
 public class Fluke implements java.io.Serializable {
   
   private static final long serialVersionUID = -1317654319011769206L;
@@ -47,15 +50,15 @@ public class Fluke implements java.io.Serializable {
   public final static int LEFT = 0;  // Left fluke constant ID
   public final static int RIGHT = 1; // Right fluke constant ID
   public final static int ALL = 2; // Both left and right fluke constant ID
-  @Id
-  protected ObjectId id;
+  //@Id
+  protected String id;
   protected String encounter;
   protected String individual;
   protected String photo;
   protected double[] mark_types; // a reduced mark type array combining both the left and right flukes 
-  @Embedded("left_fluke")
+  //@Embedded("left_fluke")
   private FinTrace left_fluke;
-  @Embedded("right_fluke")
+  //@Embedded("right_fluke")
   private FinTrace right_fluke;
   private double matchvalue = 0;
 
@@ -88,6 +91,23 @@ public class Fluke implements java.io.Serializable {
     this.left_fluke = left;
     this.right_fluke = right;
     this.setMarkTypes(mark_types);
+  }
+  
+  public Fluke(EncounterLite enc){
+    this.left_fluke = new FinTrace(enc,"left");
+    this.right_fluke = new FinTrace(enc,"right");
+    
+    int numAllSpots=left_fluke.getTypes().length+right_fluke.getTypes().length;
+    
+    double[] new_mark_types=new double[numAllSpots];
+    for(int i=0;i<left_fluke.getTypes().length;i++){
+      new_mark_types[i]=left_fluke.getTypes()[i];
+    }
+    for(int i=left_fluke.getTypes().length;i<numAllSpots;i++){
+      new_mark_types[i]=right_fluke.getType(i-left_fluke.getTypes().length);
+    }
+    
+    this.setMarkTypes(new_mark_types);
   }
 
   /**
@@ -469,7 +489,7 @@ public class Fluke implements java.io.Serializable {
    * Gets the fluke ID value
    * @return String ID value
    */
-  public ObjectId getId() {
+  public String getId() {
     return id;
   }
 
@@ -478,7 +498,7 @@ public class Fluke implements java.io.Serializable {
    * @param id String : ID value to set
    */
   public void setId(String id) {
-    this.id = new ObjectId(id) ;
+    this.id = id ;
   }
 
 } 

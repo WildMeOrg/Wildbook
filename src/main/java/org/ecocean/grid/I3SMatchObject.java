@@ -29,24 +29,27 @@ import java.util.TreeMap;
  */
 public class I3SMatchObject implements java.io.Serializable {
   static final long serialVersionUID = 9122107217335010239L;
-  public String individualName = "N/A", date;
-  public double matchValue, size;
+  public String individualName = "N/A", date="";
+  public double matchValue=-1, size=-1;
   public String encounterNumber = "N/A";
-  private TreeMap map;
+  private TreeMap map=new TreeMap();;
   public String newSex = "Unknown", catalogSex = "Unknown";
+
 
   public I3SMatchObject() {
   }
 
-  public I3SMatchObject(String individualName, double score, String encounterNumber, String catalogSex, String date, double size, TreeMap map, double mahalSum) {
+  public I3SMatchObject(double score, TreeMap map) {
     this.matchValue = score;
     this.individualName = individualName;
     this.map = map;
     this.encounterNumber = encounterNumber;
-    this.catalogSex = catalogSex;
-    this.date = date;
+    //this.catalogSex = catalogSex;
+    //this.date = date;
     this.size = size;
     //this.mahalSum=mahalSum;
+    //this.fastDTWResult=fastDTWDistance;
+    //this.geroMatchDistance=geroMatchDistance;
   }
 
   public TreeMap getMap() {
@@ -110,4 +113,11 @@ public class I3SMatchObject implements java.io.Serializable {
   public String getIndividualName() {
     return individualName;
   }
+  
+
+  public double getMatchValue(){return matchValue;}
+  
+  public void setEncounterNumber(String num){this.encounterNumber=num;}
+  public void setIndividualID(String id){this.individualName=id;}
+  
 }
