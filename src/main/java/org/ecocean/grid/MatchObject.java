@@ -44,6 +44,18 @@ public class MatchObject implements java.io.Serializable {
   //add I3S match values
   public Vector Points = new Vector();
   public double i3sMatchValue;
+  
+  public Double leftFastDTWResult;
+  public Double rightFastDTWResult;
+  
+ public String fastDTWPath="";
+  
+  public Double geroMatchDistance;
+  
+  public Double intersectionCount=0.0;
+  public String anglesOfIntersection="";
+  
+  public Double proportionValue=0.0;
 
   //used for JDO enhance
   public MatchObject() {
@@ -255,5 +267,28 @@ public class MatchObject implements java.io.Serializable {
   public String getTaskID() {
     return this.taskID;
   }
-
+  
+  public Double getLeftFastDTWResult(){return leftFastDTWResult;}
+  public void setLeftFastDTWResult(Double value){leftFastDTWResult=value;}
+  
+  public Double getRightFastDTWResult(){return rightFastDTWResult;}
+  public void setRightFastDTWResult(Double value){rightFastDTWResult=value;}
+  
+  public Double getGeroMatchDistance(){return geroMatchDistance;}
+  public void setGeroMatchDistance(Double value){geroMatchDistance=value;}
+  
+  public String getFastDTWPath(){return fastDTWPath;}
+  
+  public void setFastDTWPath(String path){this.fastDTWPath=path;}
+  
+  public void setIntersectionCount(Double count){intersectionCount=count;}
+  public Double getIntersectionCount(){return intersectionCount;}
+  
+  public String getAnglesOfIntersection(){return anglesOfIntersection;}
+  public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
+  
+  public void setProportionValue(Double value){proportionValue=value;}
+  public Double getProportionValue(){return proportionValue;}
+  
+  
 }

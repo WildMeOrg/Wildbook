@@ -51,13 +51,13 @@
         <artifactId>jackcess</artifactId>
         <version>1.2.14.2</version>
     </dependency>
-  
+  <!--
    <dependency>
             <groupId>org.mongodb.morphia</groupId>
             <artifactId>morphia</artifactId>
-            <!-- See https://github.com/mongodb/morphia/releases for the latest version -->
             <version>0.109</version>
         </dependency>
+		-->
 
         <!-- Optional Jars (for certain features) but required by maven for building. -->
         <dependency>
@@ -392,6 +392,25 @@
       <version>1.7.12</version>
     </dependency>
 
+	<dependency>
+		<groupId>com.github.davidmoten</groupId>
+		<artifactId>fastdtw</artifactId>
+		<version>0.1</version>
+	</dependency>
+
+
+
+    <dependency>
+		<groupId>nz.ac.waikato.cms.weka</groupId>
+		<artifactId>weka-stable</artifactId>
+		<version>3.6.12</version>
+	</dependency>
+	
+	    <dependency>
+        	<groupId>ch.ethz.ganymed</groupId>
+        	<artifactId>ganymed-ssh2</artifactId>
+        	<version>build210</version>
+    </dependency>
 
 
   </dependencies>

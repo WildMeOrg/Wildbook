@@ -6,7 +6,8 @@ wildbook.Model.SinglePhotoVideo = wildbook.Model.BaseClass.extend({
 	//note: these assume .encounter is set -- which is only sure if we were loaded via .getImages() on parent encounter  TODO
 
 	url: function() {
-		return this.get('fullFileSystemPath').substr(wildbookGlobals.rootDir.length);
+		//return this.get('fullFileSystemPath').substr(wildbookGlobals.rootDir.length);
+		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/' + this.get('filename');
 	},
 
 	urlSmall: function() {

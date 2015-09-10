@@ -38,6 +38,10 @@ public class SuperSpot implements java.io.Serializable {
 
   //the y-coordinate of the spot within the image dimensions
   private double centroidY;
+  
+  private Double type;
+  
+
 
 
   /**
@@ -58,6 +62,12 @@ public class SuperSpot implements java.io.Serializable {
   public SuperSpot(double x, double y) {
     this.centroidX = x;
     this.centroidY = y;
+  }
+  
+  public SuperSpot(double x, double y, Double type) {
+    this.centroidX = x;
+    this.centroidY = y;
+    this.type=type;
   }
 
   /**
@@ -85,5 +95,9 @@ public class SuperSpot implements java.io.Serializable {
   public void setCentroidY(double y) {
     this.centroidY = y;
   }
+  
+  public void setType(Double type){this.type=type;}
+  public Double getType(){return type;}
+  
 
 }

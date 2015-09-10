@@ -289,7 +289,9 @@ console.log('wscale = %f', wscale);
 
 console.log('%d -> (%d,%d)', i, xy[0], xy[1]);
 				this.lCtx.beginPath();
-				this.lCtx.arc(xy[0] * wscale, xy[1] * wscale, this.spotTolerance * wscale, 0, 2*Math.PI, false);
+				var r = this.spotTolerance * wscale;
+                                if (r < 3) r = 3;
+				this.lCtx.arc(xy[0] * wscale, xy[1] * wscale, r, 0, 2*Math.PI, false);
 				//this.lCtx.arc(xy[0], xy[1], this.spotTolerance/3, 0, 2*Math.PI, false);
 				if (this.spots[i].type == 'spot') {
 					this.lCtx.fillStyle = this.styles.spotFill;
