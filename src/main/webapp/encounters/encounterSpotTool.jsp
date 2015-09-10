@@ -138,7 +138,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			left: 20px;
 			top: 200px;
 			width: 200px;
-			height: 400px;
+			height: 500px;
 			background-color: #AAA;
 			border: solid 2px #888;
 			padding: 8px;
@@ -151,6 +151,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			padding: 4px 10px;
 			margin: 15px 0px 8px -10px;
 			width: 100%;
+		}
+
+		.tool label {
+			font-size: 0.9em;
+			margin-right: 10px;
+		}
+
+		#scan-tool {
+			display: none;
 		}
 
 		#user-message {
@@ -291,7 +300,9 @@ console.log(pdata);
 
 	<div class="tool"><b class="tool-head">edge mode</b>
 		<input type="radio" name="edge-mode" value="auto" checked /> auto-detect edge<br />
+<div style="text-decoration: line-through; color: #666;" title="&#9888; not yet fully functional - use at own risk.">
 		<input type="radio" name="edge-mode" value="manual" /> manually select points
+</div>
 		<div class="detail">edge detection settings:</div>
 		<div id="edge-params"></div>
 		<div class="detail">edge transparency:</div>
@@ -305,6 +316,22 @@ console.log(pdata);
 			<input type="button" value="back to encounter" onClick="backToEncounter()" />
 		</div>
 	</div>
+
+	<div id="scan-tool" class="tool"><b class="tool-head">scan for matches</b>
+		<form target="_new" method="post" action="../ScanTaskHandler">
+			<input name="action" type="hidden" id="action" value="addTask" /> 
+			<input name="encounterNumber" type="hidden" value="<%=num%>" />
+				<input name="rightSide" id="rightSide-left" type="radio" value="false" checked="checked" />
+				<label for="rightSide-left">left side</label>
+				<input name="rightSide" id="rightSide-right" type="radio" value="true" />
+				<label for="rightSide-right">right side</label>
+			<!-- input name="jdoql" type="text" id="jdoql" size="80" -->
+			<input name="writeThis" type="hidden" id="writeThis" value="true" />
+			<input name="cutoff" type="hidden" value="0.02" />
+			<input name="scan" type="submit" id="scan" value="start scan" style="margin-top: 15px;" />
+		</form>
+	</div>
+
 </div>
 
 <div id="main">
