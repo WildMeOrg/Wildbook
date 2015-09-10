@@ -205,7 +205,7 @@ if (session.getAttribute("message") != null) {
             </tr>
             </table>
 <br ></br>
-<h1><%=props.getProperty("socialMediaConnections") %></h1>
+<h2><%=props.getProperty("socialMediaConnections") %></h2>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
@@ -297,7 +297,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     	
     </p>
     
-    <h3><%=props.getProperty("myData") %></h3>
+    <h2><%=props.getProperty("myData") %></h2>
     
 
 <%

@@ -39,7 +39,7 @@ public class IndexIT {
     setScriptingEnabled(false);
     beginAt("/");
     assertResponseCode(200);
-    assertTextPresent("Encounter");
+    assertTextPresent("Encounters");
   }
 
   @Test
@@ -47,7 +47,7 @@ public class IndexIT {
     setScriptingEnabled(false);
     beginAt("/index.jsp");
     assertResponseCode(200);
-    assertTextPresent("Encounter");
+    assertTextPresent("Encounters");
     
     
   }
