@@ -254,6 +254,11 @@ function updateSaveStatus(noChangesMade) {
 }
 
 
+function updateScanTool() {
+    if (!itool.paths || (itool.paths.length < 2)) return;
+    $('#scan-tool').show();
+}
+
 function save() {
     var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
     alreadySaved = true;
@@ -297,6 +302,7 @@ console.warn('sending data: %o', data); //return;
                 var i = itool.imageElement.src.lastIndexOf('/');
                 var url = itool.imageElement.src.substring(0, i+1) + j.name;
                 userMessage('<b>saved successfully.</b>  <a target="_new" title="view image in new window" href="' + url + '">[view image]</a>');
+                updateScanTool();
             } else if (j && j.error) {
                 imageMessage('ERROR saving');
                 userMessage('ERROR saving: <b>' + j.error + '</b>');
