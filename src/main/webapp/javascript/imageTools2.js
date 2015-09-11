@@ -74,7 +74,30 @@ function ImageTools(opts) {
 //////// general geometry type stuff ////
 
     this.dist = function(x1, y1, x2, y2) {
-        return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+        return Math.sqrt(this.dist2(x1, y1, x2, y2));
+    };
+
+    //for speed, we can often work with dist^2 and only sqrt at the end, thus:
+    this.dist2 = function(x1, y1, x2, y2) {
+        if ((x2 == undefined) && (y2 == undefined)) {  //allows passing as (p1, p2)
+            x2 = y1[0];  //oh boy, does order matter with these!
+            y2 = y1[1];
+            y1 = x1[1];
+            x1 = x1[0];
+        }
+//console.warn('dist2 (%f,%f) -- (%f,%f)', x1, y1, x2, y2);
+        return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
+    };
+
+    //since this is just for comparison purposes, we never both with sqrt (return dist^2)
+    //    h/t  https://stackoverflow.com/a/1501725/1525311
+    this.distToLineSegment2 = function(p, a, b) {  //line segment is from a to b
+        var l2 = this.dist2(a, b);
+        var t = ((p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1])) / l2;
+//console.log('l2=%d, t=%f', l2, t);
+        if (t < 0) return this.dist2(p, a);
+        if (t > 1) return this.dist2(p, b);
+        return this.dist2(p[0], p[1], a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1]));
     };
 
     //relative to the ui/dom world
