@@ -186,7 +186,7 @@ if (itool._insideSpot > -1) {
         range: true,
         stop: function() { if (edgeCanvas) doEdge(); },
         min: 0,
-        max: 200,
+        max: 250,
         values: [edgeA, edgeB],
         slide: function(ev, ui) {
             if (!edgeCanvas) return;
@@ -473,8 +473,8 @@ var fctx;
 var PATH;
 var edgeCanvas;
 
-var edgeA = 20;
-var edgeB = 50;
+var edgeA = 100;
+var edgeB = 200;
 var edgeScrubbing = false;
 
 function doEdge() {
@@ -546,15 +546,45 @@ console.log('scale = %f', scale);
         spots[i] = [Math.floor(itool.spots[i][0] * scale), Math.floor(itool.spots[i][1] * scale), itool.spots[i][2]];
     }
 console.log('spots: %o', spots);
+    var maxGap = 8;
+    clearCanvas();
+    drawSpots();
     var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     itool.paths = [];
+
+    bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
+console.info('boundSize = %d', bestPathParam.boundSize);
+
+/*
     itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
-//PATH = pathLeft;
 console.log('left path -> %o', itool.paths[0]);
     drawPath(imageData, itool.paths[0], [255,255,100]);
     itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
 console.log('right path -> %o', itool.paths[1]);
     drawPath(imageData, itool.paths[1], [100,200,255]);
+*/
+
+    bestPathParam.gapSize = 1;
+    while ((bestPathParam.gapSize < maxGap) && !itool.paths[0]) {
+console.info('trying gapSize = %d', bestPathParam.gapSize);
+        itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
+        bestPathParam.gapSize += 1;
+    }
+console.log('left path -> %o', itool.paths[0]);
+    drawPath(imageData, itool.paths[0], [255,255,100]);
+
+    bestPathParam.boundSize = itool.dist2(spots[1], spots[2]) / 16;
+console.info('boundSize = %d', bestPathParam.boundSize);
+    bestPathParam.gapSize = 1;
+    while ((bestPathParam.gapSize < maxGap) && !itool.paths[1]) {
+console.info('trying gapSize = %d', bestPathParam.gapSize);
+        itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
+        bestPathParam.gapSize += 1;
+    }
+console.log('right path -> %o', itool.paths[1]);
+    drawPath(imageData, itool.paths[1], [100,200,255]);
+
+
     ctx.putImageData(imageData, 0, 0);
 
     if (itool.paths[0] && itool.paths[1]) {
@@ -645,28 +675,49 @@ function sortSpots(s) {
     return spots;
 }
 
-function bestPath(imageData, p1, p2, skipped) {
+
+var bestPathParam = {
+    boundSize: 2500,
+    nearEnd: 11,
+    sinceGapReset: 2,
+    gapSize: 2,
+};
+
+function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
+    if (!origP1) origP1 = p1; //we need this as original start so we can find bounds box
     if (!skipped) skipped = 0;
-    if ((p1[0] < 0) || (p1[0] >= imageData.width) || (p1[1] < 0) || (p1[1] >= imageData.height)) return false;  //out of bounds
+    if (!sinceLastGap) sinceLastGap = 0;
+    if ((p1[0] < 0) || (p1[0] >= imageData.width) || (p1[1] < 0) || (p1[1] >= imageData.height)) return false;  //out of bounds of image
+    var d2 = itool.distToLineSegment2(p1, origP1, p2);
+//console.warn('(%f, %f) dist squared from line = %f', p1[0], p1[1], d2);
+    if (d2 > bestPathParam.boundSize) return false;
     var offset = (p1[1] * imageData.width + p1[0]) * 4;
 //console.log('(%d,%d) %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
     if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) return false;  //already visited
-    imageData.data[offset+1] = 128;  //mark visited
-    imageData.data[offset+2] = 128;
+    //imageData.data[offset+1] = 128;  //mark visited
+    //imageData.data[offset+2] = 128;
 
-if (itool.dist(p1[0],p1[1],p2[0],p2[1]) < 8) {
+if (itool.dist(p1, p2) < bestPathParam.nearEnd) {
 console.warn('found a near-end! %d,%d', p1[0], p1[1]);
 return [p1];
 }
 
     var thisPt = false;
     if (imageData.data[offset]) {
-//console.log('(%d,%d) -> %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+        sinceLastGap++;
+//console.log('(%d,%d) -> %d [%d:%d]', p1[0], p1[1], imageData.data[offset], skipped, sinceLastGap);
+        if (sinceLastGap > bestPathParam.sinceGapReset) skipped = 0;  //reset
         thisPt = p1;
-    } else if (skipped > 8) {  //too big a gap
+        imageData.data[offset+1] = 128;  //mark visited
+        imageData.data[offset+2] = 128;
+    } else if (skipped > bestPathParam.gapSize) {  //too big a gap
         return false;
     } else {
+        sinceLastGap = 0;
         skipped++; //we are skipping a point, but will keep trying
+        //thisPt = p1;
+        imageData.data[offset+1] = 128;  //mark visited
+        imageData.data[offset+2] = 128;
     }
     var bestScore = false;
     var bPath = false;
@@ -675,10 +726,11 @@ return [p1];
 //console.warn('%d,%d', x, y);
             if ((x == 0) && (y == 0)) continue;
             var s = skipped;
-            var path = bestPath(imageData, [p1[0] + x, p1[1] + y], p2, s);
+            var path = bestPath(imageData, [p1[0] + x, p1[1] + y], p2, origP1, s, sinceLastGap);
             if (!path || !path.length) continue;
+if (path.length > 600) continue;
             //if (!bestScore || (path.length > best.length)) best = path;
-            var d = itool.dist(path[path.length-1][0], path[path.length-1][1], p2[0], p2[1]);
+            var d = itool.dist2(path[path.length-1][0], path[path.length-1][1], p2[0], p2[1]);
             if (!bestScore || (d < bestScore)) {
                 bestScore = d;
                 bPath = path;
