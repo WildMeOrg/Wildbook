@@ -229,7 +229,7 @@ margin-bottom: 8px !important;
  		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 		          bounds.extend(latLng);
  		          
- 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+ 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
  		          
  		         
  		         var marker<%=i%> = new RichMarker({
@@ -643,7 +643,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;This is an inspiration quote from you.&rdquo;</i> - Your Name, Project Leader</p>
+                            <i>&ldquo;Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily.&rdquo;</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
