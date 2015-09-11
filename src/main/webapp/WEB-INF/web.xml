@@ -228,6 +228,8 @@
 					/IndividualSetNickname = authc, roles[admin]
 					/AdoptionAction = authc,roles[admin]
 					
+					/SubmitSpotsAndTransformImage = authc,roles[admin]
+					
 
             </param-value>
         </init-param>
@@ -1688,6 +1690,16 @@
     <servlet-mapping>
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
+  </servlet-mapping>
+  
+   <servlet>
+    <servlet-name>SubmitSpotsAndTransformImage</servlet-name>
+    <servlet-class>org.ecocean.servlet.SubmitSpotsAndTransformImage</servlet-class>
+  </servlet>
+  
+       <servlet-mapping>
+        <servlet-name>SubmitSpotsAndTransformImage</servlet-name>
+        <url-pattern>/SubmitSpotsAndTransformImage</url-pattern>
   </servlet-mapping>
 
 
