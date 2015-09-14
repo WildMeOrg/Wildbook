@@ -89,7 +89,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	<style type="text/css">
 
 		#target-img {
-			width: 800px;
+			width: 100%;
 			pointer-events: none;
 		}
 
@@ -127,13 +127,22 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			display: none;
 		}
 
+		#image-label {
+			position: absolute;
+			border-radius: 4px;
+			padding: 2px 10px;
+			background-color: rgba(255,255,50,0.9);
+			display: none;
+			pointer-events: none;
+		}
+
 		#user-message {
-			margin-top: -5px;
+			margin-top: -30px;
+			margin-bottom: 20px;
 			text-align: center;
 			font-size: 0.8em;
 			padding: 5px;
 			color: #888;
-			height: 1.2em;
 			background-color: #FFA;
 			border-radius: 10px;
 			width: 98%;
@@ -143,7 +152,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			pointer-events: none;
 			position: absolute;
 			right: 25px;
-			top: 40px;
+			top: 70px;
 			background-color: rgba(0,0,0,0.5);
 			color: #FFA;
 			text-weight: bold;
@@ -258,9 +267,11 @@ console.log(pdata);
 	</div>
 
 	<div class="tool"><b class="tool-head">edge mode</b>
+<div style="display: none">
 		<input type="radio" name="edge-mode" value="auto" checked /> auto-detect edge<br />
 <div style="text-decoration: line-through; color: #666;" title="&#9888; not yet fully functional - use at own risk.">
 		<input type="radio" name="edge-mode" value="manual" /> manually select points
+</div>
 </div>
 		<div class="detail">edge detection settings:</div>
 		<div id="edge-params"></div>
@@ -293,9 +304,11 @@ console.log(pdata);
 
 </div>
 
+<div style="position: relative">
 	<div id="user-message"></div>
 	<div id="image-message"></div>
 	<img id="target-img" src="<%=imgSrc%>" onLoad="setTool()" />
+</div>
 
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>

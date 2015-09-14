@@ -102,6 +102,7 @@ System.out.println("GOT " + jb.toString());
     for (int i = 0 ; i < paths.size() ; i++) {  //should be only 0-2 (left, right)
         if (paths.get(i) != null) {
             spots.add(new ArrayList<SuperSpot>());
+            if (!paths.get(i).isJsonArray()) continue;
             JsonArray p = paths.get(i).getAsJsonArray();
             for (int j = 0 ; j < p.size() ; j++) {
                 JsonArray pt = p.get(j).getAsJsonArray();
@@ -114,13 +115,27 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
     }
     JsonArray jspots = jobj.getAsJsonArray("points");
     if (jspots != null) {
-        for (int i = 0 ; i < jspots.size() ; i++) {
+        double notchX = -1;
+        //we only make ref spots out of the first 3 .. we probably should check type tho in case order is wrong? 
+        int rmax = jspots.size();
+        if (rmax > 3) rmax = 3;
+        for (int i = 0 ; i < rmax ; i++) {
             JsonArray pt = jspots.get(i).getAsJsonArray();
             double x = pt.get(0).getAsDouble();
             double y = pt.get(1).getAsDouble();
             //String type = pt.get(2).getAsString();
 System.out.println("refspot: " + x + ", " + y);
             refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
+            if (i == 1) notchX = x;
+        }
+        //now we add any remaining spots to the appropriate side
+        for (int i = rmax ; i < jspots.size() ; i++) {
+            JsonArray pt = jspots.get(i).getAsJsonArray();
+            double x = pt.get(0).getAsDouble();
+            double y = pt.get(1).getAsDouble();
+            int side = 0;
+            if ((notchX > -1) && (x >= notchX)) side = 1;
+            spots.get(side).add(new SuperSpot(x, y, new Double(-2.0)));
         }
     }
 
