@@ -4,19 +4,28 @@
     var spotStyle = {
         null: {
             strokeStyle: 'green',
+            radius: 7,
             fillStyle: 'rgba(0,255,0,0.4)'
         },
         tipLeft: {
             strokeStyle: 'yellow',
-            fillStyle: 'rgba(255,255,0,0.4)'
+            fillStyle: 'rgba(255,255,0,0.4)',
+            lineWidth: 3,
+            radius: 10,
+            label: 'left tip'
         },
         notch: {
             strokeStyle: '#888',
+            radius: 10,
+            lineWidth: 3,
             fillStyle: 'rgba(128,128,128,0.4)'
         },
         tipRight: {
             strokeStyle: 'blue',
-            fillStyle: 'rgba(0,0,255,0.4)'
+            fillStyle: 'rgba(0,0,255,0.4)',
+            lineWidth: 3,
+            radius: 10,
+            label: 'right tip'
         },
         _line: {
             xstrokeStyle: 'rgba(255,255,0,0.4)',
@@ -64,6 +73,7 @@ function setTool() {
                 //t._insideSpot refers to if mouse went *down* on a spot
                 if (itool._insideSpot > -1) {
                     clearLabelCanvas();
+                    imageLabel();
                     itool.imageElement.style.cursor = 'grabbing';
                     itool.imageElement.style.cursor = '-moz-grabbing';
                     itool.imageElement.style.cursor = '-webkit-grabbing';
@@ -76,6 +86,11 @@ console.log('dragging spot %d', itool._insideSpot);
                 }
 
                 var s = itool.isNearSpot(ev.offsetX, ev.offsetY);
+                if (s > -1) {
+                    imageLabel(itool.toCanvasPoint(itool.spots[s]), itool.spots[s][2]);
+                } else {
+                    imageLabel();
+                }
                 if ((s > -1) && (itool._mode & 8)) {
                     itool.imageElement.style.cursor = 'not-allowed';
                 } else if (s > -1) {
@@ -180,6 +195,7 @@ if (itool._insideSpot > -1) {
 
     itool = new ImageTools(opts);
     itool.spots = [];
+    $(itool.containerElement).append('<div id="image-label" />');
     setMode(0);
 
     $('#edge-params').slider({
@@ -344,10 +360,15 @@ console.log('save returned: %o', d);
 
 var currentSpotType = null;
 function addSpot(x,y,type) {
+///////////// NOTE!!! presently spot type will be set via sortSpots() so doesnt really matter what happens here.  TODO other manual setting
     if (!type) type = currentSpotType;
+
+/*  NOTE: now we are letting more spots come in, and basing type off or when it is added
     if (($('[name="edge-mode"]:checked').val() == 'auto') && (itool.spots.length >= 3)) {  //cant add more when in auto mode
         return;
     }
+*/
+
     itool.spots.push([x, y, type]);
 /*
     var s = itool.matrixMultiply(itool.transformInverse(), [x, y, 1]);
@@ -446,6 +467,7 @@ function contextSetStyles(ctx, style) {
 
 function drawSpot(ctx, p, styleKey, r) {
     if (!r) r = 8;
+    if (spotStyle[styleKey].radius) r = spotStyle[styleKey].radius;
     contextSetStyles(ctx, spotStyle[styleKey]);
     ctx.beginPath();
     var cp = itool.toCanvasPoint(p);
@@ -589,13 +611,19 @@ console.log('right path -> %o', itool.paths[1]);
 
     if (itool.paths[0] && itool.paths[1]) {
         userMessage('<b>left and right fluke edges found!</b> you can save now if results are correct.');
-        imageMessage('edges found! :)');
+        imageMessage('both edges found! :)');
 /*
         var id = itool.ctx.getImageData(0, 0, itool.canvasElement.width, itool.canvasElement.height);
         drawPath(id, itool.paths[0], [255,255,100]);
         drawPath(id, itool.paths[1], [100,200,255]);
         itool.ctx.putImageData(id, 0, 0);
 */
+    } else if (itool.paths[0]) {
+        userMessage('<b>left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('LEFT edge found!');
+    } else if (itool.paths[1]) {
+        userMessage('<b>right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('RIGHT edge found!');
     } else {
         userMessage('fluke edges were <b>not found</b>.  adjust points and/or alter edge tolerance settings. you may <b>manually select points</b> also.');
         imageMessage('no edges. :(');
@@ -968,7 +996,7 @@ function edgeDetect(ctx) {
 
     jsfeat.imgproc.grayscale(imageData.data, w, h, img_u8);
 
-    var blur_radius = 1;
+    var blur_radius = 2;
     var kernel_size = (blur_radius + 1) << 1;
     jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
 
@@ -1015,5 +1043,19 @@ function edgeDetect(ctx) {
                     }
                     ctx.putImageData(imageData, 0, 0);
                     return ctx;
+}
+
+
+var imageLabelSet = false;
+function imageLabel(pt, msg) {
+    if (!pt || !msg) {
+        if (!imageLabelSet) return;
+        $('#image-label').hide();
+        imageLabelSet = false;
+        return;
+    }
+    imageLabelSet = true;
+    if (spotStyle[msg] && spotStyle[msg].label) msg = spotStyle[msg].label;
+    $('#image-label').html(msg).css({left: pt[0] + 'px', top: pt[1]}).show();
 }
 
