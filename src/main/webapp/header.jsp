@@ -384,10 +384,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
-                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                <% } %>
+                                <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                                
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
+                                
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
                                 <% } 
@@ -407,7 +407,15 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
                                   <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
-                                <% }
+                                <% 
+                                }
+                                %>
+                                <li class="divider"></li>
+                                  <li class="dropdown-header"><%=props.getProperty("grid")%></li>
+                                  
+                                <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
+                                <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                              <%  
                             } //end if admin %>
                         </ul>
                       </li>
