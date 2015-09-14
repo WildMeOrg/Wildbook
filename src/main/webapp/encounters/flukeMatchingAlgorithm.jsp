@@ -87,9 +87,9 @@ try {
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
 
 	
-  <p class="para"><strong><em>Extracted Spots</em></strong></p>
+  <p class="para"><strong><em>Extracted Trailing Edges</em></strong></p>
   		<%
-		//kick off a scan
+		
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
 		
@@ -229,7 +229,7 @@ try {
 		} //if use spot pattern reognition
 		else{
 		%>
-		<p>No spots have been added.</p>
+		<p>No trailing edge has been added.</p>
 		<%	
 		}
 
