@@ -188,6 +188,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+    if(!encountersDir.exists())encountersDir.mkdirs();
+    File encounterDir=new File(encountersDir,num);
+    if(!encounterDir.exists())encounterDir.mkdirs();
     File file = new File(Encounter.dir(shepherdDataDir, num) + "/flukeMatching.json");
 
     

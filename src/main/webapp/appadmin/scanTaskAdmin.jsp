@@ -107,7 +107,7 @@ else{
 %>
 
 <h3><%=showContext %>Pending scanTasks</h3>
-<table class="tablesorter">
+<table class="table">
 <thead>
   <tr>
     <th><strong>Identifier</strong></th>
@@ -155,7 +155,7 @@ else{
     <td>
       <%if ((numComplete > 0) && (numComplete >= numTaskTot)) {%>
       <form name="scanNum<%=scanNum%>_writeOut" method="post"
-            action="../WriteOutScanTask"><input name="number" type="hidden"
+            action="../<%=CommonConfiguration.getProperty("patternMatchingEndPointServletName", context) %>"><input name="number" type="hidden"
                                                 id="number" value="<%=st.getUniqueNumber()%>"> <%
 
         %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
@@ -216,7 +216,7 @@ else{
 
 <h3><%=showContext %>Completed scanTasks</h3>
 
-  <table class="tablesorter">
+  <table class="table">
   <thead>
   <tr>
     <th width="62" class="ptcol"><strong>Identifier</strong></th>
@@ -263,7 +263,7 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
       if (st.getUniqueNumber().equals("TuningTask")) {
         gotoURL = "endTuningTask.jsp";
       }
@@ -339,7 +339,7 @@ single scan are allowed to exceed the total.</span>
 <%
   if (gm.getNumNodes() > 0) {
 %>
-<table class="tablesorter">
+<table class="table">
 <thead>
   <tr>
     <th width="18"><span>IP</span></th>
@@ -394,7 +394,7 @@ single scan are allowed to exceed the total.</span>
   if (request.isUserInRole("admin")) {
 %>
 <h3>gridManager adjustment</h3>
-<table>
+<table class="table">
   <tr>
     <form name="setNumAllowedNodes" id="setNumAllowedNodes" method="get"
           action="scanTaskAdmin.jsp">
@@ -468,5 +468,5 @@ single scan are allowed to exceed the total.</span>
 </div>
 
 
-<jsp:include page="../footer.jsp" flush="true">
+<jsp:include page="../footer.jsp" flush="true" />
 

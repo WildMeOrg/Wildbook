@@ -167,6 +167,11 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 <li>
 	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
 </li>
+
+<li>
+	<a style="cursor:pointer" imgurl="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" encounter_id="<%=imageEnc.getCatalogNumber() %>" id="<%=(images.get(myImage).getDataCollectionEventID()+"-button") %>" onclick="comEcostatsTracing.onFlukeTraceClick(event);" >Trace Fluke</a>
+</li>
+
 </td>
 </tr>
 
