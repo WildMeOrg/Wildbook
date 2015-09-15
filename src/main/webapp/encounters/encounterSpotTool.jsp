@@ -291,10 +291,6 @@ console.log(pdata);
 		<form target="_new" method="post" action="../ScanTaskHandler">
 			<input name="action" type="hidden" id="action" value="addTask" /> 
 			<input name="encounterNumber" type="hidden" value="<%=num%>" />
-				<input name="rightSide" id="rightSide-left" type="radio" value="false" checked="checked" />
-				<label for="rightSide-left">left side</label>
-				<input name="rightSide" id="rightSide-right" type="radio" value="true" />
-				<label for="rightSide-right">right side</label>
 			<!-- input name="jdoql" type="text" id="jdoql" size="80" -->
 			<input name="writeThis" type="hidden" id="writeThis" value="true" />
 			<input name="cutoff" type="hidden" value="0.02" />
