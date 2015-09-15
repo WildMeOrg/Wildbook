@@ -7,6 +7,16 @@
             radius: 7,
             fillStyle: 'rgba(0,255,0,0.4)'
         },
+        path0: {
+            radius: 2,
+            strokeStyle: 'none',
+            fillStyle: 'rgba(255,255,100,0.4)'
+        },
+        path1: {
+            radius: 2,
+            strokeStyle: 'none',
+            fillStyle: 'rgba(0,100,255,0.4)'
+        },
         tipLeft: {
             strokeStyle: 'yellow',
             fillStyle: 'rgba(255,255,0,0.4)',
@@ -94,13 +104,22 @@ console.log('dragging spot %d', itool._insideSpot);
                 if ((s > -1) && (itool._mode & 8)) {
                     itool.imageElement.style.cursor = 'not-allowed';
                 } else if (s > -1) {
-console.log(s);
+console.log('near spot %d', s);
                     //t.imageElement.style.cursor = 'context-menu';
                     itool.imageElement.style.cursor = 'grab';
                     itool.imageElement.style.cursor = '-moz-grab';
                     itool.imageElement.style.cursor = '-webkit-grab';
                 } else {
                     itool.imageElement.style.cursor = defaultCursor;
+                }
+
+                var ppt = false;
+                if (s < 0) ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
+                if (ppt) {
+                    itool._labelCanvasNeedsClearing = true;
+                    clearLabelCanvas();
+console.log('near path pt %o', ppt);
+drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
                 }
 
                 clearLabelCanvas();
@@ -289,11 +308,12 @@ function drawFinalPaths() {
 //console.info('(%f,%f) -> (%f,%f)', itool.paths[i][j][0], itool.paths[i][j][1], cp[0], cp[1]);
             //cp[0] *= scale;
             //cp[1] *= scale;
-            paths[i].push(cp);
+            //////////paths[i].push(cp);
+            drawSpot(itool.ctx, cp, 'path' + i);
         }
-        drawPath(imageData, paths[i], rgb[i]);
+        /////////drawPath(imageData, paths[i], rgb[i]);
     }
-    itool.ctx.putImageData(imageData, 0, 0);
+    /////////itool.ctx.putImageData(imageData, 0, 0);
 }
 
 function save() {
@@ -378,6 +398,7 @@ console.log('(%d,%d) -> (%d,%d)', x, y, s[0], s[1]);
 console.info('addSpots(%d,%d) -> %o', x, y, itool.spots);
     spotsUpdate();
     updateSaveStatus();
+    return itool.spots.length - 1;  //index of spot added
 }
 
 function removeSpot(i) {
@@ -465,9 +486,10 @@ function contextSetStyles(ctx, style) {
 }
 
 
+//r will override radius from styleKey
 function drawSpot(ctx, p, styleKey, r) {
+    if (!r && spotStyle[styleKey].radius) r = spotStyle[styleKey].radius;
     if (!r) r = 8;
-    if (spotStyle[styleKey].radius) r = spotStyle[styleKey].radius;
     contextSetStyles(ctx, spotStyle[styleKey]);
     ctx.beginPath();
     var cp = itool.toCanvasPoint(p);
@@ -612,6 +634,7 @@ console.log('right path -> %o', itool.paths[1]);
     if (itool.paths[0] && itool.paths[1]) {
         userMessage('<b>left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('both edges found! :)');
+        drawFinalPaths();
 /*
         var id = itool.ctx.getImageData(0, 0, itool.canvasElement.width, itool.canvasElement.height);
         drawPath(id, itool.paths[0], [255,255,100]);
@@ -621,9 +644,11 @@ console.log('right path -> %o', itool.paths[1]);
     } else if (itool.paths[0]) {
         userMessage('<b>left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('LEFT edge found!');
+        drawFinalPaths();
     } else if (itool.paths[1]) {
         userMessage('<b>right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('RIGHT edge found!');
+        drawFinalPaths();
     } else {
         userMessage('fluke edges were <b>not found</b>.  adjust points and/or alter edge tolerance settings. you may <b>manually select points</b> also.');
         imageMessage('no edges. :(');
@@ -668,39 +693,36 @@ console.warn('===(%d,%d)===================', x,y);
 //desired outcome: (tipLeft, notch, tipRight[, ... others... ])
 function sortSpots(s) {
     var spots = [];
-    var len = s.length;
-    for (var i = 0 ; i < len ; i++) {
+    for (var i = s.length - 1 ; i >= 0 ; i--) {
         if (s[i][2] == 'tipLeft') {
             spots[0] = s[i];
             s.splice(i, 1);
-            len--;
         } else if (s[i][2] == 'notch') {
             spots[1] = s[i];
             s.splice(i, 1);
-            len--;
         } else if (s[i][2] == 'tipRight') {
             spots[2] = s[i];
             s.splice(i, 1);
-            len--;
         }
 
     }
+console.log('spots!!! %o %o %o %o', spots[0], spots[1], spots[2], spots[3]);
     //by now s will only contain un-special points, so we order by x coordinate
     s.sort(function(a,b) { return a[0] - b[0]; });
     //now fill out what we dont have
-    if (!spots[0]) {
+    if (!spots[0] && s[0]) {
         spots[0] = s.shift();
         spots[0][2] = 'tipLeft';
     }
-    if (!spots[1]) {
+    if (!spots[1] && s[0]) {
         spots[1] = s.shift();
         spots[1][2] = 'notch';
     }
-    if (!spots[2]) {
+    if (!spots[2] && s[0]) {
         spots[2] = s.shift();
         spots[2][2] = 'tipRight';
     }
-    return spots;
+    return spots.concat(s);  //throw the leftovers on the end and return
 }
 
 
