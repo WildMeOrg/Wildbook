@@ -113,6 +113,7 @@ console.log('near spot %d', s);
                     itool.imageElement.style.cursor = defaultCursor;
                 }
 
+/*
                 var ppt = false;
                 if (s < 0) ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
                 if (ppt) {
@@ -121,6 +122,7 @@ console.log('near spot %d', s);
 console.log('near path pt %o', ppt);
 drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
                 }
+*/
 
                 clearLabelCanvas();
                 if (!itool._mouseDown) return;
@@ -304,12 +306,12 @@ function drawFinalPaths() {
         if (!itool.paths[i]) continue;
         paths[i] = [];
         for (var j = 0 ; j < itool.paths[i].length ; j++) {
-            var cp = itool.toCanvasPoint(itool.paths[i][j]);
+            //var cp = itool.toCanvasPoint(itool.paths[i][j]);
 //console.info('(%f,%f) -> (%f,%f)', itool.paths[i][j][0], itool.paths[i][j][1], cp[0], cp[1]);
             //cp[0] *= scale;
             //cp[1] *= scale;
             //////////paths[i].push(cp);
-            drawSpot(itool.ctx, cp, 'path' + i);
+            drawSpot(itool.ctx, itool.paths[i][j], 'path' + i);
         }
         /////////drawPath(imageData, paths[i], rgb[i]);
     }
@@ -411,7 +413,7 @@ function removeSpot(i) {
 function spotsUpdate() {
     if (itool.spots.length < 3) {
         userMessage('required spots needed: <b>' + (3 - itool.spots.length) + '</b>  (you can <b>drag</b> spots to move them.)');
-    } else if (itool.spots.length == 3) {
+    } else if (itool.spots.length > 2) {
         doEdge();
     }
 }
@@ -628,11 +630,13 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
 console.log('right path -> %o', itool.paths[1]);
     drawPath(imageData, itool.paths[1], [100,200,255]);
 
+    //we pass a clean ImageData object to work with
+    tryPartialPaths(ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height));
 
     ctx.putImageData(imageData, 0, 0);
 
     if (itool.paths[0] && itool.paths[1]) {
-        userMessage('<b>left and right fluke edges found!</b> you can save now if results are correct.');
+        userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('both edges found! :)');
         drawFinalPaths();
 /*
@@ -642,16 +646,16 @@ console.log('right path -> %o', itool.paths[1]);
         itool.ctx.putImageData(id, 0, 0);
 */
     } else if (itool.paths[0]) {
-        userMessage('<b>left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
-        imageMessage('LEFT edge found!');
+        userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('LEFT edge found');
         drawFinalPaths();
     } else if (itool.paths[1]) {
-        userMessage('<b>right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
-        imageMessage('RIGHT edge found!');
+        userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('RIGHT edge found');
         drawFinalPaths();
     } else {
-        userMessage('fluke edges were <b>not found</b>.  adjust points and/or alter edge tolerance settings. you may <b>manually select points</b> also.');
-        imageMessage('no edges. :(');
+        userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
+        imageMessage('incomplete edges');
     }
 
 /*
@@ -689,6 +693,47 @@ console.warn('===(%d,%d)===================', x,y);
     return ctx2;
 }
 
+
+//make an attempt to fill out paths using inbetween points
+function tryPartialPaths(imageData) {
+    bestPathParam.gapSize = 2;  //reset this from iterated values for full path attempts
+    var foundSome = false;
+    for (var pn = 0 ; pn < 2 ; pn++) {
+        if (itool.paths[pn]) continue;
+        //note assuming spots are sorted here since being called right after full path attempts -- make note if that changes, they need to be sorted
+        var s = halfSpots(pn);
+        if (s.length < 3) continue;  //not much use to try!
+        itool.paths[pn] = [];
+        for (var i = 0 ; i < (s.length - 1) ; i++) {
+            var imgd = new ImageData(imageData.data, imageData.width, imageData.height); //new untouched copy of original
+            var p = bestPath(imgd, s[i], s[i+1]);
+console.warn('attempt partial path trace on side %d pt %d (%d,%d) to pt %d (%d,%d) -> %o', pn, i, s[i][0], s[i][1], i+1, s[i+1][0], s[i+1][1], p);
+            if (p) {
+                itool.paths[pn] = itool.paths[pn].concat(p);
+                foundSome = true;
+            }
+        }
+    }
+    if (foundSome) refreshCanvas();
+}
+
+
+
+//this assumes itool.spots has been sorted
+function halfSpots(pn) {
+    if (!itool.spots || (itool.spots.length < 0)) return [];
+    var notchX = -1;
+    for (var i = 0 ; i < 3 ; i++) {
+        if (itool.spots[i][2] == 'notch') notchX = itool.spots[i][0];
+    }
+    if (notchX < 0) return [];
+    var s = [];
+    for (var i = 0 ; i < itool.spots.length ; i++) {
+        if ((pn && (itool.spots[i][0] >= notchX)) || (!pn && (itool.spots[i][0] <= notchX))) s.push(itool.spots[i]);
+    }
+    s.sort(function(a,b) { return a[0] - b[0]; });  //this sorts the reference spots where they should be
+    return s;
+}
 
 //desired outcome: (tipLeft, notch, tipRight[, ... others... ])
 function sortSpots(s) {
