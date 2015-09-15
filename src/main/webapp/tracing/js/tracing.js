@@ -163,7 +163,7 @@ var comEcostatsTracing = (function(){
 		// close window menu item
 		add_menu_option(main_menu,'Close','fluke_trace_close');
 		var dmenu=document.createElement('div');
-		dmenu.setAttribute('class','pmenu_container');
+		dmenu.setAttribute('class','dropdown');
 		dmenu.appendChild(main_menu);
 		return dmenu;
 	};
@@ -175,12 +175,15 @@ var comEcostatsTracing = (function(){
 		if (parent_menu!=undefined){
 			// surround each sub menu with a DIV element which can be used to hide the submenu on click events.
 			var menu_div=document.createElement('div');
-			menu_div.style.visibility='hidden';
-			menu_div.style.display='none';
+			menu_div.class = 'dropdown';
+			//menu_div.style.visibility='hidden';
+			//menu_div.style.display='none';
 			menu_div.appendChild(dul);
 			parent_menu.appendChild(menu_div);
 		}else{
-			dul.setAttribute('id','pmenu');
+			//dul.setAttribute('id','pmenu');
+			dul.setAttribute('class','nav');
+			dul.setAttribute('role','navigation');
 		}
 		return dul;
 	};
@@ -197,12 +200,12 @@ var comEcostatsTracing = (function(){
 		}
 		if (parent_menu.getAttribute('id')=='pmenu'){
 			// the row of visible menu items
-			dli.setAttribute('class','drop');
-			ali.setAttribute('class',"mainmenu");
-			ali.setAttribute('onmouseover','comEcostatsTracing.onMenuShow(event);');
+			//dli.setAttribute('class','drop');
+			//ali.setAttribute('class',"mainmenu");
+			//ali.setAttribute('onmouseover','comEcostatsTracing.onMenuShow(event);');
 		}else{
 			// and drop down menu items below any pmenu item
-			ali.setAttribute('class',"menuitem");
+			//ali.setAttribute('class',"menuitem");
 		}  
 		var cap=document.createTextNode(caption); // text node to hold the menu item's caption
 		ali.appendChild(cap);
@@ -250,8 +253,8 @@ var comEcostatsTracing = (function(){
 		while (test_element!=null){
 			if (test_element.nextSibling.nodeName.toUpperCase()=='DIV' || test_element.nextSibling.localName.toUpperCase()=='DIV'){
 				var showdiv=test_element.nextSibling;
-				showdiv.style.visibility='visible';
-				showdiv.style.display='';
+				//showdiv.style.visibility='visible';
+				//showdiv.style.display='';
 				break;
 			}
 			test_element=test_element.nextSibling;
@@ -264,8 +267,8 @@ var comEcostatsTracing = (function(){
 			if (test_element.parentElement.nodeName.toUpperCase()=='DIV' || test_element.parentElement.localName.toUpperCase()=='DIV'){
 				var hidediv=test_element.parentElement;
 				if (!hidediv.hasAttribute('class')){ // do not hide the main menu band
-					hidediv.style.visibility='hidden';
-					hidediv.style.display='none';
+					//hidediv.style.visibility='hidden';
+					//hidediv.style.display='none';
 				}
 				break;
 			}
@@ -287,7 +290,7 @@ var comEcostatsTracing = (function(){
 	function hide_node_types_select(){
 		var selectdiv=document.getElementById('comEcostatsTracingNodeDiv');
 		if (selectdiv!=undefined){
-			selectdiv.style.visibility='hidden';
+			//selectdiv.style.visibility='hidden';
 		}
 	};
 	
@@ -708,7 +711,7 @@ var comEcostatsTracing = (function(){
 
 		// direct events from a user's menu selections
 		onMenuSelect : function(event){
-			hide_node_types_select();
+			//hide_node_types_select();
 			var event_id=event_target(event).id;
 			switch (event_id){
 				case 'fluke_trace_close': close_tracer(); break;
@@ -724,12 +727,12 @@ var comEcostatsTracing = (function(){
 				case 'fluke_trace_insert_nodes': node_edit_type=3; edit_node_change(node_edit_type); break;
 				case 'fluke_trace_edit_nodes_type': node_edit_type=4; edit_node_change(node_edit_type); break;
 			} 
-			hide_child_div(event); // hides the sub-menu
+			//hide_child_div(event); // hides the sub-menu
 		},
 		
 		// public method for mouse over events to show sub menu DIV elements
 		onMenuShow : function(event){
-			show_child_div(event);
+			//show_child_div(event);
 		},
 		
 		// public method to call when the fluke_tracer divide is shown -- use to initialize the div element, image and paperscript
@@ -766,7 +769,7 @@ var comEcostatsTracing = (function(){
 		
 		onDraw : function(event){
 			var div=document.getElementById('removediv');
-			div.style.visibility='hidden';
+			//div.style.visibility='hidden';
 			div.style.display='none';
 			var div=document.getElementById('drawdiv');
 			div.style.visibility='visible';
@@ -779,7 +782,7 @@ var comEcostatsTracing = (function(){
 		// Shows the tools tab panel
 		onImageTools : function(event){
 			var div=document.getElementById('drawdiv');
-			div.style.visibility='hidden';
+			//div.style.visibility='hidden';
 			div.style.display='none';
 			div=document.getElementById('removediv');
 			div.style.visibility='visible';
