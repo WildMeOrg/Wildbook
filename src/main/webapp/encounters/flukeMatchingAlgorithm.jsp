@@ -80,7 +80,7 @@ try {
   //File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName());
 
 %>
-  <p><a name="spotpatternmatching"></a><strong>Fluke Matching Visualization</strong></p>
+  <h2>Fluke Matching Visualization</h2>
 
 
 
@@ -187,45 +187,15 @@ try {
 			
 			<p class="para"><strong><em>Pattern Matching Results</em></strong></p>
 			<%
-  			File leftScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullScan.xml");
-  			File rightScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightScan.xml");
-  			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
-  			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
-
-  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
-  				
-	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
+  			File scanResults = new File(encounterDir.getAbsolutePath() + "/flukeMatching.json");
+  			
+	  		if(scanResults.exists()) {
 	  		%> 
 	  			
-	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>">Groth: Left-side scan results</a><br />
+	  			<a class="para" href="flukeScanEndApplet.jsp">Scan Results</a><br />
 	  		<%
 	  		}
-	  		if((rightScanResults.exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> 
-	  			
-	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
-	  		<%
-	  		}
-		}
 	  		
-  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
-			
-	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
-	  		%> 
-	  			
-	  			<a class="para" href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&I3S=true">I3S: Left-side scan results</a><br /> <%
-	  		}
-	  		if((rightI3SScanResults.exists())&&(enc.getNumRightSpots()>0)) {
-	  		%> 
-	  			
-	  			<a class="para" href="i3sScanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true&I3S=true">I3S: Right-side scan results</a><br /> 
-	  			<%
-	  		}
-	  		
-	  		
-  	}
-
-
 		} //if use spot pattern reognition
 		else{
 		%>
@@ -273,14 +243,14 @@ try {
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
-		 				System.out.println("     uploadedFile exists!");
+		 				//System.out.println("     uploadedFile exists!");
 		 				
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
 
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
 		 				if (!extractImage.exists()) {
-		 					System.out.println("Made it here.");
+		 					//System.out.println("Made it here.");
 		 					
 		 					height+=Double.toString(imageDimensions.getHeight());
 		 					width+=Double.toString(imageDimensions.getWidth());
@@ -517,57 +487,26 @@ $(document).ready(function() {
 				%>
 				<br />
   					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
-  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database using the 
-  					<a href="http://www.blackwell-synergy.com/doi/pdf/10.1111/j.1365-2664.2005.01117.x">Modified Groth</a> and 
-  					<a href="http://www.blackwell-synergy.com/doi/abs/10.1111/j.1365-2664.2006.01273.x?journalCode=jpe">I3S</a> algorithms.
-
+  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database.
+  					
     				<div id="formDiv">
       					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../ScanTaskHandler">
       						<input name="action" type="hidden" id="action" value="addTask" /> 
       						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
         						<table width="200px">
-          							<tr>
-            						<%
-              						if ((enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
-            						%>
-            							<td class="para">
-            								<label>
-            									<input name="rightSide" type="radio" value="false" checked="checked" /> left-side
-            								</label>
-            							</td>
-            						<%
-              						}
-            						
-              						if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0) && (enc.getSpots() != null) && (enc.getSpots().size() == 0)) {
-            						%>
-            							<td class="para">
-            								<label>
-            									<input type="radio" name="rightSide" value="true" checked="checked" />right-side
-            								</label>
-            							</td>
-            						<%
-            						} 
-              						else if ((enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
-            						%>
-            						<td class="para">
-            							<label> 
-            								<input type="radio" name="rightSide" value="true" /> right-side
-            							</label>
-            						</td>
-            						<%
-              						}
-            						%>
-          						</tr>
+          							
           						<%
           						if(request.isUserInRole("admin")){
           						%>
-          						<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
+          							<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
         						<%
           						}
         						%>
         					</table>
 
         					<input name="writeThis" type="hidden" id="writeThis" value="true" />
+        					<input type="hidden" name="rightSide" value="true" checked="checked" />
+            						
         					<br/> 
         					<input name="scan" type="submit" id="scan" value="Start Scan" onclick="submitForm(document.getElementById('formSharkGrid'))" />
         					<input name="cutoff" type="hidden" value="0.02" />
