@@ -136,6 +136,18 @@ function ImageTools(opts) {
         return -1;
     };
 
+    //note, this returns an array: [pathNumber, indexInPath]; as such, false means no match
+    this.isNearPathPoint = function(x, y) {
+        if (!this.paths) return false;
+        for (var pn = 0 ; pn < this.paths.length ; pn++) {
+            if (!this.paths[pn]) continue;
+            for (var i = 0 ; i < this.paths[pn].length ; i++) {
+                if (this.dist(x, y, this.paths[pn][i][0], this.paths[pn][i][1]) < 4) return [pn, i];
+            }
+        }
+        return false;
+    };
+
 
 
 //////////////////// crazy transform madness ////
