@@ -233,7 +233,7 @@ console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
             var ctx = edgeCanvas.getContext('2d');
             var ctx2 = edgeDetect(ctx);
             var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-            ctx.putImageData(imageData, 0, 0);
+            if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
         }
     });
 
@@ -633,7 +633,7 @@ console.log('right path -> %o', itool.paths[1]);
     //we pass a clean ImageData object to work with
     tryPartialPaths(ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height));
 
-    ctx.putImageData(imageData, 0, 0);
+    if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
 
     if (itool.paths[0] && itool.paths[1]) {
         userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
