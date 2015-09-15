@@ -44,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "localhost:8080/wildbook-5.4.0-RELEASE";
+  public static final String thisURLRoot = "dev.flukebook.org";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
