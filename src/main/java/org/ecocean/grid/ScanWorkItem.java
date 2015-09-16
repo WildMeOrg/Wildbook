@@ -75,6 +75,8 @@ public class ScanWorkItem implements java.io.Serializable {
   private int workItemsCompleteInTask;
   
   String algorithms="";
+  
+  public boolean reversed=false;
 
 
   /**
@@ -199,8 +201,14 @@ public class ScanWorkItem implements java.io.Serializable {
     
     
     MatchObject result=new MatchObject();
-    result.encounterNumber=existingEncounter.getEncounterNumber();
-    result.individualName=existingEncounter.getIndividualID();
+    if(!reversed){
+      result.encounterNumber=existingEncounter.getEncounterNumber();
+      result.individualName=existingEncounter.getIndividualID();
+    }
+    else{
+      result.encounterNumber=newEncounter.getEncounterNumber();
+      result.individualName=newEncounter.getIndividualID();
+    }
     if(algorithms.indexOf("ModifedGroth")>-1){
       result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan,newRefSpots);
     
@@ -419,6 +427,8 @@ public class ScanWorkItem implements java.io.Serializable {
   }
   
   public Double getFastDTWResult(){return fastDTWResult;}
+  
+  public void setReversed(boolean myVal){this.reversed=myVal;}
   
 }
 	

@@ -2067,7 +2067,9 @@ private double amplifyY(double origValue, double s){
     }
     catch(Exception e){
       e.printStackTrace();
-      return null;
+      //punt with a high score of 2
+      I3SMatchObject i3smo=new I3SMatchObject(2,null);
+      return i3smo;
     }
   }
   //end new I3S with affine
