@@ -2368,13 +2368,13 @@ private double amplifyY(double origValue, double s){
     }
      catch(Exception e){
        e.printStackTrace();
-       return null;
+       return 0.0;
      }
     
     
   }
     
-    
+  /*  
     public static Double geroMatch(EncounterLite existingEncounter,EncounterLite newEnc) {
 
       
@@ -2409,6 +2409,7 @@ private double amplifyY(double origValue, double s){
       
       
 }
+    */
   
     public static MatchObject getModifiedGroth4Flukes(EncounterLite existingEnc, EncounterLite newEnc, double epsilon, double R, double Sizelim, double maxTriangleRotation, double C, boolean secondRun) {
       System.out.println("\nNow comparing against encounter " + existingEnc.getEncounterNumber() + " of " + existingEnc.getIndividualID()+ "...");
@@ -3330,7 +3331,7 @@ private double amplifyY(double origValue, double s){
     }
      catch(Exception e){
        e.printStackTrace();
-       return null;
+       return 1.0;
      }
     
     

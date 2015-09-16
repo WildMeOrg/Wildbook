@@ -51,252 +51,13 @@ import weka.core.SerializationHelper;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
+import weka.core.converters.ArffSaver;
+import weka.core.converters.ArffLoader;
 
 
-public class TrainNetwork extends HttpServlet {
+public class TrainNetwork {
 
 
-  public void init(ServletConfig config) throws ServletException {
-    super.init(config);
-  }
-
-
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
-    doPost(request, response);
-  }
-
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    //set up for response
-    response.setContentType("text/html");
-    PrintWriter out = response.getWriter();
-    boolean locked = false;
-
-    String number = request.getParameter("number");
-
-    //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    
-    double intersectionProportion=0.2;
-    
-  //create text file so we can also use this training data in the Neuroph UI
-    BufferedWriter writer = null;
-    
-    int numMatches=0;
-    int numNonMatches=0;
-    
-    
-    //prep weka for AdaBoost
-    // Declare numeric attributes
-    Attribute intersectAttr = new Attribute("intersect");
-    Attribute fastDTWAttr = new Attribute("fastDTW");
-    Attribute i3sAttr = new Attribute("I3S");
-    Attribute proportionAttr = new Attribute("proportion");
-    
-    //class vector
-    // Declare the class attribute along with its values
-    FastVector fvClassVal = new FastVector(2);
-    fvClassVal.addElement("match");
-    fvClassVal.addElement("nonmatch");
-    Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
-    
-    //define feature vector
-    // Declare the feature vector
-    FastVector fvWekaAttributes = new FastVector(5);
-    fvWekaAttributes.addElement(intersectAttr);
-    fvWekaAttributes.addElement(fastDTWAttr);
-    fvWekaAttributes.addElement(i3sAttr);
-    fvWekaAttributes.addElement(proportionAttr);
-    fvWekaAttributes.addElement(ClassAttribute);
-    
-    
-    myShepherd.beginDBTransaction();
-    
-      try {
-       
-        
-        
-        
-       // File trainingFile = new File(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.input");
-       // writer = new BufferedWriter(new FileWriter(trainingFile));
-        
-        //StringBuffer writeMe=new StringBuffer();
-        
-        
-        Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
-        int numEncs=encounters.size();
-        
-        Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (numEncs*(numEncs-1)/2));
-        isTrainingSet.setClassIndex(3);
-        
-        for(int i=0;i<(numEncs-1);i++){
-          for(int j=(i+1);j<numEncs;j++){
-            
-            Encounter enc1=(Encounter)encounters.get(i);
-            Encounter enc2=(Encounter)encounters.get(j);
-            //make sure both have spots!
-            if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
-              try{
-                System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
-                
-                //if both have spots, then we need to compare them
-             
-                //first, are they the same animal?
-                //default is 1==no
-                double output=1;
-                if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
-                  if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
-                    //train a match
-                    if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
-                  }
-                  
-                }
-                
-                
-                EncounterLite el1=new EncounterLite(enc1);
-                EncounterLite el2=new EncounterLite(enc2);
-                
-                //HolmbergIntersection
-                Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
-                double finalInter=-1;
-                if(numIntersections!=null){finalInter=numIntersections.intValue();}
-               
-                
-                //FastDTW
-                TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
-                
-                java.lang.Double distance = new java.lang.Double(-1);
-                if(twi!=null){
-                  WarpPath wp=twi.getPath();
-                    String myPath=wp.toString();
-                  distance=new java.lang.Double(twi.getDistance());
-                }   
-                
-                //I3S
-                I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-                double i3sScore=-1;
-                if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
-                
-                //Proportion metric
-                Double proportion=EncounterLite.getFlukeProportion(el1,el2);
-                
-                //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
-                /*
-                if((output==0)||(numNonMatches<numMatches)){
-                  trainingSet. addRow (
-                      new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
-                      new double[]{output}));
-                  
-                  //write the line too
-                  writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
-                  
-                  if(output==0){numMatches++;}
-                  else{numNonMatches++;}
-                  
-                }
-                */
-                // Create the instance
-                Instance iExample = new Instance(5);
-                iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
-                iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
-                iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
-                iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
-                
-                if(output==0){
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
-                }
-                else{
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
-                }
-                // add the instance
-                isTrainingSet.add(iExample);
-                
-                
-              
-            }
-            catch(Exception e){
-              e.printStackTrace();
-            }
-
-              
-              
-            }
-            
-          }
-          
-          
-        }
-       
-        //write out the training set
-        //writer.write(writeMe.toString());
-        
-        
-       /*
-        System.out.println("Trying to learn the data set...");
-        PerceptronLearning kl=new PerceptronLearning();
-        kl.setLearningRate(0.5);
-        kl.setMaxError(9);
-        
-        // learn the training set
-        neuralNetwork.learn(trainingSet,kl);
-        
-        // save the trained network into file
-        neuralNetwork.save(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.nnet"); 
-        
-        */
-        
-        
-        //build classifier
-        AdaBoostM1 booster=new AdaBoostM1();
-        booster.buildClassifier(isTrainingSet);
-        
-        //test booster
-        //Evaluation eTest = new Evaluation(isTrainingSet);
-        //eTest.evaluateModel(booster, isTestingSet);
-
-
-      } 
-      catch (Exception le) {
-        locked = true;
-        le.printStackTrace();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-      }
-      finally {
-        try {
-            // Close the writer regardless of what happens...
-            writer.close();
-        } catch (Exception e) {
-        }
-    }
-
-      if (!locked) {
-        myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully trained the network.");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-      } 
-      else {
-
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> I failed to train the network. Check the logs for more details.");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
-      }
-
-
-    out.close();
-  }
   
   public static double round(double value, int places) {
     if (places < 0) throw new IllegalArgumentException();
@@ -353,7 +114,7 @@ public class TrainNetwork extends HttpServlet {
   }
   
   
-  
+  /*
   public static SummaryStatistics getIntersectionStats(HttpServletRequest request){
     String context="context0";
     context=ServletUtilities.getContext(request);
@@ -744,6 +505,7 @@ public class TrainNetwork extends HttpServlet {
       }
       return proportionStats;
    }
+   */
   
   public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats, double numIntersectionStdDev,double numDTWStdDev,double numI3SStdDev,double numProportionStdDev, double intersectHandicap, double dtwHandicap, double i3sHandicap, double proportionHandicap){
     double score=0;
@@ -865,9 +627,6 @@ public class TrainNetwork extends HttpServlet {
    
   public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
-    
-    //FIRST
-    //first check for file and return it if it exists
     File classifierFile=new File(fullPathToClassifierFile);
     try{
     
@@ -878,10 +637,16 @@ public class TrainNetwork extends HttpServlet {
     }
     catch(Exception e){
       e.printStackTrace();
+      
     }
     
-    //SECOND
-    //next build it if it does not exist or if you hit an exception
+    return null;
+    
+    
+  }
+  
+  public static AdaBoostM1 buildAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
+    
     AdaBoostM1 booster=new AdaBoostM1();
     try {
       //getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request)
@@ -911,253 +676,20 @@ public class TrainNetwork extends HttpServlet {
     try{
     
       if(classifierFile.exists()){
-        Instances instances= (Instances)deserializeWekaInstances(request,fullPathToInstancesFile);
+        Instances instances= deserializeWekaInstances(request,fullPathToInstancesFile);
         return instances;
+      }
+      else{
+        System.out.println("     I could not find a classifier file at: "+fullPathToInstancesFile);
       }
     }
     catch(Exception e){
       e.printStackTrace();
+      
     }
-   
+   return null;
     
-    //SECOND - build the instances if they can't be pulled
-    double intersectionProportion=0.2;
-    
-  //create text file so we can also use this training data in the Neuroph UI
-    BufferedWriter writer = null;
-    
-    int numMatches=0;
-    int numNonMatches=0;
-    
-    
-    //prep weka for AdaBoost
-    // Declare numeric attributes
-    Attribute intersectAttr = new Attribute("intersect");
-    Attribute fastDTWAttr = new Attribute("fastDTW");
-    Attribute i3sAttr = new Attribute("I3S");
-    Attribute proportionAttr = new Attribute("proportion");
-    
-    //class vector
-    // Declare the class attribute along with its values
-    FastVector fvClassVal = new FastVector(2);
-    fvClassVal.addElement("match");
-    fvClassVal.addElement("nonmatch");
-    Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
-    
-    //define feature vector
-    // Declare the feature vector
-    FastVector fvWekaAttributes = new FastVector(5);
-    fvWekaAttributes.addElement(intersectAttr);
-    fvWekaAttributes.addElement(fastDTWAttr);
-    fvWekaAttributes.addElement(i3sAttr);
-    fvWekaAttributes.addElement(proportionAttr);
-    fvWekaAttributes.addElement(ClassAttribute);
-    
-    
-    myShepherd.beginDBTransaction();
-    
-      try {
-       
-        
-        
-        
-       // File trainingFile = new File(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.input");
-       // writer = new BufferedWriter(new FileWriter(trainingFile));
-        
-        //StringBuffer writeMe=new StringBuffer();
-        
-        
-        Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
-        int numEncs=encounters.size();
-        
-        Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
-        isTrainingSet.setClassIndex(4);
-        AdaBoostM1 booster=new AdaBoostM1();
-        
-        for(int i=0;i<(numEncs-1);i++){
-          for(int j=(i+1);j<numEncs;j++){
-            
-            Encounter enc1=(Encounter)encounters.get(i);
-            Encounter enc2=(Encounter)encounters.get(j);
-            //make sure both have spots!
-            if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
-                try{
-                  System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
-                  
-                  //if both have spots, then we need to compare them
-               
-                  //first, are they the same animal?
-                  //default is 1==no
-                  double output=1;
-                  if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
-                    if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
-                      //train a match
-                      if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
-                    }
-                    
-                  }
-                  
-                  
-                  EncounterLite el1=new EncounterLite(enc1);
-                  EncounterLite el2=new EncounterLite(enc2);
-                  
-                  //FIRST PASS
-                  
-                  //HolmbergIntersection
-                  Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
-                  double finalInter=-1;
-                  if(numIntersections!=null){finalInter=numIntersections.intValue();}
-                 
-                  
-                  //FastDTW
-                  TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
-                  
-                  java.lang.Double distance = new java.lang.Double(-1);
-                  if(twi!=null){
-                    WarpPath wp=twi.getPath();
-                      String myPath=wp.toString();
-                    distance=new java.lang.Double(twi.getDistance());
-                  }   
-                  
-                  //I3S
-                  I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-                  double i3sScore=-1;
-                  if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
-                  
-                  //Proportion metric
-                  Double proportion=EncounterLite.getFlukeProportion(el1,el2);
-                  
-                  //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
-                  /*
-                  if((output==0)||(numNonMatches<numMatches)){
-                    trainingSet. addRow (
-                        new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
-                        new double[]{output}));
-                    
-                    //write the line too
-                    writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
-                    
-                    if(output==0){numMatches++;}
-                    else{numNonMatches++;}
-                    
-                  }
-                  */
-                  // Create the instance
-                  Instance iExample = new Instance(5);
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
-                  iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
-                  
-                  if(output==0){
-                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
-                  }
-                  else{
-                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
-                  }
-                  // add the instance
-                  isTrainingSet.add(iExample);
-                  
-                  //END FIRST PASS
-                  
-                  //SECOND PASS-reverse order
-
-                  
-                  //HolmbergIntersection
-                  Double numIntersections2=EncounterLite.getHolmbergIntersectionScore(el2, el1,intersectionProportion);
-                  double finalInter2=-1;
-                  if(numIntersections2!=null){finalInter2=numIntersections2.intValue();}
-                 
-                  
-                  //FastDTW
-                  TimeWarpInfo twi2=EncounterLite.fastDTW(el2, el1, 30);
-                  
-                  java.lang.Double distance2 = new java.lang.Double(-1);
-                  if(twi2!=null){
-                    WarpPath wp2=twi2.getPath();
-                      String myPath2=wp2.toString();
-                    distance2=new java.lang.Double(twi2.getDistance());
-                  }   
-                  
-                  //I3S
-                  I3SMatchObject newDScore2=EncounterLite.improvedI3SScan(el2, el1);
-                  double i3sScore2=-1;
-                  if(newDScore2!=null){i3sScore2=newDScore2.getI3SMatchValue();}
-                  
-                  //Proportion metric
-                  Double proportion2=EncounterLite.getFlukeProportion(el2,el1);
-                  
-                  //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
-                  /*
-                  if((output==0)||(numNonMatches<numMatches)){
-                    trainingSet. addRow (
-                        new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
-                        new double[]{output}));
-                    
-                    //write the line too
-                    writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
-                    
-                    if(output==0){numMatches++;}
-                    else{numNonMatches++;}
-                    
-                  }
-                  */
-                  // Create the instance
-                  Instance iExample2 = new Instance(5);
-                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
-                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
-                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
-                  iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
-                  
-                  if(output==0){
-                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
-                  }
-                  else{
-                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
-                  }
-                  // add the instance
-                  isTrainingSet.add(iExample2);
-                  
-                  
-                  
-                  //END SECOND PASS
-                  
-                  
-                  
-                }
-                catch(Exception e){
-                  e.printStackTrace();
-                }
-  
-              
-                
-              }
-         
-            }
-          }
-        
-        //write it out
-        try {
-          serializeWekaInstances(request,isTrainingSet,fullPathToInstancesFile);
-        } 
-        catch (Exception e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-          return null;
-        }
-        
-         
-        //DONE-return newly trained instances!
-        return isTrainingSet;
-        
-        }
-        catch(Exception e){return null;}
-      finally{
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-      }
-    
-      }
+  }
   
     public static void serializeWekaClassifier(HttpServletRequest request, Classifier cls, String absolutePath){
       
@@ -1220,7 +752,17 @@ public class TrainNetwork extends HttpServlet {
       
    // serialize model
       try {
-        weka.core.SerializationHelper.write(absolutePath, instances);
+        
+        
+        //weka.core.SerializationHelper.write(absolutePath, instances);
+        
+        ArffSaver saver = new ArffSaver();
+        saver.setInstances(instances);
+        saver.setFile(new File(absolutePath));
+        saver.writeBatch();
+        
+        
+        
       } catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
@@ -1230,16 +772,267 @@ public class TrainNetwork extends HttpServlet {
     
     private static Instances deserializeWekaInstances(HttpServletRequest request, String absolutePath){
       
-   // serialize model
-      try {
-        return  (Instances) weka.core.SerializationHelper.read(absolutePath);
-      } catch (Exception e) {
+     try {
+        ArffLoader loader =new ArffLoader();
+        loader.setFile(new File(absolutePath));
+        Instances instances=loader.getDataSet();
+        int cIdx=instances.numAttributes()-1;
+        instances.setClassIndex(cIdx);
+        return instances;
+        //return  (Instances) weka.core.SerializationHelper.read(absolutePath);
+      } 
+      catch (Exception e) {
         // TODO Auto-generated catch block
         e.printStackTrace();
       }
       return null;
     }
     
+    
+
+    public static Instances buildAdaboostInstances(HttpServletRequest request, String fullPathToInstancesFile){
+      String context="context0";
+      context=ServletUtilities.getContext(request);
+      Shepherd myShepherd = new Shepherd(context);
+      
+      
+      double intersectionProportion=0.2;
+      
+    //create text file so we can also use this training data in the Neuroph UI
+      BufferedWriter writer = null;
+      
+      int numMatches=0;
+      int numNonMatches=0;
+      
+      
+      //prep weka for AdaBoost
+      // Declare numeric attributes
+      Attribute intersectAttr = new Attribute("intersect");
+      Attribute fastDTWAttr = new Attribute("fastDTW");
+      Attribute i3sAttr = new Attribute("I3S");
+      Attribute proportionAttr = new Attribute("proportion");
+      
+      //class vector
+      // Declare the class attribute along with its values
+      FastVector fvClassVal = new FastVector(2);
+      fvClassVal.addElement("match");
+      fvClassVal.addElement("nonmatch");
+      Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
+      
+      //define feature vector
+      // Declare the feature vector
+      FastVector fvWekaAttributes = new FastVector(5);
+      fvWekaAttributes.addElement(intersectAttr);
+      fvWekaAttributes.addElement(fastDTWAttr);
+      fvWekaAttributes.addElement(i3sAttr);
+      fvWekaAttributes.addElement(proportionAttr);
+      fvWekaAttributes.addElement(ClassAttribute);
+      
+      
+      myShepherd.beginDBTransaction();
+      
+        try {
+         
+          
+          
+          
+         // File trainingFile = new File(shepherdDataDir.getAbsolutePath()+"/fluke_perceptron.input");
+         // writer = new BufferedWriter(new FileWriter(trainingFile));
+          
+          //StringBuffer writeMe=new StringBuffer();
+          
+          
+          Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
+          int numEncs=encounters.size();
+          
+          Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
+          isTrainingSet.setClassIndex(4);
+          AdaBoostM1 booster=new AdaBoostM1();
+          
+          for(int i=0;i<(numEncs-1);i++){
+            for(int j=(i+1);j<numEncs;j++){
+              
+              Encounter enc1=(Encounter)encounters.get(i);
+              Encounter enc2=(Encounter)encounters.get(j);
+              //make sure both have spots!
+              if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
+                  try{
+                    System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
+                    
+                    //if both have spots, then we need to compare them
+                 
+                    //first, are they the same animal?
+                    //default is 1==no
+                    double output=1;
+                    if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
+                      if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
+                        //train a match
+                        if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
+                      }
+                      
+                    }
+                    
+                    
+                    EncounterLite el1=new EncounterLite(enc1);
+                    EncounterLite el2=new EncounterLite(enc2);
+                    
+                    //FIRST PASS
+                    
+                    //HolmbergIntersection
+                    Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+                    double finalInter=-1;
+                    if(numIntersections!=null){finalInter=numIntersections.intValue();}
+                   
+                    
+                    //FastDTW
+                    TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
+                    
+                    java.lang.Double distance = new java.lang.Double(-1);
+                    if(twi!=null){
+                      WarpPath wp=twi.getPath();
+                        String myPath=wp.toString();
+                      distance=new java.lang.Double(twi.getDistance());
+                    }   
+                    
+                    //I3S
+                    I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
+                    double i3sScore=-1;
+                    if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
+                    
+                    //Proportion metric
+                    Double proportion=EncounterLite.getFlukeProportion(el1,el2);
+                    
+                    //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
+                    /*
+                    if((output==0)||(numNonMatches<numMatches)){
+                      trainingSet. addRow (
+                          new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
+                          new double[]{output}));
+                      
+                      //write the line too
+                      writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
+                      
+                      if(output==0){numMatches++;}
+                      else{numNonMatches++;}
+                      
+                    }
+                    */
+                    // Create the instance
+                    Instance iExample = new Instance(5);
+                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
+                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
+                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
+                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
+                    
+                    if(output==0){
+                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
+                    }
+                    else{
+                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
+                    }
+                    // add the instance
+                    isTrainingSet.add(iExample);
+                    
+                    //END FIRST PASS
+                    
+                    //SECOND PASS-reverse order
+
+                    
+                    //HolmbergIntersection
+                    Double numIntersections2=EncounterLite.getHolmbergIntersectionScore(el2, el1,intersectionProportion);
+                    double finalInter2=-1;
+                    if(numIntersections2!=null){finalInter2=numIntersections2.intValue();}
+                   
+                    
+                    //FastDTW
+                    TimeWarpInfo twi2=EncounterLite.fastDTW(el2, el1, 30);
+                    
+                    java.lang.Double distance2 = new java.lang.Double(-1);
+                    if(twi2!=null){
+                      WarpPath wp2=twi2.getPath();
+                        String myPath2=wp2.toString();
+                      distance2=new java.lang.Double(twi2.getDistance());
+                    }   
+                    
+                    //I3S
+                    I3SMatchObject newDScore2=EncounterLite.improvedI3SScan(el2, el1);
+                    double i3sScore2=-1;
+                    if(newDScore2!=null){i3sScore2=newDScore2.getI3SMatchValue();}
+                    
+                    //Proportion metric
+                    Double proportion2=EncounterLite.getFlukeProportion(el2,el1);
+                    
+                    //balance the training set to make sure nonmatches do not outweigh matches and cause the NN to cheat
+                    /*
+                    if((output==0)||(numNonMatches<numMatches)){
+                      trainingSet. addRow (
+                          new DataSetRow (new double[]{finalInter, distance, i3sScore, proportion},
+                          new double[]{output}));
+                      
+                      //write the line too
+                      writeMe.append(round(finalInter,4)+","+round(distance,4)+","+round(i3sScore,4)+","+round(proportion,4)+","+output+"\n");
+                      
+                      if(output==0){numMatches++;}
+                      else{numNonMatches++;}
+                      
+                    }
+                    */
+                    // Create the instance
+                    Instance iExample2 = new Instance(5);
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
+                    
+                    if(output==0){
+                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
+                    }
+                    else{
+                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
+                    }
+                    // add the instance
+                    isTrainingSet.add(iExample2);
+                    
+                    
+                    
+                    //END SECOND PASS
+                    
+                    
+                    
+                  }
+                  catch(Exception e){
+                    e.printStackTrace();
+                  }
+    
+                
+                  
+                }
+           
+              }
+            }
+          
+          //write it out
+          try {
+            serializeWekaInstances(request,isTrainingSet,fullPathToInstancesFile);
+          } 
+          catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return null;
+          }
+          
+           
+          //DONE-return newly trained instances!
+          return isTrainingSet;
+          
+          }
+          catch(Exception e){return null;}
+        finally{
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+      
+        }
   
 }
 	
