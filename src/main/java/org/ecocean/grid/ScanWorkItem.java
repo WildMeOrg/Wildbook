@@ -231,7 +231,7 @@ public class ScanWorkItem implements java.io.Serializable {
     //}
     //i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
     
-    if(algorithms.indexOf("I3S")>-1){
+  //  if(algorithms.indexOf("I3S")>-1){
       I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
       newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
@@ -261,9 +261,9 @@ public class ScanWorkItem implements java.io.Serializable {
         result.setI3SValues(points, newScore);
       }
       System.out.println("     I3S score is: "+newScore);
-    }
+    //}
     
-    if(algorithms.indexOf("FastDTW")>-1){
+   // if(algorithms.indexOf("FastDTW")>-1){
       TimeWarpInfo twi=EncounterLite.fastDTW(existingEncounter, newEncounter, 30);
       
       java.lang.Double distance = new java.lang.Double(-1);
@@ -287,12 +287,15 @@ public class ScanWorkItem implements java.io.Serializable {
       
       System.out.println("     FastDTW result is: "+distance);
       
+      
+      
       //set proportion Value
       result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       
       
-    }
+    //}
     
+    /*
     if(algorithms.indexOf("Whitehead")>-1){
       Double geroMatch=new Double(-1);
       result.setGeroMatchDistance(geroMatch);
@@ -300,8 +303,8 @@ public class ScanWorkItem implements java.io.Serializable {
       
       if(geroMatch!=null)result.setGeroMatchDistance(geroMatch);
     }
-    
-    if(algorithms.indexOf("HolmbergIntersection")>-1){
+    */
+    //if(algorithms.indexOf("HolmbergIntersection")>-1){
       Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
       //int finalInter=-1;
       //if(numIntersections!=null){finalInter=numIntersections;}
@@ -309,7 +312,7 @@ public class ScanWorkItem implements java.io.Serializable {
       
       result.setIntersectionCount(numIntersections);
       result.setAnglesOfIntersections("");
-    }
+   // }
     
     done = true;
     return result;

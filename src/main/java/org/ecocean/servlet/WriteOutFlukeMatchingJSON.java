@@ -182,6 +182,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
   public boolean writeResult(MatchObject[] swirs, String num,  String newEncDate, String newEncIndividualID, Shepherd myShepherd, String context, HttpServletRequest request) {
 
+    System.out.println("     ...Starting writeResult method.");
+
     
   //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -192,6 +194,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
     File encounterDir=new File(encountersDir,num);
     if(!encounterDir.exists())encounterDir.mkdirs();
     File file = new File(Encounter.dir(shepherdDataDir, num) + "/flukeMatching.json");
+    System.out.println("     ...target JSON file for output is: "+file.getAbsolutePath());
 
     
     
@@ -210,28 +213,36 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
       String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
       
-      Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
+      System.out.println("     I expect to find a classifier file here: "+pathToClassifierFile);
+      System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
       
-      //System.out.println("Prepping to write XML file for encounter "+num);
+      //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
+      Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+      AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+      
+      
+      
+      System.out.println("     ...Prepping to write matching JSON file for encounter "+num+" after loading "+instances.numInstances()+" training instances");
 
       //now setup the XML write for the encounter
       int resultsSize = swirs.length;
       MatchObject[] matches = swirs;
 
-      Arrays.sort(swirs, new FlukeMatchComparator(request,pathToClassifierFile,instances));
-      
+      Arrays.sort(swirs, new FlukeMatchComparator(request,booster,instances));
+      System.out.println("     ...Results sorted.");
+
       
       StringBuffer resultsJSON = new StringBuffer();
       
       
       //need stats
       //TBD cache these later so writes are faster
-      SummaryStatistics intersectionStats=GridManager.getIntersectionStats(request);
-      SummaryStatistics dtwStats=GridManager.getDTWStats(request);
-      SummaryStatistics proportionStats=GridManager.getProportionStats(request);
-      SummaryStatistics i3sStats=GridManager.getI3SStats(request);
+      //SummaryStatistics intersectionStats=GridManager.getIntersectionStats(request);
+      //SummaryStatistics dtwStats=GridManager.getDTWStats(request);
+      //SummaryStatistics proportionStats=GridManager.getProportionStats(request);
+      //SummaryStatistics i3sStats=GridManager.getI3SStats(request);
       
-      
+      /*
       double intersectionStdDev=0.05;
       if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new Double(request.getParameter("intersectionStdDev"))).doubleValue();}
       double dtwStdDev=0.41;
@@ -248,7 +259,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       if(request.getParameter("i3sHandicap")!=null){i3sHandicap=(new Double(request.getParameter("i3sHandicap"))).doubleValue();}
       double proportionHandicap=0;
       if(request.getParameter("proportionHandicap")!=null){proportionHandicap=(new Double(request.getParameter("proportionHandicap"))).doubleValue();}
-
+*/
       
       
       
@@ -283,7 +294,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(enc.getCatalogNumber()));
         
         //overall score - std dev method
-        double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, mo.getIntersectionCount(), mo.getLeftFastDTWResult().doubleValue(), mo.getI3SMatchValue(), new Double(mo.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+        //double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, mo.getIntersectionCount(), mo.getLeftFastDTWResult().doubleValue(), mo.getI3SMatchValue(), new Double(mo.getProportionValue()),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
         
         //adaboost classifier
       //prep weka for AdaBoost
@@ -292,23 +303,20 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         Instance iExample = new Instance(5);
-        Instances myInstances=GridManager.getAdaboostInstances(request,genusSpecies);
         
-        iExample.setDataset(myInstances);
+        iExample.setDataset(instances);
         iExample.setValue(0, mo.getIntersectionCount());
         iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
         iExample.setValue(2,  mo.getI3SMatchValue());
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         
         
-        AdaBoostM1 booster=GridManager.getAdaBoostM1(request,pathToClassifierFile,myInstances);
-        
         double[] fDistribution = booster.distributionForInstance(iExample);
         
         //individual scores
         result.add(new JsonPrimitive(i+1));
         result.add(new JsonPrimitive(fDistribution[0]));
-        result.add(new JsonPrimitive(thisScore));
+        result.add(new JsonPrimitive(0));
         result.add(new JsonPrimitive(mo.getIntersectionCount()));
         result.add(new JsonPrimitive(mo.getLeftFastDTWResult()));
         result.add(new JsonPrimitive(mo.getI3SMatchValue()));
@@ -322,6 +330,10 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       }
       
       jsonOut.append("\n]");
+      
+      System.out.println("     ...JSON created and preparing to write output file:" +file.getAbsolutePath());
+
+      
       mywriter = new FileWriter(file);
       //org.dom4j.io.OutputFormat format = org.dom4j.io.OutputFormat.createPrettyPrint();
       //format.setLineSeparator(System.getProperty("line.separator"));
@@ -330,7 +342,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       //System.out.println("Trying to write out JSON: "+gson.toString());
       mywriter.write(jsonOut.toString());
      
-      System.out.println("Successful WriteOutFlukeMatchingJSON write.");
+      System.out.println("     Successful WriteOutFlukeMatchingJSON write.");
       return true;
     } 
     catch (Exception e) {
