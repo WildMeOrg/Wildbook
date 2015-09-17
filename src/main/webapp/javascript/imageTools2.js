@@ -337,6 +337,85 @@ function ImageTools(opts) {
         return p;
     };
 
+/////////// munging with the pixels /////
+
+    //takes visible view and copies from original source
+    this.clipImage = function(canvas) {
+        if (!this.imageElement) return;
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+        }
+        canvas.width = this.imageElement.width;
+        canvas.height = this.imageElement.height;
+        var ctx = canvas.getContext('2d');
+
+/*
+        var maxDim = 1000;
+        var wscale = 1;
+        var ww = this.imageElement.naturalWidth;
+        var wh = this.imageElement.naturalHeight;
+        if (ww > maxDim) {
+            wscale = maxDim / ww;
+        }
+        if (wh * wscale > maxDim) {
+            wscale = maxDim / wh;
+        }
+        ww *= wscale;
+        wh *= wscale;
+console.info('%f -> %dx%d', wscale, ww, wh);
+
+        var wCanvas = document.createElement('canvas');
+        wCanvas.width = ww;
+        wCanvas.height = wh;
+        var wctx = wCanvas.getContext('2d');
+*/
+
+        var tx = this.getTranslateX();
+        var ty = this.getTranslateY();
+        var scale = this.getScale();
+
+        var sw = this.imageElement.naturalWidth / scale;
+        var sh = this.imageElement.naturalHeight / scale;
+        var clipR = this.dist(0,0, sw/2, sh/2);
+        var sx = (this.imageElement.naturalWidth - clipR * 2) / 2;
+        var sy = (this.imageElement.naturalHeight - clipR * 2) / 2;
+
+        var squareSide = clipR * 2;
+        if (squareSide > 1200) {
+            squareSide = 1200;
+        }
+
+        var wCanvas = document.createElement('canvas');
+        wCanvas.width = squareSide;
+        wCanvas.height = squareSide;
+        var wctx = wCanvas.getContext('2d');
+
+        var img = new Image();
+        img.src = this.imageElement.src;  //TODO we probably have to wait for load event,... sigh!
+
+        wctx.translate(wCanvas.width / 2, wCanvas.height / 2);
+        wctx.rotate(this.getRotation());
+        wctx.translate(-wCanvas.width / 2, -wCanvas.height / 2);
+        //wctx.translate(-sx, -sy);
+console.info('(%f,%f clipR*2=%f squareSide=%f [%fx%f])', sx, sy, clipR * 2, squareSide, sw, sh);
+        wctx.drawImage(img, sx, sy, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
+
+var A = Math.atan2(sh, sw);
+var aw = squareSide * Math.cos(A);
+var ah = squareSide * Math.sin(A);
+var dx = (squareSide - aw) / 2;
+var dy = (squareSide - ah) / 2;
+console.warn("A = %f, side=%f, ah=%f aw=%f (%f,%f)", A, squareSide, ah, aw, dx, dy);
+//return wCanvas;
+        //workCanvas should now have an image we grab from to get final product
+        ctx.drawImage(wCanvas, dx, dy, aw, ah, 0, 0, canvas.width, canvas.height);
+        //var scale = squareSide / (clipR * 2);
+//console.info('scale=%f drawImage(%d,%d  %dx%d)', scale, (squareSide - sw * scale) / 2, (squareSide - sh * scale), sw * scale, sh * scale);
+        //ctx.drawImage(wCanvas, (squareSide - sw) / 2, (squareSide - sh), sw * scale, sh * scale, 0, 0, canvas.width, canvas.height);
+//return wCanvas;
+        return canvas;
+    };
+
 /////////////////
 
 
