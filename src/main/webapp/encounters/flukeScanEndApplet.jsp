@@ -57,7 +57,7 @@ td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
 */
 
 td.ptcol-encounterID, td.ptcol-individualID {
-	position: relative;
+	position: relative !important;
 }
 tr.clickable:hover .link-button {
 	display: inline-block;
@@ -91,14 +91,18 @@ tr.clickable:hover .link-button {
 	position: relative;
 }
 
+#image-main {
+	background-color: #02F;
+}
+#image-compare {
+	background-color: #FAFA00;
+}
 .result-image-wrapper {
 	padding: 4px;
-	background-color: #DDD;
 	border-radius: 4px;
 	width: 47%;
 	margin: 4px;
 	float: left;
-	height: 90%;
 	top: 0;
 }
 

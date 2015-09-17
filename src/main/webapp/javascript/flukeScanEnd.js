@@ -14,11 +14,13 @@ var columnInfo = {
         //value: _getValue,
         value: _encValue,
     },
+/*
     overall_score: {
         label: 'std dev score',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
+*/
     adaboost_match: {
         label: 'adaboost match',
         value: _cleanFloatValue,
@@ -126,7 +128,7 @@ function init() {
 
     displayImage(encounterNumber, $('#image-main'));
     displayImage(flukeMatchingData[results[0]][columnInfo.encounterID.i], $('#image-compare'));
-    setImageMeta(flukeMatchingData[results[0]][columnInfo.overall_score.i], flukeMatchingData[results[0]][columnInfo.adaboost_match.i]);
+    setImageMeta(flukeMatchingData[results[0]][columnInfo.adaboost_match.i]);
 
     if (chartInitialized && !chartShownFirstTime) {
         chartShownFirstTime = true;
@@ -315,14 +317,14 @@ console.log(ev); return;
 
 }
 
-function setImageMeta(score, adaboostMatch) {
-    $('#image-meta #score').html('Score: <b>' + score + '</b>, AdaBoost match: <b>' + _cleanFloat(adaboostMatch) + '</b>');
+function setImageMeta(adaboostMatch) {
+    $('#image-meta #score').html('AdaBoost match: <b>' + _cleanFloat(adaboostMatch) + '</b>');
 }
 
 function rowClick(el) {
 	console.log(el);
 	displayImage(el.getAttribute('data-id'), $('#image-compare'));
-        setImageMeta($(el).find('.ptcol-overall_score').text(), $(el).find('.ptcol-adaboost_match').text());
+        setImageMeta($(el).find('.ptcol-adaboost_match').text());
 	displayChart(encounterNumber, el.getAttribute('data-id'));
         return false;
 /*
