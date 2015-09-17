@@ -465,7 +465,51 @@ single scan are allowed to exceed the total.</span>
   myShepherd.closeDBTransaction();
 
 %>
+
+
+<h2>AdaBoost Training</h2>
+<p><em>(use online in offline Wildbooks)</em></p>
+
+<form id="adaboostForm" 
+	  action="../TrainAdaboostM1" 
+	  method="post" inAdaboostM1
+	  
+      target="_self" dir="ltr" 
+      lang="en"
+      
+      
+>
+
+  <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	<option value="" selected="selected">unknown</option>
+  <%
+                     boolean hasMoreTax=true;
+                     int taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
+ %>
+  </select>
+<button class="large" type="submit">
+          Train Classifier by Species 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+</form>
+
 </div>
+
 
 
 <jsp:include page="../footer.jsp" flush="true" />
