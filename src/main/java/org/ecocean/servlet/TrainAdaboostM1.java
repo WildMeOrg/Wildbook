@@ -38,6 +38,8 @@ import com.google.gson.JsonPrimitive;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.core.Instance;
 import weka.core.Instances;
+import java.util.Enumeration;
+
 
 public class TrainAdaboostM1 extends HttpServlet {
   
@@ -59,7 +61,7 @@ public class TrainAdaboostM1 extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean createThisUser = false;
     
-    String genusSpecies=request.getParameter("genusSpecies");
+    String genusSpecies=request.getParameter("genusSpecies").replaceAll(" ", "");
     
     String fullPathToInstancesFile=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
     
@@ -69,9 +71,23 @@ public class TrainAdaboostM1 extends HttpServlet {
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
    TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
    
+   Enumeration<Instance> myEnum=instances.enumerateInstances();
+   
+   int numMatches=0;
+   int numNonmatches=0;
+   while(myEnum.hasMoreElements()){
+     Instance thisInstance=myEnum.nextElement();
+     if(thisInstance.stringValue(4).equals("match")){numMatches++;}
+     else{numNonmatches++;}
+   }
+   
    out.println(ServletUtilities.getHeader(request));
-   out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the username and password information I needed.");
-   out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+   out.println("<strong>Success:</strong> I created an AdaBoost classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
+   out.println("<ul>");
+     out.println("<li>matches: "+numMatches+"</li>");
+     out.println("<li>nonmatches: "+numNonmatches+"</li>");
+   out.println("</ul>");
+   out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
    out.println(ServletUtilities.getFooter(context));
 
   }
