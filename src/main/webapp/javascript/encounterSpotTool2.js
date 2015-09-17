@@ -156,6 +156,7 @@ console.log('near path pt %o', ppt);
 
                 clearLabelCanvas();
 
+/*
                 if (!itool._mode && !itool._addingSpot && itool._mouseDown) {
                     itool._labelCanvasNeedsClearing = true;
                     //clearLabelCanvas();
@@ -168,6 +169,7 @@ console.log('near path pt %o', ppt);
                     itool.lctx.rect(x, y, Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
                     itool.lctx.stroke();
                 }
+*/
 
                 if (!itool._other) return;
 
