@@ -128,6 +128,17 @@ function ImageTools(opts) {
         return cp;
     };
 
+    this.fromCanvasPoint = function(cp) {
+        var w = this.canvasElement.width / 2;
+        var h = this.canvasElement.height / 2;
+        var p = this.matrixMultiply(this.transformInverse(), [cp[0] - w, cp[1] - h, 1]);
+        p = [p[0] + w, p[1] + h];
+        for (var i = 2 ; i < cp.length ; i++) {  //carry over any additional elements beyond x,y (e.g. spot type)
+            p[i] = cp[i];
+        }
+        return p;
+    };
+
     this.isNearSpot = function(x, y) {
         var d = 10;
         for (var i = 0 ; i < this.spots.length ; i++) {
@@ -385,6 +396,15 @@ console.info('%f -> %dx%d', wscale, ww, wh);
             squareSide = 1200;
         }
 
+var R = this.imageElement.naturalWidth / this.imageElement.width / scale;
+//attributes of the rectangle we will clip from square
+var A = Math.atan2(sh, sw);
+var aw = squareSide * Math.cos(A);
+var ah = squareSide * Math.sin(A);
+var dx = (squareSide - aw) / 2;
+var dy = (squareSide - ah) / 2;
+console.warn("A = %f, side=%f, aw=%f ah=%f (%f,%f) R=%f", A, squareSide, aw, ah, dx, dy, R);
+
         var wCanvas = document.createElement('canvas');
         wCanvas.width = squareSide;
         wCanvas.height = squareSide;
@@ -397,15 +417,9 @@ console.info('%f -> %dx%d', wscale, ww, wh);
         wctx.rotate(this.getRotation());
         wctx.translate(-wCanvas.width / 2, -wCanvas.height / 2);
         //wctx.translate(-sx, -sy);
-console.info('(%f,%f clipR*2=%f squareSide=%f [%fx%f])', sx, sy, clipR * 2, squareSide, sw, sh);
-        wctx.drawImage(img, sx, sy, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
+console.info('(%f,%f clipR*2=%f squareSide=%f [%fx%f] t=[%f,%f])', sx, sy, clipR * 2, squareSide, sw, sh, tx, ty);
+        wctx.drawImage(img, sx - tx * R, sy - ty * R, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
 
-var A = Math.atan2(sh, sw);
-var aw = squareSide * Math.cos(A);
-var ah = squareSide * Math.sin(A);
-var dx = (squareSide - aw) / 2;
-var dy = (squareSide - ah) / 2;
-console.warn("A = %f, side=%f, ah=%f aw=%f (%f,%f)", A, squareSide, ah, aw, dx, dy);
 //return wCanvas;
         //workCanvas should now have an image we grab from to get final product
         ctx.drawImage(wCanvas, dx, dy, aw, ah, 0, 0, canvas.width, canvas.height);
