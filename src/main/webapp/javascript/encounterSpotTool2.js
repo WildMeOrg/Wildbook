@@ -135,19 +135,19 @@ drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
                 //if (r < 0) r += 360;
 /////console.log('%.1f (%.3f)', r * (180/Math.PI), r);
                     itool.rotate(itool._originalRotation + r);
-                    refreshEdgeCanvas();
+                    hideEdgeCanvas();
                     updateSaveStatus();
                 }
                 if (itool._mode & 2) {
                     var c = itool.getCenter();
                     var d = itool.dist(c[0], c[1], ev.offsetX, ev.offsetY);
                     itool.scale(d / itool._startDist);// * itool._originalScale);
-                    refreshEdgeCanvas();
+                    hideEdgeCanvas();
                     updateSaveStatus();
                 }
                 if (itool._mode & 1) {
                     itool.translate(ev.offsetX - itool._mouseDown[0], ev.offsetY - itool._mouseDown[1]);
-                    refreshEdgeCanvas();
+                    hideEdgeCanvas();
                     updateSaveStatus();
                 }
                 if (!itool._moved) clearCanvas();  //only on first move
@@ -197,6 +197,7 @@ if (itool._insideSpot > -1) {
                     addSpot(ev.offsetX, ev.offsetY);
                 }
                 refreshCanvas();
+                refreshEdgeCanvas();
                 itool._addingSpot = false;
                 itool._insideSpot = -1;
                 itool._mouseDown = false;
@@ -275,9 +276,16 @@ function modeMenuSet(i) {
 }
 
 
+function hideEdgeCanvas() {
+    if (!edgeCanvas) return;
+    $(edgeCanvas).hide();
+}
+
 function refreshEdgeCanvas() {
     if (!edgeCanvas) return;
-    edgeCanvas.style.transform = itool.imageElement.style.transform;
+    $(edgeCanvas).show();
+    doEdge();
+    //edgeCanvas.style.transform = itool.imageElement.style.transform;
 }
 
 var alreadySaved = false;
@@ -545,10 +553,12 @@ function doEdge() {
         edgeCanvas.style.position = 'absolute';
         edgeCanvas.style.width = '100%';
         edgeCanvas.style.height = '100%';
-        edgeCanvas.style.transformOrigin = '50% 50%';
         edgeCanvas.style.opacity = 0.85;
         edgeCanvas.style.pointerEvents = 'none';
+/*
+        edgeCanvas.style.transformOrigin = '50% 50%';
         edgeCanvas.style.transform = itool.imageElement.style.transform;
+*/
         //document.getElementsByTagName('body')[0].appendChild(edgeCanvas);
         itool.containerElement.insertBefore(edgeCanvas, itool.canvasElement);
 
@@ -595,7 +605,8 @@ console.log('spots: %o', spots);
     var maxGap = 8;
     clearCanvas();
     drawSpots();
-    var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+    //var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+    var imageData = edgeCanvas.getContext('2d').getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     itool.paths = [];
 
     bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
@@ -613,7 +624,8 @@ console.log('right path -> %o', itool.paths[1]);
     bestPathParam.gapSize = 1;
     while ((bestPathParam.gapSize < maxGap) && !itool.paths[0]) {
 console.info('trying gapSize = %d', bestPathParam.gapSize);
-        itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
+        //itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
+        itool.paths[0] = bestPath(imageData, itool.toCanvasPoint(spots[0]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
 console.log('left path -> %o', itool.paths[0]);
@@ -624,7 +636,8 @@ console.info('boundSize = %d', bestPathParam.boundSize);
     bestPathParam.gapSize = 1;
     while ((bestPathParam.gapSize < maxGap) && !itool.paths[1]) {
 console.info('trying gapSize = %d', bestPathParam.gapSize);
-        itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
+        //itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
+        itool.paths[1] = bestPath(imageData, itool.toCanvasPoint(spots[2]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
 console.log('right path -> %o', itool.paths[1]);
@@ -706,7 +719,8 @@ function tryPartialPaths(imageData) {
         itool.paths[pn] = [];
         for (var i = 0 ; i < (s.length - 1) ; i++) {
             var imgd = new ImageData(imageData.data, imageData.width, imageData.height); //new untouched copy of original
-            var p = bestPath(imgd, s[i], s[i+1]);
+            //var p = bestPath(imgd, s[i], s[i+1]);
+            var p = bestPath(imgd, itool.toCanvasPoint(s[i]), itool.toCanvasPoint(s[i+1]));
 console.warn('attempt partial path trace on side %d pt %d (%d,%d) to pt %d (%d,%d) -> %o', pn, i, s[i][0], s[i][1], i+1, s[i+1][0], s[i+1][1], p);
             if (p) {
                 itool.paths[pn] = itool.paths[pn].concat(p);
@@ -776,6 +790,7 @@ var bestPathParam = {
     nearEnd: 11,
     sinceGapReset: 2,
     gapSize: 2,
+    //debug: true,
 };
 
 function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
@@ -786,8 +801,90 @@ function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
     var d2 = itool.distToLineSegment2(p1, origP1, p2);
 //console.warn('(%f, %f) dist squared from line = %f', p1[0], p1[1], d2);
     if (d2 > bestPathParam.boundSize) return false;
-    var offset = (p1[1] * imageData.width + p1[0]) * 4;
-//console.log('(%d,%d) %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+
+    var offset = (Math.floor(p1[1]) * imageData.width + Math.floor(p1[0])) * 4;
+
+//console.log('(%f,%f) %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+    if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) return false;  //already visited
+    //imageData.data[offset+1] = 128;  //mark visited
+    //imageData.data[offset+2] = 128;
+
+if (itool.dist(p1, p2) < bestPathParam.nearEnd) {
+console.warn('found a near-end! %d,%d', p1[0], p1[1]);
+return [itool.fromCanvasPoint(p1)];
+}
+
+    var thisPt = false;
+    if (imageData.data[offset]) {
+        sinceLastGap++;
+//console.log('(%d,%d) -> %d [%d:%d]', p1[0], p1[1], imageData.data[offset], skipped, sinceLastGap);
+        if (sinceLastGap > bestPathParam.sinceGapReset) skipped = 0;  //reset
+        thisPt = p1;
+        imageData.data[offset+1] = 128;  //mark visited
+        imageData.data[offset+2] = 128;
+    } else if (skipped > bestPathParam.gapSize) {  //too big a gap
+        return false;
+    } else {
+        sinceLastGap = 0;
+        skipped++; //we are skipping a point, but will keep trying
+        //thisPt = p1;
+        imageData.data[offset+1] = 128;  //mark visited
+        imageData.data[offset+2] = 128;
+    }
+    var bestScore = false;
+    var bPath = false;
+    for (var y = -1 ; y < 2 ; y++) {
+        for (var x = -1 ; x < 2 ; x++) {
+//console.warn('%d,%d', x, y);
+            if ((x == 0) && (y == 0)) continue;
+            var s = skipped;
+            var path = bestPath(imageData, [p1[0] + x, p1[1] + y], p2, origP1, s, sinceLastGap);
+            if (!path || !path.length) continue;
+if (path.length > 600) continue;
+            //if (!bestScore || (path.length > best.length)) best = path;
+            var d = itool.dist2(path[path.length-1][0], path[path.length-1][1], p2[0], p2[1]);
+            if (!bestScore || (d < bestScore)) {
+                bestScore = d;
+                bPath = path;
+            }
+/*
+console.log('(%d,%d) -> (%d,%d) = %.4f', x, y,
+path[path.length-1][0], path[path.length-1][1], d);
+*/
+
+        }
+/*
+if (pts.length > 800) {
+console.info('bailing');
+    console.log(pts);
+    return pts;
+}
+*/
+    }
+
+    if (bPath) {
+        if (thisPt) bPath.unshift(itool.fromCanvasPoint(thisPt));
+        return bPath;
+    } else {
+        return false;
+    }
+    //return pts;
+}
+
+
+function bestPathX(imageData, p1, p2, origP1, skipped, sinceLastGap) {
+    if (!origP1) origP1 = p1; //we need this as original start so we can find bounds box
+    if (!skipped) skipped = 0;
+    if (!sinceLastGap) sinceLastGap = 0;
+    if ((p1[0] < 0) || (p1[0] >= imageData.width) || (p1[1] < 0) || (p1[1] >= imageData.height)) return false;  //out of bounds of image
+    var d2 = itool.distToLineSegment2(p1, origP1, p2);
+//console.warn('(%f, %f) dist squared from line = %f', p1[0], p1[1], d2);
+    if (d2 > bestPathParam.boundSize) return false;
+
+    var cp = itool.toCanvasPoint(p1);
+    var offset = (Math.floor(cp[1]) * imageData.width + Math.floor(cp[0])) * 4;
+
+console.log('(%d,%d) -> (%d,%d) %d [%d]', p1[0], p1[1], cp[0], cp[1], imageData.data[offset], skipped);
     if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) return false;  //already visited
     //imageData.data[offset+1] = 128;  //mark visited
     //imageData.data[offset+2] = 128;
@@ -1054,10 +1151,13 @@ return ctx2;
 }
 */
 
-function edgeDetect(ctx) {
+function edgeDetect() {
+    edgeCanvas = itool.clipImage(edgeCanvas);
+console.info('%d x %d', edgeCanvas.width, edgeCanvas.height);
+    var ctx = edgeCanvas.getContext('2d');
     var w = ctx.canvas.width;
     var h = ctx.canvas.height;
-    ctx.drawImage(itool.imageElement, 0, 0, w, h);
+    //////ctx.drawImage(itool.imageElement, 0, 0, w, h);
     var img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8C1_t);
     var imageData = ctx.getImageData(0, 0, w, h);
 
