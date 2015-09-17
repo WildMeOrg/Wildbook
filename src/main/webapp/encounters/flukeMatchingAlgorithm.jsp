@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File,org.ecocean.neural.TrainNetwork" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -87,7 +87,7 @@ try {
 	<!-- Display spot patterning so long as show_spotpatterning is not false in commonCOnfiguration.properties-->
 
 	
-  <p class="para"><strong><em>Extracted Trailing Edges</em></strong></p>
+  <h3>Extracted Trailing Edges</h3>
   		<%
 		
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
@@ -185,16 +185,7 @@ try {
 		</table>
 		
 			
-			<p class="para"><strong><em>Pattern Matching Results</em></strong></p>
 			<%
-  			File scanResults = new File(encounterDir.getAbsolutePath() + "/flukeMatching.json");
-  			
-	  		if(scanResults.exists()) {
-	  		%> 
-	  			
-	  			<a class="para" href="flukeScanEndApplet.jsp">Scan Results</a><br />
-	  		<%
-	  		}
 	  		
 		} //if use spot pattern reognition
 		else{
@@ -319,48 +310,7 @@ try {
 								String filelocR="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getRightSpotImageFileName());
 					%>
 
-<p class="para"><strong><em>Spot data image files used for matching</em></strong><br/> 
-<font size="-1">[<a id="changespotimage" class="launchPopup">reset left or right spot data image</a>]</font><br/>
-  
 
- 
-<div id="dialogChangeSpotImage" title="Set Spot Image File" style="display:none">  
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-    <tr>
-      <td class="para">
-        <form action="../EncounterAddSpotFile" method="post"
-              enctype="multipart/form-data" name="addSpotsFile"><input
-          name="action" type="hidden" value="fileadder" id="action">
-          <input name="number" type="hidden" value="<%=encNum%>" id="shark">
-          <font color="#990000"><strong><img align="absmiddle" src="../images/upload_small.gif"/></strong> 
-           </font><br/> <label><input name="rightSide" type="radio" value="false" />left</label><br/> <label>
-           
-           <input name="rightSide" type="radio" value="true" /> right</label><br/>
-          <br/> 
-          <input name="file2add" type="file" size="15" /><br/>
-          <input name="addtlFile" type="submit" id="addtlFile" value="Upload spot image" />
-          </form>
-      </td>
-    </tr>
-  </table>
-	
-</div>
-
-<script>
-var dlgChangeSpotImage = $("#dialogChangeSpotImage").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#changespotimage").click(function() {
-  dlgChangeSpotImage.dialog("open");
-});
-
-var spotJson = {};
-</script>   
-<!-- end reset spot image popup --> 
 
   <table border="0" cellpadding="5"><tr>
   <%
@@ -478,44 +428,76 @@ $(document).ready(function() {
 <% } %>
 
 </tr></table>
-<!-- END Pattern recognition image pieces -->		
+<!-- END Pattern recognition image pieces -->	
+<h3>Pattern Matching Results</h3>
+			<%
+  			File scanResults = new File(encounterDir.getAbsolutePath() + "/flukeMatching.json");
+  			
+	  		if(scanResults.exists()) {
+	  		%> 
+	  			
+	  			<a class="para" href="flukeScanEndApplet.jsp?number=<%=enc.getCatalogNumber() %>">Scan Results</a><br />
+	  		<%
+	  		}
+	  		%>
+<h3>Scan for Matches</h3>	
 <%
 
     }
 
-				if(isOwner && ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))){ 
-				%>
-				<br />
-  					  <p class="para"><strong><em>Scan for Matches</em></strong></p>
-  					<img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database.
-  					
-    				<div id="formDiv">
-      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../ScanTaskHandler">
-      						<input name="action" type="hidden" id="action" value="addTask" /> 
-      						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
-        						<table width="200px">
-          							
-          						<%
-          						if(request.isUserInRole("admin")){
-          						%>
-          							<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
-        						<%
-          						}
-        						%>
-        					</table>
-
-        					<input name="writeThis" type="hidden" id="writeThis" value="true" />
-        					<input type="hidden" name="rightSide" value="true" checked="checked" />
-            						
-        					<br/> 
-        					<input name="scan" type="submit" id="scan" value="Start Scan" onclick="submitForm(document.getElementById('formSharkGrid'))" />
-        					<input name="cutoff" type="hidden" value="0.02" />
-        				</form>
-
-					</div>
-					<%
+				if(isOwner && ((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))){
+					
+					if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+						
+							//we also need to check for a classifier file
+							File classifierFile=new File(TrainNetwork.getAbsolutePathToClassifier((enc.getGenus()+enc.getSpecificEpithet()),request));
+							if(classifierFile.exists()){
+								%>
+								<br />
+				  					 <img align="absmiddle" src="../images/Crystal_Clear_app_xmag.png" width="30px" height="30px" /> Scan entire database.
+				  					
+				    				<div id="formDiv">
+				      					<form name="formSharkGrid" id="formSharkGrid" method="post" action="../ScanTaskHandler">
+				      						<input name="action" type="hidden" id="action" value="addTask" /> 
+				      						<input name="encounterNumber" type="hidden" value="<%=encNum%>" />
+				        						<table width="200px">
+				          							
+				          						<%
+				          						if(request.isUserInRole("admin")){
+				          						%>
+				          							<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
+				        						<%
+				          						}
+				        						%>
+				        					</table>
+				
+				        					<input name="writeThis" type="hidden" id="writeThis" value="true" />
+				        					<input type="hidden" name="rightSide" value="true" checked="checked" />
+				            						
+				        					<br/> 
+				        					<input name="scan" type="submit" id="scan" value="Start Scan" onclick="submitForm(document.getElementById('formSharkGrid'))" />
+				        					<input name="cutoff" type="hidden" value="0.02" />
+				        				</form>
+				
+									</div>
+									<%
+							}
+							else{
+							%>	
+							
+								<p>No classifier file can be found for this species. Please contact your Wildbook administrator and request a matching classifier be created to support computer vision and matching for this species.</p>
+							
+							<%	
+							}
+						}//end if genus species 
+					else{
+						%>
+						<p>You must set the genus and species for this encounter before you can perform matching to ensure only matches from the correct species appear.</p>
+						<%
 					}
 					
+					}
+				
 	
 
 }	//end try
