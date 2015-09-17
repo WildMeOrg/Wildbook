@@ -263,6 +263,7 @@ console.log(pdata);
 		<option value="2">zoom</option>
 		<option value="4">rotate</option>
 		<option value="6">zoom & rotate</option>
+		<option value="16">erase edge lines</option>
 	</select>
 	</div>
 
