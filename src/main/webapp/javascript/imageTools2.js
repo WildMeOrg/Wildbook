@@ -140,7 +140,7 @@ function ImageTools(opts) {
     };
 
     this.isNearSpot = function(x, y) {
-        var d = 10;
+        var d = 4;
         for (var i = 0 ; i < this.spots.length ; i++) {
             if (this.dist(x, y, this.spots[i][0], this.spots[i][1]) <= d) return i;
         }
@@ -150,10 +150,11 @@ function ImageTools(opts) {
     //note, this returns an array: [pathNumber, indexInPath]; as such, false means no match
     this.isNearPathPoint = function(x, y) {
         if (!this.paths) return false;
+        var d = 3;
         for (var pn = 0 ; pn < this.paths.length ; pn++) {
             if (!this.paths[pn]) continue;
             for (var i = 0 ; i < this.paths[pn].length ; i++) {
-                if (this.dist(x, y, this.paths[pn][i][0], this.paths[pn][i][1]) < 4) return [pn, i];
+                if (this.dist(x, y, this.paths[pn][i][0], this.paths[pn][i][1]) < d) return [pn, i];
             }
         }
         return false;

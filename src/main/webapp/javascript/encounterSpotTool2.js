@@ -1,3 +1,5 @@
+    var eraseCount = 0;
+
     var itool;
     var defaultCursor = 'crosshair';
 
@@ -53,6 +55,17 @@
             lineWidth: 3,
             setLineDash: [4,4]
         },
+        _erase: {
+            strokeStyle: 'none',
+            fillStyle: '#000',
+            radius: 4,
+        },
+        _selector: {
+            fillStyle: 'none',
+            strokeStyle: 'rgba(50,100,0,0.9)',
+            lineWidth: 1,
+            setLineDash: [8,4],
+        },
         _hilite: {
             strokeStyle: '#FCA',
             fillStyle: 'rgba(255,200,0,0.4)'
@@ -62,7 +75,7 @@
 // mode, bits -> RST
 function setTool() {
     $('body').on('keyup', function(ev) {
-        var map = {83: 0, 68: 8, 77: 1, 90: 2, 82: 4, 88: 6};
+        var map = {83: 0, 68: 8, 77: 1, 90: 2, 82: 4, 88: 6, 69: 16};
         if (map[ev.which] == undefined) return;
         modeMenuSet(map[ev.which]);
     });
@@ -79,6 +92,23 @@ function setTool() {
 
             mousemove: function(ev) {
                 ev.preventDefault();
+
+                if (itool._mouseDown && (itool._mode & 16)) {
+//console.log('erase');
+                    eraseCount++;
+                    if (eraseCount > 7) {  //only save every few, cuz the spots cover a lot of space
+                        eraseCount = 0;
+                        itool._erase.push([ev.offsetX, ev.offsetY]);
+                        drawSpot(edgeCanvas.getContext('2d'), [ev.offsetX, ev.offsetY], '_erase');
+                    }
+                    return;
+                }
+
+                //console.warn('%o %d', itool._mouseDown, itool.dist([ev.offsetX, ev.offsetY], itool._mouseDown));
+                if (itool._mouseDown && (itool.dist([ev.offsetX, ev.offsetY], itool._mouseDown) > 10)) {
+                    itool._addingSpot = false;
+                    itool._selecting = true;
+                }
 
                 //t._insideSpot refers to if mouse went *down* on a spot
                 if (itool._insideSpot > -1) {
@@ -113,19 +143,34 @@ console.log('near spot %d', s);
                     itool.imageElement.style.cursor = defaultCursor;
                 }
 
-/*
                 var ppt = false;
-                if (s < 0) ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
+                if ((s < 0) && (itool._mode & 8)) ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
                 if (ppt) {
                     itool._labelCanvasNeedsClearing = true;
                     clearLabelCanvas();
 console.log('near path pt %o', ppt);
-drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
+                    drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
+                    itool.imageElement.style.cursor = 'not-allowed';
+                    //itool._labelCanvasNeedsClearing = true;
                 }
-*/
 
                 clearLabelCanvas();
-                if (!itool._mouseDown) return;
+
+                if (!itool._mode && !itool._addingSpot && itool._mouseDown) {
+                    itool._labelCanvasNeedsClearing = true;
+                    //clearLabelCanvas();
+                    var a = itool.toCanvasPoint([ev.offsetX, ev.offsetY]);
+                    var b = itool.toCanvasPoint(itool._mouseDown);
+                    var x = (a[0] < b[0]) ? a[0] : b[0];
+                    var y = (a[1] < b[1]) ? a[1] : b[1];
+                    itool.lctx.beginPath();
+                    contextSetStyles(itool.lctx, spotStyle._selector);
+                    itool.lctx.rect(x, y, Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]));
+                    itool.lctx.stroke();
+                }
+
+                if (!itool._other) return;
+
                 itool.imageElement.style.cursor = 'move';
 //console.log('(%d,%d)', ev.offsetX, ev.offsetY);
 //console.log(ev);
@@ -160,28 +205,52 @@ drawSpot(itool.lctx, itool.paths[ppt[0]][ppt[1]], 'path' + ppt[0], 7);
 */
             mousedown: function(ev) {
                 itool._addingSpot = false;
+                itool._other = false;
                 itool._insideSpot = itool.isNearSpot(ev.offsetX, ev.offsetY);
+                itool._selecting = false;
 
-                                if ((itool._insideSpot > -1) && (itool._mode & 8)) {
-                                    removeSpot(itool._insideSpot);
-                                    itool._insideSpot = -1;
-                                    return;
-                                }
-if (itool._insideSpot > -1) {
-    console.log('spot=%d', itool._insideSpot);
-    return false;
-}
+                if ((itool._insideSpot > -1) && (itool._mode & 8)) {
+                    removeSpot(itool._insideSpot);
+                    itool._insideSpot = -1;
+                    return;
+                }
+
+                if (itool._insideSpot > -1) {
+                    console.log('spot=%d', itool._insideSpot);
+                    return false;
+                }
+
+/*
+                var ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
+//console.info('ppt? %o', ppt);
+                if (ppt) {
+                    itool._insideSpot = addSpot(ppt[0], ppt[1]);
+console.log('inside path point %d', itool._insideSpot);
+return false;
+                }
+*/
+
                 itool._addingSpot = true;
-                if (!itool._mode) return;
                 itool._mouseDown = [ev.offsetX, ev.offsetY];
+                if (!itool._mode) return;
+
+                itool._other = true;
+
                 itool._startAngle = itool.angleFromCenter(ev.offsetX, ev.offsetY);
                 itool._originalRotation = itool.getRotation();
                 var c = itool.getCenter();
                 itool._startDist = itool.dist(c[0], c[1], ev.offsetX, ev.offsetY);
                 itool._originalScale = itool.getScale();
             },
+
             mouseup: function(ev) {
                 itool.imageElement.style.cursor = defaultCursor;
+
+                if (itool._mouseDown && (itool._mode & 16)) {
+                    itool._addingSpot = false;
+console.log('done erase? %o', itool._erase);
+                    //note: doEdge() will be performed by refreshEdgeCanvas() below
+                }
 
                 if (itool._insideSpot > -1) {
                     var s = -2;
@@ -202,6 +271,8 @@ if (itool._insideSpot > -1) {
                 itool._insideSpot = -1;
                 itool._mouseDown = false;
                 itool._moved = false;
+                itool._other = false;
+                itool._selecting = false;
             },
 /*
             mouseout: function(ev) {
@@ -217,6 +288,7 @@ if (itool._insideSpot > -1) {
 
     itool = new ImageTools(opts);
     itool.spots = [];
+    itool._erase = [];
     $(itool.containerElement).append('<div id="image-label" />');
     setMode(0);
 
@@ -256,7 +328,7 @@ console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
 function setMode(m) {
     if (m & 2) {
         defaultCursor =  '-webkit-zoom-in';
-    } else if ((m == 0) || (m == 8)) {
+    } else if ((m == 0) || (m == 8) || (m == 16)) {
         defaultCursor = 'crosshair';
     } else if (m) {
         defaultCursor = 'move';
@@ -431,6 +503,7 @@ function resetAll() {
     itool.transformReset();
     itool.doTransform();
     itool.spots = [];
+    itool._erase = [];
     delete(itool.paths);
     spotsUpdate();
     updateSaveStatus();
@@ -648,7 +721,7 @@ console.log('right path -> %o', itool.paths[1]);
 
     if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
 
-    if (itool.paths[0] && itool.paths[1]) {
+    if (enoughPath(itool.paths[0]) && enoughPath(itool.paths[1])) {
         userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('both edges found! :)');
         drawFinalPaths();
@@ -658,11 +731,11 @@ console.log('right path -> %o', itool.paths[1]);
         drawPath(id, itool.paths[1], [100,200,255]);
         itool.ctx.putImageData(id, 0, 0);
 */
-    } else if (itool.paths[0]) {
+    } else if (enoughPath(itool.paths[0])) {
         userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('LEFT edge found');
         drawFinalPaths();
-    } else if (itool.paths[1]) {
+    } else if (enoughPath(itool.paths[1])) {
         userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('RIGHT edge found');
         drawFinalPaths();
@@ -731,6 +804,12 @@ console.warn('attempt partial path trace on side %d pt %d (%d,%d) to pt %d (%d,%
     if (foundSome) refreshCanvas();
 }
 
+
+//this is just a way to tell if we have "enough" points to consider it done
+function enoughPath(path) {
+//TODO something better like % of total space it could be
+    return (path && (path.length > 120));
+}
 
 
 //this assumes itool.spots has been sorted
@@ -1209,7 +1288,12 @@ console.info('%d x %d', edgeCanvas.width, edgeCanvas.height);
                         data_u32[i] = alpha | (pix << 16) | (pix << 8) | pix;
                     }
                     ctx.putImageData(imageData, 0, 0);
-                    return ctx;
+
+    //now we blot out "erased" points (if any) that the user has set
+    for (var i = 0 ; i < itool._erase.length ; i++) {
+        drawSpot(ctx, itool._erase[i], '_erase');
+    }
+    return ctx;
 }
 
 
