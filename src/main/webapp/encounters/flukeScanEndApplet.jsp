@@ -1,27 +1,6 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
-<html>
+
 <%
 
 String context="context0";
@@ -56,24 +35,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String side2 = "";
 %>
 
-<head>
-
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-          <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
+ <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
 <link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-      
-</head>
+
 
 <style type="text/css">
  
@@ -189,52 +153,7 @@ tr.clickable:hover .link-button {
 	height: 400px;
 }
 
-  #tabmenu {
-    color: #000;
-    border-bottom: 1px solid #CDCDCD;
-    margin: 12px 0px 0px 0px;
-    padding: 0px;
-    z-index: 1;
-    padding-left: 10px
-  }
 
-  #tabmenu li {
-    display: inline;
-    overflow: hidden;
-    list-style-type: none;
-  }
-
-  #tabmenu a, a.active {
-    color: #000;
-    background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
-    border: 1px solid #CDCDCD;
-    padding: 2px 5px 0px 5px;
-    margin: 0;
-    text-decoration: none;
-    border-bottom: 0px solid #FFFFFF;
-  }
-
-  #tabmenu a.active {
-    background: #8DBDD8;
-    color: #000000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-
-  #tabmenu a:hover {
-    color: #000;
-    background: #8DBDD8;
-  }
-
-  #tabmenu a:visited {
-    
-  }
-
-  #tabmenu a.active:hover {
-    color: #000;
-    border-bottom: 1px solid #8DBDD8;
-  }
-  
 </style>
 
 <%
@@ -247,34 +166,20 @@ var encounterNumber = '<%=num%>';
 </script>
 
 
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="page">
 
+<jsp:include page="../header.jsp" flush="true" />
 
-<div id="main">
-
-<ul id="tabmenu">
-  <li><a
-    href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    
-  </a></li>
-
-</ul>
+<div class="container maincontent">
 
 
 
-<p>
 
-<h2>Edge Scan Results <a
-  href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
+<h1>Edge Scan Results <a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
-                       alt="Help" border="0" align="absmiddle"></a></h2>
-</p>
+                       alt="Help" border="0" align="absmiddle">
+   </a>
+</h1>
+
 <p>The following encounter(s) received the highest
   match values against encounter <a
     href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
@@ -332,12 +237,10 @@ var encounterNumber = '<%=num%>';
 	<div id="results-slider"></div>
 </div>
 
-
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
+
+
 
 <script src="../javascript/underscore-min.js"></script>
 <script src="../javascript/backbone-min.js"></script>
@@ -358,5 +261,4 @@ var encounterNumber = '<%=num%>';
     	google.setOnLoadCallback(initChart);
 </script>
 
-</body>
-</html>
+

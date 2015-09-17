@@ -105,6 +105,8 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
 
 
     myShepherd.beginDBTransaction();
+    
+    Encounter originalEnc=myShepherd.getEncounter(encounterNumber);
     Vector<String> newSWIs = new Vector<String>();
     Vector<ScanWorkItem> addThese = new Vector<ScanWorkItem>();
     System.out.println("Successfully created the scanTask shell!");
@@ -126,35 +128,43 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       while (encounters.hasNext()) {
         System.out.println("     Iterating encounters to create scanWorkItems...");
         Encounter enc = (Encounter) encounters.next();
+        
+        //TBD- ok, for now we're going to hardcode the check for species here
+        
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
-          String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
-          if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
-            //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2, algorithms);
-            String uniqueNum = swi.getUniqueNumber();
-
-            gm.addWorkItem(swi);
-            count++;
-            
-            //scan the reverse as well
-            System.out.println("     I am creating an inverse ScanWorkItem!");
-            ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), wiIdentifier, taskID, props2, algorithms);
-            gm.addWorkItem(swi2);
-
-            //System.out.println("Added a new right-side scan task!");
-            count++;
-            
-          } else if (!rightSide && (enc.getSpots() != null) && (enc.getSpots().size() > 0)) {
-            //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2,algorithms);
-
-            String uniqueNum = swi.getUniqueNumber();
-
-
-            gm.addWorkItem(swi);
-            //System.out.println("Added a new left-side scan task: " + count);
-            count++;
-          }
+          if((enc.getSpots()!=null)&&(enc.getSpots().size()>0)&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
+          
+              String encGenusSpecies="unknown";
+              String originalEncGenusSpecies="unknown2";
+              if((originalEnc.getGenus()!=null)&&(enc.getGenus()!=null)){
+                if((originalEnc.getSpecificEpithet()!=null)&&(enc.getSpecificEpithet()!=null)){
+                  encGenusSpecies=enc.getGenus()+enc.getSpecificEpithet();
+                  originalEncGenusSpecies=originalEnc.getGenus()+originalEnc.getSpecificEpithet();
+                }
+              }
+              
+              if(encGenusSpecies.equals(originalEncGenusSpecies)){
+              
+                String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
+                //if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
+                  //add the workItem
+                  ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2, algorithms);
+                  String uniqueNum = swi.getUniqueNumber();
+      
+                  gm.addWorkItem(swi);
+                  count++;
+                  
+                  //scan the reverse as well
+                  System.out.println("     I am creating an inverse ScanWorkItem!");
+                  ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), wiIdentifier, taskID, props2, algorithms);
+                  swi2.setReversed(true);
+                  gm.addWorkItem(swi2);
+      
+                  //System.out.println("Added a new right-side scan task!");
+                  count++;
+                
+              } 
+          }     
         }
 
       }

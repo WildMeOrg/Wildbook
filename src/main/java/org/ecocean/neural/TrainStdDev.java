@@ -93,8 +93,7 @@ public class TrainStdDev extends HttpServlet {
     
       try {
        
-        
-        
+        /*
         
         //File trainingFile = new File(shepherdDataDir.getAbsolutePath()+"/network_stddev.txt");
         //writer = new BufferedWriter(new FileWriter(trainingFile));
@@ -276,7 +275,7 @@ public class TrainStdDev extends HttpServlet {
         
   
         
-  
+  */
 
 
       } 

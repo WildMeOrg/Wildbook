@@ -78,8 +78,8 @@ public class GridManager {
   private static SummaryStatistics intersectionStats=null;
   
   
-  private static Instances adaboostInstances=null;
-  private static AdaBoostM1 adaboostClassifier=null;
+  //private static Instances adaboostInstances=null;
+  //private static AdaBoostM1 adaboostClassifier=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -603,6 +603,7 @@ public class GridManager {
 
   }
   
+  /*
   public static SummaryStatistics getDTWStats(HttpServletRequest request){
     if(dtwStats==null){dtwStats=TrainNetwork.getDTWStats(request);}
     return dtwStats;
@@ -622,20 +623,7 @@ public class GridManager {
     if(proportionStats==null){proportionStats=TrainNetwork.getProportionStats(request);}
     return proportionStats;
   }
-  
-  public static AdaBoostM1 getAdaBoostM1(HttpServletRequest request, String genusSpeciesFilePath,Instances instances){
-    if(adaboostClassifier==null){
-      return TrainNetwork.getAdaBoostClassifier(request,genusSpeciesFilePath,instances);
-    }
-    return adaboostClassifier;
-  }
-  
-  public static Instances getAdaboostInstances(HttpServletRequest request,String instancesFileFullPath){
-    if(adaboostInstances==null){
-      adaboostInstances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-    }
-    return adaboostInstances;
-  }
+  */
   
 
     
