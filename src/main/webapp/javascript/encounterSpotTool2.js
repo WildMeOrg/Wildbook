@@ -133,7 +133,7 @@ console.log('dragging spot %d', itool._insideSpot);
                 }
                 if ((s > -1) && (itool._mode & 8)) {
                     itool.imageElement.style.cursor = 'not-allowed';
-                } else if (s > -1) {
+                } else if ((s > -1) && !(itool._mode & 16)) {
 console.log('near spot %d', s);
                     //t.imageElement.style.cursor = 'context-menu';
                     itool.imageElement.style.cursor = 'grab';
@@ -143,6 +143,7 @@ console.log('near spot %d', s);
                     itool.imageElement.style.cursor = defaultCursor;
                 }
 
+/*
                 var ppt = false;
                 if ((s < 0) && (itool._mode & 8)) ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
                 if (ppt) {
@@ -153,6 +154,7 @@ console.log('near path pt %o', ppt);
                     itool.imageElement.style.cursor = 'not-allowed';
                     //itool._labelCanvasNeedsClearing = true;
                 }
+*/
 
                 clearLabelCanvas();
 
@@ -217,7 +219,7 @@ console.log('near path pt %o', ppt);
                     return;
                 }
 
-                if (itool._insideSpot > -1) {
+                if ((itool._insideSpot > -1) && !(itool._mode & 16)) {
                     console.log('spot=%d', itool._insideSpot);
                     return false;
                 }
@@ -1244,7 +1246,7 @@ console.info('%d x %d', edgeCanvas.width, edgeCanvas.height);
 
     jsfeat.imgproc.grayscale(imageData.data, w, h, img_u8);
 
-    var blur_radius = 2;
+    var blur_radius = 1;
     var kernel_size = (blur_radius + 1) << 1;
     jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
 
