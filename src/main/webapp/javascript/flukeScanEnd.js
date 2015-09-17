@@ -382,7 +382,6 @@ console.info('addImage(%o, %o)', enc, el);
     el.find('.note').remove();
     el.append('<img src="' + imgSrc + '"/>');
     var inf = {
-        catalogNumber: 'Number',
         individualID: 'Assigned to',
         date: 'Date',
         sex: 'Sex',

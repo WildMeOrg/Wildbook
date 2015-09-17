@@ -98,8 +98,8 @@ tr.clickable:hover .link-button {
 	background-color: #FAFA00;
 }
 .result-image-wrapper {
-	padding: 4px;
-	border-radius: 4px;
+	padding: 9px;
+	border-radius: 6px;
 	width: 47%;
 	margin: 4px;
 	float: left;
