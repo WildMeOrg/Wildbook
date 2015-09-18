@@ -12,12 +12,12 @@
         path0: {
             radius: 2,
             strokeStyle: 'none',
-            fillStyle: 'rgba(255,255,100,0.4)'
+            fillStyle: 'rgba(200,200,100,0.4)'
         },
         path1: {
             radius: 2,
             strokeStyle: 'none',
-            fillStyle: 'rgba(0,100,255,0.4)'
+            fillStyle: 'rgba(150,220,255,0.4)'
         },
         tipLeft: {
             strokeStyle: 'yellow',
@@ -65,6 +65,11 @@
             strokeStyle: 'rgba(50,100,0,0.9)',
             lineWidth: 1,
             setLineDash: [8,4],
+        },
+        _frompath: {
+            fillStyle: 'rgba(50,100,20,0.8)',
+            strokeStyle: 'none',
+            radius: 3
         },
         _hilite: {
             strokeStyle: '#FCA',
@@ -384,7 +389,7 @@ function updateScanTool() {
 function drawFinalPaths() {
     if (!itool.paths || (!itool.paths[0] && !itool.paths[1])) return;
     var imageData = itool.ctx.getImageData(0, 0, itool.ctx.canvas.width, itool.ctx.canvas.height);
-    var rgb = [ [255,255,100], [0,100,255] ];
+    //var rgb = [ [255,255,100], [0,100,255] ];
     var paths = [];
     for (var i = 0 ; i < 2 ; i++) {
         if (!itool.paths[i]) continue;
@@ -416,6 +421,7 @@ function save() {
         points: [],
         paths: [null, null]
     };
+/*   //// for now we are converting paths to points, so not sending this
     for (var i = 0 ; i < 2 ; i++) {
         if (!itool.paths || !itool.paths[i]) continue;
         data.paths[i] = [];
@@ -426,12 +432,25 @@ function save() {
             data.paths[i].push(cp);
         }
     }
+*/
+
     for (var i = 0 ; i < itool.spots.length ; i++) {
         var cp = itool.toCanvasPoint(itool.spots[i]);
         cp[0] *= scale;
         cp[1] *= scale;
         data.points.push(cp);
     }
+
+    var pathSpots = [];
+    if (itool.paths[0]) pathSpots = pathSpots.concat(spotsFromPath(itool.paths[0]));
+    if (itool.paths[1]) pathSpots = pathSpots.concat(spotsFromPath(itool.paths[1]));
+    for (var i = 0 ; i < pathSpots.length ; i++) {
+        var cp = itool.toCanvasPoint(pathSpots[i]);
+        cp[0] *= scale;
+        cp[1] *= scale;
+        data.points.push(cp);
+    }
+
 console.warn('sending data: %o', data); //return;
     $.ajax({
         url: '../SubmitSpotsAndTransformImage',
@@ -575,14 +594,14 @@ function contextSetStyles(ctx, style) {
 
 //r will override radius from styleKey
 function drawSpot(ctx, p, styleKey, r) {
-    if (!r && spotStyle[styleKey].radius) r = spotStyle[styleKey].radius;
+    if (!r && spotStyle[styleKey] && spotStyle[styleKey].radius) r = spotStyle[styleKey].radius;
     if (!r) r = 8;
     contextSetStyles(ctx, spotStyle[styleKey]);
     ctx.beginPath();
     var cp = itool.toCanvasPoint(p);
     ctx.arc(cp[0], cp[1], r, 0, 2 * Math.PI);
-    if (spotStyle[styleKey].fillStyle != 'none') ctx.fill();
-    if (spotStyle[styleKey].strokeStyle != 'none') ctx.stroke();
+    if (!spotStyle[styleKey] || (spotStyle[styleKey].fillStyle != 'none')) ctx.fill();
+    if (!spotStyle[styleKey] || (spotStyle[styleKey].strokeStyle != 'none')) ctx.stroke();
 }
 
 
@@ -706,7 +725,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         bestPathParam.gapSize += 1;
     }
 console.log('left path -> %o', itool.paths[0]);
-    drawPath(imageData, itool.paths[0], [255,255,100]);
+    //drawPath(imageData, itool.paths[0], [255,255,100,100]);
 
     bestPathParam.boundSize = itool.dist2(spots[1], spots[2]) / 16;
 console.info('boundSize = %d', bestPathParam.boundSize);
@@ -718,7 +737,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         bestPathParam.gapSize += 1;
     }
 console.log('right path -> %o', itool.paths[1]);
-    drawPath(imageData, itool.paths[1], [100,200,255]);
+    //drawPath(imageData, itool.paths[1], [150,230,255,100]);
 
     //we pass a clean ImageData object to work with
     tryPartialPaths(ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height));
@@ -786,7 +805,7 @@ console.warn('===(%d,%d)===================', x,y);
 
 //make an attempt to fill out paths using inbetween points
 function tryPartialPaths(imageData) {
-    bestPathParam.gapSize = 2;  //reset this from iterated values for full path attempts
+    bestPathParam.gapSize = _originalGapSize;  //reset this from iterated values for full path attempts
     var foundSome = false;
     for (var pn = 0 ; pn < 2 ; pn++) {
         if (itool.paths[pn]) continue;
@@ -869,12 +888,13 @@ console.log('spots!!! %o %o %o %o', spots[0], spots[1], spots[2], spots[3]);
 
 
 var bestPathParam = {
-    boundSize: 2500,
+    boundSize: 2500,  //will actually get computed later
     nearEnd: 11,
     sinceGapReset: 2,
-    gapSize: 2,
+    gapSize: 3,
     //debug: true,
 };
+var _originalGapSize = bestPathParam.gapSize;
 
 function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
     if (!origP1) origP1 = p1; //we need this as original start so we can find bounds box
@@ -893,7 +913,7 @@ function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
     //imageData.data[offset+2] = 128;
 
 if (itool.dist(p1, p2) < bestPathParam.nearEnd) {
-console.warn('found a near-end! %d,%d', p1[0], p1[1]);
+//console.warn('found a near-end! %d,%d', p1[0], p1[1]);
 return [itool.fromCanvasPoint(p1)];
 }
 
@@ -1035,204 +1055,20 @@ console.info('bailing');
 }
 
 
-function drawPath(imageData, path, rgb) {
+function drawPath(imageData, path, rgba) {
     for (var i = 0 ; i < path.length ; i++) {
         var x = Math.floor(path[i][0]);
         var y = Math.floor(path[i][1]);
         if ((x < 0) || (y < 0) || (x >= imageData.width) || (y >= imageData.height)) continue;
         var offset = (y * imageData.width + x) * 4;
-        for (var c = 0 ; c < 3 ; c++) {
-            imageData.data[offset + c] = rgb[c];
-        }
-        imageData.data[offset + 3] = 255;  //dont forget the alpha!
-    }
-}
-
-function MEHtrace(imageData, p1, p2) {
-    var pts = crawl(imageData, p1, p2, 3);
-    fctx.putImageData(imageData, 0, 0);
-console.log(pts);
-}
-
-function crawl(imageData, p1, p2, lvl) {
-    var offset = (p1[1] * imageData.width + p1[0]) * 4;
-    if ((imageData.data[offset+2] > 0) && (imageData.data[offset+2] < 255)) return false;
-    var score = 0;
-    if (imageData.data[offset+2] == 255) score = 1;
-
-    if (score) {
-        imageData.data[offset] = 255;
-        imageData.data[offset+2] = 28;
-        //imageData.data[offset+3] = 255;
-    } else {
-        imageData.data[offset+1] = 255;
-        imageData.data[offset+2] = 200;
-    }
-//console.log('%d: (%d,%d) = %d', lvl, p1[0], p1[1], score);
-    if (lvl < 1) return [[score, p1]];
-
-    var outPts = [];
-    var r = 10;
-    for (var y = p1[1] - 1 ; y < p1[1] + 2 ; y++) {
-        for (var x = p1[0] - 1 ; x < p1[0] + 2 ; x++) {
-            if (x == y == 2) continue;
-            var pts = crawl(imageData, [x, y], p2, lvl - 1);
-//console.info('%d: (%d,%d) got %o [%o]', lvl - 1, x, y, pts, score);
-            if (!pts) continue;
-            for (var i = 0 ; i < pts.length ; i++) {
-//console.log(' --- %o', pts);
-                pts[i][0] += score;
-                pts[i].push(p1);
-                outPts = outPts.concat(pts);
-            }
+        for (var c = 0 ; c < 4 ; c++) {
+            imageData.data[offset + c] = rgba[c];
         }
     }
-//console.warn('outPts -> %o', outPts);
-    return outPts;
 }
 
 
-function quickLine(ctx, p1, p2, color, size) {
-    size = size | 3;
-    ctx.strokeStyle = color;
-    ctx.lineWidth = size;
-        ctx.beginPath();
-        ctx.moveTo(p1[0], p1[1]);
-        ctx.lineTo(p2[0], p2[1]);
-        ctx.stroke();
-}
 
-
-function findSpotsOnLine(p1, p2, imageData) {
-    var found = [];
-    var m = (p2[1] - p1[1]) / (p2[0] - p1[0]);
-    var b = p1[1] - m * p1[0];
-    var step = 7;
-console.log('slope = %f, b = %f, step = %d', m, b, step);
-//quickLine(fctx, p1, p2, 'blue');
-    for (var x = p1[0] + step ; x < p2[0] ; x += step) {
-        y = m * x + b;
-console.warn('===(%d,%d)===================', x,y);
-        var p = checkAround(imageData, x, y, m, 3);
-        if (p) found.push(p);
-    }
-    return found;
-}
-
-
-function checkAround(imageData, x, y, m, lvl) {
-//var dot = fctx.createImageData(1,1);
-    if (lvl > 0) {
-        var ldepth = 4;
-        if (lvl > 1) ldepth = 8;
-console.log('%d: (%d,%d) -------------', lvl, x, y);
-        var m2 = -1 / m;  //TODO handle 1/0
-        var b = y - m2 * x;
-var x2 = x + ldepth;
-var y2 = m2 * x2 + b;
-var x3 = x - ldepth;
-var y3 = m2 * x3 + b;
-//quickLine(fctx, [x2,y2], [x3,y3], 'rgba(0,255,0,0.2)', 1);
-
-        for (var j = 0 ; j < ldepth ; j++) {
-            var x2 = x + j;
-            var y2 = Math.floor(m2 * x2 + b);
-            var p = checkAround(imageData, x2, y2, m2, lvl - 1);
-            if (p) return p;
-            x2 = x - j;
-            y2 = Math.floor(m2 * x2 + b);
-            p = checkAround(imageData, x2, y2, m2, lvl - 1);
-            if (p) return p;
-        }
-
-    } else {
-/*
-dot.data[0] = 255;
-dot.data[1] = 255;
-dot.data[2] = 0;
-dot.data[3] = 200;
-*/
-
-        var offset = (y * imageData.width + x) * 4;
-console.log('(%f,%f) [%d] -> %o', x, y, offset, imageData.data[offset]);
-//imageData.data[offset+1] = 255;  imageData.data[offset+2] = 255;
-//fctx.putImageData(dot, x, y);
-        if (imageData.data[offset]) return [x,y];
-    }
-    return false;
-}
-
-/*
-function fooooo() {
-///console.log(offset);
-//console.log(imageData.data[
-//console.log('(%f,%f) [%d] -> (%o,%o,%o)', x, y, offset, imageData.data[offset], imageData.data[offset+1], imageData.data[offset+2]);
-console.log('(%f,%f)', x, y);
-
-        var m2 = -1/m;
-        var b2 = y - m2 * x;
-        FINDNEARBY: for (var i = 0 ; i < 15 ; i++) {
-            var x2 = x + i;
-            var y2 = Math.floor(m2 * x2 + b2);
-            //var offset = (y2 * imageData.width + x2) * 4;
-//console.log('%d: (%d,%d) [%d] -> %d', i, x2, y2, offset, imageData.data[offset]);
-            var b3 = y2 - m * x2;
-            for (var j = -4 ; j < 9 ; j++) {
-                var x3 = x2 + i;
-                var y3 = Math.floor(m * x3 + b3);
-                var offset = (y3 * imageData.width + x3) * 4;
-console.log('%d: (%d,%d) [%d] -> %d', i, x3, y3, offset, imageData.data[offset]);
-                if (imageData.data[offset]) {
-                    console.log('----- found!');
-                    foundSpots.push([x2, y2]);
-                    break FINDNEARBY;
-                }
-imageData.data[offset+1] = 255;  imageData.data[offset+2] = 255;
-            }
-//
-            if (imageData.data[offset]) {
-                console.log('----- found!');
-                foundSpots.push([x2, y2]);
-                break;
-            }
-//
-            x2 = x - i;
-            y2 = Math.floor(m2 * x2 + b2);
-            //var offset = (y2 * imageData.width + x2) * 4;
-//console.log('-%d: (%d,%d) [%d] -> %d', i, x2, y2, offset, imageData.data[offset]);
-            for (var j = 0 ; j < 8 ; j++) {
-                var x3 = x2 + i;
-                var y3 = Math.floor(m * x3 + b3);
-                var offset = (y3 * imageData.width + x3) * 4;
-console.log('%d: (%d,%d) [%d] -> %d', i, x3, y3, offset, imageData.data[offset]);
-                if (imageData.data[offset]) {
-                    console.log('----- found!');
-                    foundSpots.push([x2, y2]);
-                    break FINDNEARBY;
-                }
-            }
-        }
-    }
-
-    for (var i = 0 ; i < spots.length ; i++) {
-        drawSpot(ctx2, spots[i], '_hilite');
-    }
-    for (var i = 0 ; i < foundSpots.length ; i++) {
-        drawSpot(ctx2, foundSpots[i], '_dim', 3);
-    }
-
-//
-    contextSetStyles(ctx2, '_line');
-        ctx2.beginPath();
-        ctx2.moveTo(spots[0][0], spots[0][1]);
-        ctx2.lineTo(spots[1][0], spots[1][1]);
-        ctx2.lineTo(spots[2][0], spots[2][1]);
-        ctx2.stroke();
-//
-
-return ctx2;
-}
-*/
 
 function edgeDetect() {
     edgeCanvas = itool.clipImage(edgeCanvas);
@@ -1303,7 +1139,7 @@ console.info('%d x %d', edgeCanvas.width, edgeCanvas.height);
 
 var imageLabelSet = false;
 function imageLabel(pt, msg) {
-    if (!pt || !msg) {
+    if (!pt || !msg || (msg == '_frompath')) {
         if (!imageLabelSet) return;
         $('#image-label').hide();
         imageLabelSet = false;
@@ -1313,4 +1149,16 @@ function imageLabel(pt, msg) {
     if (spotStyle[msg] && spotStyle[msg].label) msg = spotStyle[msg].label;
     $('#image-label').html(msg).css({left: pt[0] + 'px', top: pt[1]}).show();
 }
+
+
+function spotsFromPath(path) {
+    var maxGap = Math.floor(path.length / 50);  //50 is number of desired spots
+console.info('maxGap = %d', maxGap);
+    var s = [];
+    for (var i = 0 ; i < path.length ; i++) {
+        if (i % maxGap == 0) s.push([path[i][0], path[i][1], '_frompath']);
+    }
+    return s;
+}
+
 
