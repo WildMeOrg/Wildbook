@@ -6,6 +6,7 @@ function ImageTools(opts) {
     this.ctx = false;  //just for convenience
     this.labelCanvasElement = false;
     this.lctx = false;
+    this._img;
     this.transform = [
         [1, 0, 0],
         [0, 1, 0],
@@ -37,6 +38,11 @@ function ImageTools(opts) {
         this.imageElement.style.height = '100%';
         this.imageElement.style.transformOrigin = '50% 50%';
         this.containerElement.appendChild(this.imageElement);
+
+        //this is for use as untouched, unscaled
+        this._img = new Image();
+        this._img.src = el.src;
+
         return this.imageElement;
     };
 
@@ -411,19 +417,19 @@ console.warn("A = %f, side=%f, aw=%f ah=%f (%f,%f) R=%f", A, squareSide, aw, ah,
         wCanvas.height = squareSide;
         var wctx = wCanvas.getContext('2d');
 
-        var img = new Image();
-        img.src = this.imageElement.src;  //TODO we probably have to wait for load event,... sigh!
-
         wctx.translate(wCanvas.width / 2, wCanvas.height / 2);
         wctx.rotate(this.getRotation());
         wctx.translate(-wCanvas.width / 2, -wCanvas.height / 2);
         //wctx.translate(-sx, -sy);
 console.info('(%f,%f clipR*2=%f squareSide=%f [%fx%f] t=[%f,%f])', sx, sy, clipR * 2, squareSide, sw, sh, tx, ty);
-        wctx.drawImage(img, sx - tx * R, sy - ty * R, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
+console.warn('sx=%d tx=%d / sy=%d ty=%d / R=%f', sx, tx, sy, ty, R);
+        //wctx.drawImage(this._img, sx - tx * R, sy - ty * R, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
+        wctx.drawImage(this._img, sx , sy, clipR * 2, clipR * 2, 0, 0, squareSide, squareSide);
 
 //return wCanvas;
         //workCanvas should now have an image we grab from to get final product
-        ctx.drawImage(wCanvas, dx, dy, aw, ah, 0, 0, canvas.width, canvas.height);
+        var cr = aw / canvas.width;
+        ctx.drawImage(wCanvas, dx - cr * tx, dy - cr * ty, aw, ah, 0, 0, canvas.width, canvas.height);
         //var scale = squareSide / (clipR * 2);
 //console.info('scale=%f drawImage(%d,%d  %dx%d)', scale, (squareSide - sw * scale) / 2, (squareSide - sh * scale), sw * scale, sh * scale);
         //ctx.drawImage(wCanvas, (squareSide - sw) / 2, (squareSide - sh), sw * scale, sh * scale, 0, 0, canvas.width, canvas.height);
