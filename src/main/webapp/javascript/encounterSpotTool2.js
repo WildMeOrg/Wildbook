@@ -1082,7 +1082,7 @@ console.info('%d x %d', edgeCanvas.width, edgeCanvas.height);
 
     jsfeat.imgproc.grayscale(imageData.data, w, h, img_u8);
 
-    var blur_radius = 1;
+    var blur_radius = 2;
     var kernel_size = (blur_radius + 1) << 1;
     jsfeat.imgproc.gaussian_blur(img_u8, img_u8, kernel_size, 0);
 
