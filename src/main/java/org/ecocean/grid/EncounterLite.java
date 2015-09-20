@@ -1966,9 +1966,9 @@ private double amplifyY(double origValue, double s){
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
     com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
-    newEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
-    newEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
-    newEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    
+    /*
+    
     for(int i=0;i<spots2.size();i++){
       SuperSpot mySpot=spots2.get(i);
       
@@ -1981,12 +1981,16 @@ private double amplifyY(double origValue, double s){
       //get the leftmost spot
       if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
     } 
+    */
     
+    //return to using refSpots
+    newEncControlSpots[0]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[0].getCentroidX(),newEnc.getLeftReferenceSpots()[0].getCentroidY());
+    newEncControlSpots[1]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[1].getCentroidX(),newEnc.getLeftReferenceSpots()[1].getCentroidY());
+    newEncControlSpots[2]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[2].getCentroidX(),newEnc.getLeftReferenceSpots()[2].getCentroidY());
     
     com.reijns.I3S.Point2D[] theEncControlSpots=new com.reijns.I3S.Point2D[3];
-    theEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
-    theEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
-    theEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    
+    /*
     for(int i=0;i<spots.size();i++){
       SuperSpot mySpot=spots.get(i);
       
@@ -1998,7 +2002,14 @@ private double amplifyY(double origValue, double s){
       
       //get the leftmost spot
       if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
-    } 
+    } */
+    
+    //return to using persisted refSpots
+    //return to using refSpots
+    theEncControlSpots[0]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[0].getCentroidX(),oldEnc.getLeftReferenceSpots()[0].getCentroidY());
+    theEncControlSpots[1]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[1].getCentroidX(),oldEnc.getLeftReferenceSpots()[1].getCentroidY());
+    theEncControlSpots[2]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[2].getCentroidX(),oldEnc.getLeftReferenceSpots()[2].getCentroidY());
+    
   
     //convert the new encounter's spots into a Point2D array
     //previously I determined which side's spots to grab and populated
@@ -2158,6 +2169,7 @@ private double amplifyY(double origValue, double s){
         
         TimeSeries newTimeSeries=newBuilder.build();
         
+        /*
         AffineTransform at=EncounterLite.deriveAffineTransform(
             newEncControlSpots[0].getX(),
             newEncControlSpots[0].getY(),
@@ -2171,7 +2183,8 @@ private double amplifyY(double origValue, double s){
             theEncControlSpots[1].getY(),
             theEncControlSpots[2].getX(),
             theEncControlSpots[2].getY()
-       );     
+       ); 
+       */    
        
         return FastDTW.compare(theTimeSeries, newTimeSeries, radius, Distances.EUCLIDEAN_DISTANCE);
         
@@ -2196,10 +2209,9 @@ private double amplifyY(double origValue, double s){
         
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
-          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
-          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
-          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
           //Builder theBuilder = TimeSeriesBase.builder();
+          
+          /*
           for(int i=0;i<spots.size();i++){
             SuperSpot mySpot=spots.get(i);
             
@@ -2217,7 +2229,8 @@ private double amplifyY(double origValue, double s){
             //theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
               
             
-          } 
+          }
+          */ 
           
 
     
@@ -2232,11 +2245,9 @@ private double amplifyY(double origValue, double s){
           //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
           
           java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
-          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
-          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
-          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
-          //Builder newBuilder = TimeSeriesBase.builder();
+         //Builder newBuilder = TimeSeriesBase.builder();
           
+          /*
           for(int i=0;i<spots2.size();i++){
             SuperSpot mySpot=spots2.get(i);
             
@@ -2252,8 +2263,34 @@ private double amplifyY(double origValue, double s){
             //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
             
           } 
+          */
           
-          //TimeSeries newTimeSeries=newBuilder.build();
+          
+          /*
+          for(int i=0;i<spots.size();i++){
+            SuperSpot mySpot=spots.get(i);
+            
+            //get the rightmost spot
+            if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the bottommost spot
+            if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the leftmost spot
+            if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
+          } */
+          
+          
+          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
+          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
+          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
+          
+          
+          //return to using persisted refSpots
+          //return to using refSpots
+          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
+          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
+          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
           
           Collections.sort(spots2, new XComparator());
           //for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
@@ -2364,8 +2401,8 @@ private double amplifyY(double origValue, double s){
             
             
           }
-          //return (numIntersections/maxIntersectingLines);
-          return (numIntersections);
+          return (numIntersections/maxIntersectingLines);
+          //return (numIntersections);
       
     }
      catch(Exception e){
@@ -3239,6 +3276,8 @@ private double amplifyY(double origValue, double s){
         
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          
+          /*
           theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
@@ -3261,6 +3300,7 @@ private double amplifyY(double origValue, double s){
               
             
           } 
+          */
           
 
     
@@ -3275,6 +3315,8 @@ private double amplifyY(double origValue, double s){
           //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
           
           java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          
+          /*
           newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
@@ -3293,25 +3335,24 @@ private double amplifyY(double origValue, double s){
             if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
             
             
-          } 
+          }*/
+          
+          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
+          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
+          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
+          
+          
+          //return to using persisted refSpots
+          //return to using refSpots
+          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
+          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
+          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
+          
           
           
           Collections.sort(spots2, new XComparator());
           
-          AffineTransform at=EncounterLite.deriveAffineTransform(
-              newEncControlSpots[0].getX(),
-              newEncControlSpots[0].getY(),
-              newEncControlSpots[1].getX(),
-              newEncControlSpots[1].getY(),
-              newEncControlSpots[2].getX(),
-              newEncControlSpots[2].getY(),
-              theEncControlSpots[0].getX(),
-              theEncControlSpots[0].getY(),
-              theEncControlSpots[1].getX(),
-              theEncControlSpots[1].getY(),
-              theEncControlSpots[2].getX(),
-              theEncControlSpots[2].getY()
-         );   
+        
           
           double width1=theEncControlSpots[2].getX()-theEncControlSpots[0].getX();
           double width2=newEncControlSpots[2].getX()-newEncControlSpots[0].getX();
