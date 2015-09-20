@@ -318,7 +318,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(fDistribution[0]));
         result.add(new JsonPrimitive(0));
         result.add(new JsonPrimitive(mo.getIntersectionCount()));
-        result.add(new JsonPrimitive(mo.getLeftFastDTWResult()));
+        result.add(new JsonPrimitive(mo.getLeftFastDTWResult().intValue()));
         result.add(new JsonPrimitive(mo.getI3SMatchValue()));
         result.add(new JsonPrimitive(mo.getProportionValue()));
         

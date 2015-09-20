@@ -13,10 +13,6 @@
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
 	org.ecocean.grid.* ,
-	org.neuroph.core.*,
-	org.neuroph.nnet.*,
-	org.neuroph.nnet.learning.*,
-	org.neuroph.core.data.*,
 	org.ecocean.neural.TrainNetwork"
 	%>
 
