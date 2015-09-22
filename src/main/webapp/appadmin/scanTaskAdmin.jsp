@@ -464,6 +464,8 @@ single scan are allowed to exceed the total.</span>
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
+  
+ if(request.isUserInRole("machinelearning")){ 
 %>
 
 
@@ -481,7 +483,7 @@ single scan are allowed to exceed the total.</span>
 >
 
   <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected">unknown</option>
+             	
   <%
                      boolean hasMoreTax=true;
                      int taxNum=0;
@@ -507,6 +509,9 @@ single scan are allowed to exceed the total.</span>
           <span class="button-icon" aria-hidden="true" />
         </button>
 </form>
+<%
+}
+%>
 
 </div>
 

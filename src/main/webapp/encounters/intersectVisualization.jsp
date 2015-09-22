@@ -12,10 +12,7 @@
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
 	org.ecocean.grid.* ,
-	org.neuroph.core.*,
-	org.neuroph.nnet.*,
-	org.neuroph.nnet.learning.*,
-	org.neuroph.core.data.*,
+
 	org.ecocean.neural.TrainNetwork"
 	%>
 
@@ -57,11 +54,6 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 String encNum = request.getParameter("enc1");
 String encNum2 = request.getParameter("enc2");
 
-
-SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
-SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
-SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
-SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
 
 double intersectionStdDev=0.05;
 if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new java.lang.Double(request.getParameter("intersectionStdDev"))).doubleValue();}
@@ -394,7 +386,6 @@ try {
     %>
 	    
 	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
-	    <h3>Overall: <%=TrainNetwork.getOverallFlukeMatchScore(request, finalInter, distance, newScore, propor, intersectionStats,dtwStats,i3sStats, proportionStats,intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap,dtwHandicap,i3sHandicap,proportionHandicap) %>
 </h3>
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 

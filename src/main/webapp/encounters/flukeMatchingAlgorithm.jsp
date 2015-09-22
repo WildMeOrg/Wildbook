@@ -356,6 +356,8 @@ try {
 if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
 
 %>
+
+
 <script type="text/javascript">
 
 <%

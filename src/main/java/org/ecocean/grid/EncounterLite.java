@@ -1925,6 +1925,115 @@ private double amplifyY(double origValue, double s){
   return new AffineTransform(m00, m10, m01, m11, m02, m12);       
 }
   
+  public static AffineTransform deriveAffineTransformIgnoreNotch(
+      double oldX1, double oldY1,
+      double oldX2, double oldY2,
+      double oldX3, double oldY3,
+      double newX1, double newY1,
+      double newX2, double newY2,
+      double newX3, double newY3) {
+    
+    
+          //we can't trust the notch point, too subject to skew
+          //so we're going to ignore the notch points: oldX2,oldY2,newX2,newY2
+          //instead we need to calculate new values assuming a right triangle with the tip points
+          /*
+          java.awt.geom.Point2D.Double oldMidpoint=new java.awt.geom.Point2D.Double(((oldX1+oldX3)/2),((oldY1+oldY3)/2));
+          java.awt.geom.Point2D.Double oldRightFlukePoint=new java.awt.geom.Point2D.Double(oldX3,oldY3);
+          double oldHalfWidth=oldRightFlukePoint.distance(oldMidpoint);
+          double oldHypotenuse=oldHalfWidth/Math.cos(Math.toRadians(45));
+          double oldDepth=Math.sqrt(oldHypotenuse*oldHypotenuse-oldHalfWidth*oldHalfWidth);
+          double oldDx=oldX1-oldX3;
+          double oldSlope=(oldDx)/(oldY1-oldY3);
+          double oldNotchCalculatedX = Math.sqrt(Math.abs(oldDepth*oldDepth - oldDx*oldDx)) / oldSlope + oldMidpoint.getX();
+          double oldNotchCalculatedY = oldSlope * (oldNotchCalculatedX - oldMidpoint.getX()) - oldMidpoint.getY();
+          */
+          
+          //TRY PROPORTIONS
+          double width1=oldX3-oldX1;
+          double width2=newX3-newX1;
+
+          //heights are from control spot 1 to intersection with line formed by control spots 0 and 2
+          java.awt.geom.Point2D.Double notchControlPoint1=new java.awt.geom.Point2D.Double(oldX2,oldY2);
+          java.awt.geom.Line2D.Double widthLine1=new java.awt.geom.Line2D.Double(new java.awt.geom.Point2D.Double(oldX1,oldY1),new java.awt.geom.Point2D.Double(oldX3,oldY3));
+          double height1=widthLine1.ptLineDist(new java.awt.geom.Point2D.Double(oldX2,oldY2));
+
+          //heights are from control spot 1 to intersection with line formed by control spots 0 and 2
+          java.awt.geom.Point2D.Double notchControlPoint2=new java.awt.geom.Point2D.Double(newX2,newY2);
+          java.awt.geom.Line2D.Double widthLine2=new java.awt.geom.Line2D.Double(new java.awt.geom.Point2D.Double(newX1,newY1),new java.awt.geom.Point2D.Double(newX3,newY3));
+          double height2=widthLine2.ptLineDist(new java.awt.geom.Point2D.Double(newX2,newY2));
+          
+          
+          /*
+          double finalNum=(height1/width1)/(height2/width2);
+          
+          //based on the sign of finalNum, let's adjust our height 1
+          if(finalNum>1){
+            
+            //oldEncounter height needs to be reduced
+            double newHeight=height2*width1/(width2*height1*finalNum);
+            
+          }
+          else if(finalNum<1>){
+            
+            //old encounter height needs to decreased by %
+            
+          }
+          */
+          
+          //Jon's method
+          java.awt.geom.Point2D.Double thirdIsoscelesPoint=deriveThirdIsoscelesPoint(oldX1, oldX2, oldY1, oldY2);
+
+          
+          
+          //TRY PROPORTIONS
+          
+          //original
+          //double[][] oldData = { {oldX1, oldX2, oldX3}, {oldY1, oldY2, oldY3}, {1, 1, 1} };
+          //calculate notch as third point in an isosceles triangle
+          double[][] oldData = { {oldX1, thirdIsoscelesPoint.getX(), oldX3}, {oldY1, thirdIsoscelesPoint.getY(), oldY3}, {1, 1, 1} };
+          //just stretch notch point down via proportions
+          
+          RealMatrix oldMatrix = MatrixUtils.createRealMatrix(oldData);
+        
+          /*
+          java.awt.geom.Point2D.Double newMidpoint=new java.awt.geom.Point2D.Double(((newX1+newX3)/2),((newY1+newY3)/2));
+          
+          java.awt.geom.Point2D.Double newRightFlukePoint=new java.awt.geom.Point2D.Double(newX3,newY3);
+          double newHalfWidth=oldRightFlukePoint.distance(newMidpoint);
+          double newHypotenuse=newHalfWidth/Math.cos(Math.toRadians(45));
+          double newDepth=Math.sqrt(newHypotenuse*newHypotenuse-newHalfWidth*newHalfWidth);
+          double newDx=newX1-newX3;
+          double newSlope=(newDx)/(newY1-newY3);
+          double newNotchCalculatedX = Math.sqrt(Math.abs(newDepth*newDepth - newDx*newDx)) / newSlope + newMidpoint.getX();
+          double newNotchCalculatedY = newSlope * (newNotchCalculatedX - newMidpoint.getX()) - newMidpoint.getY();
+          */
+          
+        //Jon's method
+          java.awt.geom.Point2D.Double thirdIsoscelesPoint2=deriveThirdIsoscelesPoint(newX1, newX2, newY1, newY2);
+
+          
+          //original
+          //double[][] newData = { {newX1, newX2, newX3}, {newY1, newY2, newY3} };
+          //calculate notch as third point in an isosceles triangles
+          double[][] newData = { {newX1, thirdIsoscelesPoint2.getX(), newX3}, {newY1, thirdIsoscelesPoint2.getY(), newY3} };
+          //just stretch notch point down
+          
+          RealMatrix newMatrix = MatrixUtils.createRealMatrix(newData);
+        
+          RealMatrix inverseOld = new LUDecomposition(oldMatrix).getSolver().getInverse();
+          RealMatrix transformationMatrix = newMatrix.multiply(inverseOld);
+        
+          double m00 = transformationMatrix.getEntry(0, 0);
+          double m01 = transformationMatrix.getEntry(0, 1);
+          double m02 = transformationMatrix.getEntry(0, 2);
+          double m10 = transformationMatrix.getEntry(1, 0);
+          double m11 = transformationMatrix.getEntry(1, 1);
+          double m12 = transformationMatrix.getEntry(1, 2);
+        
+          return new AffineTransform(m00, m10, m01, m11, m02, m12);       
+}
+  
   public static AffineTransform calculateTransform(java.awt.geom.Point2D.Double[] src, java.awt.geom.Point2D.Double[] dst) {
     Array2DRowRealMatrix x = new Array2DRowRealMatrix(new double[][] {
     { src[0].getX(), src[1].getX(), src[2].getX() }, { src[0].getY(), src[1].getY(), src[2].getY() },
@@ -1966,9 +2075,9 @@ private double amplifyY(double origValue, double s){
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
     com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
-    newEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
-    newEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
-    newEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    
+    /*
+    
     for(int i=0;i<spots2.size();i++){
       SuperSpot mySpot=spots2.get(i);
       
@@ -1981,12 +2090,16 @@ private double amplifyY(double origValue, double s){
       //get the leftmost spot
       if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
     } 
+    */
     
+    //return to using refSpots
+    newEncControlSpots[0]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[0].getCentroidX(),newEnc.getLeftReferenceSpots()[0].getCentroidY());
+    newEncControlSpots[1]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[1].getCentroidX(),newEnc.getLeftReferenceSpots()[1].getCentroidY());
+    newEncControlSpots[2]=new com.reijns.I3S.Point2D(newEnc.getLeftReferenceSpots()[2].getCentroidX(),newEnc.getLeftReferenceSpots()[2].getCentroidY());
     
     com.reijns.I3S.Point2D[] theEncControlSpots=new com.reijns.I3S.Point2D[3];
-    theEncControlSpots[0]=new com.reijns.I3S.Point2D(9999999,0);
-    theEncControlSpots[1]=new com.reijns.I3S.Point2D(0,-999999);
-    theEncControlSpots[2]=new com.reijns.I3S.Point2D(-99999,0);
+    
+    /*
     for(int i=0;i<spots.size();i++){
       SuperSpot mySpot=spots.get(i);
       
@@ -1998,7 +2111,14 @@ private double amplifyY(double origValue, double s){
       
       //get the leftmost spot
       if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
-    } 
+    } */
+    
+    //return to using persisted refSpots
+    //return to using refSpots
+    theEncControlSpots[0]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[0].getCentroidX(),oldEnc.getLeftReferenceSpots()[0].getCentroidY());
+    theEncControlSpots[1]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[1].getCentroidX(),oldEnc.getLeftReferenceSpots()[1].getCentroidY());
+    theEncControlSpots[2]=new com.reijns.I3S.Point2D(oldEnc.getLeftReferenceSpots()[2].getCentroidX(),oldEnc.getLeftReferenceSpots()[2].getCentroidY());
+    
   
     //convert the new encounter's spots into a Point2D array
     //previously I determined which side's spots to grab and populated
@@ -2007,7 +2127,7 @@ private double amplifyY(double origValue, double s){
     Point2D[] newOrigEncounterSpots = new Point2D[newSpotsLength];
     
     //Do our affine here
-    AffineTransform at=deriveAffineTransform(
+    AffineTransform at=deriveAffineTransformIgnoreNotch(
         newEncControlSpots[0].getX(),
         newEncControlSpots[0].getY(),
         newEncControlSpots[1].getX(),
@@ -2158,6 +2278,7 @@ private double amplifyY(double origValue, double s){
         
         TimeSeries newTimeSeries=newBuilder.build();
         
+        /*
         AffineTransform at=EncounterLite.deriveAffineTransform(
             newEncControlSpots[0].getX(),
             newEncControlSpots[0].getY(),
@@ -2171,7 +2292,8 @@ private double amplifyY(double origValue, double s){
             theEncControlSpots[1].getY(),
             theEncControlSpots[2].getX(),
             theEncControlSpots[2].getY()
-       );     
+       ); 
+       */    
        
         return FastDTW.compare(theTimeSeries, newTimeSeries, radius, Distances.EUCLIDEAN_DISTANCE);
         
@@ -2196,10 +2318,9 @@ private double amplifyY(double origValue, double s){
         
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
-          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
-          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
-          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
           //Builder theBuilder = TimeSeriesBase.builder();
+          
+          /*
           for(int i=0;i<spots.size();i++){
             SuperSpot mySpot=spots.get(i);
             
@@ -2217,7 +2338,8 @@ private double amplifyY(double origValue, double s){
             //theBuilder.add(spots.get(i).getCentroidX(),spots.get(i).getCentroidY());  
               
             
-          } 
+          }
+          */ 
           
 
     
@@ -2232,11 +2354,9 @@ private double amplifyY(double origValue, double s){
           //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
           
           java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
-          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
-          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
-          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
-          //Builder newBuilder = TimeSeriesBase.builder();
+         //Builder newBuilder = TimeSeriesBase.builder();
           
+          /*
           for(int i=0;i<spots2.size();i++){
             SuperSpot mySpot=spots2.get(i);
             
@@ -2252,14 +2372,40 @@ private double amplifyY(double origValue, double s){
             //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
             
           } 
+          */
           
-          //TimeSeries newTimeSeries=newBuilder.build();
+          
+          /*
+          for(int i=0;i<spots.size();i++){
+            SuperSpot mySpot=spots.get(i);
+            
+            //get the rightmost spot
+            if(mySpot.getCentroidX()>theEncControlSpots[2].getX()){theEncControlSpots[2]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the bottommost spot
+            if(mySpot.getCentroidY()>theEncControlSpots[1].getY()){theEncControlSpots[1]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());}
+            
+            //get the leftmost spot
+            if(mySpot.getCentroidX()<theEncControlSpots[0].getX()){theEncControlSpots[0]=new com.reijns.I3S.Point2D(mySpot.getCentroidX(),mySpot.getCentroidY());} 
+          } */
+          
+          
+          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
+          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
+          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
+          
+          
+          //return to using persisted refSpots
+          //return to using refSpots
+          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
+          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
+          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
           
           Collections.sort(spots2, new XComparator());
           //for(int i=0;i<spots2.size();i++){System.out.println(spots2.get(i).getCentroidX());}
           
           
-          AffineTransform at=EncounterLite.deriveAffineTransform(
+          AffineTransform at=EncounterLite.deriveAffineTransformIgnoreNotch(
               newEncControlSpots[0].getX(),
               newEncControlSpots[0].getY(),
               newEncControlSpots[1].getX(),
@@ -2364,8 +2510,8 @@ private double amplifyY(double origValue, double s){
             
             
           }
-          //return (numIntersections/maxIntersectingLines);
-          return (numIntersections);
+          return (numIntersections/maxIntersectingLines);
+          //return (numIntersections);
       
     }
      catch(Exception e){
@@ -3239,6 +3385,8 @@ private double amplifyY(double origValue, double s){
         
           
           java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          
+          /*
           theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
@@ -3261,6 +3409,7 @@ private double amplifyY(double origValue, double s){
               
             
           } 
+          */
           
 
     
@@ -3275,6 +3424,8 @@ private double amplifyY(double origValue, double s){
           //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
           
           java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+          
+          /*
           newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
           newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
           newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
@@ -3293,25 +3444,24 @@ private double amplifyY(double origValue, double s){
             if(mySpot.getCentroidX()<newEncControlSpots[0].getX()){newEncControlSpots[0]=new java.awt.geom.Point2D.Double(mySpot.getCentroidX(),mySpot.getCentroidY());}
             
             
-          } 
+          }*/
+          
+          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
+          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
+          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
+          
+          
+          //return to using persisted refSpots
+          //return to using refSpots
+          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
+          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
+          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
+          
           
           
           Collections.sort(spots2, new XComparator());
           
-          AffineTransform at=EncounterLite.deriveAffineTransform(
-              newEncControlSpots[0].getX(),
-              newEncControlSpots[0].getY(),
-              newEncControlSpots[1].getX(),
-              newEncControlSpots[1].getY(),
-              newEncControlSpots[2].getX(),
-              newEncControlSpots[2].getY(),
-              theEncControlSpots[0].getX(),
-              theEncControlSpots[0].getY(),
-              theEncControlSpots[1].getX(),
-              theEncControlSpots[1].getY(),
-              theEncControlSpots[2].getX(),
-              theEncControlSpots[2].getY()
-         );   
+        
           
           double width1=theEncControlSpots[2].getX()-theEncControlSpots[0].getX();
           double width2=newEncControlSpots[2].getX()-newEncControlSpots[0].getX();
@@ -3340,7 +3490,25 @@ private double amplifyY(double origValue, double s){
   }
     
 
+public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, double x2, double y1, double y2){
 
+    double h = Math.sqrt((x1-x2)*(x1-x2) +(y1-y2)*(y1-y2));
+    double l = h * Math.sqrt(2) / 2;
+    //console.log('h = %f, l = %f', h, l);
+    double A = Math.asin((y1 - y2) / h);
+    double B = Math.PI / 4 - A;
+    //console.log('A=%f B=%f', A, B);
+    double n = l * Math.sin(B);
+    double m = l * Math.cos(B);
+    //console.log('m = %f, n = %f', m, n);
+    double x = x2 - m;
+    double y = y1 - m;
+    //console.log('(%f, %f)', x, y);
+    x = x1 + n;
+    y = y2 - n;
+    //console.log('(%f, %f)', x, y);
+    return new java.awt.geom.Point2D.Double(x,y);
+}
     
     
 }
