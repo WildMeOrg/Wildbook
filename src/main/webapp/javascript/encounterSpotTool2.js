@@ -347,7 +347,7 @@ function setMode(m) {
 
 
 function modeMenuChange(el) {
-    setMode(el.value);
+    setMode(parseInt(el.value));
 }
 
 //also sets the menu accordingly
