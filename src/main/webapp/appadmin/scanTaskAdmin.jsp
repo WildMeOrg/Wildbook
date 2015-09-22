@@ -464,6 +464,8 @@ single scan are allowed to exceed the total.</span>
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
+  
+ if(request.isUserInRole("machinelearning")){ 
 %>
 
 
@@ -507,6 +509,9 @@ single scan are allowed to exceed the total.</span>
           <span class="button-icon" aria-hidden="true" />
         </button>
 </form>
+<%
+}
+%>
 
 </div>
 
