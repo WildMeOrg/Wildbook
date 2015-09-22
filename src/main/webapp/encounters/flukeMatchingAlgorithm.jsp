@@ -314,20 +314,28 @@ try {
 
   <table border="0" cellpadding="5"><tr>
   <%
-	String spotJsonLeft = null;
-	String spotJsonRight = null;
+	String spotJson = null;
 
 	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
-  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
-      spots = enc.getSpots();
-			spotJsonLeft = "[";
+//combine both flukes to one image
+  if ((enc.getNumSpots() + enc.getNumRightSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
+		spotJson = "[";
+		if (enc.getNumSpots() > 0) {
+      			spots = enc.getSpots();
 			for (SuperSpot s : spots) {
-				spotJsonLeft += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
+				spotJson += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
 			}
-			spotJsonLeft += "];";
+		}
+		if (enc.getNumRightSpots() > 0) {
+      			spots = enc.getRightSpots();
+			for (SuperSpot s : spots) {
+				spotJson += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
+			}
+		}
+		spotJson += "];";
 %>
-<td valign="top" class="spot-td spot-td-left"><div>Left-side</div>
+<td valign="top" class="spot-td spot-td-left">
 <div id="spot-image-wrapper-left">
 	<img src="<%=fileloc%>" alt="image" id="spot-image-left" />
 	<canvas id="spot-image-canvas-left"></canvas>
@@ -336,22 +344,6 @@ try {
   <%
     }
 
-    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
-      spots = enc.getRightSpots();
-			spotJsonRight = "[";
-			for (SuperSpot s : spots) {
-				spotJsonRight += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
-			}
-			spotJsonRight += "];";
-  %>
-<td valign="top" class="spot-td spot-td-right"><div>Right-side</div>
-<div id="spot-image-wrapper-right">
-	<img src="<%=filelocR%>" alt="image" id="spot-image-right"  />
-	<canvas id="spot-image-canvas-right"></canvas>
-</div>
-</td> 
-      <%
-      }
 
 if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
 
@@ -359,17 +351,17 @@ if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
 
 
 <script type="text/javascript">
+	var spotJson = {};
 
 <%
-	if (spotJsonRight != null) out.println("spotJson.right = " + spotJsonRight);
-	if (spotJsonLeft != null) out.println("spotJson.left = " + spotJsonLeft);
+	if (spotJson != null) out.println("spotJson.left = " + spotJson);
 %>
 
 var itool = {};
 
 function spotImageInit() {
 	if (spotJson.left) spotInit('left');
-	if (spotJson.right) spotInit('right');
+	//if (spotJson.right) spotInit('right');
 }
 
 
