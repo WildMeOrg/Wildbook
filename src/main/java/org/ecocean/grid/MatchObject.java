@@ -56,6 +56,8 @@ public class MatchObject implements java.io.Serializable {
   public String anglesOfIntersection="";
   
   public Double proportionValue=0.0;
+  
+  public Double msmValue=0.0;
 
   //used for JDO enhance
   public MatchObject() {
@@ -289,6 +291,9 @@ public class MatchObject implements java.io.Serializable {
   
   public void setProportionValue(Double value){proportionValue=value;}
   public Double getProportionValue(){return proportionValue;}
+  
+  public void setMSMSValue(Double value){msmValue=value;}
+  public Double getMSMValue(){return msmValue;}
   
   
 }

@@ -42,6 +42,8 @@ import com.fastdtw.timeseries.TimeSeriesBase.Builder;
 import com.fastdtw.dtw.*;
 import com.fastdtw.util.Distances;
 
+import org.ecocean.grid.msm.*;
+
 
 /**
  * A class description...
@@ -300,6 +302,10 @@ public class ScanWorkItem implements java.io.Serializable {
       //set proportion Value
       result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       
+      Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      System.out.println("     MSM result is: "+msmValue.doubleValue());
+      
+      result.setMSMSValue(msmValue);
       
     //}
     
