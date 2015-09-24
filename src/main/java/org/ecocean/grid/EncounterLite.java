@@ -90,9 +90,13 @@ public class EncounterLite implements java.io.Serializable {
   }
 
   public EncounterLite(Encounter enc) {
-    this.date = enc.getDate();
+    if(enc.getDate()!=null){
+      this.date = enc.getDate();
+    }
     this.encounterNumber = enc.getEncounterNumber();
-    this.belongsToMarkedIndividual = enc.isAssignedToMarkedIndividual();
+    if(enc.getIndividualID()!=null){
+      this.belongsToMarkedIndividual = enc.getIndividualID();
+    }
     if(enc.getSex()!=null){
       this.sex = enc.getSex();
     }
