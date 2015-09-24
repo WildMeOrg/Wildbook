@@ -42,6 +42,8 @@ import com.fastdtw.util.Distances;
 import com.fastdtw.timeseries.TimeSeriesBase.Builder;
 import com.fastdtw.timeseries.*;
 
+import org.ecocean.grid.msm.*;
+
 //train weka
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -608,7 +610,8 @@ public class TrainNetwork {
             score=score+1-proportionHandicap;
           }
         }
-       
+        
+        
 
 
       } 
@@ -811,6 +814,7 @@ public class TrainNetwork {
       Attribute fastDTWAttr = new Attribute("fastDTW");
       Attribute i3sAttr = new Attribute("I3S");
       Attribute proportionAttr = new Attribute("proportion");
+      Attribute msmAttr = new Attribute("MSM");
       
       //class vector
       // Declare the class attribute along with its values
@@ -821,11 +825,12 @@ public class TrainNetwork {
       
       //define feature vector
       // Declare the feature vector
-      FastVector fvWekaAttributes = new FastVector(5);
+      FastVector fvWekaAttributes = new FastVector(6);
       fvWekaAttributes.addElement(intersectAttr);
       fvWekaAttributes.addElement(fastDTWAttr);
       fvWekaAttributes.addElement(i3sAttr);
       fvWekaAttributes.addElement(proportionAttr);
+      fvWekaAttributes.addElement(msmAttr);
       fvWekaAttributes.addElement(ClassAttribute);
       
       
@@ -846,7 +851,7 @@ public class TrainNetwork {
           int numEncs=encounters.size();
           
           Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
-          isTrainingSet.setClassIndex(4);
+          isTrainingSet.setClassIndex(5);
           AdaBoostM1 booster=new AdaBoostM1();
           
           for(int i=0;i<(numEncs-1);i++){
@@ -917,18 +922,23 @@ public class TrainNetwork {
                       
                     }
                     */
+                    
+                    
+                    Double msm=MSM.getMSMDistance(el1, el2);
+                    
                     // Create the instance
-                    Instance iExample = new Instance(5);
+                    Instance iExample = new Instance(6);
                     iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
                     iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
                     iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
                     iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
+                    iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), msm.doubleValue());
                     
                     if(output==0){
-                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
+                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
                     }
                     else{
-                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
+                      iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
                     }
                     // add the instance
                     isTrainingSet.add(iExample);
@@ -977,18 +987,26 @@ public class TrainNetwork {
                       
                     }
                     */
+                    
+                  //score MSM
+                    
+                    Double msmScore=MSM.getMSMDistance(el1, el2);
+                    
+                    
                     // Create the instance
-                    Instance iExample2 = new Instance(5);
+                    Instance iExample2 = new Instance(6);
                     iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
                     iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
                     iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
                     iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
+                    iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), msmScore.doubleValue());
+                    
                     
                     if(output==0){
-                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "match");
+                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
                     }
                     else{
-                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), "nonmatch");
+                      iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
                     }
                     // add the instance
                     isTrainingSet.add(iExample2);
