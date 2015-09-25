@@ -60,6 +60,11 @@ var columnInfo = {
         label: 'rank',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+    msm: {
+        label: 'MSM',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     }
 };
 
