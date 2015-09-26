@@ -424,11 +424,9 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph the ID area</h3>
 					<p class="lead">
-						Each animal should have an individual fingerprint: the pattern of spots or other markings. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your animal might be completely new to the database.
+						Trailing edges of flukes and dorsal fins are primarily used to ID whales and dolphins. Get an image of the flukes or fins and you can match that pattern to others already in the database. Who knows your animal might be completely new to the database!
 					</p>
-					<p class="lead">
-						<a href="photographing.jsp" title="">See the photography guide</a>
-					</p>
+					
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
@@ -436,9 +434,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Submit photo/video</h3>
+					<h3>Submit PhotoID or sighting</h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed by a researcher.
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -460,8 +458,8 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching process</h3>
 					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, sometimes using a computer vision algorithm. The algorithm is like facial recognition software for animal paterns.
-					</p>
+						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for whale flukes.
+						</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
@@ -469,9 +467,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Match Result</h3>
+					<h3>Matching Results</h3>
 					<p class="lead">
-						The algorithm (or manual comparison) provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing animal in the database, or create a new individual profile. 
+						Flukebook uses multiple algorithms to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile. 
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -660,6 +658,7 @@ finally{
    
 </div>
 
+<!--
 <div class="container-fluid">
     <section class="container main-section">
         <h2 class="section-header">How can I help?</h2>
@@ -707,6 +706,8 @@ finally{
             
             
         </section>
+        
+        
         <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -723,9 +724,10 @@ finally{
                 </a>
             </div>
         </section>
+        
     </section>
 </div>
-
+-->
 
 <jsp:include page="footer.jsp" flush="true"/>
 
