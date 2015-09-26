@@ -190,8 +190,8 @@
 						/DeleteAdoption = authc, roles[admin]
 						/ResurrectDeletedAdoption = authc, roles[admin]
 						
-						 /EncounterSetState = authc, roles[approve]
-						 /EncounterDelete = authc, roles[approve]
+						 /EncounterSetState = authc, roles[admin]
+						 /EncounterDelete = authc, roles[admin]
 					
 					       /xcalendar/** = authc, roles[admin]
 						   /individualSearch.jsp = authc, roles[admin]
