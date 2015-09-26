@@ -87,7 +87,60 @@ function setTool() {
 
     var opts = {
         el: document.getElementById('target-img'),
-        eventListeners: {
+    };
+    if (isDorsalFin) {
+        opts.eventListeners = dorsalEventListeners();
+    } else {
+        opts.eventListeners = flukeEventListeners();
+    }
+
+
+
+    itool = new ImageTools(opts);
+    itool.spots = [];
+    itool._erase = [];
+    $(itool.containerElement).append('<div id="image-label" />');
+    setMode(0);
+
+    $('#edge-params').slider({
+        range: true,
+        stop: function() { if (edgeCanvas) doEdge(); },
+        min: 0,
+        max: 250,
+        values: [edgeA, edgeB],
+        slide: function(ev, ui) {
+            if (!edgeCanvas) return;
+            edgeA = ui.values[0];
+            edgeB = ui.values[1];
+console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
+            var ctx = edgeCanvas.getContext('2d');
+            var ctx2 = edgeDetect(ctx);
+            var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+            if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
+        }
+    });
+
+    $('#edge-transparency').slider({
+        min: 0,
+        max: 100,
+        value: 85,
+        slide: function(ev, ui) {
+            if (!edgeCanvas) return;
+            edgeCanvas.style.opacity = ui.value / 100;
+        }
+    });
+
+    if (isDorsalFin) {
+        userMessage('start at <b>tip</b> of dorsal and create <b>intersection points</b>');
+        initDorsal();
+    } else {
+        userMessage('ready to pick <b>3 spots</b> at <b>tips</b> and <b>center</b>');
+    }
+}
+
+
+function flukeEventListeners() {
+    return {
             contextmenu: function(ev) {
     console.log('menu!!!');
                 itool._addingSpot = false;
@@ -290,49 +343,9 @@ console.log('done erase? %o', itool._erase);
             },
 */
                 
-        }
-    };
-
-
-
-    itool = new ImageTools(opts);
-    itool.spots = [];
-    itool._erase = [];
-    $(itool.containerElement).append('<div id="image-label" />');
-    setMode(0);
-
-    $('#edge-params').slider({
-        range: true,
-        stop: function() { if (edgeCanvas) doEdge(); },
-        min: 0,
-        max: 250,
-        values: [edgeA, edgeB],
-        slide: function(ev, ui) {
-            if (!edgeCanvas) return;
-            edgeA = ui.values[0];
-            edgeB = ui.values[1];
-console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
-            var ctx = edgeCanvas.getContext('2d');
-            var ctx2 = edgeDetect(ctx);
-            var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-            if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
-        }
-    });
-
-    $('#edge-transparency').slider({
-        min: 0,
-        max: 100,
-        value: 85,
-        slide: function(ev, ui) {
-            if (!edgeCanvas) return;
-            edgeCanvas.style.opacity = ui.value / 100;
-        }
-    });
-
-//t.imageElement.addEventListener('mousemove', function() { console.log('mm'); }, false);
-    userMessage('ready to pick <b>3 spots</b> at <b>tips</b> and <b>center</b>');
-    //CTX = doEdge();
+        };
 }
+
 
 function setMode(m) {
     if (m & 2) {
@@ -626,58 +639,28 @@ var edgeCanvas;
 var edgeA = 100;
 var edgeB = 200;
 var edgeScrubbing = false;
+function createEdgeCanvas() {
+    if (edgeCanvas) return;
+    edgeCanvas = document.createElement('canvas');
+    var w = itool.imageElement.width;
+    var h = itool.imageElement.height;
+    edgeCanvas.width = w;
+    edgeCanvas.height = h;
+    edgeCanvas.style.position = 'absolute';
+    edgeCanvas.style.width = '100%';
+    edgeCanvas.style.height = '100%';
+    edgeCanvas.style.opacity = 0.85;
+    edgeCanvas.style.pointerEvents = 'none';
+    itool.containerElement.insertBefore(edgeCanvas, itool.canvasElement);
+}
 
 function doEdge() {
-    if (!edgeCanvas) {
-        edgeCanvas = document.createElement('canvas');
-        var w = itool.imageElement.width;
-        var h = itool.imageElement.height;
-/*
-        var w = itool.imageElement.naturalWidth;
-        var h = itool.imageElement.naturalHeight;
-        if (w > 1200) {
-            h = (1200 / w) * h;
-            w = 1200;
-        }
-        if (h > 900) {
-            w = (900 / h) * w;
-            h = 900;
-        }
-*/
-        edgeCanvas.width = w;
-        edgeCanvas.height = h;
-        edgeCanvas.style.position = 'absolute';
-        edgeCanvas.style.width = '100%';
-        edgeCanvas.style.height = '100%';
-        edgeCanvas.style.opacity = 0.85;
-        edgeCanvas.style.pointerEvents = 'none';
-/*
-        edgeCanvas.style.transformOrigin = '50% 50%';
-        edgeCanvas.style.transform = itool.imageElement.style.transform;
-*/
-        //document.getElementsByTagName('body')[0].appendChild(edgeCanvas);
-        itool.containerElement.insertBefore(edgeCanvas, itool.canvasElement);
-
-/*
-        $('#edge-scrub').on('mousedown', function() { edgeScrubbing = true; });
-        $('#edge-scrub').on('mouseup', function(ev) {
-            ev.preventDefault();
-            edgeScrubbing = false;
-            doEdge();
-        });
-        $('#edge-scrub').on('mousemove', function(ev) {
-            ev.preventDefault();
-            if (!edgeScrubbing) return;
-            edgeA = 0 + 120 * (ev.offsetX / ev.target.offsetWidth);
-            edgeB = 0 + 200 * (ev.offsetY / ev.target.offsetHeight);
-            var ctx = edgeCanvas.getContext('2d');
-            var ctx2 = edgeDetect(ctx);
-            var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-            ctx.putImageData(imageData, 0, 0);
-        });
-*/
-        
+    if (!edgeCanvas) createEdgeCanvas();
+    if (isDorsalFin) {
+        console.warn('doEdge() calling doDorsal()');
+        return doDorsal();
     }
+
     var ctx = edgeCanvas.getContext('2d');
 fctx = ctx;
 
@@ -1162,3 +1145,237 @@ console.info('maxGap = %d', maxGap);
 }
 
 
+/////// stuff below has to do with dorsal
+
+
+function initDorsal() {
+    createEdgeCanvas();
+    var ctx = edgeCanvas.getContext('2d');
+    var ectx = edgeDetect(ctx);
+    doDorsal();
+    itool._constrain = {};
+}
+
+function doDorsal() {
+}
+
+function dorsalEventListeners() {
+    return {
+            contextmenu: function(ev) {
+    console.log('menu!!!');
+                ev.preventDefault();
+                ev.stopPropagation();
+            },
+
+            mousemove: function(ev) {
+                ev.preventDefault();
+
+                if (itool._mouseDown && (itool._mode & 16)) {
+//console.log('erase');
+                    eraseCount++;
+                    if (eraseCount > 7) {  //only save every few, cuz the spots cover a lot of space
+                        eraseCount = 0;
+                        itool._erase.push([ev.offsetX, ev.offsetY]);
+                        drawSpot(edgeCanvas.getContext('2d'), [ev.offsetX, ev.offsetY], '_erase');
+                    }
+                    return;
+                }
+
+                //console.warn('%o %d', itool._mouseDown, itool.dist([ev.offsetX, ev.offsetY], itool._mouseDown));
+                if (itool._mouseDown && (itool.dist([ev.offsetX, ev.offsetY], itool._mouseDown) > 10)) {
+                    itool._addingSpot = false;
+                    itool._selecting = true;
+                }
+
+                //t._insideSpot refers to if mouse went *down* on a spot
+                if (itool._insideSpot > -1) {
+                    clearLabelCanvas();
+                    imageLabel();
+                    itool.imageElement.style.cursor = 'grabbing';
+                    itool.imageElement.style.cursor = '-moz-grabbing';
+                    itool.imageElement.style.cursor = '-webkit-grabbing';
+console.log('dragging spot %d', itool._insideSpot);
+                    itool._labelCanvasNeedsClearing = true;
+
+                    drawSpot(itool.lctx, itool.spots[itool._insideSpot], '_ghost');
+                    drawSpot(itool.lctx, [ev.offsetX, itool.spots[itool._insideSpot][1]], '_hilite');
+                    return;
+                }
+
+                var s = itool.isNearSpot(ev.offsetX, ev.offsetY);
+/*
+                if (s > -1) {
+                    imageLabel(itool.toCanvasPoint(itool.spots[s]), itool.spots[s][2]);
+                } else {
+                    imageLabel();
+                }
+*/
+                if ((s > -1) && (itool._mode & 8)) {
+                    itool.imageElement.style.cursor = 'not-allowed';
+                } else if ((s > -1) && !(itool._mode & 16)) {
+console.log('near spot %d', s);
+                    //t.imageElement.style.cursor = 'context-menu';
+                    itool.imageElement.style.cursor = 'grab';
+                    itool.imageElement.style.cursor = '-moz-grab';
+                    itool.imageElement.style.cursor = '-webkit-grab';
+                } else {
+                    itool.imageElement.style.cursor = defaultCursor;
+                }
+
+                clearLabelCanvas();
+
+                if (itool._constrain.x || itool._constrain.y) {
+                    var x = itool._constrain.x || ev.offsetX;
+                    var y = itool._constrain.y || ev.offsetY;
+                    if (itool._constrain.x && itool._constrain.max && (y > itool._constrain.max)) y = itool._constrain.max;
+                    if (itool._constrain.x && itool._constrain.min && (y < itool._constrain.min)) y = itool._constrain.min;
+                    if (itool._constrain.y && itool._constrain.max && (x > itool._constrain.max)) x = itool._constrain.max;
+                    if (itool._constrain.y && itool._constrain.min && (x < itool._constrain.min)) x = itool._constrain.min;
+                    drawSpot(itool.lctx, [x, y], null);
+                    itool._labelCanvasNeedsClearing = true;
+                }
+/*
+                if (!itool._mode && (itool.spots.length > 0)) {
+                    if (itools.spots.length == 10) {
+                        return; //we are done, basically!
+                    } else if (itools.spots.length == 1) {
+                    } else {
+                    }
+                    return;
+                }
+*/
+
+                if (!itool._other) return;
+
+                itool.imageElement.style.cursor = 'move';
+//console.log('(%d,%d)', ev.offsetX, ev.offsetY);
+//console.log(ev);
+                //note: never ever do translate with either rotate/scale. i.e. no odd numbers other than 1
+                if (itool._mode & 4) {
+                    var r = itool.angleFromCenter(ev.offsetX, ev.offsetY) - itool._startAngle;
+                //if (r < 0) r += 360;
+/////console.log('%.1f (%.3f)', r * (180/Math.PI), r);
+                    itool.rotate(itool._originalRotation + r);
+                    hideEdgeCanvas();
+                    updateSaveStatus();
+                }
+                if (itool._mode & 2) {
+                    var c = itool.getCenter();
+                    var d = itool.dist(c[0], c[1], ev.offsetX, ev.offsetY);
+                    itool.scale(d / itool._startDist);// * itool._originalScale);
+                    hideEdgeCanvas();
+                    updateSaveStatus();
+                }
+                if (itool._mode & 1) {
+                    itool.translate(ev.offsetX - itool._mouseDown[0], ev.offsetY - itool._mouseDown[1]);
+                    hideEdgeCanvas();
+                    updateSaveStatus();
+                }
+                if (!itool._moved) clearCanvas();  //only on first move
+                itool._moved = true;
+            },
+/*
+            mouseover: function(ev) {
+                console.log('over!');
+            },
+*/
+            mousedown: function(ev) {
+                itool._addingSpot = false;
+                itool._other = false;
+                itool._insideSpot = itool.isNearSpot(ev.offsetX, ev.offsetY);
+                itool._selecting = false;
+
+                if ((itool._insideSpot > -1) && (itool._mode & 8)) {
+                    removeSpot(itool._insideSpot);
+                    itool._insideSpot = -1;
+                    return;
+                }
+
+                if ((itool._insideSpot > -1) && !(itool._mode & 16)) {
+                    console.log('spot=%d', itool._insideSpot);
+                    return false;
+                }
+
+/*
+                var ppt = itool.isNearPathPoint(ev.offsetX, ev.offsetY);
+//console.info('ppt? %o', ppt);
+                if (ppt) {
+                    itool._insideSpot = addSpot(ppt[0], ppt[1]);
+console.log('inside path point %d', itool._insideSpot);
+return false;
+                }
+*/
+
+                itool._addingSpot = true;
+                itool._mouseDown = [ev.offsetX, ev.offsetY];
+                if (!itool._mode) return;
+
+                itool._other = true;
+
+                itool._startAngle = itool.angleFromCenter(ev.offsetX, ev.offsetY);
+                itool._originalRotation = itool.getRotation();
+                var c = itool.getCenter();
+                itool._startDist = itool.dist(c[0], c[1], ev.offsetX, ev.offsetY);
+                itool._originalScale = itool.getScale();
+            },
+
+            mouseup: function(ev) {
+                itool.imageElement.style.cursor = defaultCursor;
+
+                if (itool._mouseDown && (itool._mode & 16)) {
+                    itool._addingSpot = false;
+console.log('done erase? %o', itool._erase);
+                    //note: doEdge() will be performed by refreshEdgeCanvas() below
+                }
+
+                if (itool._insideSpot > -1) {
+                    var s = -2;
+                    //var s = itool.isNearSpot(ev.offsetX, ev.offsetY);
+                    if (s != itool._insideSpot) {
+                        itool.spots[itool._insideSpot][0] = ev.offsetX;
+                        //itool.spots[itool._insideSpot][1] = ev.offsetY;
+                        spotsUpdate();
+                    }
+                    clearLabelCanvas();
+                }
+                if (itool._addingSpot && !itool._moved) {
+                    var x = ev.offsetX;
+                    var y = ev.offsetY;
+                    if (itool._constrain && itool._constrain.x) x = itool._constrain.x;
+                    if (itool._constrain && itool._constrain.y) y = itool._constrain.y;
+                    if (itool.spots.length < 10) {
+                        addSpot(x, y);
+                        //now lets check if we need to set up constraints for next spot
+                        if (itool.spots.length == 1) {
+                            itool._constrain = { x: x, min: y };
+                        } else if (itool.spots.length > 9) { //for when 10th spot is added
+                            itool._constrain = {};
+                        } else if (itool.spots.length == 9) {
+                            itool._constrain = { y: itool.spots[0][1] };
+                        } else if (itool.spots.length > 1) {
+                            var quarter = (itool.spots[1][1] - itool.spots[0][1]) / 4;
+console.warn('quarter %f', quarter);
+                            itool._constrain = { y: itool.spots[0][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter };
+                        }
+                    } else {
+                        itool._constrain = {};
+                    }
+                }
+                refreshCanvas();
+                refreshEdgeCanvas();
+                itool._addingSpot = false;
+                itool._insideSpot = -1;
+                itool._mouseDown = false;
+                itool._moved = false;
+                itool._other = false;
+                itool._selecting = false;
+            },
+/*
+            mouseout: function(ev) {
+                itool._mouseDown = false;
+                //t.rotate(itool._originalRotation);
+            },
+*/
+                
+        };
+}
