@@ -39,6 +39,14 @@ SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(imageID);
 String num = spv.getCorrespondingEncounterNumber();
 Encounter enc = myShepherd.getEncounter(num);
 
+List<Keyword> imageKeywords = spv.getKeywords();
+boolean isDorsalFin = false;
+if (imageKeywords != null) {
+	for (Keyword k : imageKeywords) {
+		if (k.getReadableName().equals("dorsal")) isDorsalFin = true;
+	}
+}
+
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 //String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
@@ -181,6 +189,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 var encounterNumber = '<%=num%>';
 var imageID = '<%=imageID%>';
+var isDorsalFin = <%=isDorsalFin%>;
 
 
 
