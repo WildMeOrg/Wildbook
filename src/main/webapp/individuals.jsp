@@ -1575,7 +1575,7 @@ xxxxxx
   <td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
 </tr>
 <tr>
-  <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a
+  <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a target="_blank"
     href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
   </a></span></td>
 </tr>
