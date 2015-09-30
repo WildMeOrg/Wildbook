@@ -78,7 +78,27 @@
     };
 
 // mode, bits -> RST
-function setTool() {
+function setTool(skipDialog) {
+    if (!skipDialog) {
+        userMessage('choose <b>type of image</b>.');
+        $( "#dorsal-dialog" ).dialog({
+            modal: true,
+            buttons: {
+                'fluke': function() {
+                    $(this).dialog('close');
+                    setTool(true);
+                },
+                'dorsal fin': function() {
+                    isDorsalFin = true;
+                    $(this).dialog('close');
+                    setTool(true);
+                }
+            }
+        });
+        return;
+    }
+
+    userMessage('initiating...');
     $('body').on('keyup', function(ev) {
         var map = {83: 0, 68: 8, 77: 1, 90: 2, 82: 4, 88: 6, 69: 16};
         if (map[ev.which] == undefined) return;
