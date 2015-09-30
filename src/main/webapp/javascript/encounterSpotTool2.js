@@ -131,7 +131,7 @@ console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
     });
 
     if (isDorsalFin) {
-        userMessage('start at <b>tip</b> of dorsal and create <b>intersection points</b>');
+        userMessage('start by placing a spot at the <b>rear-facing tip</b> of dorsal fin.');
         initDorsal();
     } else {
         userMessage('ready to pick <b>3 spots</b> at <b>tips</b> and <b>center</b>');
@@ -527,10 +527,25 @@ function removeSpot(i) {
 }
 
 function spotsUpdate() {
-    if (itool.spots.length < 3) {
-        userMessage('required spots needed: <b>' + (3 - itool.spots.length) + '</b>  (you can <b>drag</b> spots to move them.)');
-    } else if (itool.spots.length > 2) {
-        doEdge();
+    if (isDorsalFin) {
+        if (itool.spots.length == 1) {
+            userMessage('move <b>downward</b> and create a spot at the <b>bottom intersection</b> of the dorsal fin.');
+        } else if (itool.spots.length == 2) {
+            userMessage('move <b>across</b> the fin and place a spot at the <b>intersection with the edge</b>.');
+        } else if (itool.spots.length < 9) {
+            userMessage('continue <b>upward</b>, placing spots at <b>intersections with the edges</b> of the fin.');
+        } else if (itool.spots.length == 9) {
+            userMessage('place final spot across from the original tip point, where it <b>intersects the side</b> of the fin.');
+        } else if (itool.spots.length == 10) {
+            userMessage('spot placement <b>complete</b>.  spots can be moved and/or saved.');
+        }
+
+    } else {
+        if (itool.spots.length < 3) {
+            userMessage('required spots needed: <b>' + (3 - itool.spots.length) + '</b>  (you can <b>drag</b> spots to move them.)');
+        } else if (itool.spots.length > 2) {
+            doEdge();
+        }
     }
 }
 
