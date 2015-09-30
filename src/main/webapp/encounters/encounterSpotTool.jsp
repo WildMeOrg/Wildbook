@@ -39,6 +39,7 @@ SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(imageID);
 String num = spv.getCorrespondingEncounterNumber();
 Encounter enc = myShepherd.getEncounter(num);
 
+/*
 List<Keyword> imageKeywords = spv.getKeywords();
 boolean isDorsalFin = false;
 if (imageKeywords != null) {
@@ -46,6 +47,7 @@ if (imageKeywords != null) {
 		if (k.getReadableName().equals("dorsal")) isDorsalFin = true;
 	}
 }
+*/
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -195,7 +197,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 var encounterNumber = '<%=num%>';
 var imageID = '<%=imageID%>';
-var isDorsalFin = <%=isDorsalFin%>;
+var isDorsalFin = false;
 
 
 
@@ -323,6 +325,11 @@ console.log(pdata);
 </div>
 
 </div>
+
+<div id="dorsal-dialog">
+Is this an image of a <b>fluke (tail)</b> or a <b>dorsal fin</b>?
+</div>
+
 <jsp:include page="../footer.jsp" flush="true"/>
 
 
