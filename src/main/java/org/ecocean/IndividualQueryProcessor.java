@@ -608,6 +608,35 @@ public class IndividualQueryProcessor {
     }
     //end hasPhoto filters-----------------------------------------------
 
+    
+    //------------------------------------------------------------------
+    //hasSpots filters-------------------------------------------------
+    if(request.getParameter("hasSpots")!=null){
+          prettyPrint.append("Has patterning spots.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc413) && enc413.spots != null";}
+            else if (filter.indexOf("enc413.spots != null")==-1){filter+=(" && encounters.contains(enc413) && enc413.spots != null ");}
+
+            prettyPrint.append("<br />");
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc413")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc413";}
+            
+    }
+    //end hasSpots filters-----------------------------------------------
+
+    
+    //------------------------------------------------------------------
+    //hasNoSpots filters-------------------------------------------------
+    if(request.getParameter("hasNoSpots")!=null){
+          prettyPrint.append("Has no patterning spots.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="!encounters.contains(enc414) && enc414.spots != null";}
+            else if (filter.indexOf("enc414.spots != null")==-1){filter+=(" && !encounters.contains(enc414) && enc414.spots != null ");}
+
+            prettyPrint.append("<br />");
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc414")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc414";}
+            
+    }
+    //end hasNoSpots filters-----------------------------------------------
 
 
 
