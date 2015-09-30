@@ -426,7 +426,6 @@ function save() {
     updateSaveStatus(true);
     imageMessage();
     userMessage('saving...');
-    if (isDorsalFin) itool.spots = sortSpotsDorsal(itool.spots);
 
     var data = {
         id: imageID,
@@ -449,21 +448,11 @@ function save() {
     }
 */
 
-    if (isDorsalFin) { //need to store in specific order
-        var s = sortSpotsDorsal(itool.spots);
-        for (var i = 0 ; i < s.length ; i++) {
-            var cp = itool.toCanvasPoint(s[i]);
-            cp[0] *= scale;
-            cp[1] *= scale;
-            data.points.push(cp);
-        }
-    } else {
-        for (var i = 0 ; i < itool.spots.length ; i++) {
-            var cp = itool.toCanvasPoint(itool.spots[i]);
-            cp[0] *= scale;
-            cp[1] *= scale;
-            data.points.push(cp);
-        }
+    for (var i = 0 ; i < itool.spots.length ; i++) {
+        var cp = itool.toCanvasPoint(itool.spots[i]);
+        cp[0] *= scale;
+        cp[1] *= scale;
+        data.points.push(cp);
     }
 
     var pathSpots = [];
@@ -476,7 +465,7 @@ function save() {
         data.points.push(cp);
     }
 
-console.warn('sending data: %o', data); return;
+console.warn('sending data: %o', data); //return;
     $.ajax({
         url: '../SubmitSpotsAndTransformImage',
         type: 'POST',
@@ -1177,6 +1166,7 @@ console.info('maxGap = %d', maxGap);
 
 
 function initDorsal() {
+    itool.paths = [];
     createEdgeCanvas();
     var ctx = edgeCanvas.getContext('2d');
     var ectx = edgeDetect(ctx);
@@ -1406,33 +1396,6 @@ console.warn('quarter %f', quarter);
 */
                 
         };
-}
-
-//dorsal spots need a specific order for sake of storage on server-side. basically inverted left side of fluke
-// TODO do we need to care about types?
-function sortSpotsDorsal(s) {
-    if (s.length != 10) return [];  //invalid (for save state)
-    var ord = [];  //will be ordered spots
-    var vx = s[0][0];  //vertical line at back of fin
-    var hy = s[1][1];  //horizontal line at bottom of fin
-    //var flip = 1;
-    //if (s[2][0] > vx) flip = -1;  //right side, so need to flip values
-
-    ord.push([vx - Math.abs(vx - s[2][0]), s[2][1]]);
-    ord.push([vx, hy - (s[0][1] - hy)]);
-    ord.push([vx, hy]);
-
-    for (var i = 0 ; i < 3 ; i++) {  //3 line segments walking up the fin
-        var seg = [];
-        seg.push([vx - Math.abs(vx - s[i*2+3][0]), hy - (s[i*2+3][1] - hy)]);
-        seg.push([vx - Math.abs(vx - s[i*2+4][0]), hy - (s[i*2+4][1] - hy)]);
-        //at this point, we may have points in the wrong order, so we need to have smaller x (left-most) come first
-        if (seg[0][0] > seg[1][0]) seg.push(seg.shift());
-        ord.push(seg[0], seg[1]);
-    }
-
-    ord.push([vx - Math.abs(vx - s[9][0]), hy - (s[9][1] - hy)]);  //9th pt is opposite tip
-    return ord;
 }
 
 
