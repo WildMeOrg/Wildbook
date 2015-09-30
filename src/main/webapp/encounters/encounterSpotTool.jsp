@@ -97,7 +97,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	<style type="text/css">
 
 		#target-img {
-			width: 100%;
+			width: 97%;
 			pointer-events: none;
 		}
 
@@ -111,7 +111,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			left: 20px;
 			top: 200px;
 			width: 200px;
-			height: 500px;
+			height: 750px;
 			background-color: #AAA;
 			border: solid 2px #888;
 			padding: 8px;
@@ -178,6 +178,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
 		.detail {
 			margin: 12px 0 7px 0;
 			font-size: 0.8em;
+		}
+
+		#image-workarea {
+			position: relative;
+			margin-left: 125px;
+			width: 97%;
 		}
 	</style>
 
@@ -310,7 +316,7 @@ console.log(pdata);
 
 </div>
 
-<div style="position: relative">
+<div id="image-workarea">
 	<div id="user-message"></div>
 	<div id="image-message"></div>
 	<img id="target-img" src="<%=imgSrc%>" onLoad="setTool()" />
