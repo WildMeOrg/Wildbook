@@ -1585,6 +1585,9 @@ inShepherd.closeDBTransaction();
   </td>
 </tr>
 
+<%
+if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
+%>
 <tr>
   <td>
 
@@ -1614,7 +1617,9 @@ inShepherd.closeDBTransaction();
   </td>
 </tr>          
 
-
+<%
+}
+%>
 		
 
 
