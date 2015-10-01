@@ -115,6 +115,7 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
     }
     JsonArray jspots = jobj.getAsJsonArray("points");
     if (jspots != null) {
+        boolean isDorsalFin = false;
         double notchX = -1;
         //we only make ref spots out of the first 3 .. we probably should check type tho in case order is wrong? 
         int rmax = jspots.size();
@@ -128,6 +129,23 @@ System.out.println("refspot: " + x + ", " + y);
             refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
             if (i == 1) notchX = x;
         }
+
+        if ((refSpots.size() > 1) && (refSpots.get(0).getCentroidX() == refSpots.get(1).getCentroidX())) isDorsalFin = true;
+
+        if (isDorsalFin && (jspots.size() >= 10)) {  //dorsal has 10 reference spots that we care about, so we grab those too
+            notchX = -1;  //mostly irrelevant for dorsal fins
+            for (int i = 3 ; i < 10 ; i++) {
+                JsonArray pt = jspots.get(i).getAsJsonArray();
+                double x = pt.get(0).getAsDouble();
+                double y = pt.get(1).getAsDouble();
+                //String type = pt.get(2).getAsString();
+System.out.println("refspot [b]: " + x + ", " + y);
+                refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
+                if (i == 1) notchX = x;
+            }
+            rmax = 10;  //so spots can pick up from here below
+        }
+
         //now we add any remaining spots to the appropriate side
         for (int i = rmax ; i < jspots.size() ; i++) {
             JsonArray pt = jspots.get(i).getAsJsonArray();

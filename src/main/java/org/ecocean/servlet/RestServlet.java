@@ -79,6 +79,7 @@ public class RestServlet extends HttpServlet
 
     PersistenceManagerFactory pmf;
     PersistenceNucleusContext nucCtx;
+    HttpServletRequest thisRequest;
 
     /* (non-Javadoc)
      * @see javax.servlet.GenericServlet#destroy()
@@ -208,8 +209,8 @@ public class RestServlet extends HttpServlet
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
 
-				String encodings = req.getHeader("Accept-Encoding");
-				boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
+                String encodings = req.getHeader("Accept-Encoding");
+                boolean useCompression = ((encodings != null) && (encodings.indexOf("gzip") > -1));
 
         try
         {
@@ -229,7 +230,7 @@ public class RestServlet extends HttpServlet
                         query.getFetchPlan().addGroup(fetchParam);
                     }
                     Object result = query.execute();
-										filterResult(result);
+                    filterResult(result);
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
@@ -270,7 +271,7 @@ public class RestServlet extends HttpServlet
                         query.getFetchPlan().addGroup(fetchParam);
                     }
                     Object result = query.execute();
-										filterResult(result);
+                    filterResult(result);
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
@@ -343,7 +344,7 @@ public class RestServlet extends HttpServlet
                             pm.currentTransaction().begin();
                             Query query = pm.newQuery("JDOQL", queryString);
                             List result = (List)query.execute();
-														filterResult(result);
+                            filterResult(result);
                             JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
                                 ((JDOPersistenceManager)pm).getExecutionContext());
                             tryCompress(resp, jsonobj.toString(), useCompression);
@@ -401,7 +402,7 @@ public class RestServlet extends HttpServlet
                 {
                     pm.currentTransaction().begin();
                     Object result = pm.getObjectById(id);
-										filterResult(result);
+                    filterResult(result);
                     JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
                         ((JDOPersistenceManager)pm).getExecutionContext());
                     resp.getWriter().write(jsonobj.toString());
@@ -466,7 +467,7 @@ public class RestServlet extends HttpServlet
     throws ServletException, IOException
     {
       
-      getPMF(req);
+        getPMF(req);
         if (req.getContentLength() < 1)
         {
             resp.setContentLength(0);
@@ -513,40 +514,40 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-						///////boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-						boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
+                        ///////boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
+                        boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
 
-						Method restAccess = null;
-						boolean restAccessOk = true;
-						try {
-							restAccess = pc.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class });
-						} catch (NoSuchMethodException nsm) {
-							//nothing to do
-						}
+                        Method restAccess = null;
+                        boolean restAccessOk = true;
+                        try {
+                            restAccess = pc.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class });
+                        } catch (NoSuchMethodException nsm) {
+                            //nothing to do
+                        }
 
-						if (restAccess != null) {
-							try {
-								restAccess.invoke(pc, req);
-							} catch (Exception ex) {
-								restAccessOk = false;
-								//this is the expected result when we are blocked (user not allowed)
+                        if (restAccess != null) {
+                            try {
+                                restAccess.invoke(pc, req);
+                            } catch (Exception ex) {
+                                restAccessOk = false;
+                                //this is the expected result when we are blocked (user not allowed)
 System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
-							}
-						}
+                            }
+                        }
 */
 
-						if (restAccessOk) {
-            	Object obj = pm.makePersistent(pc);
-            	JSONObject jsonobj2 = RESTUtils.getJSONObjectFromPOJO(obj, ec);
-            	resp.getWriter().write(jsonobj2.toString());
-            	resp.setHeader("Content-Type", "application/json");
-            	pm.currentTransaction().commit();
-						} else {
-							throw new NucleusUserException("Access denied");  //seems like what we should throw.  does it matter?
-						}
+                        if (restAccessOk) {
+                Object obj = pm.makePersistent(pc);
+                JSONObject jsonobj2 = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+                resp.getWriter().write(jsonobj2.toString());
+                resp.setHeader("Content-Type", "application/json");
+                pm.currentTransaction().commit();
+                        } else {
+                            throw new NucleusUserException("Access denied");  //seems like what we should throw.  does it matter?
+                        }
         }
         catch (ClassNotResolvedException e)
         {
@@ -627,7 +628,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     throws ServletException, IOException
     {
       
-      getPMF(req);
+        getPMF(req);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
         {
@@ -669,8 +670,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
             }
             else
             {
-								//we disable any delete for now, until permission testing complete   TODO
-        				throw new NucleusUserException("DELETE access denied");
+                                //we disable any delete for now, until permission testing complete   TODO
+                        throw new NucleusUserException("DELETE access denied");
 /*
                 // Delete the object with the supplied id
                 pm.currentTransaction().begin();
@@ -742,7 +743,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
     protected void doHead(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-      getPMF(req);
+        getPMF(req);
         String className = getNextTokenAfterSlash(req);
         ClassLoaderResolver clr = nucCtx.getClassLoaderResolver(RestServlet.class.getClassLoader());
         AbstractClassMetaData cmd = nucCtx.getMetaDataManager().getMetaDataForEntityName(className);
@@ -832,66 +833,99 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
         }
     }
 
-		boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
+        boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
 System.out.println(jsonobj.toString());
 System.out.println(obj);
 System.out.println(obj.getClass());
-			boolean ok = true;
-			Method restAccess = null;
-			try {
-				restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class, JSONObject.class });
-			} catch (NoSuchMethodException nsm) {
+            boolean ok = true;
+            Method restAccess = null;
+            try {
+                restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class, JSONObject.class });
+            } catch (NoSuchMethodException nsm) {
 System.out.println("no such method??????????");
-				//nothing to do
-			}
-			if (restAccess == null) return true;  //if method doesnt exist, counts as good
+                //nothing to do
+            }
+            if (restAccess == null) return true;  //if method doesnt exist, counts as good
 
 System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
-			//when .restAccess() is called, it should throw an exception to signal not allowed
-			try {
-				restAccess.invoke(obj, req, jsonobj);
-			} catch (Exception ex) {
-				ok = false;
+            //when .restAccess() is called, it should throw an exception to signal not allowed
+            try {
+                restAccess.invoke(obj, req, jsonobj);
+            } catch (Exception ex) {
+                ok = false;
 System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
-			}
-			return ok;
-		}
+            }
+            return ok;
+        }
 
 
-		void filterResult(Object result) throws NucleusUserException {
-			Class cls = null;
-			if (result instanceof Collection) {
-				for (Object obj : (Collection)result) {
-					cls = obj.getClass();
-					if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
-				}
-			} else {
-				cls = result.getClass();
-				if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
-			}
-		}
+        void filterResult(Object result) throws NucleusUserException {
+System.out.println("filterResult! thisRequest");
+System.out.println(thisRequest);
+            Class cls = null;
+            if (result instanceof Collection) {
+                for (Object obj : (Collection)result) {
+                    cls = obj.getClass();
+                    if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+                }
+            } else {
+                cls = result.getClass();
+                if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
+            }
+
+/*
+            //TODO note, after sanitizing, object *may* be an empty(ish) clone... we should probably make sure (how?) to not save it or modify etc.
+            Method collabAccess = null;
+            try {
+                collabAccess = cls.getMethod("sanitized", new Class[] { HttpServletRequest.class });
+            } catch (NoSuchMethodException nsm) {
+                //nothing to do
+            }
+            if (collabAccess == null) return;
+
+            if (result instanceof Collection) {
+                Collection newObjs = new Collection();
+                for (Object obj : (Collection)result) {
+                    newObjs.add(collabAccess.invoke(obj, thisRequest));
+                }
+                result = newObjs;
+            } else {
+                result = collabAccess.invoke(obj, thisRequest);
+            }
+*/
+
+/*
+            try {
+                collabAccess.invoke(obj, req, jsonobj);
+            } catch (Exception ex) {
+                ok = false;
+System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
+            }
+*/
+        }
 
 
-		void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
-			if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
-				resp.getWriter().write(s);
-			} else {
-				resp.setHeader("Content-Encoding", "gzip");
-    		OutputStream o = resp.getOutputStream();
-    		GZIPOutputStream gz = new GZIPOutputStream(o);
-				gz.write(s.getBytes());
-				gz.flush();
-				gz.close();
-				o.close();
-			}
-		}
-		
-		private void getPMF(HttpServletRequest req){
-		  String context="context0";
-		  context=ServletUtilities.getContext(req);
-		  pmf=ShepherdPMF.getPMF(context);
-		  
-		}
+        void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
+            if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
+                resp.getWriter().write(s);
+            } else {
+                resp.setHeader("Content-Encoding", "gzip");
+            OutputStream o = resp.getOutputStream();
+            GZIPOutputStream gz = new GZIPOutputStream(o);
+                gz.write(s.getBytes());
+                gz.flush();
+                gz.close();
+                o.close();
+            }
+        }
+        
+        private void getPMF(HttpServletRequest req){
+            String context="context0";
+            context=ServletUtilities.getContext(req);
+            pmf=ShepherdPMF.getPMF(context);
+            this.nucCtx = ((JDOPersistenceManagerFactory)pmf).getNucleusContext();
+            thisRequest = req;
+        }
 
 
 }
