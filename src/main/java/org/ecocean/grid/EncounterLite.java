@@ -128,6 +128,11 @@ public class EncounterLite implements java.io.Serializable {
     }
 
     //get spots
+
+  if (isDorsalFin(enc)) {
+    processDorsalSpots(enc);
+
+  } else {
     if (enc.getSpots() != null) {
 
       processLeftSpots(enc.getSpots());
@@ -151,6 +156,8 @@ public class EncounterLite implements java.io.Serializable {
 
 
     }
+  } //non-dorsal spots
+
 
   }
 
@@ -3514,6 +3521,47 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     return new java.awt.geom.Point2D.Double(x,y);
 }
     
-    
+
+    private boolean isDorsalFin(Encounter enc) {
+        ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
+        if ((spots == null) || (spots.size() < 2)) return false;
+        return (spots.get(0).getCentroidX() == spots.get(1).getCentroidX());
+    }
+
+    private void processDorsalSpots(Encounter enc) {
+        //leftSpots are from paths (edges) and leftReferenceSpots come from ref pts
+        if (enc.getSpots() != null) processLeftSpots(enc.getSpots());  //easy enough, just like flukes
+
+        ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
+        //for matching purposes, i am allowing just the 3 "main" reference points as well as full 10.. not sure if this is best course of action?  TODO
+        if ((spots.size() < 10) && (spots.size() != 3)) return;
+
+        ArrayList<SuperSpot> ord = new ArrayList<SuperSpot>();  //going to be the properly ordered and inverted set of spots
+        double vx = spots.get(0).getCentroidX();  //vertical line at back of fin
+        double hy = spots.get(0).getCentroidY();  //horizontal line at bottom of fin
+
+        //now we do some flipping so it is flukier
+        ord.add(new SuperSpot(vx, hy));
+        ord.add(new SuperSpot(vx, hy + hy - spots.get(1).getCentroidY()));
+        ord.add(new SuperSpot(vx - Math.abs(vx - spots.get(2).getCentroidX()), spots.get(2).getCentroidY()));
+
+        if (spots.size() > 3) {
+            for (int i = 0 ; i < 3 ; i++) {  //3 line segments walking up fin
+                SuperSpot a = new SuperSpot(vx - Math.abs(vx - spots.get(i*2+3).getCentroidX()), hy + hy - spots.get(i*2+3).getCentroidY());
+                SuperSpot b = new SuperSpot(vx - Math.abs(vx - spots.get(i*2+4).getCentroidX()), hy + hy - spots.get(i*2+4).getCentroidY());
+                if (a.getCentroidX() > b.getCentroidX()) {  //need order to be leftmost first
+                    ord.add(b);
+                    ord.add(a);
+                } else {
+                    ord.add(a);
+                    ord.add(b);
+                }
+            }
+            ord.add(new SuperSpot(vx - Math.abs(vx - spots.get(9).getCentroidX()), hy + hy - spots.get(9).getCentroidY()));  //9th one is opposite tip
+        }
+
+        processLeftReferenceSpots(ord);
+    }
+
 }
 
