@@ -40,9 +40,8 @@
             label: 'right tip'
         },
         _line: {
-            xstrokeStyle: 'rgba(255,255,0,0.4)',
-            strokeStyle: 'white',
-            lineWidth: 25,
+            strokeStyle: 'rgba(255,255,100,0.7)',
+            lineWidth: 3,
             lineCap: 'round'
         },
         _dim: {
@@ -422,6 +421,7 @@ function updateScanTool() {
 
 function drawFinalPaths() {
     if (!itool.paths || (!itool.paths[0] && !itool.paths[1])) return;
+    refreshEdgeCounts();
     var imageData = itool.ctx.getImageData(0, 0, itool.ctx.canvas.width, itool.ctx.canvas.height);
     //var rgb = [ [255,255,100], [0,100,255] ];
     var paths = [];
@@ -595,6 +595,7 @@ function backToEncounter() {
 function refreshCanvas() {
     clearCanvas();
     drawSpots();
+    drawLines();
     drawFinalPaths();
 }
 
@@ -631,6 +632,22 @@ console.log('%d,%d -> %o', itool.spots[i][0], itool.spots[i][1], p);
 }
 
 
+function drawLines() {
+    if (!isDorsalFin) return;
+//console.warn('LINE --------------------------------------------------');
+    for (var i = 0 ; i < 3 ; i++) {
+        if (!itool.spots[i*2+3] || !itool.spots[i*2+4]) continue;
+        drawLine(itool.ctx, itool.spots[i*2+3], itool.spots[i*2+4], '_line');
+    }
+    if (itool.spots[1] && itool.spots[9]) {
+        drawLine(itool.ctx, itool.spots[1], itool.spots[9], '_line');
+    }
+    if (itool.spots[0] && itool.spots[2]) {
+        drawLine(itool.ctx, itool.spots[0], itool.spots[2], '_line');
+    }
+}
+
+
 function contextSetStyles(ctx, style) {
     if (!style) return;
     for (var s in style) {
@@ -653,6 +670,17 @@ function drawSpot(ctx, p, styleKey, r) {
     ctx.arc(cp[0], cp[1], r, 0, 2 * Math.PI);
     if (!spotStyle[styleKey] || (spotStyle[styleKey].fillStyle != 'none')) ctx.fill();
     if (!spotStyle[styleKey] || (spotStyle[styleKey].strokeStyle != 'none')) ctx.stroke();
+}
+
+
+function drawLine(ctx, p1, p2, styleKey) {
+    contextSetStyles(ctx, spotStyle[styleKey]);
+    ctx.beginPath();
+    var cp1 = itool.toCanvasPoint(p1);
+    ctx.moveTo(cp1[0], cp1[1]);
+    var cp2 = itool.toCanvasPoint(p2);
+    ctx.lineTo(cp2[0], cp2[1]);
+    ctx.stroke();
 }
 
 
@@ -766,7 +794,7 @@ console.log('right path -> %o', itool.paths[1]);
     if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
 
     if (enoughPath(itool.paths[0]) && enoughPath(itool.paths[1])) {
-        userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
+        if (!isDorsalFin) userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('both edges found! :)');
         drawFinalPaths();
 /*
@@ -776,15 +804,15 @@ console.log('right path -> %o', itool.paths[1]);
         itool.ctx.putImageData(id, 0, 0);
 */
     } else if (enoughPath(itool.paths[0])) {
-        userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        if (!isDorsalFin) userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('LEFT edge found');
         drawFinalPaths();
     } else if (enoughPath(itool.paths[1])) {
-        userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        if (!isDorsalFin) userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('RIGHT edge found');
         drawFinalPaths();
     } else {
-        userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
+        if (!isDorsalFin) userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
         imageMessage('incomplete edges');
     }
 
@@ -823,6 +851,16 @@ console.warn('===(%d,%d)===================', x,y);
     return ctx2;
 }
 
+
+function refreshEdgeCounts() {
+    if (!itool.paths || (!itool.paths[0] && !itool.paths[1])) {
+        $('#edge-counts').hide();
+    }
+    var s = '';
+    if (itool.paths[0].length > 0) s += 'L:' + itool.paths[0].length + 'pts ';
+    if (itool.paths[1].length > 0) s += 'R:' + itool.paths[1].length + 'pts';
+    $('#edge-counts').html(s).show();
+}
 
 //make an attempt to fill out paths using inbetween points
 function tryPartialPaths(imageData) {
@@ -1469,6 +1507,7 @@ console.log('spots: %o', spots);
     var maxGap = 8;
     clearCanvas();
     drawSpots();
+    drawLines();
     //var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     var imageData = edgeCanvas.getContext('2d').getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     itool.paths = [];
@@ -1504,7 +1543,7 @@ console.log('right path -> %o', itool.paths[1]);
     if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
 
     if (enoughPath(itool.paths[0]) && enoughPath(itool.paths[1])) {
-        userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
+        //userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
         imageMessage('both edges found! :)');
         drawFinalPaths();
 /*
@@ -1514,15 +1553,15 @@ console.log('right path -> %o', itool.paths[1]);
         itool.ctx.putImageData(id, 0, 0);
 */
     } else if (enoughPath(itool.paths[0])) {
-        userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        //userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('LEFT edge found');
         drawFinalPaths();
     } else if (enoughPath(itool.paths[1])) {
-        userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        //userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
         imageMessage('RIGHT edge found');
         drawFinalPaths();
     } else {
-        userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
+        //userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
         imageMessage('incomplete edges');
     }
 
