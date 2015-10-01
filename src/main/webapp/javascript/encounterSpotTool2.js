@@ -80,6 +80,7 @@
 // mode, bits -> RST
 function setTool(skipDialog) {
     if (!skipDialog) {
+isDorsalFin = true; setTool(true); return;
         userMessage('choose <b>type of image</b>.');
         $( "#dorsal-dialog" ).dialog({
             modal: true,
@@ -694,8 +695,8 @@ function createEdgeCanvas() {
 function doEdge() {
     if (!edgeCanvas) createEdgeCanvas();
     if (isDorsalFin) {
-        console.warn('doEdge() calling doDorsal()');
-        return doDorsal();
+        console.warn('doEdge() calling doEdgeDorsal()');
+        return doEdgeDorsal();
     }
 
     var ctx = edgeCanvas.getContext('2d');
@@ -831,6 +832,7 @@ function tryPartialPaths(imageData) {
         if (itool.paths[pn]) continue;
         //note assuming spots are sorted here since being called right after full path attempts -- make note if that changes, they need to be sorted
         var s = halfSpots(pn);
+//console.log('halfSpots -> %o', s); return;
         if (s.length < 3) continue;  //not much use to try!
         itool.paths[pn] = [];
         for (var i = 0 ; i < (s.length - 1) ; i++) {
@@ -857,6 +859,7 @@ function enoughPath(path) {
 
 //this assumes itool.spots has been sorted
 function halfSpots(pn) {
+    if (isDorsalFin) return halfSpotsDorsal(pn);
     if (!itool.spots || (itool.spots.length < 0)) return [];
     var notchX = -1;
     for (var i = 0 ; i < 3 ; i++) {
@@ -1190,12 +1193,10 @@ function initDorsal() {
     createEdgeCanvas();
     var ctx = edgeCanvas.getContext('2d');
     var ectx = edgeDetect(ctx);
-    doDorsal();
+    doEdgeDorsal();
     itool._constrain = {};
 }
 
-function doDorsal() {
-}
 
 function dorsalEventListeners() {
     return {
@@ -1383,17 +1384,22 @@ console.log('done erase? %o', itool._erase);
                     if (itool._constrain && itool._constrain.y) y = itool._constrain.y;
                     if (itool.spots.length < 10) {
                         addSpot(x, y);
+                        //note, to give the data flukiness, we want the first stop input to end up swapped with second, so it is analogous to the "notch"
+                        if (itool.spots.length == 2) {
+                            itool.spots.push(itool.spots.shift());
+                        }
+
                         //now lets check if we need to set up constraints for next spot
                         if (itool.spots.length == 1) {
                             itool._constrain = { x: x, min: y };
                         } else if (itool.spots.length > 9) { //for when 10th spot is added
                             itool._constrain = {};
                         } else if (itool.spots.length == 9) {
-                            itool._constrain = { y: itool.spots[0][1] };
+                            itool._constrain = { y: itool.spots[1][1] };
                         } else if (itool.spots.length > 1) {
-                            var quarter = (itool.spots[1][1] - itool.spots[0][1]) / 4;
+                            var quarter = (itool.spots[0][1] - itool.spots[1][1]) / 4;
 console.warn('quarter %f', quarter);
-                            itool._constrain = { y: itool.spots[0][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter };
+                            itool._constrain = { y: itool.spots[1][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter };
                         }
                     } else {
                         itool._constrain = {};
@@ -1416,6 +1422,124 @@ console.warn('quarter %f', quarter);
 */
                 
         };
+}
+
+
+function sortSpotsDorsal(s) {
+    if (!s) return;
+    var ord = s.concat();  //clone array
+    //the first 3 spots should be sorted already in "fluke-like" order
+    if (ord[0]) ord[0][2] = 'tip';
+    if (ord[1]) ord[1][2] = 'notch';
+    if (ord[2]) ord[2][2] = 'tip';
+    //the rest of the points we want to sort so odd-numbered are on the 0-1 side, and even on the 1-2 side (for doing partial path)
+    var dir = Math.sign(s[2][0] - s[0][0]);  // +1 means right side of fluke, -1 means left side of fluke
+    for (var i = 0 ; i < 3 ; i++) {
+        if (!s[i*2+3] || !s[i*2+4]) continue;
+        if ((s[i*2+3][0] * dir) > (s[i*2+4][0] * dir)) {  //need to flip these two
+console.warn('flipping %d and %d', i*2+3, i*2+4);
+            ord[i*2+3] = s[i*2+4].concat();
+            ord[i*2+4] = s[i*2+3].concat();
+        }
+    }  //note spot 9 is right where it needs to be
+    return ord;
+}
+
+
+function doEdgeDorsal() {
+    //if (!edgeCanvas) createEdgeCanvas();  //should never be needed for dorsal (should be done)
+    var ctx = edgeCanvas.getContext('2d');
+    var ctx2 = edgeDetect(ctx);
+    //var scale = itool.imageElement.naturalWidth / itool.imageElement.width;
+    var scale = ctx2.canvas.width / itool.imageElement.width;
+console.log('scale = %f', scale);
+    if (itool.spots.length < 3) {
+        console.warn('not enough spots to look for edge');
+        return;
+    }
+
+    itool.spots = sortSpotsDorsal(itool.spots);
+
+    //adjust for scaling
+    var spots = [];
+    for (var i = 0 ; i < 3 ; i++) {
+        spots[i] = [Math.floor(itool.spots[i][0] * scale), Math.floor(itool.spots[i][1] * scale), itool.spots[i][2]];
+    }
+console.log('spots: %o', spots);
+    var maxGap = 8;
+    clearCanvas();
+    drawSpots();
+    //var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+    var imageData = edgeCanvas.getContext('2d').getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
+    itool.paths = [];
+
+    bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
+console.info('boundSize = %d', bestPathParam.boundSize);
+
+    bestPathParam.gapSize = 1;
+    while ((bestPathParam.gapSize < maxGap) && !itool.paths[0]) {
+console.info('trying gapSize = %d', bestPathParam.gapSize);
+        //itool.paths[0] = bestPath(imageData, spots[0], spots[1]);
+        itool.paths[0] = bestPath(imageData, itool.toCanvasPoint(spots[0]), itool.toCanvasPoint(spots[1]));
+        bestPathParam.gapSize += 1;
+    }
+console.log('left path -> %o', itool.paths[0]);
+    //drawPath(imageData, itool.paths[0], [255,255,100,100]);
+
+    bestPathParam.boundSize = itool.dist2(spots[1], spots[2]) / 16;
+console.info('boundSize = %d', bestPathParam.boundSize);
+    bestPathParam.gapSize = 1;
+    while ((bestPathParam.gapSize < maxGap) && !itool.paths[1]) {
+console.info('trying gapSize = %d', bestPathParam.gapSize);
+        //itool.paths[1] = bestPath(imageData, spots[2], spots[1]);
+        itool.paths[1] = bestPath(imageData, itool.toCanvasPoint(spots[2]), itool.toCanvasPoint(spots[1]));
+        bestPathParam.gapSize += 1;
+    }
+console.log('right path -> %o', itool.paths[1]);
+    //drawPath(imageData, itool.paths[1], [150,230,255,100]);
+
+    //we pass a clean ImageData object to work with
+    tryPartialPaths(ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height));
+
+    if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
+
+    if (enoughPath(itool.paths[0]) && enoughPath(itool.paths[1])) {
+        userMessage('<b>complete left and right fluke edges found!</b> you can save now if results are correct.');
+        imageMessage('both edges found! :)');
+        drawFinalPaths();
+/*
+        var id = itool.ctx.getImageData(0, 0, itool.canvasElement.width, itool.canvasElement.height);
+        drawPath(id, itool.paths[0], [255,255,100]);
+        drawPath(id, itool.paths[1], [100,200,255]);
+        itool.ctx.putImageData(id, 0, 0);
+*/
+    } else if (enoughPath(itool.paths[0])) {
+        userMessage('<b>complete left edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('LEFT edge found');
+        drawFinalPaths();
+    } else if (enoughPath(itool.paths[1])) {
+        userMessage('<b>complete right edge found!</b> you can manual add points and/or adjust settings and save when results are sufficient.');
+        imageMessage('RIGHT edge found');
+        drawFinalPaths();
+    } else {
+        userMessage('only <b>incomplete fluke edges</b> were found.  adjust/add points and/or alter edge tolerance settings.');
+        imageMessage('incomplete edges');
+    }
+
+    return ctx2;
+}
+
+
+//since sortSpotsDorsal() sorts differently, we need to kinda handle this a different way
+function halfSpotsDorsal(pn) {
+    var l = [0,3,5,7,1];
+    var dir = Math.sign(itool.spots[2][0] - itool.spots[0][0]);  // +1 means right side of fluke, -1 means left side of fluke
+    if ((pn + dir == 2) || (pn + dir == -1)) l = [2,4,6,8,9];
+    var h = [];
+    for (var i = 0 ; i < 5 ; i++) {
+        if (itool.spots[l[i]]) h.push(itool.spots[l[i]].concat());
+    }
+    return h;
 }
 
 
