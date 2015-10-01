@@ -355,6 +355,16 @@ if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
 
 <%
 	if (spotJson != null) out.println("spotJson.left = " + spotJson);
+
+	//currently i set *both* left & right ref spots with same values; but this may change
+	if (enc.getLeftReferenceSpots() != null) {
+		spotJson = "";
+      		spots = enc.getLeftReferenceSpots();
+		for (SuperSpot s : spots) {
+			spotJson += "{ \"type\": \"ref\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
+		}
+		out.println("spotJson.left = spotJson.left.concat([" + spotJson + "]);\n");
+	}
 %>
 
 var itool = {};
