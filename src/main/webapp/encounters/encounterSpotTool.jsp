@@ -165,7 +165,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			top: 70px;
 			background-color: rgba(0,0,0,0.5);
 			color: #FFA;
-			text-weight: bold;
+			font-weight: bold;
 			z-index: 2;
 			font-size: 0.9em;
 			padding: 2px 8px;
@@ -186,6 +186,21 @@ String langCode=ServletUtilities.getLanguageCode(request);
 			position: relative;
 			margin-left: 125px;
 			width: 97%;
+		}
+
+		#edge-counts {
+			pointer-events: none;
+			position: absolute;
+			right: 25px;
+			top: 120px;
+			padding: 1px 4px;
+			z-index: 2;
+			font-size: 0.8em;
+			font-weight: bold;
+			background-color: #666;
+			color: #EEE;
+			border-radius: 3px;
+			display: none;
 		}
 	</style>
 
@@ -321,6 +336,7 @@ console.log(pdata);
 <div id="image-workarea">
 	<div id="user-message"></div>
 	<div id="image-message"></div>
+	<div id="edge-counts"></div>
 	<img id="target-img" src="<%=imgSrc%>" onLoad="setTool()" />
 </div>
 
