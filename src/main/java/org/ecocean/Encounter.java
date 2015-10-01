@@ -271,45 +271,6 @@ public class Encounter implements java.io.Serializable {
     return rightSpots;
   }
 
-    //special case for taking spots as saved by front-end and converted to "inverted left-facing"
-    //weirdly, the saving servlet math will stick this sort of configuration as rightSpots.  but i am going to be ok with that for now and go with it!
-    public ArrayList<SuperSpot> getSpotsDorsalInverted() {
-        //leftSpots are from paths (edges) and leftReferenceSpots come from ref pts
-        if (leftReferenceSpots == null) return null;
-        ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();  //we build this from ref spots + regular spots, for convenience
-        spots.addAll(leftReferenceSpots);
-        if (this.spots != null) spots.addAll(this.spots);
-        if (spots.size() < 10) return null;
-        ArrayList<SuperSpot> ord = new ArrayList<SuperSpot>();
-        double vx = spots.get(0).getCentroidX();  //vertical line at back of fin
-        double hy = spots.get(0).getCentroidY();  //horizontal line at bottom of fin
-
-        //now we do some flipping so it is flukier
-        ord.add(new SuperSpot(vx, hy));
-        ord.add(new SuperSpot(vx, hy + hy - spots.get(1).getCentroidY()));
-        ord.add(new SuperSpot(vx - Math.abs(vx - spots.get(2).getCentroidX()), spots.get(2).getCentroidY()));
-
-        for (int i = 0 ; i < 3 ; i++) {  //3 line segments walking up fin
-            SuperSpot a = new SuperSpot(vx - Math.abs(vx - spots.get(i*2+3).getCentroidX()), hy + hy - spots.get(i*2+3).getCentroidY());
-            SuperSpot b = new SuperSpot(vx - Math.abs(vx - spots.get(i*2+4).getCentroidX()), hy + hy - spots.get(i*2+4).getCentroidY());
-            if (a.getCentroidX() > b.getCentroidX()) {  //need order to be leftmost first
-                ord.add(b);
-                ord.add(a);
-            } else {
-                ord.add(a);
-                ord.add(b);
-            }
-        }
-
-        ord.add(new SuperSpot(vx - Math.abs(vx - spots.get(9).getCentroidX()), hy + hy - spots.get(9).getCentroidY()));  //9th one is opposite tip
-
-        //any remaining points, we pretty much ignore order and just throw them on there
-        for (int i = 10 ; i < spots.size() ; i++) {
-            ord.add(new SuperSpot(vx - Math.abs(vx - spots.get(i).getCentroidX()), hy + hy - spots.get(i).getCentroidY()));
-        }
-
-        return ord;
-    }
   /**
    * Returns an array of all of the superSpots for this encounter.
    *
