@@ -79,7 +79,7 @@
 // mode, bits -> RST
 function setTool(skipDialog) {
     if (!skipDialog) {
-isDorsalFin = true; setTool(true); return;
+//isDorsalFin = true; setTool(true); return;
         userMessage('choose <b>type of image</b>.');
         $( "#dorsal-dialog" ).dialog({
             modal: true,
