@@ -216,7 +216,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-							st.setNumComparisons(numComparisons-1);
+							//st.setNumComparisons(numComparisons-1);
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
 							successfulStore=myShepherd.storeNewTask(st);

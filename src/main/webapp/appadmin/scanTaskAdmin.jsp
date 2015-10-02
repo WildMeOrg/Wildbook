@@ -136,7 +136,7 @@ else{
 
         int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 
-        int numTaskTot = numComplete + numGenerated;
+        int numTaskTot = st.getNumComparisons();
 
 
         

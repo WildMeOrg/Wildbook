@@ -207,7 +207,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
               st = new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-              st.setNumComparisons(numComparisons - 1);
+              //st.setNumComparisons(numComparisons - 1);
               if (request.getRemoteUser() != null) {
                 st.setSubmitter(request.getRemoteUser());
               }
