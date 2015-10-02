@@ -149,14 +149,14 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
                 //if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
                   //add the workItem
                   ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2, algorithms);
-                  String uniqueNum = swi.getUniqueNumber();
+                  //String uniqueNum = swi.getUniqueNumber();
       
                   gm.addWorkItem(swi);
                   count++;
                   
                   //scan the reverse as well
                   System.out.println("     I am creating an inverse ScanWorkItem!");
-                  ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), wiIdentifier, taskID, props2, algorithms);
+                  ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), (wiIdentifier+"Revere"), taskID, props2, algorithms);
                   swi2.setReversed(true);
                   gm.addWorkItem(swi2);
       
@@ -168,6 +168,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         }
 
       }
+      
+      ScanTask st=myShepherd.getScanTask(taskID);
+      st.setNumComparisons(count);
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");

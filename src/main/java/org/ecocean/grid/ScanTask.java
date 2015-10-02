@@ -139,10 +139,12 @@ public class ScanTask implements Serializable {
         numSpots = el.getSpots().size();
       }
     }
+    numComparisons++;
   }
 
   public void setWorkItems(Vector swis) {
     this.workItems = swis;
+    numComparisons=swis.size();
     ScanWorkItem swi = (ScanWorkItem) swis.get(0);
     if (numSpots == 0) {
       EncounterLite el = swi.getNewEncounterLite();
