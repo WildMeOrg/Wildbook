@@ -150,12 +150,15 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         numComplete = gm.getNumWorkItemsCompleteForTask(scanTaskID);
         numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
         numTaskTot = numComplete + numGenerated;
-        if ((numComplete > 0) && (numComplete >= numTaskTot)) {
+        
+        ScanTask st=myShepherd.getScanTask(scanTaskID);
+        
+        if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
           
           
           if(!tasksCompleted.contains(scanTaskID)){
           
-            ScanTask st=myShepherd.getScanTask(scanTaskID);
+            
             if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
             
             tasksCompleted.add(scanTaskID);
