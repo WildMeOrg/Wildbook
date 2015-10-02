@@ -3529,10 +3529,11 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     }
 
     private void processDorsalSpots(Encounter enc) {
-        //leftSpots are from paths (edges) and leftReferenceSpots come from ref pts
-        if (enc.getSpots() != null) processLeftSpots(enc.getSpots());  //easy enough, just like flukes
+        //note: (left)spots are from paths (edges) and leftReferenceSpots come from ref pts
 
+        //first the reference spots (which are more or less required)
         ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
+        if (spots == null) return;
         //for matching purposes, i am allowing just the 3 "main" reference points as well as full 10.. not sure if this is best course of action?  TODO
         if ((spots.size() < 10) && (spots.size() != 3)) return;
 
@@ -3561,6 +3562,15 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         }
 
         processLeftReferenceSpots(ord);
+
+        //now the regular spots from the traced edges
+        spots = enc.getSpots();
+        if (spots != null) {
+            for (int i = 10 ; i < spots.size() ; i++) {
+                spots.set(i, new SuperSpot(vx - Math.abs(vx - spots.get(i).getCentroidX()), hy + hy - spots.get(i).getCentroidY()));  //swap out for converted
+            }
+            processLeftSpots(spots);
+        }
     }
 
 }
