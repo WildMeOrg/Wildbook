@@ -11,20 +11,13 @@ org.ecocean.neural.*,
 	com.fastdtw.util.Distances,
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
+	weka.core.*,
+	org.ecocean.grid.msm.*,
+	weka.classifiers.meta.*,
+	weka.classifiers.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
-<%!
 
-public void populateNewHashtable(Hashtable<Integer,Integer> table, int upperlimit){
-	
-	
-	for(int i=0;i<=upperlimit;i++){
-		table.put(i, 0);
-	}
-	
-}
-
-%>
 <%
 
 String context="context0";
@@ -33,6 +26,9 @@ context=ServletUtilities.getContext(request);
 	Shepherd myShepherd=new Shepherd(context);
 
 ArrayList<String> suspectValues=new ArrayList<String>();
+
+int numMatchLinks=0;
+int numFalseLinks=0;
 
 %>
 
@@ -50,40 +46,36 @@ ArrayList<String> suspectValues=new ArrayList<String>();
 double intersectionProportion=0.2;
 if(request.getParameter("intersectionProportion")!=null){intersectionProportion=(new Double(request.getParameter("intersectionProportion"))).doubleValue();}
 
-//double stdDev=0.05;
-
-double intersectionStdDev=0.05;
-if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new Double(request.getParameter("intersectionStdDev"))).doubleValue();}
-double dtwStdDev=0.41;
-if(request.getParameter("dtwStdDev")!=null){dtwStdDev=(new Double(request.getParameter("dtwStdDev"))).doubleValue();}
-double i3sStdDev=0.01;
-if(request.getParameter("i3sStdDev")!=null){i3sStdDev=(new Double(request.getParameter("i3sStdDev"))).doubleValue();}
-double proportionStdDev=0.01;
-if(request.getParameter("proportionStdDev")!=null){proportionStdDev=(new Double(request.getParameter("proportionStdDev"))).doubleValue();}
-double intersectHandicap=0;
-if(request.getParameter("intersectHandicap")!=null){intersectHandicap=(new Double(request.getParameter("intersectHandicap"))).doubleValue();}
-double dtwHandicap=0;
-if(request.getParameter("dtwHandicap")!=null){dtwHandicap=(new Double(request.getParameter("dtwHandicap"))).doubleValue();}
-double i3sHandicap=0;
-if(request.getParameter("i3sHandicap")!=null){i3sHandicap=(new Double(request.getParameter("i3sHandicap"))).doubleValue();}
-double proportionHandicap=0;
-if(request.getParameter("proportionHandicap")!=null){proportionHandicap=(new Double(request.getParameter("proportionHandicap"))).doubleValue();}
-
 
 int chartWidth=800;
 
 myShepherd.beginDBTransaction();
 
 
-ArrayList<String> matchLinks=new ArrayList<String>();
-ArrayList<String> falseLinks=new ArrayList<String>();
-ArrayList<String> mergedLinks=new ArrayList<String>();
+//ArrayList<String> matchLinks=new ArrayList<String>();
+//ArrayList<String> falseLinks=new ArrayList<String>();
+//ArrayList<String> mergedLinks=new ArrayList<String>();
 
+String genusSpecies="Physetermacrocephalus";
+if(request.getParameter("genusSpecies")!=null){
+	genusSpecies=request.getParameter("genusSpecies");
+}
 
+String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
+String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
+
+System.out.println("     I expect to find a classifier file here: "+pathToClassifierFile);
+System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
+
+//Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
+Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
 
 
 try{
 
+
+/*
 Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
 int numEncs=encounters.size();
 for(int i=0;i<(numEncs-1);i++){
@@ -128,6 +120,7 @@ for(int i=0;i<(numEncs-1);i++){
 
   }
 }
+*/
 
 
 //create our hashmaps of incorrect match scores
@@ -139,12 +132,13 @@ for(int i=0;i<(numEncs-1);i++){
 //populateNewHashtable(i3sHashtable,3);
 //Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(proportionHashtable,3);
-Hashtable<Integer,Integer> overallHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(overallHashtable,12);	
+Hashtable<Double,Integer> overallHashtable = new Hashtable<Double,Integer>();
+
 ArrayList<Double> intersectionValues=new ArrayList<Double>();
 ArrayList<Double> dtwValues=new ArrayList<Double>();
 ArrayList<Double> i3sValues=new ArrayList<Double>();
 ArrayList<Double> proportionValues=new ArrayList<Double>();
+ArrayList<Double> msmValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
@@ -155,19 +149,14 @@ ArrayList<Double> proportionValues=new ArrayList<Double>();
 //populateNewHashtable(i3sCorrectHashtable,3);	
 //Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(proportionCorrectHashtable,3);	
-Hashtable<Integer,Integer> overallCorrectHashtable = new Hashtable<Integer,Integer>();
-populateNewHashtable(overallCorrectHashtable,12);	
+Hashtable<Double,Integer> overallCorrectHashtable = new Hashtable<Double,Integer>();
+	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
 ArrayList<Double> i3sCorrectValues=new ArrayList<Double>();
 ArrayList<Double> proportionCorrectValues=new ArrayList<Double>();
+ArrayList<Double> msmCorrectValues=new ArrayList<Double>();
 
-
-
-SummaryStatistics intersectionStats=TrainNetwork.getIntersectionStats(request);
-SummaryStatistics dtwStats=TrainNetwork.getDTWStats(request);
-SummaryStatistics proportionStats=TrainNetwork.getProportionStats(request);
-SummaryStatistics i3sStats=TrainNetwork.getI3SStats(request);
 
 double correctScoreTotal=0;
 int numCorrectScores=0;
@@ -176,18 +165,14 @@ double incorrectScoreTotal=0;
 int numIncorrectScores=0;
 
 
-//render data for matches and nonmatches
-mergedLinks.addAll(matchLinks);
-mergedLinks.addAll(falseLinks);
+int numInstances=instances.numInstances();
 
-for(int i=0;i<mergedLinks.size();i++){
-	int colonNum=mergedLinks.get(i).indexOf(":");
-	String enc1Number=mergedLinks.get(i).substring(0, (colonNum));
-	String enc2Number=mergedLinks.get(i).substring(colonNum+1, (mergedLinks.get(i).length()));
-	Encounter enc1=myShepherd.getEncounter(enc1Number);
-	Encounter enc2=myShepherd.getEncounter(enc2Number);
+if(numInstances>1000)numInstances=1000;
+
+for(int i=0;i<numInstances;i++){
 	
-	if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
+	Instance myInstance=instances.instance(i);
+	//if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
         try{
           
           //if both have spots, then we need to compare them
@@ -195,49 +180,75 @@ for(int i=0;i<mergedLinks.size();i++){
           //first, are they the same animal?
           //default is 1==no
           double output=1;
-          if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
-            if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
-              //train a match
-              if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
-            }
-            
+      
+     /*
+       // Create the instance
+          Instance iExample = new Instance(6);
+          iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
+          iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
+          iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
+          iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
+          iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), msm.doubleValue());
+          
+          if(output==0){
+            iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
           }
+          else{
+            iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
+          }
+     */
+          //System.out.println(myInstance.stringValue(5));
+          if(myInstance.stringValue(5).equals("match")){output=0;}
           
-          
-          EncounterLite el1=new EncounterLite(enc1);
-          EncounterLite el2=new EncounterLite(enc2);
           
           //HolmbergIntersection
-          Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
-          if((numIntersections>0.7)&&(output==1)){suspectValues.add(mergedLinks.get(i));}
+          Double numIntersections=new Double(myInstance.value(0));
           
-          //FastDTW
-          TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
+          java.lang.Double distance = new Double(myInstance.value(1));
           
-          java.lang.Double distance = new java.lang.Double(-1);
-          if(twi!=null){
-            WarpPath wp=twi.getPath();
-              String myPath=wp.toString();
-            distance=new java.lang.Double(twi.getDistance());
-          }   
           
           //I3S
-          I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-          double i3sScore=-1;
-          if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
-          
+          double i3sScore=new Double(myInstance.value(2)).doubleValue();
           //Proportion metric
-          Double proportion=EncounterLite.getFlukeProportion(el1,el2);
+          Double proportion=new Double(myInstance.value(3));
           
-          double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
-            //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
+          
+          Double msmValue=new Double(myInstance.value(4));
+          
+          
+     
+     
+          Instance iExample = new Instance(6);
+          
+          iExample.setDataset(instances);
+          iExample.setValue(0, numIntersections.doubleValue());
+          iExample.setValue(1, distance);
+          iExample.setValue(2,  i3sScore);
+          iExample.setValue(3, (new Double(proportion).doubleValue()));
+          iExample.setValue(4, (new Double(msmValue).doubleValue()));
+          
+          
+          double[] fDistribution = booster.distributionForInstance(iExample);
+          
+          
+          //double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
+          double thisScore=TrainNetwork.round(fDistribution[0], 5);
+         System.out.println(thisScore);
+          
+          
+          //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
             	
-            	
+            	numMatchLinks++;
             	
             	//overall
-            	int score=(new Double(thisScore)).intValue(); 
+            	Double score=(new Double(thisScore)); 
+            	
+            	if(overallCorrectHashtable.get(score)==null){
+            		overallCorrectHashtable.put(score, 0);
+            	}
             	Integer numValue=overallCorrectHashtable.get(score).intValue()+1;
+            	
             	overallCorrectHashtable.put(score, numValue);
             	correctScoreTotal+=score;
             	numCorrectScores++;
@@ -254,11 +265,18 @@ for(int i=0;i<mergedLinks.size();i++){
             	//Proportion
             	proportionCorrectValues.add(proportion);
             	
+            	msmCorrectValues.add(msmValue);
+            	
             }
             else{
             	
+            	numFalseLinks++;
             	//overall
-            	int score=(new Double(thisScore)).intValue(); 
+            	
+            	double score=(new Double(thisScore)); 
+            	if(overallHashtable.get(score)==null){
+            		overallHashtable.put(score, 0);
+            	}
             	Integer numValue=overallHashtable.get(score).intValue()+1;
             	overallHashtable.put(score, numValue);
             	incorrectScoreTotal+=score;
@@ -275,6 +293,8 @@ for(int i=0;i<mergedLinks.size();i++){
             	
             	//Proportion
             	proportionValues.add(proportion);
+            	
+            	msmValues.add(msmValue);
             }
             
           
@@ -287,7 +307,7 @@ for(int i=0;i<mergedLinks.size();i++){
 
         
         
-      }
+    //  }
 	
 }	
 
@@ -320,10 +340,16 @@ myShepherd.rollbackDBTransaction();
         
         overallCorrectData.addRows([
       	<%
-      	  for(int i=1;i<overallCorrectHashtable.size();i++){
+      	
+      	Enumeration<Double> correctKeys=overallCorrectHashtable.keys();
+      	while(correctKeys.hasMoreElements()){
+      		Double nextElem=correctKeys.nextElement();	
+      	
+      	  //for(double i=0;i<=1;){
       		  %>
-      		  [<%=i %>,<%=(overallCorrectHashtable.get(i).doubleValue()/matchLinks.size()) %>],
+      		  [<%=nextElem %>,<%=(overallCorrectHashtable.get(nextElem).doubleValue()/numMatchLinks) %>],
       		  <%
+      		 
       	  }           
       	%>              
 		]);
@@ -338,10 +364,13 @@ myShepherd.rollbackDBTransaction();
        
      	overallIncorrectData.addRows([
 		<%
-		  for(int i=1;i<overallHashtable.size();i++){
+		Enumeration<Double> incorrectKeys=overallHashtable.keys();
+		while(incorrectKeys.hasMoreElements()){
+      		Double nextElem=incorrectKeys.nextElement();	
 			  %>
-			  [<%=i %>,<%=(overallHashtable.get(i).doubleValue()/falseLinks.size()) %>],
+			  [<%=nextElem %>,<%=(overallHashtable.get(nextElem).doubleValue()/numFalseLinks) %>],
 			  <%
+			 
 		  }           
 		%>           
      	               
@@ -567,11 +596,12 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<i3sCorrectValues.size();y++){
       		double position=(double)y/i3sCorrectValues.size();
-    		  
+    		  if(i3sCorrectValues.get(y)<2){
       		  %>
       		  [<%=position %>,<%=i3sCorrectValues.get(y) %>],
       		  <%
       	  }           
+      }
       	%>              
 		]);
       	
@@ -589,9 +619,11 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<i3sValues.size();y++){
       		  double position=(double)y/i3sValues.size();
+      		if(i3sValues.get(y)<2){
       		  %>
       		  [<%=position %>,<%=i3sValues.get(y) %>],
       		  <%
+      		}
       	  }           
       	%>           
      	               
@@ -650,10 +682,11 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<proportionCorrectValues.size();y++){
       		double position=(double)y/proportionCorrectValues.size();
-    		  
+    		  if(proportionCorrectValues.get(y)<5){
       		  %>
       		  [<%=position %>,<%=proportionCorrectValues.get(y) %>],
       		  <%
+    		  }
       	  }           
       	%>              
 		]);
@@ -671,10 +704,12 @@ myShepherd.rollbackDBTransaction();
          Collections.sort(proportionValues);
         
       	  for(int y=0;y<proportionValues.size();y++){
+      		 if(proportionValues.get(y)<5){
       		  double position=(double)y/proportionValues.size();
       		  %>
       		  [<%=position %>,<%=proportionValues.get(y) %>],
       		  <%
+      		 }
       	  }           
       	%>           
      	               
@@ -712,6 +747,89 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawMSMChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawMSMChart() {
+
+        // Create the data table.
+        var msmCorrectData = new google.visualization.DataTable();
+        msmCorrectData.addColumn('number', 'score');
+        msmCorrectData.addColumn('number', 'matching');
+        
+        msmCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(msmCorrectValues);
+        
+      	  for(int y=0;y<msmCorrectValues.size();y++){
+      		double position=(double)y/msmCorrectValues.size();
+    		  
+      		  %>
+      		  [<%=position %>,<%=msmCorrectValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var msmIncorrectData = new google.visualization.DataTable();
+       msmIncorrectData.addColumn('number', 'score');
+       msmIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       msmIncorrectData.addRows([
+		<%
+         Collections.sort(msmValues);
+        
+      	  for(int y=0;y<msmValues.size();y++){
+      		  double position=(double)y/msmValues.size();
+      		  %>
+      		  [<%=position %>,<%=msmValues.get(y) %>],
+      		  <%
+      	  }           
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(msmIncorrectData, msmCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: MSM',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (lower is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('msmchart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
 
 <h1>Algorithm Analysis</h1>
 
@@ -732,46 +850,14 @@ myShepherd.rollbackDBTransaction();
 
 <div id="proportionchart_div"></div>
 
-<h2>Match Links (<%=matchLinks.size() %>)</h2>
+<div id="msmchart_div"></div>
+
+
+
+
+
+
 <%
-for(int i=0;i<matchLinks.size();i++){
-	int colonNum=matchLinks.get(i).indexOf(":");
-	String enc1Number=matchLinks.get(i).substring(0, (colonNum));
-	String enc2Number=matchLinks.get(i).substring(colonNum+1, (matchLinks.get(i).length()));
-%>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>">Link</a><br />
-<%
-}
-%>
-
-<h2>Nonmatches (<%=falseLinks.size() %>)</h2>
-<%
-for(int i=0;i<falseLinks.size();i++){
-	int colonNum=falseLinks.get(i).indexOf(":");
-	String enc1Number=falseLinks.get(i).substring(0, (colonNum));
-	String enc2Number=falseLinks.get(i).substring(colonNum+1, (falseLinks.get(i).length()));
-%>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>&intersectionStdDev=<%=intersectionStdDev %>&dtwStdDev=<%=dtwStdDev %>&i3sStdDev=<%=i3sStdDev %>&proportionStdDev=<%=proportionStdDev %>&intersectHandicap=<%=intersectHandicap %>&dtwHandicap=<%=dtwHandicap %>&i3sHandicap=<%=i3sHandicap %>&proportionHandicap=<%=proportionHandicap %>">Link</a><br />
-<%
-}
-%>
-
-<h2>High False Matches (<%=suspectValues.size() %>)</h2>
-<%
-for(int i=0;i<suspectValues.size();i++){
-	int colonNum=suspectValues.get(i).indexOf(":");
-	String enc1Number=suspectValues.get(i).substring(0, (colonNum));
-	String enc2Number=suspectValues.get(i).substring(colonNum+1, (suspectValues.get(i).length()));
-%>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/intersectVisualization.jsp?enc1=<%=enc1Number %>&enc2=<%=enc2Number %>&intersectionStdDev=<%=intersectionStdDev %>&dtwStdDev=<%=dtwStdDev %>&i3sStdDev=<%=i3sStdDev %>&proportionStdDev=<%=proportionStdDev %>&intersectHandicap=<%=intersectHandicap %>&dtwHandicap=<%=dtwHandicap %>&i3sHandicap=<%=i3sHandicap %>&proportionHandicap=<%=proportionHandicap %>">Link</a><br />
-<%
-}
-
-
-
-
-
-
 } 
 catch(Exception ex) {
 
