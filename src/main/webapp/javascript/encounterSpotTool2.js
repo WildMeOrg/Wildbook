@@ -1318,12 +1318,15 @@ console.log('near spot %d', s);
                 clearLabelCanvas();
 
                 if (itool._constrain.x || itool._constrain.y) {
-                    var x = itool._constrain.x || ev.offsetX;
-                    var y = itool._constrain.y || ev.offsetY;
+                    var x = ev.offsetX;
+                    var y = ev.offsetY;
                     if (itool._constrain.x && itool._constrain.max && (y > itool._constrain.max)) y = itool._constrain.max;
                     if (itool._constrain.x && itool._constrain.min && (y < itool._constrain.min)) y = itool._constrain.min;
                     if (itool._constrain.y && itool._constrain.max && (x > itool._constrain.max)) x = itool._constrain.max;
                     if (itool._constrain.y && itool._constrain.min && (x < itool._constrain.min)) x = itool._constrain.min;
+
+                    if (itool._constrain.x) x = itool._constrain.x + (itool._constrain.pt[1] - y) * Math.tan(-itool.getRotation());
+                    if (itool._constrain.y) y = itool._constrain.y + (x - itool._constrain.pt[0]) * Math.tan(-itool.getRotation());
                     drawSpot(itool.lctx, [x, y], null);
                     itool._labelCanvasNeedsClearing = true;
                 }
@@ -1434,8 +1437,8 @@ console.log('done erase? %o', itool._erase);
                 if (itool._addingSpot && !itool._moved) {
                     var x = ev.offsetX;
                     var y = ev.offsetY;
-                    if (itool._constrain && itool._constrain.x) x = itool._constrain.x;
-                    if (itool._constrain && itool._constrain.y) y = itool._constrain.y;
+                    if (itool._constrain.x) x = itool._constrain.x + (itool._constrain.pt[1] - y) * Math.tan(-itool.getRotation());
+                    if (itool._constrain.y) y = itool._constrain.y + (x - itool._constrain.pt[0]) * Math.tan(-itool.getRotation());
                     if (itool.spots.length < 10) {
                         addSpot(x, y);
                         //note, to give the data flukiness, we want the first stop input to end up swapped with second, so it is analogous to the "notch"
@@ -1445,15 +1448,20 @@ console.log('done erase? %o', itool._erase);
 
                         //now lets check if we need to set up constraints for next spot
                         if (itool.spots.length == 1) {
-                            itool._constrain = { x: x, min: y };
+                            itool._constrain = { x: x, min: y, pt: [x,y] };
                         } else if (itool.spots.length > 9) { //for when 10th spot is added
                             itool._constrain = {};
                         } else if (itool.spots.length == 9) {
-                            itool._constrain = { y: itool.spots[1][1] };
+                            itool._constrain = { y: itool.spots[1][1], pt: itool.spots[1] };
                         } else if (itool.spots.length > 1) {
-                            var quarter = (itool.spots[0][1] - itool.spots[1][1]) / 4;
-console.warn('quarter %f', quarter);
-                            itool._constrain = { y: itool.spots[1][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter };
+                            //var quarter = (itool.spots[0][1] - itool.spots[1][1]) * Math.cos(itool.getRotation()) / 4;
+                            var quarter = itool.dist(itool.spots[0], itool.spots[1]) / 4;
+                            var h = (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter;
+console.warn('quarter %f, h=%f', quarter, h);
+                            var cx = itool.spots[1][0] + Math.sin(itool.getRotation()) * h;
+                            var cy = itool.spots[1][1] + Math.cos(itool.getRotation()) * h;
+                            //var cy = itool.spots[1][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter;
+                            itool._constrain = { y: cy, pt: [cx,cy] };
                         }
                     } else {
                         addSpot(x, y);
