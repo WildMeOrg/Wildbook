@@ -44,6 +44,18 @@
             lineWidth: 3,
             lineCap: 'round'
         },
+        'dorsal-tip': {
+            strokeStyle: 'rgba(255,255,100,0.7)',
+            radius: 6
+        },
+        'dorsal-notch': {
+            strokeStyle: 'rgba(255,255,100,0.7)',
+            radius: 6
+        },
+        'dorsal-line-endpoint': {
+            strokeStyle: 'rgba(255,255,100,0.7)',
+            radius: 6
+        },
         _dim: {
             strokeStyle: 'none',
             fillStyle: 'rgba(255,255,255,0.6)'
@@ -559,7 +571,7 @@ function spotsUpdate() {
         } else if (itool.spots.length == 9) {
             userMessage('place final spot across from the original tip point, where it <b>intersects the side</b> of the fin.');
         } else if (itool.spots.length == 10) {
-            userMessage('spot placement <b>complete</b>.  spots can be moved and/or saved.');
+            userMessage('spot placement <b>complete</b>.  spots can be moved and/or saved. additional spots may be added.');
         }
 
     } else {
@@ -1275,7 +1287,11 @@ console.log('dragging spot %d', itool._insideSpot);
                     itool._labelCanvasNeedsClearing = true;
 
                     drawSpot(itool.lctx, itool.spots[itool._insideSpot], '_ghost');
-                    drawSpot(itool.lctx, [ev.offsetX, itool.spots[itool._insideSpot][1]], '_hilite');
+                    if (itool._insideSpot > 9) {
+                        drawSpot(itool.lctx, [ev.offsetX, ev.offsetY], '_hilite');
+                    } else {
+                        drawSpot(itool.lctx, [ev.offsetX, itool.spots[itool._insideSpot][1]], '_hilite');
+                    }
                     return;
                 }
 
@@ -1410,7 +1426,7 @@ console.log('done erase? %o', itool._erase);
                     //var s = itool.isNearSpot(ev.offsetX, ev.offsetY);
                     if (s != itool._insideSpot) {
                         itool.spots[itool._insideSpot][0] = ev.offsetX;
-                        //itool.spots[itool._insideSpot][1] = ev.offsetY;
+                        if (itool._insideSpot > 9) itool.spots[itool._insideSpot][1] = ev.offsetY;  //only set y value when not line endpoints
                         spotsUpdate();
                     }
                     clearLabelCanvas();
@@ -1440,6 +1456,7 @@ console.warn('quarter %f', quarter);
                             itool._constrain = { y: itool.spots[1][1] + (5 - Math.floor(itool.spots.length / 2 + 0.5)) * quarter };
                         }
                     } else {
+                        addSpot(x, y);
                         itool._constrain = {};
                     }
                 }
@@ -1467,19 +1484,22 @@ function sortSpotsDorsal(s) {
     if (!s) return;
     var ord = s.concat();  //clone array
     //the first 3 spots should be sorted already in "fluke-like" order
-    if (ord[0]) ord[0][2] = 'tip';
-    if (ord[1]) ord[1][2] = 'notch';
-    if (ord[2]) ord[2][2] = 'tip';
+    if (ord[0]) ord[0][2] = 'dorsal-tip';
+    if (ord[1]) ord[1][2] = 'dorsal-notch';
+    if (ord[2]) ord[2][2] = 'dorsal-tip';
     //the rest of the points we want to sort so odd-numbered are on the 0-1 side, and even on the 1-2 side (for doing partial path)
     var dir = Math.sign(s[2][0] - s[0][0]);  // +1 means right side of fluke, -1 means left side of fluke
     for (var i = 0 ; i < 3 ; i++) {
         if (!s[i*2+3] || !s[i*2+4]) continue;
+        ord[i*2+3][2] = 'dorsal-line-endpoint';
+        ord[i*2+4][2] = 'dorsal-line-endpoint';
         if ((s[i*2+3][0] * dir) > (s[i*2+4][0] * dir)) {  //need to flip these two
 console.warn('flipping %d and %d', i*2+3, i*2+4);
             ord[i*2+3] = s[i*2+4].concat();
             ord[i*2+4] = s[i*2+3].concat();
         }
     }  //note spot 9 is right where it needs to be
+    if (ord[9]) ord[9][2] = 'dorsal-line-endpoint';
     return ord;
 }
 
