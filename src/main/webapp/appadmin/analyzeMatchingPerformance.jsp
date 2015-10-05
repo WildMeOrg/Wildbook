@@ -32,14 +32,8 @@ int numFalseLinks=0;
 
 %>
 
-<html>
-<head>
-<title>Matching Performance</title>
+<jsp:include page="../header.jsp" flush="true"/>
 
-</head>
-
-
-<body>
 <%
 
 //training metrics
@@ -167,7 +161,7 @@ int numIncorrectScores=0;
 
 int numInstances=instances.numInstances();
 
-if(numInstances>1000)numInstances=1000;
+if(numInstances>5000)numInstances=5000;
 
 for(int i=0;i<numInstances;i++){
 	
@@ -830,10 +824,16 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<div class="container maincontent">
 
 <h1>Algorithm Analysis</h1>
 
 <h2>Overall Scoring</h2>
+
+<ul>
+<li>Matches: <%=msmCorrectValues.size() %></li>
+<li>Nonmatches: <%=msmValues.size() %></li>
+</ul>
 
 <div id="overallchart_div"></div>
 <p>Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
@@ -853,7 +853,7 @@ myShepherd.rollbackDBTransaction();
 <div id="msmchart_div"></div>
 
 
-
+</div>
 
 
 
@@ -865,6 +865,4 @@ catch(Exception ex) {
 }
 %>
 
-
-</body>
-</html>
+<jsp:include page="../footer.jsp" flush="true"/>
