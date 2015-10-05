@@ -1,4 +1,4 @@
-package org.ecocean.grid.msm;
+package org.ecocean.grid.granger;
 
 import java.io.*;
 import org.ecocean.grid.*;
@@ -9,127 +9,101 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class MSM {
+import org.apache.commons.math.MathException;
+import org.apache.commons.math.distribution.FDistribution;
+import org.apache.commons.math.distribution.FDistributionImpl;
+import org.apache.commons.math.stat.regression.OLSMultipleLinearRegression;
 
-  /* 
-   * SOurce paper: http://vlm1.uta.edu/~athitsos/publications/stefan_tkde2012_preprint.pdf
-   * 
-  input:
-      X, Y - time series
-  output: 
-      MSM distance between X and Y. Note that this distance is computed
-  using a hard wired value of c (cost of Split/Merge). Change this value if 
-  you need to.  
-  */
-  public static double MSM_Distance(double[] X, double[] Y){      
-    
-    int m, n, i, j;
-    
-    m = X.length;
-    n = Y.length;
-      
-    double Cost[][] = new double[m][n];
-    
-    // Initialization
-    Cost[0][0] = Math.abs(X[0] - Y[0]);
-    
-    for (i = 1; i< m; i++) {
-      Cost[i][0] = Cost[i-1][0] + C(X[i], X[i-1], Y[0]);
-    }
-        
-    for (j = 1; j < n; j++) {
-      Cost[0][j] = Cost[0][j-1] + C(Y[j], X[0], Y[j-1]);
-    }
-    
-    // Main Loop
-    for( i = 1; i < m; i++){
-      for ( j = 1; j < n; j++){
-        double d1,d2, d3;
-        d1 = Cost[i-1][j-1] + Math.abs( X[i] - Y[j] );
-        d2 = Cost[i-1][j] + C( X[i], X[i-1], Y[j]);
-        d3 = Cost[i][j-1] + C( Y[j], X[i], Y[j-1]);
-        Cost[i][j] = Math.min( d1, Math.min(d2,d3) );
-      }
-    }
-    
-    // Output   
-    return Cost[m-1][n-1];
-  }
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 
-  public static double C( double new_point, double x, double y){
-    
-    // c - cost of Split/Merge operation. Change this value to what is more
-    // appropriate for your data.
-    double c = 0.1;
-    
-    double dist = 0;
-    
-    if ( ( (x <= new_point) && (new_point <= y) ) || 
-       ( (y <= new_point) && (new_point <= x) ) ) {
-      dist = c;
-    }
-    else{
-      dist = c + Math.min( Math.abs(new_point - x) , Math.abs(new_point - y) );
-    }
-
-    return dist;    
-  }
-  
-  
-  // Read an array containing the time series.
-  // Used for testing the MSM distance with some simple inputs.
-  public static double[] ReadTimeSeries(){
-    
-    int m, i;
-      BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-      String str;
-      StreamTokenizer st;
-      double X[] = new double[0];
-               
-    try{
-        System.out.print("\n length of the time series: ");
-      m = Integer.parseInt(br.readLine());      
-      X = new double[m];      
-      System.out.print(" values of the time series (press Enter at the end, NOT after each number): ");
-      str = br.readLine();
-      st = new StreamTokenizer( new StringReader( str ) );
-      for (i = 0; i < m; i++){      
-        st.nextToken();
-        X[i] = st.nval;
-        // System.out.print(X[i] + "  "); // uncomment this line to verify
-                        //that the data was read in correctly
-      }     
-    }
-    catch (IOException ioe){
-      System.out.println("Error reading the length of the time series.");   
-    }   
-    
-    return X; 
-  }
-
+//sourced from: https://code.google.com/p/jquant/source/browse/trunk/src/ru/algorithmist/jquant/math/GrangerTest.java?r=8
+public class Granger {
 
   /**
-   * @param args
+   * Returns p-value for Granger causality test.
+   *
+   * @param y - predictable variable
+   * @param x - predictor
+   * @param L - lag, should be 1 or greater.
+   * @return p-value of Granger causality
    */
-  public static void main(String[] args) {
-      
-    int m, n, i;
-      BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-      String str;
-      StreamTokenizer st;
-    
-    // read 2 time series
-    System.out.println("Please introduce two time series ( first the length and then the elements).");
-    
-      System.out.print("\nthe first time series:");
-      double X[] = ReadTimeSeries();
-      System.out.print("\nthe second time series:");
-      double Y[] = ReadTimeSeries();
-      double distance = MSM_Distance(X,Y);
-      System.out.println("\nThe MSM distance between X and Y is: D(X,Y) = " + distance);
-      
+  public static double granger(double[] y, double[] x, int L){
+      OLSMultipleLinearRegression h0 = new OLSMultipleLinearRegression();
+      OLSMultipleLinearRegression h1 = new OLSMultipleLinearRegression();
+
+      double[][] laggedY = createLaggedSide(L, y);
+
+      double[][] laggedXY = createLaggedSide(L, x, y);
+
+      int n = laggedY.length;
+
+      h0.newSampleData(strip(L, y), laggedY);
+      h1.newSampleData(strip(L, y), laggedXY);
+
+      double rs0[] = h0.estimateResiduals();
+      double rs1[] = h1.estimateResiduals();
+
+
+      double RSS0 = sqrSum(rs0);
+      double RSS1 = sqrSum(rs1);
+
+      double ftest = ((RSS0 - RSS1)/L) / (RSS1 / ( n - 2*L - 1));
+
+      System.out.println(RSS0 + " " + RSS1);
+      System.out.println("F-test " + ftest);
+
+      FDistribution fDist = new FDistributionImpl(L, n-2*L-1);
+      try {
+          double pValue = 1.0 - fDist.cumulativeProbability(ftest);
+          System.out.println("P-value " + pValue);
+          return  pValue;
+      } catch (MathException e) {
+          throw new RuntimeException(e);
+      }
+
   }
+
+
+  private static double[][] createLaggedSide(int L, double[]... a) {
+      int n = a[0].length - L;
+      double[][] res = new double[n][L*a.length+1];
+      for(int i=0; i<a.length; i++){
+          double[] ai = a[i];
+          for(int l=0; l<L; l++){
+              for(int j=0; j<n; j++){
+                  res[j][i*L+l] = ai[l+j];
+              }
+          }
+      }
+      for(int i=0; i<n; i++){
+          res[i][L*a.length] = 1;
+      }
+      return res;
+  }
+
+  public static double sqrSum(double[] a){
+      double res = 0;
+      for(double v : a){
+          res+=v*v;
+      }
+      return res;
+  }
+
+
+   public static double[] strip(int l, double[] a){
+
+      double[] res = new double[a.length-l];
+      System.arraycopy(a, l, res, 0, res.length);
+      return res;
+  }
+
+
+
 
 
 
@@ -240,7 +214,7 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
         
       }
       
-      java.lang.Double matchResult=new java.lang.Double(MSM_Distance(OLD_VALUES, NEW_VALUES));
+      java.lang.Double matchResult=new java.lang.Double(granger(OLD_VALUES, NEW_VALUES, 1));
       System.out.println("");  
       System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
       System.out.println("");  
