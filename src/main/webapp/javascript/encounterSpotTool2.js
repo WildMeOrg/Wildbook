@@ -91,7 +91,7 @@
 // mode, bits -> RST
 function setTool(skipDialog) {
     if (!skipDialog) {
-//isDorsalFin = true; setTool(true); return;
+isDorsalFin = false; setTool(true); return;
         userMessage('choose <b>type of image</b>.');
         $( "#dorsal-dialog" ).dialog({
             modal: true,
@@ -762,9 +762,72 @@ console.log('spots: %o', spots);
     var maxGap = 8;
     clearCanvas();
     drawSpots();
+    itool.paths = [];
+
+////// new astar trace
+/*
+    var x1 = spots[0][0] - 20;
+    var x2 = spots[2][0] + 20;
+    var y1 = Math.min(spots[0][1], spots[2][1]) - 20;
+    var y2 = spots[1][1] + 20;
+console.warn('(%d,%d) (%d,%d)', x1, y1, x2, y2);
+    var imageDataSmall = ctx.getImageData(x1, y1, x2 - x1, y2 - y1);
+*/
+
+/*
+    var c1 = itool.toCanvasPoint([spots[0][0] - 20, Math.min(spots[0][1], spots[2][1]) - 20]);
+    var c2 = itool.toCanvasPoint([spots[2][0] + 20, spots[1][1] + 20]);
+    var x1 = c1[0];  var y1 = c1[1];  var x2 = c2[0];  var y2 = c2[1];
+console.warn('(%d,%d) (%d,%d)', c1[0], c1[1], c2[0], c2[1]);
+    var imageDataSmall = ctx.getImageData(c1[0], c1[1], c2[0] - c1[0], c2[1] - c1[1]);
+    var a = arrayFromContext(imageDataSmall, spots);
+    var graph = new Graph(a);
+    var e = graph.grid[y2 - y1 - 20][spots[1][0] - x1];
+    var s1 = graph.grid[spots[0][1] - y1][20];
+*/
+
+    imageDataSmall = ctx.getImageData(0, 0, edgeCanvas.width, edgeCanvas.height);
+    var a = arrayFromContext(imageDataSmall, spots);
+    var graph = new Graph(a);
+    var ept = itool.toCanvasPoint(spots[1]);
+    var e = graph.grid[Math.floor(ept[1])][Math.floor(ept[0])];
+    var s1pt = itool.toCanvasPoint(spots[0]);
+    var s1 = graph.grid[Math.floor(s1pt[1])][Math.floor(s1pt[0])];
+console.log('s1 %o', s1);
+    var p = astar.search(graph, e, s1);
+    if (!p || (p.length < 1)) {
+        console.error('no path[0] found via A*');
+    } else {
+        itool.paths[0] = [];
+        for (var i = 0 ; i < p.length ; i++) {
+            var x = p[i].y;// + x1;
+            var y = p[i].x;// + y1;
+            itool.paths[0].push(itool.fromCanvasPoint([x,y]));
+        }
+    }
+
+    //var s2 = graph.grid[spots[2][1] - y1][x2 - x1 - 20];
+    var s2pt = itool.toCanvasPoint(spots[2]);
+    var s2 = graph.grid[Math.floor(s2pt[1])][Math.floor(s2pt[0])];
+console.log('s2 %o', s2);
+    p = astar.search(graph, e, s2);
+    if (!p || (p.length < 1)) {
+        console.error('no path[1] found via A*');
+    } else {
+        itool.paths[1] = [];
+        for (var i = 0 ; i < p.length ; i++) {
+            var x = p[i].y;// + x1;
+            var y = p[i].x;// + y1;
+            //drawSpot(itool.ctx, [x, y], '_frompath');
+            itool.paths[1].push(itool.fromCanvasPoint([x,y]));
+        }
+    }
+//drawGNSpot(e); drawGNSpot(s1); drawGNSpot(s2); return;
+
+
+/////// falls back on old method to find paths
     //var imageData = ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     var imageData = edgeCanvas.getContext('2d').getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
-    itool.paths = [];
 
     bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
 console.info('boundSize = %d', bestPathParam.boundSize);
@@ -785,7 +848,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         itool.paths[0] = bestPath(imageData, itool.toCanvasPoint(spots[0]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
-console.log('left path -> %o', itool.paths[0]);
+if (bestPathParam.debug) console.log('left path -> %o', itool.paths[0]);
     //drawPath(imageData, itool.paths[0], [255,255,100,100]);
 
     bestPathParam.boundSize = itool.dist2(spots[1], spots[2]) / 16;
@@ -797,7 +860,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         itool.paths[1] = bestPath(imageData, itool.toCanvasPoint(spots[2]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
-console.log('right path -> %o', itool.paths[1]);
+if (bestPathParam.debug) console.log('right path -> %o', itool.paths[1]);
     //drawPath(imageData, itool.paths[1], [150,230,255,100]);
 
     //we pass a clean ImageData object to work with
@@ -869,8 +932,8 @@ function refreshEdgeCounts() {
         $('#edge-counts').hide();
     }
     var s = '';
-    if (itool.paths[0].length > 0) s += 'L:' + itool.paths[0].length + 'pts ';
-    if (itool.paths[1].length > 0) s += 'R:' + itool.paths[1].length + 'pts';
+    if (itool.paths[0] && (itool.paths[0].length > 0)) s += 'L:' + itool.paths[0].length + 'pts ';
+    if (itool.paths[1] && (itool.paths[1].length > 0)) s += 'R:' + itool.paths[1].length + 'pts';
     $('#edge-counts').html(s).show();
 }
 
@@ -1540,6 +1603,46 @@ console.log('spots: %o', spots);
     var imageData = edgeCanvas.getContext('2d').getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height);
     itool.paths = [];
 
+////// new astar trace
+    var x1 = spots[0][0] - 20;
+    var x2 = spots[2][0] + 20;
+    var y1 = spots[1][1] - 20;
+    var y2 = spots[0][1] + 20;
+console.warn('(%d,%d) (%d,%d)', x1, y1, x2, y2);
+    var imageDataSmall = ctx.getImageData(x1, y1, x2 - x1, y2 - y1);
+    var a = arrayFromContext(imageDataSmall, spots);
+    var graph = new Graph(a);
+    var e = graph.grid[20][20];
+    var s1 = graph.grid[y2 - y1 - 20][20];
+console.log('s1 %o', s1);
+    var p = astar.search(graph, e, s1);
+    if (!p || (p.length < 1)) {
+        console.error('no path[0] found via A*');
+    } else {
+        itool.paths[0] = [];
+        for (var i = 0 ; i < p.length ; i++) {
+            var x = p[i].y + x1;
+            var y = p[i].x + y1;
+            //drawSpot(itool.ctx, [x, y], '_frompath');
+            itool.paths[0].push(itool.fromCanvasPoint([x,y]));
+        }
+    }
+
+    var s2 = graph.grid[y2 - y1 - 20][x2 - x1 - 20];
+console.log('s2 %o', s1);
+    p = astar.search(graph, e, s2);
+    if (!p || (p.length < 1)) {
+        console.error('no path[1] found via A*');
+    } else {
+        itool.paths[1] = [];
+        for (var i = 0 ; i < p.length ; i++) {
+            var x = p[i].y + x1;
+            var y = p[i].x + y1;
+            //drawSpot(itool.ctx, [x, y], '_frompath');
+            itool.paths[1].push(itool.fromCanvasPoint([x,y]));
+        }
+    }
+
     bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
 console.info('boundSize = %d', bestPathParam.boundSize);
 
@@ -1550,7 +1653,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         itool.paths[0] = bestPath(imageData, itool.toCanvasPoint(spots[0]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
-console.log('left path -> %o', itool.paths[0]);
+if (bestPathParam.debug) console.log('left path -> %o', itool.paths[0]);
     //drawPath(imageData, itool.paths[0], [255,255,100,100]);
 
     bestPathParam.boundSize = itool.dist2(spots[1], spots[2]) / 16;
@@ -1562,7 +1665,7 @@ console.info('trying gapSize = %d', bestPathParam.gapSize);
         itool.paths[1] = bestPath(imageData, itool.toCanvasPoint(spots[2]), itool.toCanvasPoint(spots[1]));
         bestPathParam.gapSize += 1;
     }
-console.log('right path -> %o', itool.paths[1]);
+if (bestPathParam.debug) console.log('right path -> %o', itool.paths[1]);
     //drawPath(imageData, itool.paths[1], [150,230,255,100]);
 
     //we pass a clean ImageData object to work with
@@ -1608,5 +1711,47 @@ function halfSpotsDorsal(pn) {
     }
     return h;
 }
+
+
+//dorsally
+function arrayFromContext(imageData, spots) {
+    for (var y = 0 ; y < imageData.height ; y++) {
+        for (var x = 0 ; x < imageData.width ; x++) {
+            var offset = (y * imageData.width + x) * 4;
+            if (imageData.data[offset] == 255) {
+                imageData.data[offset] = 10;
+//console.log('%d,%d', x, y);
+                var d = 11;
+                for (var yo = y - d ; yo < y + d + 1 ; yo++) {
+                    for (var xo = x - d ; xo < x + d + 1 ; xo++) {
+                        if ((xo == x) && (yo == y)) continue;
+                        var o = (yo * imageData.width + xo) * 4;
+                        if (imageData.data[o]) continue;
+                        //console.log('(%d,%d) %f', xo, yo, 255 - 40 * (Math.abs(x - xo) + Math.abs(y - yo)));
+                        imageData.data[o] = 50; //255 - 10 * (Math.abs(x - xo) + Math.abs(y - yo))
+                    }
+                }
+            }
+        }
+    }
+    if (bestPathParam.debug) itool.ctx.putImageData(imageData, 0, 0);
+    var arr = [];
+    for (var y = 0 ; y < imageData.height ; y++) {
+        arr[y] = [];
+        for (var x = 0 ; x < imageData.width ; x++) {
+            //var offset = ((y + y1) * imageData.width + x + x1) * 4;
+            var offset = (y * imageData.width + x) * 4;
+//if (imageData[offset]) console.warn('(%d,%d) %d', y, x, imageData[offset]);
+            arr[y][x] = imageData.data[offset];
+            //arr[y][x] = imageData.data[offset] & 1;
+        }
+    }
+    return arr;
+}
+
+function drawGNSpot(gn) {
+    drawSpot(itool.ctx, [gn.y, gn.x], '_frompath');
+}
+
 
 
