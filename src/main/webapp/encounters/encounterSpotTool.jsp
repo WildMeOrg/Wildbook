@@ -281,6 +281,7 @@ console.log(pdata);
 <script src="../javascript/jsfeat/jsfeat-min.js"></script>
 <script src="../javascript/imageTools2.js"></script>
 <script src="../javascript/encounterSpotTool2.js"></script>
+<script src="../javascript/astar.js"></script>
 
 			  <div class="container maincontent">
 			
