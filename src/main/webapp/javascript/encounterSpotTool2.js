@@ -91,7 +91,7 @@
 // mode, bits -> RST
 function setTool(skipDialog) {
     if (!skipDialog) {
-isDorsalFin = false; setTool(true); return;
+//isDorsalFin = true; setTool(true); return;
         userMessage('choose <b>type of image</b>.');
         $( "#dorsal-dialog" ).dialog({
             modal: true,
@@ -1604,6 +1604,7 @@ console.log('spots: %o', spots);
     itool.paths = [];
 
 ////// new astar trace
+/*
     var x1 = spots[0][0] - 20;
     var x2 = spots[2][0] + 20;
     var y1 = spots[1][1] - 20;
@@ -1611,9 +1612,15 @@ console.log('spots: %o', spots);
 console.warn('(%d,%d) (%d,%d)', x1, y1, x2, y2);
     var imageDataSmall = ctx.getImageData(x1, y1, x2 - x1, y2 - y1);
     var a = arrayFromContext(imageDataSmall, spots);
-    var graph = new Graph(a);
     var e = graph.grid[20][20];
     var s1 = graph.grid[y2 - y1 - 20][20];
+*/
+    var a = arrayFromContext(imageData, spots);
+    var graph = new Graph(a);
+    var ept = itool.toCanvasPoint(spots[1]);
+    var e = graph.grid[Math.floor(ept[1])][Math.floor(ept[0])];
+    var s1pt = itool.toCanvasPoint(spots[0]);
+    var s1 = graph.grid[Math.floor(s1pt[1])][Math.floor(s1pt[0])];
 console.log('s1 %o', s1);
     var p = astar.search(graph, e, s1);
     if (!p || (p.length < 1)) {
@@ -1621,14 +1628,16 @@ console.log('s1 %o', s1);
     } else {
         itool.paths[0] = [];
         for (var i = 0 ; i < p.length ; i++) {
-            var x = p[i].y + x1;
-            var y = p[i].x + y1;
+            var x = p[i].y;// + x1;
+            var y = p[i].x;// + y1;
             //drawSpot(itool.ctx, [x, y], '_frompath');
             itool.paths[0].push(itool.fromCanvasPoint([x,y]));
         }
     }
 
-    var s2 = graph.grid[y2 - y1 - 20][x2 - x1 - 20];
+    //var s2 = graph.grid[y2 - y1 - 20][x2 - x1 - 20];
+    var s2pt = itool.toCanvasPoint(spots[2]);
+    var s2 = graph.grid[Math.floor(s2pt[1])][Math.floor(s2pt[0])];
 console.log('s2 %o', s1);
     p = astar.search(graph, e, s2);
     if (!p || (p.length < 1)) {
@@ -1636,8 +1645,8 @@ console.log('s2 %o', s1);
     } else {
         itool.paths[1] = [];
         for (var i = 0 ; i < p.length ; i++) {
-            var x = p[i].y + x1;
-            var y = p[i].x + y1;
+            var x = p[i].y;// + x1;
+            var y = p[i].x;// + y1;
             //drawSpot(itool.ctx, [x, y], '_frompath');
             itool.paths[1].push(itool.fromCanvasPoint([x,y]));
         }
