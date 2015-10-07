@@ -35,6 +35,7 @@ import java.io.*;
 import org.ecocean.grid.*;
 
 import java.util.Vector;
+import java.util.Random;
 
 import com.fastdtw.timeseries.TimeSeriesBase.*;
 import com.fastdtw.dtw.*;
@@ -792,7 +793,12 @@ public class TrainNetwork {
     }
     
     
-
+    /*
+     * 
+     * The function will try to build a 50-50 set of matches/nonmatches for a classifier
+     * 
+     * 
+     */
     public static Instances buildAdaboostInstances(HttpServletRequest request, String fullPathToInstancesFile){
       String context="context0";
       context=ServletUtilities.getContext(request);
@@ -851,10 +857,13 @@ public class TrainNetwork {
           int numEncs=encounters.size();
           
           Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
+          //Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, 1000);
+          
           isTrainingSet.setClassIndex(5);
           AdaBoostM1 booster=new AdaBoostM1();
           
           for(int i=0;i<(numEncs-1);i++){
+          //for(int i=0;i<1000;i++){
             for(int j=(i+1);j<numEncs;j++){
               
               Encounter enc1=(Encounter)encounters.get(i);
@@ -872,10 +881,14 @@ public class TrainNetwork {
                     if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
                       if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
                         //train a match
-                        if(enc1.getIndividualID().equals(enc2.getIndividualID())){output=0;}
+                        if(enc1.getIndividualID().equals(enc2.getIndividualID())){
+                          output=0;
+                          System.out.println("   Nice match!!!!");
+                        }
                       }
                       
                     }
+                    
                     
                     
                     EncounterLite el1=new EncounterLite(enc1);
@@ -936,9 +949,11 @@ public class TrainNetwork {
                     
                     if(output==0){
                       iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
+                      numMatches++;
                     }
                     else{
                       iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
+                      numNonMatches++;
                     }
                     // add the instance
                     isTrainingSet.add(iExample);
@@ -1004,9 +1019,11 @@ public class TrainNetwork {
                     
                     if(output==0){
                       iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
+                      numMatches++;
                     }
                     else{
                       iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
+                      numNonMatches++;
                     }
                     // add the instance
                     isTrainingSet.add(iExample2);
@@ -1029,9 +1046,40 @@ public class TrainNetwork {
               }
             }
           
+          //ok, now we need to build a set if Instances that only have matches and then add an equal number of nonmatches
+          Instances balancedInstances = new Instances("Rel", fvWekaAttributes, (numMatches*2));
+          balancedInstances.setClassIndex(5);
+          for(int i=0;i<isTrainingSet.numInstances();i++){
+            
+            Instance myInstance=isTrainingSet.instance(i);
+            if(myInstance.stringValue(5).equals("match")){
+              isTrainingSet.delete(i);
+              balancedInstances.add(myInstance);
+              //pop it off the original stack
+              
+              i--;
+              System.out.println("  Balanced match added!");
+            }
+            
+          }
+          //now get the equal number of false instances to test with
+          int sampledFalseInstances=0;
+          while(sampledFalseInstances<numMatches){
+            Random myRan=new Random();
+            int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
+            Instance popMe=isTrainingSet.instance(selected);
+            if(popMe.stringValue(5).equals("nonmatch")){
+              isTrainingSet.delete(selected);
+              balancedInstances.add(popMe);
+              sampledFalseInstances++;
+            }
+          }
+          
+          
+          
           //write it out
           try {
-            serializeWekaInstances(request,isTrainingSet,fullPathToInstancesFile);
+            serializeWekaInstances(request,balancedInstances,fullPathToInstancesFile);
           } 
           catch (Exception e) {
             // TODO Auto-generated catch block
@@ -1041,7 +1089,7 @@ public class TrainNetwork {
           
            
           //DONE-return newly trained instances!
-          return isTrainingSet;
+          return balancedInstances;
           
           }
           catch(Exception e){return null;}
