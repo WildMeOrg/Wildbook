@@ -1114,7 +1114,6 @@ public final class BatchUpload extends DispatchServlet {
       x.setOtherCatalogNumbers((String)map.get(pre + "otherCatalogNumbers"));
       x.setDWCGlobalUniqueIdentifier((String)map.get(pre + "occurrenceID"));
       x.setOccurrenceRemarks((String)map.get(pre + "occurrenceRemarks"));
-      x.setRecordedBy((String)map.get(pre + "recordedBy"));
       x.setBehavior((String)map.get(pre + "behavior"));
       list.add(x);
 
@@ -1145,7 +1144,9 @@ public final class BatchUpload extends DispatchServlet {
       x.setSubmitterOrganization((String)map.get(pre + "submitterOrganization"));
       x.setSubmitterProject((String)map.get(pre + "submitterProject"));
       x.setSubmitterName((String)map.get(pre + "submitterName"));
-      x.setSubmitterEmail((String)map.get(pre + "submitterEmail"));
+      String subEmail = (String)map.get(pre + "submitterEmail");
+      if (subEmail != null)
+        x.setSubmitterEmail(subEmail);
       x.setSubmitterAddress((String)map.get(pre + "submitterAddress"));
       x.setSubmitterPhone((String)map.get(pre + "submitterPhone"));
 
