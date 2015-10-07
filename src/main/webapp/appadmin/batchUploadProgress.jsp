@@ -123,7 +123,7 @@ context=ServletUtilities.getContext(request);
             $('#percent').text(data.progress + '%');
             $('#phase').text(eval('PHASE_' + data.phase));
             // Ensure progress displays are visible.
-            $('#progress, #progressMeter, #phase').css('visibility', 'visible');
+            $('#progress, #progressMeter, #phase').removeClass('hidden');
             setTimeout(refreshProgress, INTERVAL);
           } else {
             window.location.replace('<%=request.getContextPath() + BatchUpload.JSP_PROGRESS%>');
