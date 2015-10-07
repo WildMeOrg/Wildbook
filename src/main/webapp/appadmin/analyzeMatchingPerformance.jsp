@@ -14,6 +14,8 @@ org.ecocean.neural.*,
 	weka.core.*,
 	org.ecocean.grid.msm.*,
 	weka.classifiers.meta.*,
+	weka.classifiers.meta.AdaBoostM1,
+	weka.classifiers.bayes.BayesNet,
 	weka.classifiers.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
@@ -57,6 +59,11 @@ if(request.getParameter("genusSpecies")!=null){
 
 String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
 String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
+File classifierFile=new File(pathToClassifierFile);
+long dateModified=classifierFile.lastModified();
+LocalDateTime dt=new LocalDateTime(dateModified);
+DateTimeFormatter fmt = ISODateTimeFormat.date();
+String strOutputDateTime = fmt.print(dt);
 
 System.out.println("     I expect to find a classifier file here: "+pathToClassifierFile);
 System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
@@ -65,6 +72,9 @@ System.out.println("     I expect to find an instances file here: "+instancesFil
 Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
 AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
 
+//try BayesNet
+BayesNet bayesBooster=new BayesNet();
+bayesBooster.buildClassifier(instances);
 
 try{
 
@@ -127,6 +137,7 @@ for(int i=0;i<(numEncs-1);i++){
 //Hashtable<Integer,Integer> proportionHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(proportionHashtable,3);
 Hashtable<Double,Integer> overallHashtable = new Hashtable<Double,Integer>();
+Hashtable<Double,Integer> bayesOverallHashtable = new Hashtable<Double,Integer>();
 
 ArrayList<Double> intersectionValues=new ArrayList<Double>();
 ArrayList<Double> dtwValues=new ArrayList<Double>();
@@ -144,6 +155,7 @@ ArrayList<Double> msmValues=new ArrayList<Double>();
 //Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(proportionCorrectHashtable,3);	
 Hashtable<Double,Integer> overallCorrectHashtable = new Hashtable<Double,Integer>();
+Hashtable<Double,Integer> bayesOverallCorrectHashtable = new Hashtable<Double,Integer>();
 	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
@@ -223,12 +235,15 @@ for(int i=0;i<numInstances;i++){
           
           
           double[] fDistribution = booster.distributionForInstance(iExample);
+          double[] bDistribution = bayesBooster.distributionForInstance(iExample);
           
           
           //double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
-          double thisScore=TrainNetwork.round(fDistribution[0], 5);
-         System.out.println(thisScore);
+          double thisScore=TrainNetwork.round(fDistribution[0], 3);
+          double thisBayesScore=TrainNetwork.round(bDistribution[0],3);
           
+         System.out.println("AdaBoost score: "+thisScore);
+         System.out.println("BayesNet score: "+thisBayesScore);
           
           //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
@@ -237,13 +252,20 @@ for(int i=0;i<numInstances;i++){
             	
             	//overall
             	Double score=(new Double(thisScore)); 
+            	Double bayesScore=(new Double(thisBayesScore)); 
             	
             	if(overallCorrectHashtable.get(score)==null){
             		overallCorrectHashtable.put(score, 0);
+            		
+            	}
+            	if(bayesOverallCorrectHashtable.get(bayesScore)==null){
+            		bayesOverallCorrectHashtable.put(bayesScore, 0);
             	}
             	Integer numValue=overallCorrectHashtable.get(score).intValue()+1;
+            	Integer numBayesValue=bayesOverallCorrectHashtable.get(bayesScore).intValue()+1;
             	
             	overallCorrectHashtable.put(score, numValue);
+            	bayesOverallCorrectHashtable.put(bayesScore, numBayesValue);
             	correctScoreTotal+=score;
             	numCorrectScores++;
             	
@@ -268,11 +290,17 @@ for(int i=0;i<numInstances;i++){
             	//overall
             	
             	double score=(new Double(thisScore)); 
+            	double bayesScore=(new Double(thisBayesScore)); 
             	if(overallHashtable.get(score)==null){
             		overallHashtable.put(score, 0);
             	}
+            	if(bayesOverallHashtable.get(thisBayesScore)==null){
+            		bayesOverallHashtable.put(thisBayesScore, 0);
+            	}
             	Integer numValue=overallHashtable.get(score).intValue()+1;
-            	overallHashtable.put(score, numValue);
+            	Integer numBayesValue=bayesOverallHashtable.get(thisBayesScore).intValue()+1;
+            	bayesOverallHashtable.put(thisBayesScore, numBayesValue);
+            	overallHashtable.put(thisScore,numValue);
             	incorrectScoreTotal+=score;
             	numIncorrectScores++;
             	
@@ -378,7 +406,7 @@ myShepherd.rollbackDBTransaction();
       	
 
 	        
-	        var options = {'title':'Overall Scoring Performance: Matches vs Non-matches',
+	        var options = {'title':'AdaBoost Overall Scoring Performance: Matches vs Non-matches',
                     'width':chartWidth,
                     'height':chartHeight,
                     'pointSize': 5,
@@ -402,6 +430,92 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<!-- Bayes CHart -->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+    google.setOnLoadCallback(drawBayesChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawBayesChart() {
+
+        // Create the data table.
+        var overallBayesCorrectData = new google.visualization.DataTable();
+        overallBayesCorrectData.addColumn('number', 'score');
+        overallBayesCorrectData.addColumn('number', 'matching');
+        
+        overallBayesCorrectData.addRows([
+      	<%
+      	
+      	Enumeration<Double> correctBayesKeys=bayesOverallCorrectHashtable.keys();
+      	while(correctBayesKeys.hasMoreElements()){
+      		Double nextElem=correctBayesKeys.nextElement();	
+      	
+      	  //for(double i=0;i<=1;){
+      		  %>
+      		  [<%=nextElem %>,<%=(bayesOverallCorrectHashtable.get(nextElem).doubleValue()/numMatchLinks) %>],
+      		  <%
+      		 
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var overallBayesIncorrectData = new google.visualization.DataTable();
+       overallBayesIncorrectData.addColumn('number', 'score');
+       overallBayesIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+     	overallBayesIncorrectData.addRows([
+		<%
+		Enumeration<Double> incorrectBayesKeys=bayesOverallHashtable.keys();
+		while(incorrectBayesKeys.hasMoreElements()){
+      		Double nextElem=incorrectBayesKeys.nextElement();	
+			  %>
+			  [<%=nextElem %>,<%=(bayesOverallHashtable.get(nextElem).doubleValue()/numFalseLinks) %>],
+			  <%
+			 
+		  }           
+		%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedBayesData = google.visualization.data.join(overallBayesIncorrectData, overallBayesCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'BayesNet Overall Scoring Performance: Matches vs Non-matches',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "% of type (match or non-match) total"},
+                      hAxis: {title: "Overall Score"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var bayesChart = new google.visualization.LineChart(document.getElementById('overallbayeschart2_div'));
+	        bayesChart.draw(joinedBayesData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
+<!-- ENd Bayes chart -->
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -826,36 +940,159 @@ myShepherd.rollbackDBTransaction();
 
 <div class="container maincontent">
 
-<h1>Algorithm Analysis</h1>
-
-<h2>Overall Scoring</h2>
-
+<h1>Algorithm Analysis: <%=genusSpecies %></h1>
+<p>This page helps us understand how the individual algorithms and the overall AdaBoost are performing across the training set of data.</p>
+<p>This classifier file was built on: <%=strOutputDateTime %></p>
 <ul>
 <li>Matches: <%=msmCorrectValues.size() %></li>
 <li>Nonmatches: <%=msmValues.size() %></li>
 </ul>
 
+<h2>Overall Scoring</h2>
+
 <div id="overallchart_div"></div>
 <p>Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
 
+<div id="overallbayeschart2_div"></div>
+
 <h2>Individual Algorithm Behavior</h2>
 
+<h3>Holmberg Intersection</h3>
+<p>The higher the green line is above the red line, the better the algorithm performs.</p>
 <div id="intersectchart_div"></div>
 
+<h3>FastDTW</h3>
+<p>The lower the green line is below the red line, the better the algorithm is performing.</p>
 <div id="dtwchart_div"></div>
 
+<h3>Modified I3S (Spot)</h3>
+<p>The lower the green line is below the red line, the better the algorithm is performing.</p>
 <div id="i3schart_div"></div>
 
-<div id="dtwchart_div"></div>
-
+<h3>Proportional Comparison</h3>
+<p>The lower the green line is below the red line, the better the algorithm is performing.</p>
 <div id="proportionchart_div"></div>
 
+<h3>Merge-Split-Move (MSM)</h3>
+<p>The lower the green line is below the red line, the better the algorithm is performing. <br>
+<a href="http://vlm1.uta.edu/~athitsos/publications/stefan_tkde2012_preprint.pdf">More info...</a></p>
 <div id="msmchart_div"></div>
 
 
 </div>
+<h2>Testing Success</h2>
+<%
 
+//Instances train = ...   // from somewhere
+//Instances test = ...    // from somewhere
 
+int numTestInstances=25;
+if(request.getParameter("numTestInstances")!=null){
+	numTestInstances=(new Integer(request.getParameter("numTestInstances"))).intValue();
+	if(numTestInstances>instances.numInstances()){numTestInstances=25;}
+}
+int numTrainingInstances=numTestInstances;
+if(request.getParameter("numTrainingInstances")!=null){
+	numTrainingInstances=(new Integer(request.getParameter("numTrainingInstances"))).intValue();
+	if(numTrainingInstances>instances.numInstances()){numTrainingInstances=numTestInstances;}
+}
+double falseClassMultiplier=2;
+if(request.getParameter("falseClassMultiplier")!=null){
+	falseClassMultiplier=(new Double(request.getParameter("falseClassMultiplier"))).doubleValue();
+}
+
+//prep weka for AdaBoost
+// Declare numeric attributes
+Attribute intersectAttr = new Attribute("intersect");
+Attribute fastDTWAttr = new Attribute("fastDTW");
+Attribute i3sAttr = new Attribute("I3S");
+Attribute proportionAttr = new Attribute("proportion");
+Attribute msmAttr = new Attribute("MSM");
+
+//class vector
+// Declare the class attribute along with its values
+FastVector fvClassVal = new FastVector(2);
+fvClassVal.addElement("match");
+fvClassVal.addElement("nonmatch");
+Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
+
+//define feature vector
+// Declare the feature vector
+FastVector fvWekaAttributes = new FastVector(6);
+fvWekaAttributes.addElement(intersectAttr);
+fvWekaAttributes.addElement(fastDTWAttr);
+fvWekaAttributes.addElement(i3sAttr);
+fvWekaAttributes.addElement(proportionAttr);
+fvWekaAttributes.addElement(msmAttr);
+fvWekaAttributes.addElement(ClassAttribute);
+
+Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, numTestInstances);
+isTrainingSet.setClassIndex(5);
+
+Instances classifierSet = new Instances("Rel", fvWekaAttributes, numTestInstances);
+classifierSet.setClassIndex(5);
+
+int sampledTrueInstances=0;
+while(sampledTrueInstances<numTestInstances){
+	Random myRan=new Random();
+	int selected=myRan.nextInt(instances.numInstances()-1);
+	Instance popMe=instances.instance(selected);
+	if(popMe.stringValue(5).equals("match")){
+		instances.delete(selected);
+		isTrainingSet.add(popMe);
+		sampledTrueInstances++;
+	}
+}
+int sampledFalseInstances=0;
+while(sampledFalseInstances<numTestInstances){
+	Random myRan=new Random();
+	int selected=myRan.nextInt(instances.numInstances()-1);
+	Instance popMe=instances.instance(selected);
+	if(popMe.stringValue(5).equals("nonmatch")){
+		instances.delete(selected);
+		isTrainingSet.add(popMe);
+		sampledFalseInstances++;
+	}
+}
+
+int sampledTrueClassInstances=0;
+while(sampledTrueClassInstances<numTrainingInstances){
+	Random myRan=new Random();
+	int selected=myRan.nextInt(instances.numInstances()-1);
+	Instance popMe=instances.instance(selected);
+	if(popMe.stringValue(5).equals("match")){
+		instances.delete(selected);
+		classifierSet.add(popMe);
+		sampledTrueClassInstances++;
+	}
+}
+int sampledFalseClassInstances=0;
+while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
+	Random myRan=new Random();
+	int selected=myRan.nextInt(instances.numInstances()-1);
+	Instance popMe=instances.instance(selected);
+	if(popMe.stringValue(5).equals("nonmatch")){
+		instances.delete(selected);
+		classifierSet.add(popMe);
+		sampledFalseClassInstances++;
+	}
+}
+
+AdaBoostM1 cls=new AdaBoostM1();
+BayesNet bn=new BayesNet();
+cls.buildClassifier(classifierSet);
+bn.buildClassifier(classifierSet);
+// evaluate classifier and print some statistics
+Evaluation eval = new Evaluation(isTrainingSet);
+eval.evaluateModel(cls, isTrainingSet);
+
+Evaluation bayesEval=new Evaluation(isTrainingSet);
+bayesEval.evaluateModel(bn,isTrainingSet);
+%>
+<p>AdaBoost % correctly classified: <%=eval.pctCorrect() %></p>
+<p>BayesNet % correctly classified: <%=bayesEval.pctCorrect() %></p>
+<p>Num instances used to test: <%=isTrainingSet.numInstances() %></p>
+<p>Num instances used to build a new sample classifier: <%=classifierSet.numInstances() %></p>
 
 <%
 } 
