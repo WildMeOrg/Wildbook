@@ -17,6 +17,10 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.output.*;
 import org.apache.commons.io.FilenameUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONException;
+
 public class SinglePhotoVideo extends DataCollectionEvent {
 
   private static final long serialVersionUID = 7999349137348568641L;
@@ -99,6 +103,21 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
 	public String asUrl(Encounter enc, String baseDir) {
 		return "/" + enc.dir(baseDir) + "/" + this.filename;
 	}
+
+
+        public String asUrl(HttpServletRequest request) {
+            String context = ServletUtilities.getContext(request);
+            String rootWebappPath = (new File(request.getSession().getServletContext().getRealPath("/"))).getParentFile().toString();
+System.out.println("rootWebappPath = " + rootWebappPath);
+            String url = this.getFullFileSystemPath();
+            int i = url.indexOf(rootWebappPath);
+            if (i > -1) {
+                url = (new File(url.substring(i + rootWebappPath.length())).getParentFile()).toString() + "/" + this.getDataCollectionEventID() + ".jpg";
+            } else {
+                url = "unknown.jpg";  //TODO handle this better
+            }
+            return url;
+        }
 
   /*
   public File getThumbnailFile(){
@@ -215,5 +234,20 @@ System.out.println("yes. out. ))");
 		t.start();
 		return true;
         }
+
+
+	public JSONObject sanitizeJson(HttpServletRequest request) throws JSONException {
+System.out.println("um, i am sanitizing " + this);
+            JSONObject jobj = new JSONObject(this);
+            //if (this.canUserAccess(request)) return jobj;
+            jobj.remove("fullFileSystemPath");
+            jobj.remove("filename");
+            jobj.remove("file");
+            jobj.put("url", this.asUrl(request));
+            jobj.put("_sanitized", true);
+            jobj.put("dataCollectionEventID", this.getDataCollectionEventID());
+            return jobj;
+        }
+
 
 }

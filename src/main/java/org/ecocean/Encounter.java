@@ -49,12 +49,16 @@ import javax.servlet.http.HttpServletRequest;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
-import org.json.JSONObject;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 
 import javax.servlet.http.HttpServletRequest;
 
+//note these are different.  so be explicit if you need the org.json.JSONObject flavor
+//import org.json.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONArray;
+import org.datanucleus.api.rest.orgjson.JSONException;
 
 
 /**
@@ -1956,18 +1960,21 @@ public class Encounter implements java.io.Serializable {
 		return Collaboration.canUserAccessEncounter(this, request);
 	}
 
-/*
-	public Encounter sanitized(HttpServletRequest request) {
-            if (this.canUserAccess(request)) return this;
+	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+            //if (this.canUserAccess(request)) return jobj;
 System.out.println("Encounter sanitizing " + this);
-            Encounter enc = this.clone();
-            for (Field f : enc.getClass().getDeclaredFields()) {
-                if (f.getName().equals("catalogNumber")) continue;
-                field.set(enc, null);
+            if ((this.getImages() != null) && (this.getImages().size() > 0)) {
+System.out.println(" -------- images!");
+                JSONArray jarr = new JSONArray();
+                for (SinglePhotoVideo spv : this.getImages()) {
+System.out.println(" ???? ");
+                    jarr.put(spv.sanitizeJson(request));
+                }
+                jobj.put("images", jarr);
             }
-            return enc;
+            jobj.put("_sanitized", true);
+            return jobj;
         }
-*/
 
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
@@ -2044,7 +2051,7 @@ thus, we have to treat it as a special case.
 		return "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + this.subdir() + "/thumb.jpg";
 	}
 
-	public boolean restAccess(HttpServletRequest request, JSONObject jsonobj) throws Exception {
+	public boolean restAccess(HttpServletRequest request, org.json.JSONObject jsonobj) throws Exception {
 		ApiAccess access = new ApiAccess();
 System.out.println("hello i am in restAccess() on Encounter");
 

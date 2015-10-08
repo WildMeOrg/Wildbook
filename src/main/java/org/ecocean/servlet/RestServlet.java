@@ -229,19 +229,20 @@ public class RestServlet extends HttpServlet
                     {
                         query.getFetchPlan().addGroup(fetchParam);
                     }
-                    Object result = query.execute();
-                    filterResult(result);
+                    Object result = filterResult(query.execute());
                     if (result instanceof Collection)
                     {
-                        JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
-                            ((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(resp, jsonobj.toString(), useCompression);
+                        JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
+                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
+                            //((JDOPersistenceManager)pm).getExecutionContext());
+                        tryCompress(req, resp, jsonobj, useCompression);
                     }
                     else
                     {
-                        JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
-                            ((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(resp, jsonobj.toString(), useCompression);
+                        JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
+                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                            //((JDOPersistenceManager)pm).getExecutionContext());
+                        tryCompress(req, resp, jsonobj, useCompression);
                     }
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
@@ -270,19 +271,20 @@ public class RestServlet extends HttpServlet
                     {
                         query.getFetchPlan().addGroup(fetchParam);
                     }
-                    Object result = query.execute();
-                    filterResult(result);
+                    Object result = filterResult(query.execute());
                     if (result instanceof Collection)
                     {
-                        JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
-                            ((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(resp, jsonobj.toString(), useCompression);
+                        JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
+                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
+                            //((JDOPersistenceManager)pm).getExecutionContext());
+                        tryCompress(req, resp, jsonobj, useCompression);
                     }
                     else
                     {
-                        JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
-                            ((JDOPersistenceManager)pm).getExecutionContext());
-                        tryCompress(resp, jsonobj.toString(), useCompression);
+                        JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
+                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                            //((JDOPersistenceManager)pm).getExecutionContext());
+                        tryCompress(req, resp, jsonobj, useCompression);
                     }
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
@@ -343,11 +345,11 @@ public class RestServlet extends HttpServlet
                         {
                             pm.currentTransaction().begin();
                             Query query = pm.newQuery("JDOQL", queryString);
-                            List result = (List)query.execute();
-                            filterResult(result);
-                            JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
-                                ((JDOPersistenceManager)pm).getExecutionContext());
-                            tryCompress(resp, jsonobj.toString(), useCompression);
+                            List result = (List)filterResult(query.execute());
+                            JSONArray jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
+                            //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
+                                //((JDOPersistenceManager)pm).getExecutionContext());
+                            tryCompress(req, resp, jsonobj, useCompression);
                             resp.setHeader("Content-Type", "application/json");
                             resp.setStatus(200);
                             pm.currentTransaction().commit();
@@ -401,11 +403,12 @@ public class RestServlet extends HttpServlet
                 try
                 {
                     pm.currentTransaction().begin();
-                    Object result = pm.getObjectById(id);
-                    filterResult(result);
-                    JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
-                        ((JDOPersistenceManager)pm).getExecutionContext());
-                    resp.getWriter().write(jsonobj.toString());
+                    Object result = filterResult(pm.getObjectById(id));
+                    JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
+                    //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                        //((JDOPersistenceManager)pm).getExecutionContext());
+                    tryCompress(req, resp, jsonobj, useCompression);
+                    //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
                     pm.currentTransaction().commit();
                     return;
@@ -514,7 +517,7 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-                        ///////boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
+                        //boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
                         boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
@@ -541,7 +544,8 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
 
                         if (restAccessOk) {
                 Object obj = pm.makePersistent(pc);
-                JSONObject jsonobj2 = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+                JSONObject jsonobj2 = convertToJson(req, obj, ec);
+                //JSONObject jsonobj2 = RESTUtils.getJSONObjectFromPOJO(obj, ec);
                 resp.getWriter().write(jsonobj2.toString());
                 resp.setHeader("Content-Type", "application/json");
                 pm.currentTransaction().commit();
@@ -859,10 +863,11 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
         }
 
 
-        void filterResult(Object result) throws NucleusUserException {
+        Object filterResult(Object result) throws NucleusUserException {
 System.out.println("filterResult! thisRequest");
 System.out.println(thisRequest);
             Class cls = null;
+            Object out = result;
             if (result instanceof Collection) {
                 for (Object obj : (Collection)result) {
                     cls = obj.getClass();
@@ -872,40 +877,68 @@ System.out.println(thisRequest);
                 cls = result.getClass();
                 if (cls.getName().equals("org.ecocean.User")) throw new NucleusUserException("Cannot access org.ecocean.User objects at this time");
             }
-
-/*
-            //TODO note, after sanitizing, object *may* be an empty(ish) clone... we should probably make sure (how?) to not save it or modify etc.
-            Method collabAccess = null;
-            try {
-                collabAccess = cls.getMethod("sanitized", new Class[] { HttpServletRequest.class });
-            } catch (NoSuchMethodException nsm) {
-                //nothing to do
-            }
-            if (collabAccess == null) return;
-
-            if (result instanceof Collection) {
-                Collection newObjs = new Collection();
-                for (Object obj : (Collection)result) {
-                    newObjs.add(collabAccess.invoke(obj, thisRequest));
-                }
-                result = newObjs;
-            } else {
-                result = collabAccess.invoke(obj, thisRequest);
-            }
-*/
-
-/*
-            try {
-                collabAccess.invoke(obj, req, jsonobj);
-            } catch (Exception ex) {
-                ok = false;
-System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
-            }
-*/
+            return out;
         }
 
 
-        void tryCompress(HttpServletResponse resp, String s, boolean useComp) throws IOException {
+        JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
+System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+            JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
+            Method sj = null;
+            try {
+                sj = obj.getClass().getMethod("sanitizeJson", new Class[] { HttpServletRequest.class, JSONObject.class });
+            } catch (NoSuchMethodException nsm) { //do nothing
+//System.out.println("i guess " + obj.getClass() + " does not have sanitizeJson() method");
+            }
+            if (sj != null) {
+//System.out.println("trying sanitizeJson!");
+                try {
+                    jobj = (JSONObject)sj.invoke(obj, req, jobj);
+                } catch (Exception ex) {
+System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                }
+            }
+            return jobj;
+        }
+
+        JSONArray convertToJson(HttpServletRequest req, Collection coll, ExecutionContext ec) {
+            JSONArray jarr = new JSONArray();
+            for (Object o : coll) {
+                if (o instanceof Collection) {
+                    jarr.put(convertToJson(req, (Collection)o, ec));
+                } else {  //TODO can it *only* be an JSONObject-worthy object at this point?
+                    jarr.put(convertToJson(req, o, ec));
+                }
+            }
+            return jarr;
+        }
+
+/*
+        //jo can be either JSONObject or JSONArray
+        Object scrubJson(HttpServletRequest req, Object jo) throws JSONException {
+System.out.println("scrubJson");
+            if (jo instanceof JSONArray) {
+                JSONArray newArray = new JSONArray();
+                JSONArray ja = (JSONArray)jo;
+System.out.println("- JSON Array " + ja);
+                for (int i = 0 ; i < ja.length() ; i++) {
+                    newArray.put(scrubJson(req, ja.getJSONObject(i)));
+                }
+                return newArray;
+
+            } else {
+                JSONObject jobj = (JSONObject)jo;
+System.out.println("- JSON Object " + jobj);
+System.out.println("- scrubJson reporting class=" + jobj.get("class").toString());
+                return jobj;
+            }
+        }
+*/
+
+        void tryCompress(HttpServletRequest req, HttpServletResponse resp, Object jo, boolean useComp) throws IOException, JSONException {
+System.out.println("??? TRY COMPRESS ??");
+            //String s = scrubJson(req, jo).toString();
+            String s = jo.toString();
             if (!useComp || (s.length() < 3000)) {  //kinda guessing on size here, probably doesnt matter
                 resp.getWriter().write(s);
             } else {
