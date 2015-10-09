@@ -538,10 +538,11 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<intersectionCorrectValues.size();y++){
       		double position=(double)y/intersectionCorrectValues.size();
-    		  
+    		  if(intersectionCorrectValues.get(y)<1){
       		  %>
-      		  [<%=position %>,<%=intersectionCorrectValues.get(y) %>],
+      		 	 [<%=position %>,<%=intersectionCorrectValues.get(y) %>],
       		  <%
+      	  	}
       	  }           
       	%>              
 		]);
@@ -560,9 +561,11 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<intersectionValues.size();y++){
       		  double position=(double)y/intersectionValues.size();
+      		if(intersectionValues.get(y)<1){
       		  %>
       		  [<%=position %>,<%=intersectionValues.get(y) %>],
       		  <%
+      		}
       	  }           
       	%>           
      	               
@@ -876,10 +879,11 @@ myShepherd.rollbackDBTransaction();
         
       	  for(int y=0;y<msmCorrectValues.size();y++){
       		double position=(double)y/msmCorrectValues.size();
-    		  
+    		  if(msmCorrectValues.get(y)<15){
       		  %>
       		  [<%=position %>,<%=msmCorrectValues.get(y) %>],
       		  <%
+    		  }
       	  }           
       	%>              
 		]);
@@ -895,13 +899,15 @@ myShepherd.rollbackDBTransaction();
        msmIncorrectData.addRows([
 		<%
          Collections.sort(msmValues);
-        
+		
       	  for(int y=0;y<msmValues.size();y++){
       		  double position=(double)y/msmValues.size();
+      		if(msmValues.get(y)<15){
       		  %>
       		  [<%=position %>,<%=msmValues.get(y) %>],
       		  <%
-      	  }           
+      	  }    
+		}
       	%>           
      	               
      	               

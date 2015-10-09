@@ -1753,6 +1753,16 @@
     <servlet-name>TrainAdaboostM1</servlet-name>
     <url-pattern>/TrainAdaboostM1</url-pattern>
   </servlet-mapping>
+  
+        <servlet>
+    <servlet-name>TrainHolmbergIntersection</servlet-name>
+    <servlet-class>org.ecocean.servlet.TrainHolmbergIntersection</servlet-class>
+  </servlet>
+  
+   <servlet-mapping>
+    <servlet-name>TrainHolmbergIntersection</servlet-name>
+    <url-pattern>/TrainHolmbergIntersection</url-pattern>
+  </servlet-mapping>
 
 
 
