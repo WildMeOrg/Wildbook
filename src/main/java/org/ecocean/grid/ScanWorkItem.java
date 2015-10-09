@@ -158,6 +158,9 @@ public class ScanWorkItem implements java.io.Serializable {
    * Make sure to setDone() when execute has completed successfully.
    */
   public MatchObject execute() {
+    
+    //tuned on October 8, 2015 using /TrainHolmbergIntersection
+    double allowedHolmbergIntersectionProportion = 0.18;
 
 
     //determine which spots to pass in
@@ -319,7 +322,7 @@ public class ScanWorkItem implements java.io.Serializable {
     }
     */
     //if(algorithms.indexOf("HolmbergIntersection")>-1){
-      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,0.20);
+      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,allowedHolmbergIntersectionProportion);
       //int finalInter=-1;
       //if(numIntersections!=null){finalInter=numIntersections;}
       

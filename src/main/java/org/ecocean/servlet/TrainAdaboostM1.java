@@ -64,7 +64,7 @@ public class TrainAdaboostM1 extends HttpServlet {
     
     String fullPathToInstancesFile=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
     
-   Instances instances = TrainNetwork.buildAdaboostInstances(request, fullPathToInstancesFile);
+   Instances instances = TrainNetwork.buildAdaboostInstances(request, fullPathToInstancesFile,genusSpecies);
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
    String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
