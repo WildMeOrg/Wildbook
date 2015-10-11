@@ -821,6 +821,7 @@ public class TrainNetwork {
       Attribute i3sAttr = new Attribute("I3S");
       Attribute proportionAttr = new Attribute("proportion");
       Attribute msmAttr = new Attribute("MSM");
+      Attribute swaleAttr = new Attribute("Swale");
       
       //class vector
       // Declare the class attribute along with its values
@@ -831,12 +832,13 @@ public class TrainNetwork {
       
       //define feature vector
       // Declare the feature vector
-      FastVector fvWekaAttributes = new FastVector(6);
+      FastVector fvWekaAttributes = new FastVector(7);
       fvWekaAttributes.addElement(intersectAttr);
       fvWekaAttributes.addElement(fastDTWAttr);
       fvWekaAttributes.addElement(i3sAttr);
       fvWekaAttributes.addElement(proportionAttr);
       fvWekaAttributes.addElement(msmAttr);
+      fvWekaAttributes.addElement(swaleAttr);
       fvWekaAttributes.addElement(ClassAttribute);
       
       
@@ -944,26 +946,37 @@ public class TrainNetwork {
                         
                         Double msm=MSM.getMSMDistance(el1, el2);
                         
+                        
+                        //swale setup
+                        double penalty=0.0;
+                        double epsilon=0.0;
+                        double reward=50.0;
+                        Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
+                        
                         // Create the instance
-                        Instance iExample = new Instance(6);
+                        Instance iExample = new Instance(7);
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), msm.doubleValue());
+                        iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), swaleVal.doubleValue());
                         
                         if(output==0){
-                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
+                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(6), "match");
                           numMatches++;
                         }
                         else{
-                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
+                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(6), "nonmatch");
                           numNonMatches++;
                         }
                         // add the instance
                         isTrainingSet.add(iExample);
                         
                         //END FIRST PASS
+                        
+                        
+                        
                         
                         //SECOND PASS-reverse order
     
@@ -1010,24 +1023,28 @@ public class TrainNetwork {
                         
                       //score MSM
                         
-                        Double msmScore=MSM.getMSMDistance(el1, el2);
+                        Double msmScore=MSM.getMSMDistance(el2, el1);
+                        
+                      //swale setup
+                        Double swaleScore=EncounterLite.getSwaleMatchScore(el2, el1, penalty, reward, epsilon);
+                        
                         
                         
                         // Create the instance
-                        Instance iExample2 = new Instance(6);
+                        Instance iExample2 = new Instance(7);
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), msmScore.doubleValue());
-                        
+                        iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), swaleScore.doubleValue());
                         
                         if(output==0){
-                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
+                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(6), "match");
                           numMatches++;
                         }
                         else{
-                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
+                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(6), "nonmatch");
                           numNonMatches++;
                         }
                         // add the instance

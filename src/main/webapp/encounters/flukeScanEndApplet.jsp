@@ -126,6 +126,7 @@ tr.clickable:hover .link-button {
 .image-info {
 	padding: 5px;
 	margin: 8px;
+	margin-bottom: -75px;
 	width: 43%;
 	background-color: rgba(255,255,255,0.7);
 	font-size: 0.8em;
@@ -144,6 +145,9 @@ tr.clickable:hover .link-button {
 	border-radius: 12px;
 	background-color: rgba(0,0,0,0.7);
 	color: #FFF;
+	z-index: 9999 !important;
+	position: relative;
+	margin-bottom: -25px;
 }
 
 
@@ -226,11 +230,11 @@ var encounterNumber = '<%=num%>';
   
       <a name="resultstable"></a>
 
-
-<div id="result-images"></div>
 <div id="image-meta">
 	<div id="score"></div>
 </div>
+<div id="result-images"></div>
+
 
 <div id="chart"></div>
 

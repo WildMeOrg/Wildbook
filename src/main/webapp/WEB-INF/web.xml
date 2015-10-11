@@ -1763,6 +1763,16 @@
     <servlet-name>TrainHolmbergIntersection</servlet-name>
     <url-pattern>/TrainHolmbergIntersection</url-pattern>
   </servlet-mapping>
+  
+          <servlet>
+    <servlet-name>TrainSwale</servlet-name>
+    <servlet-class>org.ecocean.servlet.TrainSwale</servlet-class>
+  </servlet>
+  
+   <servlet-mapping>
+    <servlet-name>TrainSwale</servlet-name>
+    <url-pattern>/TrainSwale</url-pattern>
+  </servlet-mapping>
 
 
 
