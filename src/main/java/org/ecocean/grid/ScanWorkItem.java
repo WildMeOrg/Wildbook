@@ -305,10 +305,22 @@ public class ScanWorkItem implements java.io.Serializable {
       //set proportion Value
       result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       
+      //set MSM value
       Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
       System.out.println("     MSM result is: "+msmValue.doubleValue());
-      
       result.setMSMSValue(msmValue);
+      
+      
+      //set Swale value
+      double penalty=-2;
+      double reward=25.0;
+      double epsilon=0.0011419401589504922;
+
+      Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, penalty, reward, epsilon);
+      System.out.println("     Swale result is: "+swaleValue.doubleValue());
+      result.setMSMSValue(msmValue);
+      
+      
       
     //}
     

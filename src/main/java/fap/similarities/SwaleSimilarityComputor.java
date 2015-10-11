@@ -100,6 +100,8 @@ public class SwaleSimilarityComputor extends SerializableSimilarityComputor {
 	
 	@Override
 	public double similarity(Serie serie1, Serie serie2) {
+	  
+	  //System.out.println("     Starting Swale similarity test!");
 	
 		DataPointSerie data1 = serie1.getData();
 		DataPointSerie data2 = serie2.getData();
@@ -107,6 +109,9 @@ public class SwaleSimilarityComputor extends SerializableSimilarityComputor {
 		
 		int len1 = data1.getPointsCount();
 		int len2 = data2.getPointsCount();
+		
+		//System.out.println(" Swale things its looks at two points sets oif length: "+len1+" and "+len2);
+		
 		int slen,glen;
 		
 		if (len1<len2)
@@ -153,7 +158,11 @@ public class SwaleSimilarityComputor extends SerializableSimilarityComputor {
 		
 		int i = glen % 2;
 		
-		return -Swale[i][slen];
+		double swaleResult=-Swale[i][slen];
+		
+		System.out.println("\n\n\n\n!@!@!@!@!Swale result is: "+swaleResult+"\n\n\n");
+		
+		return swaleResult;
 	}
 	
 	@Override
