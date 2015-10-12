@@ -786,6 +786,7 @@ console.warn('(%d,%d) (%d,%d)', c1[0], c1[1], c2[0], c2[1]);
     var s1 = graph.grid[spots[0][1] - y1][20];
 */
 
+/*   THIS IS THE CHUNK THAT WAS WORKING (but we are now disabling)
     imageDataSmall = ctx.getImageData(0, 0, edgeCanvas.width, edgeCanvas.height);
     var a = arrayFromContext(imageDataSmall, spots);
     var graph = new Graph(a);
@@ -823,6 +824,8 @@ console.log('s2 %o', s2);
         }
     }
 //drawGNSpot(e); drawGNSpot(s1); drawGNSpot(s2); return;
+
+*/
 
 
 /////// falls back on old method to find paths
@@ -944,6 +947,7 @@ function tryPartialPaths(imageData) {
     for (var pn = 0 ; pn < 2 ; pn++) {
         if (itool.paths[pn]) continue;
         //note assuming spots are sorted here since being called right after full path attempts -- make note if that changes, they need to be sorted
+        //  for dorsals, halfSpotsDorsal ultimately gets called, which handles the wonky ordering possibilities
         var s = halfSpots(pn);
 //console.log('halfSpots -> %o', s); return;
         if (s.length < 3) continue;  //not much use to try!
@@ -953,6 +957,7 @@ function tryPartialPaths(imageData) {
             //var p = bestPath(imgd, s[i], s[i+1]);
             var p = bestPath(imgd, itool.toCanvasPoint(s[i]), itool.toCanvasPoint(s[i+1]));
 console.warn('attempt partial path trace on side %d pt %d (%d,%d) to pt %d (%d,%d) -> %o', pn, i, s[i][0], s[i][1], i+1, s[i+1][0], s[i+1][1], p);
+if (!p) console.warn('lastMessage -> %s', lastMessage);
             if (p) {
                 itool.paths[pn] = itool.paths[pn].concat(p);
                 foundSome = true;
@@ -1032,6 +1037,7 @@ var bestPathParam = {
 };
 var _originalGapSize = bestPathParam.gapSize;
 
+var lastMessage = false;
 function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
     if (!origP1) origP1 = p1; //we need this as original start so we can find bounds box
     if (!skipped) skipped = 0;
@@ -1039,11 +1045,13 @@ function bestPath(imageData, p1, p2, origP1, skipped, sinceLastGap) {
     if ((p1[0] < 0) || (p1[0] >= imageData.width) || (p1[1] < 0) || (p1[1] >= imageData.height)) return false;  //out of bounds of image
     var d2 = itool.distToLineSegment2(p1, origP1, p2);
 //console.warn('(%f, %f) dist squared from line = %f', p1[0], p1[1], d2);
+    if (d2 > bestPathParam.boundSize) { lastMessage = 'OUT OF BOUNDS!'; return false; }
     if (d2 > bestPathParam.boundSize) return false;
 
     var offset = (Math.floor(p1[1]) * imageData.width + Math.floor(p1[0])) * 4;
 
 //console.log('(%f,%f) %d [%d]', p1[0], p1[1], imageData.data[offset], skipped);
+    if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) { lastMessage = 'already visited = ' + imageData.data[offset+1]; return false; }  //already visited
     if ((imageData.data[offset+1] > 0) && (imageData.data[offset+1] < 255)) return false;  //already visited
     //imageData.data[offset+1] = 128;  //mark visited
     //imageData.data[offset+2] = 128;
@@ -1062,6 +1070,7 @@ return [itool.fromCanvasPoint(p1)];
         imageData.data[offset+1] = 128;  //mark visited
         imageData.data[offset+2] = 128;
     } else if (skipped > bestPathParam.gapSize) {  //too big a gap
+lastMessage = 'big gap';
         return false;
     } else {
         sinceLastGap = 0;
@@ -1105,6 +1114,7 @@ console.info('bailing');
         if (thisPt) bPath.unshift(itool.fromCanvasPoint(thisPt));
         return bPath;
     } else {
+lastMessage = 'no thisPt';
         return false;
     }
     //return pts;
@@ -1615,6 +1625,8 @@ console.warn('(%d,%d) (%d,%d)', x1, y1, x2, y2);
     var e = graph.grid[20][20];
     var s1 = graph.grid[y2 - y1 - 20][20];
 */
+
+/*  THIS CHUNK WAS WORKING (but now disabling to revert to old home-grown tracing method)...
     var a = arrayFromContext(imageData, spots);
     var graph = new Graph(a);
     var ept = itool.toCanvasPoint(spots[1]);
@@ -1651,6 +1663,7 @@ console.log('s2 %o', s1);
             itool.paths[1].push(itool.fromCanvasPoint([x,y]));
         }
     }
+*/
 
     bestPathParam.boundSize = itool.dist2(spots[0], spots[1]) / 16;
 console.info('boundSize = %d', bestPathParam.boundSize);
@@ -1678,6 +1691,7 @@ if (bestPathParam.debug) console.log('right path -> %o', itool.paths[1]);
     //drawPath(imageData, itool.paths[1], [150,230,255,100]);
 
     //we pass a clean ImageData object to work with
+console.info('----------------------------------- TRYING PARTIAL PATHS ON DORSAL -----------------------------------------');
     tryPartialPaths(ctx2.getImageData(0, 0, ctx2.canvas.width, ctx2.canvas.height));
 
     if (bestPathParam.debug) ctx.putImageData(imageData, 0, 0);
@@ -1711,12 +1725,39 @@ if (bestPathParam.debug) console.log('right path -> %o', itool.paths[1]);
 
 //since sortSpotsDorsal() sorts differently, we need to kinda handle this a different way
 function halfSpotsDorsal(pn) {
+/*
     var l = [0,3,5,7,1];
     var dir = Math.sign(itool.spots[2][0] - itool.spots[0][0]);  // +1 means right side of fluke, -1 means left side of fluke
     if ((pn + dir == 2) || (pn + dir == -1)) l = [2,4,6,8,9];
     var h = [];
     for (var i = 0 ; i < 5 ; i++) {
         if (itool.spots[l[i]]) h.push(itool.spots[l[i]].concat());
+    }
+    return h;
+*/
+    //note: the "side" may be wonky depending on which way fin is facing. but dont think this matters *if* halfSpotsDorsal() is only being used by tryPartialPaths... ?  TODO verify
+    var s = itool.spots.concat();
+    var midp = [ s[0][0] + (s[2][0] - s[0][0]) * 0.75, s[0][1] ];
+    if (bestPathParam.debug) debugCtx(itool.ctx, 'midpt(' + midp[0]+','+midp[1]+')', midp);
+    var m = (s[1][1] - midp[1]) / (s[1][0] - midp[0]);
+    var b = midp[1] - m * midp[0];
+    //console.log('y = %.2fx + %.2f', m, b);
+    var notchpt = s.splice(1, 1)[0];  //remove "notch" point, to be added later
+    s.sort(function(a,b) { return a[1] - b[1]; });  //first we sort all by Y value
+//console.log('sorted %o', s);
+    // we return based on pn (0 or 1) and which side of midpoint/dividing line spot is on
+    var h = [ notchpt ];  //notch always first, either side
+    for (var i = 0 ; i < s.length ; i++) {
+        var midx = (s[i][1] - b) / m;
+//debugCtx(itool.ctx, 's'+i, [midx, s[i][1]]);
+        //i == 0 gets added for *either* side, as it is the "notch"
+        if (((pn == 0) && (s[i][0] <= midx)) || ((pn == 1) && (s[i][0] > midx))) h.push(s[i]);
+    }
+console.log('halfSpotsDorsal -> %o', h);
+    if (bestPathParam.debug) {
+        for (var i = 0 ; i < h.length ; i++) {
+            debugCtx(itool.ctx, 'h'+i, h[i]);
+        }
     }
     return h;
 }
@@ -1761,6 +1802,20 @@ function arrayFromContext(imageData, spots) {
 function drawGNSpot(gn) {
     drawSpot(itool.ctx, [gn.y, gn.x], '_frompath');
 }
+
+
+function debugCtx(ctx, text, pt) {
+    ctx.fillStyle = 'rgba(255,255,100,0.9)';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 0.5;
+    ctx.font = 'bold 16px sans';
+    ctx.fillText(text, pt[0], pt[1]);
+    ctx.strokeText(text, pt[0], pt[1]);
+    ctx.rect(pt[0] - 2, pt[1] - 2, 4, 4);
+    ctx.fill();
+    ctx.stroke();
+}
+
 
 
 
