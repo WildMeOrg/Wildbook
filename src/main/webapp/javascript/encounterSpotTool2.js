@@ -1735,8 +1735,12 @@ function halfSpotsDorsal(pn) {
     }
     return h;
 */
-    //note: the "side" may be wonky depending on which way fin is facing. but dont think this matters *if* halfSpotsDorsal() is only being used by tryPartialPaths... ?  TODO verify
     var s = itool.spots.concat();
+    //deal with flipped (i.e. left-side) image, which considers side 0 to be the right side (back of fin)
+    var want = pn;
+    var dir = Math.sign(s[2][0] - s[0][0]);  // +1 means right side of fluke, -1 means left side of fluke
+    if (dir == -1) want = 1 - pn;
+
     var midp = [ s[0][0] + (s[2][0] - s[0][0]) * 0.75, s[0][1] ];
     if (bestPathParam.debug) debugCtx(itool.ctx, 'midpt(' + midp[0]+','+midp[1]+')', midp);
     var m = (s[1][1] - midp[1]) / (s[1][0] - midp[0]);
@@ -1751,7 +1755,7 @@ function halfSpotsDorsal(pn) {
         var midx = (s[i][1] - b) / m;
 //debugCtx(itool.ctx, 's'+i, [midx, s[i][1]]);
         //i == 0 gets added for *either* side, as it is the "notch"
-        if (((pn == 0) && (s[i][0] <= midx)) || ((pn == 1) && (s[i][0] > midx))) h.push(s[i]);
+        if (((want == 0) && (s[i][0] <= midx)) || ((want == 1) && (s[i][0] > midx))) h.push(s[i]);
     }
 console.log('halfSpotsDorsal -> %o', h);
     if (bestPathParam.debug) {
