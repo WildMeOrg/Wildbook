@@ -65,6 +65,11 @@ var columnInfo = {
         label: 'MSM',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+    swale: {
+        label: 'Swale',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     }
 };
 
@@ -390,7 +395,6 @@ console.info('addImage(%o, %o)', enc, el);
         individualID: 'Assigned to',
         date: 'Date',
         sex: 'Sex',
-        size: 'Size',
         verbatimLocality: 'Location',
         locationID: 'Location ID'
     };

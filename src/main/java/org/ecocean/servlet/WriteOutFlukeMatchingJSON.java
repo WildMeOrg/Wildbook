@@ -125,23 +125,6 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         boolean successfulWrite = writeResult(res, encNumber,  newEncDate, newEncShark, myShepherd, context, request);
 
         
-        //successfulI3SWrite = i3sWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
-
-        //boolean fastDTWWriteThis=fastDTWWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
-        
-        //boolean intersectionWriteThis=intersectionWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
-        
-        
-        //boolean geroWriteThis=geroWriteThis(myShepherd, res, encNumber, newEncDate, newEncShark, newEncSize, righty, 2.5,context);
-        
-        
-        //write out the boosted results
-        //if(request.getParameter("boost")!=null){
-        //    Properties props = new Properties();
-        //    props = generateBoostedResults(res, encNumber, myShepherd);
-        //    successfulWrite=writeBoostedResult(encNumber, res, encNumber, newEncDate, newEncShark, newEncSize, righty, cutoff, myShepherd, props);
-        //}
-
 
         myShepherd.commitDBTransaction();
         
@@ -150,14 +133,6 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
         es.execute(new ScanTaskCleanupThread(request.getParameter("number")));
 
-        //let's go see the written results
-        //String sideAddition = "";
-        //if (request.getParameter("number").indexOf("scanR") != -1) {
-        //  sideAddition = "&rightSide=true";
-        //}
-        //String resultsURL = ("http://" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp?number=" + request.getParameter("number").substring(5) + "&writeThis=true" + sideAddition);
-        //response.sendRedirect(resultsURL);
-        
        
         statusText = "success";
         
@@ -235,35 +210,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       StringBuffer resultsJSON = new StringBuffer();
       
       
-      //need stats
-      //TBD cache these later so writes are faster
-      //SummaryStatistics intersectionStats=GridManager.getIntersectionStats(request);
-      //SummaryStatistics dtwStats=GridManager.getDTWStats(request);
-      //SummaryStatistics proportionStats=GridManager.getProportionStats(request);
-      //SummaryStatistics i3sStats=GridManager.getI3SStats(request);
-      
-      /*
-      double intersectionStdDev=0.05;
-      if(request.getParameter("intersectionStdDev")!=null){intersectionStdDev=(new Double(request.getParameter("intersectionStdDev"))).doubleValue();}
-      double dtwStdDev=0.41;
-      if(request.getParameter("dtwStdDev")!=null){dtwStdDev=(new Double(request.getParameter("dtwStdDev"))).doubleValue();}
-      double i3sStdDev=0.01;
-      if(request.getParameter("i3sStdDev")!=null){i3sStdDev=(new Double(request.getParameter("i3sStdDev"))).doubleValue();}
-      double proportionStdDev=0.01;
-      if(request.getParameter("proportionStdDev")!=null){proportionStdDev=(new Double(request.getParameter("proportionStdDev"))).doubleValue();}
-      double intersectHandicap=0;
-      if(request.getParameter("intersectHandicap")!=null){intersectHandicap=(new Double(request.getParameter("intersectHandicap"))).doubleValue();}
-      double dtwHandicap=0;
-      if(request.getParameter("dtwHandicap")!=null){dtwHandicap=(new Double(request.getParameter("dtwHandicap"))).doubleValue();}
-      double i3sHandicap=0;
-      if(request.getParameter("i3sHandicap")!=null){i3sHandicap=(new Double(request.getParameter("i3sHandicap"))).doubleValue();}
-      double proportionHandicap=0;
-      if(request.getParameter("proportionHandicap")!=null){proportionHandicap=(new Double(request.getParameter("proportionHandicap"))).doubleValue();}
-*/
-      
-      
-      
-      
+
       
       //build our JSON with GSON
       Gson gson = new GsonBuilder().create();
@@ -274,7 +221,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       
           
-       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion", "msm"};
+       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion", "msm","swale"};
        jsonOut.append(gson.toJson(header)+",\n");
        
        
@@ -302,7 +249,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         
-        Instance iExample = new Instance(6);
+        Instance iExample = new Instance(7);
         
         iExample.setDataset(instances);
         iExample.setValue(0, mo.getIntersectionCount());
@@ -310,6 +257,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setValue(2,  mo.getI3SMatchValue());
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         iExample.setValue(4, (new Double(mo.getMSMValue()).doubleValue()));
+        iExample.setValue(5, (new Double(mo.getSwaleValue()).doubleValue()));
         
         
         double[] fDistribution = booster.distributionForInstance(iExample);
@@ -323,6 +271,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(mo.getI3SMatchValue()));
         result.add(new JsonPrimitive(mo.getProportionValue()));
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getMSMValue().doubleValue(),3)));
+        result.add(new JsonPrimitive(TrainNetwork.round(mo.getSwaleValue().doubleValue(),3)));
+        
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
