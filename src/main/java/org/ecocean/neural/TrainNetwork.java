@@ -822,6 +822,7 @@ public class TrainNetwork {
       Attribute proportionAttr = new Attribute("proportion");
       Attribute msmAttr = new Attribute("MSM");
       Attribute swaleAttr = new Attribute("Swale");
+      Attribute tquestAttr = new Attribute("TQuEST");
       
       //class vector
       // Declare the class attribute along with its values
@@ -832,13 +833,14 @@ public class TrainNetwork {
       
       //define feature vector
       // Declare the feature vector
-      FastVector fvWekaAttributes = new FastVector(7);
+      FastVector fvWekaAttributes = new FastVector(8);
       fvWekaAttributes.addElement(intersectAttr);
       fvWekaAttributes.addElement(fastDTWAttr);
       fvWekaAttributes.addElement(i3sAttr);
       fvWekaAttributes.addElement(proportionAttr);
       fvWekaAttributes.addElement(msmAttr);
       fvWekaAttributes.addElement(swaleAttr);
+      fvWekaAttributes.addElement(tquestAttr);
       fvWekaAttributes.addElement(ClassAttribute);
       
       
@@ -861,7 +863,7 @@ public class TrainNetwork {
           Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
           //Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, 1000);
           
-          isTrainingSet.setClassIndex(5);
+          isTrainingSet.setClassIndex(7);
           AdaBoostM1 booster=new AdaBoostM1();
           
           for(int i=0;i<(numEncs-1);i++){
@@ -953,21 +955,30 @@ public class TrainNetwork {
                         double reward=50.0;
                         Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
                         
+                        double m_threshold = 0.0;
+                        double m_maxthreshold = 0.0;
+                        double m_minthreshold = 0.0;
+                        double m_step = 0.0;
+                        Double tquestValue=EncounterLite.getTQUESTMatchScore(el1, el2, m_threshold, m_maxthreshold, m_minthreshold, m_step);
+                        
+                        
+                        
                         // Create the instance
-                        Instance iExample = new Instance(7);
+                        Instance iExample = new Instance(8);
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), msm.doubleValue());
                         iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), swaleVal.doubleValue());
+                        iExample.setValue((Attribute)fvWekaAttributes.elementAt(6), tquestValue.doubleValue());
                         
                         if(output==0){
-                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(6), "match");
+                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(7), "match");
                           numMatches++;
                         }
                         else{
-                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(6), "nonmatch");
+                          iExample.setValue((Attribute)fvWekaAttributes.elementAt(7), "nonmatch");
                           numNonMatches++;
                         }
                         // add the instance
@@ -1028,23 +1039,26 @@ public class TrainNetwork {
                       //swale setup
                         Double swaleScore=EncounterLite.getSwaleMatchScore(el2, el1, penalty, reward, epsilon);
                         
+                        Double tquestScore=EncounterLite.getTQUESTMatchScore(el2, el1, m_threshold, m_maxthreshold, m_minthreshold, m_step);
                         
                         
                         // Create the instance
-                        Instance iExample2 = new Instance(7);
+                        Instance iExample2 = new Instance(8);
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(1), distance2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore2);
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion2.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(4), msmScore.doubleValue());
                         iExample2.setValue((Attribute)fvWekaAttributes.elementAt(5), swaleScore.doubleValue());
+                        iExample2.setValue((Attribute)fvWekaAttributes.elementAt(6), tquestScore.doubleValue());
+                        
                         
                         if(output==0){
-                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(6), "match");
+                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(7), "match");
                           numMatches++;
                         }
                         else{
-                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(6), "nonmatch");
+                          iExample2.setValue((Attribute)fvWekaAttributes.elementAt(7), "nonmatch");
                           numNonMatches++;
                         }
                         // add the instance
@@ -1071,11 +1085,11 @@ public class TrainNetwork {
           
           //ok, now we need to build a set if Instances that only have matches and then add an equal number of nonmatches
           Instances balancedInstances = new Instances("Rel", fvWekaAttributes, (numMatches*2));
-          balancedInstances.setClassIndex(5);
+          balancedInstances.setClassIndex(7);
           for(int i=0;i<isTrainingSet.numInstances();i++){
             
             Instance myInstance=isTrainingSet.instance(i);
-            if(myInstance.stringValue(5).equals("match")){
+            if(myInstance.stringValue(7).equals("match")){
               isTrainingSet.delete(i);
               balancedInstances.add(myInstance);
               //pop it off the original stack
@@ -1091,7 +1105,7 @@ public class TrainNetwork {
             Random myRan=new Random();
             int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
             Instance popMe=isTrainingSet.instance(selected);
-            if(popMe.stringValue(5).equals("nonmatch")){
+            if(popMe.stringValue(7).equals("nonmatch")){
               isTrainingSet.delete(selected);
               balancedInstances.add(popMe);
               sampledFalseInstances++;

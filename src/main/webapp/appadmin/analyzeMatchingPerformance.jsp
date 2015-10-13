@@ -221,10 +221,11 @@ for(int i=0;i<numInstances;i++){
           
           Double msmValue=new Double(myInstance.value(4));
           
-          
+          Double swaleValue=new Double(myInstance.value(5));
+          Double tquestValue=new Double(myInstance.value(6));
      
      
-          Instance iExample = new Instance(6);
+          Instance iExample = new Instance(8);
           
           iExample.setDataset(instances);
           iExample.setValue(0, numIntersections.doubleValue());
@@ -232,7 +233,8 @@ for(int i=0;i<numInstances;i++){
           iExample.setValue(2,  i3sScore);
           iExample.setValue(3, (new Double(proportion).doubleValue()));
           iExample.setValue(4, (new Double(msmValue).doubleValue()));
-          
+          iExample.setValue(5, (new Double(swaleValue).doubleValue()));
+          iExample.setValue(6, (new Double(tquestValue).doubleValue()));
           
           double[] fDistribution = booster.distributionForInstance(iExample);
           double[] bDistribution = bayesBooster.distributionForInstance(iExample);
