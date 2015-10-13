@@ -70,6 +70,11 @@ var columnInfo = {
         label: 'Swale',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+    tquest: {
+        label: 'TQuEST',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     }
 };
 

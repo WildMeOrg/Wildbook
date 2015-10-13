@@ -221,7 +221,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       
           
-       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion", "msm","swale"};
+       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion", "msm","swale","tquest"};
        jsonOut.append(gson.toJson(header)+",\n");
        
        
@@ -249,7 +249,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         
-        Instance iExample = new Instance(7);
+        Instance iExample = new Instance(8);
         
         iExample.setDataset(instances);
         iExample.setValue(0, mo.getIntersectionCount());
@@ -258,6 +258,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         iExample.setValue(4, (new Double(mo.getMSMValue()).doubleValue()));
         iExample.setValue(5, (new Double(mo.getSwaleValue()).doubleValue()));
+        iExample.setValue(6, (new Double(mo.getTQUESTValue()).doubleValue()));
         
         
         double[] fDistribution = booster.distributionForInstance(iExample);
@@ -272,6 +273,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(mo.getProportionValue()));
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getMSMValue().doubleValue(),3)));
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getSwaleValue().doubleValue(),3)));
+        result.add(new JsonPrimitive(TrainNetwork.round(mo.getTQUESTValue().doubleValue(),3)));
         
         
         //result.add(new JsonPrimitive(fDistribution[1]));

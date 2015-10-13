@@ -60,6 +60,8 @@ public class MatchObject implements java.io.Serializable {
   public Double msmValue=0.0;
   
   public Double swaleValue=0.0;
+  
+  public Double tquestValue=0.0;
 
   //used for JDO enhance
   public MatchObject() {
@@ -299,6 +301,9 @@ public class MatchObject implements java.io.Serializable {
   
   public void setSwaleValue(Double value){swaleValue=value;}
   public Double getSwaleValue(){return swaleValue;}
+  
+  public void setTQUESTValue(Double value){tquestValue=value;}
+  public Double getTQUESTValue(){return tquestValue;}
   
   
 }

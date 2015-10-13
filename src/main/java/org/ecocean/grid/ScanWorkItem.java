@@ -321,6 +321,15 @@ public class ScanWorkItem implements java.io.Serializable {
       result.setMSMSValue(msmValue);
       
       
+      double m_threshold = 0.0;
+      double m_maxthreshold = 0.0;
+      double m_minthreshold = 0.0;
+      double m_step = 0.0;
+      Double tquestValue=EncounterLite.getTQUESTMatchScore(existingEncounter, newEncounter, m_threshold, m_maxthreshold, m_minthreshold, m_step);
+      System.out.println("     TQuEST result is: "+tquestValue.doubleValue());
+      result.setTQUESTValue(tquestValue);
+      
+      
       
     //}
     

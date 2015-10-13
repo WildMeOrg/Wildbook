@@ -59,11 +59,12 @@ try {
 
 
       
-  double penalty=0;
-  double reward=25;
-  double epsilon=0.002089121713611485;
-  System.out.println("About to call get Swale Match Score...");
-      java.lang.Double matchResult=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, penalty, reward, epsilon);
+  System.out.println("About to call get TQuEST Match Score...");
+  //Threshold: 7627.88339718089
+  //Max Threshold: 7627.929936152444
+  //Min Threshold: 7627.88339718089
+  //Step: 4.6538971553307157E-4
+      java.lang.Double matchResult=EncounterLite.getTQUESTMatchScore(theEnc, theEnc2, 7627.88339718089, 7627.929936152444, 7627.88339718089,4.6538971553307157E-4);
       
       
   //end code copied from MSM.java
@@ -101,7 +102,7 @@ try {
 
 <td valign="top">
 
-<p>Match result: <%=matchResult %></p>
+<p>Match result: <%=matchResult.doubleValue() %></p>
 <div id="chart_div"></div>
 
 
