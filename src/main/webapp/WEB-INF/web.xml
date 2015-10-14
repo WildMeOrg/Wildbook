@@ -1746,7 +1746,7 @@
   
       <servlet>
     <servlet-name>TrainAdaboostM1</servlet-name>
-    <servlet-class>org.ecocean.servlet.TrainAdaboostM1</servlet-class>
+    <servlet-class>org.ecocean.timeseries.servlet.TrainAdaboostM1</servlet-class>
   </servlet>
   
    <servlet-mapping>
@@ -1756,7 +1756,7 @@
   
         <servlet>
     <servlet-name>TrainHolmbergIntersection</servlet-name>
-    <servlet-class>org.ecocean.servlet.TrainHolmbergIntersection</servlet-class>
+    <servlet-class>org.ecocean.timeseries.servlet.TrainHolmbergIntersection</servlet-class>
   </servlet>
   
    <servlet-mapping>
@@ -1764,14 +1764,24 @@
     <url-pattern>/TrainHolmbergIntersection</url-pattern>
   </servlet-mapping>
   
-          <servlet>
+   <servlet>
     <servlet-name>TrainSwale</servlet-name>
-    <servlet-class>org.ecocean.servlet.TrainSwale</servlet-class>
+    <servlet-class>org.ecocean.timeseries.servlet.TrainSwale</servlet-class>
   </servlet>
   
    <servlet-mapping>
     <servlet-name>TrainSwale</servlet-name>
     <url-pattern>/TrainSwale</url-pattern>
+  </servlet-mapping>
+  
+     <servlet>
+    <servlet-name>TrainTQUEST</servlet-name>
+    <servlet-class>org.ecocean.timeseries.servlet.TrainTQUEST</servlet-class>
+  </servlet>
+  
+   <servlet-mapping>
+    <servlet-name>TrainTQUEST</servlet-name>
+    <url-pattern>/TrainTQUEST</url-pattern>
   </servlet-mapping>
 
 

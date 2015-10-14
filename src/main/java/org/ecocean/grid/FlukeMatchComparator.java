@@ -89,8 +89,8 @@ public class FlukeMatchComparator implements Comparator {
     MatchObject a1 = (MatchObject) a;
     MatchObject b1 = (MatchObject) b;
     
-    Instance a1Example = new Instance(6);
-    Instance b1Example = new Instance(6);
+    Instance a1Example = new Instance(7);
+    Instance b1Example = new Instance(7);
     double a1_adjustedValue=0;
     double b1_adjustedValue=0;
     
@@ -102,6 +102,7 @@ public class FlukeMatchComparator implements Comparator {
       a1Example.setValue(3, (new Double(a1.getProportionValue()).doubleValue()));
       a1Example.setValue(4, (new Double(a1.getMSMValue()).doubleValue()));
       a1Example.setValue(5, (new Double(a1.getSwaleValue()).doubleValue()));
+      a1Example.setValue(6, (new Double(a1.getDateDiff()).doubleValue()));
       
       
       b1Example.setDataset(myInstances);
@@ -111,7 +112,7 @@ public class FlukeMatchComparator implements Comparator {
       b1Example.setValue(3, (new Double(b1.getProportionValue()).doubleValue()));
       b1Example.setValue(4, (new Double(b1.getMSMValue()).doubleValue()));
       b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
-      
+      b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
     
       a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
       b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
@@ -138,8 +139,11 @@ public class FlukeMatchComparator implements Comparator {
           else if(b1.getProportionValue()<a1.getProportionValue()){bTieScore++;}
           if(a1.getMSMValue()<b1.getMSMValue()){aTieScore++;}
           else if(b1.getMSMValue()<a1.getMSMValue()){bTieScore++;}
-          if(a1.getSwaleValue()<b1.getSwaleValue()){aTieScore++;}
-          else if(b1.getSwaleValue()<a1.getSwaleValue()){bTieScore++;}
+          if(a1.getSwaleValue()>b1.getSwaleValue()){aTieScore++;}
+          else if(b1.getSwaleValue()>a1.getSwaleValue()){bTieScore++;}
+          
+          if(a1.getDateDiff()<b1.getDateDiff()){aTieScore++;}
+          else if(b1.getDateDiff()<a1.getDateDiff()){bTieScore++;}
          
           
           if(aTieScore>bTieScore){

@@ -258,7 +258,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         iExample.setValue(4, (new Double(mo.getMSMValue()).doubleValue()));
         iExample.setValue(5, (new Double(mo.getSwaleValue()).doubleValue()));
-        
+    
         
         double[] fDistribution = booster.distributionForInstance(iExample);
         
@@ -272,7 +272,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(mo.getProportionValue()));
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getMSMValue().doubleValue(),3)));
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getSwaleValue().doubleValue(),3)));
-        
+ 
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
