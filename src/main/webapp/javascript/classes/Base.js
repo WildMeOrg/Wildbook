@@ -17,7 +17,7 @@ wildbook.Model.BaseClass = Backbone.Model.extend({
    however, we still should allow that type of arbitrary field matching to get ONE encounter... maybe return only first?   */
 	url: function() {
 		if (!this.id) return false;  //how are you really supposed to handle this??? TODO
-		return wildbookGlobals.baseUrl + '/rest/' + this.className() + '/' + this.id;
+		return wildbookGlobals.baseUrl + '/api/' + this.className() + '/' + this.id;
 	},
 
 	classNameShort: function() {
@@ -80,7 +80,7 @@ wildbook.Collection.BaseClass = Backbone.Collection.extend({
 
 	url: function() {
 //console.log('_altUrl => %o', this._altUrl);
-		var u = wildbookGlobals.baseUrl + '/rest/';
+		var u = wildbookGlobals.baseUrl + '/api/';
 		if (this._altUrl) { 
 			u += this._altUrl;
 		} else {
