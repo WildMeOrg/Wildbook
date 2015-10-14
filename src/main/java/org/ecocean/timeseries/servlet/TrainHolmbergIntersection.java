@@ -142,7 +142,7 @@ public class TrainHolmbergIntersection extends HttpServlet {
                           //FIRST PASS
                           
                           //HolmbergIntersection
-                          Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2,intersectionProportion);
+                          Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2);
                           double finalInter=-1;
                           if(numIntersections!=null){finalInter=numIntersections.intValue();}
                          

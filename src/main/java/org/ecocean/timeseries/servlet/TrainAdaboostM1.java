@@ -78,7 +78,7 @@ public class TrainAdaboostM1 extends HttpServlet {
    int numNonmatches=0;
    while(myEnum.hasMoreElements()){
      Instance thisInstance=myEnum.nextElement();
-     if(thisInstance.stringValue(5).equals("match")){numMatches++;}
+     if(thisInstance.stringValue(7).equals("match")){numMatches++;}
      else{numNonmatches++;}
    }
    
