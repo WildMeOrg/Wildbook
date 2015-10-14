@@ -128,16 +128,18 @@ System.out.println("pixelScale = " + pixelScale);
                                   .replaceAll("%arg", this.arg);
 
         //walk thru transform array and replace "tN" with transform[N]
-        for (int i = 0 ; i < this.transform.length ; i++) {
-            fullCommand = fullCommand.replaceAll("%t" + Integer.toString(i), Float.toString(this.transform[i]));
-        }
+        if (this.transform.length > 0) {
+            for (int i = 0 ; i < this.transform.length ; i++) {
+                fullCommand = fullCommand.replaceAll("%t" + Integer.toString(i), Float.toString(this.transform[i]));
+            }
 
-        //hacktacular fubar in order to: (a) negate transform[4] & [5], and then (b) handle wonky ImageMagick WxH+x+y format
-        String T4 = Float.toString(-this.transform[4]);
-        if (this.transform[4] < 0) T4 = "+" + T4;
-        String T5 = Float.toString(-this.transform[5]);
-        if (this.transform[5] < 0) T5 = "+" + T5;
-        fullCommand = fullCommand.replaceAll("%T4", T4).replaceAll("%T5", T5);
+            //hacktacular fubar in order to: (a) negate transform[4] & [5], and then (b) handle wonky ImageMagick WxH+x+y format
+            String T4 = Float.toString(-this.transform[4]);
+            if (this.transform[4] < 0) T4 = "+" + T4;
+            String T5 = Float.toString(-this.transform[5]);
+            if (this.transform[5] < 0) T5 = "+" + T5;
+            fullCommand = fullCommand.replaceAll("%T4", T4).replaceAll("%T5", T5);
+        }
 
         String[] command = fullCommand.split("\\s+");
 
