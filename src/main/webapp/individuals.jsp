@@ -1,7 +1,10 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
 javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
+org.datanucleus.api.rest.orgjson.JSONObject,
+org.datanucleus.ExecutionContext,
+		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
+org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
 <%
 String blocker = "";
@@ -218,6 +221,29 @@ table.tissueSample td {
     background-color: white;
     -moz-border-radius: ;
 }
+
+
+	.collab-private {
+		background-color: #FDD;
+	}
+
+	.collab-private td {
+		background-color: transparent !important;
+	}
+
+	.collab-private .collab-icon {
+		position: absolute;
+		left: -15px;
+		z-index: -1;
+		width: 13px;
+		height: 13px;
+		background: url(images/lock-icon-tiny.png) no-repeat;
+	}
+
+	tr.clickable:hover td {
+		background-color: #EFA !important;
+	}
+
     -->
   </style>
 
@@ -489,8 +515,16 @@ console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 function show() {
 	$('#results-table td').html('');
 	for (var i = 0 ; i < results.length ; i++) {
-		//$('#results-table tbody tr')[i].title = searchResults[results[i]].individualID;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].get('catalogNumber'));
+		var private = searchResults[results[i]].get('_sanitized') || false;
+		var title = 'Encounter ' + searchResults[results[i]].get('catalogNumber');
+		if (private) {
+			$($('#results-table tbody tr')[i]).addClass('collab-private');
+			title += ' [private]';
+		} else {
+			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+		}
+		$('#results-table tbody tr')[i].title = title;
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
@@ -675,7 +709,9 @@ function _colDataTypesSort(o) {
 
 
 function _colEncDate(o) {
-	return wildbook.flexibleDate(o.get('date'));
+	var icon = '<span class="collab-icon"></span>';
+	if (!wildbook.isValidDate(o.get('date'))) return icon + 'Unknown';
+	return icon + wildbook.flexibleDate(o.get('date'));
 }
 
 
@@ -1216,7 +1252,19 @@ System.out.println(henc);
 
     } //end for
 
-    	String encsJson = new Gson().toJson(myEncs);
+    	//String encsJson = new Gson().toJson(myEncs);
+    	String encsJson = "[\n";
+        ExecutionContext ec = ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext();
+    	for (int i = 0; i < total; i++) {
+      		Encounter enc = dateSortedEncs[i];
+		//myEncs.get(i);  //HashMap
+        	JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(enc, ec);
+		jobj.put("date", enc.getDate());
+		jobj = enc.sanitizeJson(request, jobj);
+		encsJson += jobj.toString() + ",\n";
+	}
+	encsJson += "\n]";
+//encsJson = "[]";
 
   %>
 
@@ -1320,6 +1368,7 @@ System.out.println(henc);
 									}
 									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
 						
+	boolean thisEncounterVisible = thisEnc.canUserAccess(request);
 							%>
 
    
@@ -1329,7 +1378,7 @@ System.out.println(henc);
           <td valign="top">
 			
               <%
-			if(isOwner){
+			if(isOwner && thisEncounterVisible){
 												%>
             <a href="<%=link%>" target="_blank"
             <%

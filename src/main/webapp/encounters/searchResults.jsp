@@ -98,6 +98,10 @@ context=ServletUtilities.getContext(request);
 	cursor: pointer;
 }
 
+tr.clickable:hover td {
+	background-color: #EFA !important;
+}
+
 tr:hover .ptcol-individualID span.unassigned {
 	display:hidden;
 }
@@ -179,7 +183,24 @@ td.tdw:hover div {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
+
+
+	.collab-private {
+		background-color: #FDD;
+	}
+
+	.collab-private td {
+		background-color: transparent !important;
+	}
+
+	.collab-private .collab-icon {
+		position: absolute;
+		left: -15px;
+		z-index: -1;
+		width: 13px;
+		height: 13px;
+		background: url(../images/lock-icon-tiny.png) no-repeat;
+	}
   
 </style>
 
@@ -469,7 +490,15 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+		var private = searchResults[results[i]].get('_sanitized') || false;
+		var title = 'Encounter ' + searchResults[results[i]].id;
+		if (private) {
+			title += ' [private]';
+			$($('#results-table tbody tr')[i]).addClass('collab-private');
+		} else {
+			$($('#results-table tbody tr')[i]).removeClass('collab-private');
+		}
+		$('#results-table tbody tr')[i].title = title;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
@@ -638,7 +667,7 @@ function _colRowNum(o) {
 }
 
 
-function _colThumb(o) {
+function _xxxcolThumb(o) {
 	if (!extra[o.individualID]) return '';
 	var url = extra[o.individualID].thumbUrl;
 	if (!url) return '';
@@ -776,7 +805,7 @@ function _colRowNum(o) {
 function _colThumb(o) {
 	var url = o.thumbUrl();
 	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
+	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /><span class="collab-icon"></span></div>';
 	return '<img src="' + url + '" />';
 }
 

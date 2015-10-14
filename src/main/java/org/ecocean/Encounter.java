@@ -1961,17 +1961,19 @@ public class Encounter implements java.io.Serializable {
 	}
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-            //if (this.canUserAccess(request)) return jobj;
-System.out.println("Encounter sanitizing " + this);
+            if (this.canUserAccess(request)) return jobj;
             if ((this.getImages() != null) && (this.getImages().size() > 0)) {
-System.out.println(" -------- images!");
                 JSONArray jarr = new JSONArray();
                 for (SinglePhotoVideo spv : this.getImages()) {
-System.out.println(" ???? ");
                     jarr.put(spv.sanitizeJson(request));
                 }
                 jobj.put("images", jarr);
             }
+            jobj.remove("gpsLatitude");
+            jobj.remove("gpsLongitude");
+            jobj.remove("verbatimLocality");
+            jobj.remove("locationID");
+            jobj.remove("gpsLongitude");
             jobj.put("_sanitized", true);
             return jobj;
         }

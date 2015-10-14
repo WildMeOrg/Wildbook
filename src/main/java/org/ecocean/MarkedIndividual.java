@@ -30,6 +30,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.text.DecimalFormat;
 
+import org.datanucleus.api.rest.orgjson.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONArray;
+import org.datanucleus.api.rest.orgjson.JSONException;
+
 /**
  * A <code>MarkedIndividual</code> object stores the complete <code>encounter</code> data for a single marked individual in a mark-recapture study.
  * <code>Encounters</code> are added to MarkedIndividual objects as multiple encounters are associated with
@@ -1698,6 +1702,23 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 	}
 
 
+	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
+            if (this.canUserAccess(request)) return jobj;
+            jobj.remove("numberLocations");
+            jobj.remove("sex");
+            jobj.remove("numberEncounters");
+            jobj.remove("timeOfDeath");
+            jobj.remove("timeOfBirth");
+            jobj.remove("maxYearsBetweenResightings");
+            jobj.remove("numUnidentifiableEncounters");
+            jobj.remove("nickName");
+            jobj.remove("nickNamer");
+            jobj.put("_sanitized", true);
+            return jobj;
+        }
+
+
+	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
 	public String collaborationLockHtml(HttpServletRequest request) {
 		String context = "context0";
 		context = ServletUtilities.getContext(request);

@@ -210,7 +210,6 @@ public class Collaboration implements java.io.Serializable {
 		return canCollaborate(context, owner, username);
 	}
 
-
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
   	ArrayList<Encounter> all = occ.getEncounters();
 		if ((all == null) || (all.size() < 1)) return true;
