@@ -207,26 +207,7 @@ var encounterNumber = '<%=num%>';
 
 <p>
 
-<%
-/*
-    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
-    String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
-    System.out.println("Base URL is: " + baseURL);
-    if (xmlOK) {
-      if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-        feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
-      } else {
-        feedURL = baseURL + encSubdir + "/lastFullScan.xml?";
-      }
-    }
-    String rightSA = "";
-    if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      rightSA = "&filePrefix=extractRight";
-    }
-    System.out.println("I made it to the Flash without exception.");
-*/
-  %>
   
       <a name="resultstable"></a>
 
@@ -244,6 +225,19 @@ var encounterNumber = '<%=num%>';
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
+
+<h3>How do I interpret these results?</h3>
+
+<p>Algorithms used:
+	<ul>
+		<li>Intersection: This custom algorithm developed by <a href="http://www.wildme.org">Wild Me's Jason Holmberg</a> maps the two flukes/dorsal to be compared into a single coordinate space, representing the fluke edge point as a proportion of the width. This is a positive scoring algorithm that credits the match one point every time the edges touch and divides the result by the total number of points possible. The resulting score is 0 to 1, the higher the better the match with 1.0 being a perfect match.</li>
+		<li>FastDTW: Fast Dynamic Time warping is a proven time series matching technique applied here to the points on the trailing edge of the fluke/dorsal. [<a href="https://gi.cebitec.uni-bielefeld.de/teaching/2007summer/jclub/papers/Salvador2004.pdf">Link to Paper</a>]</li>
+		<li>I3S: [<a href="">Link to Paper</a>]</li>
+		<li>Proportion: TBD</li>
+		<li>Merge-Split-Move (MSM): TBD. [<a href="http://vlm1.uta.edu/~athitsos/publications/stefan_tkde2012_preprint.pdf">Link to Paper</a>]</li>
+		<li>Swale: TBD. [<a href="http://wwweb.eecs.umich.edu/db/files/sigmod07timeseries.pdf">Link to Paper</a>]</li>
+	</ul>
+</p>
 
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>

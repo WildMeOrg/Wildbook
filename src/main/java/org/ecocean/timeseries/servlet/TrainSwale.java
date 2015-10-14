@@ -120,7 +120,7 @@ public class TrainSwale extends HttpServlet {
               ArrayList<Trajectory> trajectories=new ArrayList<Trajectory>();
               
       
-              System.out.println("Building training patterns for TQuEST: "+maxPatterns);
+              System.out.println("Building training patterns for Swale: "+maxPatterns);
               
               int fulfilledPatterns=0;
               int i=0;

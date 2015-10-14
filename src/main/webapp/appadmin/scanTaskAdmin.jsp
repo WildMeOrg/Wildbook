@@ -512,46 +512,6 @@ single scan are allowed to exceed the total.</span>
 
 
 
-<h2>Holmberg Intersection Tuning</h2>
-<p><em>(use online in offline Wildbooks)</em></p>
-
-<form id="intersectionForm" 
-	  action="../TrainHolmbergIntersection" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     hasMoreTax=true;
-                     taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Train Intersection Algorithm Performance by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
 
 
 <h2>SWALE Tuning</h2>

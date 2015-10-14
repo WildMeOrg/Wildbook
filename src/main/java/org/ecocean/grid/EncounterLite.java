@@ -89,7 +89,8 @@ public class EncounterLite implements java.io.Serializable {
   private String belongsToMarkedIndividual="";
   String date = "";
   public String dynamicProperties;
-
+  private Long dateLong=null;
+  
   public EncounterLite() {
   }
 
@@ -2319,7 +2320,7 @@ private double amplifyY(double origValue, double s){
     }
   }
     
-    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
+    public static Double getHolmbergIntersectionScore_OLD_AFFINE(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -3722,141 +3723,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     //Min Threshold: 7627.88339718089
     //Step: 4.6538971553307157E-4
     
-    public static Double getTQUESTMatchScore(EncounterLite theEnc,EncounterLite theEnc2, double m_threshold,double m_maxthreshold,double m_minthreshold, double m_step){
 
-      //steps to make this work for flukes
-      //1. normalize fluke width 0 to 1 - call this x axis
-      //2. make Line2D from tip to tip points for both patterns - oldLine and newLine
-      //3. measure distance down from tip line - call this y axis
-      //4. use oldEnc points as X[]
-      //5. form every pair of lines between two points in newEnc and create and find Y distance to that point from its corresponding x coordinate from oldEnc's points at proportion of width 
-      
-        try{
-          
-          ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
-          oldSpots.addAll(theEnc.getRightSpots());
-            Collections.sort(oldSpots, new XComparator());
-            
-            //let's prefilter old spots for outliers outside the bounds
-            for(int i=0;i<oldSpots.size();i++){
-              SuperSpot theSpot=oldSpots.get(i);
-              if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-                oldSpots.remove(i);
-                i--;
-              }
-              if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                oldSpots.remove(i);
-                i--;
-              }
-            }
-            int numOldSpots=oldSpots.size();
-            
-            //initialize our output series
-            ArrayList<Point> theEncDataPoints=new ArrayList<Point>();
-            ArrayList<Point> theEnc2DataPoints=new ArrayList<Point>();
-            
-          
-          SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
-          Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
-          double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-          
-          SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
-          Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
-          double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-          
-          
-          //first populate OLD_VALUES - easy
-          
-          for(int i=0;i<numOldSpots;i++){
-            SuperSpot theSpot=oldSpots.get(i);
-            java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
-            double[] myDub={i,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
-            theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
-            
-            
-          }
-          
-          
-          //second populate NEW_VALUES - trickier
-          
-          //create an array of lines made from all point pairs in newEnc
-          
-          
-          ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
-          newSpots.addAll(theEnc2.getRightSpots());
-          int numNewEncSpots=newSpots.size();
-          Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-          Collections.sort(newSpots, new XComparator());
-          for(int i=0;i<(numNewEncSpots-1);i++){
-            //convert y coords to distance from newLine
-            double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-            double x2=(newSpots.get(i+1).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-            double yCoord1=newLine.ptLineDist(newSpots.get(i).getCentroidX(), newSpots.get(i).getCentroidY())/newLineWidth;
-            double yCoord2=newLine.ptLineDist(newSpots.get(i+1).getCentroidX(), newSpots.get(i+1).getCentroidY())/newLineWidth;
-            newLines[i]=new Line2D.Double(x1, yCoord1, x2, yCoord2);
-          }
-          int numNewLines=newLines.length;
-          
-          //now iterate and create our points
-          for(int i=0;i<numOldSpots;i++){
-            SuperSpot theSpot=oldSpots.get(i);
-            double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
-            Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
-            
-            //now we need to find where this point falls on the newEnc pattern
-            Line2D.Double intersectionLine=null;
-            int lineIterator=0;
-            while((intersectionLine==null)&&(lineIterator<numNewLines)){
-              //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
-              if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
-                intersectionLine=newLines[lineIterator];
-                //System.out.println("!!!!!!FOUND the INTERSECT!!!!!!");
-              }
-              lineIterator++;
-            }
-            try{
-              double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
-              double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
-              
-              //Point2D.Double thePoint=new Point2D.Double(xCoordFraction,yCoord);
-              
-              //NEW_VALUES[i]=yCoord;
-              //theEnc2DataPoints.addPoint(new DataPoint(i,yCoord));
-              double[] myDub={i,yCoord,i};
-              theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
-              
-              
-            }
-        catch(Exception e){
-          e.printStackTrace();
-            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
-          double[] myDub={0,0,i};
-          theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
-          
-        }
-            
-            
-          }
-          
-          
-          TQuESTOperator swaleOp=new TQuESTOperator(m_threshold,m_maxthreshold,m_minthreshold,m_step);
-          
-          Trajectory oldSeries=new Trajectory(0,theEncDataPoints,swaleOp);
-          Trajectory newSeries=new Trajectory(1,theEnc2DataPoints,swaleOp);
-          
-          java.lang.Double matchResult=new java.lang.Double(swaleOp.computeDistance(oldSeries, newSeries));
-          
-           return matchResult;
-          }
-          catch(Exception e){
-            e.printStackTrace();
-          }
-          return null;
-      
-    }
     
-    
-    public static Double getImprovedHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
+    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -4049,6 +3918,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     
     
   }
+    
+    public Long getDateLong(){return dateLong;}
+    public void setDateLong(Long value){dateLong=value;}
     
 
 }
