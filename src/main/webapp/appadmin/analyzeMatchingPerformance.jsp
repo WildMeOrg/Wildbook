@@ -144,6 +144,7 @@ ArrayList<Double> dtwValues=new ArrayList<Double>();
 ArrayList<Double> i3sValues=new ArrayList<Double>();
 ArrayList<Double> proportionValues=new ArrayList<Double>();
 ArrayList<Double> msmValues=new ArrayList<Double>();
+ArrayList<Double> swaleValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
@@ -162,6 +163,7 @@ ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
 ArrayList<Double> i3sCorrectValues=new ArrayList<Double>();
 ArrayList<Double> proportionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> msmCorrectValues=new ArrayList<Double>();
+ArrayList<Double> swaleCorrectValues=new ArrayList<Double>();
 
 
 double correctScoreTotal=0;
@@ -187,24 +189,9 @@ for(int i=0;i<numInstances;i++){
           //default is 1==no
           double output=1;
       
-     /*
-       // Create the instance
-          Instance iExample = new Instance(6);
-          iExample.setValue((Attribute)fvWekaAttributes.elementAt(0), numIntersections.doubleValue());
-          iExample.setValue((Attribute)fvWekaAttributes.elementAt(1), distance.doubleValue());
-          iExample.setValue((Attribute)fvWekaAttributes.elementAt(2), i3sScore);
-          iExample.setValue((Attribute)fvWekaAttributes.elementAt(3), proportion.doubleValue());
-          iExample.setValue((Attribute)fvWekaAttributes.elementAt(4), msm.doubleValue());
-          
-          if(output==0){
-            iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "match");
-          }
-          else{
-            iExample.setValue((Attribute)fvWekaAttributes.elementAt(5), "nonmatch");
-          }
-     */
+
           //System.out.println(myInstance.stringValue(5));
-          if(myInstance.stringValue(5).equals("match")){output=0;}
+          if(myInstance.stringValue(7).equals("match")){output=0;}
           
           
           //HolmbergIntersection
@@ -221,10 +208,12 @@ for(int i=0;i<numInstances;i++){
           
           Double msmValue=new Double(myInstance.value(4));
           
+          Double swaleValue=new Double(myInstance.value(5));
           
+          Double dateDiff=new Double(myInstance.value(6));
+        
      
-     
-          Instance iExample = new Instance(6);
+          Instance iExample = new Instance(8);
           
           iExample.setDataset(instances);
           iExample.setValue(0, numIntersections.doubleValue());
@@ -232,8 +221,9 @@ for(int i=0;i<numInstances;i++){
           iExample.setValue(2,  i3sScore);
           iExample.setValue(3, (new Double(proportion).doubleValue()));
           iExample.setValue(4, (new Double(msmValue).doubleValue()));
-          
-          
+          iExample.setValue(5, (new Double(swaleValue).doubleValue()));
+          iExample.setValue(6, (new Double(dateDiff).doubleValue()));
+         
           double[] fDistribution = booster.distributionForInstance(iExample);
           double[] bDistribution = bayesBooster.distributionForInstance(iExample);
           
@@ -251,8 +241,8 @@ for(int i=0;i<numInstances;i++){
             	numMatchLinks++;
             	
             	//overall
-            	Double score=(new Double(thisScore)); 
-            	Double bayesScore=(new Double(thisBayesScore)); 
+            	Double score=(new Double(TrainNetwork.round(thisScore,3))); 
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,3))); 
             	
             	if(overallCorrectHashtable.get(score)==null){
             		overallCorrectHashtable.put(score, 0);
@@ -283,14 +273,16 @@ for(int i=0;i<numInstances;i++){
             	
             	msmCorrectValues.add(msmValue);
             	
+            	swaleCorrectValues.add(swaleValue);
+            	
             }
             else{
             	
             	numFalseLinks++;
             	//overall
             	
-            	double score=(new Double(thisScore)); 
-            	double bayesScore=(new Double(thisBayesScore)); 
+            	Double score=(new Double(TrainNetwork.round(thisScore,3))); 
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,3)));  
             	if(overallHashtable.get(score)==null){
             		overallHashtable.put(score, 0);
             	}
@@ -317,6 +309,8 @@ for(int i=0;i<numInstances;i++){
             	proportionValues.add(proportion);
             	
             	msmValues.add(msmValue);
+            	
+            	swaleValues.add(swaleValue);
             }
             
           
@@ -338,6 +332,8 @@ for(int i=0;i<numInstances;i++){
 myShepherd.rollbackDBTransaction();
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
+	
+
 %>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -944,6 +940,92 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawSwaleChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawSwaleChart() {
+
+        // Create the data table.
+        var swaleCorrectData = new google.visualization.DataTable();
+        swaleCorrectData.addColumn('number', 'score');
+        swaleCorrectData.addColumn('number', 'matching');
+        
+        swaleCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(swaleCorrectValues);
+        
+      	  for(int y=0;y<swaleCorrectValues.size();y++){
+      		double position=(double)y/swaleCorrectValues.size();
+    	
+      		  %>
+      		  [<%=position %>,<%=swaleCorrectValues.get(y) %>],
+      		  <%
+    	
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var swaleIncorrectData = new google.visualization.DataTable();
+       swaleIncorrectData.addColumn('number', 'score');
+       swaleIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       swaleIncorrectData.addRows([
+		<%
+         Collections.sort(swaleValues);
+		
+      	  for(int y=0;y<swaleValues.size();y++){
+      		  double position=(double)y/swaleValues.size();
+      		  %>
+      		  [<%=position %>,<%=swaleValues.get(y) %>],
+      		  <%
+      	    
+		}
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(swaleIncorrectData, swaleCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: Swale',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (higher is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('swalechart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
 <div class="container maincontent">
 
 <h1>Algorithm Analysis: <%=genusSpecies %></h1>
@@ -984,6 +1066,11 @@ myShepherd.rollbackDBTransaction();
 <a href="http://vlm1.uta.edu/~athitsos/publications/stefan_tkde2012_preprint.pdf">More info...</a></p>
 <div id="msmchart_div"></div>
 
+<h3>Sequence Weighted Alignment (Swale)</h3>
+<p>The higher the green line is above the red line, the better the algorithm is performing. <br>
+<a href="http://wwweb.eecs.umich.edu/db/files/sigmod07timeseries.pdf">More info...</a></p>
+<div id="swalechart_div"></div>
+
 
 </div>
 <h2>Testing Success</h2>
@@ -1021,6 +1108,8 @@ FastVector fvClassVal = new FastVector(2);
 fvClassVal.addElement("match");
 fvClassVal.addElement("nonmatch");
 Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
+Attribute swaleAttr = new Attribute("Swale");     
+Attribute dateAttr = new Attribute("dateDiffLong");   
 
 //define feature vector
 // Declare the feature vector
@@ -1030,20 +1119,23 @@ fvWekaAttributes.addElement(fastDTWAttr);
 fvWekaAttributes.addElement(i3sAttr);
 fvWekaAttributes.addElement(proportionAttr);
 fvWekaAttributes.addElement(msmAttr);
+fvWekaAttributes.addElement(swaleAttr);
+fvWekaAttributes.addElement(dateAttr);
 fvWekaAttributes.addElement(ClassAttribute);
 
+
 Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, numTestInstances);
-isTrainingSet.setClassIndex(5);
+isTrainingSet.setClassIndex(7);
 
 Instances classifierSet = new Instances("Rel", fvWekaAttributes, numTestInstances);
-classifierSet.setClassIndex(5);
+classifierSet.setClassIndex(7);
 
 int sampledTrueInstances=0;
 while(sampledTrueInstances<numTestInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(5).equals("match")){
+	if(popMe.stringValue(7).equals("match")){
 		instances.delete(selected);
 		isTrainingSet.add(popMe);
 		sampledTrueInstances++;
@@ -1054,7 +1146,7 @@ while(sampledFalseInstances<numTestInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(5).equals("nonmatch")){
+	if(popMe.stringValue(7).equals("nonmatch")){
 		instances.delete(selected);
 		isTrainingSet.add(popMe);
 		sampledFalseInstances++;
@@ -1066,7 +1158,7 @@ while(sampledTrueClassInstances<numTrainingInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(5).equals("match")){
+	if(popMe.stringValue(7).equals("match")){
 		instances.delete(selected);
 		classifierSet.add(popMe);
 		sampledTrueClassInstances++;
@@ -1077,7 +1169,7 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(5).equals("nonmatch")){
+	if(popMe.stringValue(7).equals("nonmatch")){
 		instances.delete(selected);
 		classifierSet.add(popMe);
 		sampledFalseClassInstances++;

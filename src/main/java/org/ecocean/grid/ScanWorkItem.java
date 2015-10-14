@@ -26,6 +26,8 @@ package org.ecocean.grid;
 
 import com.reijns.I3S.*;
 
+import weka.core.Instance;
+
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
@@ -92,6 +94,12 @@ public class ScanWorkItem implements java.io.Serializable {
   public ScanWorkItem(Encounter newEnc, Encounter existingEnc, String uniqueNum, String taskID, Properties props, String algorithms) {
     this.newEncounter = new EncounterLite(newEnc);
     this.existingEncounter = new EncounterLite(existingEnc);
+    
+    //if available, set the dates as long
+    if(newEnc.getDateInMilliseconds()!=null){newEncounter.setDateLong(newEnc.getDateInMilliseconds());}
+    if(existingEnc.getDateInMilliseconds()!=null){existingEncounter.setDateLong(existingEnc.getDateInMilliseconds());}
+    
+    
     this.uniqueNum = uniqueNum;
     this.taskID = taskID;
 
@@ -160,7 +168,7 @@ public class ScanWorkItem implements java.io.Serializable {
   public MatchObject execute() {
     
     //tuned on October 8, 2015 using /TrainHolmbergIntersection
-    double allowedHolmbergIntersectionProportion = 0.18;
+    //double allowedHolmbergIntersectionProportion = 0.18;
 
 
     //determine which spots to pass in
@@ -320,28 +328,23 @@ public class ScanWorkItem implements java.io.Serializable {
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setMSMSValue(msmValue);
       
+      double date = Instance.missingValue();
+      if((newEncounter.getDateLong()!=null)&&(existingEncounter.getDateLong()!=null)){
+        try{
+          date=Math.abs((new Long(newEncounter.getDateLong()-existingEncounter.getDateLong())).doubleValue());
+        }
+        catch(Exception e){}
+      }
       
+
       
-    //}
-    
-    /*
-    if(algorithms.indexOf("Whitehead")>-1){
-      Double geroMatch=new Double(-1);
-      result.setGeroMatchDistance(geroMatch);
-      geroMatch=EncounterLite.geroMatch(existingEncounter, newEncounter);
-      
-      if(geroMatch!=null)result.setGeroMatchDistance(geroMatch);
-    }
-    */
-    //if(algorithms.indexOf("HolmbergIntersection")>-1){
-      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter,allowedHolmbergIntersectionProportion);
-      //int finalInter=-1;
-      //if(numIntersections!=null){finalInter=numIntersections;}
+    Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter);
       
       
       result.setIntersectionCount(numIntersections);
       result.setAnglesOfIntersections("");
-   // }
+      result.setDateDiff(date);
+   
     
     done = true;
     return result;

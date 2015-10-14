@@ -59,11 +59,11 @@ try {
 
 
       
-  double penalty=1;
-  double reward=50;
-  double epsilon=1;
+  double penalty=0;
+  double reward=25;
+  double epsilon=0.002089121713611485;
   System.out.println("About to call get Swale Match Score...");
-      java.lang.Double matchResult=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, 2, 100, 0.0011419401589504922);
+      java.lang.Double matchResult=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, penalty, reward, epsilon);
       
       
   //end code copied from MSM.java
@@ -101,7 +101,7 @@ try {
 
 <td valign="top">
 
-<p>Match result: <%=matchResult/((enc1.getSpots().size()+enc1.getRightSpots().size())*25) %></p>
+<p>Match result: <%=matchResult %></p>
 <div id="chart_div"></div>
 
 
