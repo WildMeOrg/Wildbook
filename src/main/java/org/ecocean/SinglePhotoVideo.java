@@ -105,16 +105,17 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
 	}
 
 
-        public String asUrl(HttpServletRequest request) {
+        //does not return filename part, just url path up until that point
+        public String urlPath(HttpServletRequest request) {
             String context = ServletUtilities.getContext(request);
             String rootWebappPath = (new File(request.getSession().getServletContext().getRealPath("/"))).getParentFile().toString();
 System.out.println("rootWebappPath = " + rootWebappPath);
             String url = this.getFullFileSystemPath();
             int i = url.indexOf(rootWebappPath);
             if (i > -1) {
-                url = (new File(url.substring(i + rootWebappPath.length())).getParentFile()).toString() + "/" + this.getDataCollectionEventID() + ".jpg";
+                url = (new File(url.substring(i + rootWebappPath.length())).getParentFile()).toString();
             } else {
-                url = "unknown.jpg";  //TODO handle this better
+                url = "/unknownUrlPath";  //TODO handle this better
             }
             return url;
         }
@@ -236,14 +237,18 @@ System.out.println("yes. out. ))");
         }
 
 
+        //*for now* this will only be called from an Encounter, which means that Encounter must be sanitized
+        //  so we assume this *must* be sanitized too.  (TODO fix that when MediaAsset takes over, obvs)
 	public JSONObject sanitizeJson(HttpServletRequest request) throws JSONException {
 System.out.println("um, i am sanitizing " + this);
             JSONObject jobj = new JSONObject(this);
-            //if (this.canUserAccess(request)) return jobj;
+            String urlPath = this.urlPath(request);
+            jobj.put("thumbUrl", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");
+            //jobj.put("url", urlPath + "/" + this.getFilename());
+            jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");  //no full image when blocked
             jobj.remove("fullFileSystemPath");
             jobj.remove("filename");
             jobj.remove("file");
-            jobj.put("url", this.asUrl(request));
             jobj.put("_sanitized", true);
             jobj.put("dataCollectionEventID", this.getDataCollectionEventID());
             return jobj;
