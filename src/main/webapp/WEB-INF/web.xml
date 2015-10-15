@@ -1636,8 +1636,7 @@
 
   <servlet-mapping>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
-    <url-pattern>/ScanWorkItemResultsHandler2</url-pattern>
-	<url-pattern>/scanWorkItemResultsHandler2</url-pattern>
+	 <url-pattern>/ScanWorkItemResultsHandler</url-pattern>
   </servlet-mapping>
 
 

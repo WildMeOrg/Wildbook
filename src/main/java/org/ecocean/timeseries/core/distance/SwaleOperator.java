@@ -3,14 +3,10 @@
  */
 package org.ecocean.timeseries.core.distance;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.LineNumberReader;
-import java.util.ArrayList;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.ecocean.timeseries.core.Point;

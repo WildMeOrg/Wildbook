@@ -52,7 +52,7 @@ public class ScanWorkItemResult implements java.io.Serializable {
     this.uniqueNumWI = uniqueNumberOfWorkItem;
     this.uniqueNumTask = uniqueNumberOfTask;
     this.workItemResultUniqueID = uniqueNumberOfWorkItem + "_result";
-    this.i3sResult = i3sResult;
+    //this.i3sResult = i3sResult;
   }
 
   public MatchObject getResult() {
