@@ -6,14 +6,12 @@ package org.ecocean.timeseries.core.distance;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
-import java.util.logging.Logger;
 
 import org.ecocean.timeseries.core.Point;
 import org.ecocean.timeseries.core.Trajectory;
 import org.ecocean.timeseries.core.TrajectoryException;
 
 import org.ecocean.timeseries.classifier.Classifier;
-import org.ecocean.timeseries.classifier.ClassifierManager;
 
 /**
  * @author Hui

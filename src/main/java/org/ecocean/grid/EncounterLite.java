@@ -23,7 +23,7 @@ package org.ecocean.grid;
 
 //another unenhanced comment
 
-import com.ecostats.flukes.*;
+
 import com.fastdtw.timeseries.TimeSeries;
 import com.fastdtw.timeseries.TimeSeriesBase;
 import com.fastdtw.timeseries.TimeSeriesBase.Builder;
@@ -52,12 +52,10 @@ import java.lang.Double;
 import java.awt.geom.*;
 
 import org.apache.commons.math3.linear.*;
-import org.apache.commons.math.linear.LUDecompositionImpl;
-import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+
 
 import java.util.Collections;
 
-import javax.servlet.http.HttpServletRequest;
 
 //import timeseries packages
 import org.ecocean.timeseries.core.*;
