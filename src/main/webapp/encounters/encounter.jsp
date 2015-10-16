@@ -1763,7 +1763,7 @@ $("a#country").click(function() {
 						//break up the string
 						StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");		
 						while(stzr.hasMoreTokens()) {
-							String nextie=stzr.nextToken();			
+							String nextie=stzr.nextToken().trim();
 							%> 
 							<br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a> 
 							<%
@@ -1916,7 +1916,17 @@ $("a#country").click(function() {
  
 				if (isOwner) {
 
-					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))&&(enc.getPhotographerEmail().indexOf(",")!=-1)) {
+						//break up the string
+						StringTokenizer stzr=new StringTokenizer(enc.getPhotographerEmail(),",");
+						while(stzr.hasMoreTokens()) {
+              String nextie=stzr.nextToken().trim();
+              %>
+              <br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a>
+              <%
+						}
+					}
+					else if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
 					%>
 						<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=enc.getPhotographerEmail()%></a> 
 					<%
