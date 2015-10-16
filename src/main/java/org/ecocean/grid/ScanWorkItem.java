@@ -25,25 +25,12 @@ package org.ecocean.grid;
 
 
 import com.reijns.I3S.*;
-
 import weka.core.Instance;
-
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
-import com.fastdtw.timeseries.*;
-import com.fastdtw.timeseries.TimeSeriesBase.*;
-import com.fastdtw.dtw.FastDTW;
-import com.fastdtw.util.Distances;
-
 import java.util.*;
-
-import com.fastdtw.timeseries.TimeSeries;
-import com.fastdtw.timeseries.TimeSeriesBase;
-import com.fastdtw.timeseries.TimeSeriesBase.Builder;
 import com.fastdtw.dtw.*;
-import com.fastdtw.util.Distances;
-
 import org.ecocean.grid.msm.*;
 
 
@@ -242,18 +229,7 @@ public class ScanWorkItem implements java.io.Serializable {
     double[] matrix = new double[6];
     com.reijns.I3S.Point2D[] comapare2mePoints = new com.reijns.I3S.Point2D[0];
     com.reijns.I3S.Point2D[] lookForThisEncounterPoints = new com.reijns.I3S.Point2D[0];
-    //if(rightScan){
-    //comapare2mePoints=existingEncounter.getThreeRightFiducialPoints();
-    //lookForThisEncounterPoints=newEncounter.getThreeRightFiducialPoints();
-    //}
-    //else {
-    //comapare2mePoints=existingEncounter.getThreeLeftFiducialPoints();
-    //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
-    //}
-    //i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
-    
-  //  if(algorithms.indexOf("I3S")>-1){
-      I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
+    I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
       newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
       double newScore=-1;
@@ -326,26 +302,30 @@ public class ScanWorkItem implements java.io.Serializable {
 
       Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, penalty, reward, epsilon);
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
-      result.setMSMSValue(msmValue);
+      result.setSwaleValue(swaleValue);
       
       double date = Instance.missingValue();
       if((newEncounter.getDateLong()!=null)&&(existingEncounter.getDateLong()!=null)){
         try{
           date=Math.abs((new Long(newEncounter.getDateLong()-existingEncounter.getDateLong())).doubleValue());
         }
-        catch(Exception e){}
+        catch(Exception e){
+          e.printStackTrace();
+        }
       }
       
+      System.out.println("Date diff is: "+date);
 
       
-    Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter);
+      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter);
       
+      System.out.println("Intersection score is: "+numIntersections);
       
       result.setIntersectionCount(numIntersections);
       result.setAnglesOfIntersections("");
       result.setDateDiff(date);
    
-    
+      System.out.println("......Done SWI and returning  MO...");
     done = true;
     return result;
   }

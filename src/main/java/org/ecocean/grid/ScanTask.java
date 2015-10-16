@@ -56,7 +56,7 @@ public class ScanTask implements Serializable {
   private int numSpots = 0;
   private int numCollisions = 0;
   private boolean started = false;
-  private int numComparisons = 0;
+  private int numComparisons = Integer.MAX_VALUE;
 
 
   /**

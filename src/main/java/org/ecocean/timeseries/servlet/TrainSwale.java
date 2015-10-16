@@ -2,14 +2,11 @@ package org.ecocean.timeseries.servlet;
 
 import java.awt.geom.Line2D;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.concurrent.ThreadPoolExecutor;
+
 
 import org.ecocean.timeseries.core.*;
 import org.ecocean.timeseries.core.distance.*;
@@ -23,41 +20,13 @@ import javax.servlet.http.HttpServlet;
 
 import org.ecocean.servlet.ServletUtilities;
 
-import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
 import org.ecocean.grid.EncounterLite;
-import org.ecocean.grid.FlukeMatchComparator;
-import org.ecocean.grid.GridManager;
-import org.ecocean.grid.GridManagerFactory;
-import org.ecocean.grid.I3SMatchObject;
-import org.ecocean.grid.MatchObject;
-import org.ecocean.grid.ScanTask;
-import org.ecocean.grid.ScanTaskCleanupThread;
-import org.ecocean.grid.ScanWorkItem;
-import org.ecocean.grid.ScanWorkItemResult;
-import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.grid.XComparator;
-import org.ecocean.grid.msm.MSM;
-import org.ecocean.neural.TrainNetwork;
 
-import com.fastdtw.dtw.TimeWarpInfo;
-import com.fastdtw.dtw.WarpPath;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonPrimitive;
-
-
-import weka.classifiers.meta.AdaBoostM1;
-import weka.core.Attribute;
-import weka.core.FastVector;
-import weka.core.Instance;
-import weka.core.Instances;
-import java.util.Enumeration;
-import java.util.Random;
 import java.util.Vector;
 
 
