@@ -975,6 +975,7 @@
     <servlet-class>org.ecocean.servlet.MassExposeGBIF</servlet-class>
   </servlet>
 
+<!--  disabling!  plz now use only org.ecocean.servlet.RestServlet (as it supports silo security)
   <servlet>
     <servlet-name>DataNucleus</servlet-name>
     <servlet-class>org.datanucleus.api.rest.RestServlet</servlet-class>
@@ -989,6 +990,7 @@
     <servlet-name>DataNucleus</servlet-name>
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
+-->
   
 	<servlet>
 		<servlet-name>WildbookApi</servlet-name>
