@@ -2202,7 +2202,7 @@ private double amplifyY(double origValue, double s){
     catch(Exception e){
       e.printStackTrace();
       //punt with a high score of 2
-      I3SMatchObject i3smo=new I3SMatchObject(2,null);
+      I3SMatchObject i3smo=new I3SMatchObject(Double.MAX_VALUE,null);
       return i3smo;
     }
   }
@@ -3879,7 +3879,10 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
               java.awt.geom.Line2D.Double newLine2=new java.awt.geom.Line2D.Double(newStart,newEnd  );
             
               //now compare to thisPattern
-              for(int m=0;m<(thisPrintSize-1);m++){
+              int m=0;
+              //only allow one intersection per line
+              boolean foundIntersect=false;
+              while((!foundIntersect)&&(m<(thisPrintSize-1))){
        
                     int n=m+1;
                     
@@ -3889,16 +3892,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
                     
                     if(newLine2.intersectsLine(thisLine)){
                         numIntersections++;
+                        foundIntersect=true;
                         String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine2, thisLine));
                         anglesOfIntersection.append(intersectionAngle+",");
                         
                         //calculate proportional distance to test if intersection was valid in original space
                         //untranslate new points since they were mapped into this points
-                        java.awt.geom.Point2D.Double intersectionPoint=getIntersectionPoint(newLine2,thisLine);
+                        java.awt.geom.Point2D.Double intersectionPoint=EncounterLite.getIntersectionPoint(newLine2,thisLine);
           
                         
                       }
-                      
+                    m++;
               }
               
             

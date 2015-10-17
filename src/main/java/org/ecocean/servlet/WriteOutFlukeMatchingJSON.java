@@ -254,7 +254,14 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         iExample.setDataset(instances);
         iExample.setValue(0, mo.getIntersectionCount());
         iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
-        iExample.setValue(2,  mo.getI3SMatchValue());
+        
+        if(mo.getI3SMatchValue()==Double.MAX_VALUE){
+          iExample.setValue(2, "?");
+        }
+        else{
+          iExample.setValue(2,  mo.getI3SMatchValue());
+        }
+        
         iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
         iExample.setValue(4, (new Double(mo.getMSMValue()).doubleValue()));
         iExample.setValue(5, (new Double(mo.getSwaleValue()).doubleValue()));
