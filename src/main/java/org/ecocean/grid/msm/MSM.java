@@ -154,15 +154,17 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
         
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<oldSpots.size();i++){
-          SuperSpot theSpot=oldSpots.get(i);
-          if(theSpot.getCentroidX()<=oldEnc.getLeftReferenceSpots()[0].getCentroidX()){
-            oldSpots.remove(i);
-            i--;
-          }
-          if(theSpot.getCentroidX()>=oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
-            oldSpots.remove(i);
-            i--;
-          }
+          if(oldEnc.getLeftReferenceSpots()[0].getCentroidX()<oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+            SuperSpot theSpot=oldSpots.get(i);
+            if(theSpot.getCentroidX()<=oldEnc.getLeftReferenceSpots()[0].getCentroidX()){
+              oldSpots.remove(i);
+              i--;
+            }
+            if(theSpot.getCentroidX()>=oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+              oldSpots.remove(i);
+              i--;
+            }
+        }
         }
         int numOldSpots=oldSpots.size();
         

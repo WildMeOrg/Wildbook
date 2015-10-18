@@ -29,15 +29,17 @@
 	        Collections.sort(spots, new XComparator());
 	        //let's prefilter old spots for outlies outside the bounds
 	        for(int i=0;i<spots.size();i++){
-	          SuperSpot theSpot=spots.get(i);
-	          if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-	            spots.remove(i);
-	            i--;
-	          }
-	          if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-	            spots.remove(i);
-	            i--;
-	          }
+	                    if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+            SuperSpot theSpot=spots.get(i);
+            if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+              spots.remove(i);
+              i--;
+            }
+            if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+              spots.remove(i);
+              i--;
+            }
+        }
 	        }
 	        int numOldSpots=spots.size();
 	        
@@ -94,8 +96,9 @@
 	        //create an array of lines made from all point pairs in newEnc
 	        
 	        
-	        ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
-	        newSpots.addAll(theEnc2.getRightSpots());
+	        ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
+			if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
+	        if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());};
 	        int numNewEncSpots=newSpots.size();
 	        Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
 	        Collections.sort(newSpots, new XComparator());
