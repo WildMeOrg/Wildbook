@@ -82,6 +82,7 @@ public class ScanWorkItem implements java.io.Serializable {
     this.newEncounter = new EncounterLite(newEnc);
     this.existingEncounter = new EncounterLite(existingEnc);
     
+    
     //if available, set the dates as long
     if(newEnc.getDateInMilliseconds()!=null){newEncounter.setDateLong(newEnc.getDateInMilliseconds());}
     if(existingEnc.getDateInMilliseconds()!=null){existingEncounter.setDateLong(existingEnc.getDateInMilliseconds());}
