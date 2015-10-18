@@ -127,9 +127,10 @@ public class FlukeMatchComparator implements Comparator<org.ecocean.grid.MatchOb
               
               return 1;
             }
-            
+            else{
             //damn! tied again. Let's look at percentage better
-            return 0;
+              return 0;
+            }
       }    
       else if(a1_adjustedValue > b1_adjustedValue){return -1;}
       else{return 1;}

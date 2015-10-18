@@ -481,7 +481,7 @@ public class TrainNetwork {
               
               //make sure they're both the same species!
               
-              if((enc1.getGenus()!=null)&&(enc2.getGenus()!=null)&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(enc2.getGenus()+enc2.getSpecificEpithet()))){
+              if((enc1.getGenus()!=null)&&(enc2.getGenus()!=null)&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(enc2.getGenus()+enc2.getSpecificEpithet()))&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(genusSpecies))){
               
                   //make sure both have spots!
                   if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){

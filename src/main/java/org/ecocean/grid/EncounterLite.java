@@ -88,6 +88,7 @@ public class EncounterLite implements java.io.Serializable {
   String date = "";
   public String dynamicProperties;
   private Long dateLong=null;
+  private String genusSpecies="";
   
   public EncounterLite() {
   }
@@ -96,6 +97,11 @@ public class EncounterLite implements java.io.Serializable {
     if(enc.getDate()!=null){
       this.date = enc.getDate();
     }
+    
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+      this.genusSpecies=enc.getGenus()+enc.getSpecificEpithet();
+    }
+    
     this.encounterNumber = enc.getEncounterNumber();
     if(enc.getIndividualID()!=null){
       this.belongsToMarkedIndividual = enc.getIndividualID();
@@ -104,36 +110,16 @@ public class EncounterLite implements java.io.Serializable {
       this.sex = enc.getSex();
     }
     if(enc.getDynamicProperties()!=null){this.dynamicProperties=enc.getDynamicProperties();}
-    //this.size = enc.getSize();
-    /*if(enc.getSpots()!=null) {
-        this.spots=new superSpot[enc.getSpots().length];
-    }
-    if(enc.getRightSpots()!=null) {
-        this.rightSpots=new superSpot[enc.getRightSpots().length];
-    }*/
 
-
-    if ((enc.getLeftReferenceSpots() != null) && (enc.getLeftReferenceSpots().size() == 3)) {
-      //this.leftReferenceSpots=new superSpot[3];
-      //superSpot[] existingRefs=enc.getLeftReferenceSpots();
-      //leftReferenceSpots[0]=new superSpot(existingRefs[0].getTheSpot());
-      //leftReferenceSpots[1]=new superSpot(existingRefs[1].getTheSpot());
-      //System.out.println("I found left reference spots!");
-      //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
-    }
-    if ((enc.getRightReferenceSpots() != null) && (enc.getRightReferenceSpots().size() == 3)) {
-      //this.rightReferenceSpots=new superSpot[3];
-      //superSpot[] existingRefs=enc.getRightReferenceSpots();
-      //leftReferenceSpots[0]=new superSpot(existingRefs[0].getTheSpot());
-      //leftReferenceSpots[1]=new superSpot(existingRefs[1].getTheSpot());
-      //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
-      //System.out.println("I found right reference spots!");
-    }
 
     //get spots
 
   if (isDorsalFin(enc)) {
     processDorsalSpots(enc);
+    
+    System.out.println("Finished processed dorsal spots!");
+    System.out.println(".....Left spots: "+this.getSpots().size());
+   
 
   } else {
     if (enc.getSpots() != null) {
@@ -2081,11 +2067,15 @@ private double amplifyY(double origValue, double s){
     //or left-side patterning is to be used.
    
     ArrayList<SuperSpot> spots2=newEnc.getSpots();
-    spots2.addAll(newEnc.getRightSpots());
+    if(newEnc.getRightSpots()!=null){
+      spots2.addAll(newEnc.getRightSpots());
+    }
     //newspotsTemp=(SuperSpot[])spots2.toArray();
     
     ArrayList<SuperSpot> spots=oldEnc.getSpots();
-    spots.addAll(oldEnc.getRightSpots());
+    if(oldEnc.getRightSpots()!=null){
+      spots.addAll(oldEnc.getRightSpots());
+    }
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
     com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
@@ -3589,7 +3579,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         try{
           
           ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
-          oldSpots.addAll(theEnc.getRightSpots());
+          if(theEnc.getRightSpots()!=null){
+            oldSpots.addAll(theEnc.getRightSpots());
+          }
             Collections.sort(oldSpots, new XComparator());
             
             //let's prefilter old spots for outlies outside the bounds
@@ -3923,6 +3915,12 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     
     public Long getDateLong(){return dateLong;}
     public void setDateLong(Long value){dateLong=value;}
+    
+    public String getGenusSpecies(){return genusSpecies;}
+    public void setGenusSpecies(String value){genusSpecies=value;}
+    
+    
+    
     
 
 }

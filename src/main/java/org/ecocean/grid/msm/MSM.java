@@ -147,7 +147,9 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
     try{
       
       ArrayList<SuperSpot> oldSpots=oldEnc.getSpots();
-      oldSpots.addAll(oldEnc.getRightSpots());
+      if(oldEnc.getRightSpots()!=null){
+        oldSpots.addAll(oldEnc.getRightSpots());
+      }
         Collections.sort(oldSpots, new XComparator());
         
         //let's prefilter old spots for outlies outside the bounds
@@ -193,7 +195,9 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
       
       
       ArrayList<SuperSpot> newSpots=newEnc.getSpots();
-      newSpots.addAll(newEnc.getRightSpots());
+      if(newEnc.getRightSpots()!=null){
+        newSpots.addAll(newEnc.getRightSpots());
+      }
       int numNewEncSpots=newSpots.size();
       Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
       Collections.sort(newSpots, new XComparator());
