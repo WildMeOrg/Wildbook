@@ -74,9 +74,9 @@ public class DeleteAllDataPermanently extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
         
-        Iterator allEncounters=myShepherd.getAllEncountersNoFilter();
+        Iterator<Encounter> allEncounters=myShepherd.getAllEncountersNoFilter();
         while(allEncounters.hasNext()){
-          Encounter enc=(Encounter)allEncounters.next();
+          Encounter enc=allEncounters.next();
           myShepherd.throwAwayEncounter(enc);
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();

@@ -1379,7 +1379,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     if(allEncounters!=null){
       while (allEncounters.hasNext()) {
-        Encounter temp_enc=(Encounter)allEncounters.next();
+        Encounter temp_enc=allEncounters.next();
         rEncounters.add(temp_enc);
       }
     }

@@ -54,9 +54,9 @@ context=ServletUtilities.getContext(request);
           Query sharkQuery = myShepherd.getPM().newQuery(sharkClass);
           myShepherd.beginDBTransaction();
           try {
-            Iterator it2 = myShepherd.getAllEncounters(encQuery);
+            Iterator<Encounter> it2 = myShepherd.getAllEncounters(encQuery);
             while (it2.hasNext()) {
-              Encounter tempEnc2 = (Encounter) it2.next();
+              Encounter tempEnc2 = it2.next();
         %> <a
         href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=tempEnc2.getEncounterNumber()%>"><%=tempEnc2.getEncounterNumber()%>
       </a> <%

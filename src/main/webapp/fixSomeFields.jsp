@@ -34,7 +34,7 @@ myShepherd.beginDBTransaction();
 
 Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 Query encQuery=myShepherd.getPM().newQuery(encClass);
-Iterator allEncs;
+Iterator<Encounter> allEncs;
 
 
 
@@ -64,7 +64,7 @@ DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 while(allEncs.hasNext()){
 	
 
-	Encounter sharky=(Encounter)allEncs.next();
+	Encounter sharky=allEncs.next();
 
 
 	

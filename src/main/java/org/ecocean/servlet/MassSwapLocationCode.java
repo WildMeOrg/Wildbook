@@ -71,10 +71,10 @@ public class MassSwapLocationCode extends HttpServlet {
     if ((oldLocCode != null) && (oldLocCode != null) && (!newLocCode.equals("")) && (!newLocCode.equals(""))) {
       myShepherd.beginDBTransaction();
       try {
-        Iterator it = myShepherd.getAllEncounters(query);
+        Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
         while (it.hasNext()) {
-          Encounter tempEnc = (Encounter) it.next();
+          Encounter tempEnc = it.next();
           if (tempEnc.getLocationCode().equals(oldLocCode)) {
             tempEnc.setLocationCode(newLocCode);
             madeChanges = true;
