@@ -1019,7 +1019,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllScanTasksNoQuery() {
+  public Iterator<ScanTask> getAllScanTasksNoQuery() {
     try {
       Extent taskClass = pm.getExtent(ScanTask.class, true);
       Iterator it = taskClass.iterator();
