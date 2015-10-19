@@ -2913,7 +2913,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllBehaviors() {
+  public List<String> getAllBehaviors() {
 
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct behavior");
