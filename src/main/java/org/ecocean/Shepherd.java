@@ -1699,7 +1699,7 @@ public class Shepherd {
   }
 
   //Returns encounters submitted by the specified user
-  public Iterator getUserEncounters(Query userEncounters, String user) {
+  public Iterator<Encounter> getUserEncounters(Query userEncounters, String user) {
     Collection c = (Collection) (userEncounters.execute());
     ArrayList list = new ArrayList(c);
 
