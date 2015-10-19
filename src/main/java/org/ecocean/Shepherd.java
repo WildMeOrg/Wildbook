@@ -2893,7 +2893,7 @@ public class Shepherd {
     return comNames;
   }
 
-  public ArrayList<String> getAllGenuses() {
+  public List<String> getAllGenuses() {
       Query q = pm.newQuery(Encounter.class);
       q.setResult("distinct genus");
       q.setOrdering("genus ascending");
