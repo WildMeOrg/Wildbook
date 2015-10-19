@@ -36,7 +36,7 @@ String context="context0";
      <%
      
      myShepherd.beginDBTransaction();
-     ArrayList<User> allUsers=myShepherd.getAllUsers();
+     List<User> allUsers=myShepherd.getAllUsers();
      int numUsers=allUsers.size();
      
      %>

@@ -1510,7 +1510,7 @@ public class Shepherd {
 
   public User getUserBySocialId(String service, String id) {
         if ((id == null) || (service == null)) return null;
-        ArrayList<User> users = getAllUsers();
+        List<User> users = getAllUsers();
         for (int i = 0 ; i < users.size() ; i++) {
             if (id.equals(users.get(i).getSocial(service))) return users.get(i);
         }
@@ -2283,7 +2283,7 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList<User> getAllUsers() {
+  public List<User> getAllUsers() {
     Collection c;
     ArrayList<User> list = new ArrayList<User>();
     Extent userClass = pm.getExtent(User.class, true);
@@ -2306,7 +2306,7 @@ public class Shepherd {
   
   public String getAllUserEmailAddressesForLocationID(String locationID, String context){
     String addresses="";
-    ArrayList<User> users = getAllUsers();
+    List<User> users = getAllUsers();
     int numUsers=users.size();
     for(int i=0;i<numUsers;i++){
       User user=users.get(i);

@@ -1551,7 +1551,7 @@ else {
 
       <%
       	Shepherd inShepherd=new Shepherd("context0");
-        ArrayList<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
