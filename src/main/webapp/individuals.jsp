@@ -1259,7 +1259,7 @@ System.out.println(henc);
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
