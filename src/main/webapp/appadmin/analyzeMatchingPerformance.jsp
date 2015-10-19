@@ -76,6 +76,8 @@ AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierF
 //try BayesNet
 BayesNet bayesBooster=new BayesNet();
 bayesBooster.buildClassifier(instances);
+System.out.println("Trying to write to: +"+pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
+//TrainNetwork.serializeWekaClassifier(request, bayesBooster, pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
 		
 //try MultiboostAB
 MultiBoostAB mabBooster=new MultiBoostAB();

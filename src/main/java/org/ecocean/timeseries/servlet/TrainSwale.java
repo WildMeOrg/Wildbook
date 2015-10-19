@@ -128,19 +128,23 @@ public class TrainSwale extends HttpServlet {
                   
                                 EncounterLite theEnc=new EncounterLite(enc1);
                                 ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
-                                oldSpots.addAll(theEnc.getRightSpots());
+                                if(theEnc.getRightSpots()!=null){
+                                  oldSpots.addAll(theEnc.getRightSpots());
+                                }
                                   Collections.sort(oldSpots, new XComparator());
                                   
-                                  //let's prefilter old spots for outlies outside the bounds
-                                  for(int m=0;i<oldSpots.size();m++){
-                                    SuperSpot theSpot=oldSpots.get(m);
-                                    if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-                                      oldSpots.remove(m);
-                                      i--;
-                                    }
-                                    if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                                      oldSpots.remove(m);
-                                      i--;
+                                  //let's prefilter old spots for outliers outside the bounds
+                                  if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                                    for(int m=0;i<oldSpots.size();m++){
+                                      SuperSpot theSpot=oldSpots.get(m);
+                                      if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+                                        oldSpots.remove(m);
+                                        i--;
+                                      }
+                                      if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                                        oldSpots.remove(m);
+                                        i--;
+                                      }
                                     }
                                   }
                                   int numOldSpots=oldSpots.size();

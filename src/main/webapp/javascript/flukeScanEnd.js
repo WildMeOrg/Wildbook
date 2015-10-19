@@ -22,7 +22,7 @@ var columnInfo = {
     },
 */
     adaboost_match: {
-        label: 'adaboost match',
+        label: 'metascore',
         value: _cleanFloatValue,
         sortValue: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
@@ -71,11 +71,7 @@ var columnInfo = {
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
-    tquest: {
-        label: 'TQuEST',
-        value: _getValue,
-	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-    }
+
 };
 
 
@@ -333,7 +329,7 @@ console.log(ev); return;
 }
 
 function setImageMeta(adaboostMatch) {
-    $('#image-meta #score').html('AdaBoost match: <b>' + _cleanFloat(adaboostMatch) + '</b>');
+    $('#image-meta #score').html('Metascore: <b>' + _cleanFloat(adaboostMatch) + '</b>');
 }
 
 function rowClick(el) {

@@ -92,6 +92,11 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       rightScan = "true";
     }
     props2.setProperty("rightScan", rightScan);
+    
+    
+
+    
+    
 
 
     //Modified Groth algorithm parameters
@@ -144,12 +149,27 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
               }
               
               if(encGenusSpecies.equals(originalEncGenusSpecies)){
+                
+                
+                //tunings for the SWALE algorithm - default is Physetermacrocephalus
+                double swalePenalty=-2;
+                double swaleReward=25.0;
+                double swaleEpsilon=0.0011419401589504922;
+                //Swale value for Tursiopstruncatus
+                if(encGenusSpecies.equals("Tursiopstruncatus")){
+                  swalePenalty=0;
+                  swaleReward=25.0;
+                  swaleEpsilon=0.003977041051268339;
+                }
+                
               
                 String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
                 //if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {
                   //add the workItem
                   ScanWorkItem swi = new ScanWorkItem(myShepherd.getEncounter(encounterNumber), enc, wiIdentifier, taskID, props2, algorithms);
-                  //String uniqueNum = swi.getUniqueNumber();
+                  swi.setSwaleEpsilon(swaleEpsilon);
+                  swi.setSwalePenalty(swalePenalty);
+                  swi.setSwaleReward(swaleReward);
       
                   gm.addWorkItem(swi);
                   count++;
@@ -158,6 +178,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
                   System.out.println("     I am creating an inverse ScanWorkItem!");
                   ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), (wiIdentifier+"Revere"), taskID, props2, algorithms);
                   swi2.setReversed(true);
+                  swi2.setSwaleEpsilon(swaleEpsilon);
+                  swi2.setSwalePenalty(swalePenalty);
+                  swi2.setSwaleReward(swaleReward);
                   gm.addWorkItem(swi2);
       
                   //System.out.println("Added a new right-side scan task!");
