@@ -529,7 +529,7 @@ finally{
                     <ul class="encounter-list list-unstyled">
                        
                        <%
-                       ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        for(int i=0;i<numResults;i++){

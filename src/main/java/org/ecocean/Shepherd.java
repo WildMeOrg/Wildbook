@@ -3162,7 +3162,7 @@ public class Shepherd {
     return null;
   }
   
-  public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
+  public List<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
     String filter = "individualID != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
