@@ -1083,7 +1083,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getAllOccurrences(Query myQuery) {
+  public List getAllOccurrences(Query myQuery) {
     Collection c;
     try {
       c = (Collection) (myQuery.execute());

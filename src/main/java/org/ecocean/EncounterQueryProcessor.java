@@ -1479,7 +1479,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 		//silo security logging
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String url = request.getRequestURL().toString() + "?" + request.getQueryString();
 		Date now = new Date();
 

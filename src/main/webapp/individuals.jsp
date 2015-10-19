@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
 
 
-	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
 <%

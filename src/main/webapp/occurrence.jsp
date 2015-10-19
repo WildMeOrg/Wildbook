@@ -162,7 +162,7 @@ context=ServletUtilities.getContext(request);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
 
 
-			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = sharky.canUserAccess(request);
 
 			if (!visible) {

@@ -404,7 +404,7 @@ margin-bottom: 8px !important;
 
 						if (!visible) {
 							String blocker = "";
-							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
