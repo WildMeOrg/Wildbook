@@ -2991,7 +2991,7 @@ public class Shepherd {
   }
 
 
-  public ArrayList<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
+  public List<MarkedIndividual> getAllMarkedIndividualsInCommunity(String communityName){
     ArrayList<MarkedIndividual> indies=new ArrayList<MarkedIndividual>();
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.relatedSocialUnitName == \""+communityName+"\"";
