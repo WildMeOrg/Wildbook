@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
@@ -1506,7 +1507,7 @@ else {
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong></p>
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
      		int numProps=values.size();
      		%>
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">

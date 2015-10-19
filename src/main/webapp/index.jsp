@@ -202,7 +202,7 @@ margin-bottom: 8px !important;
  		
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();

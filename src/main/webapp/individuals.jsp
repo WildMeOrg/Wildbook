@@ -2011,7 +2011,7 @@ String communityName="";
         <td>
         	<select name="type">
 			<%
-				List<String> types=CommonConfiguration.getIndexedValues("relationshipType",context);
+				List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
 				int numTypes=types.size();
 				for(int g=0;g<numTypes;g++){
 					
@@ -2064,7 +2064,7 @@ String communityName="";
          	
          <select name="markedIndividualRole1">
 			<%
-				List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+				List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 				int numRoles=roles.size();
 				for(int g=0;g<numRoles;g++){
 					
