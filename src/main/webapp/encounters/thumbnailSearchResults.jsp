@@ -46,7 +46,7 @@
 
     Shepherd myShepherd = new Shepherd(context);
 
-    ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
+    List<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
     //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
@@ -309,7 +309,7 @@
 
 			
 			int countMe=0;
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			try {
 				//thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
