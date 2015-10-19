@@ -1588,7 +1588,7 @@ public class Shepherd {
     return (new ArrayList<TissueSample>(c));
   }
   
-  public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
+  public List<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
     if(indy.getEncounters()!=null){
       int numEncounters = indy.getEncounters().size();
