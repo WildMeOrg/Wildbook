@@ -1367,7 +1367,7 @@ public class Shepherd {
    * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
    *
    */
-  public ArrayList<User> getAllUsersForMarkedIndividual(MarkedIndividual indie){
+  public List<User> getAllUsersForMarkedIndividual(MarkedIndividual indie){
     ArrayList<User> relatedUsers=new ArrayList<User>();
     ArrayList<String> usernames=indie.getAllAssignedUsers();
     int size=usernames.size();
@@ -1407,7 +1407,7 @@ public class Shepherd {
    * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
    *
    */
-  public ArrayList<User> getAllUsersForMarkedIndividual(String indie){
+  public List<User> getAllUsersForMarkedIndividual(String indie){
     ArrayList<User> relatedUsers=new ArrayList<User>();
     if(getMarkedIndividual(indie)!=null){
       MarkedIndividual foundIndie=getMarkedIndividual(indie);

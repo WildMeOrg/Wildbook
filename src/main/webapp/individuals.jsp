@@ -1683,7 +1683,7 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          <%
                          //myShepherd.beginDBTransaction();
                          
-                         ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
+                         List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
                          for(int userNum=0;userNum<numUsers;userNum++){	
