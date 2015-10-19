@@ -2827,7 +2827,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllHaplotypes() {
+  public List<String> getAllHaplotypes() {
     Query q = pm.newQuery(MitochondrialDNAAnalysis.class);
     q.setResult("distinct haplotype");
     q.setOrdering("haplotype ascending");

@@ -1165,7 +1165,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 

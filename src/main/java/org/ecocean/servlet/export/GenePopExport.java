@@ -97,7 +97,7 @@ public class GenePopExport extends HttpServlet{
           String locus=loci.get(r);
           out.println(locus+"<br />");
         }
-        ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+        List<String> haplos=myShepherd.getAllHaplotypes();
         int numHaplos=haplos.size();
         if(numHaplos>0){
           out.println("mtDNA<br/>");

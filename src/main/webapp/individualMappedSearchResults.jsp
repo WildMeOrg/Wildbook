@@ -48,7 +48,7 @@
 
 
 
-    ArrayList<String> allHaplos2=new ArrayList<String>(); 
+    List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
     allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();

@@ -92,7 +92,7 @@ public class KinalyzerExport extends HttpServlet{
         ArrayList<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
 
-        //ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+        //List<String> haplos=myShepherd.getAllHaplotypes();
         //int numHaplos=haplos.size();
         
         
