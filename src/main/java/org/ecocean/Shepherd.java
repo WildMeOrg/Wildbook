@@ -1031,7 +1031,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllScanWorkItemsNoQuery() {
+  public Iterator<ScanWorkItem> getAllScanWorkItemsNoQuery() {
     try {
       Extent taskClass = pm.getExtent(ScanWorkItem.class, true);
       Iterator it = taskClass.iterator();
