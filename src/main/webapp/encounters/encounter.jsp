@@ -4360,9 +4360,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
      		
      		if(numProps>0){
@@ -4413,7 +4413,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
     
      		<%
-     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
      		
      		if(protonumProps>0){
@@ -4882,9 +4882,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
      		
      		if(numProps>0){
@@ -4935,7 +4935,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
     
      		<%
-     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
      		
      		if(protonumProps>0){

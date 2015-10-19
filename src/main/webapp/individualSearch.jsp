@@ -1510,7 +1510,7 @@ else {
 			<%
         //ArrayList<String> roles = myShepherd.getAllRoleNames();
         
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 			
 		//System.out.println(haplos.toString());
 

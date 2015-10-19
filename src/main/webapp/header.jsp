@@ -26,6 +26,7 @@
              org.ecocean.Shepherd,
              org.ecocean.User,
              java.util.ArrayList,
+             java.util.List,
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
              org.ecocean.security.Collaboration,
@@ -196,7 +197,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 		   <!-- Can we inject language functionality here? -->
                     <%
                     
-            		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+            		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
             		int numSupportedLanguages=supportedLanguages.size();
             		
             		if(numSupportedLanguages>1){

@@ -544,9 +544,9 @@ public static String getLanguageCode(HttpServletRequest request){
   }
 
   
-  ArrayList<String> supportedLanguages=new ArrayList<String>();
-  if(CommonConfiguration.getSequentialPropertyValues("language", context)!=null){
-    supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+  List<String> supportedLanguages=new ArrayList<String>();
+  if(CommonConfiguration.getIndexedPropertyValues("language", context)!=null){
+    supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
   }    
       
   //if specified directly, always accept the override

@@ -1,5 +1,5 @@
 
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList, java.util.List" %>
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
 javax.servlet.http.HttpSession,
 java.io.*" %>
@@ -35,8 +35,8 @@ if (session.getAttribute("message") != null) {
   	
   Shepherd myShepherd = new Shepherd(context);
   	//get the available user roles
-  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
-	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition",context);
+  	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
 
