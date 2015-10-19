@@ -1,7 +1,7 @@
 package org.ecocean.social;
 
 import org.ecocean.*;
-import java.util.ArrayList;
+import java.util.List;
 
 public class SocialUnit implements java.io.Serializable {
 
@@ -21,7 +21,7 @@ public class SocialUnit implements java.io.Serializable {
   
 
   //this is a convenience method to get the MarkedIndividuals associated with this community via its Relationship objects
-  public ArrayList<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd){
+  public List<MarkedIndividual> getMarkedIndividuals(Shepherd myShepherd){
       return myShepherd.getAllMarkedIndividualsInCommunity(socialUnitName);
   }
   
