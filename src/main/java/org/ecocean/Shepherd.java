@@ -2903,7 +2903,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllSpecificEpithets() {
+  public List<String> getAllSpecificEpithets() {
       Query q = pm.newQuery(Encounter.class);
       q.setResult("distinct specificEpithet");
       q.setOrdering("specificEpithet ascending");
