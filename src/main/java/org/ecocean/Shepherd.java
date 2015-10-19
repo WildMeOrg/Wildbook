@@ -2807,7 +2807,7 @@ public class Shepherd {
     catch(Exception e){return -1;}
   }
 
-  public ArrayList<String> getAllLocationIDs() {
+  public List<String> getAllLocationIDs() {
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct locationID");
     q.setOrdering("locationID ascending");
