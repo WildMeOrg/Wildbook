@@ -1708,7 +1708,7 @@ public class Shepherd {
   }
 
 
-  public Iterator getSortedUserEncounters(Query userEncounters, String order2) {
+  public Iterator<Encounter> getSortedUserEncounters(Query userEncounters, String order2) {
     userEncounters.setOrdering(order2);
     Collection c = (Collection) (userEncounters.execute());
     Iterator it = c.iterator();
