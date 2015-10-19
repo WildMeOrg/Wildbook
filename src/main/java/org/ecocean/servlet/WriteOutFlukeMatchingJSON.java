@@ -20,18 +20,18 @@
 package org.ecocean.servlet;
 
 import com.reijns.I3S.Pair;
-
+import java.util.Collections;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 import org.ecocean.neural.*;
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
-
+import java.util.Comparator;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import java.util.Comparator;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,8 +41,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 import com.google.gson.*;
 
-import org.ecocean.grid.GridManager;
-
 //train weka
 import weka.core.Attribute;
 import weka.core.FastVector;
@@ -50,7 +48,7 @@ import weka.core.Instances;
 import weka.core.Instance;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
-
+import weka.classifiers.bayes.BayesNet;
 
 
 public class WriteOutFlukeMatchingJSON extends HttpServlet {
@@ -110,9 +108,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         newEncShark = newEnc.isAssignedToMarkedIndividual();
         //if(newEnc.getSizeAsDouble()!=null){newEncSize = newEnc.getSize() + " meters";}
 
-        MatchObject[] res = new MatchObject[0];
+        //MatchObject[] res = new MatchObject[0];
 
-        res = gm.getMatchObjectsForTask(taskID).toArray(res);
+        ArrayList<MatchObject> res = gm.getMatchObjectsForTask(taskID);
 
 
         boolean righty = false;
@@ -155,7 +153,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
   }
 
-  public boolean writeResult(MatchObject[] swirs, String num,  String newEncDate, String newEncIndividualID, Shepherd myShepherd, String context, HttpServletRequest request) {
+  public boolean writeResult(ArrayList<MatchObject> swirs, String num,  String newEncDate, String newEncIndividualID, Shepherd myShepherd, String context, HttpServletRequest request) {
 
     System.out.println("     ...Starting writeResult method.");
 
@@ -192,18 +190,69 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
       
       //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
-      Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-      AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+      final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+      final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
       
+      final BayesNet bayesBooster=new BayesNet();
+      bayesBooster.buildClassifier(instances);
       
       
       System.out.println("     ...Prepping to write matching JSON file for encounter "+num+" after loading "+instances.numInstances()+" training instances");
 
       //now setup the XML write for the encounter
-      int resultsSize = swirs.length;
-      MatchObject[] matches = swirs;
+      
+      //MatchObject[] matches = swirs;
 
-      Arrays.sort(swirs, new FlukeMatchComparator(request,booster,instances));
+      //Arrays.sort(swirs, new FlukeMatchComparator(request,booster,bayesBooster,instances));
+      Collections.sort(swirs, new Comparator<MatchObject>(){
+
+        public int compare(MatchObject a1, MatchObject b1)
+        {
+          double a1_adjustedValue=0;
+          double b1_adjustedValue=0;
+
+            
+            Instance a1Example = new Instance(7);
+            Instance b1Example = new Instance(7);
+            
+              a1Example.setDataset(instances);
+              a1Example.setValue(0, a1.getIntersectionCount());
+              a1Example.setValue(1, a1.getLeftFastDTWResult().doubleValue());
+              a1Example.setValue(2,  a1.getI3SMatchValue());
+              a1Example.setValue(3, (new Double(a1.getProportionValue()).doubleValue()));
+              a1Example.setValue(4, (new Double(a1.getMSMValue()).doubleValue()));
+              a1Example.setValue(5, (new Double(a1.getSwaleValue()).doubleValue()));
+              a1Example.setValue(6, (new Double(a1.getDateDiff()).doubleValue()));
+              
+              
+              b1Example.setDataset(instances);
+              b1Example.setValue(0, b1.getIntersectionCount());
+              b1Example.setValue(1, b1.getLeftFastDTWResult().doubleValue());
+              b1Example.setValue(2,  b1.getI3SMatchValue());
+              b1Example.setValue(3, (new Double(b1.getProportionValue()).doubleValue()));
+              b1Example.setValue(4, (new Double(b1.getMSMValue()).doubleValue()));
+              b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
+              b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
+            
+              
+              
+              try{
+                a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
+                b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
+              }
+              catch(Exception e){e.printStackTrace();}
+            
+            
+            
+            if(a1_adjustedValue > b1_adjustedValue){return -1;}
+            else if(a1_adjustedValue < b1_adjustedValue){return 1;}
+            else{return 0;}
+        }
+      });
+      
+      int resultsSize = swirs.size();
+      
+      
       System.out.println("     ...Results sorted.");
 
       
@@ -226,9 +275,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
        
        
        
-      int numMatches=matches.length;
+      int numMatches=swirs.size();
       for (int i = 0; i < numMatches; i++) {
-        MatchObject mo = matches[i];
+        MatchObject mo = swirs.get(i);
         Encounter enc = myShepherd.getEncounter(mo.getEncounterNumber());
         //System.out.println("           Writing out result for: "+mo.getEncounterNumber());
         

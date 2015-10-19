@@ -68,6 +68,11 @@ public class ScanWorkItem implements java.io.Serializable {
   String algorithms="";
   
   public boolean reversed=false;
+  
+  //SWALE tunings - default are early results for Physeter macrocephalus
+  double swalePenalty=-2;
+  double swaleReward=25.0;
+  double swaleEpsilon=0.0011419401589504922;
 
 
   /**
@@ -159,34 +164,7 @@ public class ScanWorkItem implements java.io.Serializable {
     //double allowedHolmbergIntersectionProportion = 0.18;
 
 
-    //determine which spots to pass in
-    SuperSpot[] newspotsTemp = new SuperSpot[0];
-    SuperSpot[] oldspotsTemp = new SuperSpot[0];
-    SuperSpot[] newRefSpots = new SuperSpot[0];
-    
-    if (!rightScan) {
-      newspotsTemp = (SuperSpot[]) newEncounter.getSpots().toArray(newspotsTemp);
-      oldspotsTemp = (SuperSpot[]) existingEncounter.getSpots().toArray(oldspotsTemp);
-      newRefSpots=newEncounter.getLeftReferenceSpots();
-    } else {
-      newspotsTemp = (SuperSpot[]) newEncounter.getRightSpots().toArray(newspotsTemp);
-      oldspotsTemp = (SuperSpot[]) existingEncounter.getRightSpots().toArray(oldspotsTemp);
-      newRefSpots=newEncounter.getRightReferenceSpots();
-    }
-
-    //create a re-write of the new spots
-    ArrayList<SuperSpot> newGrothSpots = new ArrayList<SuperSpot>();
-    int spotLength = newspotsTemp.length;
-    for (int t = 0; t < spotLength; t++) {
-      newGrothSpots.add(new SuperSpot(new Spot(0, newspotsTemp[t].getTheSpot().getCentroidX(), newspotsTemp[t].getTheSpot().getCentroidY())));
-    }
-
-    //create a re-write of the old spots
-    ArrayList<SuperSpot> existingGrothSpots = new ArrayList<SuperSpot>();
-    int spotLength2 = oldspotsTemp.length;
-    for (int t = 0; t < spotLength2; t++) {
-      existingGrothSpots.add(new SuperSpot(new Spot(0, oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY())));
-    }
+ 
     
     
     
@@ -210,21 +188,7 @@ public class ScanWorkItem implements java.io.Serializable {
       result.encounterNumber=newEncounter.getEncounterNumber();
       result.individualName=newEncounter.getIndividualID();
     }
-    if(algorithms.indexOf("ModifedGroth")>-1){
-      result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan,newRefSpots);
-    
-      System.out.println("     Groth score was: "+result.getAdjustedMatchValue());
-    }
-    //I3S processing
 
-    //reset the spot patterns after Groth processing
-    if (!rightScan) {
-      newEncounter.processLeftSpots(newGrothSpots);
-      existingEncounter.processLeftSpots(existingGrothSpots);
-    } else {
-      newEncounter.processRightSpots(newGrothSpots);
-      existingEncounter.processRightSpots(existingGrothSpots);
-    }
 
     //adjust for scale
     double[] matrix = new double[6];
@@ -295,13 +259,9 @@ public class ScanWorkItem implements java.io.Serializable {
       System.out.println("     MSM result is: "+msmValue.doubleValue());
       result.setMSMSValue(msmValue);
       
-      
-      //set Swale value
-      double penalty=-2;
-      double reward=25.0;
-      double epsilon=0.0011419401589504922;
 
-      Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, penalty, reward, epsilon);
+
+      Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
@@ -434,6 +394,10 @@ public class ScanWorkItem implements java.io.Serializable {
   public Double getFastDTWResult(){return fastDTWResult;}
   
   public void setReversed(boolean myVal){this.reversed=myVal;}
+  
+  public void setSwalePenalty(double value){swalePenalty=value;}
+  public void setSwaleEpsilon(double value){swaleEpsilon=value;}
+  public void setSwaleReward(double value){swaleReward=value;}
   
 }
 	
