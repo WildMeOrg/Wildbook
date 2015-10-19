@@ -3046,7 +3046,7 @@ public class Shepherd {
     return listy;
   }
   
-  public ArrayList<String> getAllRoleNamesForMarkedIndividual(String indieName){
+  public List<String> getAllRoleNamesForMarkedIndividual(String indieName){
     ArrayList<String> roles=new ArrayList<String>();
     
     ArrayList<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
