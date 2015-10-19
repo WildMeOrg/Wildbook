@@ -1338,7 +1338,7 @@ public class IndividualQueryProcessor {
           //logical OR the roles
             for (int q = 0; q<rIndividuals.size(); q++) {
               MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
-              ArrayList<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
+              List<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
               
               if(orRoles){
                 
