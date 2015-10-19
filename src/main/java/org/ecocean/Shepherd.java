@@ -996,7 +996,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllAdoptionsNoQuery() {
+  public Iterator<Adoption> getAllAdoptionsNoQuery() {
     try {
       Extent encClass = pm.getExtent(Adoption.class, true);
       Iterator it = encClass.iterator();
@@ -2703,9 +2703,9 @@ public class Shepherd {
 
     //return the adoption
     int currentPosition = 0;
-    Iterator it = getAllAdoptionsNoQuery();
+    Iterator<Adoption> it = getAllAdoptionsNoQuery();
     while (it.hasNext()) {
-      Adoption ad = (Adoption) it.next();
+      Adoption ad = it.next();
       if (currentPosition == ranNum) {
         return ad;
       }
