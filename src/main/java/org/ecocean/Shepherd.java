@@ -915,7 +915,7 @@ public class Shepherd {
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
-  public Iterator getUnassignedEncounters() {
+  public Iterator<Encounter> getUnassignedEncounters() {
     String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
