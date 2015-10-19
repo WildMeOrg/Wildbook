@@ -662,7 +662,7 @@ public class Shepherd {
 
 
 
-  public ArrayList<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
+  public List<String> getKeywordsInCommon(String encounterNumber1, String encounterNumber2) {
     ArrayList<String> inCommon = new ArrayList<String>();
     Encounter enc1 = getEncounter(encounterNumber1);
     Encounter enc2 = getEncounter(encounterNumber2);
