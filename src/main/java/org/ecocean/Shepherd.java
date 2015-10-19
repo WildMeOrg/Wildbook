@@ -2980,7 +2980,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllLifeStages(){
+  public List<String> getAllLifeStages(){
     Query q = pm.newQuery (Encounter.class);
     q.setResult ("distinct lifeStage");
     q.setOrdering("lifeStage ascending");
