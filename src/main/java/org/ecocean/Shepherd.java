@@ -2817,7 +2817,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllCountries() {
+  public List<String> getAllCountries() {
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct country");
     q.setOrdering("country ascending");
