@@ -1387,7 +1387,7 @@ public class Shepherd {
    * Retrieve the distinct User objects for all Encounters related to this Occurrence
    *
    */
-  public ArrayList<User> getAllUsersForOccurrence(Occurrence indie){
+  public List<User> getAllUsersForOccurrence(Occurrence indie){
     ArrayList<User> relatedUsers=new ArrayList<User>();
     ArrayList<String> usernames=indie.getAllAssignedUsers();
     int size=usernames.size();
@@ -1419,7 +1419,7 @@ public class Shepherd {
   /* Retrieve the distinct User objects for all Encounters related to this Occurrence
   *
   */
- public ArrayList<User> getAllUsersForOccurrence(String occur){
+ public List<User> getAllUsersForOccurrence(String occur){
    ArrayList<User> relatedUsers=new ArrayList<User>();
    if(getOccurrence(occur)!=null){
      Occurrence foundOccur=getOccurrence(occur);
