@@ -1683,7 +1683,7 @@ public class Shepherd {
    * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
-  public Iterator getUnapprovedEncounters(Query acceptedEncounters) {
+  public Iterator<Encounter> getUnapprovedEncounters(Query acceptedEncounters) {
     Collection c = (Collection) (acceptedEncounters.execute());
     ArrayList list = new ArrayList(c);
     Iterator it = list.iterator();
@@ -1691,7 +1691,7 @@ public class Shepherd {
 
   }
 
-  public Iterator getUnapprovedEncounters(Query unapprovedEncounters, String order) {
+  public Iterator<Encounter> getUnapprovedEncounters(Query unapprovedEncounters, String order) {
     unapprovedEncounters.setOrdering(order);
     Collection c = (Collection) (unapprovedEncounters.execute());
     Iterator it = c.iterator();
