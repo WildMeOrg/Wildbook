@@ -1532,7 +1532,7 @@ public class Shepherd {
 */
   }
 
-  public ArrayList<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
+  public List<Map.Entry> getAllOtherIndividualsOccurringWithMarkedIndividual(String indie){
     HashMap<String,Integer> hmap = new HashMap<String,Integer>();
     //TreeMapOccurrenceComparator cmp=new TreeMapOccurrenceComparator(hmap);
    //TreeMap<String, Integer> map=new TreeMap<String, Integer>(cmp);

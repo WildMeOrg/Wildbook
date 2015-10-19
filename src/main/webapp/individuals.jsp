@@ -2358,7 +2358,7 @@ else {
 <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
 <%
-ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
 if(otherIndies.size()>0){
 	
