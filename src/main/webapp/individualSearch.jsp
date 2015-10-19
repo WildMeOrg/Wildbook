@@ -1203,7 +1203,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
