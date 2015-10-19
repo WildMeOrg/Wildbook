@@ -1580,7 +1580,7 @@ public class Shepherd {
   }
 
 
-  public ArrayList<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
+  public List<TissueSample> getAllTissueSamplesForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(TissueSample.class, true);
     Query samples = pm.newQuery(encClass, filter);
