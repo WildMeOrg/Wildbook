@@ -2750,7 +2750,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList getMarkedIndividualsByNickname(String altID) {
+  public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
     String filter = "this.nickName.startsWith('" + altID + "')";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
