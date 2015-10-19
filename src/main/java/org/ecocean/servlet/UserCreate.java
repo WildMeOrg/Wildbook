@@ -156,7 +156,7 @@ public class UserCreate extends HttpServlet {
         //now handle roles
         
         //if this is not a new user, we need to blow away all old roles
-        ArrayList<Role> preexistingRoles=new ArrayList<Role>();
+        List<Role> preexistingRoles=new ArrayList<Role>();
         if(!createThisUser){
           //get existing roles for this existing user
           preexistingRoles=myShepherd.getAllRolesForUser(username);
