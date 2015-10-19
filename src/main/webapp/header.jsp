@@ -149,7 +149,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                      	
                       
                       
-                      ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                      List<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
                 		%>

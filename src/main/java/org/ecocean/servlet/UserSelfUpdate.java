@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 
 import java.util.Properties;
 
@@ -160,7 +159,7 @@ public class UserSelfUpdate extends HttpServlet {
         
         //start role processing
         
-        ArrayList<String> contexts=ContextConfiguration.getContextNames();
+        List<String> contexts=ContextConfiguration.getContextNames();
         int numContexts=contexts.size();
         //System.out.println("numContexts is: "+numContexts);
         for(int d=0;d<numContexts;d++){
