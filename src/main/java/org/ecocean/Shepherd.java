@@ -3032,7 +3032,7 @@ public class Shepherd {
     return listy;
   }
   
-  public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
+  public List<String> getAllSocialUnitsForMarkedIndividual(String indieName){
     Extent encClass = pm.getExtent(Relationship.class, true);
     
     String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
