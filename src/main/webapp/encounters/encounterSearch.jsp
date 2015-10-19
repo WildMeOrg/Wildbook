@@ -1428,7 +1428,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {

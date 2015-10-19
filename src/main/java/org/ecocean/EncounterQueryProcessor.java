@@ -715,7 +715,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //ms markers filters-------------------------------------------------
       myShepherd.beginDBTransaction();
-      ArrayList<String> markers=myShepherd.getAllLoci();
+      List<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
         String theseMarkers="";
         boolean hasMarkers=false;

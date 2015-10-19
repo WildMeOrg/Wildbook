@@ -2867,7 +2867,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllLoci() {
+  public List<String> getAllLoci() {
     Query q = pm.newQuery(Locus.class);
     q.setResult("distinct name");
     q.setOrdering("name ascending");
