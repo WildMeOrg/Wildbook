@@ -2857,7 +2857,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllGeneticSexes() {
+  public List<String> getAllGeneticSexes() {
     Query q = pm.newQuery(SexAnalysis.class);
     q.setResult("distinct sex");
     q.setOrdering("sex ascending");
