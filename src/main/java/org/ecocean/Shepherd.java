@@ -650,9 +650,9 @@ public class Shepherd {
 
   public Keyword getKeyword(String readableName) {
 
-    Iterator keywords = getAllKeywords();
+    Iterator<Keyword> keywords = getAllKeywords();
 	while (keywords.hasNext()) {
-      Keyword kw = (Keyword) keywords.next();
+      Keyword kw = keywords.next();
       if((kw.getReadableName().equals(readableName))||(kw.getIndexname().equals(readableName))){return kw;}
   	}
   return null;
@@ -667,9 +667,9 @@ public class Shepherd {
     Encounter enc1 = getEncounter(encounterNumber1);
     Encounter enc2 = getEncounter(encounterNumber2);
 
-    Iterator keywords = getAllKeywords();
+    Iterator<Keyword> keywords = getAllKeywords();
     while (keywords.hasNext()) {
-      Keyword kw = (Keyword) keywords.next();
+      Keyword kw = keywords.next();
 
       //if ((kw.isMemberOf(enc1)) && (kw.isMemberOf(enc2))) {
       if (enc1.hasKeyword(kw) && enc2.hasKeyword(kw)) {
@@ -812,9 +812,9 @@ public class Shepherd {
   }
 
   public boolean isKeyword(String keywordDescription) {
-    Iterator keywords = getAllKeywords();
+    Iterator<Keyword> keywords = getAllKeywords();
 	    while (keywords.hasNext()) {
-      Keyword kw = (Keyword) keywords.next();
+      Keyword kw = keywords.next();
       if(kw.getReadableName().equals(keywordDescription)){return true;}
  	}
 
@@ -2267,7 +2267,7 @@ public class Shepherd {
   }
 
 
-  public Iterator getAllKeywords() {
+  public Iterator<Keyword> getAllKeywords() {
     Extent allKeywords = null;
     Iterator it = null;
     try {
@@ -2347,7 +2347,7 @@ public class Shepherd {
     return it;
   }
 
-  public Iterator getAllKeywords(Query acceptedKeywords) {
+  public Iterator<Keyword> getAllKeywords(Query acceptedKeywords) {
     Extent allKeywords = null;
     Iterator it = null;
     try {

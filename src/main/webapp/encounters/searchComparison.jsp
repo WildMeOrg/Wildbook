@@ -894,9 +894,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <%
 
 
-        Iterator keys = myShepherd.getAllKeywords(kwQuery);
+        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
         for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = (Keyword) keys.next();
+          Keyword word = keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>

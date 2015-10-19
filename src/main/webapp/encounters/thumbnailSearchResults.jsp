@@ -568,9 +568,9 @@
                         <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //Iterator allKeywords2 = myShepherd.getAllKeywords();
+                        //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
                         //while (allKeywords2.hasNext()) {
-                          //Keyword word = (Keyword) allKeywords2.next();
+                          //Keyword word = allKeywords2.next();
                           
                           
                           //if (word.isMemberOf(encNum + "/" + fileName)) {
@@ -782,9 +782,9 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                         //int numKeywords=myShepherd.getNumKeywords();
-									          //Iterator allKeywords2 = myShepherd.getAllKeywords();
+									          //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
 					                        //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
+					                          //Keyword word = allKeywords2.next();
 					                          
 					                          
 					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
