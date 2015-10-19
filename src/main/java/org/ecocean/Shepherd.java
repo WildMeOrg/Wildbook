@@ -3021,7 +3021,7 @@ public class Shepherd {
     return indies;
   }
   
-  public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
+  public List<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
     Query query = pm.newQuery(encClass, filter2use);
@@ -3049,7 +3049,7 @@ public class Shepherd {
   public List<String> getAllRoleNamesForMarkedIndividual(String indieName){
     ArrayList<String> roles=new ArrayList<String>();
     
-    ArrayList<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
+    List<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
     int numRels=rels.size();
     for(int i=0;i<numRels;i++){
       

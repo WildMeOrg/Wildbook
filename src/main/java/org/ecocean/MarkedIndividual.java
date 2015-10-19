@@ -1644,7 +1644,7 @@ public long getTimeofDeath(){return timeOfDeath;}
 public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
 
-public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
+public List<Relationship> getAllRelationships(Shepherd myShepherd){
   return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
 }
 
