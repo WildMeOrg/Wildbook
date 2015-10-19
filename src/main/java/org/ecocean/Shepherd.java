@@ -1251,7 +1251,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getPairs(Query query, int pageSize) {
+  public List getPairs(Query query, int pageSize) {
     Collection c;
     query.setRange(0, pageSize);
     try {
