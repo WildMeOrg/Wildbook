@@ -417,7 +417,7 @@ public class Shepherd {
     return null;
   }
 
-  public ArrayList<Role> getAllRolesForUserInContext(String username, String context) {
+  public List<Role> getAllRolesForUserInContext(String username, String context) {
     String actualContext="context0";
     if(context!=null){actualContext=context;}
     String filter = "this.username == '" + username + "' && this.context == '"+actualContext+"'";
