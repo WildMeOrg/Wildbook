@@ -95,7 +95,7 @@ public class KeywordHandler extends HttpServlet {
         String desc = word.getReadableName();
         
         //need to first delete the keyword from all SinglePhotoVIdeos it is assigned to
-        ArrayList<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+        List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
         int numPhotos=photos.size();
         for(int i=0;i<numPhotos;i++){
         	SinglePhotoVideo spv=photos.get(i);
