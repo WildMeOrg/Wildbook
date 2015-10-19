@@ -406,7 +406,7 @@ public class Shepherd {
 
   public Role getRole(String rolename, String username, String context) {
 
-    ArrayList<Role> roles = getAllRoles();
+    List<Role> roles = getAllRoles();
     int numRoles=roles.size();
     for(int i=0;i<numRoles;i++) {
       Role kw = (Role) roles.get(i);
@@ -2332,7 +2332,7 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList<Role> getAllRoles() {
+  public List<Role> getAllRoles() {
     Extent allKeywords = null;
     ArrayList<Role> it = new ArrayList<Role>();
     try {

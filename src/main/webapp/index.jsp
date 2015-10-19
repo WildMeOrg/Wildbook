@@ -39,7 +39,7 @@ myShepherd=new Shepherd(context);
   		System.out.println("Creating tomcat user account...");
   		myShepherd.commitDBTransaction();
 		
-  	  	ArrayList<Role> roles=myShepherd.getAllRoles();
+  	  	List<Role> roles=myShepherd.getAllRoles();
   	  	if(roles.size()==0){
   	  		
   	  		myShepherd.beginDBTransaction();
