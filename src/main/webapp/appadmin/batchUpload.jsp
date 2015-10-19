@@ -136,8 +136,8 @@ context=ServletUtilities.getContext(request);
         break;
       case 12:
         Shepherd shep = new Shepherd(context);
-        for (Iterator iter = shep.getAllKeywords(); iter.hasNext();)
-          list.add(((Keyword)iter.next()).getReadableName());
+        for (Iterator<Keyword> iter = shep.getAllKeywords(); iter.hasNext();)
+          list.add(iter.next().getReadableName());
         shep.closeDBTransaction();
         shep = null;
         break;

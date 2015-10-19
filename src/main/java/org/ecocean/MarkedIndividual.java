@@ -1180,9 +1180,9 @@ public class MarkedIndividual implements java.io.Serializable {
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
-      Iterator it = myShepherd.getAllKeywords();
+      Iterator<Keyword> it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
-        Keyword word = (Keyword) it.next();
+        Keyword word = it.next();
         if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
