@@ -5,7 +5,7 @@
   <%
   String context="context0";
   context=ServletUtilities.getContext(request);
-	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();

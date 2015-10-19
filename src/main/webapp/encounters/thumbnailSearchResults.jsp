@@ -71,7 +71,7 @@
       keywords = new String[0];
     }
 
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
     if (request.getParameter("noQuery") == null) {

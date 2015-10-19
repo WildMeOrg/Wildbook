@@ -236,7 +236,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
 
 		Properties collabProps = new Properties();
  		collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String me = request.getUserPrincipal().getName();
 		String h = "";
 		for (Collaboration c : collabs) {

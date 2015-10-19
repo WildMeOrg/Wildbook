@@ -1703,7 +1703,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		context = ServletUtilities.getContext(request);
 		Shepherd myShepherd = new Shepherd(context);
 
-		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   	ArrayList<String> uids = this.getAllAssignedUsers();
   	ArrayList<String> open = new ArrayList<String>();
 		String collabClass = "pending";
