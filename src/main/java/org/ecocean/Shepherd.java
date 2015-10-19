@@ -3126,7 +3126,7 @@ public class Shepherd {
     else{return null;}
   }
   
-  public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
+  public List<Measurement> getMeasurementsForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(Measurement.class, true);
     Query samples = pm.newQuery(encClass, filter);
