@@ -1068,7 +1068,7 @@ public class Shepherd {
     return getAllEncountersNoQuery();
   }
 
-  public Iterator getAllEncounters(Query acceptedEncounters) {
+  public Iterator<Encounter> getAllEncounters(Query acceptedEncounters) {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.execute());
@@ -1112,7 +1112,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
+  public Iterator<Encounter> getAllEncounters(Query acceptedEncounters, Map<String, Object> paramMap) {
     Collection c;
     try {
       c = (Collection) (acceptedEncounters.executeWithMap(paramMap));
@@ -1308,7 +1308,7 @@ public class Shepherd {
   }
 
 /**
-  public Iterator getAllEncountersAndUnapproved() {
+  public Iterator<Encounter> getAllEncountersAndUnapproved() {
     Collection c;
     String filter = "this.state != \"unidentifiable\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1334,7 +1334,7 @@ public class Shepherd {
    * @return an Iterator of all valid whale shark encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
-  public Iterator getAllEncounters(String order) {
+  public Iterator<Encounter> getAllEncounters(String order) {
     //String filter = "this.state != \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass);
@@ -1438,7 +1438,7 @@ public class Shepherd {
     return listy;
   }
 
-  public Iterator getAllEncounters(Query acceptedEncounters, String order) {
+  public Iterator<Encounter> getAllEncounters(Query acceptedEncounters, String order) {
     acceptedEncounters.setOrdering(order);
     Collection c = (Collection) (acceptedEncounters.execute());
     ArrayList list = new ArrayList(c);
@@ -1454,7 +1454,7 @@ public class Shepherd {
    * @return a filtered Iterator of whale shark encounters stored in the visual database, arranged by the input String
    * @see encounter, java.util.Iterator
    */
-  public Iterator getAllEncounters(String order, String filter2use) {
+  public Iterator<Encounter> getAllEncounters(String order, String filter2use) {
     //String filter = filter2use + " && this.approved == true";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter2use);
@@ -1636,7 +1636,7 @@ public class Shepherd {
 	    return numResults;
 	  }
 
-  public Iterator getAllEncountersNoFilter(String order, String filter2use) {
+  public Iterator<Encounter> getAllEncountersNoFilter(String order, String filter2use) {
     String filter = filter2use;
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);

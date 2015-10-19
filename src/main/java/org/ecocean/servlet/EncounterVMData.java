@@ -116,9 +116,9 @@ public class EncounterVMData extends HttpServlet {
 				}
 //System.out.println("candidate filter => " + filter);
 
-				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
+				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
 				while (all.hasNext()) {
-					Encounter cand = (Encounter)all.next();
+					Encounter cand = all.next();
 					HashMap e = new HashMap();
 					e.put("id", cand.getCatalogNumber());
 					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
