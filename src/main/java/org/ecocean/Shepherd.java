@@ -2714,7 +2714,7 @@ public class Shepherd {
     return null;
   }
 
-  public ArrayList getMarkedIndividualsByAlternateID(String altID) {
+  public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
     String filter = "this.alternateid.startsWith('" + altID + "')";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
