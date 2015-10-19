@@ -972,7 +972,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllEncountersNoQuery() {
+  public Iterator<Encounter> getAllEncountersNoQuery() {
     try {
       Extent encClass = pm.getExtent(Encounter.class, true);
       Iterator it = encClass.iterator();
