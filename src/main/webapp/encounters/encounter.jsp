@@ -2929,7 +2929,7 @@ $("a#username").click(function() {
         	
         	Shepherd userShepherd=new Shepherd("context0");
         	userShepherd.beginDBTransaction();
-        	ArrayList<String> usernames=userShepherd.getAllUsernames();
+        	List<String> usernames=userShepherd.getAllUsernames();
         	
         	
         	

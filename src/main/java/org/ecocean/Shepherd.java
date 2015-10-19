@@ -2847,7 +2847,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllUsernames() {
+  public List<String> getAllUsernames() {
     Query q = pm.newQuery(User.class);
     q.setResult("distinct username");
     q.setOrdering("username ascending");
