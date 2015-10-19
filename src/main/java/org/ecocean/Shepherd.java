@@ -1667,7 +1667,7 @@ public class Shepherd {
    * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library
    * @see encounter, java.util.Iterator
    */
-  public Iterator getAllUnidentifiableEncounters(Query rejectedEncounters) {
+  public Iterator<Encounter> getAllUnidentifiableEncounters(Query rejectedEncounters) {
     rejectedEncounters.setFilter("this.state == \"unidentifiable\"");
     Collection c = (Collection) (rejectedEncounters.execute());
     ArrayList list = new ArrayList(c);
@@ -1721,7 +1721,7 @@ public class Shepherd {
    * @return an Iterator of all whale shark encounters stored in the database that are unacceptable for the visual ID library in the String order
    * @see encounter, java.util.Iterator
    */
-  public Iterator getAllUnidentifiableEncounters(Query unacceptedEncounters, String order) {
+  public Iterator<Encounter> getAllUnidentifiableEncounters(Query unacceptedEncounters, String order) {
     unacceptedEncounters.setOrdering(order);
     Collection c = (Collection) (unacceptedEncounters.execute());
     ArrayList list = new ArrayList(c);
