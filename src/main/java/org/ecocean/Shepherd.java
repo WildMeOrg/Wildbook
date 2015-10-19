@@ -1607,7 +1607,7 @@ public class Shepherd {
   }
   
 
-  public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
+  public List<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
     Query samples = pm.newQuery(encClass, filter);
@@ -2396,7 +2396,7 @@ public class Shepherd {
 
       if ((count + numImages) >= startNum) {
     	  Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
-    	  ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+    	  List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
         for (int i = 0; i < images.size(); i++) {
           count++;
           if ((count <= endNum) && (count >= startNum)) {
@@ -2472,7 +2472,7 @@ public class Shepherd {
       Iterator allEncs = markie.getEncounters().iterator();
       while (allEncs.hasNext()&&!stopMe) {
         Encounter enc = (Encounter) allEncs.next();
-        ArrayList<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+        List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 
         if ((count + images.size()) >= startNum) {
           for (int i = 0; i < images.size(); i++) {
