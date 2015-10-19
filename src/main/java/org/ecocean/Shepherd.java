@@ -1348,7 +1348,7 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList getAllAdoptionsForMarkedIndividual(String ind,String context) {
+  public List<Adoption> getAllAdoptionsForMarkedIndividual(String ind,String context) {
     if(CommonConfiguration.allowAdoptions(context)){
       String filter = "this.individual == '" + ind + "'";
       Extent encClass = pm.getExtent(Adoption.class, true);
