@@ -1816,7 +1816,7 @@ public class Shepherd {
     return it;
   }
 
-  public ArrayList<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
+  public List<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
     Extent allSharks = null;
     try {
       allSharks = pm.getExtent(MarkedIndividual.class, true);
