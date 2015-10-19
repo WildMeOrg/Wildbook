@@ -1127,7 +1127,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList<PatterningPassport> getPatterningPassports() {
+  public List<PatterningPassport> getPatterningPassports() {
     int num = 0;
     ArrayList al = new ArrayList<PatterningPassport>();
     try {
