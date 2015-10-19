@@ -837,12 +837,35 @@ function drawChart(d1, d2) {
     var data = new google.visualization.DataTable();
     data.addColumn('number', 'x');
     data.addColumn('number', 'y');
-    data.addRows(d1);
+
+    var isDorsal = (Math.abs(d2[0][0] - d2[2][0]) < 30);
+    if (isDorsal) {
+        console.warn('drawChart() thinks this is a dorsal fin');
+        var d1inv = [];
+        for (var i = 0 ; i < d1.length ; i++) {
+            var y = -400 - d1[i][1];
+            if (y < -100) continue;
+            d1inv.push([ d1[i][0], y]);
+        }
+        data.addRows(d1inv);
+    } else {
+        data.addRows(d1);
+    }
 
     var data2 = new google.visualization.DataTable();
     data2.addColumn('number', 'x');
     data2.addColumn('number', 'y');
-    data2.addRows(d2);
+    if (isDorsal) {
+        var d2inv = [];
+        for (var i = 0 ; i < d2.length ; i++) {
+            var y = -400 - d2[i][1];
+            if (y < -100) continue;
+            d2inv.push([ d2[i][0], y]);
+        }
+        data2.addRows(d2inv);
+    } else {
+        data2.addRows(d2);
+    }
 
     var joinedData = google.visualization.data.join(data, data2, 'full', [[0, 0]], [1], [1]);
     var options = {
