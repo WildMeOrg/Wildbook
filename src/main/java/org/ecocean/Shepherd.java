@@ -3080,9 +3080,9 @@ public class Shepherd {
   public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,String individualID2){
     int numCooccur=0;
     
-    ArrayList<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
+    List<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
     //System.out.println("zzzOccurrences for indie "+individualID1+": "+occurenceIDs1.toString());
-    ArrayList<String> occurenceIDs2=getOccurrenceIDsForMarkedIndividual(individualID2);
+    List<String> occurenceIDs2=getOccurrenceIDsForMarkedIndividual(individualID2);
     //System.out.println("zzzOccurrences for indie "+individualID2+": "+occurenceIDs2.toString());
     
     int numOccurenceIDs1=occurenceIDs1.size();
@@ -3099,7 +3099,7 @@ public class Shepherd {
     return numCooccur;
   }
   
-  public ArrayList<String> getOccurrenceIDsForMarkedIndividual(String individualID){
+  public List<String> getOccurrenceIDsForMarkedIndividual(String individualID){
     ArrayList<String> occurrenceIDs=new ArrayList<String>();
     
    String filter="SELECT distinct occurrenceID FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+individualID+"\"  VARIABLES org.ecocean.Encounter enc";
