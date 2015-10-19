@@ -72,6 +72,8 @@ System.out.println("     I expect to find an instances file here: "+instancesFil
 //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
 Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
 AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.J48 -- -C 0.25 -M 2";
+booster.setOptions(weka.core.Utils.splitOptions(optionString));
 
 //try BayesNet
 BayesNet bayesBooster=new BayesNet();
@@ -253,7 +255,7 @@ for(int i=0;i<numInstances;i++){
             	
             	//overall
             	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,7))); 
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,4))); 
             	
             	if(overallCorrectHashtable.get(score)==null){
             		overallCorrectHashtable.put(score, 0);
@@ -295,16 +297,16 @@ for(int i=0;i<numInstances;i++){
             	//overall
             	
             	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,7)));  
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,4)));  
             	if(overallHashtable.get(score)==null){
             		overallHashtable.put(score, 0);
             	}
-            	if(bayesOverallHashtable.get(thisBayesScore)==null){
-            		bayesOverallHashtable.put(thisBayesScore, 0);
+            	if(bayesOverallHashtable.get(bayesScore)==null){
+            		bayesOverallHashtable.put(bayesScore, 0);
             	}
             	Integer numValue=overallHashtable.get(score).intValue()+1;
-            	Integer numBayesValue=bayesOverallHashtable.get(thisBayesScore).intValue()+1;
-            	bayesOverallHashtable.put(thisBayesScore, numBayesValue);
+            	Integer numBayesValue=bayesOverallHashtable.get(bayesScore).intValue()+1;
+            	bayesOverallHashtable.put(bayesScore, numBayesValue);
             	overallHashtable.put(thisScore,numValue);
             	incorrectScoreTotal+=score;
             	numIncorrectScores++;
@@ -1194,6 +1196,9 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 }
 
 AdaBoostM1 cls=new AdaBoostM1();
+//String optionString = " -P 100 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
+cls.setOptions(weka.core.Utils.splitOptions(optionString));
+
 BayesNet bn=new BayesNet();
 MultiBoostAB mab=new MultiBoostAB();
 cls.buildClassifier(classifierSet);
