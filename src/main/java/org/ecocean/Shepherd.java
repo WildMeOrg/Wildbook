@@ -2950,7 +2950,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllRecordedBy() {
+  public List<String> getAllRecordedBy() {
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct recordedBy");
     q.setOrdering("recordedBy ascending");
