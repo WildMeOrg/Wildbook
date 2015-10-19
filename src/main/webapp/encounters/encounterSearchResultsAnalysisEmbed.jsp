@@ -164,7 +164,7 @@
  			
  			
  	 		//let's prep the HashTable for the assigned users pie chart
- 	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
+ 	 		  List<User> allUsers=myShepherd.getAllUsers(); 
  	 		  int numUsers= allUsers.size();
  	 		  Hashtable<String,Integer> usersHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numUsers;gg++){
