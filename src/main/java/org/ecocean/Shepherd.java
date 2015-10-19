@@ -2837,7 +2837,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllRoleNames() {
+  public List<String> getAllRoleNames() {
     Query q = pm.newQuery(Role.class);
     q.setResult("distinct rolename");
     q.setOrdering("rolename ascending");

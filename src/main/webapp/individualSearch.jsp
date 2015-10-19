@@ -1508,7 +1508,7 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
-        //ArrayList<String> roles = myShepherd.getAllRoleNames();
+        //List<String> roles = myShepherd.getAllRoleNames();
         
 		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 			
