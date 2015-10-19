@@ -2970,7 +2970,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<String> getAllPatterningCodes(){
+  public List<String> getAllPatterningCodes(){
     Query q = pm.newQuery (Encounter.class);
     q.setResult ("distinct patterningCode");
     q.setOrdering("patterningCode ascending");
