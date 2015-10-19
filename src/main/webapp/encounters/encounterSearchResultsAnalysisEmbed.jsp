@@ -139,7 +139,7 @@
  		
  		
  		//let's prep the HashTable for the country pie chart
- 		  ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+ 		  List<String> allCountries=myShepherd.getAllCountries(); 
  		  int numCountries= allCountries.size();
  		  Hashtable<String,Integer> countriesHashtable = new Hashtable<String,Integer>();
  			for(int gg=0;gg<numCountries;gg++){
@@ -613,7 +613,7 @@
         countriesData.addColumn('number', 'No. Recorded');
         countriesData.addRows([
           <%
-          //ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+          //List<String> allCountries=myShepherd.getAllCountries(); 
           //int numSpecies = speciesHashtable.size();
           Enumeration<String> countriesKeys=countriesHashtable.keys();
 
