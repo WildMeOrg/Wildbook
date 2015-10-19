@@ -2940,7 +2940,7 @@ public class Shepherd {
      */
   }
 
-  public ArrayList<String> getAllVerbatimEventDates() {
+  public List<String> getAllVerbatimEventDates() {
     Query q = pm.newQuery(Encounter.class);
     q.setResult("distinct verbatimEventDate");
     q.setOrdering("verbatimEventDate ascending");
