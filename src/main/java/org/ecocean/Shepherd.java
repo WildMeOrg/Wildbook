@@ -1428,7 +1428,7 @@ public class Shepherd {
    return relatedUsers;
  }
 
-  public ArrayList getAllAdoptionsForEncounter(String shark) {
+  public List<Adoption> getAllAdoptionsForEncounter(String shark) {
     String filter = "this.encounter == '" + shark + "'";
     Extent encClass = pm.getExtent(Adoption.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
