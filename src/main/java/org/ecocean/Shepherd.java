@@ -1008,7 +1008,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllAdoptionsWithQuery(Query ads) {
+  public Iterator<Adoption> getAllAdoptionsWithQuery(Query ads) {
     try {
       Collection c = (Collection) (ads.execute());
       Iterator it = c.iterator();
