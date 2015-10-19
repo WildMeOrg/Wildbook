@@ -120,7 +120,7 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 %>
 <table>
 <%
-ArrayList<SinglePhotoVideo> images=imageShepherd.getAllSinglePhotoVideosForEncounter(imageEnc.getCatalogNumber());
+List<SinglePhotoVideo> images=imageShepherd.getAllSinglePhotoVideosForEncounter(imageEnc.getCatalogNumber());
 int numImagesHere=images.size();
 int imageCount = 0;
   for(int myImage=0;myImage<numImagesHere;myImage++ ) {
