@@ -16,6 +16,7 @@ org.ecocean.neural.*,
 	weka.classifiers.meta.*,
 	weka.classifiers.meta.AdaBoostM1,
 	weka.classifiers.bayes.BayesNet,
+	weka.classifiers.meta.MultiBoostAB,
 	weka.classifiers.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
@@ -75,6 +76,12 @@ AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierF
 //try BayesNet
 BayesNet bayesBooster=new BayesNet();
 bayesBooster.buildClassifier(instances);
+System.out.println("Trying to write to: +"+pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
+//TrainNetwork.serializeWekaClassifier(request, bayesBooster, pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
+		
+//try MultiboostAB
+MultiBoostAB mabBooster=new MultiBoostAB();
+mabBooster.buildClassifier(instances);
 
 try{
 
@@ -165,13 +172,17 @@ ArrayList<Double> proportionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> msmCorrectValues=new ArrayList<Double>();
 ArrayList<Double> swaleCorrectValues=new ArrayList<Double>();
 
-
+//adaboost avg score comparison
 double correctScoreTotal=0;
 int numCorrectScores=0;
-
 double incorrectScoreTotal=0;
 int numIncorrectScores=0;
 
+//bayes net avg score comparison
+double correctBayesScoreTotal=0;
+int numBayesCorrectScores=0;
+double incorrectBayesScoreTotal=0;
+int numBayesIncorrectScores=0;
 
 int numInstances=instances.numInstances();
 
@@ -229,8 +240,8 @@ for(int i=0;i<numInstances;i++){
           
           
           //double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
-          double thisScore=TrainNetwork.round(fDistribution[0], 3);
-          double thisBayesScore=TrainNetwork.round(bDistribution[0],3);
+          double thisScore=TrainNetwork.round(fDistribution[0], 6);
+          double thisBayesScore=TrainNetwork.round(bDistribution[0],6);
           
          System.out.println("AdaBoost score: "+thisScore);
          System.out.println("BayesNet score: "+thisBayesScore);
@@ -241,8 +252,8 @@ for(int i=0;i<numInstances;i++){
             	numMatchLinks++;
             	
             	//overall
-            	Double score=(new Double(TrainNetwork.round(thisScore,3))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,3))); 
+            	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,7))); 
             	
             	if(overallCorrectHashtable.get(score)==null){
             		overallCorrectHashtable.put(score, 0);
@@ -258,6 +269,8 @@ for(int i=0;i<numInstances;i++){
             	bayesOverallCorrectHashtable.put(bayesScore, numBayesValue);
             	correctScoreTotal+=score;
             	numCorrectScores++;
+            	correctBayesScoreTotal+=bayesScore;
+            	numBayesCorrectScores++;
             	
             	//intersection
             	intersectionCorrectValues.add(numIntersections);
@@ -281,8 +294,8 @@ for(int i=0;i<numInstances;i++){
             	numFalseLinks++;
             	//overall
             	
-            	Double score=(new Double(TrainNetwork.round(thisScore,3))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,3)));  
+            	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
+            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,7)));  
             	if(overallHashtable.get(score)==null){
             		overallHashtable.put(score, 0);
             	}
@@ -295,6 +308,8 @@ for(int i=0;i<numInstances;i++){
             	overallHashtable.put(thisScore,numValue);
             	incorrectScoreTotal+=score;
             	numIncorrectScores++;
+            	incorrectBayesScoreTotal+=bayesScore;
+            	numBayesIncorrectScores++;
             	
             	//intersection
             	intersectionValues.add(numIntersections);
@@ -1039,7 +1054,9 @@ myShepherd.rollbackDBTransaction();
 <h2>Overall Scoring</h2>
 
 <div id="overallchart_div"></div>
-<p>Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
+<p>AdaBoost: Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
+<p>BayesNet: Average match vs non-match score diff per encounter: <%=(correctBayesScoreTotal/numBayesCorrectScores-incorrectBayesScoreTotal/numBayesIncorrectScores) %></p>
+
 
 <div id="overallbayeschart2_div"></div>
 
@@ -1178,17 +1195,23 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 
 AdaBoostM1 cls=new AdaBoostM1();
 BayesNet bn=new BayesNet();
+MultiBoostAB mab=new MultiBoostAB();
 cls.buildClassifier(classifierSet);
 bn.buildClassifier(classifierSet);
+mab.buildClassifier(classifierSet);
 // evaluate classifier and print some statistics
 Evaluation eval = new Evaluation(isTrainingSet);
 eval.evaluateModel(cls, isTrainingSet);
 
 Evaluation bayesEval=new Evaluation(isTrainingSet);
 bayesEval.evaluateModel(bn,isTrainingSet);
+
+Evaluation mabEval=new Evaluation(isTrainingSet);
+mabEval.evaluateModel(mab,isTrainingSet);
 %>
 <p>AdaBoost % correctly classified: <%=eval.pctCorrect() %></p>
 <p>BayesNet % correctly classified: <%=bayesEval.pctCorrect() %></p>
+<p>MultiBoostAB % correctly classified: <%=mabEval.pctCorrect() %></p>
 <p>Num instances used to test: <%=isTrainingSet.numInstances() %></p>
 <p>Num instances used to build a new sample classifier: <%=classifierSet.numInstances() %></p>
 
