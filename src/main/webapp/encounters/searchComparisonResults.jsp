@@ -821,7 +821,7 @@ var selectedRectangle2;
 		
 		//let's calculate Fst for each of the loci
 		//iterate through the loci
-		ArrayList<String> loci=myShepherd.getAllLoci();
+		List<String> loci=myShepherd.getAllLoci();
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);
