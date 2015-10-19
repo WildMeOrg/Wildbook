@@ -984,7 +984,7 @@ public class Shepherd {
     }
   }
 
-  public Iterator getAllSinglePhotoVideosNoQuery() {
+  public Iterator<SinglePhotoVideo> getAllSinglePhotoVideosNoQuery() {
     try {
       Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
       Iterator it = spvClass.iterator();
