@@ -939,7 +939,7 @@ public class Shepherd {
     return c.iterator();
   }
 
-  public Iterator getAllEncountersNoFilter() {
+  public Iterator<Encounter> getAllEncountersNoFilter() {
     /*Collection c;
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass);
