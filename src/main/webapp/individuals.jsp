@@ -1254,7 +1254,7 @@ System.out.println(henc);
 			
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			int  numColumns=3;
 			int numThumbs=0;
