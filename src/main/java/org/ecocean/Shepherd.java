@@ -1050,7 +1050,7 @@ public class Shepherd {
    * @return an Iterator of all whale shark encounters stored in the database that are approved
    * @see encounter, java.util.Iterator
    */
-  public Iterator getAllEncounters() {
+  public Iterator<Encounter> getAllEncounters() {
     /*Collection c;
     //String filter = "!this.state == \"unidentifiable\" && this.state == \"approved\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
