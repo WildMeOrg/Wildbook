@@ -1468,7 +1468,7 @@ public class Shepherd {
   }
 
 
-  public Iterator getAllOccurrencesForMarkedIndividual(Query query,String indie) {
+  public Iterator<Occurrence> getAllOccurrencesForMarkedIndividual(Query query,String indie) {
     //Query acceptedEncounters = pm.newQuery(encClass, filter2use);
 
     Collection c = (Collection) (query.execute());
@@ -1539,10 +1539,10 @@ public class Shepherd {
    TreeMap<String, Integer> map=new TreeMap<String, Integer>();
    String filter="SELECT FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+indie+"\"  VARIABLES org.ecocean.Encounter enc";
    Query query=getPM().newQuery(filter);
-   Iterator it=getAllOccurrencesForMarkedIndividual(query,indie);
+   Iterator<Occurrence> it=getAllOccurrencesForMarkedIndividual(query,indie);
    if(it!=null){
       while(it.hasNext()){
-         Occurrence oc=(Occurrence)it.next();
+         Occurrence oc=it.next();
          //System.out.println("     Found an occurrence for my indie!!!!");
          ArrayList<MarkedIndividual> alreadyCounted=new ArrayList<MarkedIndividual>();
          ArrayList<Encounter> encounters=oc.getEncounters();
