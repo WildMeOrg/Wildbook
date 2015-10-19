@@ -2960,7 +2960,7 @@ public class Shepherd {
     return al;
   }
 
-  public ArrayList<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
+  public List<Encounter> getEncountersWithHashedEmailAddress(String hashedEmail) {
     String filter = "((this.hashedSubmitterEmail.indexOf('" + hashedEmail + "') != -1)||(this.hashedPhotographerEmail.indexOf('" + hashedEmail + "') != -1)||(this.hashedInformOthers.indexOf('" + hashedEmail + "') != -1))";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
