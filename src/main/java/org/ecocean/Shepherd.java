@@ -2877,7 +2877,7 @@ public class Shepherd {
     return al;
   }
   
-  public ArrayList<String> getAllSocialUnitNames() {
+  public List<String> getAllSocialUnitNames() {
     ArrayList<String> comNames=new ArrayList<String>();
     Query q = pm.newQuery(Relationship.class);
     try{

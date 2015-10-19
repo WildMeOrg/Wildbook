@@ -1241,7 +1241,7 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
- 				ArrayList<String> communities = myShepherd.getAllSocialUnitNames();
+ 				List<String> communities = myShepherd.getAllSocialUnitNames();
  			        
  					//System.out.println(haplos.toString());
 
