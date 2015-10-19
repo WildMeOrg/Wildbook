@@ -923,7 +923,7 @@ public class Shepherd {
     return c.iterator();
   }
 
-  public Iterator getUnassignedEncountersIncludingUnapproved() {
+  public Iterator<Encounter> getUnassignedEncountersIncludingUnapproved() {
     String filter = "this.individualID == \"Unassigned\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
@@ -931,7 +931,7 @@ public class Shepherd {
     return c.iterator();
   }
 
-  public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
+  public Iterator<Encounter> getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individualID == \"Unassigned\" && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
