@@ -159,7 +159,7 @@ if (session.getAttribute("message") != null) {
             <table>
            
             <%
-            ArrayList<String> contexts=ContextConfiguration.getContextNames();
+            List<String> contexts=ContextConfiguration.getContextNames();
             int numContexts=contexts.size();
             for(int d=0;d<numContexts;d++){
             	if(myShepherd.doesUserHaveAnyRoleInContext(localUsername, context)){
