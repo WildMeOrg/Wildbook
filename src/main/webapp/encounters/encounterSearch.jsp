@@ -975,7 +975,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
