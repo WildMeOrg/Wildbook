@@ -42,7 +42,7 @@ Iterator<Encounter> allEncs;
 
 Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
-Iterator allSharks;
+Iterator<MarkedIndividual> allSharks;
 
 
 
@@ -136,7 +136,7 @@ while(allEncs.hasNext()){
 
 while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=allSharks.next();
 	sharky.refreshDependentProperties(context);
 	myShepherd.commitDBTransaction();
 	myShepherd.beginDBTransaction();

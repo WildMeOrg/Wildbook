@@ -66,9 +66,9 @@ context=ServletUtilities.getContext(request);
           <h2>All marked individuals</h2>
        
         <%
-          Iterator it3 = myShepherd.getAllMarkedIndividuals(sharkQuery);
+          Iterator<MarkedIndividual> it3 = myShepherd.getAllMarkedIndividuals(sharkQuery);
           while (it3.hasNext()) {
-            MarkedIndividual tempShark = (MarkedIndividual) it3.next();
+            MarkedIndividual tempShark = it3.next();
         %> <a
         href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=tempShark.getName()%>"><%=tempShark.getName()%>
       </a> <%

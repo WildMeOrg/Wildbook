@@ -1762,11 +1762,11 @@ public class Shepherd {
    * @see encounter, shark, java.util.Vector
    */
   public Vector getPossibleTrainingIndividuals() {
-    Iterator allSharks = getAllMarkedIndividuals();
+    Iterator<MarkedIndividual> allSharks = getAllMarkedIndividuals();
     MarkedIndividual tempShark;
     Vector possibleTrainingSharkNames = new Vector();
     while (allSharks.hasNext()) {
-      tempShark = (MarkedIndividual) (allSharks.next());
+      tempShark = allSharks.next();
       if (tempShark.getNumberTrainableEncounters() >= 2) {
         possibleTrainingSharkNames.add(tempShark);
         //System.out.println(tempShark.getName()+" has more than one encounter.");
@@ -1779,11 +1779,11 @@ public class Shepherd {
   }
 
   public Vector getRightPossibleTrainingIndividuals() {
-    Iterator allSharks = getAllMarkedIndividuals();
+    Iterator<MarkedIndividual> allSharks = getAllMarkedIndividuals();
     MarkedIndividual tempShark;
     Vector possibleTrainingSharkNames = new Vector();
     while (allSharks.hasNext()) {
-      tempShark = (MarkedIndividual) (allSharks.next());
+      tempShark = allSharks.next();
       if (tempShark.getNumberRightTrainableEncounters() >= 2) {
         possibleTrainingSharkNames.add(tempShark);
         //System.out.println(tempShark.getName()+" has more than one encounter.");
@@ -1801,7 +1801,7 @@ public class Shepherd {
    * @return an Iterator containing all of the shark objects that have been stored in the database
    * @see shark, java.util.Iterator
    */
-  public Iterator getAllMarkedIndividuals() {
+  public Iterator<MarkedIndividual> getAllMarkedIndividuals() {
     Extent allSharks = null;
     try {
       allSharks = pm.getExtent(MarkedIndividual.class, true);
@@ -1838,7 +1838,7 @@ public class Shepherd {
 
 
 
-  public Iterator getAllMarkedIndividuals(Query sharks) {
+  public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharks) {
     Collection c = (Collection) (sharks.execute());
     //ArrayList list = new ArrayList(c);
     //Collections.reverse(list);
@@ -1852,12 +1852,12 @@ public class Shepherd {
    * @return an Iterator containing all of the shark objects that have been stored in the database, ordered according to the input String
    * @see shark, java.util.Iterator
    */
-  public Iterator getAllMarkedIndividuals(Query sharkies, String order) {
+  public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order) {
     Map<String, Object> emptyMap = Collections.emptyMap();
     return getAllMarkedIndividuals(sharkies, order, emptyMap);
   }
 
-  public Iterator getAllMarkedIndividuals(Query sharkies, String order, Map<String, Object> params) {
+  public Iterator<MarkedIndividual> getAllMarkedIndividuals(Query sharkies, String order, Map<String, Object> params) {
     sharkies.setOrdering(order);
     Collection c = (Collection) (sharkies.executeWithMap(params));
     ArrayList list = new ArrayList(c);
