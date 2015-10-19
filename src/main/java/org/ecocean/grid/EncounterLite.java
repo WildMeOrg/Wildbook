@@ -88,6 +88,7 @@ public class EncounterLite implements java.io.Serializable {
   String date = "";
   public String dynamicProperties;
   private Long dateLong=null;
+  private String genusSpecies="";
   
   public EncounterLite() {
   }
@@ -96,6 +97,11 @@ public class EncounterLite implements java.io.Serializable {
     if(enc.getDate()!=null){
       this.date = enc.getDate();
     }
+    
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
+      this.genusSpecies=enc.getGenus()+enc.getSpecificEpithet();
+    }
+    
     this.encounterNumber = enc.getEncounterNumber();
     if(enc.getIndividualID()!=null){
       this.belongsToMarkedIndividual = enc.getIndividualID();
@@ -104,36 +110,16 @@ public class EncounterLite implements java.io.Serializable {
       this.sex = enc.getSex();
     }
     if(enc.getDynamicProperties()!=null){this.dynamicProperties=enc.getDynamicProperties();}
-    //this.size = enc.getSize();
-    /*if(enc.getSpots()!=null) {
-        this.spots=new superSpot[enc.getSpots().length];
-    }
-    if(enc.getRightSpots()!=null) {
-        this.rightSpots=new superSpot[enc.getRightSpots().length];
-    }*/
 
-
-    if ((enc.getLeftReferenceSpots() != null) && (enc.getLeftReferenceSpots().size() == 3)) {
-      //this.leftReferenceSpots=new superSpot[3];
-      //superSpot[] existingRefs=enc.getLeftReferenceSpots();
-      //leftReferenceSpots[0]=new superSpot(existingRefs[0].getTheSpot());
-      //leftReferenceSpots[1]=new superSpot(existingRefs[1].getTheSpot());
-      //System.out.println("I found left reference spots!");
-      //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
-    }
-    if ((enc.getRightReferenceSpots() != null) && (enc.getRightReferenceSpots().size() == 3)) {
-      //this.rightReferenceSpots=new superSpot[3];
-      //superSpot[] existingRefs=enc.getRightReferenceSpots();
-      //leftReferenceSpots[0]=new superSpot(existingRefs[0].getTheSpot());
-      //leftReferenceSpots[1]=new superSpot(existingRefs[1].getTheSpot());
-      //leftReferenceSpots[2]=new superSpot(existingRefs[2].getTheSpot());
-      //System.out.println("I found right reference spots!");
-    }
 
     //get spots
 
   if (isDorsalFin(enc)) {
     processDorsalSpots(enc);
+    
+    System.out.println("Finished processed dorsal spots!");
+    System.out.println(".....Left spots: "+this.getSpots().size());
+   
 
   } else {
     if (enc.getSpots() != null) {
@@ -1850,6 +1836,7 @@ public class EncounterLite implements java.io.Serializable {
     for (int q = 0; q < length; q++) {
       leftReferenceSpotsX[q] = initSpots.get(q).getCentroidX();
       leftReferenceSpotsY[q] = initSpots.get(q).getCentroidY();
+      System.out.println("     Left reference spot "+q+": "+initSpots.get(q).getCentroidX()+","+initSpots.get(q).getCentroidY());
     }
   }
 
@@ -2081,11 +2068,15 @@ private double amplifyY(double origValue, double s){
     //or left-side patterning is to be used.
    
     ArrayList<SuperSpot> spots2=newEnc.getSpots();
-    spots2.addAll(newEnc.getRightSpots());
+    if(newEnc.getRightSpots()!=null){
+      spots2.addAll(newEnc.getRightSpots());
+    }
     //newspotsTemp=(SuperSpot[])spots2.toArray();
     
     ArrayList<SuperSpot> spots=oldEnc.getSpots();
-    spots.addAll(oldEnc.getRightSpots());
+    if(oldEnc.getRightSpots()!=null){
+      spots.addAll(oldEnc.getRightSpots());
+    }
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
     com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
@@ -2202,7 +2193,7 @@ private double amplifyY(double origValue, double s){
     catch(Exception e){
       e.printStackTrace();
       //punt with a high score of 2
-      I3SMatchObject i3smo=new I3SMatchObject(2,null);
+      I3SMatchObject i3smo=new I3SMatchObject(Double.MAX_VALUE,null);
       return i3smo;
     }
   }
@@ -3526,6 +3517,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     
 
     private boolean isDorsalFin(Encounter enc) {
+        System.out.println("  DORSAL!!!!");
         ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
         if ((spots == null) || (spots.size() < 2)) return false;
         return (spots.get(0).getCentroidX() == spots.get(1).getCentroidX());
@@ -3589,21 +3581,30 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         try{
           
           ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
-          oldSpots.addAll(theEnc.getRightSpots());
+          if(theEnc.getRightSpots()!=null){
+            oldSpots.addAll(theEnc.getRightSpots());
+          }
             Collections.sort(oldSpots, new XComparator());
             
             //let's prefilter old spots for outlies outside the bounds
+            
+            
             for(int i=0;i<oldSpots.size();i++){
-              SuperSpot theSpot=oldSpots.get(i);
-              if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-                oldSpots.remove(i);
-                i--;
-              }
-              if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                oldSpots.remove(i);
-                i--;
-              }
+              if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                SuperSpot theSpot=oldSpots.get(i);
+                if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+                  oldSpots.remove(i);
+                  i--;
+                }
+                if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                  oldSpots.remove(i);
+                  i--;
+                }
             }
+            }
+            
+            
+            
             int numOldSpots=oldSpots.size();
             
             //initialize our output series
@@ -3637,8 +3638,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           //create an array of lines made from all point pairs in newEnc
           
           
-          ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
-          newSpots.addAll(theEnc2.getRightSpots());
+          ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
+          if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
+              if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());};
           int numNewEncSpots=newSpots.size();
           Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
           Collections.sort(newSpots, new XComparator());
@@ -3733,15 +3735,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         Collections.sort(spots, new XComparator());
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<spots.size();i++){
-          SuperSpot theSpot=spots.get(i);
-          if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-            spots.remove(i);
-            i--;
-          }
-          if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-            spots.remove(i);
-            i--;
-          }
+          if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+            SuperSpot theSpot=spots.get(i);
+            if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+              spots.remove(i);
+              i--;
+            }
+            if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+              spots.remove(i);
+              i--;
+            }
+        }
         }
         int numOldSpots=spots.size();
         
@@ -3798,8 +3802,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         //create an array of lines made from all point pairs in newEnc
         
         
-        ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
-        newSpots.addAll(theEnc2.getRightSpots());
+        ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
+        if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());}
+        if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());}
         int numNewEncSpots=newSpots.size();
         Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
         Collections.sort(newSpots, new XComparator());
@@ -3879,7 +3884,10 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
               java.awt.geom.Line2D.Double newLine2=new java.awt.geom.Line2D.Double(newStart,newEnd  );
             
               //now compare to thisPattern
-              for(int m=0;m<(thisPrintSize-1);m++){
+              int m=0;
+              //only allow one intersection per line
+              boolean foundIntersect=false;
+              while((!foundIntersect)&&(m<(thisPrintSize-1))){
        
                     int n=m+1;
                     
@@ -3889,16 +3897,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
                     
                     if(newLine2.intersectsLine(thisLine)){
                         numIntersections++;
+                        foundIntersect=true;
                         String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine2, thisLine));
                         anglesOfIntersection.append(intersectionAngle+",");
                         
                         //calculate proportional distance to test if intersection was valid in original space
                         //untranslate new points since they were mapped into this points
-                        java.awt.geom.Point2D.Double intersectionPoint=getIntersectionPoint(newLine2,thisLine);
+                        java.awt.geom.Point2D.Double intersectionPoint=EncounterLite.getIntersectionPoint(newLine2,thisLine);
           
                         
                       }
-                      
+                    m++;
               }
               
             
@@ -3919,6 +3928,12 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     
     public Long getDateLong(){return dateLong;}
     public void setDateLong(Long value){dateLong=value;}
+    
+    public String getGenusSpecies(){return genusSpecies;}
+    public void setGenusSpecies(String value){genusSpecies=value;}
+    
+    
+    
     
 
 }

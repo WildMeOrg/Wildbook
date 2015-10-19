@@ -38,6 +38,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonPrimitive;
 
 import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.bayes.BayesNet;
 import weka.core.Instance;
 import weka.core.Instances;
 import java.util.Enumeration;
@@ -58,7 +59,7 @@ public class TrainAdaboostM1 extends HttpServlet {
     String context=ServletUtilities.getContext(request);
     
     
-  //set up for response
+    //set up for response
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
     
@@ -66,13 +67,17 @@ public class TrainAdaboostM1 extends HttpServlet {
     
     String fullPathToInstancesFile=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
     
-   Instances instances = TrainNetwork.buildAdaboostInstances(request, fullPathToInstancesFile,genusSpecies);
+    Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genusSpecies);
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
-   String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
+    String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
-   TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
+    String bayesFullPathToClassifierFile=fullPathToClassifierFile.replaceFirst("adaboostM1", "bayesnet");
+    BayesNet bayesBooster=TrainNetwork.buildBayesNetClassifier(request,bayesFullPathToClassifierFile,instances);
    
-   Enumeration<Instance> myEnum=instances.enumerateInstances();
+    TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
+    TrainNetwork.serializeWekaClassifier(request, bayesBooster, fullPathToClassifierFile);
+   
+    Enumeration<Instance> myEnum=instances.enumerateInstances();
    
    int numMatches=0;
    int numNonmatches=0;
@@ -83,7 +88,7 @@ public class TrainAdaboostM1 extends HttpServlet {
    }
    
    out.println(ServletUtilities.getHeader(request));
-   out.println("<strong>Success:</strong> I created an AdaBoost classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
+   out.println("<strong>Success:</strong> I created an AdaBoost and a BayesNet classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
    out.println("<ul>");
      out.println("<li>matches: "+numMatches+"</li>");
      out.println("<li>nonmatches: "+numNonmatches+"</li>");

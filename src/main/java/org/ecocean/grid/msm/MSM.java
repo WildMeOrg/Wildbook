@@ -147,20 +147,24 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
     try{
       
       ArrayList<SuperSpot> oldSpots=oldEnc.getSpots();
-      oldSpots.addAll(oldEnc.getRightSpots());
+      if(oldEnc.getRightSpots()!=null){
+        oldSpots.addAll(oldEnc.getRightSpots());
+      }
         Collections.sort(oldSpots, new XComparator());
         
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<oldSpots.size();i++){
-          SuperSpot theSpot=oldSpots.get(i);
-          if(theSpot.getCentroidX()<=oldEnc.getLeftReferenceSpots()[0].getCentroidX()){
-            oldSpots.remove(i);
-            i--;
-          }
-          if(theSpot.getCentroidX()>=oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
-            oldSpots.remove(i);
-            i--;
-          }
+          if(oldEnc.getLeftReferenceSpots()[0].getCentroidX()<oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+            SuperSpot theSpot=oldSpots.get(i);
+            if(theSpot.getCentroidX()<=oldEnc.getLeftReferenceSpots()[0].getCentroidX()){
+              oldSpots.remove(i);
+              i--;
+            }
+            if(theSpot.getCentroidX()>=oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+              oldSpots.remove(i);
+              i--;
+            }
+        }
         }
         int numOldSpots=oldSpots.size();
         
@@ -193,7 +197,9 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
       
       
       ArrayList<SuperSpot> newSpots=newEnc.getSpots();
-      newSpots.addAll(newEnc.getRightSpots());
+      if(newEnc.getRightSpots()!=null){
+        newSpots.addAll(newEnc.getRightSpots());
+      }
       int numNewEncSpots=newSpots.size();
       Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
       Collections.sort(newSpots, new XComparator());

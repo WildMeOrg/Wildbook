@@ -52,6 +52,7 @@ import weka.core.Instances;
 import weka.core.Instance;
 import weka.core.SerializationHelper;
 import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
 import weka.core.converters.ArffSaver;
@@ -248,14 +249,29 @@ public class TrainNetwork {
       }
     }
     catch(Exception e){
-      e.printStackTrace();
-      
+      e.printStackTrace(); 
     }
-    
     return null;
-    
-    
   }
+  
+  
+  
+  public static BayesNet getBayesNetClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
+    File classifierFile=new File(fullPathToClassifierFile);
+    try{
+      if(classifierFile.exists()){
+        BayesNet booster = (BayesNet)deserializeWekaClassifier(request,fullPathToClassifierFile);
+        return booster;
+      }
+    }
+    catch(Exception e){
+      e.printStackTrace(); 
+    }
+    return null;
+  }
+  
+  
+  
   
   public static AdaBoostM1 buildAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
@@ -272,6 +288,28 @@ public class TrainNetwork {
       return null;
     }
     return booster;
+    
+    
+  }
+  
+  public static BayesNet buildBayesNetClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
+    
+    //AdaBoostM1 booster=new AdaBoostM1();
+    BayesNet bayesBooster=new BayesNet();
+    try {
+      //getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request)
+      //booster.buildClassifier(instances);
+      bayesBooster.buildClassifier(instances);
+      //serialize out the classifier
+      //serializeWekaClassifier(request,booster,fullPathToClassifierFile);
+      serializeWekaClassifier(request,bayesBooster,fullPathToClassifierFile);
+    } 
+    catch (Exception e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+      return null;
+    }
+    return bayesBooster;
     
     
   }
@@ -407,7 +445,7 @@ public class TrainNetwork {
      * 
      * 
      */
-    public static Instances buildAdaboostInstances(HttpServletRequest request, String fullPathToInstancesFile, String genusSpecies){
+    public static Instances buildWekaInstances(HttpServletRequest request, String fullPathToInstancesFile, String genusSpecies){
       String context="context0";
       context=ServletUtilities.getContext(request);
       Shepherd myShepherd = new Shepherd(context);
@@ -481,7 +519,7 @@ public class TrainNetwork {
               
               //make sure they're both the same species!
               
-              if((enc1.getGenus()!=null)&&(enc2.getGenus()!=null)&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(enc2.getGenus()+enc2.getSpecificEpithet()))){
+              if((enc1.getGenus()!=null)&&(enc2.getGenus()!=null)&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(enc2.getGenus()+enc2.getSpecificEpithet()))&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(genusSpecies))){
               
                   //make sure both have spots!
                   if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
