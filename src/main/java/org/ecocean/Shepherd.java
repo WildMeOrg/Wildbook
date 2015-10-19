@@ -2740,7 +2740,7 @@ public class Shepherd {
     return null;
   }
 
-  public ArrayList getEncountersByAlternateID(String altID) {
+  public List<Encounter> getEncountersByAlternateID(String altID) {
     String filter = "this.otherCatalogNumbers.startsWith('" + altID + "')";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);

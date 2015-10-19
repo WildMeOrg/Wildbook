@@ -2552,7 +2552,7 @@ else {
   //let's check if the entered name is actually an alternate ID
   List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
   List<MarkedIndividual> al2 = myShepherd.getMarkedIndividualsByNickname(name);
-  ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
+  List<Encounter> al3 = myShepherd.getEncountersByAlternateID(name);
 
   if (myShepherd.isEncounter(name)) {
 	  %>
@@ -2591,7 +2591,7 @@ else {
 <%
 } else if (al3.size() > 0) {
   //just grab the first one
-  Encounter shr = (Encounter) al3.get(0);
+  Encounter shr = al3.get(0);
   String realName = shr.getEncounterNumber();
 %>
 
