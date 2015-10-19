@@ -3066,7 +3066,7 @@ public class Shepherd {
     return roles;
   }
   
-  public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
+  public List<Relationship> getAllRelationshipsForCommunity(String commName){
     //ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.communityName == \""+commName+"\"";
