@@ -1289,7 +1289,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getAdopterEmailsForMarkedIndividual(Query query,String shark) {
+  public List<String> getAdopterEmailsForMarkedIndividual(Query query,String shark) {
     Collection c;
     //Extent encClass = getPM().getExtent(Adoption.class, true);
     //Query query = getPM().newQuery(encClass);
