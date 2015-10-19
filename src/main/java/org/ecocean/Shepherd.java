@@ -430,7 +430,7 @@ public class Shepherd {
     return roles;
   }
   
-  public ArrayList<Role> getAllRolesForUser(String username) {
+  public List<Role> getAllRolesForUser(String username) {
     String filter = "this.username == '" + username + "'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
