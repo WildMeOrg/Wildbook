@@ -2235,7 +2235,7 @@ dlgRel.dialog("open");
 
   //end relationship code
 
-  ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
+  List<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
   if(relationships.size()>0){
   %>
