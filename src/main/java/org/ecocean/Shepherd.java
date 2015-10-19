@@ -1227,7 +1227,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getID4AvailableScanWorkItems(Query query, int pageSize, long timeout, boolean forceReturn) {
+  public List getID4AvailableScanWorkItems(Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
     long timeDiff = System.currentTimeMillis() - timeout;
@@ -1265,7 +1265,7 @@ public class Shepherd {
     }
   }
 
-  public ArrayList getID4AvailableScanWorkItems(String taskID, Query query, int pageSize, long timeout, boolean forceReturn) {
+  public List getID4AvailableScanWorkItems(String taskID, Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
     long timeDiff = System.currentTimeMillis() - timeout;
