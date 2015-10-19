@@ -130,7 +130,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
             myShepherd.beginDBTransaction();
 
-      			ArrayList<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
+      			List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
 
             //inform all encounter submitters for this Marked Individual about the modification to their animal
 

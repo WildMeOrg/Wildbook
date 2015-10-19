@@ -1469,7 +1469,7 @@ public boolean hasGeneticSex(){
 *Obtains the email addresses of all submitters, photographs, and others to notify.
 *@return ArrayList of all emails to inform
 */
-public ArrayList getAllEmailsToUpdate(){
+public List<String> getAllEmailsToUpdate(){
 	ArrayList notifyUs=new ArrayList();
 
 	int numEncounters=encounters.size();
