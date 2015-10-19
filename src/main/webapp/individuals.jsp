@@ -2550,7 +2550,7 @@ if(isOwner){
 else {
 
   //let's check if the entered name is actually an alternate ID
-  ArrayList al = myShepherd.getMarkedIndividualsByAlternateID(name);
+  List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
   ArrayList al2 = myShepherd.getMarkedIndividualsByNickname(name);
   ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
 
@@ -2571,7 +2571,7 @@ else {
   
 	  else if (al.size() > 0) {
     //just grab the first one
-    MarkedIndividual shr = (MarkedIndividual) al.get(0);
+    MarkedIndividual shr = al.get(0);
     String realName = shr.getName();
 %>
 
