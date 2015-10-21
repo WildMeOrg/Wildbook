@@ -90,6 +90,7 @@
 
 // mode, bits -> RST
 function setTool(skipDialog) {
+    if (passedDorsal) skipDialog = true;
     if (!skipDialog) {
 //isDorsalFin = true; setTool(true); return;
         userMessage('choose <b>type of image</b>.');

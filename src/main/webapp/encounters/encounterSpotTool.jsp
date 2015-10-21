@@ -49,6 +49,11 @@ if (imageKeywords != null) {
 }
 */
 
+//allow passing of dorsal-ness by way of param:
+boolean passedDorsal = (request.getParameter("isDorsalFin") != null);
+boolean isDorsalFin = false;
+if (passedDorsal) isDorsalFin = !(request.getParameter("isDorsalFin").equals("false") || request.getParameter("isDorsalFin").equals("0"));
+
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 //String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
@@ -212,7 +217,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 var encounterNumber = '<%=num%>';
 var imageID = '<%=imageID%>';
-var isDorsalFin = false;
+var passedDorsal = <%=passedDorsal%>;
+var isDorsalFin = <%=isDorsalFin%>;
 
 
 
