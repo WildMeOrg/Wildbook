@@ -94,7 +94,7 @@ function setTool(skipDialog) {
     if (!skipDialog) {
 //isDorsalFin = true; setTool(true); return;
         userMessage('choose <b>type of image</b>.');
-        $( "#dorsal-dialog" ).dialog({
+        $( "#dorsal-dialog" ).show().dialog({
             modal: true,
             buttons: {
                 'fluke': function() {
@@ -169,6 +169,7 @@ console.warn('edgeA = %o ; edgeB = %o', edgeA, edgeB);
     } else {
         userMessage('ready to pick <b>3 spots</b> at <b>tips</b> and <b>center</b>');
     }
+    drawWidgets();
 }
 
 
@@ -610,6 +611,7 @@ function refreshCanvas() {
     drawSpots();
     drawLines();
     drawFinalPaths();
+    drawWidgets();
 }
 
 function clearCanvas() {
@@ -659,6 +661,16 @@ function drawLines() {
         drawLine(itool.ctx, itool.spots[0], itool.spots[2], '_line');
     }
 }
+
+
+//generic catchall for drawing "extra stuff" if needed?
+function drawWidgets() {
+    if (!isDorsalFin) return;
+    var lineY = itool.canvasElement.height - 90;
+console.warn('....... LINE Y !!! %d', lineY);
+    drawLine(itool.lctx, itool.fromCanvasPoint([0, lineY]), itool.fromCanvasPoint([itool.canvasElement.width, lineY]), '_line');
+}
+
 
 
 function contextSetStyles(ctx, style) {

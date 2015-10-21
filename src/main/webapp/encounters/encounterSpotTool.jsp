@@ -349,7 +349,7 @@ console.log(pdata);
 
 </div>
 
-<div id="dorsal-dialog">
+<div id="dorsal-dialog" style="display:none;" >
 Is this an image of a <b>fluke (tail)</b> or a <b>dorsal fin</b>?
 </div>
 
