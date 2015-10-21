@@ -1696,17 +1696,7 @@
         <url-pattern>/SubmitSpotsAndTransformImage</url-pattern>
   </servlet-mapping>
   
-  
-    
-   <servlet>
-    <servlet-name>FinTraceServlet</servlet-name>
-    <servlet-class>com.ecostats.flukes.FinTraceServlet</servlet-class>
-  </servlet>
-  
-    <servlet-mapping>
-      <servlet-name>FinTraceServlet</servlet-name>
-      <url-pattern>/FinTraceServlet</url-pattern>
-  </servlet-mapping>
+
   
 
   
@@ -1774,16 +1764,7 @@
     <servlet-name>TrainSwale</servlet-name>
     <url-pattern>/TrainSwale</url-pattern>
   </servlet-mapping>
-  
-     <servlet>
-    <servlet-name>TrainTQUEST</servlet-name>
-    <servlet-class>org.ecocean.timeseries.servlet.TrainTQUEST</servlet-class>
-  </servlet>
-  
-   <servlet-mapping>
-    <servlet-name>TrainTQUEST</servlet-name>
-    <url-pattern>/TrainTQUEST</url-pattern>
-  </servlet-mapping>
+
 
 
 
