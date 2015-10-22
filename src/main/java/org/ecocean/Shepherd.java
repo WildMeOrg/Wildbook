@@ -1493,6 +1493,8 @@ public class Shepherd {
     return null;
   }
   
+  
+  
   public User getUserByEmailAddress(String email){
     String filter="SELECT FROM org.ecocean.User WHERE emailAddress == \""+email+"\"";
     Query query=getPM().newQuery(filter);
@@ -1625,6 +1627,24 @@ public class Shepherd {
 	    samples.closeAll();
 	    return myArray;
 	  }
+  
+  public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) { 
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
+      Query samples = pm.newQuery(keywordQueryString);
+    Collection c = (Collection) (samples.execute());
+      ArrayList<Encounter> myArray=new ArrayList<Encounter>(c);
+      samples.closeAll();
+      return myArray;
+    }
+  
+  public ArrayList<Encounter> getAllEncountersForSpeciesWithSpots(String genus, String specificEpithet) { 
+    String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"' && spots != null";
+      Query samples = pm.newQuery(keywordQueryString);
+    Collection c = (Collection) (samples.execute());
+      ArrayList<Encounter> myArray=new ArrayList<Encounter>(c);
+      samples.closeAll();
+      return myArray;
+    }
   
   public int getNumSinglePhotoVideosForEncounter(String encNum) {
 	    String filter = "correspondingEncounterNumber == \""+encNum+"\"";

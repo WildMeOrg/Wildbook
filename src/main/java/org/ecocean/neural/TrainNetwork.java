@@ -58,6 +58,7 @@ import weka.classifiers.Classifier;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.ArffLoader;
 
+import java.util.ArrayList;
 
 public class TrainNetwork {
 
@@ -445,7 +446,7 @@ public class TrainNetwork {
      * 
      * 
      */
-    public static Instances buildWekaInstances(HttpServletRequest request, String fullPathToInstancesFile, String genusSpecies){
+    public static Instances buildWekaInstances(HttpServletRequest request, String fullPathToInstancesFile, String genus, String specificEpithet){
       String context="context0";
       context=ServletUtilities.getContext(request);
       Shepherd myShepherd = new Shepherd(context);
@@ -487,6 +488,21 @@ public class TrainNetwork {
       fvWekaAttributes.addElement(dateAttr);
       fvWekaAttributes.addElement(ClassAttribute);
       
+      String genusSpecies=genus+specificEpithet;
+      
+      boolean hasMoreTax=true;
+      int taxNum=0;
+      while(hasMoreTax){
+         String currentGenuSpecies = "genusSpecies"+taxNum;
+         if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+          
+         taxNum++;
+         }
+         else{
+            hasMoreTax=false;
+         }
+         
+      }
       
       myShepherd.beginDBTransaction();
       
@@ -501,7 +517,7 @@ public class TrainNetwork {
           //StringBuffer writeMe=new StringBuffer();
           
           
-          Vector encounters=myShepherd.getAllEncountersNoFilterAsVector();
+          ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpeciesWithSpots(genus, specificEpithet);
           int numEncs=encounters.size();
           
           Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, (2*numEncs*(numEncs-1)/2));
@@ -517,13 +533,7 @@ public class TrainNetwork {
               Encounter enc1=(Encounter)encounters.get(i);
               Encounter enc2=(Encounter)encounters.get(j);
               
-              //make sure they're both the same species!
-              
-              if((enc1.getGenus()!=null)&&(enc2.getGenus()!=null)&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(enc2.getGenus()+enc2.getSpecificEpithet()))&&((enc1.getGenus()+enc1.getSpecificEpithet()).equals(genusSpecies))){
-              
-                  //make sure both have spots!
-                  if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
-                      try{
+             try{
                         System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
                         
                         //if both have spots, then we need to compare them
@@ -709,9 +719,7 @@ public class TrainNetwork {
         
                     
                       
-                    }
-            }
-           
+             
               }
             }
           
