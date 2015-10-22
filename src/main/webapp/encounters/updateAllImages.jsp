@@ -64,10 +64,10 @@ File encounterDir = new File(encountersDir, num);
 		String script = "stamp=`/bin/date +%s`\necho datestamp=$stamp\n\n";
 //note: we currently do not know the source of the thumb.jpg, so we punt and pick 0th image.  :(
 		if ((cmdWatermark != null) && (cmdResize != null) && !cmdWatermark.equals("") && !cmdResize.equals("")) {
-			Iterator it = myShepherd.getAllEncounters();
+			Iterator<Encounter> it = myShepherd.getAllEncounters();
 			int total = 0;
 			while (it.hasNext()) {
-				Encounter enc = (Encounter) it.next();
+				Encounter enc = it.next();
 				List<SinglePhotoVideo> spvs = enc.getImages();
 				total++;
 				script += "\n\n#################### encounter " + enc.getEncounterNumber() + "\necho " + total + ". " + enc.getEncounterNumber() + "\n";

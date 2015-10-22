@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 
 //Set alternateID for this encounter/sighting
@@ -111,7 +111,7 @@ public class EncounterApprove extends HttpServlet {
         out.println("<strong>Success:</strong> I have approved this encounter " + request.getParameter("number") + " for inclusion in the database.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){

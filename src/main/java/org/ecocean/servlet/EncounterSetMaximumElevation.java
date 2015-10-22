@@ -32,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 
 public class EncounterSetMaximumElevation extends HttpServlet {
@@ -108,7 +108,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter elevation has been updated from " + oldElev + " to " + newElev + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -124,7 +124,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter elevation was NOT updated because another user is currently modifying the record for this encounter, or the value input does not translate to a valid elevation number.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -141,7 +141,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
       int allStatesSize=allStates.size();
       if(allStatesSize>0){
         for(int i=0;i<allStatesSize;i++){
