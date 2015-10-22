@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.StringTokenizer;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -63,11 +64,15 @@ public class TrainAdaboostM1 extends HttpServlet {
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
     
+    StringTokenizer str=new StringTokenizer(request.getParameter("genusSpecies")," ");
+    String genus=str.nextToken();
+    String specificEpithet=str.nextToken();
+    
     String genusSpecies=request.getParameter("genusSpecies").replaceAll(" ", "");
     
     String fullPathToInstancesFile=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
     
-    Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genusSpecies);
+    Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genus,specificEpithet);
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
     String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
