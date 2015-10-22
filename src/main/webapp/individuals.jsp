@@ -133,20 +133,8 @@ if (request.getParameter("number")!=null) {
 				}
 			}
 
+			
 
-			for(int p=0;p<numEncs;p++){
-				Encounter metaEnc = (Encounter)myEncs.get(p);
-				int numImgs=metaEnc.getImages().size();
-				if((metaEnc.getImages()!=null)&&(numImgs>0)){
-					for(int b=0;b<numImgs;b++){
-						SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
-						%>
-						<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename()%>" />
-						<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=(metaEnc.getCatalogNumber()+"/"+metaSPV.getFilename())%>" / >
-<%
-			}
-		}
-		}
 }
 		myShepherd.rollbackDBTransaction();
 }
