@@ -277,6 +277,14 @@ public class TrainNetwork {
   public static AdaBoostM1 buildAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
     AdaBoostM1 booster=new AdaBoostM1();
+    String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
+    try {
+      booster.setOptions(weka.core.Utils.splitOptions(optionString));
+    } catch (Exception e1) {
+      // TODO Auto-generated catch block
+      e1.printStackTrace();
+    }
+
     try {
       //getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request)
       booster.buildClassifier(instances);

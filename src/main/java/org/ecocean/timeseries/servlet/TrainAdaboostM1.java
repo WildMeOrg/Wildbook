@@ -76,12 +76,9 @@ public class TrainAdaboostM1 extends HttpServlet {
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
     String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
-    String bayesFullPathToClassifierFile=fullPathToClassifierFile.replaceFirst("adaboostM1", "bayesnet");
-    BayesNet bayesBooster=TrainNetwork.buildBayesNetClassifier(request,bayesFullPathToClassifierFile,instances);
-   
-    TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
-    TrainNetwork.serializeWekaClassifier(request, bayesBooster, fullPathToClassifierFile);
-   
+    
+    //TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
+    
     Enumeration<Instance> myEnum=instances.enumerateInstances();
    
    int numMatches=0;

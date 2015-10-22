@@ -192,7 +192,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
       final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
       final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
-      String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.J48 -- -C 0.25 -M 2";
+      String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
       booster.setOptions(weka.core.Utils.splitOptions(optionString));
       
 

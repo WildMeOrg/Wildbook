@@ -163,7 +163,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				System.out.println("scanTaskHandler: Checking whether this is a new scanTask...");
 
 				myShepherd.beginDBTransaction();
-
+				Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+        String genus="";
+        String species="";
+        if(enc.getGenus()!=null){genus=enc.getGenus();}
+        if(enc.getSpecificEpithet()!=null){species=enc.getSpecificEpithet();}
 
 				String sideIdentifier="L";
 
@@ -201,11 +205,10 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 						//check if this encounter has the needed spots to create the task
 						boolean hasNeededSpots=false;
-						Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
 						
-						if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)&&(!enc.getGenus().trim().equals(""))&&(!enc.getSpecificEpithet().trim().equals(""))){
-						  jdoql="SELECT FROM org.ecocean.ENCOUNTER WHERE genus == '"+enc.getGenus()+"' && specificEpithet == '"+enc.getSpecificEpithet()+"' ";
-						}
+						//if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)&&(!enc.getGenus().trim().equals(""))&&(!enc.getSpecificEpithet().trim().equals(""))){
+						//  jdoql="SELECT FROM org.ecocean.ENCOUNTER WHERE genus == '"+enc.getGenus()+"' && specificEpithet == '"+enc.getSpecificEpithet()+"' ";
+						//}
 						
 						if((rightScan.equals("true"))&&(enc.getRightSpots()!=null)){hasNeededSpots=true;}
 						else if(enc.getSpots()!=null){hasNeededSpots=true;}
@@ -304,7 +307,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
             es.execute(new EC2RequestThread());
 						
             //now build our jobs for the task
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
+            if(jdoql.equals("")){
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species));
+              
+            }
+            else{
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null));
+            }
+						
 
 						
 
