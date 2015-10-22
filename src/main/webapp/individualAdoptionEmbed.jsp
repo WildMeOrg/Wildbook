@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.List" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -79,11 +79,11 @@ context=ServletUtilities.getContext(request);
 
 
   <%
-    ArrayList adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+    List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
     int numAdoptions = adoptions.size();
     int ia = 0;
     for (ia = 0; ia < numAdoptions; ia++) {
-      Adoption ad = (Adoption) adoptions.get(ia);
+      Adoption ad = adoptions.get(ia);
   %>
   <tr>
     <td class="image"><img border="0" src="images/meet-adopter-frame.gif"/></td>

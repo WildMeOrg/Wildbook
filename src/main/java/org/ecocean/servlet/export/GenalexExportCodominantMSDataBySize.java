@@ -39,7 +39,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
     Shepherd myShepherd = new Shepherd(context);
     
     //in case we're doing haplotype export
-    ArrayList<String> haplos=myShepherd.getAllHaplotypes();
+    List<String> haplos=myShepherd.getAllHaplotypes();
     int numHaplos=haplos.size();
  
     
@@ -139,7 +139,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
         sheet.addCell(indieLabel);
         Label popLabel = new Label(1, 2, "Population");
         sheet.addCell(popLabel);
-        ArrayList<String> loci=myShepherd.getAllLoci();
+        List<String> loci=myShepherd.getAllLoci();
         int numLoci=loci.size();
         int locusColumn=2;
         if(request.getParameter("exportHaplos")!=null){

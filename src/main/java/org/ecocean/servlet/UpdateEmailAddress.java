@@ -88,10 +88,10 @@ public class UpdateEmailAddress extends HttpServlet {
 
 
       myShepherd.beginDBTransaction();
-      Iterator it = myShepherd.getAllEncounters();
+      Iterator<Encounter> it = myShepherd.getAllEncounters();
       while (it.hasNext()) {
 
-        Encounter tempEnc = (Encounter) it.next();
+        Encounter tempEnc = it.next();
         if (tempEnc.getSubmitterEmail().indexOf(findEmail) != -1) {
           String newSubmitterEmail = tempEnc.getSubmitterEmail().replaceAll(findEmail, replaceEmail);
           tempEnc.setSubmitterEmail(newSubmitterEmail);

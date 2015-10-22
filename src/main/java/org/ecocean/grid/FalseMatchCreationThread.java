@@ -95,19 +95,19 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
 
       System.out.println("Iterating left-sided encounters to create scanWorkItems for FalseMatchCreationThread...");
 
-      Iterator encs = myShepherd.getAllEncountersNoQuery();
-      //Iterator encs2=myShepherd.getAllEncountersNoQuery();
+      Iterator<Encounter> encs = myShepherd.getAllEncountersNoQuery();
+      //Iterator<Encounter> encs2=myShepherd.getAllEncountersNoQuery();
 
       //keep track of already scanned combos
       StringBuffer done = new StringBuffer();
 
       while ((encs.hasNext()) && (count < numFalseComparisons)) {
-        Encounter enc = (Encounter) encs.next();
-        Iterator encs2 = myShepherd.getAllEncountersNoQuery();
+        Encounter enc = encs.next();
+        Iterator<Encounter> encs2 = myShepherd.getAllEncountersNoQuery();
         if (enc.getNumSpots() > 0) {
 
           while ((encs2.hasNext()) && (count < numFalseComparisons)) {
-            Encounter enc2 = (Encounter) encs2.next();
+            Encounter enc2 = encs2.next();
             if (enc2.getNumSpots() > 0) {
               if (!enc2.isAssignedToMarkedIndividual().equals(enc.isAssignedToMarkedIndividual())) {
                 //need to check that this item hasn't already been compared
@@ -136,18 +136,18 @@ public class FalseMatchCreationThread implements Runnable, ISharkGridThread {
       }
 
       //System.out.println("Elephant: switching to right side...");
-      Iterator encs3 = myShepherd.getAllEncountersNoQuery();
+      Iterator<Encounter> encs3 = myShepherd.getAllEncountersNoQuery();
 
       done = new StringBuffer();
       props2.setProperty("rightScan", "true");
 
       while ((encs3.hasNext()) && (count < (2 * numFalseComparisons))) {
-        Encounter enc = (Encounter) encs3.next();
+        Encounter enc = encs3.next();
 
         if (enc.getNumRightSpots() > 0) {
-          Iterator encs2 = myShepherd.getAllEncountersNoQuery();
+          Iterator<Encounter> encs2 = myShepherd.getAllEncountersNoQuery();
           while ((encs2.hasNext()) && (count < (2 * numFalseComparisons))) {
-            Encounter enc2 = (Encounter) encs2.next();
+            Encounter enc2 = encs2.next();
             if (enc2.getNumRightSpots() > 0) {
               if (!enc2.isAssignedToMarkedIndividual().equals(enc.isAssignedToMarkedIndividual())) {
                 //need to check that this item hasn't already been compared

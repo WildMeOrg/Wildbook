@@ -95,7 +95,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
         StringBuffer locusString=new StringBuffer("");
         int numLoci=2; //most covered species will be loci
        
-        ArrayList<String> allLoci=myShepherd.getAllLoci();
+        List<String> allLoci=myShepherd.getAllLoci();
         
         try{
           numLoci=allLoci.size();

@@ -48,15 +48,15 @@
 
 
 
-    ArrayList<String> allHaplos2=new ArrayList<String>(); 
+    List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
     allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();
     
-    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
+    List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
     int numSpecies=allSpecies.size();
    
-    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
 %>
 

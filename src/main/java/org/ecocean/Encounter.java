@@ -1956,7 +1956,7 @@ public class Encounter implements java.io.Serializable {
 
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
-	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+	public String collaborationLockHtml(List<Collaboration> collabs) {
 		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
 		String collabClass = "pending";
 		if ((c == null) || (c.getState() == null)) {

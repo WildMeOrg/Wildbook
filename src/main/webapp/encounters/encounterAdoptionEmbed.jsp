@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList,java.util.List" %>
 
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -90,11 +90,11 @@ div.scroll {
 
 
 <%
-  ArrayList adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
+  List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
   int numAdoptions = adoptions.size();
 if(numAdoptions>0){
   for (int ia = 0; ia < numAdoptions; ia++) {
-    Adoption ad = (Adoption) adoptions.get(ia);
+    Adoption ad = adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
   <%

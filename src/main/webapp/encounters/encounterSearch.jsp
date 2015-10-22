@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
@@ -455,7 +456,7 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
         if (totalLocIDs >= 1) {
@@ -695,7 +696,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
       <%
-        ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+        List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
 
 
@@ -974,7 +975,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
@@ -1132,9 +1133,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
 
 
-        Iterator keys = myShepherd.getAllKeywords(kwQuery);
+        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
         for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = (Keyword) keys.next();
+          Keyword word = keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
@@ -1325,7 +1326,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 
@@ -1363,7 +1364,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
@@ -1427,7 +1428,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {
@@ -1506,7 +1507,7 @@ else {
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong></p>
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
      		int numProps=values.size();
      		%>
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
@@ -1550,7 +1551,7 @@ else {
 
       <%
       	Shepherd inShepherd=new Shepherd("context0");
-        ArrayList<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>

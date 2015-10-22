@@ -162,7 +162,7 @@ context=ServletUtilities.getContext(request);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
 
 
-			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = sharky.canUserAccess(request);
 
 			if (!visible) {
@@ -556,12 +556,12 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 			
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
