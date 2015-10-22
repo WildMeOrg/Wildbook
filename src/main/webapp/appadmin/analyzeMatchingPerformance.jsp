@@ -71,8 +71,18 @@ System.out.println("     I expect to find an instances file here: "+instancesFil
 
 //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
 Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
-String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.J48 -- -C 0.25 -M 2";
+
+
+//quick fix
+    String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
+    AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
+    
+    TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
+    
+
+
+booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
 booster.setOptions(weka.core.Utils.splitOptions(optionString));
 
 //try BayesNet
@@ -1199,24 +1209,14 @@ AdaBoostM1 cls=new AdaBoostM1();
 //String optionString = " -P 100 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
 cls.setOptions(weka.core.Utils.splitOptions(optionString));
 
-BayesNet bn=new BayesNet();
-MultiBoostAB mab=new MultiBoostAB();
-cls.buildClassifier(classifierSet);
-bn.buildClassifier(classifierSet);
-mab.buildClassifier(classifierSet);
+
 // evaluate classifier and print some statistics
 Evaluation eval = new Evaluation(isTrainingSet);
 eval.evaluateModel(cls, isTrainingSet);
 
-Evaluation bayesEval=new Evaluation(isTrainingSet);
-bayesEval.evaluateModel(bn,isTrainingSet);
 
-Evaluation mabEval=new Evaluation(isTrainingSet);
-mabEval.evaluateModel(mab,isTrainingSet);
 %>
 <p>AdaBoost % correctly classified: <%=eval.pctCorrect() %></p>
-<p>BayesNet % correctly classified: <%=bayesEval.pctCorrect() %></p>
-<p>MultiBoostAB % correctly classified: <%=mabEval.pctCorrect() %></p>
 <p>Num instances used to test: <%=isTrainingSet.numInstances() %></p>
 <p>Num instances used to build a new sample classifier: <%=classifierSet.numInstances() %></p>
 

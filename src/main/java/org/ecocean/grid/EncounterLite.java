@@ -114,11 +114,12 @@ public class EncounterLite implements java.io.Serializable {
 
     //get spots
 
-  if (isDorsalFin(enc)) {
+  //if (isDorsalFin(enc)) {
+    if(false){
     processDorsalSpots(enc);
     
-    System.out.println("Finished processed dorsal spots!");
-    System.out.println(".....Left spots: "+this.getSpots().size());
+    //System.out.println("Finished processed dorsal spots!");
+    //System.out.println(".....Left spots: "+this.getSpots().size());
    
 
   } else {
@@ -1836,7 +1837,7 @@ public class EncounterLite implements java.io.Serializable {
     for (int q = 0; q < length; q++) {
       leftReferenceSpotsX[q] = initSpots.get(q).getCentroidX();
       leftReferenceSpotsY[q] = initSpots.get(q).getCentroidY();
-      System.out.println("     Left reference spot "+q+": "+initSpots.get(q).getCentroidX()+","+initSpots.get(q).getCentroidY());
+      //System.out.println("     Left reference spot "+q+": "+initSpots.get(q).getCentroidX()+","+initSpots.get(q).getCentroidY());
     }
   }
 

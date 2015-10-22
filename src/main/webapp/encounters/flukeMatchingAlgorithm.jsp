@@ -90,7 +90,7 @@ try {
   <h3>Extracted Trailing Edges</h3>
   		<%
 		
-		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
+		if (enc.getNumSpots()>0) {
 		%> 
 		
 		<table width="100%" border="0" cellpadding="1" cellspacing="0">
@@ -129,14 +129,14 @@ try {
          										<table width="200">
             										<tr>
               										<%
-                									if (enc.getSpots().size() > 0) {
+                									if (enc.getNumSpots() > 0) {
               										%>
               											<td>
               												<label> <input name="rightSide" type="radio" value="false"> left-side</label>
               											</td>
               										<%
                 									}
-                									if (enc.getRightSpots().size() > 0) {
+                									if (enc.getNumRightSpots() > 0) {
               										%>
               										<td>
               											<label> <input type="radio" name="rightSide" value="true"> right-side</label>

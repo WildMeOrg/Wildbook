@@ -158,6 +158,15 @@ public class ScanTaskHandler extends HttpServlet {
         System.out.println("scanTaskHandler: Checking whether this is a new scanTask...");
 
         myShepherd.beginDBTransaction();
+        
+        Encounter enc = myShepherd.getEncounter(request.getParameter("encounterNumber"));
+        String genus="";
+        String species="";
+        if(enc.getGenus()!=null){genus=enc.getGenus();}
+        if(enc.getSpecificEpithet()!=null){species=enc.getSpecificEpithet();}
+
+        String jdoql="";
+
 
 
         String sideIdentifier = "L";
@@ -179,13 +188,8 @@ public class ScanTaskHandler extends HttpServlet {
         //int currentNumScanTasks=0;
         if (currentNumScanTasks < taskLimit) {
 
-          int numComparisons = 0;
-          if (rightScan.equals("true")) {
-            //sideIdentifier="R";
-            numComparisons = myShepherd.getNumEncountersWithSpotData(true);
-          } else {
-            numComparisons = myShepherd.getNumEncountersWithSpotData(false);
-          }
+          int numComparisons = myShepherd.getAllEncountersForSpeciesWithSpots(genus, species).size();
+              
           myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
 
           System.out.println("scanTaskHandler: Under the limit, so proceeding to check for condiions for creating a new scanTask...");
@@ -194,7 +198,6 @@ public class ScanTaskHandler extends HttpServlet {
 
             //check if this encounter has the needed spots to create the task
             boolean hasNeededSpots = false;
-            Encounter enc = myShepherd.getEncounter(request.getParameter("encounterNumber"));
             if ((rightScan.equals("true")) && (enc.getRightSpots() != null)) {
               hasNeededSpots = true;
             } else if (enc.getSpots() != null) {
@@ -262,8 +265,14 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context,""));
-
+            //now build our jobs for the task
+            if(jdoql.equals("")){
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species));
+              
+            }
+            else{
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null));
+            }
 
           } catch (Exception e) {
             System.out.println("I failed while constructing the workItems for a new scanTask.");

@@ -312,11 +312,14 @@ public class Encounter implements java.io.Serializable {
    * @return the number of superSpots that make up the digital fingerprint for this encounter
    */
   public int getNumSpots() {
-    return spots.size();
+    if(spots!=null){return spots.size();}
+    else{return 0;}
+    
   }
 
   public int getNumRightSpots() {
-    return rightSpots.size();
+    if(rightSpots!=null){return rightSpots.size();}
+    else{return 0;}
   }
 
   public boolean hasLeftSpotImage() {

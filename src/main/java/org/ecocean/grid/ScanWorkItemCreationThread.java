@@ -43,11 +43,13 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   String context="context0";
   String jdoql="SELECT FROM org.ecocean.Encounter";
   String algorithms="";
+  String genus="";
+  String species="";
 
   /**
    * Constructor to create a new thread object
    */
-  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql) {
+  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql, String genus, String species) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     this.rightSide = rightSide;
@@ -63,6 +65,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       algorithms=CommonConfiguration.getProperty("algorithms", context);
     }
     
+    
+    if(genus!=null){this.genus=genus;}
+    if(species!=null){this.species=species;}
   }
 
 
@@ -118,11 +123,18 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     //now, add the workItems
     myShepherd.beginDBTransaction();
     Query query=null;
+    Collection c=null;
     try {
-      //Iterator encounters = myShepherd.getAllEncountersNoQuery();
       
-      query=myShepherd.getPM().newQuery(jdoql);
-      Collection c = (Collection) (query.execute());
+      if(genus.equals("")){
+        query=myShepherd.getPM().newQuery(jdoql);
+        c = (Collection) (query.execute());
+      }
+      else{
+        c= myShepherd.getAllEncountersForSpeciesWithSpots(genus, species);
+            
+      }
+      
       //System.out.println("Num scans to do: "+c.size());
       Iterator encounters = c.iterator();
       
@@ -137,9 +149,10 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         //TBD- ok, for now we're going to hardcode the check for species here
         
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
-          if((enc.getSpots()!=null)&&(enc.getSpots().size()>0)&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
+          //if((enc.getSpots()!=null)&&(enc.getSpots().size()>0)&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
           
-              String encGenusSpecies="unknown";
+            /*  
+            String encGenusSpecies="unknown";
               String originalEncGenusSpecies="unknown2";
               if((originalEnc.getGenus()!=null)&&(enc.getGenus()!=null)){
                 if((originalEnc.getSpecificEpithet()!=null)&&(enc.getSpecificEpithet()!=null)){
@@ -147,8 +160,8 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
                   originalEncGenusSpecies=originalEnc.getGenus()+originalEnc.getSpecificEpithet();
                 }
               }
-              
-              if(encGenusSpecies.equals(originalEncGenusSpecies)){
+              */
+              //if(encGenusSpecies.equals(originalEncGenusSpecies)){
                 
                 
                 //tunings for the SWALE algorithm - default is Physetermacrocephalus
@@ -156,11 +169,11 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
                 double swaleReward=25.0;
                 double swaleEpsilon=0.0011419401589504922;
                 //Swale value for Tursiopstruncatus
-                if(encGenusSpecies.equals("Tursiopstruncatus")){
+                //if(encGenusSpecies.equals("Tursiopstruncatus")){
                   swalePenalty=0;
                   swaleReward=25.0;
                   swaleEpsilon=0.003977041051268339;
-                }
+                //}
                 
               
                 String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
@@ -186,8 +199,8 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
                   //System.out.println("Added a new right-side scan task!");
                   count++;
                 
-              } 
-          }     
+              //} 
+          //}     
         }
 
       }
