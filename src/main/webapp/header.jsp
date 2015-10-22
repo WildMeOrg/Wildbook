@@ -79,6 +79,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
      <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
   	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
  
+ 	<!-- Start Open Graph Tags -->
+ 	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
+ 	<meta property="og:site_name" content="Flukebook"/>
+ 	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<!-- End Open Graph Tags -->
   
     </head>
     
