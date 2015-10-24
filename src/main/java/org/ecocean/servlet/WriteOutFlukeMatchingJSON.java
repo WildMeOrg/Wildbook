@@ -299,23 +299,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         
-        Instance iExample = new Instance(7);
+        Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
+       TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo);
         
-        iExample.setDataset(instances);
-        iExample.setValue(0, mo.getIntersectionCount());
-        iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
-        
-        if(mo.getI3SMatchValue()==Double.MAX_VALUE){
-          iExample.setValue(2, "?");
-        }
-        else{
-          iExample.setValue(2,  mo.getI3SMatchValue());
-        }
-        
-        iExample.setValue(3, (new Double(mo.getProportionValue()).doubleValue()));
-        iExample.setValue(4, (new Double(mo.getMSMValue()).doubleValue()));
-        iExample.setValue(5, (new Double(mo.getSwaleValue()).doubleValue()));
-    
         
         double[] fDistribution = booster.distributionForInstance(iExample);
         
@@ -323,13 +309,48 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(i+1));
         result.add(new JsonPrimitive(fDistribution[0]));
         result.add(new JsonPrimitive(0));
-        result.add(new JsonPrimitive(mo.getIntersectionCount()));
-        result.add(new JsonPrimitive(mo.getLeftFastDTWResult().intValue()));
-        result.add(new JsonPrimitive(mo.getI3SMatchValue()));
-        result.add(new JsonPrimitive(mo.getProportionValue()));
+        
+        if(mo.getIntersectionCount()!=null){
+          result.add(new JsonPrimitive(mo.getIntersectionCount()));
+        }
+        else{
+          result.add(new JsonPrimitive(""));
+        }
+        
+        
+        if(mo.getLeftFastDTWResult()!=null){
+          result.add(new JsonPrimitive(mo.getLeftFastDTWResult().intValue()));
+        }
+        else{
+          result.add(new JsonPrimitive(""));
+        }
+        
+        if(mo.getI3SMatchValue()!=Double.MAX_VALUE){
+          result.add(new JsonPrimitive(mo.getI3SMatchValue()));
+        }
+        else{
+          result.add(new JsonPrimitive(""));
+        }
+        
+        if(mo.getProportionValue()!=null){
+          result.add(new JsonPrimitive(mo.getProportionValue()));
+        }
+        else{
+          result.add(new JsonPrimitive(""));
+        }
+        
+      if(mo.getMSMValue()!=null){ 
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getMSMValue().doubleValue(),3)));
+      }
+      else{
+        result.add(new JsonPrimitive(""));
+      }
+      if(mo.getSwaleValue()!=null){  
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getSwaleValue().doubleValue(),3)));
- 
+      }
+      else{
+        result.add(new JsonPrimitive(""));
+      }
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
