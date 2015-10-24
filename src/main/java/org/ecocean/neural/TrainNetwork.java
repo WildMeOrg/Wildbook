@@ -466,38 +466,6 @@ public class TrainNetwork {
       
       int numMatches=0;
       int numNonMatches=0;
-      
-      
-      //prep weka for AdaBoost
-      // Declare numeric attributes
-      /*Attribute intersectAttr = new Attribute("intersect");
-      Attribute fastDTWAttr = new Attribute("fastDTW");
-      Attribute i3sAttr = new Attribute("I3S");
-      Attribute proportionAttr = new Attribute("proportion");
-      Attribute msmAttr = new Attribute("MSM");
-      Attribute swaleAttr = new Attribute("Swale");     
-      Attribute dateAttr = new Attribute("dateDiffLong");   
-      */
-      //class vector
-      // Declare the class attribute along with its values
-      /*
-      FastVector fvClassVal = new FastVector(2);
-      fvClassVal.addElement("match");
-      fvClassVal.addElement("nonmatch");
-      Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
-      */
-      //define feature vector
-      // Declare the feature vector
-      /*FastVector fvWekaAttributes = new FastVector(8);
-      fvWekaAttributes.addElement(intersectAttr);
-      fvWekaAttributes.addElement(fastDTWAttr);
-      fvWekaAttributes.addElement(i3sAttr);
-      fvWekaAttributes.addElement(proportionAttr);
-      fvWekaAttributes.addElement(msmAttr);
-      fvWekaAttributes.addElement(swaleAttr);
-      fvWekaAttributes.addElement(dateAttr);
-      fvWekaAttributes.addElement(ClassAttribute);
-      */
       String genusSpecies=genus+specificEpithet;
       
 
@@ -528,11 +496,11 @@ public class TrainNetwork {
           //for(int i=0;i<1000;i++){
             for(int j=(i+1);j<numEncs;j++){
               
-              Encounter enc1=(Encounter)encounters.get(i);
-              Encounter enc2=(Encounter)encounters.get(j);
+              EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
+              EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
               
              try{
-                        System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
+                        //System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
                         
                         //if both have spots, then we need to compare them
                      
@@ -540,8 +508,9 @@ public class TrainNetwork {
                         Instance iExample=buildInstance(genusSpecies,isTrainingSet);
                         Instance iExample2=buildInstance(genusSpecies,isTrainingSet);
                         
-                        populateInstanceValues(genusSpecies, iExample, enc1,enc2);
-                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1);
+                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2);
+                        populateInstanceValues(genusSpecies, iExample, enc1,enc2,mo);
+                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo);
                         
                         isTrainingSet.add(iExample);
                         isTrainingSet.add(iExample2);
@@ -705,7 +674,7 @@ public class TrainNetwork {
     }
     
     
-    public static void populateInstanceValues(String genusSpecies, Instance iExample, Encounter enc1, Encounter enc2){
+    public static void populateInstanceValues(String genusSpecies, Instance iExample, EncounterLite enc1, EncounterLite enc2, MatchObject mo){
       
 
       //first, are they the same animal?
@@ -724,86 +693,41 @@ public class TrainNetwork {
       
       
       
-      EncounterLite el1=new EncounterLite(enc1);
-      EncounterLite el2=new EncounterLite(enc2);
-      
-      //FIRST PASS
-      
-      //HolmbergIntersection
-      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2 );
-      double finalInter=-1;
-      if(numIntersections!=null){finalInter=numIntersections.intValue();}
-     
-      
-      //FastDTW
-      TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
-      
-      java.lang.Double distance = new java.lang.Double(-1);
-      if(twi!=null){
-        WarpPath wp=twi.getPath();
-          String myPath=wp.toString();
-        distance=new java.lang.Double(twi.getDistance());
-      }   
-      
-      //I3S
-      I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-      double i3sScore=-1;
-      if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
-      
-      //Proportion metric
-      Double proportion=EncounterLite.getFlukeProportion(el1,el2);
-      
-      
-      
-      
-      Double msm=MSM.getMSMDistance(el1, el2);
-      
-      
-      //swale setup
-      double penalty=0;
-      double reward=25;
-      double epsilon=0.002089121713611485;
-      Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
-      
-      double date = Instance.missingValue();
-      if((enc1.getDateInMilliseconds()!=null)&&(enc2.getDateInMilliseconds()!=null)){
-        try{
-          date=Math.abs((new Long(enc1.getDateInMilliseconds()-enc2.getDateInMilliseconds())).doubleValue());
-        }
-        catch(Exception e){
-          e.printStackTrace();
-        }
-      }
-      
+
       
       
       // Create the instance
       FastVector fvWekaAttributes=getWekaAttributesPerSpecies(genusSpecies);
       //System.out.println("!!!!!!fvvvvv: "+fvWekaAttributes.size());
       
+      
+      
       if(genusSpecies.equals("Physetermacrocephalus")){
-          iExample.setValue(0, numIntersections.doubleValue());
-          iExample.setValue(1, distance.doubleValue());
-          iExample.setValue(2, i3sScore);
-          iExample.setValue(3, proportion.doubleValue());
-          iExample.setValue(4, msm.doubleValue());
-          iExample.setValue(5, swaleVal.doubleValue());
-          iExample.setValue(6, date);
+          iExample.setValue(0, mo.getIntersectionCount().doubleValue());
+          iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
+          iExample.setValue(2, mo.getI3SMatchValue());
+          iExample.setValue(3, mo.getProportionValue().doubleValue());
+          iExample.setValue(4, mo.getMSMValue().doubleValue());
+          iExample.setValue(5, mo.getSwaleValue().doubleValue());
+          iExample.setValue(6, mo.getDateDiff().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         //System.out.println(" elament at: "+((Attribute)fvWekaAttributes.elementAt(0)).name());
-        iExample.setValue(0, distance.doubleValue());
-        iExample.setValue(1, i3sScore);
-        iExample.setValue(2, date);
+        iExample.setValue(0, mo.getLeftFastDTWResult().doubleValue());
+        iExample.setValue(1, mo.getI3SMatchValue());
+        iExample.setValue(2, mo.getDateDiff().doubleValue());
     }
       
-      if(output==0){
-        iExample.setValue(getClassIndex(genusSpecies), "match");
-        
-      }
-      else{
-        iExample.setValue(getClassIndex(genusSpecies), "nonmatch");
-        
+      //sometimes we don't want to populate this, such as for new match attempts
+      if(enc1.getIndividualID()!=null){
+        if(output==0){
+          iExample.setValue(getClassIndex(genusSpecies), "match");
+          
+        }
+        else{
+          iExample.setValue(getClassIndex(genusSpecies), "nonmatch");
+          
+        }
       }
       
       
@@ -822,6 +746,68 @@ public class TrainNetwork {
         }
       }
       return -1;
+    }
+    
+    
+    public static MatchObject getMatchObject(String genusSpecies,EncounterLite el1, EncounterLite el2){
+        MatchObject mo=new MatchObject();
+        
+        //FIRST PASS
+        
+        //HolmbergIntersection
+        Double numIntersections=EncounterLite.getHolmbergIntersectionScore(el1, el2 );
+        double finalInter=-1;
+        if(numIntersections!=null){finalInter=numIntersections.intValue();}
+       
+        
+        //FastDTW
+        TimeWarpInfo twi=EncounterLite.fastDTW(el1, el2, 30);
+        
+        java.lang.Double distance = new java.lang.Double(-1);
+        if(twi!=null){
+          WarpPath wp=twi.getPath();
+            String myPath=wp.toString();
+          distance=new java.lang.Double(twi.getDistance());
+        }   
+        
+        //I3S
+        I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
+        double i3sScore=-1;
+        if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
+        
+        //Proportion metric
+        Double proportion=EncounterLite.getFlukeProportion(el1,el2);
+        
+        
+        
+        
+        Double msm=MSM.getMSMDistance(el1, el2);
+        
+        //swale setup
+        double penalty=0;
+        double reward=25;
+        double epsilon=0.002089121713611485;
+        Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
+        
+        double date = Instance.missingValue();
+        if((el1.getDateLong()!=null)&&(el2.getDateLong()!=null)){
+          try{
+            date=Math.abs((new Long(el1.getDateLong()-el2.getDateLong())).doubleValue());
+          }
+          catch(Exception e){
+            e.printStackTrace();
+          }
+        }
+        
+        
+        mo.setIntersectionCount(numIntersections.doubleValue());
+        mo.setI3SValues(new Vector(), i3sScore);
+        mo.setLeftFastDTWResult(distance);
+        mo.setMSMSValue(msm);
+        mo.setSwaleValue(swaleVal);
+        mo.setDateDiff(date);
+        
+        return mo;
     }
     
     

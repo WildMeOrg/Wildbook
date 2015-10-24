@@ -98,6 +98,10 @@ public class EncounterLite implements java.io.Serializable {
       this.date = enc.getDate();
     }
     
+    if(enc.getDateInMilliseconds()!=null){
+      this.dateLong=enc.getDateInMilliseconds();
+    }
+    
     if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){
       this.genusSpecies=enc.getGenus()+enc.getSpecificEpithet();
     }
