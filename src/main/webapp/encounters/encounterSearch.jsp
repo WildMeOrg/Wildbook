@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
+         import="java.util.Locale,org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.Properties" %>
@@ -485,13 +485,9 @@ function FSControl(controlDiv, map) {
       %>
       
       
-      <%
-
-if(CommonConfiguration.showProperty("showCountry",context)){
-
-%>
+<p>&nbsp;</p>
 <table><tr><td valign="top">
-<strong><%=encprops.getProperty("country")%>:</strong><br />
+<strong><%=encprops.getProperty("country")%></strong><br />
 <em><%=encprops.getProperty("leaveBlank")%>
         </em>
 
@@ -500,35 +496,24 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
   <%
-  			       boolean hasMoreCountries=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreCountries){
-  			       	  String currentCountry = "country"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreCountries=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
-			       }
-			       %>
+ 
+  
+  
+  String[] locales = Locale.getISOCountries();
+	  for (String countryCode : locales) {
+		Locale obj = new Locale("", countryCode);
+	    %>
+      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+        
+ <%
+	 }
+ %>
+			       
 			       
 
   </select>
   </td></tr></table>
-<%
-}
-%>
+
       
     </div>
   </td>

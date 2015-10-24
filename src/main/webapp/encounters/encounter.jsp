@@ -1,5 +1,21 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.joda.time.format.DateTimeFormat,
+         org.joda.time.format.DateTimeFormatter,
+         org.joda.time.LocalDateTime,
+         java.util.Locale,
+         org.ecocean.servlet.ServletUtilities,
+         com.drew.imaging.jpeg.JpegMetadataReader, 
+         com.drew.metadata.Directory, 
+         com.drew.metadata.Metadata, 
+         com.drew.metadata.Tag, 
+         org.ecocean.*,
+         org.ecocean.servlet.ServletUtilities,
+         org.ecocean.Util,org.ecocean.Measurement, 
+         org.ecocean.Util.*, org.ecocean.genetics.*, 
+         org.ecocean.tag.*, java.awt.Dimension, 
+         javax.jdo.Extent, javax.jdo.Query, 
+         java.io.File, java.text.DecimalFormat, 
+         java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -1686,23 +1702,19 @@ $("a#location").click(function() {
 						            	<option value=""></option>
 						       
 						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "country"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
+						       
+		                         
+				                  
+				                  String[] locales = Locale.getISOCountries();
+				  				  for (String countryCode : locales) {
+				  					Locale obj = new Locale("", countryCode);
+				  				    %>
+				                      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+				                        
+								 <%
+				              	 }
+								 %>
+						      
 						       
 						       
 						      </select> 
