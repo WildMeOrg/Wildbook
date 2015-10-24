@@ -3,7 +3,8 @@
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties" %>
+                 java.util.Properties,
+                 java.util.Locale" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -560,7 +561,6 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 <%
 }
 
-if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
           <div class="form-group required">
@@ -569,34 +569,26 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       </div>
       
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
+        <select name="country" id="country" class="form-control">
             <option value="" selected="selected"></option>
                   <%
-                         boolean hasMoreCountries=true;
-                         int taxNum=0;
                          
-                         while(hasMoreCountries){
-                               String currentCountry = "country"+taxNum;
-                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-                                   %>
-                                    
-                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-                                   <%
-                                 taxNum++;
-                            }
-                            else{
-                               hasMoreCountries=false;
-                            }
-                            
-                       }
-                       
-     %>
+                  
+                  String[] locales = Locale.getISOCountries();
+  				  for (String countryCode : locales) {
+  					Locale obj = new Locale("", countryCode);
+  				    %>
+                      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+                        
+				 <%
+              	 }
+				 %>
    </select>
       </div>
     </div>
 
 <%
-}  //end if showCountry
+
 
 %>
 
