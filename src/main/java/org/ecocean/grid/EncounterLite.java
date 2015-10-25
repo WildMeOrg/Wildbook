@@ -3542,7 +3542,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         for(int i=0;i<spotsSize;i++){
           newSpots.add(new SuperSpot(enc.getLeftReferenceSpots().get(i).getCentroidX(),enc.getLeftReferenceSpots().get(i).getCentroidY()));  //swap out for converted
         }
-        
+        System.out.println("Original ref sots size: "+spotsSize+"    NewSpots size: "+newSpots.size());
         
         
         //for matching purposes, i am allowing just the 3 "main" reference points as well as full 10.. not sure if this is best course of action?  TODO
@@ -3571,22 +3571,27 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
             }
             ord.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(9).getCentroidX()), hy + hy - newSpots.get(9).getCentroidY()));  //9th one is opposite tip
         }
-
+        System.out.println("ord refspots size: "+ord.size());
         processLeftReferenceSpots(ord);
 
         //now the regular spots from the traced edges
         spotsSize=enc.getSpots().size();
+        System.out.println("newSpots2 orginal size: "+spotsSize);
         newSpots=new ArrayList<SuperSpot>();
         for(int i=0;i<spotsSize;i++){
           newSpots.add( new SuperSpot(enc.getSpots().get(i).getCentroidX(),enc.getSpots().get(i).getCentroidY()));  //swap out for converted
         }
-        //spots = enc.getSpots();
-        //if (newSpots != null) {
-            for (int i = 10 ; i < spotsSize ; i++) {
-                newSpots.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(i).getCentroidX()), hy + hy - newSpots.get(i).getCentroidY()));  //swap out for converted
-            }
-            processLeftSpots(newSpots);
-        //}
+        System.out.println("newSpots after copy: "+newSpots.size());
+        
+        ArrayList<SuperSpot> newSpots2=new ArrayList<SuperSpot>();
+        
+        for (int i = 0 ; i < spotsSize ; i++) {
+                newSpots2.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(i).getCentroidX()), hy + hy - newSpots.get(i).getCentroidY()));  //swap out for converted
+        }
+        System.out.println("newSpots2 after second copy: "+newSpots2.size());
+        
+        processLeftSpots(newSpots2);
+       
     }
     
     

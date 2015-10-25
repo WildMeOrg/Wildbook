@@ -643,9 +643,13 @@ public class TrainNetwork {
         System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
-        fvWekaAttributes = new FastVector(4);
+        fvWekaAttributes = new FastVector(8);
+        fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
+        fvWekaAttributes.addElement(proportionAttr);
+        fvWekaAttributes.addElement(msmAttr);
+        fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         System.out.println("Building attributes for: "+genusSpecies);
