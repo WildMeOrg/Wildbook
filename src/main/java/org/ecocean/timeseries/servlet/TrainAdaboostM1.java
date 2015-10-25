@@ -73,6 +73,8 @@ public class TrainAdaboostM1 extends HttpServlet {
     String fullPathToInstancesFile=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
     
     Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genus,specificEpithet);
+    
+    System.out.println("I am about to build an AdaBoostM1 classifier with this many instances: "+instances.numInstances());
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
     String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
@@ -85,12 +87,12 @@ public class TrainAdaboostM1 extends HttpServlet {
    int numNonmatches=0;
    while(myEnum.hasMoreElements()){
      Instance thisInstance=myEnum.nextElement();
-     if(thisInstance.stringValue(7).equals("match")){numMatches++;}
+     if(thisInstance.stringValue(TrainNetwork.getClassIndex(genusSpecies)).equals("match")){numMatches++;}
      else{numNonmatches++;}
    }
    
    out.println(ServletUtilities.getHeader(request));
-   out.println("<strong>Success:</strong> I created an AdaBoost and a BayesNet classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
+   out.println("<strong>Success:</strong> I created an AdaBoostM1 classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
    out.println("<ul>");
      out.println("<li>matches: "+numMatches+"</li>");
      out.println("<li>nonmatches: "+numNonmatches+"</li>");
