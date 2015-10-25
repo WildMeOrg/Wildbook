@@ -491,9 +491,9 @@ public class TrainNetwork {
           isTrainingSet.setClassIndex(getClassIndex(genusSpecies));
           
           
-          
+          //RESTORE ME
           for(int i=0;i<(numEncs-1);i++){
-          //for(int i=0;i<1000;i++){
+           // for(int i=0;i<10;i++){
             for(int j=(i+1);j<numEncs;j++){
               
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
@@ -514,7 +514,7 @@ public class TrainNetwork {
                         
                         isTrainingSet.add(iExample);
                         isTrainingSet.add(iExample2);
-                        
+                        System.out.println("     isTrainingSetSize: "+isTrainingSet.numInstances());
                   
                     
                         
@@ -553,11 +553,12 @@ public class TrainNetwork {
           
           //ok, now we need to build a set if Instances that only have matches and then add an equal number of nonmatches
           Instances balancedInstances = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (numMatches*2));
-          balancedInstances.setClassIndex(7);
+          System.out.println("     isTrainingSet size is: "+isTrainingSet.numInstances());
+          balancedInstances.setClassIndex(getClassIndex(genusSpecies));
           for(int i=0;i<isTrainingSet.numInstances();i++){
             
             Instance myInstance=isTrainingSet.instance(i);
-            if(myInstance.stringValue(7).equals("match")){
+            if(myInstance.stringValue(getClassIndex(genusSpecies)).equals("match")){
               isTrainingSet.delete(i);
               balancedInstances.add(myInstance);
               //pop it off the original stack
@@ -574,14 +575,14 @@ public class TrainNetwork {
             Random myRan=new Random();
             int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
             Instance popMe=isTrainingSet.instance(selected);
-            if(popMe.stringValue(7).equals("nonmatch")){
+            if(popMe.stringValue(getClassIndex(genusSpecies)).equals("nonmatch")){
               isTrainingSet.delete(selected);
               balancedInstances.add(popMe);
               sampledFalseInstances++;
             }
           }
           
-          
+          System.out.println("About to serialize with balancedInstances size: "+balancedInstances.numInstances());
           
           //write it out
           try {
