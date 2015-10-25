@@ -717,10 +717,13 @@ public class TrainNetwork {
           iExample.setValue(6, mo.getDateDiff().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
-        //System.out.println(" elament at: "+((Attribute)fvWekaAttributes.elementAt(0)).name());
-        iExample.setValue(0, mo.getLeftFastDTWResult().doubleValue());
-        iExample.setValue(1, mo.getI3SMatchValue());
-        iExample.setValue(2, mo.getDateDiff().doubleValue());
+        iExample.setValue(0, mo.getIntersectionCount().doubleValue());
+        iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
+        iExample.setValue(2, mo.getI3SMatchValue());
+        iExample.setValue(3, mo.getProportionValue().doubleValue());
+        iExample.setValue(4, mo.getMSMValue().doubleValue());
+        iExample.setValue(5, mo.getSwaleValue().doubleValue());
+        iExample.setValue(6, mo.getDateDiff().doubleValue());
     }
       
       //sometimes we don't want to populate this, such as for new match attempts

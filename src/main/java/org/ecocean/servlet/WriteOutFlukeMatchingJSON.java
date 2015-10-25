@@ -179,10 +179,11 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       //get the Encounter and genus and species
       myShepherd.beginDBTransaction();
       Encounter gsEnc=myShepherd.getEncounter(num);
-      String genusSpecies="undefined";
+      String tempGenusSpecies="undefined";
       if((gsEnc.getGenus()!=null)&&(!gsEnc.getGenus().trim().equals(""))&&(gsEnc.getSpecificEpithet()!=null)&&(!gsEnc.getSpecificEpithet().trim().equals(""))){
-        genusSpecies=gsEnc.getGenus()+gsEnc.getSpecificEpithet();
+        tempGenusSpecies=gsEnc.getGenus()+gsEnc.getSpecificEpithet();
       }
+      final String genusSpecies=tempGenusSpecies;
       String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
       String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
       
@@ -192,8 +193,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
       final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
       final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
-      String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
-      booster.setOptions(weka.core.Utils.splitOptions(optionString));
+      //String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
+      //booster.setOptions(weka.core.Utils.splitOptions(optionString));
       
 
       
@@ -213,8 +214,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
           double b1_adjustedValue=0;
 
             
-            Instance a1Example = new Instance(7);
-            Instance b1Example = new Instance(7);
+            Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+            Instance b1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
             
               a1Example.setDataset(instances);
               a1Example.setValue(0, a1.getIntersectionCount());
@@ -239,11 +240,12 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               
               try{
                 a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
+               
                 b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
               }
               catch(Exception e){e.printStackTrace();}
             
-            
+              System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
             
             if(a1_adjustedValue > b1_adjustedValue){return -1;}
             else if(a1_adjustedValue < b1_adjustedValue){return 1;}
@@ -300,11 +302,12 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
-       TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo);
+       iExample.setDataset(instances);
+        TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo);
         
         
         double[] fDistribution = booster.distributionForInstance(iExample);
-        
+        System.out.println("    fDistribution score: "+fDistribution[0]);
         //individual scores
         result.add(new JsonPrimitive(i+1));
         result.add(new JsonPrimitive(fDistribution[0]));
