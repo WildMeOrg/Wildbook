@@ -2677,17 +2677,13 @@ public class Shepherd {
   }
 
   static public boolean isAcceptableImageFile(String fileName) {
-    if ((fileName.toLowerCase().indexOf(".jpg") != -1) || (fileName.toLowerCase().indexOf(".gif") != -1) || (fileName.toLowerCase().indexOf(".jpeg") != -1) || (fileName.toLowerCase().indexOf(".jpe") != -1) || (fileName.toLowerCase().indexOf(".bmp") != -1) || (fileName.toLowerCase().indexOf(".png") != -1)) {
-      return true;
-    }
-    return false;
+    Objects.requireNonNull(fileName);
+    return fileName.matches("^(.+)\\.(?i:jpe?g|jpe|png|gif)$");
   }
 
   public boolean isAcceptableVideoFile(String fileName) {
-    if ((fileName.toLowerCase().indexOf(".mov") != -1) || (fileName.toLowerCase().indexOf(".avi") != -1) || (fileName.toLowerCase().indexOf("mpg") != -1) || (fileName.toLowerCase().indexOf(".wmv") != -1) || (fileName.toLowerCase().indexOf(".mp4") != -1)|| (fileName.toLowerCase().indexOf(".flv") != -1)) {
-      return true;
-    }
-    return false;
+    Objects.requireNonNull(fileName);
+    return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
   }
 
 
