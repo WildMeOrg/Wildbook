@@ -15,13 +15,21 @@ public final class SpamChecker {
    * @return true if spam detected, false otherwise
    */
   public static Result isSpam(Encounter enc) {
-    // Produces same spam-detection outcome as original embedded version.
+    // Checks for definite spam.
     if (containsDefiniteSpam(enc.getSubmitterName()) || containsDefiniteSpam(enc.getSubmitterPhone()))
       return Result.SPAM;
     if (containsDefiniteSpam(enc.getPhotographerName()) || containsDefiniteSpam(enc.getPhotographerPhone()))
       return Result.SPAM;
     if (containsDefiniteSpam(enc.getLocation()) || containsDefiniteSpam(enc.getComments()) || containsDefiniteSpam(enc.getBehavior()))
       return Result.SPAM;
+
+    // Checks for possible spam.
+    if (containsPossibleSpam(enc.getSubmitterName()) || containsPossibleSpam(enc.getSubmitterPhone()))
+      return Result.POSSIBLE_SPAM;
+    if (containsPossibleSpam(enc.getPhotographerName()) || containsPossibleSpam(enc.getPhotographerPhone()))
+      return Result.POSSIBLE_SPAM;
+    if (containsPossibleSpam(enc.getLocation()) || containsPossibleSpam(enc.getComments()) || containsPossibleSpam(enc.getBehavior()))
+      return Result.POSSIBLE_SPAM;
 
     return Result.NOT_SPAM;
   }
@@ -40,6 +48,20 @@ public final class SpamChecker {
       return true;
 //    if (s.contains("[url]") || s.contains("url="))
 //      return true;
+    return false;
+  }
+
+  /**
+   * Checks if the specified text contains anything considered possible spam.
+   * @param text text to check
+   * @return true if possible spam words detected, false otherwise
+   */
+  public static boolean containsPossibleSpam(String text) {
+    if (text == null)
+      return false;
+    String s = text.toLowerCase();
+    if (text.matches("^(?i).*https?://.*$"))
+      return true;
     return false;
   }
 }
