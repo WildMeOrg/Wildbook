@@ -45,12 +45,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Measurement;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -387,24 +382,12 @@ System.out.println("*** trying redirect?");
 
 //{submitterID=tomcat, submitterProject=, photographerEmail=, metalTag(left)=, sex=unknown, measurement(weight)=34234, location=, acousticTagId=, behavior=yow behavior..., measurement(weightunits)=kilograms, acousticTagSerial=, photographerName=, lifeStage=sub-adult, submitterAddress=, satelliteTagSerial=, releaseDate=, photographerPhone=, measurement(lengthunits)=meters, measurement(weightsamplingProtocol)=samplingProtocol0, measurement(length)=, submitterOrganization=, photographerAddress=, longitude=, year=2014, lat=, measurement(lengthsamplingProtocol)=samplingProtocol0, submitterEmail=, minutes=00, elevation=, measurement(height)=, measurement(heightsamplingProtocol)=samplingProtocol0, scars=None, submitterPhone=, submitterName=tomcat, hour=-1, livingStatus=alive, depth=, country=, satelliteTagName=Wild Life Computers, metalTag(right)=, month=1, measurement(heightunits)=meters, Submit=Send encounter report, informothers=, day=0, satelliteTagArgosPttNumber=, comments=}
 
-      //check for spamBots   TODO possibly move this to Util for general/global usage?
+      // Check for spamBots.
       boolean spamBot = false;
-            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
-      StringBuffer spamFields = new StringBuffer();
-            for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
-          spamFields.append(getVal(fv, spamFieldsToCheck[i]));
-            }
-
-      if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
-        spamBot = true;
+      String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
+      for (String text : spamFieldsToCheck) {
+        spamBot = spamBot | SpamChecker.containsSpam(getVal(fv, text));
       }
-      if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
-        spamBot = true;
-      }
-      //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
-      //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
-      //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
-      //else if((theForm.getSubmitterID()!=null)&&(theForm.getSubmitterID().equals("N%2FA"))) {spamBot=true;}
 
 
       String locCode = "";
