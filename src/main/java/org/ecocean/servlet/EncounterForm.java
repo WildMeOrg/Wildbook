@@ -382,14 +382,6 @@ System.out.println("*** trying redirect?");
 
 //{submitterID=tomcat, submitterProject=, photographerEmail=, metalTag(left)=, sex=unknown, measurement(weight)=34234, location=, acousticTagId=, behavior=yow behavior..., measurement(weightunits)=kilograms, acousticTagSerial=, photographerName=, lifeStage=sub-adult, submitterAddress=, satelliteTagSerial=, releaseDate=, photographerPhone=, measurement(lengthunits)=meters, measurement(weightsamplingProtocol)=samplingProtocol0, measurement(length)=, submitterOrganization=, photographerAddress=, longitude=, year=2014, lat=, measurement(lengthsamplingProtocol)=samplingProtocol0, submitterEmail=, minutes=00, elevation=, measurement(height)=, measurement(heightsamplingProtocol)=samplingProtocol0, scars=None, submitterPhone=, submitterName=tomcat, hour=-1, livingStatus=alive, depth=, country=, satelliteTagName=Wild Life Computers, metalTag(right)=, month=1, measurement(heightunits)=meters, Submit=Send encounter report, informothers=, day=0, satelliteTagArgosPttNumber=, comments=}
 
-      // Check for spamBots.
-      boolean spamBot = false;
-      String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
-      for (String text : spamFieldsToCheck) {
-        spamBot = spamBot | SpamChecker.containsSpam(getVal(fv, text));
-      }
-
-
       String locCode = "";
 System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
             if ((fv.get("locationID") != null) && !fv.get("locationID").toString().equals("")) {
@@ -856,6 +848,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
       enc.addComments(processingNotes.toString());
 
+      // Check for spamBot submissions.
+      SpamChecker.Result spamCheck = SpamChecker.isSpam(enc);
 
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
@@ -865,7 +859,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       } else {
         enc.setSubmitterID("N/A");
       }
-      if (!getVal(fv, "locCode").equals("")) {
+      if (spamCheck == SpamChecker.Result.NOT_SPAM && !getVal(fv, "locCode").equals("")) {
         enc.setLocationCode(locCode);
       }
       if (!getVal(fv, "country").equals("")) {
@@ -889,9 +883,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
       //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
-
             String newnum = "";
-            if (!spamBot) {
+            if (spamCheck != SpamChecker.Result.SPAM) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
 
@@ -911,7 +904,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
-      if (!spamBot) {
+      if (spamCheck != SpamChecker.Result.SPAM) {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");
