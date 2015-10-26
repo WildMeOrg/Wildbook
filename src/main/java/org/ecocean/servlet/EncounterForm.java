@@ -34,6 +34,8 @@ import java.util.StringTokenizer;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -396,17 +398,27 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
           try {
             props=ShepherdProperties.getProperties("submitActionClass.properties", "",context);
 
-            Enumeration m_enum = props.propertyNames();
-            while (m_enum.hasMoreElements()) {
-              String aLocationSnippet = ((String) m_enum.nextElement()).trim();
-              if (locTemp.indexOf(aLocationSnippet) != -1) {
+        	Enumeration m_enum = props.propertyNames();
+          while (m_enum.hasMoreElements()) {
+            String aLocationSnippet = ((String) m_enum.nextElement()).trim();
+            // Check for regex-match if property key is slash-delimited (e.g. "/regex/=LocationID")
+            Matcher matcher = Pattern.compile("^/(.+)/$", Pattern.CASE_INSENSITIVE).matcher(aLocationSnippet);
+            if (matcher.matches()) {
+              if (locTemp.matches(matcher.group(1))) {
+								locCode = props.getProperty(aLocationSnippet);
+              }
+            }
+            // Check for substring match
+            else {
+              if (locTemp.contains(aLocationSnippet.toLowerCase())) {
                 locCode = props.getProperty(aLocationSnippet);
               }
             }
           }
-          catch (Exception props_e) {
-            props_e.printStackTrace();
-          }
+        }
+      	catch (Exception props_e) {
+        	props_e.printStackTrace();
+      	}
 
       } //end else
         //end location code setter
