@@ -738,7 +738,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
             }
             catch(java.lang.NumberFormatException nfe){
                 enc.addComments("<p>Reported elevation was problematic: " + fv.get("elevation").toString() + "</p>");
-                fv.put("elevatoin", "");
+                fv.put("elevation", "");
             }
             catch(NullPointerException npe){
                 fv.put("elevation", "");
