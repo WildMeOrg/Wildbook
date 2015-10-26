@@ -15,7 +15,6 @@ org.ecocean.neural.*,
 	org.ecocean.grid.msm.*,
 	weka.classifiers.meta.*,
 	weka.classifiers.meta.AdaBoostM1,
-	weka.classifiers.bayes.BayesNet,
 	weka.classifiers.meta.MultiBoostAB,
 	weka.classifiers.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
@@ -85,15 +84,6 @@ booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instan
 String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
 booster.setOptions(weka.core.Utils.splitOptions(optionString));
 
-//try BayesNet
-BayesNet bayesBooster=new BayesNet();
-bayesBooster.buildClassifier(instances);
-System.out.println("Trying to write to: +"+pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
-//TrainNetwork.serializeWekaClassifier(request, bayesBooster, pathToClassifierFile.replaceFirst("adaboostM1", "bayesnet"));
-		
-//try MultiboostAB
-MultiBoostAB mabBooster=new MultiBoostAB();
-mabBooster.buildClassifier(instances);
 
 try{
 
@@ -248,16 +238,11 @@ for(int i=0;i<numInstances;i++){
           iExample.setValue(6, (new Double(dateDiff).doubleValue()));
          
           double[] fDistribution = booster.distributionForInstance(iExample);
-          double[] bDistribution = bayesBooster.distributionForInstance(iExample);
-          
+
           
           //double thisScore=TrainNetwork.getOverallFlukeMatchScore(request, numIntersections, distance.doubleValue(), i3sScore, new Double(proportion),intersectionStats,dtwStats,i3sStats, proportionStats, intersectionStdDev,dtwStdDev,i3sStdDev,proportionStdDev,intersectHandicap, dtwHandicap,i3sHandicap,proportionHandicap);
           double thisScore=TrainNetwork.round(fDistribution[0], 6);
-          double thisBayesScore=TrainNetwork.round(bDistribution[0],6);
-          
-         System.out.println("AdaBoost score: "+thisScore);
-         System.out.println("BayesNet score: "+thisBayesScore);
-          
+
           //getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, double numStandardDevs, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats)
             if(output==0){
             	
@@ -265,23 +250,20 @@ for(int i=0;i<numInstances;i++){
             	
             	//overall
             	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,4))); 
-            	
+            
             	if(overallCorrectHashtable.get(score)==null){
             		overallCorrectHashtable.put(score, 0);
             		
             	}
-            	if(bayesOverallCorrectHashtable.get(bayesScore)==null){
-            		bayesOverallCorrectHashtable.put(bayesScore, 0);
-            	}
+
             	Integer numValue=overallCorrectHashtable.get(score).intValue()+1;
-            	Integer numBayesValue=bayesOverallCorrectHashtable.get(bayesScore).intValue()+1;
+            	//Integer numBayesValue=bayesOverallCorrectHashtable.get(bayesScore).intValue()+1;
             	
             	overallCorrectHashtable.put(score, numValue);
-            	bayesOverallCorrectHashtable.put(bayesScore, numBayesValue);
+            	//bayesOverallCorrectHashtable.put(bayesScore, numBayesValue);
             	correctScoreTotal+=score;
             	numCorrectScores++;
-            	correctBayesScoreTotal+=bayesScore;
+            	//correctBayesScoreTotal+=bayesScore;
             	numBayesCorrectScores++;
             	
             	//intersection
@@ -307,20 +289,20 @@ for(int i=0;i<numInstances;i++){
             	//overall
             	
             	Double score=(new Double(TrainNetwork.round(thisScore,7))); 
-            	Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,4)));  
+            	//Double bayesScore=(new Double(TrainNetwork.round(thisBayesScore,4)));  
             	if(overallHashtable.get(score)==null){
             		overallHashtable.put(score, 0);
             	}
-            	if(bayesOverallHashtable.get(bayesScore)==null){
-            		bayesOverallHashtable.put(bayesScore, 0);
-            	}
+            	//if(bayesOverallHashtable.get(bayesScore)==null){
+            	//	bayesOverallHashtable.put(bayesScore, 0);
+            	//}
             	Integer numValue=overallHashtable.get(score).intValue()+1;
-            	Integer numBayesValue=bayesOverallHashtable.get(bayesScore).intValue()+1;
-            	bayesOverallHashtable.put(bayesScore, numBayesValue);
+            	//Integer numBayesValue=bayesOverallHashtable.get(bayesScore).intValue()+1;
+            	//bayesOverallHashtable.put(bayesScore, numBayesValue);
             	overallHashtable.put(thisScore,numValue);
             	incorrectScoreTotal+=score;
             	numIncorrectScores++;
-            	incorrectBayesScoreTotal+=bayesScore;
+            	//incorrectBayesScoreTotal+=bayesScore;
             	numBayesIncorrectScores++;
             	
             	//intersection
@@ -452,93 +434,6 @@ myShepherd.rollbackDBTransaction();
       	              
       	              
 </script>
-
-<!-- Bayes CHart -->
-<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-    google.setOnLoadCallback(drawBayesChart);
-
-      // Callback that creates and populates a data table,
-      // instantiates the pie chart, passes in the data and
-      // draws it.
-      function drawBayesChart() {
-
-        // Create the data table.
-        var overallBayesCorrectData = new google.visualization.DataTable();
-        overallBayesCorrectData.addColumn('number', 'score');
-        overallBayesCorrectData.addColumn('number', 'matching');
-        
-        overallBayesCorrectData.addRows([
-      	<%
-      	
-      	Enumeration<Double> correctBayesKeys=bayesOverallCorrectHashtable.keys();
-      	while(correctBayesKeys.hasMoreElements()){
-      		Double nextElem=correctBayesKeys.nextElement();	
-      	
-      	  //for(double i=0;i<=1;){
-      		  %>
-      		  [<%=nextElem %>,<%=(bayesOverallCorrectHashtable.get(nextElem).doubleValue()/numMatchLinks) %>],
-      		  <%
-      		 
-      	  }           
-      	%>              
-		]);
-      	
-      	
-      	
-     	 // Create the data table.
-       var overallBayesIncorrectData = new google.visualization.DataTable();
-       overallBayesIncorrectData.addColumn('number', 'score');
-       overallBayesIncorrectData.addColumn('number', 'nonmatching');
-     	
-       
-     	overallBayesIncorrectData.addRows([
-		<%
-		Enumeration<Double> incorrectBayesKeys=bayesOverallHashtable.keys();
-		while(incorrectBayesKeys.hasMoreElements()){
-      		Double nextElem=incorrectBayesKeys.nextElement();	
-			  %>
-			  [<%=nextElem %>,<%=(bayesOverallHashtable.get(nextElem).doubleValue()/numFalseLinks) %>],
-			  <%
-			 
-		  }           
-		%>           
-     	               
-     	               
-		]);
-      	
-      	
-      	
-      	var joinedBayesData = google.visualization.data.join(overallBayesIncorrectData, overallBayesCorrectData, 'full', [[0, 0]], [1], [1]);
-      	
-      	
-
-	        
-	        var options = {'title':'BayesNet Overall Scoring Performance: Matches vs Non-matches',
-                    'width':chartWidth,
-                    'height':chartHeight,
-                    'pointSize': 5,
-                    'color': 'yellow',
-                    series: {
-                        0: { color: 'red' },
-                     	1: {color: 'green'},
-
-                       
-                      },
-                      vAxis: {title: "% of type (match or non-match) total"},
-                      hAxis: {title: "Overall Score"},
-                    };
-
-	        // Instantiate and draw our chart, passing in some options.
-	        var bayesChart = new google.visualization.LineChart(document.getElementById('overallbayeschart2_div'));
-	        bayesChart.draw(joinedBayesData, options);
-	        
-	      }
-      	              
-      	              
-</script>
-
-<!-- ENd Bayes chart -->
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
@@ -1067,10 +962,8 @@ myShepherd.rollbackDBTransaction();
 
 <div id="overallchart_div"></div>
 <p>AdaBoost: Average match vs non-match score diff per encounter: <%=(correctScoreTotal/numCorrectScores-incorrectScoreTotal/numIncorrectScores) %></p>
-<p>BayesNet: Average match vs non-match score diff per encounter: <%=(correctBayesScoreTotal/numBayesCorrectScores-incorrectBayesScoreTotal/numBayesIncorrectScores) %></p>
 
 
-<div id="overallbayeschart2_div"></div>
 
 <h2>Individual Algorithm Behavior</h2>
 
@@ -1206,7 +1099,7 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 }
 
 AdaBoostM1 cls=new AdaBoostM1();
-//String optionString = " -P 100 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
+cls.buildClassifier(instances);
 cls.setOptions(weka.core.Utils.splitOptions(optionString));
 
 
@@ -1216,10 +1109,7 @@ eval.evaluateModel(cls, isTrainingSet);
 
 
 %>
-<p>AdaBoost % correctly classified: <%=eval.pctCorrect() %></p>
-<p>Num instances used to test: <%=isTrainingSet.numInstances() %></p>
-<p>Num instances used to build a new sample classifier: <%=classifierSet.numInstances() %></p>
-
+TBD
 <%
 } 
 catch(Exception ex) {
