@@ -401,6 +401,9 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
+      if (spamFields.toString().toLowerCase().indexOf("new york") != -1) {
+        spamBot = true;
+      }
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
