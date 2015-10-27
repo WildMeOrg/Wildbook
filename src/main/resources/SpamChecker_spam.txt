@@ -1,2 +1,3 @@
 /(?i).*porn.*/
 /(?i).*\bhref\b.*/
+/(?i).*new york.*/
