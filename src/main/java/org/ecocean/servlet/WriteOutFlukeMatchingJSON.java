@@ -236,20 +236,38 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
               b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
             
-              
+              Double aClass=0.0;
+              Double bClass=0.0;
               
               try{
-                a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
+                aClass=booster.classifyInstance(a1Example);
+                System.out.println("Predicted Aclass: "+aClass);
+                
+                int ArrayResultPosition=0;
+                if(aClass==1.0)ArrayResultPosition=1;
+                a1_adjustedValue=booster.distributionForInstance(a1Example)[ArrayResultPosition];
                
-                b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
+                int BrrayResultPosition=0;
+                if(bClass==1.0)BrrayResultPosition=1;
+                bClass=booster.classifyInstance(b1Example);
+                System.out.println("Predicted Bclass: "+bClass);
+                b1_adjustedValue=booster.distributionForInstance(b1Example)[BrrayResultPosition];
               }
               catch(Exception e){e.printStackTrace();}
             
+              
               System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
             
-            if(a1_adjustedValue > b1_adjustedValue){return -1;}
-            else if(a1_adjustedValue < b1_adjustedValue){return 1;}
-            else{return 0;}
+              if(aClass < bClass){return -1;}
+              else if(aClass > bClass){return 1;}
+              else{
+                
+                
+              
+                if(a1_adjustedValue > b1_adjustedValue){return -1;}
+                else if(a1_adjustedValue < b1_adjustedValue){return 1;}
+                else{return 0;}
+              }
         }
       });
       
@@ -305,11 +323,14 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
        iExample.setDataset(instances);
         TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo);
         
-        
+        Double myClass=booster.classifyInstance(iExample);
         double[] fDistribution = booster.distributionForInstance(iExample);
-        System.out.println("    fDistribution score: "+fDistribution[0]);
+        System.out.println("IndividualID: "+individualID+"    fClass: "+myClass+"   fDistribution score: "+fDistribution[myClass.intValue()]);
         //individual scores
         result.add(new JsonPrimitive(i+1));
+        
+        
+        
         result.add(new JsonPrimitive(fDistribution[0]));
         result.add(new JsonPrimitive(0));
         
@@ -357,8 +378,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
+      if(myClass==0.0){
         jsonOut.append(gson.toJson(result)+",\n");
-         
+      }   
         
       }
       

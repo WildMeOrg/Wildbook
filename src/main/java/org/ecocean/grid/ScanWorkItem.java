@@ -252,8 +252,14 @@ public class ScanWorkItem implements java.io.Serializable {
       
       
       //set proportion Value
-      result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
-      
+      //for dorsals use CRC method
+      if(EncounterLite.isDorsalFin(existingEncounter)&&EncounterLite.isDorsalFin(newEncounter)){
+        result.setProportionValue(EncounterLite.getCascadiaDorsalProportionsScore(existingEncounter, newEncounter));
+      }
+      //for flukes use simple width-height proportions
+      else{
+        result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
+      }
       //set MSM value
       Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
       System.out.println("     MSM result is: "+msmValue.doubleValue());
