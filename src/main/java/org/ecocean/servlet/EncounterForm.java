@@ -849,7 +849,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       enc.addComments(processingNotes.toString());
 
       // Check for spamBot submissions.
-      SpamChecker.Result spamCheck = SpamChecker.isSpam(enc);
+      SpamChecker.Result spamCheck = new SpamChecker().isSpam(enc);
 
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
