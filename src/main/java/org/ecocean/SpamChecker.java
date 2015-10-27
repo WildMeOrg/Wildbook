@@ -44,6 +44,8 @@ public final class SpamChecker {
         BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
       String s = null;
       while ((s = br.readLine()) != null) {
+        if (s.trim().startsWith("#") || "".equals(s.trim()))
+          continue;
         list.add(Pattern.compile(s));
         // Check for regex-match if text is slash-delimited (e.g. "/regex/")
         Matcher m = Pattern.compile("^/(.+)/$").matcher(s);
