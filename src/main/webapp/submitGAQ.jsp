@@ -6,29 +6,7 @@
                  java.util.Properties,
                  java.util.Locale" %>
 
-
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<%
-String context="context0";
-context=ServletUtilities.getContext(request);
-if(request.getUserPrincipal()!=null){
-	String username=request.getUserPrincipal().toString();
-	Shepherd userShepherd=new Shepherd(context);
-	userShepherd.beginDBTransaction();
-	if(userShepherd.getUser(username)!=null){
-		User user=userShepherd.getUser(username);
-		if((user.getAffiliation()!=null)&&(user.getAffiliation().toLowerCase().equals("georgia aquarium field station"))){
-			%>
-			<META http-equiv="refresh" content="0;URL=submitGAQ.jsp">
-			<%
-		}
-	}
-	userShepherd.rollbackDBTransaction();
-	userShepherd.closeDBTransaction();
-}
-%>
-
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
@@ -36,7 +14,8 @@ if(request.getUserPrincipal()!=null){
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
-
+String context="context0";
+context=ServletUtilities.getContext(request);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -108,6 +87,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
   <script type="text/javascript">
+  animatedcollapse.addDiv('gaq', 'fade=1');
     animatedcollapse.addDiv('advancedInformation', 'fade=1');
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
@@ -354,14 +334,15 @@ google.maps.event.addDomListener(window, 'load', initialize);
 <div class="container maincontent">
  
   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
-      <h1 class="intro">Report an encounter</h1>
+       <h1 class="intro"><img src="images/gaq-social-logo.jpg" height="100px" align="middle"/><br />Georgia Aquarium PhotoID Data Sheet</h1>
+
 
       <p>
         Use the online form below to record the details of your encounter. Be as accurate and specific as possible. Please note that by submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.
       </p>
 
       <p class="bg-danger text-danger">
-        <strong>Note</strong>: The fields labelled in Red are required.
+        <strong>Note</strong>: The fields labeled in Red are required.
       </p>
   </div>
   
@@ -481,13 +462,38 @@ function showUploadBox() {
             </div>
         </div>
     </div>
+    
+    
+  <div class="form-group">
+      <div class="col-xs-6 col-lg-8">
+      <table>
+      	<tr>
+	         <td>
+	         	<label class="control-label">Camera</label> <input class="form-control" name="camera" type="text" id="camera" size="10" value="">
+	      	</td>
+	      	<td>	
+	      		<label class="control-label">Lens</label> <input class="form-control" name="lens" type="text" id="lens" size="10" value="">
+	      	</td>
+	    
+	    	<td>  	
+	      		<label class="control-label">Card</label> <input class="form-control" name="card" type="text" id="card" size="10" value="">
+	      	</td>
+	      	<td>
+	      		<label class="control-label">Folder</label> <input class="form-control" name="folder" type="text" id="folder" size="10" value="">
+	      	</td>
+	      	 </tr> 
+	      </table>
+	    
+      </div>
+    </div>
+    
 
 </fieldset>
 
 <hr />
 
 <fieldset>
-<h3><%=props.getProperty("dateAndLocation")%></h3>
+<h3>Date</h3>
 
 <div class="form-group required">
 
@@ -524,7 +530,33 @@ if(CommonConfiguration.showReleaseDate(context)){
 <%
 }
 %>
+  <div class="form-group">
+      <div class="col-xs-6 col-lg-8">
+      <table>
+      	<tr valign="middle">
+	         <td>
+	         	<label class="control-label">Start Time</label> <input class="form-control" name="startTime" type="text" id="startTime" size="10" value="">
+	      	</td>
+	      	<td>	
+	      		<label class="control-label">End Time</label> <input class="form-control" name="endTime" type="text" id="endTime" size="10" value=""> 
+	      	</td>
 
+	      	 </tr> 
+	      </table>
+
+
+	    
+      </div>
+            	      <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+        <p class="help-block">
+          Example: 10:25
+          
+        </p>
+      </div>
+
+    </div>
+    
+    </div>
 </fieldset>
 
 <hr />
@@ -550,7 +582,7 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label">Was this one of our study sites?</label>
+        <label class="control-label">Survey Area</label>
       </div>
       
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
@@ -584,6 +616,28 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 
 
 %>
+
+    <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label">Conditions at site</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <input class="form-control" name="conditions" type="text" id="conditions" size="75" value="">
+      </div>
+    </div>
+    
+
+    
+        <div class="form-group">
+      <div class="col-xs-6 col-md-4">
+        <label class="control-label">Number of boats</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <input class="form-control" name="numberOfBoats" type="text" id="numberOfBoats" size="3" value="">
+      </div>
+    </div>
+
+
           <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label"><%=props.getProperty("country") %></label>
@@ -640,6 +694,49 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
       <p class="help-block">
         GPS coordinates are in the decimal degrees format. Do you have GPS coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
       </p> 
+      
+        <div class="form-group">
+      <div class="col-xs-6 col-lg-8">
+      <table>
+      	<tr>
+	         <td>
+	         	<label class="control-label">Start Latitude</label> <input class="form-control" name="startLatitude" type="text" id="startLatitude" size="10" value="">
+	      	</td>
+	      	<td>	
+	      		<label class="control-label">Start Longitude</label> <input class="form-control" name="startLongitude" type="text" id="startLongitude" size="10" value="">
+	      	</td>
+	    
+	    	<td>
+	         	<label class="control-label">End Latitude</label> <input class="form-control" name="endLatitude" type="text" id="endLatitude" size="10" value="">
+	      	</td>
+	      	<td>	
+	      		<label class="control-label">End Longitude</label> <input class="form-control" name="endLongitude" type="text" id="endLongitude" size="10" value="">
+	      	</td>
+	      	 </tr> 
+	      </table>
+	    
+      </div>
+    </div>
+    
+          <div class="form-group">
+      <div class="col-xs-6 col-lg-8">
+      <table>
+      	<tr>
+	         <td>
+	         	<label class="control-label">Begin Waypoint</label> <input class="form-control" name="beginWaypoint" type="text" id="beginWaypoint" size="10" value="">
+	      	</td>
+	      	<td>	
+	      		<label class="control-label">End Waypoint</label> <input class="form-control" name="endWaypoint" type="text" id="endWaypoint" size="10" value="">
+	      	</td>
+	    
+	
+	      	 </tr> 
+	      </table>
+	    
+      </div>
+    </div>
+      
+      
     </div>
     
     
@@ -758,6 +855,16 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
+        <label class="control-label">Research Team</label>
+      </div>
+      <div class="col-xs-6 col-lg-8">
+        <input class="form-control" name="researchTeam" type="text" id="researchTeam" size="75" value="">
+      </div>
+    </div>
+    
+    <!-- Add research team for GAq -->
+        <div class="form-group">
+      <div class="col-xs-6 col-md-4">
         <label class="control-label">Project</label>
       </div>
       <div class="col-xs-6 col-lg-8">
@@ -777,15 +884,14 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
  
  
  
-  
-  <h4 class="accordion">
+   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-      <%=props.getProperty("advancedInformation") %>
+    	Other Information
     </a>
   </h4>
-
-    <div id="advancedInformation" fade="1" style="display: none;">
+ 
+    <div id="advancedInformation" fade="1">
     
       <h3>About the animal</h3>
       
@@ -870,7 +976,23 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="behavior" type="text" id="behavior" size="75">
+            
+            
+            <select class="form-control" name="behavior" type="text" id="behavior">
+          		<option value="" selected></option>
+          		<option value="Avoid">Avoid</option>
+          		<option value="Feed">Feed</option>
+          		<option value="Feed">Leap</option>
+          		<option value="Feed">Lob/Chuff</option>
+          		<option value="Mill">Mill</option>
+                <option value="Play">Play</option>
+                <option value="Prob. Feed">Prob. Feed</option>
+                <option value="Rest">Rest</option>
+                <option value="Social">Social</option> 
+                <option value="Travel">Travel</option>   
+                <option value="WBoast">W/Boat</option>     
+                         
+          </select>
           </div>
         </div>
         
@@ -966,7 +1088,10 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     </tr>
   </c:forEach>
   </table>
+  
    </div>
+   
+  <p>Conditions description  
         </div>
          </fieldset>
 </c:if>
