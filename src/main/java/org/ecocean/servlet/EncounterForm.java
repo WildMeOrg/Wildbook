@@ -891,6 +891,71 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "informothers").equals("")) {
         enc.setInformOthers(getVal(fv, "informothers"));
       }
+      
+      // xxxxxxx
+      //add research team for GAq
+      if (!getVal(fv, "researchTeam").equals("")) {
+        enc.setDynamicProperty("Research Team", (getVal(fv, "researchTeam")));
+      }
+      if (!getVal(fv, "vessel").equals("")) {
+        enc.setDynamicProperty("Vessel", (getVal(fv, "vessel")));
+      }
+      if (!getVal(fv, "conditions").equals("")) {
+        enc.setDynamicProperty("Conditions", (getVal(fv, "conditions")));
+      }
+      
+      if (!getVal(fv, "camera").equals("")) {
+        enc.setDynamicProperty("Camera", (getVal(fv, "camera")));
+      }
+      if (!getVal(fv, "lens").equals("")) {
+        enc.setDynamicProperty("Lens", (getVal(fv, "lens")));
+      }
+      if (!getVal(fv, "card").equals("")) {
+        enc.setDynamicProperty("Card", (getVal(fv, "card")));
+      }
+      if (!getVal(fv, "folder").equals("")) {
+        enc.setDynamicProperty("Folder", (getVal(fv, "folder")));
+      }
+      
+      if (!getVal(fv, "numberOfBoats").equals("")) {
+        enc.setDynamicProperty("Number of boats", (getVal(fv, "numberOfBoats")));
+      }
+      
+      if (!getVal(fv, "startTime").equals("")) {
+        enc.setDynamicProperty("Start Time", (getVal(fv, "startTime")));
+      }
+      
+      if (!getVal(fv, "endTime").equals("")) {
+        enc.setDynamicProperty("End Time", (getVal(fv, "endTime")));
+      }
+      
+      
+      if (!getVal(fv, "endLongitude").equals("")) {
+        enc.setDynamicProperty("End Longitude", (getVal(fv, "endLongitude")));
+      }
+      if (!getVal(fv, "endLatitude").equals("")) {
+        enc.setDynamicProperty("End Latitude", (getVal(fv, "endLatitude")));
+      }
+      
+      if (!getVal(fv, "startLongitude").equals("")) {
+        enc.setDynamicProperty("Start Longitude", (getVal(fv, "startLongitude")));
+      }
+      if (!getVal(fv, "startLatitude").equals("")) {
+        enc.setDynamicProperty("Start Latitude", (getVal(fv, "startLatitude")));
+      }
+      
+      if (!getVal(fv, "beginWaypoint").equals("")) {
+        enc.setDynamicProperty("Begin Waypoint", (getVal(fv, "beginWaypoint")));
+      }
+      if (!getVal(fv, "endWaypoint").equals("")) {
+        enc.setDynamicProperty("End Waypoint", (getVal(fv, "endWaypoint")));
+      }
+      
+      
+      
+      //xxxxxxxx
+      
+      
       String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
 
       //new additions for DarwinCore
