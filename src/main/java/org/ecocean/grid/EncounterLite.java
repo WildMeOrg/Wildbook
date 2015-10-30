@@ -3598,6 +3598,68 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         }
         System.out.println("newSpots2 after second copy: "+newSpots2.size());
         
+        //NEW MODS FOR TRAILING EDGE
+        
+        
+        //Let's get the trailing edge only
+        /*
+        double midX=0;
+        double midY=0;
+        double highestY=-999999;
+        int highestYIndex=0;
+        for (int i = 0 ; i < spotsSize ; i++) {
+          midX+=newSpots2.get(i).getCentroidX();
+          midY+=newSpots2.get(i).getCentroidY();
+          if(newSpots2.get(i).getCentroidY()>highestY){
+            highestY=newSpots2.get(i).getCentroidY();
+            highestYIndex=i;
+          }
+        }
+        midX=midX/spotsSize;
+        midY=midY/spotsSize;
+        
+        
+   
+        
+        System.out.println("MidX is: "+midX+" and MidY is: "+midY);
+        
+        
+        //boolean highestSpotEncountered=false;
+        for (int i = 0 ; i < newSpots2.size() ; i++) {
+          if(i>highestYIndex){
+          
+            System.out.println("     REMOVE: "+newSpots2.get(i).getCentroidX()+":"+newSpots2.get(i).getCentroidY());
+            newSpots2.remove(i);
+            i--;
+          }
+          
+        }
+        
+        System.out.println("newSpots2 after reduction to trailing edge: "+newSpots2.size());
+        
+        
+        ArrayList<SuperSpot> newSpots3=new ArrayList<SuperSpot>();
+        for (int i = 0 ; i < newSpots2.size() ; i++) {
+          
+          //put highest point at 0,0
+          double x1=newSpots2.get(i).getCentroidX()-midX;
+          double y1=newSpots2.get(i).getCentroidY()-midY;
+          
+          double radianValue=Math.toRadians(-90);
+          double x2 = x1 *Math.cos(radianValue) - y1* Math.sin(radianValue)+midX;
+          double y2 = x1 *Math.sin(radianValue) + y1* Math.cos(radianValue)+midY;
+          
+          newSpots3.add(new SuperSpot(x2,y2));
+          
+        }
+        newSpots2=newSpots3;
+        */
+        
+        
+        
+        
+        //END NEW MODS FOR TRAILING EDGE
+        
         processLeftSpots(newSpots2);
        
     }

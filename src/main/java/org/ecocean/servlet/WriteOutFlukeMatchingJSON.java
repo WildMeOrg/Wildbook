@@ -245,29 +245,27 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
                 
                 int ArrayResultPosition=0;
                 if(aClass==1.0)ArrayResultPosition=1;
-                a1_adjustedValue=booster.distributionForInstance(a1Example)[ArrayResultPosition];
+                a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
                
                 int BrrayResultPosition=0;
                 if(bClass==1.0)BrrayResultPosition=1;
                 bClass=booster.classifyInstance(b1Example);
                 System.out.println("Predicted Bclass: "+bClass);
-                b1_adjustedValue=booster.distributionForInstance(b1Example)[BrrayResultPosition];
+                b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
               }
               catch(Exception e){e.printStackTrace();}
             
               
               System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
             
-              if(aClass < bClass){return -1;}
-              else if(aClass > bClass){return 1;}
-              else{
+              
                 
                 
               
                 if(a1_adjustedValue > b1_adjustedValue){return -1;}
                 else if(a1_adjustedValue < b1_adjustedValue){return 1;}
                 else{return 0;}
-              }
+             
         }
       });
       
@@ -378,9 +376,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
-      if(myClass==0.0){
+      //if(myClass==0.0){
         jsonOut.append(gson.toJson(result)+",\n");
-      }   
+      //}   
         
       }
       
