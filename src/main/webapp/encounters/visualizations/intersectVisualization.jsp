@@ -12,216 +12,14 @@
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
 	org.ecocean.grid.* ,
-
+ weka.classifiers.meta.AdaBoostM1,
+  weka.core.Instance,
+  weka.core.Instances,
+  org.ecocean.grid.msm.*,
 	org.ecocean.neural.TrainNetwork"
 	%>
 	
 	
-	<%! 
-	
-	 public static java.lang.Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
-	      
-	      try{
-	        ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
-	        if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
-	        if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
-	        //sort the Array - lowest x to highest X coordinate
-	        Collections.sort(spots, new XComparator());
-	        //let's prefilter old spots for outlies outside the bounds
-	        for(int i=0;i<spots.size();i++){
-	                    if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-            SuperSpot theSpot=spots.get(i);
-            if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-              spots.remove(i);
-              i--;
-            }
-            if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-              spots.remove(i);
-              i--;
-            }
-        }
-	        }
-	        int numOldSpots=spots.size();
-	        
-	        
-	        
-	          
-	       java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
-	       
-	         ArrayList<SuperSpot> spots2=new ArrayList<SuperSpot>();
-	        if(theEnc2.getSpots()!=null){spots2.addAll(theEnc2.getSpots());}
-	        if(theEnc2.getRightSpots()!=null){spots2.addAll(theEnc2.getRightSpots());}
-	          //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
-	          
-	          java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
-	      
-	          newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
-	          newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
-	          newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
-	          
-	          
-	          //return to using persisted refSpots
-	          theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
-	          theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
-	          theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
-	          
-	          Collections.sort(spots2, new XComparator());
-	          
-	        //new arrays
-	          ArrayList<SuperSpot> formerSpots=new ArrayList<SuperSpot>();
-	          ArrayList<SuperSpot> newerSpots=new ArrayList<SuperSpot>();
-	        
-	        SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
-	        Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
-	        double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-	        
-	        SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
-	        Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
-	        double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-	        
-	        
-	        //first populate OLD_VALUES - easy
-	        
-	        for(int i=0;i<numOldSpots;i++){
-	          SuperSpot theSpot=spots.get(i);
-	          java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
-	          SuperSpot m_spot=new SuperSpot(thePoint.getX()/oldLineWidth,oldLine.ptLineDist(thePoint)/oldLineWidth);
-	          formerSpots.add(m_spot);
-	          //System.out.println(".....adding: ["+m_spot.getCentroidX()+","+m_spot.getCentroidY()+"]");
-	        }
-	        
-	        
-	        //second populate NEW_VALUES - trickier
-	        
-	        //create an array of lines made from all point pairs in newEnc
-	        
-	        
-	        ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
-			if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
-	        if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());};
-	        int numNewEncSpots=newSpots.size();
-	        Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-	        Collections.sort(newSpots, new XComparator());
-	        for(int i=0;i<(numNewEncSpots-1);i++){
-	          //convert y coords to distance from newLine
-	          double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-	          double x2=(newSpots.get(i+1).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-	          double yCoord1=newLine.ptLineDist(newSpots.get(i).getCentroidX(), newSpots.get(i).getCentroidY())/newLineWidth;
-	          double yCoord2=newLine.ptLineDist(newSpots.get(i+1).getCentroidX(), newSpots.get(i+1).getCentroidY())/newLineWidth;
-	          newLines[i]=new Line2D.Double(x1, yCoord1, x2, yCoord2);
-	        }
-	        int numNewLines=newLines.length;
-	        
-	        
-	        
-	        //now iterate and create our points
-	        for(int i=0;i<numOldSpots;i++){
-	          SuperSpot theSpot=spots.get(i);
-	          double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
-	          Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
-	          
-	          //now we need to find where this point falls on the newEnc pattern
-	          Line2D.Double intersectionLine=null;
-	          int lineIterator=0;
-	          while((intersectionLine==null)&&(lineIterator<numNewLines)){
-	            //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
-	            if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
-	              intersectionLine=newLines[lineIterator];
-	              //System.out.println("!!!!!!FOUND the INTERSECT!!!!!!");
-	            }
-	            lineIterator++;
-	          }
-	          try{
-	            double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
-	            double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
-	            
-	            //Point2D.Double thePoint=new Point2D.Double(xCoordFraction,yCoord);
-	            
-	            SuperSpot m_spot=new SuperSpot(formerSpots.get(i).getCentroidX(),yCoord);
-	            //System.out.println(".....adding: ["+m_spot.getCentroidX()+","+yCoord+"]");
-	            newerSpots.add(m_spot);
-	          }
-	          catch(Exception e){
-	            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
-	            SuperSpot m_spot=new SuperSpot(formerSpots.get(i).getCentroidX(),0);
-	            newerSpots.add(m_spot);
-	          }
-	        }
-	          //continue old method
-	          
-	          //in advance of any intersection
-	          //create a list of Poin2DDouble Pair proportional distances from the notch
-	          ArrayList<java.lang.Double> intersectionsProportionalDistances=new ArrayList<java.lang.Double>();
-	          
-	          //let's try some fun intersection analysis
-	          spots=formerSpots;
-	          spots2=newerSpots;
-	          int newPrintSize=spots2.size();
-	          int thisPrintSize=spots.size();
-	          
-	          //calculate smallest array size and then -1 for max number of potential lines to match
-	          int maxIntersectingLines=newPrintSize-1;
-	          if(thisPrintSize<newPrintSize){maxIntersectingLines=thisPrintSize-1;}
-	          
-	          double numIntersections=0;
-	          StringBuffer anglesOfIntersection=new StringBuffer("");
-	          for(int i=0;i<(newPrintSize-1);i++){
-	            //for(int j=i+1;j<newPrintSize;j++){
-	            int j=i+1;
-	            
-	            java.awt.geom.Point2D.Double transformedStartPoint=new java.awt.geom.Point2D.Double(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());
-	            
-	            java.awt.geom.Point2D.Double transformedEndPoint=new java.awt.geom.Point2D.Double(spots2.get(j).getCentroidX(),spots2.get(j).getCentroidY());
-	            
-	              java.awt.geom.Point2D.Double newStart=(new  java.awt.geom.Point2D.Double(transformedStartPoint.getX(),transformedStartPoint.getY()));
-	              java.awt.geom.Point2D.Double newEnd=(new  java.awt.geom.Point2D.Double(transformedEndPoint.getX(),transformedEndPoint.getY()) ) ;
-	              java.awt.geom.Line2D.Double newLine2=new java.awt.geom.Line2D.Double(newStart,newEnd  );
-	            
-	              //now compare to thisPattern
-	              int m=0;
-	              boolean foundIntersect=false;
-	              while((!foundIntersect)&&(m<(thisPrintSize-1))){
-	       
-	                    int n=m+1;
-	                    
-	                    java.awt.geom.Point2D.Double thisStart=(new  java.awt.geom.Point2D.Double(spots.get(m).getCentroidX(),spots.get(m).getCentroidY()));
-	                    java.awt.geom.Point2D.Double thisEnd=(new  java.awt.geom.Point2D.Double(spots.get(n).getCentroidX(),spots.get(n).getCentroidY()) );   
-	                    java.awt.geom.Line2D.Double thisLine=new java.awt.geom.Line2D.Double(thisStart,thisEnd);
-	                    
-	                    if(newLine2.intersectsLine(thisLine)){
-	                        numIntersections++;
-	                        foundIntersect=true;
-	                        String intersectionAngle=java.lang.Double.toString(EncounterLite.angleBetween2Lines(newLine2, thisLine));
-	                        anglesOfIntersection.append(intersectionAngle+",");
-	                        
-	                        //calculate proportional distance to test if intersection was valid in original space
-	                        //untranslate new points since they were mapped into this points
-	                        java.awt.geom.Point2D.Double intersectionPoint=EncounterLite.getIntersectionPoint(newLine2,thisLine);
-	          
-	                        
-	                      }
-	                    m++;
-	              }
-	              
-	            
-	            
-	            
-	          }
-	          return new java.lang.Double((numIntersections/maxIntersectingLines));
-	          //return (numIntersections);
-	      
-	    }
-	     catch(Exception e){
-	       e.printStackTrace();
-	       return new java.lang.Double(0.0);
-	     }
-	    
-	    
-	  }
-	
-	
-	%>
-
 
 
 
@@ -291,6 +89,7 @@ try {
   //set up the JDO pieces and Shepherd
   myShepherd.beginDBTransaction();
   Encounter enc1=myShepherd.getEncounter(encNum);
+  String genusSpecies=enc1.getGenus()+enc1.getSpecificEpithet();
   Encounter enc2=myShepherd.getEncounter(encNum2);
   EncounterLite theEnc=new EncounterLite(enc1);
   EncounterLite theEnc2=new EncounterLite(enc2);
@@ -324,6 +123,13 @@ try {
     
 	  
 	  java.awt.geom.Point2D.Double[] theEncControlSpots=new java.awt.geom.Point2D.Double[3];
+	  
+	  theEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[0].getCentroidX(),theEnc.getLeftReferenceSpots()[0].getCentroidY());
+	  theEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[1].getCentroidX(),theEnc.getLeftReferenceSpots()[1].getCentroidY());
+	  theEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc.getLeftReferenceSpots()[2].getCentroidX(),theEnc.getLeftReferenceSpots()[2].getCentroidY());
+	  
+	  
+	  /*
 	  theEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
 	  theEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
 	  theEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
@@ -342,6 +148,7 @@ try {
 
 		  
 	  }	
+	  */
 	  
 
     
@@ -369,7 +176,7 @@ try {
 			 %>  
 			 [
 			  <%=spots.get(t).getCentroidX() %>,
-			  -<%=spots.get(t).getCentroidY() %>
+			  <%=spots.get(t).getCentroidY() %>
 			  ],
 		 
 			 <%
@@ -413,11 +220,21 @@ try {
     //newEncControlSpots = theEnc2.getThreeLeftFiducialPoints();
     
 	  java.awt.geom.Point2D.Double[] newEncControlSpots=new java.awt.geom.Point2D.Double[3];
+	 /*
 	  newEncControlSpots[0]=new java.awt.geom.Point2D.Double(9999999,0);
 	  newEncControlSpots[1]=new java.awt.geom.Point2D.Double(0,-999999);
 	  newEncControlSpots[2]=new java.awt.geom.Point2D.Double(-99999,0);
+	  */
+	  
+	  newEncControlSpots[0]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[0].getCentroidX(),theEnc2.getLeftReferenceSpots()[0].getCentroidY());
+	  newEncControlSpots[1]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[1].getCentroidX(),theEnc2.getLeftReferenceSpots()[1].getCentroidY());
+	  newEncControlSpots[2]=new java.awt.geom.Point2D.Double(theEnc2.getLeftReferenceSpots()[2].getCentroidX(),theEnc2.getLeftReferenceSpots()[2].getCentroidY());
+	  
+	  
+	  
 	  Builder newBuilder = TimeSeriesBase.builder();
 	  
+	  /*
 	  for(int i=0;i<spots2.size();i++){
 		  SuperSpot mySpot=spots2.get(i);
 		  
@@ -433,7 +250,7 @@ try {
 		  //newBuilder.add(spots2.get(i).getCentroidX(),spots2.get(i).getCentroidY());  
 		  
 	  }	
-	  
+	  */
 	  //TimeSeries newTimeSeries=newBuilder.build();
     
     AffineTransform at=EncounterLite.deriveAffineTransform(
@@ -464,7 +281,8 @@ try {
 		 at.transform(originalPoint, transformedPoint);
 		 %>  
 		 [
-		  <%=transformedPoint.getX() %>, -<%=transformedPoint.getY() %>
+		  //<%=transformedPoint.getX() %>, <%=transformedPoint.getY() %>
+		  <%=originalPoint.getX() %>, <%=originalPoint.getY() %>
 		  ],
 		 <%
 	}
@@ -494,6 +312,7 @@ try {
                     'height':chartHeight,
                     'pointSize': 5,
                     'color': 'yellow',
+                    'lineWidth': 0,
                     series: {
                         0: { color: 'blue' },
                      	1: {color: 'yellow'},
@@ -522,7 +341,7 @@ try {
 	    //let's try some fun intersection analysis
 	    int newPrintSize=spots2.size();
 	    int thisPrintSize=spots.size();
-	    java.lang.Double numIntersections=getHolmbergIntersectionScore(theEnc, theEnc2);
+	    java.lang.Double numIntersections=EncounterLite.getHolmbergIntersectionScore(theEnc, theEnc2);
 	    double finalInter=-1;
 	   	if(numIntersections!=null){finalInter=numIntersections;}
 	   
@@ -545,12 +364,45 @@ try {
 	    //proportional analysis
 	    double propor=EncounterLite.getFlukeProportion(theEnc,theEnc2);
 	
-	    
-    
+	    String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
+	      String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
+	      
+	    final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+	      final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+	      //SWALE tunings - default are early results for Physeter macrocephalus
+          double swalePenalty=-2;
+          double swaleReward=25.0;
+          double swaleEpsilon=0.0011419401589504922;
+  
+          double date = Instance.missingValue();
+          if((theEnc.getDateLong()!=null)&&(theEnc2.getDateLong()!=null)){
+            try{
+              date=Math.abs((new Long(theEnc2.getDateLong()-theEnc.getDateLong())).doubleValue());
+            }
+            catch(Exception e){
+              e.printStackTrace();
+            }
+          }
+          
+	      Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+	      a1Example.setDataset(instances);
+          a1Example.setValue(0, finalInter);
+          a1Example.setValue(1, distance);
+          a1Example.setValue(2,  newScore);
+          a1Example.setValue(3, propor);
+          a1Example.setValue(4, MSM.getMSMDistance(theEnc, theEnc2));
+          a1Example.setValue(5, EncounterLite.getSwaleMatchScore(theEnc, theEnc2, swalePenalty, swaleReward, swaleEpsilon));
+          a1Example.setValue(6, date);
+          
+        
+          
     %>
 	    
-	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
+	    <h2>Comparison: <a href="../encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="../encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
 </h3>
+
+<p>SadBoostM1 score: +<%=booster.distributionForInstance(a1Example)[0] %></p>
+
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 
 	    
@@ -600,8 +452,8 @@ String newEncounterDir = enc2.subdir();
 
 <table width="<%=chartWidth %>px">
 <tr>
-<td><img src="http://localhost:8080/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEncounterDir.replaceAll("\\\\", "/") %>/<%=enc1.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
-<td><img src="http://localhost:8080/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=newEncounterDir.replaceAll("\\\\", "/") %>/<%=enc2.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
+<td><img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=thisEncounterDir.replaceAll("\\\\", "/") %>/<%=enc1.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
+<td><img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=newEncounterDir.replaceAll("\\\\", "/") %>/<%=enc2.getSpotImageFileName() %>" width="<%=((int)(chartWidth/2)) %>px" height="*" /></td>
 </tr>
 
 </table>

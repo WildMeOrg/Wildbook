@@ -216,9 +216,9 @@ var encounterNumber = '<%=num%>';
 </div>
 <div id="result-images"></div>
 
-
+<!--  
 <div id="chart"></div>
-
+-->
 
 <div class="pageableTable-wrapper">
 	<div id="progress">loading...</div>
