@@ -471,8 +471,8 @@ single scan are allowed to exceed the total.</span>
 %>
 
 
-<h2>AdaBoost Training</h2>
-<p><em>(use online in offline Wildbooks)</em></p>
+<h2>Build Weka Instances</h2>
+<p><em>(resource intensive: use only in offline Wildbooks)</em></p>
 
 <form id="adaboostForm" 
 	  action="../TrainAdaboostM1" 
@@ -516,8 +516,8 @@ single scan are allowed to exceed the total.</span>
 
 
 
-<h2>SWALE Tuning</h2>
-<p><em>(use online in offline Wildbooks)</em></p>
+<h2>Sequence Weighted ALignmEnt (SWALE) Tuning</h2>
+<p><em>(use only in offline Wildbooks)</em></p>
 
 <form id="swaleForm" 
 	  action="../TrainSwale" 

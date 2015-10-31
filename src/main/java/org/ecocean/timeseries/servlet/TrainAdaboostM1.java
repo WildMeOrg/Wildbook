@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.StringTokenizer;
-
+import weka.classifiers.Classifier;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -77,7 +77,7 @@ public class TrainAdaboostM1 extends HttpServlet {
     System.out.println("I am about to build an AdaBoostM1 classifier with this many instances: "+instances.numInstances());
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
     String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
-    AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
+    //Classifier booster=TrainNetwork.buildWekaClassifier(request,fullPathToClassifierFile,instances);
     
     //TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
     

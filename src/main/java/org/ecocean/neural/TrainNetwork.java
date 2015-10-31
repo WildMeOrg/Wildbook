@@ -22,11 +22,7 @@ package org.ecocean.neural;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
@@ -37,11 +33,11 @@ import org.ecocean.grid.*;
 import java.util.Vector;
 import java.util.Random;
 
-import com.fastdtw.timeseries.TimeSeriesBase.*;
+//import com.fastdtw.timeseries.TimeSeriesBase.*;
 import com.fastdtw.dtw.*;
-import com.fastdtw.util.Distances;
-import com.fastdtw.timeseries.TimeSeriesBase.Builder;
-import com.fastdtw.timeseries.*;
+//import com.fastdtw.util.Distances;
+//import com.fastdtw.timeseries.TimeSeriesBase.Builder;
+//import com.fastdtw.timeseries.*;
 
 import org.ecocean.grid.msm.*;
 
@@ -239,13 +235,13 @@ public class TrainNetwork {
     return score; 
    }
    
-  public static AdaBoostM1 getAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
+  public static Classifier getWekaClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
     File classifierFile=new File(fullPathToClassifierFile);
     try{
     
       if(classifierFile.exists()){
-        AdaBoostM1 booster = (AdaBoostM1)deserializeWekaClassifier(request,fullPathToClassifierFile);
+        Classifier booster = (Classifier)deserializeWekaClassifier(request,fullPathToClassifierFile);
         return booster;
       }
     }
@@ -273,7 +269,7 @@ public class TrainNetwork {
   
   
   
-  
+  /*
   public static AdaBoostM1 buildAdaBoostClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
     
     AdaBoostM1 booster=new AdaBoostM1();
@@ -300,30 +296,11 @@ public class TrainNetwork {
     
     
   }
+  */
   
-  public static BayesNet buildBayesNetClassifier(HttpServletRequest request, String fullPathToClassifierFile, Instances instances){
-    
-    //AdaBoostM1 booster=new AdaBoostM1();
-    BayesNet bayesBooster=new BayesNet();
-    try {
-      //getAbsolutePathToInstances(String genusSpecies,HttpServletRequest request)
-      //booster.buildClassifier(instances);
-      bayesBooster.buildClassifier(instances);
-      //serialize out the classifier
-      //serializeWekaClassifier(request,booster,fullPathToClassifierFile);
-      serializeWekaClassifier(request,bayesBooster,fullPathToClassifierFile);
-    } 
-    catch (Exception e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-      return null;
-    }
-    return bayesBooster;
-    
-    
-  }
   
-  public static Instances getAdaboostInstances(HttpServletRequest request, String fullPathToInstancesFile){
+  
+  public static Instances getWekaInstances(HttpServletRequest request, String fullPathToInstancesFile){
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
