@@ -68,21 +68,13 @@ String strOutputDateTime = fmt.print(dt);
 System.out.println("     I expect to find a classifier file here: "+pathToClassifierFile);
 System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
 
-//Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
-Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
+Instances instances=TrainNetwork.getWekaInstances(request, instancesFileFullPath);
 
 
-//quick fix
-    String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
-    AdaBoostM1 booster=TrainNetwork.buildAdaBoostClassifier(request,fullPathToClassifierFile,instances);
-    
-    TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
-    
 
-
-booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
-String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
-booster.setOptions(weka.core.Utils.splitOptions(optionString));
+Classifier booster=TrainNetwork.getWekaClassifier(request, pathToClassifierFile, instances);
+//String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
+//booster.setOptions(weka.core.Utils.splitOptions(optionString));
 
 
 try{
@@ -1098,14 +1090,14 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 	}
 }
 
-AdaBoostM1 cls=new AdaBoostM1();
-cls.buildClassifier(instances);
-cls.setOptions(weka.core.Utils.splitOptions(optionString));
+//AdaBoostM1 cls=new AdaBoostM1();
+//cls.buildClassifier(instances);
+//cls.setOptions(weka.core.Utils.splitOptions(optionString));
 
 
 // evaluate classifier and print some statistics
-Evaluation eval = new Evaluation(isTrainingSet);
-eval.evaluateModel(cls, isTrainingSet);
+//Evaluation eval = new Evaluation(isTrainingSet);
+//eval.evaluateModel(cls, isTrainingSet);
 
 
 %>

@@ -19,26 +19,20 @@
 
 package org.ecocean.servlet;
 
-import com.reijns.I3S.Pair;
+
 import java.util.Collections;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 import org.ecocean.neural.*;
-import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import java.util.Comparator;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Comparator;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
-
 import com.google.gson.*;
 
 //train weka
@@ -46,7 +40,6 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
-//import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
@@ -191,9 +184,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       System.out.println("     I expect to find a classifier file here: "+pathToClassifierFile);
       System.out.println("     I expect to find an instances file here: "+instancesFileFullPath);
       
-      //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
-      final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-      final Classifier booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+      final Instances instances=TrainNetwork.getWekaInstances(request, instancesFileFullPath);
+      final Classifier booster=TrainNetwork.getWekaClassifier(request, pathToClassifierFile, instances);
       //String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
       //booster.setOptions(weka.core.Utils.splitOptions(optionString));
       
