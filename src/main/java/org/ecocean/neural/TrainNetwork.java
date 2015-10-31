@@ -386,7 +386,7 @@ public class TrainNetwork {
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
       File classifiersDir = new File(shepherdDataDir,"classifiers");
-      File classifierFile=new File(classifiersDir,(genusSpecies+".adaboostM1"));
+      File classifierFile=new File(classifiersDir,(genusSpecies+".model"));
       return classifierFile.getAbsolutePath();
     }
     
@@ -395,7 +395,7 @@ public class TrainNetwork {
       File webappsDir = new File(rootWebappPath).getParentFile();
       File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(ServletUtilities.getContext(request)));
       File classifiersDir = new File(shepherdDataDir,"classifiers");
-      File classifierFile=new File(classifiersDir,(genusSpecies+".instances"));
+      File classifierFile=new File(classifiersDir,(genusSpecies+".arff"));
       return classifierFile.getAbsolutePath();
     }
   

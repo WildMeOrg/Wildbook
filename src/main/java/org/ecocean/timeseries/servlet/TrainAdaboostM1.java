@@ -92,7 +92,9 @@ public class TrainAdaboostM1 extends HttpServlet {
    }
    
    out.println(ServletUtilities.getHeader(request));
-   out.println("<strong>Success:</strong> I created an AdaBoostM1 classifier for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.");
+   out.println("<p><strong>Success:</strong> I created a WEKA ARFF file for species "+request.getParameter("genusSpecies")+" with "+instances.numInstances()+" training instances.</p>");
+   out.println("<p><a href=\"/"+CommonConfiguration.getDataDirectoryName(context)+"/classifiers/"+request.getParameter("genusSpecies").replaceAll(" ", "")+".arff\">Link to WEKA ARFF file.</a></p>");
+   
    out.println("<ul>");
      out.println("<li>matches: "+numMatches+"</li>");
      out.println("<li>nonmatches: "+numNonmatches+"</li>");

@@ -32,7 +32,6 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
-import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
 
 import javax.servlet.http.HttpServletRequest;
@@ -76,10 +75,6 @@ public class GridManager {
   private static SummaryStatistics i3sStats=null;
   private static SummaryStatistics proportionStats=null;
   private static SummaryStatistics intersectionStats=null;
-  
-  
-  //private static Instances adaboostInstances=null;
-  //private static AdaBoostM1 adaboostClassifier=null;
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
