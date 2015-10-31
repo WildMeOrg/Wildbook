@@ -22,7 +22,7 @@ package org.ecocean.grid;
 import java.util.Comparator;
 
 
-import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.Classifier;
 import weka.core.Instance;
 import weka.core.Instances;
 
@@ -34,7 +34,6 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
-import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 
@@ -43,11 +42,11 @@ public class FlukeMatchComparator implements Comparator<org.ecocean.grid.MatchOb
   
   private HttpServletRequest request;
   private Instances myInstances=null;
-  private AdaBoostM1 booster = null;
+  private Classifier booster = null;
   private BayesNet bayesBooster = null;
   
   
-  public FlukeMatchComparator(HttpServletRequest request,AdaBoostM1 booster, BayesNet bayesBooster,Instances myInstances){
+  public FlukeMatchComparator(HttpServletRequest request,Classifier booster, BayesNet bayesBooster,Instances myInstances){
     this.request=request;
     this.myInstances=myInstances;
     this.booster=booster;

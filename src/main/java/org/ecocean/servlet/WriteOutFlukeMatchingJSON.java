@@ -46,8 +46,9 @@ import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
-import weka.classifiers.meta.AdaBoostM1;
+//import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.Evaluation;
+import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
 
 
@@ -192,7 +193,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       //Instances instances=GridManager.getAdaboostInstances(request, instancesFileFullPath);
       final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-      final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+      final Classifier booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
       //String optionString = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
       //booster.setOptions(weka.core.Utils.splitOptions(optionString));
       
