@@ -1579,7 +1579,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('patternrecognition')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Pattern Recognition</font></a></h4>
+      <font color="#000000"><%=encprops.getProperty("patternRecognition") %></font></a></h4>
   </td>
 </tr>
 <tr>
@@ -1589,12 +1589,12 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
       <table width="720px" align="left">
         <tr>
           <td>
-            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;Has mapped fluke.</label>
+            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;<%=encprops.getProperty("hasPattern") %></label>
           </td>
         </tr>
         <tr>
           <td>
-            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;Has NO mapped fluke patterning.</label>
+            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;<%=encprops.getProperty("hasNoPattern") %></label>
           </td>
         </tr>
       </table>
