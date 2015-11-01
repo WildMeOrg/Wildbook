@@ -19,14 +19,28 @@ public final class SpamChecker {
   private static final Logger log = LoggerFactory.getLogger(SpamChecker.class);
   /** Enumeration of possible spam detection outcomes. */
   public enum Result { SPAM, POSSIBLE_SPAM, NOT_SPAM };
+  /** Name of text file resource containing spam filter definitions (definite spam). */
+  private static final String RESOURCE_DEFINITE_SPAM = "/SpamChecker_spam.txt";
+  /** Name of text file resource containing spam filter definitions (possible spam). */
+  private static final String RESOURCE_POSSIBLE_SPAM = "/SpamChecker_possibleSpam.txt";
   /** List of regex patterns which if matched denote definite spam. */
   private List<Pattern> spamPatterns;
   /** List of regex patterns which if matched denote possible spam. */
   private List<Pattern> possibleSpamPatterns;
 
-  public SpamChecker() throws IOException {
-    this.spamPatterns = loadPatterns("/SpamChecker_spam.txt");
-    this.possibleSpamPatterns = loadPatterns("/SpamChecker_possibleSpam.txt");
+  public SpamChecker() {
+    try {
+      this.spamPatterns = loadPatterns(RESOURCE_DEFINITE_SPAM);
+    }
+    catch (IOException ex) {
+      log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_DEFINITE_SPAM);
+    }
+    try {
+      this.possibleSpamPatterns = loadPatterns(RESOURCE_POSSIBLE_SPAM);
+    }
+    catch (IOException ex) {
+      log.warn("Failed to find SpamChecker configuration file: " + RESOURCE_POSSIBLE_SPAM);
+    }
   }
 
   /**
@@ -57,6 +71,9 @@ public final class SpamChecker {
           list.add(Pattern.compile(".*" + s + ".*", Pattern.CASE_INSENSITIVE));
         }
       }
+    }
+    catch (NullPointerException ex) {
+      throw new IOException(ex);
     }
     return list;
   }
@@ -95,7 +112,7 @@ public final class SpamChecker {
    * @return true if spam words detected, false otherwise
    */
   public boolean containsDefiniteSpam(String text) {
-    if (text == null)
+    if (text == null || spamPatterns == null)
       return false;
     for (Pattern p : spamPatterns) {
       if (p.matcher(text).matches()) {
@@ -111,7 +128,7 @@ public final class SpamChecker {
    * @return true if possible spam words detected, false otherwise
    */
   public boolean containsPossibleSpam(String text) {
-    if (text == null)
+    if (text == null || possibleSpamPatterns == null)
       return false;
     for (Pattern p : possibleSpamPatterns) {
       if (p.matcher(text).matches()) {
