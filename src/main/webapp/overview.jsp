@@ -55,6 +55,10 @@ Flukebook uses photographs of flukes , dorsal fins, and scars to distinguish bet
 <tr><td><img src="images/logo_WHMSI.jpg" /></td><td><img src="images/OAS_Seal_ENG_Principal.gif" /></td></tr>
 
 <tr><td><img src="images/DSWPlogoLongText.png" /></td><td><img src="images/caribwhale-logo.jpg" /></td></tr>
+<tr>
+	<td><a href="http://www.cresli.org"><img width="350px" height="*" src="images/cresli.jpg" /></a></td>
+	<td>&nbsp;</td>
+</tr>
 </table>
 
         </div>
