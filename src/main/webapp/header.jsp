@@ -288,6 +288,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <ul class="dropdown-menu" role="menu">
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
                           	
+                          	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+                             
                           	<!--  
                           	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
                              -->    
