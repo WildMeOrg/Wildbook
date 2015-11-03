@@ -45,7 +45,7 @@ import weka.core.Instances;
 import java.util.Enumeration;
 
 
-public class TrainAdaboostM1 extends HttpServlet {
+public class GenerateARFF4Species extends HttpServlet {
   
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -74,9 +74,9 @@ public class TrainAdaboostM1 extends HttpServlet {
     
     Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genus,specificEpithet);
     
-    System.out.println("I am about to build an AdaBoostM1 classifier with this many instances: "+instances.numInstances());
+    System.out.println("I am about to build an ARFF file with this many instances: "+instances.numInstances());
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
-    String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
+    //String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     //Classifier booster=TrainNetwork.buildWekaClassifier(request,fullPathToClassifierFile,instances);
     
     //TrainNetwork.serializeWekaClassifier(request, booster, fullPathToClassifierFile);
