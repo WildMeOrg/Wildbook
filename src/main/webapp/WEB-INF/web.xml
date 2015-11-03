@@ -1727,13 +1727,13 @@
   </servlet-mapping>
   
       <servlet>
-    <servlet-name>TrainAdaboostM1</servlet-name>
-    <servlet-class>org.ecocean.timeseries.servlet.TrainAdaboostM1</servlet-class>
+    <servlet-name>GenerateARFF4Species</servlet-name>
+    <servlet-class>org.ecocean.timeseries.servlet.GenerateARFF4Species</servlet-class>
   </servlet>
   
    <servlet-mapping>
-    <servlet-name>TrainAdaboostM1</servlet-name>
-    <url-pattern>/TrainAdaboostM1</url-pattern>
+    <servlet-name>GenerateARFF4Species</servlet-name>
+    <url-pattern>/GenerateARFF4Species</url-pattern>
   </servlet-mapping>
   
 

@@ -474,8 +474,8 @@ single scan are allowed to exceed the total.</span>
 <h2>Build Weka Instances</h2>
 <p><em>(resource intensive: use only in offline Wildbooks)</em></p>
 
-<form id="adaboostForm" 
-	  action="../TrainAdaboostM1" 
+<form id="arffForm" 
+	  action="../GenerateARFF4Species" 
 	  method="post" 
 	  
       target="_self" dir="ltr" 
