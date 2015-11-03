@@ -463,6 +463,7 @@ function save() {
     userMessage('saving...');
 
     var data = {
+        isDorsalFin: isDorsalFin,
         id: imageID,
         name: imageID + '-' + new Date().getTime() + '.jpg',
         clientWidth: itool.imageElement.width,

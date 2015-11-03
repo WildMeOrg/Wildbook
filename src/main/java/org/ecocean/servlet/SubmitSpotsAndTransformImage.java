@@ -70,6 +70,10 @@ System.out.println("GOT " + jb.toString());
     JsonElement jel = new JsonParser().parse(jb.toString());
     JsonObject jobj = jel.getAsJsonObject();
     String id = jobj.get("id").getAsString();
+    boolean isDorsalFin = false;
+    try {
+        isDorsalFin = jobj.get("isDorsalFin").getAsBoolean();
+    } catch (Exception ex) {}
 
     myShepherd.beginDBTransaction();
     SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(id);
@@ -115,7 +119,6 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
     }
     JsonArray jspots = jobj.getAsJsonArray("points");
     if (jspots != null) {
-        boolean isDorsalFin = false;
         double notchX = -1;
         //we only make ref spots out of the first 3 .. we probably should check type tho in case order is wrong? 
         int rmax = jspots.size();
@@ -125,12 +128,13 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
             double x = pt.get(0).getAsDouble();
             double y = pt.get(1).getAsDouble();
             //String type = pt.get(2).getAsString();
-System.out.println("refspot: " + x + ", " + y);
+System.out.println(num + " refspot[" + i + "]: " + x + ", " + y);
             refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
             if (i == 1) notchX = x;
         }
 
-        if ((refSpots.size() > 1) && (refSpots.get(0).getCentroidX() == refSpots.get(1).getCentroidX())) isDorsalFin = true;
+        /////if ((refSpots.size() > 1) && (refSpots.get(0).getCentroidX() == refSpots.get(1).getCentroidX())) isDorsalFin = true;
+System.out.println("isDorsalFin? " + isDorsalFin);
 
         if (isDorsalFin && (jspots.size() >= 10)) {  //dorsal has 10 reference spots that we care about, so we grab those too
             notchX = -1;  //mostly irrelevant for dorsal fins
@@ -141,7 +145,7 @@ System.out.println("refspot: " + x + ", " + y);
                 //String type = pt.get(2).getAsString();
 System.out.println("refspot [b]: " + x + ", " + y);
                 refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
-                if (i == 1) notchX = x;
+                ///if (i == 1) notchX = x;
             }
             rmax = 10;  //so spots can pick up from here below
         }
