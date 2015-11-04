@@ -143,7 +143,7 @@ function init() {
 
     if (chartInitialized && !chartShownFirstTime) {
         chartShownFirstTime = true;
-        displayChart(encounterNumber, flukeMatchingData[results[0]][columnInfo.encounterID.i]);
+        //displayChart(encounterNumber, flukeMatchingData[results[0]][columnInfo.encounterID.i]);
     }
 }
 

@@ -16,7 +16,8 @@
   weka.core.Instance,
   weka.core.Instances,
   org.ecocean.grid.msm.*,
-	org.ecocean.neural.TrainNetwork"
+	org.ecocean.neural.TrainNetwork,
+	weka.classifiers.Classifier"
 	%>
 	
 	
@@ -367,8 +368,8 @@ try {
 	    String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
 	      String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
 	      
-	    final Instances instances=TrainNetwork.getAdaboostInstances(request, instancesFileFullPath);
-	      final AdaBoostM1 booster=TrainNetwork.getAdaBoostClassifier(request, pathToClassifierFile, instances);
+	    final Instances instances=TrainNetwork.getWekaInstances(request, instancesFileFullPath);
+	      final Classifier booster=TrainNetwork.getWekaClassifier(request, pathToClassifierFile, instances);
 	      //SWALE tunings - default are early results for Physeter macrocephalus
           double swalePenalty=-2;
           double swaleReward=25.0;
@@ -401,7 +402,7 @@ try {
 	    <h2>Comparison: <a href="../encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="../encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
 </h3>
 
-<p>SadBoostM1 score: +<%=booster.distributionForInstance(a1Example)[0] %></p>
+<p>Match classification score: +<%=booster.distributionForInstance(a1Example)[0] %></p>
 
 <p><i>higher is better. score is out of a maximum for 12 points.</i></p>
 
