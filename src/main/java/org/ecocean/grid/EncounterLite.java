@@ -3590,14 +3590,31 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           newSpots.add( new SuperSpot(enc.getSpots().get(i).getCentroidX(),enc.getSpots().get(i).getCentroidY()));  //swap out for converted
         }
         System.out.println("newSpots after copy: "+newSpots.size());
-        
+
         ArrayList<SuperSpot> newSpots2=new ArrayList<SuperSpot>();
-        
+
+        double topY = 9999999;  //lower is toward the top
+        double topX = -1;
+        double rotateRadians = Math.toRadians(-45);
         for (int i = 0 ; i < spotsSize ; i++) {
-                newSpots2.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(i).getCentroidX()), hy + hy - newSpots.get(i).getCentroidY()));  //swap out for converted
+                double sx = vx - Math.abs(vx - newSpots.get(i).getCentroidX());
+                double sy = hy + hy - newSpots.get(i).getCentroidY();
+                if (sy < topY) {
+                    topY = sy;
+                } else {
+                    //this is the point we use as the "pivot"
+                    topY = sy;
+                    topX = sx;
+                }
+                //if we have hit the top, then lets rotate
+                if (topX > -1) {
+                    sx = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
+                    sy = Math.sin(rotateRadians) * (sx - topX) + Math.cos(rotateRadians) * (sy - topY) + topY;
+                }
+                newSpots2.add(new SuperSpot(sx, sy));
         }
         System.out.println("newSpots2 after second copy: "+newSpots2.size());
-        
+
         //NEW MODS FOR TRAILING EDGE
         
         
