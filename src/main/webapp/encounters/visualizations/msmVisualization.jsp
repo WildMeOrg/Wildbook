@@ -76,17 +76,20 @@ try {
   myShepherd.beginDBTransaction();
   Encounter enc1=myShepherd.getEncounter(encNum);
   Encounter enc2=myShepherd.getEncounter(encNum2);
-  EncounterLite theEnc=new EncounterLite(enc1);
-  EncounterLite theEnc2=new EncounterLite(enc2);
+  EncounterLite theEnc=new EncounterLite(enc2);
+  EncounterLite theEnc2=new EncounterLite(enc1);
 
   //start code copied from MSM.java
 
       
       ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
+  if(theEnc.getRightSpots()!=null){
   	oldSpots.addAll(theEnc.getRightSpots());
+  }
       Collections.sort(oldSpots, new XComparator());
       
       //let's prefilter old spots for outlies outside the bounds
+      /*
       for(int i=0;i<oldSpots.size();i++){
     	  SuperSpot theSpot=oldSpots.get(i);
     	  if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
@@ -98,6 +101,7 @@ try {
     		  i--;
     	  }
       }
+      */
       
       int numOldSpots=oldSpots.size();
       double[] OLD_VALUES=new double[numOldSpots];
@@ -121,7 +125,7 @@ try {
         %>  
 		 [
 		  <%=((theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth) %>,
-		  -<%=OLD_VALUES[i] %>
+		  <%=OLD_VALUES[i] %>
 		  ],
 	 
 		 <%
@@ -134,8 +138,10 @@ try {
       //create an array of lines made from all point pairs in theEnc2
       
       ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
-      newSpots.addAll(theEnc2.getRightSpots());
-      Collections.sort(newSpots, new XComparator());
+      if(theEnc2.getRightSpots()!=null){
+      	newSpots.addAll(theEnc2.getRightSpots());
+      }
+      //Collections.sort(newSpots, new XComparator());
       int numtheEnc2Spots=newSpots.size();
       Line2D.Double[] newLines=new Line2D.Double[numtheEnc2Spots-1];
       for(int i=0;i<(numtheEnc2Spots-1);i++){
@@ -174,28 +180,27 @@ try {
       
       //now iterate and create our points
       for(int i=0;i<numOldSpots;i++){
+    	  System.out.println("Iterating!");
         SuperSpot theSpot=oldSpots.get(i);
-        double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
+        double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[1].getCentroidX())/oldLineWidth;
         Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
         
         //now we need to find where this point falls on the theEnc2 pattern
         Line2D.Double intersectionLine=null;
         int lineIterator=0;
-        while((intersectionLine==null)&&(lineIterator<numNewLines)){
+        while((lineIterator<numNewLines)){
           //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
           if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
             intersectionLine=newLines[lineIterator];
-            System.out.println("!!!!!!FOUND the INTERSECT!!!!!!");
+            System.out.println("     !!!!!!FOUND the INTERSECT!!!!!!");
           }
           lineIterator++;
         }
         try{
 	        double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
 	        double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
-	        
-	        //Point2D.Double thePoint=new Point2D.Double(xCoordFraction,yCoord);
-	        
 	        NEW_VALUES[i]=yCoord;
+	        System.out.println("     ycoord "+yCoord+" at "+xCoordFraction);
         }
 		catch(Exception e){
 			System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
@@ -203,7 +208,7 @@ try {
 		}
 		 %>  
 		 [
-		  <%=xCoordFraction %>, -<%=NEW_VALUES[i] %>
+		  <%=xCoordFraction %>, <%=NEW_VALUES[i] %>
 		  ],
 		 <%
         
@@ -266,11 +271,13 @@ try {
                     'height':chartHeight,
                     'pointSize': 5,
                     'color': 'yellow',
+                    'dataOpacity': 0.5,
+                    'lineWidth': 0,
                     series: {
                         0: { color: 'blue' },
-                     	1: {color: 'yellow'},
-                     	2: {color: 'green'},
-                     	3: {color: 'green'}
+                     	1: {color: 'green'},
+                     	2: {color: 'red'},
+                     	3: {color: 'yellow'}
                        
                       }
                     };
@@ -293,7 +300,7 @@ try {
     
     %>
 	    
-	    <h2>Comparison: <a href="encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
+	    <h2>Comparison: <a href="../encounter.jsp?number=<%=enc1.getCatalogNumber() %>"><%=enc1MI %></a> vs <a href="../encounter.jsp?number=<%=enc2.getCatalogNumber() %>"><%=enc2MI %></a></h2>
 </h3>
 <p><i>Lower is better.</i></p>
 

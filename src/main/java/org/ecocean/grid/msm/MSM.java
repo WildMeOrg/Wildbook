@@ -150,7 +150,7 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
       if(oldEnc.getRightSpots()!=null){
         oldSpots.addAll(oldEnc.getRightSpots());
       }
-        Collections.sort(oldSpots, new XComparator());
+        //Collections.sort(oldSpots, new XComparator());
         
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<oldSpots.size();i++){
@@ -175,11 +175,33 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
       SuperSpot[] oldReferenceSpots=oldEnc.getLeftReferenceSpots();
       Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
       double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
+      //if(EncounterLite.isDorsalFin(oldEnc)){oldLineWidth=EncounterLite.getLineWidth(oldSpots);}
+      if(EncounterLite.isDorsalFin(oldEnc)){
+        double rightmostX=oldReferenceSpots[2].getCentroidX();
+        if(oldReferenceSpots[1].getCentroidX()>rightmostX){
+          rightmostX=oldReferenceSpots[1].getCentroidX();
+          oldLine=new Line2D.Double(oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY(), oldReferenceSpots[1].getCentroidX(), oldReferenceSpots[2].getCentroidY());
+          System.out.println("  Tweaked new line width!");
+       }
+       oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-rightmostX);
+        
+      }
+      
       
       SuperSpot[] newReferenceSpots=newEnc.getLeftReferenceSpots();
       Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
       double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
       
+      if(EncounterLite.isDorsalFin(newEnc)){
+        double rightmostX=newReferenceSpots[0].getCentroidX();
+        if(newReferenceSpots[1].getCentroidX()>rightmostX){
+          rightmostX=newReferenceSpots[1].getCentroidX();
+          newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[1].getCentroidX(), newReferenceSpots[2].getCentroidY());
+          System.out.println("  Tweaked new line width!");
+       }
+       newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-rightmostX);
+        
+      }
       
       //first populate OLD_VALUES - easy
       
@@ -201,8 +223,10 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
         newSpots.addAll(newEnc.getRightSpots());
       }
       int numNewEncSpots=newSpots.size();
+      //if(EncounterLite.isDorsalFin(newEnc)){newLineWidth=EncounterLite.getLineWidth(newSpots);}
+      
       Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-      Collections.sort(newSpots, new XComparator());
+      //Collections.sort(newSpots, new XComparator());
       for(int i=0;i<(numNewEncSpots-1);i++){
         //convert y coords to distance from newLine
         double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;

@@ -619,7 +619,7 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(ClassAttribute);
-        System.out.println("Building attributes for: "+genusSpecies);
+        //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         fvWekaAttributes = new FastVector(8);
@@ -631,10 +631,10 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(ClassAttribute);
-        System.out.println("Building attributes for: "+genusSpecies);
+        //System.out.println("Building attributes for: "+genusSpecies);
       }
       
-      System.out.println("     fvWekaAttriubutes has a size of: "+fvWekaAttributes.size());
+      //System.out.println("     fvWekaAttriubutes has a size of: "+fvWekaAttributes.size());
       return fvWekaAttributes;
       
       
@@ -722,13 +722,13 @@ public class TrainNetwork {
     
     public static int getClassIndex(String genusSpecies){
       FastVector attrs=getWekaAttributesPerSpecies(genusSpecies);
-      System.out.println("Num attributes: "+attrs.size());
+      //System.out.println("Num attributes: "+attrs.size());
       
       int numAttrs=attrs.size();
       for(int i=0;i<numAttrs;i++){
-        System.out.println("Name: "+((Attribute)attrs.elementAt(i)).name());
+        //System.out.println("Name: "+((Attribute)attrs.elementAt(i)).name());
         if(((Attribute)attrs.elementAt(i)).name().equals("theClass")){
-          System.out.println("class index at: "+i);
+          //System.out.println("class index at: "+i);
           return i;
         }
       }
@@ -770,10 +770,16 @@ public class TrainNetwork {
         
         Double msm=MSM.getMSMDistance(el1, el2);
         
-        //swale setup
+        //swale setup - default is flukes for Physeter macrocephalus
         double penalty=0;
         double reward=25;
         double epsilon=0.002089121713611485;
+        if(EncounterLite.isDorsalFin(el1)){
+          reward=25.0;
+          epsilon=0.05758566418358089;
+          penalty=3.0;
+        }
+        
         Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
         
         double date = Instance.missingValue();

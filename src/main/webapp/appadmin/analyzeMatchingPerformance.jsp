@@ -157,7 +157,6 @@ ArrayList<Double> swaleValues=new ArrayList<Double>();
 //Hashtable<Integer,Integer> proportionCorrectHashtable = new Hashtable<Integer,Integer>();
 //populateNewHashtable(proportionCorrectHashtable,3);	
 Hashtable<Double,Integer> overallCorrectHashtable = new Hashtable<Double,Integer>();
-Hashtable<Double,Integer> bayesOverallCorrectHashtable = new Hashtable<Double,Integer>();
 	
 ArrayList<Double> intersectionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> dtwCorrectValues=new ArrayList<Double>();
@@ -172,11 +171,7 @@ int numCorrectScores=0;
 double incorrectScoreTotal=0;
 int numIncorrectScores=0;
 
-//bayes net avg score comparison
-double correctBayesScoreTotal=0;
-int numBayesCorrectScores=0;
-double incorrectBayesScoreTotal=0;
-int numBayesIncorrectScores=0;
+
 
 int numInstances=instances.numInstances();
 
@@ -185,6 +180,7 @@ if(numInstances>5000)numInstances=5000;
 for(int i=0;i<numInstances;i++){
 	
 	Instance myInstance=instances.instance(i);
+	System.out.println("myInstance: "+myInstance.toString());
 	//if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
         try{
           
@@ -208,7 +204,8 @@ for(int i=0;i<numInstances;i++){
           //I3S
           double i3sScore=new Double(myInstance.value(2)).doubleValue();
           //Proportion metric
-          Double proportion=new Double(myInstance.value(3));
+          double proportion=new Double(myInstance.value(3)).doubleValue();
+          
           
           
           Double msmValue=new Double(myInstance.value(4));
@@ -256,7 +253,6 @@ for(int i=0;i<numInstances;i++){
             	correctScoreTotal+=score;
             	numCorrectScores++;
             	//correctBayesScoreTotal+=bayesScore;
-            	numBayesCorrectScores++;
             	
             	//intersection
             	intersectionCorrectValues.add(numIntersections);
@@ -295,7 +291,6 @@ for(int i=0;i<numInstances;i++){
             	incorrectScoreTotal+=score;
             	numIncorrectScores++;
             	//incorrectBayesScoreTotal+=bayesScore;
-            	numBayesIncorrectScores++;
             	
             	//intersection
             	intersectionValues.add(numIntersections);
