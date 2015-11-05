@@ -3608,8 +3608,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
                 }
                 //if we have hit the top, then lets rotate
                 if (topX > -1) {
-                    sx = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
+                    double sx2 = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
                     sy = Math.sin(rotateRadians) * (sx - topX) + Math.cos(rotateRadians) * (sy - topY) + topY;
+                    sx = sx2;
                 }
                 newSpots2.add(new SuperSpot(sx, sy));
         }
