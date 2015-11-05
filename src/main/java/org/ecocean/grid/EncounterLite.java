@@ -3602,7 +3602,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         
         
         //Let's get the trailing edge only
-      
+      /*
         double midX=0;
         double midY=0;
         double highestY=-999999;
@@ -3624,7 +3624,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         double xBetweenHighestandMid=(midX+highestX)/2;
         
         System.out.println("MidX is: "+midX+" and MidY is: "+midY);
-        
+        */
         
         //boolean highestSpotEncountered=false;
         /*
@@ -3640,7 +3640,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         
         System.out.println("newSpots2 after reduction to trailing edge: "+newSpots2.size());
         */
-        
+        /*
         ArrayList<SuperSpot> newSpots3=new ArrayList<SuperSpot>();
         for (int i = 0 ; i < newSpots2.size() ; i++) {
           
@@ -3667,6 +3667,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           
           
         }
+        */
         //newSpots2=newSpots3;
         
         
