@@ -385,14 +385,17 @@ try {
             }
           }
           
+          double msmDist=MSM.getMSMDistance(theEnc, theEnc2);
+          double swaleDist=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, swalePenalty, swaleReward, swaleEpsilon);
+          
 	      Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
 	      a1Example.setDataset(instances);
           a1Example.setValue(0, finalInter);
           a1Example.setValue(1, distance);
           a1Example.setValue(2,  newScore);
           a1Example.setValue(3, propor);
-          a1Example.setValue(4, MSM.getMSMDistance(theEnc, theEnc2));
-          a1Example.setValue(5, EncounterLite.getSwaleMatchScore(theEnc, theEnc2, swalePenalty, swaleReward, swaleEpsilon));
+          a1Example.setValue(4, msmDist);
+          a1Example.setValue(5, swaleDist);
           a1Example.setValue(6, date);
           
         
@@ -438,6 +441,13 @@ Score: <%=newScore %>
 
 Proportional difference: <%=propor %>
 
+<h4>MSM</h4>
+<p><i>Lower is better</i></p>
+<p>Score: <%=msmDist %></p>
+
+<h4>Swale</h4>
+<p><i>Higher is better</i></p>
+<p>Score: <%=swaleDist %></p>
 
 </td>
 

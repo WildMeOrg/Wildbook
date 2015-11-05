@@ -3602,16 +3602,18 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         
         
         //Let's get the trailing edge only
-        /*
+      
         double midX=0;
         double midY=0;
         double highestY=-999999;
+        double highestX=-999999;
         int highestYIndex=0;
         for (int i = 0 ; i < spotsSize ; i++) {
           midX+=newSpots2.get(i).getCentroidX();
           midY+=newSpots2.get(i).getCentroidY();
           if(newSpots2.get(i).getCentroidY()>highestY){
             highestY=newSpots2.get(i).getCentroidY();
+            highestX=newSpots2.get(i).getCentroidX();
             highestYIndex=i;
           }
         }
@@ -3619,16 +3621,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         midY=midY/spotsSize;
         
         
-   
+        double xBetweenHighestandMid=(midX+highestX)/2;
         
         System.out.println("MidX is: "+midX+" and MidY is: "+midY);
         
         
         //boolean highestSpotEncountered=false;
+        /*
         for (int i = 0 ; i < newSpots2.size() ; i++) {
-          if(i>highestYIndex){
+          if(newSpots2.get(i).getCentroidX()<xBetweenHighestandMid){
           
-            System.out.println("     REMOVE: "+newSpots2.get(i).getCentroidX()+":"+newSpots2.get(i).getCentroidY());
+            //System.out.println("     REMOVE: "+newSpots2.get(i).getCentroidX()+":"+newSpots2.get(i).getCentroidY());
             newSpots2.remove(i);
             i--;
           }
@@ -3636,7 +3639,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         }
         
         System.out.println("newSpots2 after reduction to trailing edge: "+newSpots2.size());
-        
+        */
         
         ArrayList<SuperSpot> newSpots3=new ArrayList<SuperSpot>();
         for (int i = 0 ; i < newSpots2.size() ; i++) {
@@ -3645,15 +3648,27 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           double x1=newSpots2.get(i).getCentroidX()-midX;
           double y1=newSpots2.get(i).getCentroidY()-midY;
           
-          double radianValue=Math.toRadians(-90);
-          double x2 = x1 *Math.cos(radianValue) - y1* Math.sin(radianValue)+midX;
-          double y2 = x1 *Math.sin(radianValue) + y1* Math.cos(radianValue)+midY;
+          if(newSpots2.get(i).getCentroidX()>highestX){
+            double radianValue=Math.toRadians(10);
+            double x2 = x1 *Math.cos(radianValue) - y1* Math.sin(radianValue)+midX;
+            double y2 = x1 *Math.sin(radianValue) + y1* Math.cos(radianValue)+midY;
+            newSpots3.add(new SuperSpot(x2,y2));
+          }
+          else{
+            double radianValue=Math.toRadians(-10);
+            //double x2 = x1 *Math.cos(radianValue) - y1* Math.sin(radianValue)+midX;
+            //double y2 = x1 *Math.sin(radianValue) + y1* Math.cos(radianValue)+midY;
+            double x2 = highestX + (newSpots2.get(i).getCentroidX()-highestX)*Math.cos(radianValue) - (newSpots2.get(i).getCentroidY()-highestY)*Math.sin(radianValue);
+
+            double y2 = highestY + (newSpots2.get(i).getCentroidX()-highestX)*Math.sin(radianValue) + (newSpots2.get(i).getCentroidY()-highestY)*Math.cos(radianValue);
+            newSpots3.add(new SuperSpot(x2,y2));
+          }
           
-          newSpots3.add(new SuperSpot(x2,y2));
+          
           
         }
-        newSpots2=newSpots3;
-        */
+        //newSpots2=newSpots3;
+        
         
         
         
@@ -3680,23 +3695,30 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           if(theEnc.getRightSpots()!=null){
             oldSpots.addAll(theEnc.getRightSpots());
           }
-            Collections.sort(oldSpots, new XComparator());
+            //Collections.sort(oldSpots, new XComparator());
             
             //let's prefilter old spots for outlies outside the bounds
-            
-            
+            SuperSpot oldLeftmostSpot=new SuperSpot(99999,-99999);
+            SuperSpot oldRightmostSpot=new SuperSpot(-999999,-99999);
             for(int i=0;i<oldSpots.size();i++){
               if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                SuperSpot theSpot=oldSpots.get(i);
-                if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
-                  oldSpots.remove(i);
-                  i--;
-                }
-                if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                  oldSpots.remove(i);
-                  i--;
-                }
-            }
+                  boolean haveRemoved=false;
+                  SuperSpot theSpot=oldSpots.get(i);
+                  if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+                    oldSpots.remove(i);
+                    i--;
+                    haveRemoved=true;
+                  }
+                  if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                    oldSpots.remove(i);
+                    i--;
+                    haveRemoved=true;
+                  }
+                  if(!haveRemoved){
+                    if(theSpot.getCentroidX()>oldRightmostSpot.getCentroidX()){oldRightmostSpot=theSpot;}
+                    if(theSpot.getCentroidX()<oldLeftmostSpot.getCentroidX()){oldLeftmostSpot=theSpot;}
+                  }
+              }
             }
             
             
@@ -3711,11 +3733,15 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
           Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
           double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-          
-          SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
-          Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
-          double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-          
+          if(isDorsalFin(theEnc)){
+            double rightmostX=oldReferenceSpots[0].getCentroidX();
+            if(oldReferenceSpots[1].getCentroidX()>rightmostX){
+              rightmostX=oldReferenceSpots[1].getCentroidX();
+              oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[1].getCentroidX(), oldReferenceSpots[2].getCentroidY());
+              System.out.println("  Tweaked old line width!");
+            }
+            oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-rightmostX);
+          }
           
           //first populate OLD_VALUES - easy
           
@@ -3733,13 +3759,34 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           
           //create an array of lines made from all point pairs in newEnc
           
+          SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
+          Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
+          double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
+          if(isDorsalFin(theEnc2)){
+            double rightmostX=newReferenceSpots[0].getCentroidX();
+            if(newReferenceSpots[1].getCentroidX()>rightmostX){
+              rightmostX=newReferenceSpots[1].getCentroidX();
+              newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[1].getCentroidX(), newReferenceSpots[2].getCentroidY());
+              System.out.println("  Tweaked new line width!");
+           }
+           newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-rightmostX);
+            
+          }
           
           ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
           if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
               if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());};
           int numNewEncSpots=newSpots.size();
+          
+          //if(isDorsalFin(theEnc)){newLineWidth=getLineWidth(newSpots);}
+          
+          //reset newLineWidth HERE IF DORSAL
+          //if(isDorsalFin(theEnc2)){}
+          
           Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-          Collections.sort(newSpots, new XComparator());
+          //Collections.sort(newSpots, new XComparator());
+          
+          
           for(int i=0;i<(numNewEncSpots-1);i++){
             //convert y coords to distance from newLine
             double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
@@ -3751,6 +3798,8 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
           int numNewLines=newLines.length;
           
           //now iterate and create our points
+          SuperSpot newLeftmostSpot=new SuperSpot(99999,-99999);
+          SuperSpot newRightmostSpot=new SuperSpot(-999999,-99999);
           for(int i=0;i<numOldSpots;i++){
             SuperSpot theSpot=oldSpots.get(i);
             double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
@@ -3771,10 +3820,15 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
               double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
               double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
               
-              //Point2D.Double thePoint=new Point2D.Double(xCoordFraction,yCoord);
+              SuperSpot newSpot=new SuperSpot(xCoordFraction,yCoord);
               
               //NEW_VALUES[i]=yCoord;
               //theEnc2DataPoints.addPoint(new DataPoint(i,yCoord));
+              
+              if(newSpot.getCentroidX()>newRightmostSpot.getCentroidX()){newRightmostSpot=newSpot;}
+              if(newSpot.getCentroidX()<newLeftmostSpot.getCentroidX()){newLeftmostSpot=newSpot;}
+            
+              
               double[] myDub={0,yCoord,i};
               theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
               
@@ -3828,7 +3882,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
         if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
         //sort the Array - lowest x to highest X coordinate
-        Collections.sort(spots, new XComparator());
+        //Collections.sort(spots, new XComparator());
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<spots.size();i++){
           if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
@@ -3876,6 +3930,8 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
         Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
         double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
+        //if(isDorsalFin(theEnc)){oldLineWidth=getLineWidth(spots);}
+        
         
         SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
         Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
@@ -3902,8 +3958,9 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());}
         if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());}
         int numNewEncSpots=newSpots.size();
+        //if(isDorsalFin(theEnc)){newLineWidth=getLineWidth(newSpots);}
         Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-        Collections.sort(newSpots, new XComparator());
+        //Collections.sort(newSpots, new XComparator());
         for(int i=0;i<(numNewEncSpots-1);i++){
           //convert y coords to distance from newLine
           double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
@@ -4101,6 +4158,19 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
       return theScore;
     }
     
+    
+    public static Double getLineWidth(ArrayList<SuperSpot> spots){
+      int numSPots=spots.size();
+      SuperSpot leftmostSpot=new SuperSpot(999999,999999);
+      SuperSpot rightmostSpot=new SuperSpot(-999999,999999);
+      for(int i=0;i<numSPots;i++){
+        SuperSpot theSpot=spots.get(i);
+        if(theSpot.getCentroidX()>rightmostSpot.getCentroidX()){rightmostSpot=theSpot;}
+        if(theSpot.getCentroidX()<leftmostSpot.getCentroidX()){leftmostSpot=theSpot;}
+      }
+      
+      return Math.abs(rightmostSpot.getCentroidX()-leftmostSpot.getCentroidX());
+    }
 
 }
 
