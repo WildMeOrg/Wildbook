@@ -3541,6 +3541,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     private void processDorsalSpots(Encounter enc) {
         //note: (left)spots are from paths (edges) and leftReferenceSpots come from ref pts
 
+System.out.println("LRS " + enc.getLeftReferenceSpots());
         if (enc.getLeftReferenceSpots() == null) return;
       
         //first the reference spots (which are more or less required)
@@ -3593,25 +3594,63 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
 
         ArrayList<SuperSpot> newSpots2=new ArrayList<SuperSpot>();
 
-        double topY = 9999999;  //lower is toward the top
-        double topX = -1;
-        double rotateRadians = Math.toRadians(-45);
+/*
+        int topI = -1;
+        double topY = 0;
+        for (int i = 0 ; i < spotsSize ; i++) {
+            double sy = hy + hy - newSpots.get(i).getCentroidY();
+double sx = vx - Math.abs(vx - newSpots.get(i).getCentroidX());
+System.out.println(i + ": (" + sx + "," + sy + ")");
+            if (sy > topY) {
+                topY = sy;
+                topI = i;
+            }
+        }
+        double topX = vx - Math.abs(vx - newSpots.get(topI).getCentroidX());
+System.out.println("====== top: i=" + topI + " (" + topX + "," + topY + ")");
+*/
+
+//System.out.println("ORD1 ------------------------------- (" + ord.get(1).getCentroidX() + "," + ord.get(1).getCentroidY() + ")");
+/*
+    var midp = [ s[0][0] + (s[2][0] - s[0][0]) * 0.75, s[0][1] ];
+    if (bestPathParam.debug) debugCtx(itool.ctx, 'midpt(' + midp[0]+','+midp[1]+')', midp);
+    var m = (s[1][1] - midp[1]) / (s[1][0] - midp[0]);
+    var b = midp[1] - m * midp[0];
+    //console.log('y = %.2fx + %.2f', m, b);
+    var notchpt = s.splice(1, 1)[0];  //remove "notch" point, to be added later
+    s.sort(function(a,b) { return a[1] - b[1]; });  //first we sort all by Y value
+//console.log('sorted %o', s);
+    // we return based on pn (0 or 1) and which side of midpoint/dividing line spot is on
+    var h = [ notchpt ];  //notch always first, either side
+    for (var i = 0 ; i < s.length ; i++) {
+        var midx = (s[i][1] - b) / m;
+//debugCtx(itool.ctx, 's'+i, [midx, s[i][1]]);
+*/
+        double midpX = ord.get(0).getCentroidX() + (ord.get(2).getCentroidX() - ord.get(0).getCentroidX()) * 0.75;
+        double midpY = ord.get(0).getCentroidY();
+        double m = (ord.get(1).getCentroidY() - midpY) / (ord.get(1).getCentroidX() - midpX);
+        double b = midpY - m * midpX;
+
+        double topX = ord.get(1).getCentroidX();
+        double topY = ord.get(1).getCentroidY();
+        //boolean hitTop = false;
+        double rotateRadians = Math.toRadians(55);
         for (int i = 0 ; i < spotsSize ; i++) {
                 double sx = vx - Math.abs(vx - newSpots.get(i).getCentroidX());
                 double sy = hy + hy - newSpots.get(i).getCentroidY();
-                if (sy < topY) {
-                    topY = sy;
-                } else {
-                    //this is the point we use as the "pivot"
-                    topY = sy;
-                    topX = sx;
-                }
-                //if we have hit the top, then lets rotate
-                if (topX > -1) {
+                double midX = (sy - b) / m;
+                if (sx > midX) {
+                //if (hitTop) {
                     double sx2 = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
                     sy = Math.sin(rotateRadians) * (sx - topX) + Math.cos(rotateRadians) * (sy - topY) + topY;
                     sx = sx2;
                 }
+/*
+                if ((sx == topX) && (sy == topY)) {
+System.out.println("hit top at i=" + i);
+                    hitTop = true;
+                }
+*/
                 newSpots2.add(new SuperSpot(sx, sy));
         }
         System.out.println("newSpots2 after second copy: "+newSpots2.size());
