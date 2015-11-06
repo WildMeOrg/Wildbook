@@ -776,8 +776,10 @@ public class TrainNetwork {
         double epsilon=0.002089121713611485;
         if(EncounterLite.isDorsalFin(el1)){
           reward=25.0;
-          epsilon=0.05758566418358089;
-          penalty=3.0;
+          epsilon=0.004038360728946134;
+          penalty=0;
+
+          
         }
         
         Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
