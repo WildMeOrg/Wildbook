@@ -3579,10 +3579,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         double sy = Math.sin(rotateRadians) * (vx - topX) + Math.cos(rotateRadians) * (hy - topY) + topY;
         ord.set(0, new SuperSpot(sx, sy));
 
+        //note: now we will ultimately flip it at the end as well, so we need the x-axis to flip it around, which should keep us in quadrant 1; the midpoint should do the trick
+        double mirrorAxis = (ord.get(0).getCentroidX() + ord.get(2).getCentroidX()) / 2;
+        //now that we have this, we flip the x values on the existing reference points (and use this going forward as well)
+        for (int i = 0 ; i < 3 ; i++) {
+            ord.get(i).setCentroidX(mirrorX(mirrorAxis, ord.get(i).getCentroidX()));
+        }
+
         if (spotsSize > 3) {
             for (int i = 0 ; i < 3 ; i++) {  //3 line segments walking up fin
-                SuperSpot a = new SuperSpot(vx - Math.abs(vx - newSpots.get(i*2+3).getCentroidX()), hy + hy - newSpots.get(i*2+3).getCentroidY());
-                SuperSpot b = new SuperSpot(vx - Math.abs(vx - newSpots.get(i*2+4).getCentroidX()), hy + hy - newSpots.get(i*2+4).getCentroidY());
+                SuperSpot a = new SuperSpot(mirrorX(mirrorAxis, vx - Math.abs(vx - newSpots.get(i*2+3).getCentroidX())), hy + hy - newSpots.get(i*2+3).getCentroidY());
+                SuperSpot b = new SuperSpot(mirrorX(mirrorAxis, vx - Math.abs(vx - newSpots.get(i*2+4).getCentroidX())), hy + hy - newSpots.get(i*2+4).getCentroidY());
                 if (a.getCentroidX() > b.getCentroidX()) {  //need order to be leftmost first
                     ord.add(b);
                     ord.add(a);
@@ -3591,7 +3598,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
                     ord.add(b);
                 }
             }
-            ord.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(9).getCentroidX()), hy + hy - newSpots.get(9).getCentroidY()));  //9th one is opposite tip
+            ord.add(new SuperSpot(mirrorX(mirrorAxis, vx - Math.abs(vx - newSpots.get(9).getCentroidX())), hy + hy - newSpots.get(9).getCentroidY()));  //9th one is opposite tip
         }
         System.out.println("ord refspots size: "+ord.size());
         processLeftReferenceSpots(ord);
@@ -3654,7 +3661,7 @@ System.out.println("hit top at i=" + i);
                     hitTop = true;
                 }
 */
-                newSpots2.add(new SuperSpot(sx, sy));
+                newSpots2.add(new SuperSpot(mirrorX(mirrorAxis, sx), sy));
         }
         System.out.println("newSpots2 after second copy: "+newSpots2.size());
 
@@ -4220,6 +4227,10 @@ System.out.println("hit top at i=" + i);
     }
     
     
+    private double mirrorX(double axisX, double inputX) {
+        return -(inputX - axisX) + axisX;
+    }
+
     public static Double getLineWidth(ArrayList<SuperSpot> spots){
       int numSPots=spots.size();
       SuperSpot leftmostSpot=new SuperSpot(999999,999999);
