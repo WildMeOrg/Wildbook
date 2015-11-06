@@ -3541,7 +3541,6 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     private void processDorsalSpots(Encounter enc) {
         //note: (left)spots are from paths (edges) and leftReferenceSpots come from ref pts
 
-System.out.println("LRS " + enc.getLeftReferenceSpots());
         if (enc.getLeftReferenceSpots() == null) return;
       
         //first the reference spots (which are more or less required)
@@ -3565,6 +3564,20 @@ System.out.println("LRS " + enc.getLeftReferenceSpots());
         ord.add(new SuperSpot(vx, hy));
         ord.add(new SuperSpot(vx, hy + hy - newSpots.get(1).getCentroidY()));
         ord.add(new SuperSpot(vx - Math.abs(vx - newSpots.get(2).getCentroidX()), newSpots.get(2).getCentroidY()));
+
+        //these values are for rotating the trailing edge out
+        double midpX = ord.get(0).getCentroidX() + (ord.get(2).getCentroidX() - ord.get(0).getCentroidX()) * 0.75;
+        double midpY = ord.get(0).getCentroidY();
+        double m = (ord.get(1).getCentroidY() - midpY) / (ord.get(1).getCentroidX() - midpX);
+        double B = midpY - m * midpX;
+        double topX = ord.get(1).getCentroidX();
+        double topY = ord.get(1).getCentroidY();
+        double rotateRadians = Math.toRadians(55);
+
+        //we need to (*after* above calculations!) first rotate out ref[0] at the lower corner
+        double sx = Math.cos(rotateRadians) * (vx - topX) - Math.sin(rotateRadians) * (hy - topY) + topX;
+        double sy = Math.sin(rotateRadians) * (vx - topX) + Math.cos(rotateRadians) * (hy - topY) + topY;
+        ord.set(0, new SuperSpot(sx, sy));
 
         if (spotsSize > 3) {
             for (int i = 0 ; i < 3 ; i++) {  //3 line segments walking up fin
@@ -3626,21 +3639,11 @@ System.out.println("====== top: i=" + topI + " (" + topX + "," + topY + ")");
         var midx = (s[i][1] - b) / m;
 //debugCtx(itool.ctx, 's'+i, [midx, s[i][1]]);
 */
-        double midpX = ord.get(0).getCentroidX() + (ord.get(2).getCentroidX() - ord.get(0).getCentroidX()) * 0.75;
-        double midpY = ord.get(0).getCentroidY();
-        double m = (ord.get(1).getCentroidY() - midpY) / (ord.get(1).getCentroidX() - midpX);
-        double b = midpY - m * midpX;
-
-        double topX = ord.get(1).getCentroidX();
-        double topY = ord.get(1).getCentroidY();
-        //boolean hitTop = false;
-        double rotateRadians = Math.toRadians(55);
         for (int i = 0 ; i < spotsSize ; i++) {
-                double sx = vx - Math.abs(vx - newSpots.get(i).getCentroidX());
-                double sy = hy + hy - newSpots.get(i).getCentroidY();
-                double midX = (sy - b) / m;
+                sx = vx - Math.abs(vx - newSpots.get(i).getCentroidX());
+                sy = hy + hy - newSpots.get(i).getCentroidY();
+                double midX = (sy - B) / m;
                 if (sx > midX) {
-                //if (hitTop) {
                     double sx2 = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
                     sy = Math.sin(rotateRadians) * (sx - topX) + Math.cos(rotateRadians) * (sy - topY) + topY;
                     sx = sx2;
