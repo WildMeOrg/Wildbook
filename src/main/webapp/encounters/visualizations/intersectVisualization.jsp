@@ -46,6 +46,7 @@ int chartWidth=810;
         var data = new google.visualization.DataTable();
       	data.addColumn('number', 'x');
       	data.addColumn('number', 'y');
+      	data.addColumn({type:'string', role:'style'});
         
       	data.addRows([
          
@@ -177,12 +178,20 @@ try {
 			 %>  
 			 [
 			  <%=spots.get(t).getCentroidX() %>,
-			  <%=spots.get(t).getCentroidY() %>
+			  <%=spots.get(t).getCentroidY() %>,
+			  'color: green'
 			  ],
 		 
 			 <%
 		}
-
+	  	for (int t = 0; t < 3; t++) {
+			 %>  
+			 [
+			  <%=theEncControlSpots[t].getX() %>,<%=theEncControlSpots[t].getY() %>, 'color: yellow'
+			  ],
+		 
+			 <%
+		}  
 	    
 	    
 	    
@@ -200,8 +209,8 @@ try {
         var data2 = new google.visualization.DataTable();
       	data2.addColumn('number', 'x');
       	data2.addColumn('number', 'y');
+      	data2.addColumn({type:'string', role:'style'});
       	
-        
       	data2.addRows([
          
        
@@ -283,29 +292,34 @@ try {
 		 %>  
 		 [
 		  //<%=transformedPoint.getX() %>, <%=transformedPoint.getY() %>
-		  <%=originalPoint.getX() %>, <%=originalPoint.getY() %>
+		  <%=originalPoint.getX() %>, <%=originalPoint.getY() %>, 'color: red'
 		  ],
 		 <%
 	}
-
+  	             
+  	for (int t = 0; t < 3; t++) {
+		 %>  
+		 [
+		  <%=newEncControlSpots[t].getX() %>,<%=newEncControlSpots[t].getY() %>, 'color: yellow'
+		  ],
+	 
+		 <%
+	}               
+  	%>  
 
 
 	    
 	    
 	    
-	%>
-	
-	
 	
 	
 
 	]);
       	
-      	
+      
       	
       	var joinedData = google.visualization.data.join(data, data2, 'full', [[0, 0]], [1], [1]);
-      	
-      	
+      
 
 	        
 	        var options = {'title':'Render Fluke',
@@ -314,13 +328,7 @@ try {
                     'pointSize': 5,
                     'color': 'yellow',
                     'lineWidth': 0,
-                    series: {
-                        0: { color: 'blue' },
-                     	1: {color: 'yellow'},
-                     	2: {color: 'green'},
-                     	3: {color: 'green'}
-                       
-                      }
+                   
                     };
 
 	        // Instantiate and draw our chart, passing in some options.
@@ -415,7 +423,7 @@ try {
 	    <td valign="top">
 	    
 	    
-	  <h4>Holmberg Intersection (prop=<%=intersectionProportion %>)</h4>  
+	  <h4>Holmberg Intersection</h4>  
 	    
 	    <p><i>Higher is better. 1 is the max score.</i></p>
 	    <p>Num. intersections/total possible is: <%=finalInter %>
