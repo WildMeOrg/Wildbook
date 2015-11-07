@@ -89,7 +89,7 @@ try {
       Collections.sort(oldSpots, new XComparator());
       
       //let's prefilter old spots for outlies outside the bounds
-      /*
+      
       for(int i=0;i<oldSpots.size();i++){
     	  SuperSpot theSpot=oldSpots.get(i);
     	  if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
@@ -101,7 +101,7 @@ try {
     		  i--;
     	  }
       }
-      */
+      
       
       int numOldSpots=oldSpots.size();
       double[] OLD_VALUES=new double[numOldSpots];
@@ -110,11 +110,12 @@ try {
       SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
       Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
       double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
+      System.out.println(" Old line width is: "+oldLineWidth);
       
       SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
       Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
       double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-      
+      System.out.println(" New line width is: "+newLineWidth);
       
       //first populate OLD_VALUES - easy
       
@@ -141,7 +142,7 @@ try {
       if(theEnc2.getRightSpots()!=null){
       	newSpots.addAll(theEnc2.getRightSpots());
       }
-      //Collections.sort(newSpots, new XComparator());
+      Collections.sort(newSpots, new XComparator());
       int numtheEnc2Spots=newSpots.size();
       Line2D.Double[] newLines=new Line2D.Double[numtheEnc2Spots-1];
       for(int i=0;i<(numtheEnc2Spots-1);i++){
@@ -182,7 +183,8 @@ try {
       for(int i=0;i<numOldSpots;i++){
     	  System.out.println("Iterating!");
         SuperSpot theSpot=oldSpots.get(i);
-        double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[1].getCentroidX())/oldLineWidth;
+        double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
+        System.out.println("Iterating xCoordFraction: "+xCoordFraction);
         Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
         
         //now we need to find where this point falls on the theEnc2 pattern
@@ -197,10 +199,14 @@ try {
           lineIterator++;
         }
         try{
+        	
+        	System.out.println("     lineY1="+intersectionLine.getY1()+" and Y2="+intersectionLine.getY2());
 	        double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
 	        double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
-	        NEW_VALUES[i]=yCoord;
-	        System.out.println("     ycoord "+yCoord+" at "+xCoordFraction);
+	        if(yCoord>0){NEW_VALUES[i]=yCoord;}
+	        else{NEW_VALUES[i]=0;}
+	        
+	        System.out.println("     ycoord "+yCoord+" at "+xCoordFraction+ " and slope is: "+slope);
         }
 		catch(Exception e){
 			System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
@@ -312,6 +318,8 @@ try {
 <td valign="top">
 
 <p>Match result: <%=matchResult.toString() %></p>
+
+<p>EncounterLite Match result: <%=MSM.getMSMDistance(theEnc, theEnc2) %></p>
 <div id="chart_div"></div>
 
 
