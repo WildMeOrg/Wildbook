@@ -45,13 +45,9 @@ import java.io.*;
 import java.net.URL;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.sql.*;
-import java.util.Collection;
-import java.util.Map;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
@@ -646,5 +642,59 @@ String rootWebappPath = "xxxxxx";
       }
     }
     return myText.toString();
+  }
+
+  /**
+   * Returns the string URL for the specified Encounter.
+   * @param request servlet request
+   * @param context webapp context
+   * @param enc Encounter for which to create/return URL
+   * @return string representing URL to encounter
+   */
+  public static String getEncounterURL(HttpServletRequest request, String context, String enc) {
+    Objects.requireNonNull(request);
+    Objects.requireNonNull(context);
+    Objects.requireNonNull(enc);
+//    String sfEnc = request.getContextPath() + "/encounters/encounter.jsp?number=%s";
+    String sfEnc = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=%s";
+    return String.format(sfEnc, enc);
+  }
+
+  /**
+   * Returns the string URL for the specified Encounter.
+   * @param request servlet request
+   * @param context webapp context
+   * @param enc Encounter for which to create/return URL
+   * @return string representing URL to encounter
+   */
+  public static String getEncounterURL(HttpServletRequest request, String context, Encounter enc) {
+    return getEncounterURL(request, context, enc.getCatalogNumber());
+  }
+
+  /**
+   * Returns the string URL for the specified MarkedIndividual.
+   * @param request servlet request
+   * @param context webapp context
+   * @param ind MarkedIndividual for which to create/return URL
+   * @return string representing URL to individual
+   */
+  public static String getMarkedIndividualURL(HttpServletRequest request, String context, String ind) {
+    Objects.requireNonNull(request);
+    Objects.requireNonNull(context);
+    Objects.requireNonNull(ind);
+//    String sfInd = request.getContextPath() + "/individuals.jsp?number=%s";
+    String sfInd = "//" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=%s";
+    return String.format(sfInd, ind);
+  }
+
+  /**
+   * Returns the string URL for the specified MarkedIndividual.
+   * @param request servlet request
+   * @param context webapp context
+   * @param ind MarkedIndividual for which to create/return URL
+   * @return string representing URL to individual
+   */
+  public static String getMarkedIndividualURL(HttpServletRequest request, String context, MarkedIndividual ind) {
+    return getMarkedIndividualURL(request, context, ind.getIndividualID());
   }
 }
