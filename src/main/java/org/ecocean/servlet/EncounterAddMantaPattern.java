@@ -23,34 +23,34 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
-
-import org.ecocean.*;
-import org.ecocean.mmutil.*;
-
+import org.ecocean.CommonConfiguration;
+import org.ecocean.Encounter;
+import org.ecocean.Shepherd;
+import org.ecocean.SinglePhotoVideo;
+import org.ecocean.mmutil.ListHelper;
+import org.ecocean.mmutil.MantaMatcherScan;
+import org.ecocean.mmutil.MantaMatcherUtilities;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
-
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.List;
 
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 //import javax.imageio.spi.ImageReaderWriterSpi;
-
-import org.ecocean.servlet.*;
-
-
 
 
 /**
@@ -61,6 +61,8 @@ import org.ecocean.servlet.*;
  *
  */
 public class EncounterAddMantaPattern extends HttpServlet {
+  /** SLF4J logger instance for writing log entries. */
+  private static final Logger log = LoggerFactory.getLogger(EncounterAddMantaPattern.class);
 
   @Override
   public void init(ServletConfig config) throws ServletException {
@@ -74,7 +76,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
 
   @Override
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+
     
     String context="context0";
     context=ServletUtilities.getContext(request);
@@ -95,6 +97,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     String encounterNumber = "";
     SinglePhotoVideo spv = null;
     Map<String, File> mmFiles = null;
+    MantaMatcherScan scan = null;
     String action = "imageadd";
     
     StringBuilder resultComment = new StringBuilder();
@@ -105,8 +108,8 @@ public class EncounterAddMantaPattern extends HttpServlet {
     else if (request.getParameter("action") != null && request.getParameter("action").equals("rescan")) {
       action = "rescan";
     }
-    else if (request.getParameter("action") != null && request.getParameter("action").equals("rescanRegional")) {
-      action = "rescanRegional";
+    else if (request.getParameter("action") != null && request.getParameter("action").equals("removeScan")) {
+      action = "removeScan";
     }
     //imageadd2 is added for the new candidate region selection tool and should eventually replace the original imageadd action
     else if (request.getParameter("action") != null && request.getParameter("action").equals("imageadd2")) {
@@ -121,7 +124,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
-          MantaMatcherUtilities.removeMatcherFiles(spv);
+          MantaMatcherUtilities.removeMatcherFiles(context, spv);
 
           // Clear MMA-compatible flag if appropriate for encounter.
           boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, shepherdDataDir);
@@ -143,39 +146,43 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
           //File encDir = new File(encountersDir, enc.getEncounterNumber());
-          
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
-          
           
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
           File spvFile = new File(encDir, spv.getFilename());
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-          // Delete previous matching files.
-          mmFiles.get("TXT").delete();
-          mmFiles.get("CSV").delete();
+
+          String[] locIDs = request.getParameterValues("locationID");
+          List<String> locationIDs = (locIDs == null) ? null : Arrays.asList(locIDs);
+
+          String scanId = request.getParameter("scanId");
+          // If refreshing a scan, delete previous results and update time.
+          if (scanId != null) {
+            scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, scanId);
+            // Remove this old scan from those already saved.
+            Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+            mmaScans.remove(scan);
+            MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
+            // Now remove old data and update time for resuse.
+            scan.deleteScanFiles();
+            scan.setDateTime(new Date());
+          } else {
+            scan = new MantaMatcherScan(spv, locationIDs, new Date());
+          }
 
           // Prepare temporary algorithm input file.
-          File mmaInputFile = mmFiles.get("MMA-INPUT");
-          if (mmaInputFile.exists())
-            mmaInputFile.delete();
-          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, spv);
-          PrintWriter pw = null;
-          try {
-            pw = new PrintWriter(mmaInputFile);
+          String inputText = MantaMatcherUtilities.collateAlgorithmInput(myShepherd, encountersDir, enc, spv, locationIDs);
+          try (PrintWriter pw = new PrintWriter(scan.getScanInput())) {
             pw.print(inputText);
             pw.flush();
-          }
-          finally {
-            if (pw != null)
-              pw.close();
           }
 
           // Run algorithm.
           List<String> procArg = ListHelper.create("/usr/bin/mmatch")
-                  .add(mmaInputFile.getAbsolutePath())
+                  .add(scan.getScanInput().getAbsolutePath())
                   .add("0").add("0").add("2").add("1")
-                  .add("-o").add(mmFiles.get("TXT").getName())
-                  .add("-c").add(mmFiles.get("CSV").getName())
+                  .add("-o").add(scan.getScanOutputTXT().getName())
+                  .add("-c").add(scan.getScanOutputCSV().getName())
                   .asList();
           ProcessBuilder pb2 = new ProcessBuilder(procArg);
           pb2.directory(encDir);
@@ -186,7 +193,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           System.out.println(procArgStr);
           
           Process proc = pb2.start();
-          // Read ouput from process.
+          // Read output from process.
           resultComment.append("mmatch reported the following when trying to match image files:<br />");
           BufferedReader brProc = new BufferedReader(new InputStreamReader(proc.getInputStream()));
           try {
@@ -198,93 +205,55 @@ public class EncounterAddMantaPattern extends HttpServlet {
           catch (IOException iox) {
             iox.printStackTrace();
             locked = true;
-            resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
+            resultComment.append("I hit an IOException while trying to execute mmatch from the command line.");
             resultComment.append(iox.getStackTrace().toString());
           }
           proc.waitFor();
 
           // Delete temporary algorithm input file.
-          mmaInputFile.delete();
+          scan.getScanInput().delete();
+
+          // Resave MMA scans after including new one.
+          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+          mmaScans.add(scan);
+          MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
         }
         catch (SecurityException sx) {
-          sx.printStackTrace();
-          System.out.println("Error attempting to rescan manta feature image!!!!");
-          resultComment.append("I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
+          log.error(sx.getMessage(), sx);
+          System.out.println("Error attempting to rescan via MantaMatcher algorithm");
+          resultComment.append("I hit a security error trying to rescan via MantaMatcher algorithm. Please check file system permissions.");
         }
       }
       // ====================================================================
-      else if (action.equals("rescanRegional")){
+      else if (action.equals("removeScan")){
 
         encounterNumber = request.getParameter("number");
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
-          //File dirEnc = new File(encountersDir, enc.getEncounterNumber());
-          
-          File dirEnc = new File(Encounter.dir(shepherdDataDir, encounterNumber));
-          
-          
+          File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
+
           spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          File spvFile = new File(encDir, spv.getFilename());
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-          // Delete previous matching files.
-          mmFiles.get("TXT-REGIONAL").delete();
-          mmFiles.get("CSV-REGIONAL").delete();
 
-          // Prepare temporary algorithm input file.
-          File mmaInputFile = mmFiles.get("MMA-INPUT-REGIONAL");
-          if (mmaInputFile.exists())
-            mmaInputFile.delete();
-          String inputText = MantaMatcherUtilities.collateAlgorithmInputRegional(myShepherd, encountersDir, enc, spv);
-          PrintWriter pw = null;
-          try {
-            pw = new PrintWriter(mmaInputFile);
-            pw.print(inputText);
-            pw.flush();
+          String[] locIDs = request.getParameterValues("locationID");
+          List<String> locationIDs = (locIDs == null) ? null : Arrays.asList(locIDs);
+
+          String scanId = request.getParameter("scanId");
+
+          // Resave MMA scans after including new one.
+          Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
+          scan = MantaMatcherUtilities.findMantaMatcherScan(context, spv, scanId);
+          if (scan != null) {
+            mmaScans.remove(scan);
+            scan.deleteScanFiles();
+            MantaMatcherUtilities.saveMantaMatcherScans(context, spv, mmaScans);
           }
-          finally {
-            if (pw != null)
-              pw.close();
-          }
-
-          // Run algorithm.
-          List<String> procArg = ListHelper.create("/usr/bin/mmatch")
-                  .add(mmaInputFile.getAbsolutePath())
-                  .add("0").add("0").add("2").add("1")
-                  .add("-o").add(mmFiles.get("TXT-REGIONAL").getName())
-                  .add("-c").add(mmFiles.get("CSV-REGIONAL").getName())
-                  .asList();
-          ProcessBuilder pb2 = new ProcessBuilder(procArg);
-          pb2.directory(dirEnc);
-          pb2.redirectErrorStream();
-
-          String procArgStr = ListHelper.toDelimitedStringQuoted(procArg, " ");
-          resultComment.append("<br />").append(procArgStr).append("<br /><br />");
-          System.out.println(procArgStr);
-
-          Process proc = pb2.start();
-          // Read ouput from process.
-          resultComment.append("mmatch reported the following when trying to match image files:<br />");
-          BufferedReader brProc = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-          try {
-            String temp = null;
-            while ((temp = brProc.readLine()) != null) {
-              resultComment.append(temp).append("<br />");
-            }
-          }
-          catch (IOException iox) {
-            iox.printStackTrace();
-            locked = true;
-            resultComment.append("I hit an IOException while trying to execute mmprocess from the command line.");
-            resultComment.append(iox.getStackTrace().toString());
-          }
-          proc.waitFor();
-
-          // Delete temporary algorithm input file.
-          mmaInputFile.delete();
         }
         catch (SecurityException sx) {
-          sx.printStackTrace();
-          System.out.println("Error attempting to rescan manta feature image!!!!");
-          resultComment.append("I hit a security error trying to rescan manta feature image. Please check your file system permissions.");
+          log.error(sx.getMessage(), sx);
+          System.out.println("Error attempting to remove MantaMatcher algorithm scan data");
+          resultComment.append("I hit a security error trying to remove MantaMatcher algorithm scan data. Please check file system permissions.");
         }
       }
       // ====================================================================
@@ -318,7 +287,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
             try {
               // Attempt to delete existing MM algorithm files.
               // (Shouldn't exist, but just a precaution.)
-              MantaMatcherUtilities.removeMatcherFiles(spv);
+              MantaMatcherUtilities.removeMatcherFiles(context, spv);
             }
             catch (SecurityException sx) {
               sx.printStackTrace();
@@ -391,7 +360,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         try {
           // Attempt to delete existing MM algorithm files.
           // (Shouldn't exist, but just a precaution.)
-          MantaMatcherUtilities.removeMatcherFiles(spv);
+          MantaMatcherUtilities.removeMatcherFiles(context, spv);
         }
         catch (SecurityException sx) {
           sx.printStackTrace();
@@ -562,12 +531,13 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println(ServletUtilities.getFooter(context));
           }
           else if (action.equals("rescan")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(spv.getDataCollectionEventID()));
+            String paramScanId = String.format("%s=%s", MantaMatcher.PARAM_KEY_SCANID, URLEncoder.encode(scan.getId()));
+            String resultsURL = String.format("%s/MantaMatcher/displayResults?%s&%s", request.getContextPath(), paramSPV, paramScanId);
             response.sendRedirect(resultsURL);
           }
-          else if (action.equals("rescanRegional")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
-            response.sendRedirect(resultsURL);
+          else if (action.equals("removeScan")) {
+            response.sendRedirect(ServletUtilities.getEncounterURL(request, context, encounterNumber));
           }
           else {
             out.println(ServletUtilities.getHeader(request));

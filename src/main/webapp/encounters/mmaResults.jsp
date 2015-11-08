@@ -60,6 +60,8 @@
   Shepherd shepherd = new Shepherd(context);
   // Get map for implementing i18n of pigmentation.
   Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
+  // Get set of all LocationIDs.
+  Set<String> allLocationIDs = new HashSet<>(CommonConfiguration.getIndexedValues("locationID", context));
 
   // Page internationalization.
   String langCode = ServletUtilities.getLanguageCode(request);
@@ -79,9 +81,14 @@
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
+  MantaMatcherScan scan = (MantaMatcherScan)request.getAttribute(MantaMatcher.REQUEST_KEY_SCAN);
   MMAResultsProcessor.MMAResult results = (MMAResultsProcessor.MMAResult)request.getAttribute(MantaMatcher.REQUEST_KEY_RESULTS);
   if (results == null) {
     // FIXME: handle
+  }
+  String dispLocIDs = scan.getLocationIdString(null, null, ", ");
+  if (scan.getLocationIds().equals(allLocationIDs)) {
+    dispLocIDs = bundle.getProperty("location.global");
   }
   DateFormat DF = new SimpleDateFormat("yyyy-MM-dd HH:mm Z");
   // Derive data folder info.
@@ -144,12 +151,20 @@
 <div id="mma-desc">
   <table>
     <tr>
-      <th><% out.print(bundle.getProperty("dateOfScan")); %></th>
-      <td class="mma-date"><% out.print(DF.format(results.getDate())); %></td>
-    </tr>
-    <tr>
       <th><% out.print(bundle.getProperty("version")); %></th>
       <td class="mma-version"><% out.print(MessageFormat.format(bundle.getProperty("version.val"), results.getVersion())); %></td>
+    </tr>
+    <tr>
+      <th><% out.print(bundle.getProperty("queryEncounter")); %></th>
+      <td class="mma-queryEncounter"><a href="<% out.print(encUrl); %>"><% out.print(results.getTestEncounterNumber()); %></a></td>
+    </tr>
+    <tr>
+      <th><% out.print(bundle.getProperty("locations")); %></th>
+      <td class="mma-queryEncounter"><% out.print(dispLocIDs); %></td>
+    </tr>
+    <tr>
+      <th><% out.print(bundle.getProperty("dateOfScan")); %></th>
+      <td class="mma-date"><% out.print(DF.format(results.getDate())); %></td>
     </tr>
     <tr>
       <th><% out.print(bundle.getProperty("matchCount")); %></th>
@@ -159,20 +174,16 @@
       <th><% out.print(bundle.getProperty("confidence")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.worstBest")); %></span></th>
       <td class="mma-confidence"><% out.print(String.format("%.6f", results.getConfidence())); %></td>
     </tr>
-    <tr>
-      <th><% out.print(bundle.getProperty("queryEncounter")); %></th>
-      <td class="mma-queryEncounter"><a href="<% out.print(encUrl); %>"><% out.print(results.getTestEncounterNumber()); %></a></td>
-    </tr>
   </table>
 </div>
 <div id="mma-results">
   <table id="mma-resultsTable">
     <tr>
-      <th><% out.print(bundle.getProperty("table.column.rank")); %></td>
-      <th><% out.print(bundle.getProperty("table.column.similarity")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("table.column.similarityDesc")); %></span></td>
-      <th><% out.print(bundle.getProperty("table.column.matchDetails")); %></td>
-      <th><% out.print(bundle.getProperty("table.column.matchedImage")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.newWindow")); %></span></td>
-      <th><% out.print(bundle.getProperty("table.column.queryImage")); %><br/><span class="mma-small"><% out.print(encIsAssigned ? MessageFormat.format(bundle.getProperty("desc.assignedTo"), enc.getIndividualID()) : bundle.getProperty("desc.unassigned")); %></span></td>
+      <th><% out.print(bundle.getProperty("table.column.rank")); %></th>
+      <th><% out.print(bundle.getProperty("table.column.similarity")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("table.column.similarityDesc")); %></span></th>
+      <th><% out.print(bundle.getProperty("table.column.matchDetails")); %></th>
+      <th><% out.print(bundle.getProperty("table.column.matchedImage")); %><br/><span class="mma-small"><% out.print(bundle.getProperty("desc.newWindow")); %></span></th>
+      <th><% out.print(bundle.getProperty("table.column.queryImage")); %><br/><span class="mma-small"><% out.print(encIsAssigned ? MessageFormat.format(bundle.getProperty("desc.assignedTo"), enc.getIndividualID()) : bundle.getProperty("desc.unassigned")); %></span></th>
     </tr>
 <%
   if (!mmaTest.getValue().isEmpty()) {

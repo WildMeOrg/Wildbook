@@ -26,6 +26,72 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 
+<style type="text/css">
+  #mma .sectionTitle {
+    font-weight: bold;
+  }
+  #mma .subSection {
+    clear: both;
+    font-size: 0.9em;
+  }
+  #mma .subSectionTitle {
+    background-color: #f0f0f0;
+    padding: 0.5em;
+    font-style: italic;
+  }
+  #mma .subSubSection {
+  }
+  #mma .subSubSectionTitle {
+    background-color: #f0f0f0;
+    padding: 0.5em;
+    font-style: italic;
+  }
+  #mma .featureRegion {
+    width: 100%;
+  }
+  #mma .featureRegionImage {
+    float: left;
+    width: 380px;
+    padding: 0 10px 0 0;
+  }
+  #mma .featureRegionImage img {
+    max-width: 100%;
+    height: auto;
+  }
+  #mma .featureRegionResults {
+    float: right;
+    width: 410px;
+    padding: 0 0 0 10px;
+  }
+  #mma .featureRegionResults p {
+    margin: 0;
+  }
+  #mma .mmaResults {
+    margin-top: 0.5em;
+    padding: 0.5em 1em 1em 1em;
+    background-color: #f0f0f0
+  }
+  #mma .mmaResultDetailsTable td {
+    padding: 0.15em;
+  }
+  #mma .mmaResultLink a {
+    font-weight: bolder;
+  }
+  #mma .mmaResultDate {
+    white-space: nowrap;
+  }
+  #mma .mmaResultsLocation {
+    font-weight: bolder;
+  }
+  #newScanCheckboxTable td {
+    vertical-align: top;
+  }
+  button.smaller, input[type="button"].smaller, input[type="submit"].smaller {
+    font-size: 80%;
+    padding: 3px 7px;
+  }
+</style>
+
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -60,12 +126,11 @@ try {
       SinglePhotoVideo spv = photos.get(t);
       if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
         continue;
-      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
-      File matchOutputRegional = mmFiles.get("TXT-REGIONAL");
-      File matchOutputAll = mmFiles.get("TXT");
-      File mmFT = mmFiles.get("FT");
       if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile()))
         continue;
+      Map<String, File> mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
+      File mmFT = mmFiles.get("FT");
+      Set<MantaMatcherScan> mmaScans = MantaMatcherUtilities.loadMantaMatcherScans(context, spv);
 %>
     <div class="subSection featureRegion">
       <p class="subSectionTitle featureRegionTitle"><%= MessageFormat.format(encprops.getProperty("mma.featureImage"), t + 1) %></p>
@@ -75,9 +140,9 @@ try {
         <p><img src="/<%=shepherdDataDir.getName() %>/encounters/<%=Encounter.subdir(enc.getCatalogNumber()) %>/<%=URLEncoder.encode(mmFT.getName(), "UTF-8")%>"/></p>
         <div class="formRemoveCR">
           <form action="../EncounterAddMantaPattern" method="post" name="EncounterRemoveMantaPattern">
-            <input name="action" type="hidden" value="imageremove" id="actionRemove"/>
-            <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
+            <input name="action" type="hidden" value="imageremove" id="actionRemove-remove"/>
+            <input name="number" type="hidden" value="<%=encNum%>" id="number-remove"/>
+            <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID-remove"/>
             <p><input name="removeMMPatternFile" type="submit" id="removeMMPatternFile" value="<%= encprops.getProperty("mma.submit.remove") %>"/></p>
           </form>
         </div>
@@ -86,69 +151,159 @@ try {
 
       <%--Start: featureRegionResults--%>
       <div class="subSubSection featureRegionResults">
-        <p class="subSubSectionTitle"><%= encprops.getProperty("mma.inspectResults") %></p>
+        <%--<p class="subSubSectionTitle"><%= encprops.getProperty("mma.inspectResults") %></p>--%>
 <%
-        if (enc.getLocationID() != null && !matchOutputRegional.exists()) {
+        if (enc.getLocationID() != null && mmaScans.isEmpty()) {
 %>
-        <div class="resultsRegional">
-          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsNotFoundRegional"), enc.getLocationID()) %></p>
-          <div class="scanRegionalForm">
-            <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-              <input name="action" type="hidden" value="rescanRegional" id="actionScanRegional"/>
-              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
-              <p><input name="scanFile" type="submit" id="scanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.scanRegional"), enc.getLocationID()) %>"/></p>
-            </form>
-          </div>
+        <div class="mmaResults">
+          <p><%= encprops.getProperty("mma.resultsNotFound") %></p>
         </div>
 <%
         } else if (enc.getLocationID() != null) {
+          Set<String> allLocationIDs = new HashSet<>(CommonConfiguration.getIndexedValues("locationID", context));
+          // Loop over each MMA scan...
+          for (MantaMatcherScan mmaScan : mmaScans) {
+            String dispLocIDs = mmaScan.getLocationIdString("<span class=\"mmaResultsLocation\">", "</span>", ", ");
+            if (mmaScan.getLocationIds().equals(allLocationIDs)) {
+              dispLocIDs = "<span class=\"mmaResultsLocation\">" + encprops.getProperty("mma.location.global") + "</span>";
+            }
+            String resultsURL = MantaMatcherUtilities.createMantaMatcherResultsLink(request, spv, mmaScan.getId());
 %>
-        <div class="resultsRegional">
-          <p><%= MessageFormat.format(encprops.getProperty("mma.resultsFoundRegional"), enc.getLocationID()) %> <a href="../MantaMatcher/displayResultsRegional?spv=<%=spv.getDataCollectionEventID() %>"><%= MessageFormat.format(encprops.getProperty("mma.resultsLinkRegional"), enc.getLocationID()) %></a></p>
-          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputRegional.lastModified())) %></p>
-          <div class="formRescanRegional">
-            <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
-              <input name="action" type="hidden" value="rescanRegional" id="actionRescanRegional"/>
-              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
-              <p><input name="rescanFile" type="submit" id="rescanRegionalFile" value="<%= MessageFormat.format(encprops.getProperty("mma.submit.rescanRegional"), enc.getLocationID()) %>"/></p>
-            </form>
-          </div>
-        </div>
-<%
-        }
-        if (!matchOutputAll.exists()) {
-%>
-        <div class="resultsGlobal">
-          <p><%= encprops.getProperty("mma.resultsNotFound") %></p>
-          <div class="formScan">
-            <form action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-              <input name="action" type="hidden" value="rescan" id="actionScan"/>
-              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
-              <p><input name="scanFile" type="submit" id="scanFile" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
-            </form>
-          </div>
-        </div>
-<%
-        } else {
-%>
-        <div class="resultsGlobal">
-          <p><%= encprops.getProperty("mma.resultsFound")%> <a href="../MantaMatcher/displayResults?spv=<%=spv.getDataCollectionEventID() %>"><%= encprops.getProperty("mma.resultsLink") %></a></p>
-          <p class="smallish"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), new Date(matchOutputAll.lastModified())) %></p>
+        <div class="mmaResults">
+          <table class="mmaResultDetailsTable">
+            <tbody>
+            <tr>
+              <td class="mmaResultLocationsText"><%= encprops.getProperty("mma.resultsFound") %></td>
+              <td class="mmaResultLocations"><%= dispLocIDs %></td>
+            </tr>
+            <tr>
+              <td class="mmaResultLink"><a href="<%=resultsURL%>"><%= encprops.getProperty("mma.resultsLink") %></a></td>
+              <td class="mmaResultDate"><%= MessageFormat.format(encprops.getProperty("mma.resultsCreated"), mmaScan.getDateTime()) %></td>
+            </tr>
+            </tbody>
+          </table>
           <div class="formRescan">
-            <form action="../EncounterAddMantaPattern" method="post" name="EncounterRescanMantaPattern">
-              <input name="action" type="hidden" value="rescan" id="actionRescan"/>
-              <input name="number" type="hidden" value="<%=encNum%>" id="number"/>
-              <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID"/>
-              <p><input name="rescanFile" type="submit" id="rescanFile" value="<%= encprops.getProperty("mma.submit.rescan") %>"/></p>
-            </form>
+            <table class="rescanFormsTable">
+              <tbody>
+              <tr>
+                <td>
+                  <form action="../EncounterAddMantaPattern" method="post">
+                    <input name="action" type="hidden" value="removeScan"/>
+                    <input name="number" type="hidden" value="<%=encNum%>"/>
+                    <input name="dataCollectionEventID" type="hidden" value="<%=mmaScan.getDataCollectionEventId()%>"/>
+                    <input name="scanId" type="hidden" value="<%=mmaScan.getId()%>"/>
+                    <input name="removeScanFile" type="submit" id="removeScan" class="smaller" value="<%= encprops.getProperty("mma.submit.removeScan") %>"/>
+                  </form>
+                </td>
+                <td>
+                  <form action="../EncounterAddMantaPattern" method="post">
+                    <input name="action" type="hidden" value="rescan"/>
+                    <input name="number" type="hidden" value="<%=encNum%>"/>
+                    <input name="dataCollectionEventID" type="hidden" value="<%=mmaScan.getDataCollectionEventId()%>"/>
+<%
+  for (String loc : mmaScan.getLocationIds()) {
+%>
+                    <input name="locationID" type="hidden" value="<%=loc%>"/>
+<%
+  }
+%>
+                    <input name="scanId" type="hidden" value="<%=mmaScan.getId()%>"/>
+                    <input name="rescanFile" type="submit" id="rescanFile" class="smaller" value="<%= encprops.getProperty("mma.submit.rescan") %>"/>
+                  </form>
+                </td>
+              </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 <%
+          }
         }
 %>
+        <div class="mmaResults">
+          <form id="formNewScan">
+            <button id="buttonNewScan" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.title") %>"><%= encprops.getProperty("mma.button.newScan") %></button>
+          </form>
+        </div>
+        <!-- New Scan popup dialog -->
+        <div id="dialogNewScan" title="<%=encprops.getProperty("mma.dialogTitle.selectLocations")%>" style="display:none">
+          <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+            <tbody>
+            <tr>
+              <td align="left" valign="top">
+                <div class="scanForm">
+                  <form id="scanForm" action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+                    <table id="newScanCheckboxTable">
+                      <tbody>
+                      <tr>
+                        <td>
+<%
+          Map<String, String> allLocationsMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
+          int colCount = 1;
+          int maxPerCol = 12;
+          while ((allLocationsMap.size() / colCount) > maxPerCol)
+            colCount++;
+          int itemCounter = 0;
+          for (Map.Entry<String, String> me : allLocationsMap.entrySet()) {
+            if (itemCounter > 0 && (itemCounter % maxPerCol) == 0) {
+%>
+                        </td>
+                        <td>
+<%
+            }
+            itemCounter++;
+            if (me.getValue().equals(enc.getLocationID())) {
+%>
+                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>" id="<%=me.getKey()%>-select" class="encLocation" checked="checked"/>&nbsp;<%=me.getValue()%><br/>
+<%
+            } else {
+%>
+                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>" id="<%=me.getKey()%>-new"/>&nbsp;<%=me.getValue()%><br/>
+<%
+            }
+          }
+%>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <button id="selectAll" class="smaller"><%= encprops.getProperty("mma.button.selectAll") %></button>
+                    <button id="selectNone" class="smaller"><%= MessageFormat.format(encprops.getProperty("mma.button.selectNone"), enc.getLocationID()) %></button>
+                    <input name="action" type="hidden" value="rescan" id="actionScan"/>
+                    <input name="number" type="hidden" value="<%=encNum%>" id="number-new"/>
+                    <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID-new"/>
+                    <p><input type="submit" id="scanFile" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+        <script>
+          var dlgNewScan = $("#dialogNewScan").dialog({
+            autoOpen: false,
+            draggable: false,
+            resizable: false,
+            width: 600
+          });
+          $("button#buttonNewScan").click(function(e) {
+            e.preventDefault();
+            dlgNewScan.dialog("open");
+          });
+          // Define checkbox selections.
+          $('button#selectAll').click(function(e) {
+            e.preventDefault();
+            $('form#scanForm input[name="locationID"]').prop('checked', 'checked');
+          });
+          $('button#selectNone').click(function(e) {
+            e.preventDefault();
+            $('form#scanForm input[name="locationID"]').prop('checked', false);
+            $('form#scanForm input[name="locationID"].encLocation').prop('checked', 'checked');
+          });
+        </script>
+        <!-- End: New Scan popup dialog -->
+
       </div><%--End: featureRegionResults--%>
     </div><%--End: featureRegion--%>
 <%
@@ -217,13 +372,8 @@ var dlgScan = $("#dlgScan").dialog({
     window.stop();
   }
   });
-$("input#scanRegionalFile").click(function() {
-  dlgScan.dialog("open");
-});
-$("input#rescanRegionalFile").click(function() {
-  dlgScan.dialog("open");
-});
 $("input#scanFile").click(function() {
+  dlgNewScan.dialog("close");
   dlgScan.dialog("open");
 });
 $("input#rescanFile").click(function() {
