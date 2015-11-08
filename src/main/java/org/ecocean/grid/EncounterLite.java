@@ -2318,7 +2318,7 @@ private double amplifyY(double origValue, double s){
     }
   }
     
-    public static Double getHolmbergIntersectionScore_OLD_AFFINE(EncounterLite theEnc,EncounterLite theEnc2, double allowedIntersectionWarpProportion){
+    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -2505,7 +2505,7 @@ private double amplifyY(double origValue, double s){
                           
                           
                           //if this proprtional distance is too warped, don't count it
-                          if(proportionalDistance>allowedIntersectionWarpProportion){numIntersections--;}
+                          //if(proportionalDistance>allowedIntersectionWarpProportion){numIntersections--;}
                           
                         }
                         
@@ -3550,7 +3550,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         for(int i=0;i<spotsSize;i++){
           newSpots.add(new SuperSpot(enc.getLeftReferenceSpots().get(i).getCentroidX(),enc.getLeftReferenceSpots().get(i).getCentroidY()));  //swap out for converted
         }
-        System.out.println("Original ref sots size: "+spotsSize+"    NewSpots size: "+newSpots.size());
+        //System.out.println("Original ref sots size: "+spotsSize+"    NewSpots size: "+newSpots.size());
         
         
         //for matching purposes, i am allowing just the 3 "main" reference points as well as full 10.. not sure if this is best course of action?  TODO
@@ -3572,7 +3572,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         double B = midpY - m * midpX;
         double topX = ord.get(1).getCentroidX();
         double topY = ord.get(1).getCentroidY();
-        double rotateRadians = Math.toRadians(55);
+        double rotateRadians = Math.toRadians(155);
 
         //we need to (*after* above calculations!) first rotate out ref[0] at the lower corner
         double sx = Math.cos(rotateRadians) * (vx - topX) - Math.sin(rotateRadians) * (hy - topY) + topX;
@@ -3580,7 +3580,8 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         ord.set(0, new SuperSpot(sx, sy));
 
         //note: now we will ultimately flip it at the end as well, so we need the x-axis to flip it around, which should keep us in quadrant 1; the midpoint should do the trick
-        double mirrorAxis = (ord.get(0).getCentroidX() + ord.get(2).getCentroidX()) / 2;
+        //double mirrorAxis = (ord.get(0).getCentroidX() + ord.get(2).getCentroidX()) / 2;
+        double mirrorAxis = ord.get(0).getCentroidX();
         //now that we have this, we flip the x values on the existing reference points (and use this going forward as well)
         for (int i = 0 ; i < 3 ; i++) {
             ord.get(i).setCentroidX(mirrorX(mirrorAxis, ord.get(i).getCentroidX()));
@@ -3763,7 +3764,7 @@ System.out.println("hit top at i=" + i);
           if(theEnc.getRightSpots()!=null){
             oldSpots.addAll(theEnc.getRightSpots());
           }
-            //Collections.sort(oldSpots, new XComparator());
+            Collections.sort(oldSpots, new XComparator());
             
             //let's prefilter old spots for outlies outside the bounds
             SuperSpot oldLeftmostSpot=new SuperSpot(99999,-99999);
@@ -3801,15 +3802,7 @@ System.out.println("hit top at i=" + i);
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
           Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
           double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-          if(isDorsalFin(theEnc)){
-            double rightmostX=oldReferenceSpots[0].getCentroidX();
-            if(oldReferenceSpots[1].getCentroidX()>rightmostX){
-              rightmostX=oldReferenceSpots[1].getCentroidX();
-              oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[1].getCentroidX(), oldReferenceSpots[2].getCentroidY());
-              System.out.println("  Tweaked old line width!");
-            }
-            oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-rightmostX);
-          }
+
           
           //first populate OLD_VALUES - easy
           
@@ -3830,16 +3823,7 @@ System.out.println("hit top at i=" + i);
           SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
           Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
           double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-          if(isDorsalFin(theEnc2)){
-            double rightmostX=newReferenceSpots[0].getCentroidX();
-            if(newReferenceSpots[1].getCentroidX()>rightmostX){
-              rightmostX=newReferenceSpots[1].getCentroidX();
-              newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[1].getCentroidX(), newReferenceSpots[2].getCentroidY());
-              System.out.println("  Tweaked new line width!");
-           }
-           newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-rightmostX);
-            
-          }
+
           
           ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
           if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
@@ -3852,7 +3836,7 @@ System.out.println("hit top at i=" + i);
           //if(isDorsalFin(theEnc2)){}
           
           Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-          //Collections.sort(newSpots, new XComparator());
+          Collections.sort(newSpots, new XComparator());
           
           
           for(int i=0;i<(numNewEncSpots-1);i++){
@@ -3943,7 +3927,7 @@ System.out.println("hit top at i=" + i);
     
 
     
-    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
+    public static Double getHolmbergIntersectionScore_NEWER(EncounterLite theEnc,EncounterLite theEnc2){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
