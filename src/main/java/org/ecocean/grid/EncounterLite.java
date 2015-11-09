@@ -94,8 +94,12 @@ public class EncounterLite implements java.io.Serializable {
   
   public EncounterLite() {
   }
+  
+  public EncounterLite(Encounter enc){
+    this(enc, 155);
+  }
 
-  public EncounterLite(Encounter enc) {
+  public EncounterLite(Encounter enc, double dorsalRotationInDegree) {
     if(enc.getDate()!=null){
       this.date = enc.getDate();
     }
@@ -124,7 +128,7 @@ public class EncounterLite implements java.io.Serializable {
     
     
     
-    processDorsalSpots(enc);
+    processDorsalSpots(enc, dorsalRotationInDegree);
     
     //System.out.println("Finished processed dorsal spots!");
     //System.out.println(".....Left spots: "+this.getSpots().size());
@@ -2080,12 +2084,14 @@ private double amplifyY(double origValue, double s){
     if(newEnc.getRightSpots()!=null){
       spots2.addAll(newEnc.getRightSpots());
     }
+    Collections.sort(spots2, new XComparator());
     //newspotsTemp=(SuperSpot[])spots2.toArray();
     
     ArrayList<SuperSpot> spots=oldEnc.getSpots();
     if(oldEnc.getRightSpots()!=null){
       spots.addAll(oldEnc.getRightSpots());
     }
+    Collections.sort(spots, new XComparator());
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
     com.reijns.I3S.Point2D[] newEncControlSpots=new com.reijns.I3S.Point2D[3];
@@ -3538,7 +3544,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
       return true;
   }
 
-    private void processDorsalSpots(Encounter enc) {
+    private void processDorsalSpots(Encounter enc, double dorsalRotationInDegree) {
         //note: (left)spots are from paths (edges) and leftReferenceSpots come from ref pts
 
         if (enc.getLeftReferenceSpots() == null) return;
@@ -3572,7 +3578,7 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         double B = midpY - m * midpX;
         double topX = ord.get(1).getCentroidX();
         double topY = ord.get(1).getCentroidY();
-        double rotateRadians = Math.toRadians(155);
+        double rotateRadians = Math.toRadians(dorsalRotationInDegree);
 
         //we need to (*after* above calculations!) first rotate out ref[0] at the lower corner
         double sx = Math.cos(rotateRadians) * (vx - topX) - Math.sin(rotateRadians) * (hy - topY) + topX;

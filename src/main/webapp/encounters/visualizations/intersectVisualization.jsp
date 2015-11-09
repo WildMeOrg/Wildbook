@@ -379,9 +379,9 @@ try {
 	    final Instances instances=TrainNetwork.getWekaInstances(request, instancesFileFullPath);
 	      final Classifier booster=TrainNetwork.getWekaClassifier(request, pathToClassifierFile, instances);
 	      //SWALE tunings - default are early results for Physeter macrocephalus
-          double swalePenalty=-2;
-          double swaleReward=25.0;
-          double swaleEpsilon=0.0011419401589504922;
+          double penalty=0;
+  		double reward=25;
+  			double epsilon=0.002089121713611485;
   
           double date = Instance.missingValue();
           if((theEnc.getDateLong()!=null)&&(theEnc2.getDateLong()!=null)){
@@ -394,7 +394,7 @@ try {
           }
           
           double msmDist=MSM.getMSMDistance(theEnc, theEnc2);
-          double swaleDist=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, swalePenalty, swaleReward, swaleEpsilon);
+          double swaleDist=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, penalty, reward, epsilon);
           
 	      Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
 	      a1Example.setDataset(instances);
