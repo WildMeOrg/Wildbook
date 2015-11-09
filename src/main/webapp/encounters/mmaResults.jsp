@@ -61,7 +61,7 @@
   // Get map for implementing i18n of pigmentation.
   Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
   // Get set of all LocationIDs.
-  Set<String> allLocationIDs = new HashSet<>(CommonConfiguration.getIndexedValues("locationID", context));
+  Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedValues("locationID", context));
 
   // Page internationalization.
   String langCode = ServletUtilities.getLanguageCode(request);

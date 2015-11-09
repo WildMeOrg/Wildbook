@@ -160,7 +160,7 @@ try {
         </div>
 <%
         } else if (enc.getLocationID() != null) {
-          Set<String> allLocationIDs = new HashSet<>(CommonConfiguration.getIndexedValues("locationID", context));
+          Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedValues("locationID", context));
           // Loop over each MMA scan...
           for (MantaMatcherScan mmaScan : mmaScans) {
             String dispLocIDs = mmaScan.getLocationIdString("<span class=\"mmaResultsLocation\">", "</span>", ", ");
