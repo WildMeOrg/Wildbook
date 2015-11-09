@@ -89,9 +89,16 @@ public class MassConvertMantaMatcherScans extends HttpServlet {
       // Process each encounter.
       for (String encId : encIds) {
         Encounter enc = shep.getEncounter(encId);
+        if (enc == null) {
+          log.trace(String.format("Failed to find encounter for #%s", encId));
+          continue;
+        }
         int count = 0;
         // Process each SPV in the encounter.
-        for (SinglePhotoVideo spv : enc.getSinglePhotoVideo()) {
+        List<SinglePhotoVideo> spvs = enc.getSinglePhotoVideo();
+        if (spvs == null)
+          continue;
+        for (SinglePhotoVideo spv : spvs) {
           // Define files relating to old-style MMA scan output.
           File gt = new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.txt");
           File gc = new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.csv");
