@@ -119,6 +119,7 @@
 		          /MassExposeGBIF = authc, roles[admin]
 		           /MassSetLocationCodeFromLocationString = authc, roles[admin]
 		          /MassSwapLocationCode = authc, roles[admin]
+              /MassConvertMantaMatcherScans = authc, roles[admin]
 		          /logs/** = authc, roles[admin]
 		         /UserCreate = authc, roles[admin]
 				 /UserDelete = authc, roles[admin]
@@ -729,6 +730,11 @@
   <servlet>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
     <servlet-class>org.ecocean.servlet.MassSetLocationCodeFromLocationString</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MassConvertMantaMatcherScans</servlet-name>
+    <servlet-class>org.ecocean.servlet.MassConvertMantaMatcherScans</servlet-class>
   </servlet>
 
       <servlet>
@@ -1511,6 +1517,11 @@
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
     <url-pattern>/MassSetLocationCodeFromLocationString</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>MassConvertMantaMatcherScans</servlet-name>
+    <url-pattern>/MassConvertMantaMatcherScans</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
