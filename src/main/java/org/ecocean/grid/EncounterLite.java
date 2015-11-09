@@ -96,7 +96,8 @@ public class EncounterLite implements java.io.Serializable {
   }
   
   public EncounterLite(Encounter enc){
-    this(enc, 155);
+    //130 degrees was tested to be optimum angle for dolphin dorsals scanning by 5 degree increments from 60 to 180
+    this(enc, 130);
   }
 
   public EncounterLite(Encounter enc, double dorsalRotationInDegree) {
@@ -3534,13 +3535,13 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
     private boolean isDorsalFin(Encounter enc) {
         ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
         if ((spots == null) || (spots.size() == 3)) return false;
-        System.out.println("  DORSAL!!!!");  
+        //System.out.println("  DORSAL!!!!");  
         return true;
     }
     
     public static boolean isDorsalFin(EncounterLite enc) {
       if ((enc.getLeftReferenceSpots() == null) || (enc.getLeftReferenceSpots().length == 3)) return false;
-      System.out.println("  DORSAL!!!!");  
+      //System.out.println("  DORSAL!!!!");  
       return true;
   }
 
@@ -3607,17 +3608,17 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
             }
             ord.add(new SuperSpot(mirrorX(mirrorAxis, vx - Math.abs(vx - newSpots.get(9).getCentroidX())), hy + hy - newSpots.get(9).getCentroidY()));  //9th one is opposite tip
         }
-        System.out.println("ord refspots size: "+ord.size());
+        //System.out.println("ord refspots size: "+ord.size());
         processLeftReferenceSpots(ord);
 
         //now the regular spots from the traced edges
         spotsSize=enc.getSpots().size();
-        System.out.println("newSpots2 orginal size: "+spotsSize);
+        //System.out.println("newSpots2 orginal size: "+spotsSize);
         newSpots=new ArrayList<SuperSpot>();
         for(int i=0;i<spotsSize;i++){
           newSpots.add( new SuperSpot(enc.getSpots().get(i).getCentroidX(),enc.getSpots().get(i).getCentroidY()));  //swap out for converted
         }
-        System.out.println("newSpots after copy: "+newSpots.size());
+        //System.out.println("newSpots after copy: "+newSpots.size());
 
         ArrayList<SuperSpot> newSpots2=new ArrayList<SuperSpot>();
 
@@ -3670,7 +3671,7 @@ System.out.println("hit top at i=" + i);
 */
                 newSpots2.add(new SuperSpot(mirrorX(mirrorAxis, sx), sy));
         }
-        System.out.println("newSpots2 after second copy: "+newSpots2.size());
+        //System.out.println("newSpots2 after second copy: "+newSpots2.size());
 
         //NEW MODS FOR TRAILING EDGE
         
