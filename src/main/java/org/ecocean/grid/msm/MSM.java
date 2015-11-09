@@ -174,12 +174,12 @@ public static java.lang.Double getMSMDistance(EncounterLite theEnc,EncounterLite
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
           Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
           double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-          System.out.println(" Old line width is: "+oldLineWidth);
+          //System.out.println(" Old line width is: "+oldLineWidth);
           
           SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
           Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
           double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-          System.out.println(" New line width is: "+newLineWidth);
+          //System.out.println(" New line width is: "+newLineWidth);
           
           //first populate OLD_VALUES - easy
           
@@ -218,10 +218,10 @@ public static java.lang.Double getMSMDistance(EncounterLite theEnc,EncounterLite
           
           //now iterate and create our points
           for(int i=0;i<numOldSpots;i++){
-            System.out.println("Iterating!");
+            //System.out.println("Iterating!");
             SuperSpot theSpot=oldSpots.get(i);
             double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
-            System.out.println("Iterating xCoordFraction: "+xCoordFraction);
+            //System.out.println("Iterating xCoordFraction: "+xCoordFraction);
             Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
             
             //now we need to find where this point falls on the theEnc2 pattern
@@ -231,22 +231,22 @@ public static java.lang.Double getMSMDistance(EncounterLite theEnc,EncounterLite
               //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
               if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
                 intersectionLine=newLines[lineIterator];
-                System.out.println("     !!!!!!FOUND the INTERSECT!!!!!!");
+                //System.out.println("     !!!!!!FOUND the INTERSECT!!!!!!");
               }
               lineIterator++;
             }
             try{
               
-              System.out.println("     lineY1="+intersectionLine.getY1()+" and Y2="+intersectionLine.getY2());
+              //System.out.println("     lineY1="+intersectionLine.getY1()+" and Y2="+intersectionLine.getY2());
               double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
               double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
               if(yCoord>0){NEW_VALUES[i]=yCoord;}
               else{NEW_VALUES[i]=0;}
               
-              System.out.println("     ycoord "+yCoord+" at "+xCoordFraction+ " and slope is: "+slope);
+              //System.out.println("     ycoord "+yCoord+" at "+xCoordFraction+ " and slope is: "+slope);
             }
         catch(Exception e){
-          System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+          //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
           NEW_VALUES[i]=0;
         }
 
