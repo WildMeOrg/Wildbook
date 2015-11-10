@@ -44,7 +44,7 @@ try {
   myShepherd.beginDBTransaction();
   
   
-  for(double thisAngle=60;thisAngle<180;thisAngle=thisAngle+5){
+  for(double thisAngle=120;thisAngle<180;thisAngle=thisAngle+1){
   
 		  double msmMatchTotals=0.0;
 		  double msmNonmatchTotals=0;
@@ -52,7 +52,7 @@ try {
 		  int numNonmatches=0;
 		  ArrayList<Encounter> encs=myShepherd.getAllEncountersForSpeciesWithSpots("Tursiops", "truncatus");
 		  
-		  System.out.println("\n\n\n\n Iterating angle: "+thisAngle+" while best angle is "+bestAngle+"  \n\n\n\n\n\n");
+		  //System.out.println("\n\n\n\n Iterating angle: "+thisAngle+" while best angle is "+bestAngle+"  \n\n\n\n\n\n");
 		  
 		  for(int i=0;i<encs.size();i++){
 			  for(int j=1;j<(encs.size()-1);j++){
@@ -69,13 +69,13 @@ try {
 					  }
 					  
 					  if(isMatch&&(numMatches<100)){
-						  System.out.println("MATCH");
+						  //System.out.println("MATCH");
 						  java.lang.Double result=MSM.getMSMDistance(theEnc, theEnc2);
 						  msmMatchTotals+=result;
 						  numMatches++;
 					  }
 					  else if(numNonmatches<100){
-						  System.out.println("NON-MATCH");
+						  //System.out.println("NON-MATCH");
 						  java.lang.Double result=MSM.getMSMDistance(theEnc, theEnc2);
 						msmNonmatchTotals+=result;
 					  	numNonmatches++;}
@@ -86,12 +86,12 @@ try {
 		  
 		  	double myDiff=Math.abs(msmMatchTotals/numMatches-msmNonmatchTotals/numNonmatches);
 		  	
-		  	System.out.println("!!!For angle "+thisAngle+"  diff is: "+myDiff);
+		  	System.out.println("!!!For angle "+thisAngle+"  MSM diff is: "+myDiff);
 		  	
 		  	if(myDiff>bestDiff){
 		  		bestDiff=myDiff;
 		  		bestAngle=thisAngle;
-		  		System.out.println("!!!For angle "+thisAngle+"  setting bestDiff at diff is: "+myDiff);
+		  		//System.out.println("!!!For angle "+thisAngle+"  setting bestDiff at diff is: "+myDiff);
 		  	}
   }
 
