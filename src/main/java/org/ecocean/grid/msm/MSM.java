@@ -255,9 +255,9 @@ public static java.lang.Double getMSMDistance(EncounterLite theEnc,EncounterLite
           }
           
           java.lang.Double matchResult=new java.lang.Double(MSM.MSM_Distance(OLD_VALUES, NEW_VALUES));
-          System.out.println("");  
-      System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
-      System.out.println("");  
+          //System.out.println("");  
+      //System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
+      //System.out.println("");  
         return matchResult;
       }
       catch(Exception e){
