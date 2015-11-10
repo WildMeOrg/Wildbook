@@ -26,6 +26,7 @@ import org.ecocean.SinglePhotoVideo;
 import org.ecocean.mmutil.FileUtilities;
 import org.ecocean.mmutil.MantaMatcherScan;
 import org.ecocean.mmutil.MantaMatcherUtilities;
+import org.ecocean.mmutil.MediaUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.jdo.Extent;
@@ -99,6 +100,10 @@ public class MassConvertMantaMatcherScans extends HttpServlet {
         if (spvs == null)
           continue;
         for (SinglePhotoVideo spv : spvs) {
+          if (!MediaUtilities.isAcceptableImageFile(spv.getFile())) {
+            log.trace(String.format("Ignoring SPV (not a compatible image): %s", spv.getFile().getAbsolutePath()));
+            continue;
+          }
           // Define files relating to old-style MMA scan output.
           File gt = new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.txt");
           File gc = new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.csv");
