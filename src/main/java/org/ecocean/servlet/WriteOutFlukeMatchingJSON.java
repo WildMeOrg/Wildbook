@@ -234,22 +234,22 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               
               try{
                 aClass=booster.classifyInstance(a1Example);
-                System.out.println("Predicted Aclass: "+aClass);
+                //System.out.println("Predicted Aclass: "+aClass);
                 
-                int ArrayResultPosition=0;
-                if(aClass==1.0)ArrayResultPosition=1;
+                //int ArrayResultPosition=0;
+                //if(aClass==1.0)ArrayResultPosition=1;
                 a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
                
-                int BrrayResultPosition=0;
-                if(bClass==1.0)BrrayResultPosition=1;
+                //int BrrayResultPosition=0;
+                //if(bClass==1.0)BrrayResultPosition=1;
                 bClass=booster.classifyInstance(b1Example);
-                System.out.println("Predicted Bclass: "+bClass);
+                //System.out.println("Predicted Bclass: "+bClass);
                 b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
               }
               catch(Exception e){e.printStackTrace();}
             
               
-              System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
+              //System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
             
               
                 

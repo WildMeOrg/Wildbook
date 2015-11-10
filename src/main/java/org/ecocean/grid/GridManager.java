@@ -461,7 +461,7 @@ public class GridManager {
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
     
-    System.out.println("GM checking in a scan result!");
+    //System.out.println("GM checking in a scan result!");
 
     if (!doneContains(swir)) {
       done.add(swir);
