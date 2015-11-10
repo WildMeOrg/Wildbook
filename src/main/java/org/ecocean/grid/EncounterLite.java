@@ -97,7 +97,7 @@ public class EncounterLite implements java.io.Serializable {
   
   public EncounterLite(Encounter enc){
     //130 degrees was tested to be optimum angle for dolphin dorsals scanning by 5 degree increments from 60 to 180
-    this(enc, 130);
+    this(enc, 135);
   }
 
   public EncounterLite(Encounter enc, double dorsalRotationInDegree) {
