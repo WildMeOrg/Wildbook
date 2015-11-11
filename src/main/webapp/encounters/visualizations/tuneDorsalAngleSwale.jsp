@@ -29,7 +29,9 @@ context=ServletUtilities.getContext(request);
 String encNum = request.getParameter("enc1");
 String encNum2 = request.getParameter("enc2");
 
-
+int startAngle=120;
+int endAngle=180;
+ArrayList<java.lang.Double> angleDiffs=new ArrayList<java.lang.Double>();
 
 Shepherd myShepherd = new Shepherd(context);
 		  
@@ -44,7 +46,7 @@ try {
   myShepherd.beginDBTransaction();
   
   
-  for(double thisAngle=120;thisAngle<180;thisAngle=thisAngle+1){
+  for(double thisAngle=startAngle;thisAngle<endAngle;thisAngle=thisAngle+1){
   
 		  double msmMatchTotals=0.0;
 		  double msmNonmatchTotals=0;
@@ -89,7 +91,7 @@ try {
 		  }
 		  
 		  	double myDiff=Math.abs(msmMatchTotals/numMatches-msmNonmatchTotals/numNonmatches);
-		  	
+		  	angleDiffs.add(new java.lang.Double(myDiff));
 		  	System.out.println("!!!For angle "+thisAngle+"  diff is: "+myDiff);
 		  	
 		  	if(myDiff>bestDiff){
@@ -108,7 +110,15 @@ try {
 
 
 <p>EncounterLite Best Angular Match Swale result: <%=bestAngle %> with a diff of <%=bestDiff %></p>
-
+<ul>
+<%
+for(int i=-0;i<angleDiffs.size();i++){
+%>
+<li>Angle: <%=(i+startAngle) %> and diff: <%=angleDiffs.get(i) %></li>
+<%
+}
+%>
+</ul>
 
 
 <%
