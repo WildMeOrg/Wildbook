@@ -529,11 +529,21 @@ function newSlice(col, reverse) {
 
 function nudge(n) {
 	start += n;
+	if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
+	if (start < 0) start = 0;
+console.log('start -> %d', start);
+	newSlice(sortCol, sortReverse);
+	show();
+}
+/*
+function xnudge(n) {
+	start += n;
 	if (start < 0) start = 0;
 	if (start > searchResults.length - 1) start = searchResults.length - 1;
 	newSlice(sortCol, sortReverse);
 	show();
 }
+*/
 
 function tableDn() {
 	return nudge(-1);
@@ -698,7 +708,6 @@ function _colDataTypesSort(o) {
 
 function _colEncDate(o) {
 	var icon = '<span class="collab-icon"></span>';
-	if (!wildbook.isValidDate(o.get('date'))) return icon + 'Unknown';
 	return icon + wildbook.flexibleDate(o.get('date'));
 }
 
@@ -768,7 +777,8 @@ function cleanValue(obj, fieldName) {
 function dataTypes(obj, fieldName) {
 	var dt = [];
 	_.each(['measurements', 'images'], function(w) {
-		if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
+		//if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
+		if (obj.get(w) && (obj.get(w).length > 0)) dt.push(w.substring(0,1));
 	});
 	return dt.join(', ');
 }
@@ -1249,6 +1259,22 @@ System.out.println(henc);
         	JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(enc, ec);
 		jobj.put("date", enc.getDate());
 		jobj = enc.sanitizeJson(request, jobj);
+
+		ArrayList<String> occ = new ArrayList<String>();
+    		if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+    			Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+    			ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+    			if(otherOccurs!=null){
+    				int numOtherOccurs=otherOccurs.size();
+    				for(int j=0;j<numOtherOccurs;j++){
+    					String thisName=otherOccurs.get(j);
+System.out.println("name -> "+thisName);
+    					if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
+    				}
+    			}
+    		}
+		jobj.put("occurrences", occ);
+
 		encsJson += jobj.toString() + ",\n";
 	}
 	encsJson += "\n]";
