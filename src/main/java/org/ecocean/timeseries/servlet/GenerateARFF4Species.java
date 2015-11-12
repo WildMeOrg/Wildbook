@@ -99,6 +99,8 @@ public class GenerateARFF4Species extends HttpServlet {
      out.println("<li>matches: "+numMatches+"</li>");
      out.println("<li>nonmatches: "+numNonmatches+"</li>");
    out.println("</ul>");
+   out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/analyzeMatchingPerformance.jsp?genusSpecies="+genusSpecies+ "\">View Matching Performance" + "</a></p>\n");
+   
    out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
    out.println(ServletUtilities.getFooter(context));
 

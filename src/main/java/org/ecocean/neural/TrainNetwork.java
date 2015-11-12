@@ -775,8 +775,8 @@ public class TrainNetwork {
         double reward=25;
         double epsilon=0.002089121713611485;
         if(EncounterLite.isDorsalFin(el1)){
-          reward=25.0;
-          epsilon=0.004038360728946134;
+          reward=50.0;
+          epsilon=0.0006;
           penalty=0;
 
           

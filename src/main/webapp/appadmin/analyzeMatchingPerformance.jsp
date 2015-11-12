@@ -180,7 +180,7 @@ if(numInstances>5000)numInstances=5000;
 for(int i=0;i<numInstances;i++){
 	
 	Instance myInstance=instances.instance(i);
-	System.out.println("myInstance: "+myInstance.toString());
+	//System.out.println("myInstance: "+myInstance.toString());
 	//if(((enc1.getSpots()!=null)&&(enc1.getSpots().size()>0)&&(enc1.getRightSpots()!=null))&&((enc1.getRightSpots().size()>0))&&((enc2.getSpots()!=null)&&(enc2.getSpots().size()>0)&&(enc2.getRightSpots()!=null)&&((enc2.getRightSpots().size()>0)))){
         try{
           
