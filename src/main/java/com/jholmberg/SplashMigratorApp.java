@@ -968,6 +968,7 @@ public class SplashMigratorApp {
 		
 		
 		//let's persist the encounter
+		enc.resetDateInMilliseconds();
 		myShepherd.storeNewEncounter(enc, IDKey);
 		
 		//let's check if the MarkedIndividual exists and create it if not
@@ -1010,6 +1011,7 @@ public class SplashMigratorApp {
 					
 				}
 				markie.addEncounter(enc, context);
+				markie.refreshDependentProperties(context);
 				myShepherd.commitDBTransaction();
 			
 			}
@@ -1085,6 +1087,7 @@ public class SplashMigratorApp {
 				
 				enc.addComments("<p>Added to newly marked individual "+markedIndividualName+" by the SplashMigratorApp.</p>");
 				myShepherd.commitDBTransaction();
+				newWhale.refreshDependentProperties(context);
 				myShepherd.addMarkedIndividual(newWhale);
 
 			}

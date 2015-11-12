@@ -61,57 +61,22 @@ int numIssues=0;
 DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-%>
-<ol>
-<%
-
-while(allEncs.hasNext()){
-	
-
-	Encounter sharky=(Encounter)allEncs.next();
-
-	
-	if((sharky.getLeftReferenceSpots()==null)||(sharky.getLeftReferenceSpots().size()<10)){
-		
-		
-		%>
-		
-		<li><a target="_blank" href="encounters/encounter.jsp?number=<%=sharky.getCatalogNumber() %>">This Encounter does not have all 10 reference points.</a></li>
-		
-		<%
-			
+for(int i=0;i<19000;i++){
+	try{
+		//File file=new File("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+"/"+sharky.getImages().get(i).getDataCollectionEventID()+".jpg");
+		//if(!file.exists()){
+			URL url = new URL("http://dev.flukebook.org/encounters/encounter.jsp?number=CRC"+i);
+			BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
+			in.close();
+			in=null;
+			url=null;
+			Thread.sleep(500);  
+		//}
 	}
-	else{
-	
-		//check orientation
-		EncounterLite encLite=new EncounterLite(sharky);
-		SuperSpot[] refSpots=encLite.getLeftReferenceSpots();
-		if(refSpots[0].getCentroidX()<refSpots[2].getCentroidX()){
-			%>
-			<li><a target="_blank" href="encounters/encounter.jsp?number=<%=sharky.getCatalogNumber() %>">Ref spots 0 and 2 are inverted.</a></li>
-			<%
-		}
-		if(refSpots[0].getCentroidY()>refSpots[1].getCentroidY()){
-			%>
-			<li><a target="_blank" href="encounters/encounter.jsp?number=<%=sharky.getCatalogNumber() %>">Ref spots 0 and 1 are inverted.</a></li>
-			<%
-		}
-		if(encLite.getRightSpots()!=null){
-			%>
-			<li><a target="_blank" href="encounters/encounter.jsp?number=<%=sharky.getCatalogNumber() %>">Has right spots.</a></li>
-			<%
-		}
-	
-	}
-	
-	
-
-
+	catch(Exception e){}
 }
-	
 
 %>
-</ol>
 
 <p>Done successfully!</p>
 
