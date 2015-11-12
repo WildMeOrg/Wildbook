@@ -899,9 +899,12 @@ public class SplashMigratorApp {
 					}
 					}
 					//now add it to the encounter
-					SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, ("/opt/tomcat6/webapps/shepherd_data_dir/encounters/"+enc.getCatalogNumber()+"/"+imageName));
+					SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, ("/opt/tomcat7/webapps/caribwhale_data_dir/encounters/"+enc.getCatalogNumber()+"/"+imageName));
 					enc.addSinglePhotoVideo(vid);
 					thumbnailTheseImages.add(imageName);
+					
+					enc.setDynamicProperty("ImportDate", "2015-11-11");
+					enc.setDynamicProperty("ImportGroup", "SPLASH-2015-11-11");
 				
 					//we have a match in the tFlukeQualCodes table
 					//start color code iterations
