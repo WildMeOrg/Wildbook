@@ -25,7 +25,7 @@ public class SwaleOperator extends DistanceOperator {
   public static double m_threshold = 1;
 
   
-  public static double m_matchreward = 25;
+  public static double m_matchreward = 50;
   
   public static double m_gappenalty = 5;
 

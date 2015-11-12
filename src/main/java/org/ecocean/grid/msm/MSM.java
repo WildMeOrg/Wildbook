@@ -135,7 +135,7 @@ public class MSM {
 
 
 //Make this work with Wildbook
-public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite newEnc){
+public static java.lang.Double getMSMDistance(EncounterLite theEnc,EncounterLite theEnc2){
   
   //steps to make this work for flukes
   //1. normalize fluke width 0 to 1 - call this x axis
@@ -146,134 +146,118 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
   
     try{
       
-      ArrayList<SuperSpot> oldSpots=oldEnc.getSpots();
-      if(oldEnc.getRightSpots()!=null){
-        oldSpots.addAll(oldEnc.getRightSpots());
+      ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
+      if(theEnc.getRightSpots()!=null){
+        oldSpots.addAll(theEnc.getRightSpots());
       }
-        //Collections.sort(oldSpots, new XComparator());
-        
-        //let's prefilter old spots for outlies outside the bounds
-        for(int i=0;i<oldSpots.size();i++){
-          if(oldEnc.getLeftReferenceSpots()[0].getCentroidX()<oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+          Collections.sort(oldSpots, new XComparator());
+          
+          //let's prefilter old spots for outlies outside the bounds
+          
+          for(int i=0;i<oldSpots.size();i++){
             SuperSpot theSpot=oldSpots.get(i);
-            if(theSpot.getCentroidX()<=oldEnc.getLeftReferenceSpots()[0].getCentroidX()){
+            if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
               oldSpots.remove(i);
               i--;
             }
-            if(theSpot.getCentroidX()>=oldEnc.getLeftReferenceSpots()[2].getCentroidX()){
+            if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
               oldSpots.remove(i);
               i--;
             }
-        }
-        }
-        int numOldSpots=oldSpots.size();
-        
-        //initialize our output arrays
-        double[] OLD_VALUES=new double[numOldSpots];
-        double[] NEW_VALUES=new double[numOldSpots];
-      
-      SuperSpot[] oldReferenceSpots=oldEnc.getLeftReferenceSpots();
-      Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
-      double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-      //if(EncounterLite.isDorsalFin(oldEnc)){oldLineWidth=EncounterLite.getLineWidth(oldSpots);}
-      if(EncounterLite.isDorsalFin(oldEnc)){
-        double rightmostX=oldReferenceSpots[2].getCentroidX();
-        if(oldReferenceSpots[1].getCentroidX()>rightmostX){
-          rightmostX=oldReferenceSpots[1].getCentroidX();
-          oldLine=new Line2D.Double(oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY(), oldReferenceSpots[1].getCentroidX(), oldReferenceSpots[2].getCentroidY());
-          System.out.println("  Tweaked new line width!");
-       }
-       oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-rightmostX);
-        
-      }
-      
-      
-      SuperSpot[] newReferenceSpots=newEnc.getLeftReferenceSpots();
-      Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
-      double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-      
-      if(EncounterLite.isDorsalFin(newEnc)){
-        double rightmostX=newReferenceSpots[0].getCentroidX();
-        if(newReferenceSpots[1].getCentroidX()>rightmostX){
-          rightmostX=newReferenceSpots[1].getCentroidX();
-          newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[1].getCentroidX(), newReferenceSpots[2].getCentroidY());
-          System.out.println("  Tweaked new line width!");
-       }
-       newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-rightmostX);
-        
-      }
-      
-      //first populate OLD_VALUES - easy
-      
-      for(int i=0;i<numOldSpots;i++){
-        SuperSpot theSpot=oldSpots.get(i);
-        Point2D.Double thePoint=new Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
-        OLD_VALUES[i]=oldLine.ptLineDist(thePoint)/oldLineWidth;
-        
-      }
-      
-      
-      //second populate NEW_VALUES - trickier
-      
-      //create an array of lines made from all point pairs in newEnc
-      
-      
-      ArrayList<SuperSpot> newSpots=newEnc.getSpots();
-      if(newEnc.getRightSpots()!=null){
-        newSpots.addAll(newEnc.getRightSpots());
-      }
-      int numNewEncSpots=newSpots.size();
-      //if(EncounterLite.isDorsalFin(newEnc)){newLineWidth=EncounterLite.getLineWidth(newSpots);}
-      
-      Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
-      //Collections.sort(newSpots, new XComparator());
-      for(int i=0;i<(numNewEncSpots-1);i++){
-        //convert y coords to distance from newLine
-        double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-        double x2=(newSpots.get(i+1).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
-        double yCoord1=newLine.ptLineDist(newSpots.get(i).getCentroidX(), newSpots.get(i).getCentroidY())/newLineWidth;
-        double yCoord2=newLine.ptLineDist(newSpots.get(i+1).getCentroidX(), newSpots.get(i+1).getCentroidY())/newLineWidth;
-        newLines[i]=new Line2D.Double(x1, yCoord1, x2, yCoord2);
-      }
-      int numNewLines=newLines.length;
-      
-      //now iterate and create our points
-      for(int i=0;i<numOldSpots;i++){
-        SuperSpot theSpot=oldSpots.get(i);
-        double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
-        Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
-        
-        //now we need to find where this point falls on the newEnc pattern
-        Line2D.Double intersectionLine=null;
-        int lineIterator=0;
-        while((intersectionLine==null)&&(lineIterator<numNewLines)){
-          //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
-          if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
-            intersectionLine=newLines[lineIterator];
-            //System.out.println("!!!!!!FOUND the INTERSECT!!!!!!");
           }
-          lineIterator++;
-        }
-        try{
-          double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
-          double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
           
-          //Point2D.Double thePoint=new Point2D.Double(xCoordFraction,yCoord);
           
-          NEW_VALUES[i]=yCoord;
+          int numOldSpots=oldSpots.size();
+          double[] OLD_VALUES=new double[numOldSpots];
+          double[] NEW_VALUES=new double[numOldSpots];
+          
+          SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
+          Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
+          double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
+          //System.out.println(" Old line width is: "+oldLineWidth);
+          
+          SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
+          Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
+          double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
+          //System.out.println(" New line width is: "+newLineWidth);
+          
+          //first populate OLD_VALUES - easy
+          
+          for(int i=0;i<numOldSpots;i++){
+            SuperSpot theSpot=oldSpots.get(i);
+            java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
+            OLD_VALUES[i]=oldLine.ptLineDist(thePoint)/oldLineWidth;
+            
+            
+          }
+          
+          
+          //second populate NEW_VALUES - trickier
+          
+          //create an array of lines made from all point pairs in theEnc2
+          
+          ArrayList<SuperSpot> newSpots=theEnc2.getSpots();
+          if(theEnc2.getRightSpots()!=null){
+            newSpots.addAll(theEnc2.getRightSpots());
+          }
+          Collections.sort(newSpots, new XComparator());
+          int numtheEnc2Spots=newSpots.size();
+          Line2D.Double[] newLines=new Line2D.Double[numtheEnc2Spots-1];
+          for(int i=0;i<(numtheEnc2Spots-1);i++){
+            //convert y coords to distance from newLine
+            double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
+            double x2=(newSpots.get(i+1).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
+            double yCoord1=newLine.ptLineDist(newSpots.get(i).getCentroidX(), newSpots.get(i).getCentroidY())/newLineWidth;
+            double yCoord2=newLine.ptLineDist(newSpots.get(i+1).getCentroidX(), newSpots.get(i+1).getCentroidY())/newLineWidth;
+            newLines[i]=new Line2D.Double(x1, yCoord1, x2, yCoord2);
+          }
+          int numNewLines=newLines.length;
+          
+         
+          
+          
+          //now iterate and create our points
+          for(int i=0;i<numOldSpots;i++){
+            //System.out.println("Iterating!");
+            SuperSpot theSpot=oldSpots.get(i);
+            double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
+            //System.out.println("Iterating xCoordFraction: "+xCoordFraction);
+            Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
+            
+            //now we need to find where this point falls on the theEnc2 pattern
+            Line2D.Double intersectionLine=null;
+            int lineIterator=0;
+            while((lineIterator<numNewLines)){
+              //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
+              if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
+                intersectionLine=newLines[lineIterator];
+                //System.out.println("     !!!!!!FOUND the INTERSECT!!!!!!");
+              }
+              lineIterator++;
+            }
+            try{
+              
+              //System.out.println("     lineY1="+intersectionLine.getY1()+" and Y2="+intersectionLine.getY2());
+              double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
+              double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
+              if(yCoord>0){NEW_VALUES[i]=yCoord;}
+              else{NEW_VALUES[i]=0;}
+              
+              //System.out.println("     ycoord "+yCoord+" at "+xCoordFraction+ " and slope is: "+slope);
+            }
+        catch(Exception e){
+          //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+          NEW_VALUES[i]=0;
         }
-    catch(Exception e){
-        //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
-        NEW_VALUES[i]=0;
-    }
-        
-        
-      }
-      
-      java.lang.Double matchResult=new java.lang.Double(MSM_Distance(OLD_VALUES, NEW_VALUES));
-      System.out.println("");  
-      System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
-      System.out.println("");  
+
+            
+            
+          }
+          
+          java.lang.Double matchResult=new java.lang.Double(MSM.MSM_Distance(OLD_VALUES, NEW_VALUES));
+          //System.out.println("");  
+      //System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
+      //System.out.println("");  
         return matchResult;
       }
       catch(Exception e){
@@ -282,5 +266,6 @@ public static java.lang.Double getMSMDistance(EncounterLite oldEnc,EncounterLite
       return null;
   
 }
+
 
 }

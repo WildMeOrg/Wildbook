@@ -131,19 +131,19 @@ public class TrainSwale extends HttpServlet {
                                 if(theEnc.getRightSpots()!=null){
                                   oldSpots.addAll(theEnc.getRightSpots());
                                 }
-                                  //Collections.sort(oldSpots, new XComparator());
+                                  Collections.sort(oldSpots, new XComparator());
                                   
                                   //let's prefilter old spots for outliers outside the bounds
                                   if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
-                                    for(int m=0;i<oldSpots.size();m++){
+                                    for(int m=0;m<oldSpots.size();m++){
                                       SuperSpot theSpot=oldSpots.get(m);
                                       if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
                                         oldSpots.remove(m);
-                                        i--;
+                                        m--;
                                       }
                                       if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
                                         oldSpots.remove(m);
-                                        i--;
+                                        m--;
                                       }
                                     }
                                   }
