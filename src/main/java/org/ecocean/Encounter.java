@@ -1965,6 +1965,7 @@ public class Encounter implements java.io.Serializable {
 
 	public JSONObject sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
             jobj.put("location", this.getLocation());
+            boolean fullAccess = this.canUserAccess(request);
 
             //these are for convenience, like .hasImages above (for use in table building e.g.)
             if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
@@ -1981,11 +1982,11 @@ public class Encounter implements java.io.Serializable {
                 jobj.put("hasImages", true);
                 JSONArray jarr = new JSONArray();
                 for (SinglePhotoVideo spv : this.getImages()) {
-                    jarr.put(spv.sanitizeJson(request));
+                    jarr.put(spv.sanitizeJson(request, fullAccess));
                 }
                 jobj.put("images", jarr);
             }
-            if (this.canUserAccess(request)) return jobj;
+            if (fullAccess) return jobj;
 
             jobj.remove("gpsLatitude");
             jobj.remove("location");

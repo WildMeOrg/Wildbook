@@ -239,19 +239,28 @@ System.out.println("yes. out. ))");
 
         //*for now* this will only be called from an Encounter, which means that Encounter must be sanitized
         //  so we assume this *must* be sanitized too.  (TODO fix that when MediaAsset takes over, obvs)
-	public JSONObject sanitizeJson(HttpServletRequest request) throws JSONException {
+	public JSONObject sanitizeJson(HttpServletRequest request, boolean fullAccess) throws JSONException {
 System.out.println("um, i am sanitizing " + this);
-            JSONObject jobj = new JSONObject(this);
+            //JSONObject jobj = new JSONObject(this);  //ugh JSONObject() is failing on Keywords, so lets start empty
+            JSONObject jobj = new JSONObject();
             String urlPath = this.urlPath(request);
             jobj.put("thumbUrl", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");
-            //jobj.put("url", urlPath + "/" + this.getFilename());
-            jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");  //no full image when blocked
-            jobj.remove("fullFileSystemPath");
-            jobj.remove("filename");
-            jobj.remove("file");
-            jobj.put("_sanitized", true);
+            if (fullAccess) {  //canAccess (Encounter)?
+                jobj.put("url", urlPath + "/" + this.getFilename());
+            } else {
+                jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");  //no full image when blocked
+                jobj.remove("fullFileSystemPath");
+                jobj.remove("filename");
+                jobj.remove("file");
+                jobj.put("_sanitized", true);
+            }
             jobj.put("dataCollectionEventID", this.getDataCollectionEventID());
             return jobj;
+        }
+
+        //default behavior is limited access
+	public JSONObject sanitizeJson(HttpServletRequest request) throws JSONException {
+            return this.sanitizeJson(request, false);
         }
 
 
