@@ -97,7 +97,7 @@ public class EncounterLite implements java.io.Serializable {
   
   public EncounterLite(Encounter enc){
     //130 degrees was tested to be optimum angle for dolphin dorsals scanning by 5 degree increments from 60 to 180
-    this(enc, 135);
+    this(enc, 130);
   }
 
   public EncounterLite(Encounter enc, double dorsalRotationInDegree) {
@@ -2325,7 +2325,7 @@ private double amplifyY(double origValue, double s){
     }
   }
     
-    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
+    public static Double getHolmbergIntersectionScore_OLDER(EncounterLite theEnc,EncounterLite theEnc2){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
@@ -3934,14 +3934,14 @@ System.out.println("hit top at i=" + i);
     
 
     
-    public static Double getHolmbergIntersectionScore_NEWER(EncounterLite theEnc,EncounterLite theEnc2){
+    public static Double getHolmbergIntersectionScore(EncounterLite theEnc,EncounterLite theEnc2){
       
       try{
         ArrayList<SuperSpot> spots=new ArrayList<SuperSpot>();
         if(theEnc.getSpots()!=null){spots.addAll(theEnc.getSpots());}
         if(theEnc.getRightSpots()!=null){spots.addAll(theEnc.getRightSpots());}
         //sort the Array - lowest x to highest X coordinate
-        //Collections.sort(spots, new XComparator());
+        Collections.sort(spots, new XComparator());
         //let's prefilter old spots for outlies outside the bounds
         for(int i=0;i<spots.size();i++){
           if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
