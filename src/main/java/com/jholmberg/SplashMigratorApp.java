@@ -19,6 +19,7 @@ import java.net.*;
 
 //import date-time formatter for the custom SPLASH date format
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.joda.time.format.*;
 
 //import jackcess
@@ -53,6 +54,8 @@ public class SplashMigratorApp {
 		//initial environment config
 		String pathToAccessFile="/var/www/webadmin/data/SPLASH All Seasons.mdb";
 		
+		String pathToUpdateFile="/var/www/webadmin/data/CRC SPLASHID additional sightings.mdb";
+		
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		String rootDir="/opt/tomcat7/webapps";
 		String encountersDirPath=rootDir+"/caribwhale_data_dir/encounters";
@@ -73,13 +76,13 @@ public class SplashMigratorApp {
 		
 		//let's load our Access database
 		File accessDB=new File(pathToAccessFile);
-		//File updateDB=new File(pathToUpdateFile);
+		File updateDB=new File(pathToUpdateFile);
 		
 		try{
 			
 			//lets' get to work!!!!!!!
 			Database db=Database.open(accessDB);
-			//Database uDB=Database.open(updateDB);
+			Database uDB=Database.open(updateDB);
 			File copyImagesFromDir=new File(splashImagesDirPath);
 			File encountersRootDir=new File(encountersDirPath);
 			
@@ -88,9 +91,7 @@ public class SplashMigratorApp {
 			Table tSightings=db.getTable("tSightings");
 			Table tIdentifications=db.getTable("tIdentifications");
 			
-			//Table tDailyEffort=uDB.getTable("tDailyEffort");
-			//Table tSightings=uDB.getTable("tSightings");
-			//Table tIdentifications=uDB.getTable("tIdentifications");
+
 			
 			
 			Table tSPLASHIDFilenames=db.getTable("tSPLASHIDFilenames");
@@ -180,15 +181,28 @@ public class SplashMigratorApp {
 					//update changes
 					processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, tSPLASHIDFilenames, urlToThumbnailJSPPage, tSPLASHIDSexes, tSightings, thumbnailThese, thumbnailTheseImages, tDailyEffort, tFlukeQualCodes, tBehaviorIndex, behMap, regionMap, rgMap, tSampleLabData, haplotypes, myKey, tSampleMicrosatData, bestFilenamesMap,context,baseDir );
 					
-					
-					
-					//}
 				}
-
-				
-				
-				
+		
 			}
+			
+	     //addition
+      tDailyEffort=uDB.getTable("tDailyEffort");
+      tSightings=uDB.getTable("tSightings");
+      tIdentifications=uDB.getTable("tIdentifications");
+      tIdentificationsIterator = tIdentifications.iterator();
+      numMatchingIdentifications=0;
+      while(tIdentificationsIterator.hasNext()){
+        Map<String,Object> thisRow=tIdentificationsIterator.next();
+        if(thisRow.get("SPLASH ID")!=null){
+          String splashID=thisRow.get("SPLASH ID").toString();
+          numMatchingIdentifications++;
+
+          //update changes
+          processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, tSPLASHIDFilenames, urlToThumbnailJSPPage, tSPLASHIDSexes, tSightings, thumbnailThese, thumbnailTheseImages, tDailyEffort, tFlukeQualCodes, tBehaviorIndex, behMap, regionMap, rgMap, tSampleLabData, haplotypes, myKey, tSampleMicrosatData, bestFilenamesMap,context,baseDir );
+          
+        }
+    
+      }
 			
 			
 			//2. Then we link over to table tSightings to build encounters for each markedindividual loaded from tIdentifications.
@@ -308,6 +322,13 @@ public class SplashMigratorApp {
 		enc.setGenus("Megaptera");
 		enc.setSpecificEpithet("novaeangliae");
 		
+		LocalDateTime dt2 = new LocalDateTime();
+		DateTimeFormatter fmt = ISODateTimeFormat.date();
+    String strOutputDateTime = fmt.print(dt2);
+    enc.setDWCDateAdded(strOutputDateTime);
+    
+    enc.setDWCDateLastModified(strOutputDateTime);
+    enc.setDWCDateAdded(new Long(dt2.toDateTime().getMillis()));
 		enc.setLocation("Northern Pacific Ocean");
 		enc.setLocationCode("");
 		//enc.approve();
