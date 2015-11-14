@@ -3,6 +3,7 @@
  */
 package com.jholmberg;
 
+import org.ecocean.CommonConfiguration;
 //import the Shepherd Project Framework
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
@@ -58,7 +59,7 @@ public class SplashMigratorApp {
 		
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		String rootDir="/opt/tomcat7/webapps";
-		String encountersDirPath=rootDir+"/caribwhale_data_dir/encounters";
+		String encountersDirPath="/opt/tomcat7/webapps/caribwhale_data_dir/encounters";
 		String splashImagesDirPath="/var/www/webadmin/data/splash_source_images";
 		String urlToThumbnailJSPPage="http://www.flukebook.org/resetThumbnail.jsp";
 		
@@ -91,6 +92,7 @@ public class SplashMigratorApp {
 			Table tSightings=db.getTable("tSightings");
 			Table tIdentifications=db.getTable("tIdentifications");
 			
+
 
 			
 			
@@ -185,11 +187,12 @@ public class SplashMigratorApp {
 		
 			}
 			
-	     //addition
+	     
+	    //addition
       tDailyEffort=uDB.getTable("tDailyEffort");
       tSightings=uDB.getTable("tSightings");
       tIdentifications=uDB.getTable("tIdentifications");
-      tIdentificationsIterator = tIdentifications.iterator();
+      //tIdentificationsIterator = tIdentifications.iterator();
       numMatchingIdentifications=0;
       while(tIdentificationsIterator.hasNext()){
         Map<String,Object> thisRow=tIdentificationsIterator.next();
@@ -203,6 +206,7 @@ public class SplashMigratorApp {
         }
     
       }
+      
 			
 			
 			//2. Then we link over to table tSightings to build encounters for each markedindividual loaded from tIdentifications.
@@ -309,10 +313,29 @@ public class SplashMigratorApp {
 		
 		//Itertaor for primary keys
 		
+	  boolean exists=false;
 		
 		//create the encounter
 		String markedIndividualName=((Integer)thisRow.get("SPLASH ID")).toString().trim();
 		Encounter enc=new Encounter();
+		
+	//set encounter number
+    String IDKey=enc.generateEncounterNumber();
+        //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
+
+    
+    File encDir = new File(enc.dir(baseDir));
+    //File encsDir=new File(encountersRootDirPath);
+    //File encDir=new File(encsDir, IDKey);
+    System.out.println(" fffffffffffffffffffffI am trying to create: "+encDir.getAbsolutePath());
+    if(!encDir.exists()){encDir.mkdirs();}
+    
+    
+    if(myShepherd.isEncounter(IDKey)){
+      enc=(Encounter)myShepherd.getPM().detachCopy(myShepherd.getEncounter(IDKey));
+      exists=true;
+    }
+    
 		enc.setOccurrenceRemarks("");
 		enc.assignToMarkedIndividual(markedIndividualName);
 		enc.setMatchedBy("Visual inspection");
@@ -364,8 +387,7 @@ public class SplashMigratorApp {
 			
 		}
 		
-		//set encounter number
-		String IDKey="CRC"+((Integer)thisRow.get("IDKey")).toString();
+		
 		enc.setCatalogNumber(IDKey);
 		thumbnailThese.add(IDKey);
 		System.out.println("Processing: "+IDKey);
@@ -832,10 +854,7 @@ public class SplashMigratorApp {
 		String imageName="";
 		//create its directory
 		
-		File encDir = new File(enc.dir(baseDir));
-		//File encDir=new File(encountersRootDirPath, IDKey);
-		if(!encDir.exists()){encDir.mkdir();}
-		
+
 
 		//now the setup
 		String colorCode="";
@@ -990,7 +1009,16 @@ public class SplashMigratorApp {
 		
 		//let's persist the encounter
 		enc.resetDateInMilliseconds();
-		myShepherd.storeNewEncounter(enc, IDKey);
+
+		if(exists){
+		  myShepherd.beginDBTransaction();
+		  enc.resetDateInMilliseconds();
+		  myShepherd.commitDBTransaction();
+		}
+		else{
+		    myShepherd.storeNewEncounter(enc, IDKey);
+		}
+		
 		
 		//let's check if the MarkedIndividual exists and create it if not
 		myShepherd.beginDBTransaction();
