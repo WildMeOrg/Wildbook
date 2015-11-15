@@ -323,7 +323,7 @@ public class SplashMigratorApp {
     String IDKey=enc.generateEncounterNumber();
         //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
 
-    
+    enc.setCatalogNumber(IDKey);
     File encDir = new File(enc.dir(baseDir));
     //File encsDir=new File(encountersRootDirPath);
     //File encDir=new File(encsDir, IDKey);
