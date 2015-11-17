@@ -118,12 +118,12 @@ public class MediaAsset {
         return store.localPath(this);
     }
 
-    public boolean cacheLocal() {
+    public boolean cacheLocal() throws Exception {
         if (store == null) return false;
         return store.cacheLocal(this, false);
     }
 
-    public boolean cacheLocal(boolean force) {
+    public boolean cacheLocal(boolean force) throws Exception {
         if (store == null) return false;
         return store.cacheLocal(this, force);
     }
@@ -148,12 +148,13 @@ public class MediaAsset {
      * Return a full web-accessible url to the asset, or null if the
      * asset is not web-accessible.
      */
-    public URL webPath() {
-        return null; //getUrl(store, path);
+    public URL webURL() {
+        if (store == null) return null;
+        return store.webURL(this);
     }
 
-    public String webPathString() {
-        return getUrlString(webPath());
+    public String webURLString() {
+        return getUrlString(this.webURL());
     }
 
 /*

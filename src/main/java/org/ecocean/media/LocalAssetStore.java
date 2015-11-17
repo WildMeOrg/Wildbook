@@ -269,7 +269,6 @@ System.out.println("subpath = " + subpath);
      */
     public static Path ensurePath(final Path root, final Path path) {
         Path result = checkPath(root, path);
-
         Path full = root.resolve(path);
         if (!full.toFile().exists())
             throw new IllegalArgumentException(full + " does not exist");
@@ -282,11 +281,11 @@ System.out.println("subpath = " + subpath);
      * is not web-accessible.
      */
     @Override
-    public URL webPath(final MediaAsset ma) {
-return null;
-/*
-        if (webRoot() == null) return null;
+    public URL webURL(final MediaAsset ma) {
+        if ((webRoot() == null) || (ma == null)) return null;
+        Path path = pathFromParameters(ma.getParameters());
         if (path == null) return null;
+System.out.println("webURL() path = "+path);
 
         try {
             URL url;
@@ -295,14 +294,15 @@ return null;
             } else {
                 url = new URL(webRoot() + path.toString());
             }
-
             logger.debug("url: " + url.toString());
-
             return url;
+
         } catch (MalformedURLException e) {
             logger.warn("Can't construct web path", e);
             return null;
         }
-*/
     }
+
 }
+
+
