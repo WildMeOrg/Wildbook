@@ -100,11 +100,7 @@ public class MediaAssetFactory {
 
 
     public static void deleteFromStore(final MediaAsset ma) {
-        if (ma.thumbStore != null) {
-            ma.thumbStore.deleteFrom(ma.thumbPath);
-            ma.thumbStore.deleteFrom(ma.midPath);
-        }
-        ma.store.deleteFrom(ma.path);
+        ma.store.deleteFrom(ma);
     }
 
 

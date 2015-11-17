@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.json.JSONObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -130,34 +131,54 @@ public class LocalAssetStore extends AssetStore {
      * under the asset root or nonexistent).
      */
     @Override
-    public MediaAsset create(final Path path, final String type) {
+    public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
+        Path path = pathFromParameters(params);  //check to see if path is legit
+        if (path == null) return null;
+        Path root = root();
+        Path subpath = ensurePath(root, path);
+System.out.println("create() has subpath = " + subpath);
+        params.put("path", subpath.toString());  //always store it relative, not absolute
         try {
-            return new MediaAsset(this, ensurePath(root(), path), type);
+            return new MediaAsset(this, params);
         } catch (IllegalArgumentException e) {
             logger.warn("Bad path", e);
             return null;
         }
     }
 
-    /**
-     * Create a new MediaAsset that points to an existing file under
-     * our root.
-     *
-     * @param path Relative or absolute path to a file.  Must be under
-     * the asset store root.
-     *
-     * @return The MediaAsset, or null if the path is invalid (not
-     * under the asset root or nonexistent).
-     */
-    @Override
-    public MediaAsset create(final String path, final String type) {
-        try {
-            Path p = new File(path).toPath();
-            return new MediaAsset(this, ensurePath(root(), p), type);
-        } catch (IllegalArgumentException e) {
-            logger.warn("Bad path", e);
+
+    public boolean cacheLocal(MediaAsset ma, boolean force) {
+        return true;  //easy!
+    }
+
+    public Path localPath(MediaAsset ma) {
+        Path path = pathFromParameters(ma.getParameters());
+System.out.println(ma.getParameters());
+System.out.println(">>>> localPath path=" + path);
+        if (path == null) return null;
+        Path root = root();
+        Path subpath = ensurePath(root, path);
+        return root.resolve(subpath);
+    }
+
+
+    public Path pathFromParameters(JSONObject params) {
+        if ((params == null) || (params.get("path") == null)) {
+            logger.warn("pathFromParameters(): Invalid parameters");
             return null;
         }
+        Path path = null;
+        try {
+            Path root = root();
+System.out.println("root = " + root);
+System.out.println(params.getString("path") + " is .path");
+            path = new File(params.getString("path")).toPath();
+System.out.println("path = " + path);
+            Path subpath = ensurePath(root, path);
+System.out.println("subpath = " + subpath);
+        } catch (Exception ex) {
+        }
+        return path;
     }
 
     /**
@@ -169,12 +190,10 @@ public class LocalAssetStore extends AssetStore {
      * @param path The (optional) subdirectory and (required) filename
      * relative to the asset store root in which to store the file.
      *
-     * @param type Probably AssetType.ORIGINAL.
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final String path,
-                             final String category)
+                             final String path)
         throws IOException
     {
         Path root = root();
@@ -188,13 +207,15 @@ public class LocalAssetStore extends AssetStore {
 
         Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
 
-        return new MediaAsset(this, subpath, category);
+        //return new MediaAsset(this, subpath); //create JSON with this path!
+        return new MediaAsset(this, null);
     }
 
 
     @Override
-    public void deleteFrom(final Path path)
+    public void deleteFrom(final MediaAsset ma)
     {
+/*
         if (path == null) {
             return;
         }
@@ -212,6 +233,7 @@ public class LocalAssetStore extends AssetStore {
         if (files == null || files.length == 0) { //some JVMs return null for empty dirs
             parentDir.delete();
         }
+*/
     }
 
 
@@ -260,7 +282,9 @@ public class LocalAssetStore extends AssetStore {
      * is not web-accessible.
      */
     @Override
-    public URL webPath(final Path path) {
+    public URL webPath(final MediaAsset ma) {
+return null;
+/*
         if (webRoot() == null) return null;
         if (path == null) return null;
 
@@ -279,5 +303,6 @@ public class LocalAssetStore extends AssetStore {
             logger.warn("Can't construct web path", e);
             return null;
         }
+*/
     }
 }
