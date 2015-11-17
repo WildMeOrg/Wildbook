@@ -117,11 +117,11 @@ public abstract class AssetStore {
 
     //returns false if "cannot cache local"
     //force=true will grab it even if we think we have one local
-    public abstract boolean cacheLocal(MediaAsset ma, force boolean) throws Exception;
+    public abstract boolean cacheLocal(MediaAsset ma, boolean force) throws Exception;
 
     public abstract Path localPath(MediaAsset ma);
 
-    public abstract URL webPath(MediaAsset ma);
+    public abstract URL webURL(MediaAsset ma);
 
     public abstract MediaAsset create(JSONObject params);
 
