@@ -28,6 +28,8 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
+<p>umpbacks with multiple photos</p>
+<ul>
 <%
 
 myShepherd.beginDBTransaction();
@@ -53,27 +55,21 @@ try{
 
 
 	
-allEncs=myShepherd.getAllEncountersForSpeciesWithSpots("Tursiops", "truncatus").iterator();
+allEncs=myShepherd.getAllEncountersForSpeciesWithSpots("Megaptera", "novaeangliae").iterator();
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
-int numIssues=0;
-
-DateTimeFormatter fmt = ISODateTimeFormat.date();
-DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
-
-for(int i=0;i<19000;i++){
-	try{
-		//File file=new File("/opt/tomcat6/webapps/ROOT/encounters/"+sharky.getCatalogNumber()+"/"+sharky.getImages().get(i).getDataCollectionEventID()+".jpg");
-		//if(!file.exists()){
-			URL url = new URL("http://dev.flukebook.org/encounters/encounter.jsp?number=CRC"+i);
-			BufferedReader in=new BufferedReader(new InputStreamReader(url.openStream()));
-			in.close();
-			in=null;
-			url=null;
-			Thread.sleep(500);  
+while(allSharks.hasNext()){
+	
+	MarkedIndividual indy=(MarkedIndividual)allSharks.next();
+	ArrayList<SinglePhotoVideo> allP=indy.getAllSinglePhotoVideo();
+	if((indy.getGenusSpecies().equals("Megaptera novaeangliae"))&&(allP.size()>1)){
+		//for(int i=0;i<allP.size();i++){
+			%>
+			<li><a href="individuals.jsp?number=<%=indy.getIndividualID() %>"><%=indy.getIndividualID() %></a></li>
+			<%
 		//}
+		
 	}
-	catch(Exception e){}
 }
 
 %>
@@ -102,6 +98,6 @@ finally{
 }
 %>
 
-
+</ul>
 </body>
 </html>

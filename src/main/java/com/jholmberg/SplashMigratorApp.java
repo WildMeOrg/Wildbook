@@ -61,7 +61,7 @@ public class SplashMigratorApp {
 		String rootDir="/opt/tomcat7/webapps";
 		String encountersDirPath="/opt/tomcat7/webapps/caribwhale_data_dir/encounters";
 		String splashImagesDirPath="/var/www/webadmin/data/splash_source_images";
-		String urlToThumbnailJSPPage="http://www.flukebook.org/resetThumbnail.jsp";
+		String urlToThumbnailJSPPage="http://www..flukebook.org/resetThumbnail.jsp";
 		
 		
 		//final String baseDir = ServletUtilities.dataDir(context, rootDir);
@@ -192,7 +192,7 @@ public class SplashMigratorApp {
       tDailyEffort=uDB.getTable("tDailyEffort");
       tSightings=uDB.getTable("tSightings");
       tIdentifications=uDB.getTable("tIdentifications");
-      //tIdentificationsIterator = tIdentifications.iterator();
+      tIdentificationsIterator = tIdentifications.iterator();
       numMatchingIdentifications=0;
       while(tIdentificationsIterator.hasNext()){
         Map<String,Object> thisRow=tIdentificationsIterator.next();
@@ -861,18 +861,7 @@ public class SplashMigratorApp {
 		
 		
 		if(bestFilenamesMap.containsKey(enc.getIndividualID())){
-			//Iterator<Map<String,Object>> tFlukeQualCodesIterator = tFlukeQualCodes.iterator();
-			
-			//while(tFlukeQualCodesIterator.hasNext()){	
-			//Map<String,Object> thisFlukeRow=tFlukeQualCodesIterator.next();
-			//if((thisFlukeRow.get("Best Fluke")!=null)&&(thisRow.get("Best Fluke")!=null)&&(((Object)thisFlukeRow.get("Best Fluke")).toString().trim().equals(((Object)thisRow.get("Best Fluke")).toString().trim()))){
-				
-				
-				
-				
-				
-				//imageName=((String)thisFlukeRow.get("Filename")).replaceAll(".tif", "");
-				imageName=bestFilenamesMap.get(enc.getIndividualID()); 	
+			imageName=bestFilenamesMap.get(enc.getIndividualID()); 	
 			File parentDir=new File(splashImagesDirPath);
 			File thisFile = new File(parentDir,imageName);	
 			
@@ -885,24 +874,7 @@ public class SplashMigratorApp {
 					thisFile = new File(parentDir,imageName.replaceAll(".JPG", ".jpg"));
 				}
 			}
-				
-				/*
-				if(!imageName.equals(getExactFileName(thisFile))){
-					if(imageName.indexOf(".JPG")==-1){
-						imageName=imageName.replaceAll(".jpg", ".JPG");
-						thisFile = new File(splashImagesDirPath+"\\"+imageName);
-						//System.out.println("     Making a filename extension substition!!!!");
-						
-					}
-					else{
-						imageName=imageName.replaceAll(".JPG", ".jpg");
-						thisFile = new File(splashImagesDirPath+"\\"+imageName);
-						//System.out.println("     Making a filename extension substition!!!!");
-					}
-				}
-				*/
-				
-				
+			
 				//check if file exists
 				if(thisFile.exists()){
 					
@@ -963,24 +935,16 @@ public class SplashMigratorApp {
 						
 						
 						if(!myShepherd.isKeyword(color)){
-							
-							//myShepherd.rollbackDBTransaction();
-							//newKeyword=true;
 							Keyword kw=new Keyword(color);
 							myShepherd.storeNewKeyword(kw);
-							//System.out.println("     Creating new keyword: "+color);
-							
-							//myShepherd.beginDBTransaction();
 							
 						}
 						
 						myShepherd.beginDBTransaction();
 						Keyword kw=myShepherd.getKeyword(color);
 							vid.addKeyword(kw);
-							//colorCode=kw.getIndexname();
 							myShepherd.commitDBTransaction();
-							//System.out.println("     Adding fluke image to keyword: "+color);
-						
+							
 				
 					
 					}
@@ -989,22 +953,111 @@ public class SplashMigratorApp {
 					//end color code iterations
 					
 				}	
-					
-					
-				//}
-				
 
-				
-			//}
 		}
 		
 		
+//add bestFluke
+		
+		if((thisRow.get("Best Fluke")!=null)&&(thisRow.get("Best Fluke")!=null)&&(((Object)thisRow.get("Best Fluke")).toString().trim().equals(((Object)thisRow.get("Best Fluke")).toString().trim()))){
+      
+      imageName=((Object)thisRow.get("Best Fluke")).toString().trim(); 
+      File parentDir=new File(splashImagesDirPath);
+      File thisFile = new File(parentDir,imageName);  
+      
+      //let's check for and try to fix the .jpg vs .JPG issue
+      if(!thisFile.exists()){
+        if(thisFile.getName().endsWith("jpg")){
+          thisFile = new File(parentDir,imageName.replaceAll(".jpg", ".JPG"));
+        }
+        else if(thisFile.getName().endsWith("JPG")){
+          thisFile = new File(parentDir,imageName.replaceAll(".JPG", ".jpg"));
+        }
+      }
+      
+        //check if file exists
+        if(thisFile.exists()){
+          
+          
+          //copy it
+          //File encountersRootDirPathLocalFile=new File(encountersRootDirPath+"/"+IDKey);
+          File outputFile = new File(encDir,imageName);
+          
+          
+          if(!outputFile.exists()){
+          try{
 
-		
-		
+                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
+                BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile), 4096);
+                     int theChar;
+                     while ((theChar = bis.read()) != -1) {
+                        bos.write(theChar);
+                     }
+                  bos.close();
+                  bis.close();
+            System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
+
+            System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
+
+            
+            System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
+
+            
+
+          }
+          catch(IOException ioe){
+            System.out.println("IOException on file transfer for: "+imageName);
+            ioe.printStackTrace();
+          }
+          }
+          //now add it to the encounter
+          SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, ("/opt/tomcat7/webapps/caribwhale_data_dir/encounters/"+enc.getCatalogNumber()+"/"+imageName));
+          enc.addSinglePhotoVideo(vid);
+          thumbnailTheseImages.add(imageName);
+          
+          enc.setDynamicProperty("ImportDate", "2015-11-16");
+          enc.setDynamicProperty("ImportGroup", "SPLASH-2015-11-16");
+        
+          //we have a match in the tFlukeQualCodes table
+          //start color code iterations
+          Iterator<Map<String,Object>> tFlukeQualCodesIterator = tFlukeQualCodes.iterator();
+          
+          while(tFlukeQualCodesIterator.hasNext()){ 
+          Map<String,Object> thisFlukeRow=tFlukeQualCodesIterator.next();
+          if((thisFlukeRow.get("Best Fluke")!=null)&&(thisRow.get("Best Fluke")!=null)&&(((Object)thisFlukeRow.get("Best Fluke")).toString().trim().equals(((Object)thisRow.get("Best Fluke")).toString().trim()))){
+            
+            
+          if(thisFlukeRow.get("Color")!=null){
+            String color=((String)thisFlukeRow.get("Color")).toString().toUpperCase();
+            
+            boolean newKeyword=false;
+            
+            
+            
+            if(!myShepherd.isKeyword(color)){
+              Keyword kw=new Keyword(color);
+              myShepherd.storeNewKeyword(kw);
+              
+            }
+            
+            myShepherd.beginDBTransaction();
+            Keyword kw=myShepherd.getKeyword(color);
+              vid.addKeyword(kw);
+              myShepherd.commitDBTransaction();
+              
+        
+          
+          }
+          }
+          }
+          //end color code iterations
+          
+        } 
+
+    }
 				
 		
-		
+//add bestFluke		
 		
 		
 		//let's persist the encounter
