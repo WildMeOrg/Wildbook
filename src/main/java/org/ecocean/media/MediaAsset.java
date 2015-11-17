@@ -21,6 +21,7 @@ package org.ecocean.media;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import org.json.JSONObject;
 import java.util.Set;
 
 /**
@@ -31,18 +32,18 @@ public class MediaAsset {
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected AssetStore store;
-    protected Path path;
+    protected JSONObject parameters;
 
     protected MediaAssetType type;
 
-    protected String category;
+    protected String revision;
     protected Set<String> tags;
     protected Integer parentId;
     protected Integer rootId;
 
-    protected AssetStore thumbStore;
-    protected Path thumbPath;
-    protected Path midPath;
+    //protected AssetStore thumbStore;
+    //protected Path thumbPath;
+    //protected Path midPath;
     protected Integer submitterid;
 
     private LocalDateTime metaTimestamp;
@@ -53,29 +54,30 @@ public class MediaAsset {
     /**
      * To be called by AssetStore factory method.
      */
-    public MediaAsset(final AssetStore store, final Path path, final String category)
+/*
+    public MediaAsset(final AssetStore store, final JSONObject params, final String category)
     {
-        this(MediaAssetFactory.NOT_SAVED, store, path, MediaAssetType.fromFilename(path.toString()), category);
+        this(MediaAssetFactory.NOT_SAVED, store, params, MediaAssetType.fromFilename(path.toString()), category);
     }
+*/
 
 
-    public MediaAsset(final AssetStore store, final Path path)
-    {
-        this(store, path, null);
+    public MediaAsset(final AssetStore store, final JSONObject params) {
+        //this(store, params, null);
+        this(MediaAssetFactory.NOT_SAVED, store, params, null);
     }
 
 
     public MediaAsset(final int id,
                       final AssetStore store,
-                      final Path path,
-                      final MediaAssetType type,
-                      final String category)
+                      final JSONObject params,
+                      final MediaAssetType type)
     {
         this.id = id;
         this.store = store;
-        this.path = path;
+        this.parameters = params;
         this.type = type;
-        this.category = category;
+        this.revision = String.valueOf(System.currentTimeMillis());
     }
 
 
@@ -84,7 +86,7 @@ public class MediaAsset {
             return null;
         }
 
-        return store.webPath(path);
+        return null; //store.webPath(path);
     }
 
     private String getUrlString(final URL url) {
@@ -106,11 +108,27 @@ public class MediaAsset {
         return store;
     }
 
-    public Path getPath()
-    {
-        return path;
+    public JSONObject getParameters() {
+        return parameters;
     }
 
+    public Path localPath()
+    {
+        if (store == null) return null;
+        return store.localPath(this);
+    }
+
+    public boolean cacheLocal() {
+        if (store == null) return false;
+        return store.cacheLocal(this, false);
+    }
+
+    public boolean cacheLocal(boolean force) {
+        if (store == null) return false;
+        return store.cacheLocal(this, force);
+    }
+
+/*
     public Path getThumbPath()
     {
         return thumbPath;
@@ -120,6 +138,7 @@ public class MediaAsset {
     {
         return midPath;
     }
+*/
 
     public MediaAssetType getType() {
         return type;
@@ -130,13 +149,14 @@ public class MediaAsset {
      * asset is not web-accessible.
      */
     public URL webPath() {
-        return getUrl(store, path);
+        return null; //getUrl(store, path);
     }
 
     public String webPathString() {
         return getUrlString(webPath());
     }
 
+/*
     public String thumbWebPathString() {
         return getUrlString(thumbWebPath());
     }
@@ -145,11 +165,6 @@ public class MediaAsset {
         return getUrlString(midWebPath());
     }
 
-
-    /**
-     * Return a full web-accessible url to the asset, or null if the
-     * asset is not web-accessible.
-     */
     public URL thumbWebPath() {
         return getUrl(thumbStore, thumbPath);
     }
@@ -182,6 +197,7 @@ public class MediaAsset {
         this.midPath = path;
     }
 
+*/
     public Integer getSubmitterId() {
         return submitterid;
     }

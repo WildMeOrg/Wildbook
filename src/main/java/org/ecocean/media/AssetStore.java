@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONObject;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -114,11 +115,20 @@ public abstract class AssetStore {
     }
 
 
-    public abstract URL webPath(Path path);
+    //returns false if "cannot cache local"
+    //force=true will grab it even if we think we have one local
+    public abstract boolean cacheLocal(MediaAsset ma, force boolean) throws Exception;
 
-    public abstract MediaAsset create(Path path, String type);
+    public abstract Path localPath(MediaAsset ma);
 
-    public abstract MediaAsset create(String path, String type);
+    public abstract URL webPath(MediaAsset ma);
+
+    public abstract MediaAsset create(JSONObject params);
+
+/*  do we even want to allow this?
+    public MediaAsset create(String jsonString) {
+    }
+*/
 
     /**
      * Create a new asset from the given form submission part.  The
@@ -129,14 +139,12 @@ public abstract class AssetStore {
      * @param path The (optional) subdirectory and (required) filename
      * relative to the asset store root in which to store the file.
      *
-     * @param category Probably AssetType.ORIGINAL.
      */
     public abstract MediaAsset copyIn(final File file,
-                                      final String path,
-                                      final String category)
+                                      final String path)
                                               throws IOException;
 
-    public abstract void deleteFrom(final Path path);
+    public abstract void deleteFrom(final MediaAsset ma);
 
     public static AssetStore getDefault()
     {
