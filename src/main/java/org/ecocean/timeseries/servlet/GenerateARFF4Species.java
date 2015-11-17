@@ -74,7 +74,7 @@ public class GenerateARFF4Species extends HttpServlet {
     
     Instances instances = TrainNetwork.buildWekaInstances(request, fullPathToInstancesFile,genus,specificEpithet);
     
-    System.out.println("I am about to build an ARFF file with this many instances: "+instances.numInstances());
+    //System.out.println("I am about to build an ARFF file with this many instances: "+instances.numInstances());
     TrainNetwork.serializeWekaInstances(request, instances, fullPathToInstancesFile);  
     //String fullPathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies, request);
     //Classifier booster=TrainNetwork.buildWekaClassifier(request,fullPathToClassifierFile,instances);

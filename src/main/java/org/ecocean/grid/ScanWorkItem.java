@@ -165,7 +165,10 @@ public class ScanWorkItem implements java.io.Serializable {
 
 
  
-    
+
+
+    System.out.println("Now comparing new Encounter "+newEncounter.getEncounterNumber()+" vs existing encounter"+existingEncounter.getEncounterNumber());
+       
     
     
     //start DTW array creation

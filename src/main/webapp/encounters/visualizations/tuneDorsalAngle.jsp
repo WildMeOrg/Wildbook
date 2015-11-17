@@ -25,7 +25,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 	
-int startAngle=120;
+int startAngle=1;
 int endAngle=180;
 ArrayList<java.lang.Double> angleDiffs=new ArrayList<java.lang.Double>();	
 
@@ -39,7 +39,7 @@ Shepherd myShepherd = new Shepherd(context);
 //let's set up references to our file system components
 		 
 double bestDiff=-999999;
-double bestAngle=60;
+double bestAngle=0;
 
 try {
 	
@@ -87,7 +87,7 @@ for(double thisAngle=startAngle;thisAngle<endAngle;thisAngle=thisAngle+1){
 		  	}
 		  }
 		  
-		  	double myDiff=Math.abs(msmMatchTotals/numMatches-msmNonmatchTotals/numNonmatches);
+		  	double myDiff=msmMatchTotals/numMatches-msmNonmatchTotals/numNonmatches;
 		  	
 		  	System.out.println("!!!For angle "+thisAngle+"  MSM diff is: "+myDiff);
 		  	angleDiffs.add(new java.lang.Double(myDiff));

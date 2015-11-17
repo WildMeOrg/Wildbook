@@ -218,6 +218,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               a1Example.setValue(4, (new Double(a1.getMSMValue()).doubleValue()));
               a1Example.setValue(5, (new Double(a1.getSwaleValue()).doubleValue()));
               a1Example.setValue(6, (new Double(a1.getDateDiff()).doubleValue()));
+              a1Example.setValue(7, (new Double(a1.getEuclideanDistanceValue()).doubleValue()));
               
               
               b1Example.setDataset(instances);
@@ -228,7 +229,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               b1Example.setValue(4, (new Double(b1.getMSMValue()).doubleValue()));
               b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
               b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
-            
+              b1Example.setValue(7, (new Double(b1.getEuclideanDistanceValue()).doubleValue()));
+              
               Double aClass=0.0;
               Double bClass=0.0;
               
@@ -362,6 +364,13 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       }
       if(mo.getSwaleValue()!=null){  
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getSwaleValue().doubleValue(),3)));
+      }
+      else{
+        result.add(new JsonPrimitive(""));
+      }
+      
+      if(mo.getEuclideanDistanceValue()!=null){  
+        result.add(new JsonPrimitive(TrainNetwork.round(mo.getEuclideanDistanceValue().doubleValue(),3)));
       }
       else{
         result.add(new JsonPrimitive(""));

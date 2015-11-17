@@ -28,7 +28,7 @@ public class EncounterLoader {
 	public static void main(String[] args) {
 		
 		
-		String urlToThumbnailJSPPage="http://dev.flukebook.org/";
+		String urlToThumbnailJSPPage="http://www.flukebook.org/";
 		
 		System.out.println("\n\n");
 		

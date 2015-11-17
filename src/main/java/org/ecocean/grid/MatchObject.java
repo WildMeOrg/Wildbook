@@ -60,6 +60,7 @@ public class MatchObject implements java.io.Serializable {
   public Double msmValue=0.0;
   
   public Double swaleValue=0.0;
+  public Double euclideanDistanceValue=0.0;
   
   public Double dateDiff=0.0;
 
@@ -305,6 +306,9 @@ public class MatchObject implements java.io.Serializable {
   
   public void setDateDiff(Double value){dateDiff=value;}
   public Double getDateDiff(){return dateDiff;}
+  
+  public void setEuclideanDistanceValue(Double value){euclideanDistanceValue=value;}
+  public Double getEuclideanDistanceValue(){return euclideanDistanceValue;}
   
 
   

@@ -477,7 +477,7 @@ public class TrainNetwork {
               EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
               
              try{
-                        //System.out.println("Learning: "+enc1.getCatalogNumber()+" and "+enc2.getCatalogNumber());
+                        System.out.println("Learning: "+enc1.getEncounterNumber()+" and "+enc2.getEncounterNumber());
                         
                         //if both have spots, then we need to compare them
                      
@@ -601,6 +601,7 @@ public class TrainNetwork {
       Attribute msmAttr = new Attribute("MSM");
       Attribute swaleAttr = new Attribute("Swale");     
       Attribute dateAttr = new Attribute("dateDiffLong");   
+      Attribute euclideanAttr = new Attribute("EuclideanDistance"); 
      
       // Declare the class attribute along with its values
       FastVector fvClassVal = new FastVector(2);
@@ -610,7 +611,7 @@ public class TrainNetwork {
       
       
       if(genusSpecies.equals("Physetermacrocephalus")){
-        fvWekaAttributes = new FastVector(8);
+        fvWekaAttributes = new FastVector(9);
         fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
@@ -618,11 +619,12 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(msmAttr);
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
+        fvWekaAttributes.addElement(euclideanAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
-        fvWekaAttributes = new FastVector(8);
+        fvWekaAttributes = new FastVector(9);
         fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
@@ -630,6 +632,7 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(msmAttr);
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
+        fvWekaAttributes.addElement(euclideanAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
@@ -694,6 +697,7 @@ public class TrainNetwork {
           iExample.setValue(4, mo.getMSMValue().doubleValue());
           iExample.setValue(5, mo.getSwaleValue().doubleValue());
           iExample.setValue(6, mo.getDateDiff().doubleValue());
+          iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -703,6 +707,7 @@ public class TrainNetwork {
         iExample.setValue(4, mo.getMSMValue().doubleValue());
         iExample.setValue(5, mo.getSwaleValue().doubleValue());
         iExample.setValue(6, mo.getDateDiff().doubleValue());
+        iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
     }
       
       //sometimes we don't want to populate this, such as for new match attempts
@@ -759,8 +764,8 @@ public class TrainNetwork {
         
         //I3S
         I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-        double i3sScore=-1;
-        if(newDScore!=null){i3sScore=newDScore.getI3SMatchValue();}
+        double i3sScore=Instance.missingValue();
+        if((newDScore!=null)&&(newDScore.getI3SMatchValue()!=java.lang.Double.MAX_VALUE)){i3sScore=newDScore.getI3SMatchValue();}
         
         //Proportion metric
         Double proportion=EncounterLite.getFlukeProportion(el1,el2);
@@ -794,6 +799,10 @@ public class TrainNetwork {
           }
         }
         
+        //Euclidean distance
+        Double eucVal=EncounterLite.getEuclideanDistanceScore(el1, el2);
+        
+        
         
         mo.setIntersectionCount(numIntersections.doubleValue());
         mo.setI3SValues(new Vector(), i3sScore);
@@ -801,6 +810,7 @@ public class TrainNetwork {
         mo.setMSMSValue(msm);
         mo.setSwaleValue(swaleVal);
         mo.setDateDiff(date);
+        mo.setEuclideanDistanceValue(eucVal);
         
         return mo;
     }

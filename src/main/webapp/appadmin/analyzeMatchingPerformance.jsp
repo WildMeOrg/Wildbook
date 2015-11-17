@@ -146,6 +146,7 @@ ArrayList<Double> i3sValues=new ArrayList<Double>();
 ArrayList<Double> proportionValues=new ArrayList<Double>();
 ArrayList<Double> msmValues=new ArrayList<Double>();
 ArrayList<Double> swaleValues=new ArrayList<Double>();
+ArrayList<Double> eucValues=new ArrayList<Double>();
 
 //create hastables of coreect
 //Hashtable<Double,Integer> intersectionCorrectHashtable = new Hashtable<Double,Integer>();
@@ -164,6 +165,7 @@ ArrayList<Double> i3sCorrectValues=new ArrayList<Double>();
 ArrayList<Double> proportionCorrectValues=new ArrayList<Double>();
 ArrayList<Double> msmCorrectValues=new ArrayList<Double>();
 ArrayList<Double> swaleCorrectValues=new ArrayList<Double>();
+ArrayList<Double> eucCorrectValues=new ArrayList<Double>();
 
 //adaboost avg score comparison
 double correctScoreTotal=0;
@@ -192,7 +194,7 @@ for(int i=0;i<numInstances;i++){
       
 
           //System.out.println(myInstance.stringValue(5));
-          if(myInstance.stringValue(7).equals("match")){output=0;}
+          if(myInstance.stringValue(8).equals("match")){output=0;}
           
           
           //HolmbergIntersection
@@ -213,9 +215,11 @@ for(int i=0;i<numInstances;i++){
           Double swaleValue=new Double(myInstance.value(5));
           
           Double dateDiff=new Double(myInstance.value(6));
+          
+          Double eucValue=new Double(myInstance.value(7));
         
      
-          Instance iExample = new Instance(8);
+          Instance iExample = new Instance(9);
           
           iExample.setDataset(instances);
           iExample.setValue(0, numIntersections.doubleValue());
@@ -225,7 +229,9 @@ for(int i=0;i<numInstances;i++){
           iExample.setValue(4, (new Double(msmValue).doubleValue()));
           iExample.setValue(5, (new Double(swaleValue).doubleValue()));
           iExample.setValue(6, (new Double(dateDiff).doubleValue()));
-         
+          iExample.setValue(7, (new Double(eucValue).doubleValue()));
+          
+          
           double[] fDistribution = booster.distributionForInstance(iExample);
 
           
@@ -270,6 +276,8 @@ for(int i=0;i<numInstances;i++){
             	
             	swaleCorrectValues.add(swaleValue);
             	
+            	eucCorrectValues.add(eucValue);
+            	
             }
             else{
             	
@@ -307,6 +315,8 @@ for(int i=0;i<numInstances;i++){
             	msmValues.add(msmValue);
             	
             	swaleValues.add(swaleValue);
+            	
+            	eucValues.add(eucValue);
             }
             
           
@@ -935,6 +945,91 @@ myShepherd.rollbackDBTransaction();
       	              
 </script>
 
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+		google.setOnLoadCallback(drawEucChart);
+
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
+      function drawEucChart() {
+
+        // Create the data table.
+        var eucCorrectData = new google.visualization.DataTable();
+        eucCorrectData.addColumn('number', 'score');
+        eucCorrectData.addColumn('number', 'matching');
+        
+        eucCorrectData.addRows([
+                                  
+         <%
+         Collections.sort(eucCorrectValues);
+        
+      	  for(int y=0;y<eucCorrectValues.size();y++){
+      		double position=(double)y/eucCorrectValues.size();
+    	
+      		  %>
+      		  [<%=position %>,<%=eucCorrectValues.get(y) %>],
+      		  <%
+    	
+      	  }           
+      	%>              
+		]);
+      	
+      	
+      	
+     	 // Create the data table.
+       var eucIncorrectData = new google.visualization.DataTable();
+       eucIncorrectData.addColumn('number', 'score');
+       eucIncorrectData.addColumn('number', 'nonmatching');
+     	
+       
+       eucIncorrectData.addRows([
+		<%
+         Collections.sort(eucValues);
+		
+      	  for(int y=0;y<eucValues.size();y++){
+      		  double position=(double)y/eucValues.size();
+      		  %>
+      		  [<%=position %>,<%=eucValues.get(y) %>],
+      		  <%
+      	    
+		}
+      	%>           
+     	               
+     	               
+		]);
+      	
+      	
+      	
+      	var joinedData = google.visualization.data.join(eucIncorrectData, eucCorrectData, 'full', [[0, 0]], [1], [1]);
+      	
+      	
+
+	        
+	        var options = {'title':'Overall Scoring Distribution: Euclidean Distance',
+                    'width':chartWidth,
+                    'height':chartHeight,
+                    'pointSize': 5,
+                    'color': 'yellow',
+                    series: {
+                        0: { color: 'red' },
+                     	1: {color: 'green'},
+
+                       
+                      },
+                      vAxis: {title: "Score (lower is better)"},
+                      hAxis: {title: "fraction matches"},
+                    };
+
+	        // Instantiate and draw our chart, passing in some options.
+	        var chart = new google.visualization.LineChart(document.getElementById('eucchart_div'));
+	        chart.draw(joinedData, options);
+	        
+	      }
+      	              
+      	              
+</script>
+
 <div class="container maincontent">
 
 <h1>Algorithm Analysis: <%=genusSpecies %></h1>
@@ -980,6 +1075,11 @@ myShepherd.rollbackDBTransaction();
 <a href="http://wwweb.eecs.umich.edu/db/files/sigmod07timeseries.pdf">More info...</a></p>
 <div id="swalechart_div"></div>
 
+<h3>Euclidean Distance</h3>
+<p>The lower the green line is below the red line, the better the algorithm is performing. <br>
+</p>
+<div id="eucchart_div"></div>
+
 
 </div>
 <h2>Testing Success</h2>
@@ -1018,7 +1118,8 @@ fvClassVal.addElement("match");
 fvClassVal.addElement("nonmatch");
 Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
 Attribute swaleAttr = new Attribute("Swale");     
-Attribute dateAttr = new Attribute("dateDiffLong");   
+Attribute dateAttr = new Attribute("dateDiffLong");  
+Attribute eucAttr = new Attribute("EuclideanDistance");     
 
 //define feature vector
 // Declare the feature vector
@@ -1030,6 +1131,7 @@ fvWekaAttributes.addElement(proportionAttr);
 fvWekaAttributes.addElement(msmAttr);
 fvWekaAttributes.addElement(swaleAttr);
 fvWekaAttributes.addElement(dateAttr);
+fvWekaAttributes.addElement(eucAttr);
 fvWekaAttributes.addElement(ClassAttribute);
 
 

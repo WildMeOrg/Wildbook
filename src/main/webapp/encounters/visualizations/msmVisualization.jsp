@@ -110,18 +110,18 @@ try {
       SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
       Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
       double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-      //if(EncounterLite.isDorsalFin(theEnc)){
-    	//  oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidY()-oldReferenceSpots[0].getCentroidY());
-      //}
+      if(EncounterLite.isDorsalFin(theEnc)){
+    	  oldLineWidth=Math.abs(theEnc.getLeftmostSpot()-theEnc.getRightmostSpot());
+      }
       
       System.out.println(" Old line width is: "+oldLineWidth);
       
       SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
       Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
       double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-      //if(EncounterLite.isDorsalFin(theEnc2)){
-    	//  newLineWidth=Math.abs(newReferenceSpots[2].getCentroidY()-newReferenceSpots[0].getCentroidY());
-      //}
+      if(EncounterLite.isDorsalFin(theEnc2)){
+    	  newLineWidth=Math.abs(theEnc2.getLeftmostSpot()-theEnc2.getRightmostSpot());
+   	   }
       System.out.println(" New line width is: "+newLineWidth);
       
       //first populate OLD_VALUES - easy
