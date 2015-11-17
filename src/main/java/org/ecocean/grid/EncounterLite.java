@@ -54,7 +54,7 @@ import java.lang.Double;
 import java.awt.geom.*;
 
 import org.apache.commons.math3.linear.*;
-
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import java.util.Collections;
 
@@ -3549,6 +3549,8 @@ public static java.awt.geom.Point2D.Double deriveThirdIsoscelesPoint(double x1, 
         //note: (left)spots are from paths (edges) and leftReferenceSpots come from ref pts
 
         if (enc.getLeftReferenceSpots() == null) return;
+        
+        
       
         //first the reference spots (which are more or less required)
         //ArrayList<SuperSpot> spots = enc.getLeftReferenceSpots();
@@ -3662,6 +3664,7 @@ System.out.println("====== top: i=" + topI + " (" + topX + "," + topY + ")");
                     double sx2 = Math.cos(rotateRadians) * (sx - topX) - Math.sin(rotateRadians) * (sy - topY) + topX;
                     sy = Math.sin(rotateRadians) * (sx - topX) + Math.cos(rotateRadians) * (sy - topY) + topY;
                     sx = sx2;
+                    newSpots2.add(new SuperSpot(mirrorX(mirrorAxis, sx), sy));
                 }
 /*
                 if ((sx == topX) && (sy == topY)) {
@@ -3669,7 +3672,7 @@ System.out.println("hit top at i=" + i);
                     hitTop = true;
                 }
 */
-                newSpots2.add(new SuperSpot(mirrorX(mirrorAxis, sx), sy));
+                //newSpots2.add(new SuperSpot(mirrorX(mirrorAxis, sx), sy));
         }
         //System.out.println("newSpots2 after second copy: "+newSpots2.size());
 
@@ -3745,13 +3748,41 @@ System.out.println("hit top at i=" + i);
         */
         //newSpots2=newSpots3;
         
+        int newSpots2size=newSpots2.size();
+        SummaryStatistics dSpots=new SummaryStatistics();
+        for(int i=0;i<newSpots2size;i++){
+          SuperSpot hSpot=newSpots2.get(i);
+          dSpots.addValue(hSpot.getCentroidX());
+        }
+        double stdDev=dSpots.getStandardDeviation();
+        double mean=dSpots.getMean();
+        double lowerBound=mean-2*stdDev;
+        double upperBound=mean+2*stdDev;
+        
+        
+        //let's filter out the out 5%
+        ArrayList<SuperSpot> newSpots3=new ArrayList<SuperSpot>();
+        for(int i=0;i<newSpots2.size();i++){
+          SuperSpot hSpot=newSpots2.get(i);
+          double xVal=hSpot.getCentroidX();
+          if(xVal<lowerBound){
+           // System.out.println("Removing lowerbound: "+hSpot.getCentroidX()+" less than "+(mean-2*stdDev));
+          }
+          else if(xVal>upperBound){
+            //System.out.println("Removing upperbound: "+hSpot.getCentroidX()+" above "+(mean+2*stdDev));
+            
+          }
+          else{
+            //System.out.println("Adding value: "+hSpot.getCentroidX());
+            newSpots3.add(hSpot);}
+        }
         
         
         
         
         //END NEW MODS FOR TRAILING EDGE
-        
-        processLeftSpots(newSpots2);
+        //processLeftSpots(newSpots2);
+        processLeftSpots(newSpots3);
        
     }
     
@@ -3809,13 +3840,16 @@ System.out.println("hit top at i=" + i);
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
           Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
           double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-
+          if(EncounterLite.isDorsalFin(theEnc)){
+            oldLineWidth=Math.abs(theEnc.getLeftmostSpot()-theEnc.getRightmostSpot());
+          }
           
           //first populate OLD_VALUES - easy
           
           for(int i=0;i<numOldSpots;i++){
             SuperSpot theSpot=oldSpots.get(i);
             java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
+            //System.out.println("Swale Dist1: "+oldLine.ptLineDist(thePoint)/oldLineWidth);
             double[] myDub={0,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
             theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
             
@@ -3830,7 +3864,9 @@ System.out.println("hit top at i=" + i);
           SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
           Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
           double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-
+          if(EncounterLite.isDorsalFin(theEnc2)){
+            newLineWidth=Math.abs(theEnc2.getLeftmostSpot()-theEnc2.getRightmostSpot());
+          }
           
           ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
           if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
@@ -3889,6 +3925,8 @@ System.out.println("hit top at i=" + i);
             
               
               double[] myDub={0,yCoord,i};
+              //System.out.println("Swale Dist2: "+yCoord);
+              
               theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
               
               
@@ -3989,13 +4027,16 @@ System.out.println("hit top at i=" + i);
         SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
         Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
         double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
-        //if(isDorsalFin(theEnc)){oldLineWidth=getLineWidth(spots);}
-        
+        if(EncounterLite.isDorsalFin(theEnc)){
+          oldLineWidth=Math.abs(theEnc.getLeftmostSpot()-theEnc.getRightmostSpot());
+        }
         
         SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
         Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
         double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
-        
+        if(EncounterLite.isDorsalFin(theEnc2)){
+          newLineWidth=Math.abs(theEnc2.getLeftmostSpot()-theEnc2.getRightmostSpot());
+        }
         
         //first populate OLD_VALUES - easy
         
@@ -4235,5 +4276,184 @@ System.out.println("hit top at i=" + i);
       return Math.abs(rightmostSpot.getCentroidX()-leftmostSpot.getCentroidX());
     }
 
+    
+    public static Double getEuclideanDistanceScore(EncounterLite theEnc,EncounterLite theEnc2){
+
+      //steps to make this work for flukes
+      //1. normalize fluke width 0 to 1 - call this x axis
+      //2. make Line2D from tip to tip points for both patterns - oldLine and newLine
+      //3. measure distance down from tip line - call this y axis
+      //4. use oldEnc points as X[]
+      //5. form every pair of lines between two points in newEnc and create and find Y distance to that point from its corresponding x coordinate from oldEnc's points at proportion of width 
+      
+        try{
+          
+          ArrayList<SuperSpot> oldSpots=theEnc.getSpots();
+          if(theEnc.getRightSpots()!=null){
+            oldSpots.addAll(theEnc.getRightSpots());
+          }
+            Collections.sort(oldSpots, new XComparator());
+            
+            //let's prefilter old spots for outlies outside the bounds
+            SuperSpot oldLeftmostSpot=new SuperSpot(99999,-99999);
+            SuperSpot oldRightmostSpot=new SuperSpot(-999999,-99999);
+            for(int i=0;i<oldSpots.size();i++){
+              if(theEnc.getLeftReferenceSpots()[0].getCentroidX()<theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                  boolean haveRemoved=false;
+                  SuperSpot theSpot=oldSpots.get(i);
+                  if(theSpot.getCentroidX()<=theEnc.getLeftReferenceSpots()[0].getCentroidX()){
+                    oldSpots.remove(i);
+                    i--;
+                    haveRemoved=true;
+                  }
+                  if(theSpot.getCentroidX()>=theEnc.getLeftReferenceSpots()[2].getCentroidX()){
+                    oldSpots.remove(i);
+                    i--;
+                    haveRemoved=true;
+                  }
+                  if(!haveRemoved){
+                    if(theSpot.getCentroidX()>oldRightmostSpot.getCentroidX()){oldRightmostSpot=theSpot;}
+                    if(theSpot.getCentroidX()<oldLeftmostSpot.getCentroidX()){oldLeftmostSpot=theSpot;}
+                  }
+              }
+            }
+            
+            
+            
+            int numOldSpots=oldSpots.size();
+            
+            //initialize our output series
+            ArrayList<Point> theEncDataPoints=new ArrayList<Point>();
+            ArrayList<Point> theEnc2DataPoints=new ArrayList<Point>();
+            
+          
+          SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
+          Line2D.Double oldLine=new Line2D.Double(oldReferenceSpots[0].getCentroidX(), oldReferenceSpots[0].getCentroidY(), oldReferenceSpots[2].getCentroidX(), oldReferenceSpots[2].getCentroidY());
+          double oldLineWidth=Math.abs(oldReferenceSpots[2].getCentroidX()-oldReferenceSpots[0].getCentroidX());
+          if(EncounterLite.isDorsalFin(theEnc)){
+            oldLineWidth=Math.abs(theEnc.getLeftmostSpot()-theEnc.getRightmostSpot());
+          }
+          
+          //first populate OLD_VALUES - easy
+          
+          for(int i=0;i<numOldSpots;i++){
+            SuperSpot theSpot=oldSpots.get(i);
+            java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
+            //System.out.println("Swale Dist1: "+oldLine.ptLineDist(thePoint)/oldLineWidth);
+            double[] myDub={0,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
+            theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+            
+            
+          }
+          
+          
+          //second populate NEW_VALUES - trickier
+          
+          //create an array of lines made from all point pairs in newEnc
+          
+          SuperSpot[] newReferenceSpots=theEnc2.getLeftReferenceSpots();
+          Line2D.Double newLine=new Line2D.Double(newReferenceSpots[0].getCentroidX(), newReferenceSpots[0].getCentroidY(), newReferenceSpots[2].getCentroidX(), newReferenceSpots[2].getCentroidY());
+          double newLineWidth=Math.abs(newReferenceSpots[2].getCentroidX()-newReferenceSpots[0].getCentroidX());
+          if(EncounterLite.isDorsalFin(theEnc2)){
+            newLineWidth=Math.abs(theEnc2.getLeftmostSpot()-theEnc2.getRightmostSpot());
+          }
+          
+          ArrayList<SuperSpot> newSpots=new ArrayList<SuperSpot>();
+          if(theEnc2.getSpots()!=null){newSpots.addAll(theEnc2.getSpots());};
+              if(theEnc2.getRightSpots()!=null){newSpots.addAll(theEnc2.getRightSpots());};
+          int numNewEncSpots=newSpots.size();
+          
+          //if(isDorsalFin(theEnc)){newLineWidth=getLineWidth(newSpots);}
+          
+          //reset newLineWidth HERE IF DORSAL
+          //if(isDorsalFin(theEnc2)){}
+          
+          Line2D.Double[] newLines=new Line2D.Double[numNewEncSpots-1];
+          Collections.sort(newSpots, new XComparator());
+          
+          
+          for(int i=0;i<(numNewEncSpots-1);i++){
+            //convert y coords to distance from newLine
+            double x1=(newSpots.get(i).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
+            double x2=(newSpots.get(i+1).getCentroidX()-newReferenceSpots[0].getCentroidX())/newLineWidth;
+            double yCoord1=newLine.ptLineDist(newSpots.get(i).getCentroidX(), newSpots.get(i).getCentroidY())/newLineWidth;
+            double yCoord2=newLine.ptLineDist(newSpots.get(i+1).getCentroidX(), newSpots.get(i+1).getCentroidY())/newLineWidth;
+            newLines[i]=new Line2D.Double(x1, yCoord1, x2, yCoord2);
+          }
+          int numNewLines=newLines.length;
+          
+          //now iterate and create our points
+          SuperSpot newLeftmostSpot=new SuperSpot(99999,-99999);
+          SuperSpot newRightmostSpot=new SuperSpot(-999999,-99999);
+          for(int i=0;i<numOldSpots;i++){
+            SuperSpot theSpot=oldSpots.get(i);
+            double xCoordFraction=(theSpot.getCentroidX()-oldReferenceSpots[0].getCentroidX())/oldLineWidth;
+            Line2D.Double theReallyLongLine=new Line2D.Double(xCoordFraction, -99999999, xCoordFraction, 99999999);
+            
+            //now we need to find where this point falls on the newEnc pattern
+            Line2D.Double intersectionLine=null;
+            int lineIterator=0;
+            while((intersectionLine==null)&&(lineIterator<numNewLines)){
+              //System.out.println("     Comparing line: ["+newLines[lineIterator].getX1()+","+newLines[lineIterator].getY1()+","+newLines[lineIterator].getX2()+","+newLines[lineIterator].getY2()+"]"+" to ["+theReallyLongLine.getX1()+","+theReallyLongLine.getY1()+","+theReallyLongLine.getX2()+","+theReallyLongLine.getY2()+"]");
+              if(newLines[lineIterator].intersectsLine(theReallyLongLine)){
+                intersectionLine=newLines[lineIterator];
+                //System.out.println("!!!!!!FOUND the INTERSECT!!!!!!");
+              }
+              lineIterator++;
+            }
+            try{
+              double slope=(intersectionLine.getY2()-intersectionLine.getY1())/(intersectionLine.getX2()-intersectionLine.getX1());
+              double yCoord=intersectionLine.getY1()+(xCoordFraction-intersectionLine.getX1())*slope;
+              
+              SuperSpot newSpot=new SuperSpot(xCoordFraction,yCoord);
+              
+              //NEW_VALUES[i]=yCoord;
+              //theEnc2DataPoints.addPoint(new DataPoint(i,yCoord));
+              
+              if(newSpot.getCentroidX()>newRightmostSpot.getCentroidX()){newRightmostSpot=newSpot;}
+              if(newSpot.getCentroidX()<newLeftmostSpot.getCentroidX()){newLeftmostSpot=newSpot;}
+            
+              
+              double[] myDub={0,yCoord,i};
+              //System.out.println("Swale Dist2: "+yCoord);
+              
+              theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+              
+              
+            }
+        catch(Exception e){
+            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+          double[] myDub={0,0,i};
+          theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+          
+        }
+            
+            
+          }
+          
+        //SwaleSimilarityComputor swaleComp=new SwaleSimilarityComputor(penalty, reward, epsilon);
+          EuclideanOperator eucOp=new EuclideanOperator();
+          
+          //DistanceOperator op  = (DistanceOperator)Class.forName("core.distance.SwaleOperator").newInstance();
+          Trajectory oldSeries=new Trajectory(0,theEncDataPoints,eucOp);
+          Trajectory newSeries=new Trajectory(1,theEnc2DataPoints,eucOp);
+          
+          
+          //java.lang.Double matchResult=new java.lang.Double(swaleComp.similarity(oldSerie, newSerie));
+          java.lang.Double matchResult=new java.lang.Double(eucOp.computeDistance(oldSeries, newSeries));
+          
+          
+          //System.out.println("");  
+          //System.out.println("   !!!!I found an MSM match score of: "+matchResult);  
+          //System.out.println("");  
+            return matchResult;
+          }
+          catch(Exception e){
+            e.printStackTrace();
+          }
+          return null;
+      
+    }
+    
 }
 
