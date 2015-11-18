@@ -231,12 +231,9 @@ System.out.println("subpath = " + subpath);
     @Override
     public void deleteFrom(final MediaAsset ma)
     {
-        Path lpath = localPath(ma);
-        if (lpath == null) {
-            return;
-        }
-
-        File file = getFile(lpath);
+        if (!this.writable) return;
+        File file = localPath(ma).toFile();
+System.out.println("LocalAssetStore attempting to delete file=" + file);
         if (!file.exists()) {
             return;
         }
@@ -252,10 +249,6 @@ System.out.println("subpath = " + subpath);
 */
     }
 
-
-    public File getFile(final Path path) {
-        return new File(root().toString(), path.toString());
-    }
 
 
     /**
