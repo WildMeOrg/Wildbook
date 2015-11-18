@@ -36,6 +36,7 @@ import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
 import org.slf4j.Logger;
@@ -59,6 +60,13 @@ import org.slf4j.LoggerFactory;
  */
 public class S3AssetStore extends AssetStore {
     private static final Logger logger = LoggerFactory.getLogger(org.ecocean.media.S3AssetStore.class);
+
+    /**
+    For information on credentials used to access Amazon AWS S3, see:
+    https://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html
+    TODO possibly allow per-AssetStore or even per-MediaAsset credentials. these should be
+    passed by reference (e.g. dont store them in, for example, MediaAsset parameters) perhaps to Profile or some properties etc?
+    */
     AmazonS3 s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
 
     /**
@@ -156,59 +164,56 @@ System.out.println("cacheLocal trying to write to " + lpath);
         S3Object s3obj = getS3Object(ma);
         if (s3obj == null) return false;
         InputStream data = s3obj.getObjectContent();
-        Files.copy(data,lpath);
+        Files.copy(data,lpath, REPLACE_EXISTING);
         data.close();
         return true;
     }
 
     public Path localPath(MediaAsset ma) {
         JSONObject params = ma.getParameters();
-        if (params == null) return null;
-        if ((params.get("bucket") == null) || (params.get("key") == null)) return null;
-        return Paths.get("/tmp", params.getString("bucket") + ":" + params.getString("key"));
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) return null;
+        return Paths.get("/tmp", bp.toString() + ":" + kp.toString().replaceAll("\\/", ":"));
     }
 
 
     public S3Object getS3Object(MediaAsset ma) {
         JSONObject params = ma.getParameters();
-        if (params == null) return null;
-        if ((params.get("bucket") == null) || (params.get("key") == null)) return null;
-        S3Object s3object = s3Client.getObject(new GetObjectRequest(params.getString("bucket"), params.getString("key")));
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) return null;
+        S3Object s3object = s3Client.getObject(new GetObjectRequest(bp.toString(), kp.toString()));
         return s3object;
     }
 
 
     /**
-     * Create a new asset from the given form submission part.  The
-     * file is copied in to the store as part of this process.
+     * Create a new asset from a File. The file is
+     * copied in to the store as part of this process.
      *
      * @param file File to copy in.
      *
-     * @param path The (optional) subdirectory and (required) filename
-     * relative to the asset store root in which to store the file.
+     * @param params params.bucket and params.key are the required items to store in S3.
+     * 
      *
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final String path)
+                             final JSONObject params)
         throws IOException
     {
-/*
-        Path root = root();
-        Path subpath = checkPath(root, new File(path).toPath());
+        if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
+        if (!file.exists()) throw new IOException(file.toString() + " does not exist");
 
-        Path fullpath = root.resolve(subpath);
+        //TODO handle > 5G files:  https://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html
+        if (file.length() > 5 * 1024 * 1024 * 1024) throw new IOException("S3AssetStore does not yet support file upload > 5G");
 
-        fullpath.getParent().toFile().mkdirs();
-
-        logger.debug("copying from " + file + " to " + fullpath);
-
-        Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
-
-        //return new MediaAsset(this, subpath); //create JSON with this path!
-        return new MediaAsset(this, null);
-*/
-        return null;
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
+        s3Client.putObject(new PutObjectRequest(bp.toString(), kp.toString(), file));
+        return new MediaAsset(this, params);
     }
 
 
@@ -252,12 +257,14 @@ System.out.println("cacheLocal trying to write to " + lpath);
     @Override
     public URL webURL(final MediaAsset ma) {
         JSONObject params = ma.getParameters();
-        if (params == null) return null;
-        if ((params.get("urlAccessible") == null) || !params.getBoolean("urlAccessible")) return null;
-        if ((params.get("bucket") == null) || (params.get("key") == null)) return null;
+        Object up = getParameter(params, "urlAccessible");
+        if ((up == null) || !params.getBoolean("urlAccessible")) return null;
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) return null;
         URL u = null;
         try {
-            u = new URL("https://" + params.getString("bucket") + ".s3.amazonaws.com/" + params.getString("key"));
+            u = new URL("https://" + bp.toString() + ".s3.amazonaws.com/" + kp.toString());
         } catch (Exception ex) {
         }
         return u;

@@ -17,21 +17,42 @@ org.ecocean.media.*
 
 <%
 
+/*
 JSONObject params = new JSONObject();
-params.put("path", "/tmp/store/fluke2.jpg");
+
 LocalAssetStore las = new LocalAssetStore("testStore", new File("/tmp/store").toPath(), "http://foo.bar/webroot/testStore", true);
 
+params.put("path", "/tmp/store/test.txt");
+MediaAsset ma = las.copyIn(new File("/tmp/incoming.txt"), params);
+out.println(ma.localPath());
+out.println(ma.webURL());
+*/
+
+/*
+params.put("path", "/tmp/store/fluke2.jpg");
 MediaAsset ma = las.create(params);
 
 out.println(ma.localPath());
 //out.println(ma.webPathString());
 out.println(ma.getID());
+*/
 
-S3AssetStore s3as = new S3AssetStore("test S3", false);
+
+
+S3AssetStore s3as = new S3AssetStore("test S3", true);
 
 JSONObject sp = new JSONObject();
-	//String bucketName = "temporary-test";
-	//String key        = "dorsal-fin.jpg";
+
+
+sp.put("bucket", "some-random-bucket");
+sp.put("key", "test.jpg");
+
+//MediaAsset ma3 = s3as.copyIn(new File("/tmp/incoming.jpg"), sp);
+out.println(ma3);
+
+
+
+/*
 sp.put("bucket", "temporary-test");
 sp.put("key", "dorsal-fin.jpg");
 sp.put("urlAccessible", true);
@@ -39,6 +60,8 @@ MediaAsset ma3 = s3as.create(sp);
 out.println(ma3.localPath());
 out.println(ma3.webURL());
 ma3.cacheLocal();
+*/
+
 
 %>
 
