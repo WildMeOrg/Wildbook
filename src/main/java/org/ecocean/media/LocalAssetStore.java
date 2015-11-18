@@ -26,6 +26,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;
@@ -132,11 +133,13 @@ public class LocalAssetStore extends AssetStore {
      */
     @Override
     public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
-        Path path = pathFromParameters(params);  //check to see if path is legit
-        if (path == null) return null;
+        Path subpath = pathFromParameters(params, true);  //check to see if path is legit
+        if (subpath == null) return null;
+/*
         Path root = root();
         Path subpath = ensurePath(root, path);
 System.out.println("create() has subpath = " + subpath);
+*/
         params.put("path", subpath.toString());  //always store it relative, not absolute
         try {
             return new MediaAsset(this, params);
@@ -152,81 +155,94 @@ System.out.println("create() has subpath = " + subpath);
     }
 
     public Path localPath(MediaAsset ma) {
-        Path path = pathFromParameters(ma.getParameters());
+        Path subpath = pathFromParameters(ma.getParameters(), true);
+        return root().resolve(subpath);
+/*
 System.out.println(ma.getParameters());
 System.out.println(">>>> localPath path=" + path);
         if (path == null) return null;
         Path root = root();
         Path subpath = ensurePath(root, path);
         return root.resolve(subpath);
+*/
     }
 
 
+    //this returns the subpath relative to root
     public Path pathFromParameters(JSONObject params) {
-        if ((params == null) || (params.get("path") == null)) {
+        return pathFromParameters(params, false);  //default behavior will be not to check
+    }
+
+    public Path pathFromParameters(JSONObject params, boolean checkExists) {
+        Object p = getParameter(params, "path");
+        if (p == null) {
+        //if ((params == null) || !params.has("path") || (params.get("path") == null)) {
             logger.warn("pathFromParameters(): Invalid parameters");
-            return null;
+            throw new IllegalArgumentException("null path");
         }
+        //Path passed = Paths.get(params.getString("path"));
+        Path passed = Paths.get(p.toString());
         Path path = null;
-        try {
-            Path root = root();
+        if (checkExists) {
+            path = ensurePath(root(), passed);
+        } else {
+            path = checkPath(root(), passed);
+/*
 System.out.println("root = " + root);
 System.out.println(params.getString("path") + " is .path");
             path = new File(params.getString("path")).toPath();
 System.out.println("path = " + path);
             Path subpath = ensurePath(root, path);
 System.out.println("subpath = " + subpath);
-        } catch (Exception ex) {
+*/
         }
         return path;
     }
 
     /**
-     * Create a new asset from the given form submission part.  The
-     * file is copied in to the store as part of this process.
+     * Create a new asset from a File. The file is
+     * copied in to the store as part of this process.
      *
      * @param file File to copy in.
      *
-     * @param path The (optional) subdirectory and (required) filename
+     * @param params params.path is the (optional) subdirectory and (required) filename
      * relative to the asset store root in which to store the file.
      *
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final String path)
+                             final JSONObject params)
         throws IOException
     {
-        Path root = root();
-        Path subpath = checkPath(root, new File(path).toPath());
-
-        Path fullpath = root.resolve(subpath);
-
+        if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
+        Path subpath = pathFromParameters(params);
+        if (subpath == null) throw new IOException("no path passed in parameters");
+        //Path root = root();
+        //Path subpath = ensurePath(root, path);
+        Path fullpath = root().resolve(subpath);
         fullpath.getParent().toFile().mkdirs();
-
         logger.debug("copying from " + file + " to " + fullpath);
-
         Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
-
-        //return new MediaAsset(this, subpath); //create JSON with this path!
-        return new MediaAsset(this, null);
+        params.put("path", subpath.toString());  //always store it relative, not absolute (in case it was passed in as such)
+        return new MediaAsset(this, params);
     }
 
 
     @Override
     public void deleteFrom(final MediaAsset ma)
     {
-/*
-        if (path == null) {
+        Path lpath = localPath(ma);
+        if (lpath == null) {
             return;
         }
 
-        File file = getFile(path);
+        File file = getFile(lpath);
         if (!file.exists()) {
             return;
         }
-
         file.delete();
 
+/*   TODO not sure if we should remove empty parent dirs?  maybe some other spaghetti depends on it?
         File parentDir = file.getParentFile();
 
         File[] files = parentDir.listFiles();

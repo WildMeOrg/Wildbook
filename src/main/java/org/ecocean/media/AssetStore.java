@@ -117,7 +117,7 @@ public abstract class AssetStore {
 
     //returns false if "cannot cache local"
     //force=true will grab it even if we think we have one local
-    public abstract boolean cacheLocal(MediaAsset ma, boolean force) throws Exception;
+    public abstract boolean cacheLocal(MediaAsset ma, boolean force) throws IOException;
 
     public abstract Path localPath(MediaAsset ma);
 
@@ -131,17 +131,17 @@ public abstract class AssetStore {
 */
 
     /**
-     * Create a new asset from the given form submission part.  The
-     * file is copied in to the store as part of this process.
+     * Create a new asset from a File. The file is
+     * copied in to the store as part of this process.
      *
      * @param file File to copy in.
      *
-     * @param path The (optional) subdirectory and (required) filename
-     * relative to the asset store root in which to store the file.
+     * @param params The (store-type-specific) JSONObject with settings
+     * on how to store the incoming file.
      *
      */
     public abstract MediaAsset copyIn(final File file,
-                                      final String path)
+                                      final JSONObject params)
                                               throws IOException;
 
     public abstract void deleteFrom(final MediaAsset ma);
@@ -162,6 +162,13 @@ public abstract class AssetStore {
         }
 
         return null;
+    }
+
+    //utility function to always get a null or Object without throwing an exception
+    public Object getParameter(JSONObject params, String key) {
+        if (params == null) return null;
+        if (!params.has(key)) return null;
+        return params.get(key);
     }
 
     @Override
