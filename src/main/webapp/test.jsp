@@ -34,8 +34,10 @@ JSONObject sp = new JSONObject();
 	//String key        = "dorsal-fin.jpg";
 sp.put("bucket", "temporary-test");
 sp.put("key", "dorsal-fin.jpg");
+sp.put("urlAccessible", true);
 MediaAsset ma3 = s3as.create(sp);
 out.println(ma3.localPath());
+out.println(ma3.webURL());
 ma3.cacheLocal();
 
 %>

@@ -251,7 +251,16 @@ System.out.println("cacheLocal trying to write to " + lpath);
      */
     @Override
     public URL webURL(final MediaAsset ma) {
-        return null;
+        JSONObject params = ma.getParameters();
+        if (params == null) return null;
+        if ((params.get("urlAccessible") == null) || !params.getBoolean("urlAccessible")) return null;
+        if ((params.get("bucket") == null) || (params.get("key") == null)) return null;
+        URL u = null;
+        try {
+            u = new URL("https://" + params.getString("bucket") + ".s3.amazonaws.com/" + params.getString("key"));
+        } catch (Exception ex) {
+        }
+        return u;
     }
 
 }
