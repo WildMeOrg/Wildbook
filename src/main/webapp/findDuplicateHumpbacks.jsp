@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Photo paths to fix.</p>
+<p>umpbacks with multiple photos</p>
 <ul>
 <%
 
@@ -53,34 +53,28 @@ Iterator allSharks;
 try{
 
 
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+
 	
-allEncs=myShepherd.getAllEncountersForSpecies("Megaptera", "novaeangliae").iterator();
+allEncs=myShepherd.getAllEncountersForSpeciesWithSpots("Megaptera", "novaeangliae").iterator();
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
-while(allEncs.hasNext()){
-	Encounter enc=(Encounter)allEncs.next();
-	File encDir = new File(enc.dir(baseDir));
+while(allSharks.hasNext()){
 	
-	String encDirPath=encDir.getAbsolutePath();
-	ArrayList<SinglePhotoVideo> allP=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-	for(int i=0;i<allP.size();i++){
-		SinglePhotoVideo spv=allP.get(i);
-		String filePath=encDirPath+"/"+spv.getFilename();
-		if(!filePath.equals(spv.getFullFileSystemPath())){
-			spv.setFullFileSystemPath(filePath);
-			myShepherd.commitDBTransaction();
-			myShepherd.beginDBTransaction();
-		}
-		
+	MarkedIndividual indy=(MarkedIndividual)allSharks.next();
+	ArrayList<SinglePhotoVideo> allP=indy.getAllSinglePhotoVideo();
+	if((indy.getGenusSpecies().equals("Megaptera novaeangliae"))&&(allP.size()>1)){
+		//for(int i=0;i<allP.size();i++){
+			%>
+			<li><a href="individuals.jsp?number=<%=indy.getIndividualID() %>"><%=indy.getIndividualID() %></a></li>
+			<%
+		//}
 		
 	}
 }
 
 %>
 
-
+<p>Done successfully!</p>
 
 
 <%
@@ -105,6 +99,5 @@ finally{
 %>
 
 </ul>
-<p>Done successfully!</p>
 </body>
 </html>
