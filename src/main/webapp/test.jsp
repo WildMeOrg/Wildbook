@@ -19,7 +19,6 @@ org.ecocean.media.*
 
 JSONObject params = new JSONObject();
 params.put("path", "/tmp/store/fluke2.jpg");
-
 LocalAssetStore las = new LocalAssetStore("testStore", new File("/tmp/store").toPath(), "http://foo.bar/webroot/testStore", true);
 
 MediaAsset ma = las.create(params);
@@ -27,6 +26,17 @@ MediaAsset ma = las.create(params);
 out.println(ma.localPath());
 //out.println(ma.webPathString());
 out.println(ma.getID());
+
+S3AssetStore s3as = new S3AssetStore("test S3", false);
+
+JSONObject sp = new JSONObject();
+	//String bucketName = "temporary-test";
+	//String key        = "dorsal-fin.jpg";
+sp.put("bucket", "temporary-test");
+sp.put("key", "dorsal-fin.jpg");
+MediaAsset ma3 = s3as.create(sp);
+out.println(ma3.localPath());
+ma3.cacheLocal();
 
 %>
 
