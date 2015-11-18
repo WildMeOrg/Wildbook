@@ -911,7 +911,7 @@ public class SplashMigratorApp {
 					}
 					}
 					//now add it to the encounter
-					SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, ("/opt/tomcat7/webapps/caribwhale_data_dir/encounters/"+enc.getCatalogNumber()+"/"+imageName));
+					SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, (encDir+"/"+imageName));
 					enc.addSinglePhotoVideo(vid);
 					thumbnailTheseImages.add(imageName);
 					
@@ -1011,7 +1011,7 @@ public class SplashMigratorApp {
           }
           }
           //now add it to the encounter
-          SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, ("/opt/tomcat7/webapps/caribwhale_data_dir/encounters/"+enc.getCatalogNumber()+"/"+imageName));
+          SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, (encDir+"/"+imageName));
           enc.addSinglePhotoVideo(vid);
           thumbnailTheseImages.add(imageName);
           
