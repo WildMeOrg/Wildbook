@@ -44,7 +44,7 @@ S3AssetStore s3as = new S3AssetStore("test S3", true);
 JSONObject sp = new JSONObject();
 
 
-sp.put("bucket", "some-random-bucket");
+sp.put("bucket", "test-asset-store");
 sp.put("key", "test.jpg");
 
 //MediaAsset ma3 = s3as.copyIn(new File("/tmp/incoming.jpg"), sp);

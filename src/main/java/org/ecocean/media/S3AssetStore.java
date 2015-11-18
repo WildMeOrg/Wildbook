@@ -37,6 +37,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
 import org.slf4j.Logger;
@@ -220,25 +221,12 @@ System.out.println("cacheLocal trying to write to " + lpath);
     @Override
     public void deleteFrom(final MediaAsset ma)
     {
-/*
-        if (path == null) {
-            return;
-        }
-
-        File file = getFile(path);
-        if (!file.exists()) {
-            return;
-        }
-
-        file.delete();
-
-        File parentDir = file.getParentFile();
-
-        File[] files = parentDir.listFiles();
-        if (files == null || files.length == 0) { //some JVMs return null for empty dirs
-            parentDir.delete();
-        }
-*/
+        if (!this.writable) return;
+        JSONObject params = ma.getParameters();
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
+        s3Client.deleteObject(new DeleteObjectRequest(bp.toString(), kp.toString()));
     }
 
 

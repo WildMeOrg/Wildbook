@@ -236,4 +236,12 @@ public class MediaAsset {
     public void setMetaLongitude(Double metaLongitude) {
         this.metaLongitude = metaLongitude;
     }
+
+/*
+    public void delete() {
+        MediaAssetFactory.delete(this.id);
+        MediaAssetFactory.deleteFromStore(this);
+    }
+*/
+
 }
