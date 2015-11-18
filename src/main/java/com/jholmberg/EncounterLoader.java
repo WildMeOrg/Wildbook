@@ -84,10 +84,10 @@ public class EncounterLoader {
           URL url2 = new URL(urlString2);
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
             in.close();
-            Thread.sleep(500);
+            Thread.sleep(2000);
             BufferedReader in2 = new BufferedReader(new InputStreamReader(url2.openStream()));
             in2.close();
-            Thread.sleep(500);
+            Thread.sleep(2000);
         } 
         catch (Exception e) {
           
