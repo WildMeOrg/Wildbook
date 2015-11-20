@@ -27,7 +27,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.json.JSONObject;
+import org.ecocean.JSONWBObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class LocalAssetStore extends AssetStore {
     private static final Logger logger = LoggerFactory.getLogger(org.ecocean.media.LocalAssetStore.class);
 
     private Path root;
-    private String webRoot;
+    transient private String webRoot;
 
 
     /**
@@ -132,7 +132,7 @@ public class LocalAssetStore extends AssetStore {
      * under the asset root or nonexistent).
      */
     @Override
-    public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
+    public MediaAsset create(final JSONWBObject params) throws IllegalArgumentException {
         Path subpath = pathFromParameters(params, true);  //check to see if path is legit
         if (subpath == null) return null;
 /*
@@ -169,11 +169,11 @@ System.out.println(">>>> localPath path=" + path);
 
 
     //this returns the subpath relative to root
-    public Path pathFromParameters(JSONObject params) {
+    public Path pathFromParameters(JSONWBObject params) {
         return pathFromParameters(params, false);  //default behavior will be not to check
     }
 
-    public Path pathFromParameters(JSONObject params, boolean checkExists) {
+    public Path pathFromParameters(JSONWBObject params, boolean checkExists) {
         Object p = getParameter(params, "path");
         if (p == null) {
         //if ((params == null) || !params.has("path") || (params.get("path") == null)) {
@@ -211,7 +211,7 @@ System.out.println("subpath = " + subpath);
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final JSONObject params)
+                             final JSONWBObject params)
         throws IOException
     {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");

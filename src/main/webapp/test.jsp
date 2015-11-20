@@ -17,30 +17,43 @@ org.ecocean.media.*
 
 <%
 
-/*
+Shepherd myShepherd=null;
+myShepherd = new Shepherd("context0");
+
+
 JSONObject params = new JSONObject();
 
 LocalAssetStore las = new LocalAssetStore("testStore", new File("/tmp/store").toPath(), "http://foo.bar/webroot/testStore", true);
 
+myShepherd.getPM().makePersistent(las);
+
+/*
 params.put("path", "/tmp/store/test.txt");
 MediaAsset ma = las.copyIn(new File("/tmp/incoming.txt"), params);
 out.println(ma.localPath());
 out.println(ma.webURL());
 */
 
+
 /*
 params.put("path", "/tmp/store/fluke2.jpg");
 MediaAsset ma = las.create(params);
 
+MediaAssetFactory.save(ma, myShepherd);
+
 out.println(ma.localPath());
 //out.println(ma.webPathString());
-out.println(ma.getID());
+out.println(ma.getId());
 */
 
 
 
-S3AssetStore s3as = new S3AssetStore("test S3", true);
 
+
+S3AssetStore s3as = new S3AssetStore("test S3", true);
+myShepherd.getPM().makePersistent(s3as);
+
+/*
 JSONObject sp = new JSONObject();
 
 
@@ -50,6 +63,7 @@ sp.put("key", "test.jpg");
 //MediaAsset ma3 = s3as.copyIn(new File("/tmp/incoming.jpg"), sp);
 out.println(ma3);
 
+*/
 
 
 /*

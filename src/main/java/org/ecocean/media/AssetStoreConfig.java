@@ -36,7 +36,7 @@ import com.google.gson.reflect.TypeToken;
  * AssetStoreConfig manages configuration variables for subclasses of
  * AssetStore.
  */
-public class AssetStoreConfig {
+public class AssetStoreConfig implements java.io.Serializable {
     private static Logger log = LoggerFactory.getLogger(AssetStoreConfig.class);
     private Map<String, String> config;
 
@@ -100,6 +100,10 @@ public class AssetStoreConfig {
      */
     public String configString() {
         return new Gson().toJson(config);
+    }
+
+    public String toString() {
+        return configString();
     }
 
 }

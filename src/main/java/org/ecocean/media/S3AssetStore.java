@@ -28,7 +28,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.json.JSONObject;
+import org.ecocean.JSONWBObject;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -51,10 +51,7 @@ import org.slf4j.LoggerFactory;
  * To create a new store outside of Java, you can directly insert a
  * row into the assetstore table like so (adjusting paths as needed):
  *
- * insert into assetstore (name,type,config,writable) values ('local store', 'LOCAL', '{"root":"/filesystem/path/to/localassetstore","webroot":"http://host/web/path/to/localassetstore"}', true);
- *
- * Then ensure your webserver is configured to serve the filesystem
- * path at the webroot.
+ * insert into assetstore (name,type,config,writable) values ('S3 store', 'S3', NULL, true);
  *
  * If you have only one asset store defined, it will be considered the
  * default (see AssetStore.loadDefault()).
@@ -71,17 +68,11 @@ public class S3AssetStore extends AssetStore {
     AmazonS3 s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
 
     /**
-     * Create a new local filesystem asset store.
+     * Create a new S3 asset store.
      *
      * @param name Friendly name for the store.
      *
-     * @param root Filesystem path to the base of the asset directory.
-     * Must not be null.
-     *
-     * @param webRoot Base web url under which asset paths are
-     * appended.  If null, this store offers no web access to assets.
-     *
-     * @param wriable True if we are allowed to save files under the
+     * @param writable True if we are allowed to save files under the
      * root.
      */
     public S3AssetStore(final String name, final boolean writable)
@@ -90,14 +81,8 @@ public class S3AssetStore extends AssetStore {
     }
 
     /**
-     * Create a new local filesystem asset store.  Should only be used
+     * Create a new S3 asset store.  Should only be used
      * internal to AssetStore.buildAssetStore().
-     *
-     * @param root Filesystem path to the base of the asset directory.
-     * Must not be null.
-     *
-     * @param webRoot Base web url under which asset paths are
-     * appended.  If null, this store offers no web access to assets.
      */
     S3AssetStore(final Integer id, final String name,
                     final AssetStoreConfig config, final boolean writable)
@@ -105,38 +90,6 @@ public class S3AssetStore extends AssetStore {
         super(id, name, AssetStoreType.S3, config, writable);
     }
 
-    /**
-     * Create our config map.
-     */
-/*
-    private static AssetStoreConfig makeConfig(final Path root, final String webRoot) {
-        AssetStoreConfig config = new AssetStoreConfig();
-
-        if (root != null) config.put(KEY_ROOT, root);
-        if (webRoot != null) config.put(KEY_WEB_ROOT, webRoot);
-
-        return config;
-    }
-
-
-    public Path root() {
-        
-        if (root == null) {
-            root = config.getPath(KEY_ROOT);
-            logger.info("Asset Store [" + name + "] using root [" + root + "]");
-        }
-        return root;
-    }
-
-    private String webRoot() {
-        if (webRoot == null) {
-            webRoot = config.getString(KEY_WEB_ROOT);
-            logger.info("Asset Store [" + name + "] using web root [" + webRoot + "]");
-        }
-        return webRoot;
-    }
-
-*/
     /**
      * Create a new MediaAsset that points to an existing file under
      * our root.
@@ -148,7 +101,7 @@ public class S3AssetStore extends AssetStore {
      * under the asset root or nonexistent).
      */
     @Override
-    public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
+    public MediaAsset create(final JSONWBObject params) throws IllegalArgumentException {
         //TODO sanity check of params?
         try {
             return new MediaAsset(this, params);
@@ -171,7 +124,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
     }
 
     public Path localPath(MediaAsset ma) {
-        JSONObject params = ma.getParameters();
+        JSONWBObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
@@ -180,7 +133,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
 
 
     public S3Object getS3Object(MediaAsset ma) {
-        JSONObject params = ma.getParameters();
+        JSONWBObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
@@ -201,7 +154,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final JSONObject params)
+                             final JSONWBObject params)
         throws IOException
     {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
@@ -222,7 +175,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
     public void deleteFrom(final MediaAsset ma)
     {
         if (!this.writable) return;
-        JSONObject params = ma.getParameters();
+        JSONWBObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
@@ -244,7 +197,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
      */
     @Override
     public URL webURL(final MediaAsset ma) {
-        JSONObject params = ma.getParameters();
+        JSONWBObject params = ma.getParameters();
         Object up = getParameter(params, "urlAccessible");
         if ((up == null) || !params.getBoolean("urlAccessible")) return null;
         Object bp = getParameter(params, "bucket");

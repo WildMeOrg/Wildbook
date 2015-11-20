@@ -21,62 +21,63 @@ package org.ecocean.media;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import org.json.JSONObject;
+import org.ecocean.JSONWBObject;
 import java.util.Set;
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used
  * for processing and analysis.
  */
-public class MediaAsset {
+public class MediaAsset implements java.io.Serializable {
+    static final long serialVersionUID = 8844223450447974780L;
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected AssetStore store;
-    protected JSONObject parameters;
+    protected JSONWBObject parameters;
 
-    protected MediaAssetType type;
+    protected Integer parentId;
 
     protected String revision;
-    protected Set<String> tags;
-    protected Integer parentId;
-    protected Integer rootId;
+    //protected MediaAssetType type;
+    //protected Integer submitterid;
+
+
+    //protected Set<String> tags;
+    //protected Integer rootId;
 
     //protected AssetStore thumbStore;
     //protected Path thumbPath;
     //protected Path midPath;
-    protected Integer submitterid;
 
-    private LocalDateTime metaTimestamp;
-    private Double metaLatitude;
-    private Double metaLongitude;
+    //private LocalDateTime metaTimestamp;
+    //private Double metaLatitude;
+    //private Double metaLongitude;
 
 
     /**
      * To be called by AssetStore factory method.
      */
 /*
-    public MediaAsset(final AssetStore store, final JSONObject params, final String category)
+    public MediaAsset(final AssetStore store, final JSONWBObject params, final String category)
     {
         this(MediaAssetFactory.NOT_SAVED, store, params, MediaAssetType.fromFilename(path.toString()), category);
     }
 */
 
 
-    public MediaAsset(final AssetStore store, final JSONObject params) {
+    public MediaAsset(final AssetStore store, final JSONWBObject params) {
         //this(store, params, null);
-        this(MediaAssetFactory.NOT_SAVED, store, params, null);
+        this(MediaAssetFactory.NOT_SAVED, store, params);
     }
 
 
     public MediaAsset(final int id,
                       final AssetStore store,
-                      final JSONObject params,
-                      final MediaAssetType type)
+                      final JSONWBObject params)
     {
         this.id = id;
         this.store = store;
         this.parameters = params;
-        this.type = type;
         this.revision = String.valueOf(System.currentTimeMillis());
     }
 
@@ -98,17 +99,20 @@ public class MediaAsset {
     }
 
 
-    public int getID()
+    public int getId()
     {
         return id;
     }
+    public void setId(int i) {
+        id = i;
+    }   
 
     public AssetStore getStore()
     {
         return store;
     }
 
-    public JSONObject getParameters() {
+    public JSONWBObject getParameters() {
         return parameters;
     }
 
@@ -140,9 +144,11 @@ public class MediaAsset {
     }
 */
 
+/*
     public MediaAssetType getType() {
         return type;
     }
+*/
 
     /**
      * Return a full web-accessible url to the asset, or null if the
@@ -199,6 +205,8 @@ public class MediaAsset {
     }
 
 */
+
+/*
     public Integer getSubmitterId() {
         return submitterid;
     }
@@ -206,8 +214,10 @@ public class MediaAsset {
     public void setSubmitterId(final Integer submitterid) {
         this.submitterid = submitterid;
     }
+*/
 
 
+/*
     public LocalDateTime getMetaTimestamp() {
         return metaTimestamp;
     }
@@ -236,6 +246,9 @@ public class MediaAsset {
     public void setMetaLongitude(Double metaLongitude) {
         this.metaLongitude = metaLongitude;
     }
+*/
+
+
 
 /*
     public void delete() {

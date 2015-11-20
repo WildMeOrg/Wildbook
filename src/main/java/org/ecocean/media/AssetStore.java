@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.json.JSONObject;
+import org.ecocean.JSONWBObject;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  *
  * @see LocalAssetStore
  */
-public abstract class AssetStore {
+public abstract class AssetStore implements java.io.Serializable {
     private static Logger logger = LoggerFactory.getLogger(AssetStore.class);
 
     private static Map<Integer, AssetStore> stores;
@@ -87,6 +87,12 @@ public abstract class AssetStore {
     }
 
 
+/*
+    public boolean getWritable() {
+        return writable;
+    }
+*/
+
     public static synchronized void add(final AssetStore store)
     {
         getMap().put(store.id, store);
@@ -123,7 +129,7 @@ public abstract class AssetStore {
 
     public abstract URL webURL(MediaAsset ma);
 
-    public abstract MediaAsset create(JSONObject params);
+    public abstract MediaAsset create(JSONWBObject params);
 
 /*  do we even want to allow this?
     public MediaAsset create(String jsonString) {
@@ -136,12 +142,12 @@ public abstract class AssetStore {
      *
      * @param file File to copy in.
      *
-     * @param params The (store-type-specific) JSONObject with settings
+     * @param params The (store-type-specific) JSONWBObject with settings
      * on how to store the incoming file.
      *
      */
     public abstract MediaAsset copyIn(final File file,
-                                      final JSONObject params)
+                                      final JSONWBObject params)
                                               throws IOException;
 
     public abstract void deleteFrom(final MediaAsset ma);
@@ -165,7 +171,7 @@ public abstract class AssetStore {
     }
 
     //utility function to always get a null or Object without throwing an exception
-    public Object getParameter(JSONObject params, String key) {
+    public Object getParameter(JSONWBObject params, String key) {
         if (params == null) return null;
         if (!params.has(key)) return null;
         return params.get(key);
