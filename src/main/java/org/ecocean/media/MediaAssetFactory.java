@@ -4,6 +4,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
+import org.ecocean.Shepherd;
+
+import javax.jdo.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,9 +14,9 @@ import org.slf4j.LoggerFactory;
 public class MediaAssetFactory {
     //private static final Logger logger = LoggerFactory.getLogger(MediaAssetFactory.class);
 
-    public static final String TABLENAME_MEDIAASSET = "mediaasset";
-    public static final String ALIAS_MEDIAASSET = "ma";
-    public static final String PK_MEDIAASSET = "id";
+    //public static final String TABLENAME_MEDIAASSET = "mediaasset";
+    //public static final String ALIAS_MEDIAASSET = "ma";
+    //public static final String PK_MEDIAASSET = "id";
 
     public static final int NOT_SAVED = -1;
 
@@ -25,7 +28,7 @@ public class MediaAssetFactory {
     /**
      * Fetch a single asset from the database by id.
      */
-    public static MediaAsset load(final long id) {
+    public static MediaAsset load(final long id, Shepherd myShepherd) {
         return null;
     }
 
@@ -60,27 +63,9 @@ public class MediaAssetFactory {
     /**
      * Store to the given database.
      */
-    public static void save(final MediaAsset ma) {
+    public static void save(final MediaAsset ma, Shepherd myShepherd) {
+        myShepherd.getPM().makePersistent(ma);
     }
-/*
-    public static void save(final Database db, final MediaAsset ma) throws DatabaseException {
-        Table table = db.getTable(TABLENAME_MEDIAASSET);
-
-        if (ma.id == NOT_SAVED) {
-            SqlInsertFormatter formatter = new SqlInsertFormatter();
-            fillFormatter(formatter, ma);
-
-            ma.id = table.insertSequencedRow(formatter, PK_MEDIAASSET);
-        } else {
-            SqlUpdateFormatter formatter = new SqlUpdateFormatter();
-            fillFormatter(formatter, ma);
-
-            SqlWhereFormatter where = new SqlWhereFormatter();
-            where.append(PK_MEDIAASSET, ma.id);
-            table.updateRow(formatter.getUpdateClause(), where.getWhereClause());
-        }
-    }
-*/
 
     /**
      * Delete this asset and any child assets from the given database.
