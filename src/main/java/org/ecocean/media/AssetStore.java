@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.ecocean.JSONWBObject;
+import org.json.JSONObject;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -129,7 +129,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract URL webURL(MediaAsset ma);
 
-    public abstract MediaAsset create(JSONWBObject params);
+    public abstract MediaAsset create(JSONObject params);
 
 /*  do we even want to allow this?
     public MediaAsset create(String jsonString) {
@@ -142,12 +142,12 @@ public abstract class AssetStore implements java.io.Serializable {
      *
      * @param file File to copy in.
      *
-     * @param params The (store-type-specific) JSONWBObject with settings
+     * @param params The (store-type-specific) JSONObject with settings
      * on how to store the incoming file.
      *
      */
     public abstract MediaAsset copyIn(final File file,
-                                      final JSONWBObject params)
+                                      final JSONObject params)
                                               throws IOException;
 
     public abstract void deleteFrom(final MediaAsset ma);
@@ -171,7 +171,7 @@ public abstract class AssetStore implements java.io.Serializable {
     }
 
     //utility function to always get a null or Object without throwing an exception
-    public Object getParameter(JSONWBObject params, String key) {
+    public Object getParameter(JSONObject params, String key) {
         if (params == null) return null;
         if (!params.has(key)) return null;
         return params.get(key);

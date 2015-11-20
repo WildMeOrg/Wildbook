@@ -11,7 +11,14 @@
             	<field name="parentId" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="true"/>
             	</field>
-            	<field name="parameters" persistence-modifier="persistent" serialized="true" />
+		<property name="parametersAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="parameters" />
+		</property>
+<!--
+            	<field name="parameters" persistence-modifier="persistent" serialized="false">
+                	<column jdbc-type="LONGVARCHAR" />
+		</field>
+-->
 	</class>
 
 
