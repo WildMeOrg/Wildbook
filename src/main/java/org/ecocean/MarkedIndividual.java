@@ -812,7 +812,7 @@ public class MarkedIndividual implements java.io.Serializable {
     int count = 0;
     for (int iter = 0; iter < encounters.size(); iter++) {
       Encounter enc = (Encounter) encounters.get(iter);
-      if (enc.getSpots().size() > 0) {
+      if ((enc.getSpots()!=null)&&(enc.getSpots().size() > 0)) {
         count++;
       }
     }
