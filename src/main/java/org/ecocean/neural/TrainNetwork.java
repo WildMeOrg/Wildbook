@@ -636,6 +636,19 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
+      else if(genusSpecies.equals("Megapteranovaeangliae")){
+        fvWekaAttributes = new FastVector(9);
+        fvWekaAttributes.addElement(intersectAttr);
+        fvWekaAttributes.addElement(fastDTWAttr);
+        fvWekaAttributes.addElement(i3sAttr);
+        fvWekaAttributes.addElement(proportionAttr);
+        fvWekaAttributes.addElement(msmAttr);
+        fvWekaAttributes.addElement(swaleAttr);
+        fvWekaAttributes.addElement(dateAttr);
+        fvWekaAttributes.addElement(euclideanAttr);
+        fvWekaAttributes.addElement(ClassAttribute);
+        //System.out.println("Building attributes for: "+genusSpecies);
+      }
       
       //System.out.println("     fvWekaAttriubutes has a size of: "+fvWekaAttributes.size());
       return fvWekaAttributes;
@@ -700,6 +713,16 @@ public class TrainNetwork {
           iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
+        iExample.setValue(0, mo.getIntersectionCount().doubleValue());
+        iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
+        iExample.setValue(2, mo.getI3SMatchValue());
+        iExample.setValue(3, mo.getProportionValue().doubleValue());
+        iExample.setValue(4, mo.getMSMValue().doubleValue());
+        iExample.setValue(5, mo.getSwaleValue().doubleValue());
+        iExample.setValue(6, mo.getDateDiff().doubleValue());
+        iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
+    }
+    else if(genusSpecies.equals("Megapteranovaeangliae")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
         iExample.setValue(1, mo.getLeftFastDTWResult().doubleValue());
         iExample.setValue(2, mo.getI3SMatchValue());
