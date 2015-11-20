@@ -22,6 +22,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import org.json.JSONObject;
+import org.json.JSONException;
 import java.util.Set;
 
 /**
@@ -122,7 +123,12 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public void setParametersAsString(String p) {
-        //TODO
+        try {
+            parameters = new JSONObject(p);
+        } catch (JSONException je) {
+            System.out.println(this + " -- error parsing parameters json string (" + p + "): " + je.toString());
+            parameters = null;
+        }
     }
 
     public Path localPath()
