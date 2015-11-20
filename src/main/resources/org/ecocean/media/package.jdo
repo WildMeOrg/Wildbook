@@ -26,18 +26,24 @@
 	<class name="AssetStore" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
             	<field name="config" persistence-modifier="persistent" serialized="true" />
+		<field name="type" persistence-modifier="none" />
+    		<inheritance>
+        		<discriminator strategy="value-map">
+				<column name="TYPE"/>
+			</discriminator>
+    		</inheritance>
 	</class>
 
 	<class name="LocalAssetStore">
-    		<inheritance>
-        		<discriminator strategy="class-name"/>
-    		</inheritance>
+		<inheritance strategy="superclass-table">
+			<discriminator value="LOCAL"/>
+		</inheritance>
 	</class>
 
 	<class name="S3AssetStore">
-    		<inheritance>
-        		<discriminator strategy="class-name"/>
-    		</inheritance>
+		<inheritance strategy="superclass-table">
+			<discriminator value="S3"/>
+		</inheritance>
 	</class>
 
 
