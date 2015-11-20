@@ -28,8 +28,8 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>umpbacks with multiple photos</p>
-<ul>
+<p>Humpbacks with multiple photos but requiring  trailing edge mapping</p>
+<ol>
 <%
 
 myShepherd.beginDBTransaction();
@@ -65,7 +65,7 @@ while(allSharks.hasNext()){
 	if((indy.getGenusSpecies().equals("Megaptera novaeangliae"))&&(allP.size()>1)&&(indy.getNumberTrainableEncounters()==0)){
 		//for(int i=0;i<allP.size();i++){
 			%>
-			<li><a href="individuals.jsp?number=<%=indy.getIndividualID() %>"><%=indy.getIndividualID() %></a></li>
+			<li><a target="_blank" href="individuals.jsp?number=<%=indy.getIndividualID() %>"><%=indy.getIndividualID() %></a></li>
 			<%
 		//}
 		
@@ -98,6 +98,6 @@ finally{
 }
 %>
 
-</ul>
+</ol>
 </body>
 </html>
