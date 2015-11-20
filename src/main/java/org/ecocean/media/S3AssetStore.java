@@ -28,7 +28,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.ecocean.JSONWBObject;
+import org.json.JSONObject;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -101,7 +101,7 @@ public class S3AssetStore extends AssetStore {
      * under the asset root or nonexistent).
      */
     @Override
-    public MediaAsset create(final JSONWBObject params) throws IllegalArgumentException {
+    public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
         //TODO sanity check of params?
         try {
             return new MediaAsset(this, params);
@@ -124,7 +124,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
     }
 
     public Path localPath(MediaAsset ma) {
-        JSONWBObject params = ma.getParameters();
+        JSONObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
@@ -133,7 +133,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
 
 
     public S3Object getS3Object(MediaAsset ma) {
-        JSONWBObject params = ma.getParameters();
+        JSONObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
@@ -154,7 +154,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
      */
     @Override
     public MediaAsset copyIn(final File file,
-                             final JSONWBObject params)
+                             final JSONObject params)
         throws IOException
     {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
@@ -175,7 +175,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
     public void deleteFrom(final MediaAsset ma)
     {
         if (!this.writable) return;
-        JSONWBObject params = ma.getParameters();
+        JSONObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
@@ -197,7 +197,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
      */
     @Override
     public URL webURL(final MediaAsset ma) {
-        JSONWBObject params = ma.getParameters();
+        JSONObject params = ma.getParameters();
         Object up = getParameter(params, "urlAccessible");
         if ((up == null) || !params.getBoolean("urlAccessible")) return null;
         Object bp = getParameter(params, "bucket");

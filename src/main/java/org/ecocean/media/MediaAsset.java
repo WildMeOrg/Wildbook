@@ -21,7 +21,7 @@ package org.ecocean.media;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import org.ecocean.JSONWBObject;
+import org.json.JSONObject;
 import java.util.Set;
 
 /**
@@ -33,7 +33,7 @@ public class MediaAsset implements java.io.Serializable {
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected AssetStore store;
-    protected JSONWBObject parameters;
+    protected JSONObject parameters;
 
     protected Integer parentId;
 
@@ -58,14 +58,14 @@ public class MediaAsset implements java.io.Serializable {
      * To be called by AssetStore factory method.
      */
 /*
-    public MediaAsset(final AssetStore store, final JSONWBObject params, final String category)
+    public MediaAsset(final AssetStore store, final JSONObject params, final String category)
     {
         this(MediaAssetFactory.NOT_SAVED, store, params, MediaAssetType.fromFilename(path.toString()), category);
     }
 */
 
 
-    public MediaAsset(final AssetStore store, final JSONWBObject params) {
+    public MediaAsset(final AssetStore store, final JSONObject params) {
         //this(store, params, null);
         this(MediaAssetFactory.NOT_SAVED, store, params);
     }
@@ -73,7 +73,7 @@ public class MediaAsset implements java.io.Serializable {
 
     public MediaAsset(final int id,
                       final AssetStore store,
-                      final JSONWBObject params)
+                      final JSONObject params)
     {
         this.id = id;
         this.store = store;
@@ -112,8 +112,17 @@ public class MediaAsset implements java.io.Serializable {
         return store;
     }
 
-    public JSONWBObject getParameters() {
+    public JSONObject getParameters() {
         return parameters;
+    }
+
+    public String getParametersAsString() {
+        if (parameters == null) return null;
+        return parameters.toString();
+    }
+
+    public void setParametersAsString(String p) {
+        //TODO
     }
 
     public Path localPath()
