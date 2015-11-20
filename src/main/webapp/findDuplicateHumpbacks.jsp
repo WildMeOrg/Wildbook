@@ -62,7 +62,7 @@ while(allSharks.hasNext()){
 	
 	MarkedIndividual indy=(MarkedIndividual)allSharks.next();
 	ArrayList<SinglePhotoVideo> allP=indy.getAllSinglePhotoVideo();
-	if((indy.getGenusSpecies().equals("Megaptera novaeangliae"))&&(allP.size()>1)){
+	if((indy.getGenusSpecies().equals("Megaptera novaeangliae"))&&(allP.size()>1)&&(indy.getNumberTrainableEncounters()==0)){
 		//for(int i=0;i<allP.size();i++){
 			%>
 			<li><a href="individuals.jsp?number=<%=indy.getIndividualID() %>"><%=indy.getIndividualID() %></a></li>
