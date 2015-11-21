@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Humpbacks with multiple photos but requiring  trailing edge mapping</p>
+<p>Sperm Whales with multiple photos but requiring  trailing edge mapping</p>
 <ol>
 <%
 
@@ -55,7 +55,7 @@ try{
 
 
 	
-allEncs=myShepherd.getAllEncountersForSpeciesWithSpots("Megaptera", "novaeangliae").iterator();
+allEncs=myShepherd.getAllEncountersForSpeciesWithSpots("Physeter", "macrocephalus").iterator();
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
 while(allSharks.hasNext()){
