@@ -90,6 +90,10 @@ public class S3AssetStore extends AssetStore {
         super(id, name, AssetStoreType.S3, config, writable);
     }
 
+    public AssetStoreType getType() {
+        return AssetStoreType.S3;
+    }
+
     /**
      * Create a new MediaAsset that points to an existing file under
      * our root.

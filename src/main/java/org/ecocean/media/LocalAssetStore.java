@@ -105,6 +105,10 @@ public class LocalAssetStore extends AssetStore {
         return config;
     }
 
+    public AssetStoreType getType() {
+        return AssetStoreType.LOCAL;
+    }
+
     public Path root() {
         if (root == null) {
             root = config.getPath(KEY_ROOT);

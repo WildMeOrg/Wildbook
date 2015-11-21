@@ -18,12 +18,14 @@
 
 package org.ecocean.media;
 
+import org.ecocean.CommonConfiguration;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used
@@ -271,5 +273,15 @@ public class MediaAsset implements java.io.Serializable {
         MediaAssetFactory.deleteFromStore(this);
     }
 */
+	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.get("parametersAsString")));
+            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new JSONObject(jobj.getString("parametersAsString")));
+            if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
+            jobj.remove("parametersAsString");
+            jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
+            jobj.put("storeType", store.getType());
+            return jobj;
+        }
+
 
 }
