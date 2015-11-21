@@ -131,6 +131,8 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract MediaAsset create(JSONObject params);
 
+    public abstract AssetStoreType getType();
+
 /*  do we even want to allow this?
     public MediaAsset create(String jsonString) {
     }
@@ -183,7 +185,7 @@ public abstract class AssetStore implements java.io.Serializable {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("name", name)
-                .append("type", type)
+                .append("type", this.getType())
                 .toString();
     }
 }
