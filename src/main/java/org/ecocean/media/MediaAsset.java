@@ -19,6 +19,7 @@
 package org.ecocean.media;
 
 import org.ecocean.CommonConfiguration;
+import org.ecocean.ImageAttributes;
 import java.net.URL;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -158,7 +159,8 @@ public class MediaAsset implements java.io.Serializable {
     public ImageAttributes getImageAttributes() {
         double w = 300.0;
         double h = 200.0;
-        return new ImageAttributes(w, h);
+        String ext = "jpg";
+        return new ImageAttributes(w, h, ext);
     }
 
 /*
