@@ -1,5 +1,7 @@
 package org.ecocean.identity;
 
+import org.ecocean.ImageAttributes;
+import org.ecocean.Annotation;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -14,30 +16,31 @@ class IBEISIA {
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static void send(ArrayList<MediaAsset> mas, String species) {
+    public static void sendMediaAssets(ArrayList<MediaAsset> mas, String species) {
         JSONArray annotations = new JSONArray();
         JSONArray images = new JSONArray();
         for (MediaAsset ma : mas) {
             Annotation ann = new Annotation(ma, species);
-            annotations.add(ann.toJSONObject());
-            images.add(imageJSONObjectFromMediaAsset(ma));
+            annotations.put(ann.toJSONObject());
+            images.put(imageJSONObjectFromMediaAsset(ma));
         }
     }
 
-    public static void send(ArrayList<Annotation> anns, String species) {
+    public static void sendAnnotations(ArrayList<Annotation> anns, String species) {
         JSONArray annotations = new JSONArray();
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (Annotation ann : anns) {
-            annotations.add(ann.toJSONObject());
+            annotations.put(ann.toJSONObject());
             if (!mas.contains(ann.getMediaAsset())) mas.add(ann.getMediaAsset());
         }
 
         JSONArray images = new JSONArray();
         for (MediaAsset ma : mas) {
-            images.add(imageJSONObjectFromMediaAsset(ma));
+            images.put(imageJSONObjectFromMediaAsset(ma));
         }
     }
-    
+
+/*
 URL url = new URL("http://localhost:5000/test");
 
 
@@ -49,6 +52,7 @@ JSONObject jout = RestClient.post(url, jin);
 
 out.println(jout);
     }
+*/
 
 
 /*
@@ -76,7 +80,15 @@ image_attrs = {
     public static JSONObject imageJSONObjectFromMediaAsset(MediaAsset ma) {
         JSONObject obj = new JSONObject();
         obj.put("image_uuid", ma.getUUID());
+        ImageAttributes iatt = ma.getImageAttributes();
+        obj.put("image_width", (int) iatt.getWidth());
+        obj.put("image_height", (int) iatt.getHeight());
+        obj.put("image_ext", iatt.getExtension());
+        return obj;
     }
+
+}
+
 
 /*
 Shepherd myShepherd=null;
@@ -145,8 +157,3 @@ out.println(ma3.webURL());
 ma3.cacheLocal();
 */
 
-
-%>
-
-
-hello

@@ -1,10 +1,11 @@
-package org.ecocean.media;
+package org.ecocean;
 
 /*
   TODO note: this is very ibeis-specific concept of "Annotation"
      we should probably consider a general version which can be manipulated into an ibeis one somehow
 */
 
+import org.ecocean.ImageAttributes;
 import org.ecocean.media.MediaAsset;
 import org.json.JSONObject;
 
@@ -33,8 +34,7 @@ public class Annotation implements java.io.Serializable {
 
     //the "trivial" Annotation - its bounding box is the same as the MediaAsset image
     public Annotation(MediaAsset ma, String species) {
-        ImageAttributes iatt = ma.getImageAttributes();
-        Annotation(ma, species, iatt);
+        this(ma, species, ma.getImageAttributes());
     }
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
@@ -46,8 +46,7 @@ public class Annotation implements java.io.Serializable {
         this.annot_height = (int) iatt.getHeight();
         this.annot_theta = 0;  /// TODO ????
         this.species_text = species;
-        this.image_uuid = ma.getUUID();
-        this.name_text = this.annot_uuid + " on " + this.image_uuid;
+        this.name_text = this.annot_uuid + " on " + ma.getUUID();
     }
 
     public MediaAsset getMediaAsset() {
@@ -63,7 +62,7 @@ public class Annotation implements java.io.Serializable {
         obj.put("annot_height", annot_height);
         obj.put("annot_theta", annot_theta);
         obj.put("species_text", species_text);
-        obj.put("image_uuid", image_uuid);
+        obj.put("image_uuid", this.asset.getUUID());
         obj.put("name_text", name_text);
         return obj;
     }

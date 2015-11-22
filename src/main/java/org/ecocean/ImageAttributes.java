@@ -10,17 +10,19 @@ public class ImageAttributes {
     private double height;
     private double xOffset;
     private double yOffset;
+    private String extension = null;
 
 
-    public ImageAttributes(double w, double h, double x, double y) {
+    public ImageAttributes(double w, double h, double x, double y, String ext) {
         this.width = w;
         this.height = h;
         this.xOffset = x;
         this.yOffset = y;
+        this.extension = ext;
     }
 
-    public ImageAttributes(double w, double h) {
-        this(w, h, 0.0, 0.0);
+    public ImageAttributes(double w, double h, String ext) {
+        this(w, h, 0.0, 0.0, ext);
     }
 
 
@@ -35,5 +37,8 @@ public class ImageAttributes {
     }
     public double getYOffset() {
         return yOffset;
+    }
+    public String getExtension() {
+        return extension;
     }
 }
