@@ -25,6 +25,7 @@ import java.time.LocalDateTime;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Set;
+import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 
 /**
@@ -110,6 +111,11 @@ public class MediaAsset implements java.io.Serializable {
         id = i;
     }   
 
+    //this is for Annotation mostly?
+    public String getUUID() {
+        return "ID " + this.id;
+    }
+
     public AssetStore getStore()
     {
         return store;
@@ -147,6 +153,12 @@ public class MediaAsset implements java.io.Serializable {
     public boolean cacheLocal(boolean force) throws Exception {
         if (store == null) return false;
         return store.cacheLocal(this, force);
+    }
+
+    public ImageAttributes getImageAttributes() {
+        double w = 300.0;
+        double h = 200.0;
+        return new ImageAttributes(w, h);
     }
 
 /*
@@ -279,7 +291,11 @@ public class MediaAsset implements java.io.Serializable {
             if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
             jobj.remove("parametersAsString");
             jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
-            jobj.put("storeType", store.getType());
+
+            //TODO something better with store?  fix .put("store", store) ???
+            HashMap<String,String> s = new HashMap<String,String>();
+            s.put("type", store.getType().toString());
+            jobj.put("store", s);
             return jobj;
         }
 
