@@ -10,7 +10,8 @@ import java.net.URL;
 import org.json.JSONObject;
 
 public class RestClient {
-    public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
+    //here, "data" should(?) be JSONObject or JSONArray -- or something else which .toString() returns valid json!
+    public static JSONObject post(URL url, Object data) throws RuntimeException, MalformedURLException, IOException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");

@@ -44,7 +44,7 @@ public class Annotation implements java.io.Serializable {
         this.annot_ytl = (int) iatt.getYOffset();
         this.annot_width = (int) iatt.getWidth(); 
         this.annot_height = (int) iatt.getHeight();
-        this.annot_theta = 0;  /// TODO ????
+        this.annot_theta = 0.0;  /// TODO ????
         this.species_text = species;
         this.name_text = this.annot_uuid + " on " + ma.getUUID();
     }
