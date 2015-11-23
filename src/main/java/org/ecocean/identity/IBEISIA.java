@@ -6,17 +6,20 @@ import java.util.ArrayList;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.net.URL;
+import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
+import org.ecocean.RestClient;
+import java.io.IOException;
+import java.net.MalformedURLException;
 
 
-
-class IBEISIA {
+public class IBEISIA {
 
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static void sendMediaAssets(ArrayList<MediaAsset> mas, String species) {
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String species) throws RuntimeException, MalformedURLException, IOException {
         JSONArray annotations = new JSONArray();
         JSONArray images = new JSONArray();
         for (MediaAsset ma : mas) {
@@ -24,9 +27,13 @@ class IBEISIA {
             annotations.put(ann.toJSONObject());
             images.put(imageJSONObjectFromMediaAsset(ma));
         }
+        JSONArray all = new JSONArray();
+        all.put(annotations);
+        all.put(images);
+        return send(all);
     }
 
-    public static void sendAnnotations(ArrayList<Annotation> anns, String species) {
+    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String species) throws RuntimeException, MalformedURLException, IOException {
         JSONArray annotations = new JSONArray();
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (Annotation ann : anns) {
@@ -38,21 +45,22 @@ class IBEISIA {
         for (MediaAsset ma : mas) {
             images.put(imageJSONObjectFromMediaAsset(ma));
         }
+        JSONArray all = new JSONArray();
+        all.put(annotations);
+        all.put(images);
+        return send(all);
     }
 
-/*
-URL url = new URL("http://localhost:5000/test");
-
-
-JSONObject jin = new JSONObject();
-jin.put("foo", "bar");
-
-
-JSONObject jout = RestClient.post(url, jin);
-
-out.println(jout);
+    public static JSONObject send(JSONArray jsa) throws RuntimeException, MalformedURLException, IOException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrl", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrl is not set");
+        URL iaUrl = new URL(CommonConfiguration.getProperty("IBEISIARestUrl", "context0"));
+System.out.println("SENDING: \n" + jsa.toString() + " to " + iaUrl.toString());
+        JSONObject jout = RestClient.post(iaUrl, jsa);
+System.out.println("RESPONSE:\n" + jout.toString());
+        return jout;
     }
-*/
+
 
 
 /*

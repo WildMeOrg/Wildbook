@@ -28,6 +28,7 @@ import org.json.JSONException;
 import java.util.Set;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used
@@ -301,5 +302,11 @@ public class MediaAsset implements java.io.Serializable {
             return jobj;
         }
 
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("store", store.toString())
+                .toString();
+    }
 
 }
