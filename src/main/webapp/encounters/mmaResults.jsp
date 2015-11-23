@@ -224,8 +224,8 @@
 <%      } else { %>
           <tr><th><% out.print(bundle.getProperty("individual")); %></th><td>&nbsp;</td></tr>
 <%      } %>
-          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><span class="enc-date"><% out.print(encMatch.getDate()); %></span></td></tr>
-          <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></td></tr>
+          <tr><th><% out.print(bundle.getProperty("encounter.date")); %></th><td><span class="nowrap"><% out.print(encMatch.getDate()); %></span></td></tr>
+          <tr><th><% out.print(bundle.getProperty("pigmentation")); %></th><td><span class="nowrap"><% out.print(pigMatch == null ? "&nbsp;" : pigMatch); %></span></td></tr>
 <%      if (indUrl != null && !encIsAssigned) { %>
           <tr><td colspan="2">
             <form action="../IndividualAddEncounter" method="post">
