@@ -207,7 +207,7 @@
       File match_fCR = mmMap.get("CR");
       String match_encId = match_fCR.getParentFile().getName();
       String match_linkCR = convertFileToURL(dataDirUrlPrefix, match_fCR);
-      String match_linkEH = match_linkCR.replace("_CR", "_EH");
+      String match_linkEH = match_linkCR.replace("_CR.", "_EH.");
       String match_encUrl = String.format(pageUrlFormatEnc, match_encId);
 %>
 <%  if (indMatch) { %>
