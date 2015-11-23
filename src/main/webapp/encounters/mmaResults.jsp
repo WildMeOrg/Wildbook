@@ -114,20 +114,22 @@
 </head>
 
 <body>
-<div id="wrapper">
-	<div id="page">
-		<jsp:include page="../header.jsp" flush="true">
-			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-		</jsp:include>
-		<div id="main">
+
+  <jsp:include page="../header.jsp" flush="true">
+    <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+  </jsp:include>
+
+  <div class="container maincontent">
 
 
 <!------------------------------------------------------------------------->
 
 <%
   if (results.getMapTests().isEmpty()) {
+    String encUrl = String.format(pageUrlFormatEnc, results.getTestEncounterNumber());
 %>
   <p><% out.print(bundle.getProperty("noMatches")); %></p>
+  <p><a href="<%=encUrl%>"><% out.print(MessageFormat.format(bundle.getProperty("noMatches.text.encounter"), results.getTestEncounterNumber())); %></a></p>
 <%
   }
   for (Map.Entry<String, List<MMAMatch>> mmaTest : results.getMapTests().entrySet()) {
@@ -257,9 +259,15 @@
   }
 %>
 
+<%
+  if (!results.getMapTests().isEmpty()) {
+%>
 <div id="mma-footer">
   <p id="mma-copyright"><% out.print(bundle.getProperty("copyright")); %></p>
 </div>
+<%
+  }
+%>
 
 
 <!------------------------------------------------------------------------->
@@ -270,10 +278,6 @@
 %>
 
 
-      <jsp:include page="../footer.jsp" flush="true"/>
-		</div>
-	</div>
-	<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+  </div>
+
+  <jsp:include page="../footer.jsp" flush="true"/>
