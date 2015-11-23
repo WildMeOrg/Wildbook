@@ -29,6 +29,9 @@ body {
 #mma-desc th, #mma-desc td {
 	vertical-align: top;
 }
+#mma-desc td {
+  padding-left: 0.5em;
+}
 #mma-desc th {
 	white-space: nowrap;
   font-weight: bold;
