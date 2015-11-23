@@ -5,6 +5,13 @@ body {
   font-family: verdana, arial, sans-serif;
   font-size: 14px;
 }
+/* Override width restriction for better display*/
+#page {
+  width: 80% !important;
+}
+#main {
+  width: 100% !important;
+}
 .mma-small {
   font-weight: normal;
   font-size: 0.8em;
