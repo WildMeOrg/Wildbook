@@ -59,23 +59,45 @@ try{
 allEncs=myShepherd.getAllEncountersForSpecies("Megaptera", "novaeangliae").iterator();
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
 
+ArrayList<String> kwords=new ArrayList<String>();
+kwords.add("5U");
+kwords.add("5S");
+kwords.add("5R");
+kwords.add("5M");
+kwords.add("5C");
+kwords.add("4C");
+kwords.add("4B");
+kwords.add("4A");
+kwords.add("3C");
+kwords.add("3B");
+kwords.add("3A");
+kwords.add("2C");
+kwords.add("2B");
+kwords.add("2A");
+kwords.add("1");
+
+
+
 while(allEncs.hasNext()){
-	Encounter enc=(Encounter)allEncs.next();
-	File encDir = new File(enc.dir(baseDir));
 	
-	String encDirPath=encDir.getAbsolutePath();
-	ArrayList<SinglePhotoVideo> allP=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
-	for(int i=0;i<allP.size();i++){
-		SinglePhotoVideo spv=allP.get(i);
-		String filePath=encDirPath+"/"+spv.getFilename();
-		if(!filePath.equals(spv.getFullFileSystemPath())){
-			spv.setFullFileSystemPath(filePath);
-			myShepherd.commitDBTransaction();
-			myShepherd.beginDBTransaction();
+	Encounter enc=(Encounter)allEncs.next();
+
+	if(enc.getPatterningCode()==null){
+		int numKwords=kwords.size();
+		for(int i=0;i<numKwords;i++){
+			String keyword=kwords.get(i);
+			if(enc.hasKeyword(myShepherd.getKeyword(keyword))){
+				enc.setPatterningCode(keyword);
+				myShepherd.commitDBTransaction();
+				myShepherd.beginDBTransaction();
+			}
+			else if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+				MarkedIndividual indy=myShepherd.getMarkedIndividual(enc.getIndividualID());
+				if(indy.getPatterningCode()!=null){enc.setPatterningCode(indy.getPatterningCode());}
+			}
 		}
-		
-		
 	}
+	
 }
 
 %>

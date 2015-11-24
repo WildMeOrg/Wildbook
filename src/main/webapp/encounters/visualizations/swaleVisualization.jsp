@@ -12,7 +12,7 @@
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
 	org.ecocean.grid.* ,
-	org.ecocean.grid.granger.*,
+	
 	org.ecocean.neural.TrainNetwork,
 	java.awt.geom.*,
 	java.awt.geom.Point2D.Double"

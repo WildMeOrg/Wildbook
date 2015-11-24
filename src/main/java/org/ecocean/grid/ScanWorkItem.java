@@ -294,6 +294,32 @@ public class ScanWorkItem implements java.io.Serializable {
       result.setIntersectionCount(numIntersections);
       result.setAnglesOfIntersections("");
       result.setDateDiff(date);
+      
+    //patterningCode
+      
+      double pattCodeDiff = Instance.missingValue();
+      if((existingEncounter.getPatterningCode()!=null)&&(newEncounter.getPatterningCode()!=null)){
+        String enc1Val=existingEncounter.getPatterningCode().replaceAll("[^\\d.]", "");
+        String enc2Val=newEncounter.getPatterningCode().replaceAll("[^\\d.]", "");
+        
+        //at this point, we should have just numbers in the String
+        try{
+          double enc1code=(new Double(enc1Val)).doubleValue();
+          double enc2code=(new Double(enc2Val)).doubleValue();
+          pattCodeDiff=Math.abs(enc1code-enc2code);
+          System.out.println("Found a patterning code difference of: "+pattCodeDiff);
+        }
+        catch(Exception diffe){
+          System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+existingEncounter.getEncounterNumber()+" of "+existingEncounter.getPatterningCode());
+          System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+newEncounter.getEncounterNumber()+" of "+newEncounter.getPatterningCode());
+          
+          diffe.printStackTrace();
+        }
+        
+      }
+      result.setPatterningCodeDiffValue(pattCodeDiff);
+      
+      
    
       System.out.println("......Done SWI and returning  MO...");
     done = true;

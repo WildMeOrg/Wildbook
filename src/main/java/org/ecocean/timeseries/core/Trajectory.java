@@ -76,7 +76,7 @@ public class Trajectory implements Cloneable {
 	public Trajectory(int id, Collection<Point> data, DistanceOperator op) 
 	throws Exception {
 		createTrajectory(id, data, op);
-		System.out.println(".....Create a trajectory with this many spots: "+m_numofpoints);
+		//System.out.println(".....Create a trajectory with this many spots: "+m_numofpoints);
 	}
 
 	/**
@@ -152,7 +152,7 @@ public class Trajectory implements Cloneable {
 			i++;
 		}
 		m_numofpoints = m_coords.length / Point.DIMENSION;
-		System.out.println("......created a Trajectory with m_numofpoints: "+m_numofpoints);
+		//System.out.println("......created a Trajectory with m_numofpoints: "+m_numofpoints);
 		
 		// use java reflection to dynamically create the distance operator
 		/*
@@ -484,7 +484,7 @@ public class Trajectory implements Cloneable {
 		try {
 			Trajectory tr1 = new Trajectory("1", a1, new EuclideanOperator());
 		    Trajectory tr2 = new Trajectory("2", a2, new EuclideanOperator());
-		    System.out.println(tr1.getDistance(tr2));
+		    //System.out.println(tr1.getDistance(tr2));
 		} 
 		catch (Exception e) {
 			e.printStackTrace();

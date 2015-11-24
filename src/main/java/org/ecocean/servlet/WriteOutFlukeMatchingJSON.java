@@ -219,6 +219,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               a1Example.setValue(5, (new Double(a1.getSwaleValue()).doubleValue()));
               a1Example.setValue(6, (new Double(a1.getDateDiff()).doubleValue()));
               a1Example.setValue(7, (new Double(a1.getEuclideanDistanceValue()).doubleValue()));
+              a1Example.setValue(8, (new Double(a1.getPatterningCodeDiff()).doubleValue()));
               
               
               b1Example.setDataset(instances);
@@ -230,6 +231,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
               b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
               b1Example.setValue(7, (new Double(b1.getEuclideanDistanceValue()).doubleValue()));
+              b1Example.setValue(8, (new Double(b1.getPatterningCodeDiff()).doubleValue()));
               
               Double aClass=0.0;
               Double bClass=0.0;
@@ -314,7 +316,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
        iExample.setDataset(instances);
-        TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo);
+        TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo,myShepherd);
         
         Double myClass=booster.classifyInstance(iExample);
         double[] fDistribution = booster.distributionForInstance(iExample);

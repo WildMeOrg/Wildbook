@@ -486,8 +486,8 @@ public class TrainNetwork {
                         Instance iExample2=buildInstance(genusSpecies,isTrainingSet);
                         
                         MatchObject mo=getMatchObject(genusSpecies,enc1, enc2);
-                        populateInstanceValues(genusSpecies, iExample, enc1,enc2,mo);
-                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo);
+                        populateInstanceValues(genusSpecies, iExample, enc1,enc2,mo,myShepherd);
+                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo,myShepherd);
                         
                         isTrainingSet.add(iExample);
                         isTrainingSet.add(iExample2);
@@ -602,6 +602,7 @@ public class TrainNetwork {
       Attribute swaleAttr = new Attribute("Swale");     
       Attribute dateAttr = new Attribute("dateDiffLong");   
       Attribute euclideanAttr = new Attribute("EuclideanDistance"); 
+      Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff"); 
      
       // Declare the class attribute along with its values
       FastVector fvClassVal = new FastVector(2);
@@ -611,7 +612,7 @@ public class TrainNetwork {
       
       
       if(genusSpecies.equals("Physetermacrocephalus")){
-        fvWekaAttributes = new FastVector(9);
+        fvWekaAttributes = new FastVector(10);
         fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
@@ -620,11 +621,12 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(euclideanAttr);
+        fvWekaAttributes.addElement(patterningCodeDiffAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
-        fvWekaAttributes = new FastVector(9);
+        fvWekaAttributes = new FastVector(10);
         fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
@@ -633,11 +635,12 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(euclideanAttr);
+        fvWekaAttributes.addElement(patterningCodeDiffAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Megapteranovaeangliae")){
-        fvWekaAttributes = new FastVector(9);
+        fvWekaAttributes = new FastVector(10);
         fvWekaAttributes.addElement(intersectAttr);
         fvWekaAttributes.addElement(fastDTWAttr);
         fvWekaAttributes.addElement(i3sAttr);
@@ -646,6 +649,7 @@ public class TrainNetwork {
         fvWekaAttributes.addElement(swaleAttr);
         fvWekaAttributes.addElement(dateAttr);
         fvWekaAttributes.addElement(euclideanAttr);
+        fvWekaAttributes.addElement(patterningCodeDiffAttr);
         fvWekaAttributes.addElement(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
@@ -674,7 +678,7 @@ public class TrainNetwork {
     }
     
     
-    public static void populateInstanceValues(String genusSpecies, Instance iExample, EncounterLite enc1, EncounterLite enc2, MatchObject mo){
+    public static void populateInstanceValues(String genusSpecies, Instance iExample, EncounterLite enc1, EncounterLite enc2, MatchObject mo, Shepherd myShepherd){
       
 
       //first, are they the same animal?
@@ -711,6 +715,7 @@ public class TrainNetwork {
           iExample.setValue(5, mo.getSwaleValue().doubleValue());
           iExample.setValue(6, mo.getDateDiff().doubleValue());
           iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
+          iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -721,6 +726,7 @@ public class TrainNetwork {
         iExample.setValue(5, mo.getSwaleValue().doubleValue());
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
+        iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
     }
     else if(genusSpecies.equals("Megapteranovaeangliae")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -731,6 +737,10 @@ public class TrainNetwork {
         iExample.setValue(5, mo.getSwaleValue().doubleValue());
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
+        iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
+        
+
+        
     }
       
       //sometimes we don't want to populate this, such as for new match attempts
@@ -825,6 +835,28 @@ public class TrainNetwork {
         //Euclidean distance
         Double eucVal=EncounterLite.getEuclideanDistanceScore(el1, el2);
         
+        double pattCodeDiff = Instance.missingValue();
+        if((el1.getPatterningCode()!=null)&&(el2.getPatterningCode()!=null)){
+          String enc1Val=el1.getPatterningCode().replaceAll("[^\\d.]", "");
+          String enc2Val=el2.getPatterningCode().replaceAll("[^\\d.]", "");
+          
+          //at this point, we should have just numbers in the String
+          try{
+            double enc1code=(new Double(enc1Val)).doubleValue();
+            double enc2code=(new Double(enc2Val)).doubleValue();
+            pattCodeDiff=Math.abs(enc1code-enc2code);
+            System.out.println("Found a patterning code difference of: "+pattCodeDiff);
+          }
+          catch(Exception diffe){
+            System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+el1.getEncounterNumber()+" of "+el1.getPatterningCode());
+            System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+el2.getEncounterNumber()+" of "+el2.getPatterningCode());
+            
+            diffe.printStackTrace();
+          }
+          
+        }
+        
+        
         
         
         mo.setIntersectionCount(numIntersections.doubleValue());
@@ -834,6 +866,7 @@ public class TrainNetwork {
         mo.setSwaleValue(swaleVal);
         mo.setDateDiff(date);
         mo.setEuclideanDistanceValue(eucVal);
+        mo.setPatterningCodeDiffValue(pattCodeDiff);
         
         return mo;
     }
