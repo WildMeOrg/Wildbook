@@ -83,7 +83,7 @@
   #mma .mmaResultsLocation {
     font-weight: bolder;
   }
-  #newScanCheckboxTable td {
+  .newScanCheckboxTable td {
     vertical-align: top;
   }
   button.smaller, input[type="button"].smaller, input[type="submit"].smaller {
