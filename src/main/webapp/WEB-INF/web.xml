@@ -1019,6 +1019,7 @@
   <servlet-mapping>
     <servlet-name>InterconnectSubmitSpots</servlet-name>
     <url-pattern>/InterconnectSubmitSpots</url-pattern>
+	 <url-pattern>/SubmitSpots</url-pattern>
     <url-pattern>/interconnectSubmitSpots</url-pattern>
   </servlet-mapping>
   
