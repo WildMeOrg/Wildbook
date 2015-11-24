@@ -468,5 +468,5 @@ single scan are allowed to exceed the total.</span>
 </div>
 
 
-<jsp:include page="../footer.jsp" flush="true">
+<jsp:include page="../footer.jsp" flush="true" />
 
