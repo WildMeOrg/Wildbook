@@ -124,6 +124,7 @@ try {
     List<SinglePhotoVideo> photos = enc.getSinglePhotoVideo();
     for (int t = 0; t < photos.size(); t++) {
       SinglePhotoVideo spv = photos.get(t);
+      String spvKey = String.format("spv%d", t);
       if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
         continue;
       if (!MantaMatcherUtilities.checkMatcherFilesExist(spv.getFile()))
@@ -192,7 +193,7 @@ try {
                     <input name="number" type="hidden" value="<%=encNum%>"/>
                     <input name="dataCollectionEventID" type="hidden" value="<%=mmaScan.getDataCollectionEventId()%>"/>
                     <input name="scanId" type="hidden" value="<%=mmaScan.getId()%>"/>
-                    <input name="removeScanFile" type="submit" id="removeScan" class="smaller" value="<%= encprops.getProperty("mma.submit.removeScan") %>"/>
+                    <input name="removeScanFile" type="submit" class="smaller" value="<%= encprops.getProperty("mma.submit.removeScan") %>"/>
                   </form>
                 </td>
                 <td>
@@ -208,7 +209,7 @@ try {
   }
 %>
                     <input name="scanId" type="hidden" value="<%=mmaScan.getId()%>"/>
-                    <input name="rescanFile" type="submit" id="rescanFile" class="smaller" value="<%= encprops.getProperty("mma.submit.rescan") %>"/>
+                    <input name="rescanFile" type="submit" class="smaller" value="<%= encprops.getProperty("mma.submit.rescan") %>"/>
                   </form>
                 </td>
               </tr>
@@ -221,19 +222,19 @@ try {
         }
 %>
         <div class="mmaResults">
-          <form id="formNewScan">
-            <button id="buttonNewScan" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.title") %>"><%= encprops.getProperty("mma.button.newScan") %></button>
+          <form id="formNewScan-<%=spvKey%>">
+            <button id="buttonNewScan-<%=spvKey%>" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.title") %>"><%= encprops.getProperty("mma.button.newScan") %></button>
           </form>
         </div>
         <!-- New Scan popup dialog -->
-        <div id="dialogNewScan" title="<%=encprops.getProperty("mma.dialogTitle.selectLocations")%>" style="display:none">
+        <div id="dialogNewScan-<%=spvKey%>" title="<%=encprops.getProperty("mma.dialogTitle.selectLocations")%>" style="display:none">
           <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
             <tbody>
             <tr>
               <td align="left" valign="top">
                 <div class="scanForm">
-                  <form id="scanForm" action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
-                    <table id="newScanCheckboxTable">
+                  <form id="scanForm-<%=spvKey%>" action="../EncounterAddMantaPattern" method="post" name="EncounterScanMantaPattern">
+                    <table class="newScanCheckboxTable">
                       <tbody>
                       <tr>
                         <td>
@@ -254,11 +255,11 @@ try {
             itemCounter++;
             if (me.getValue().equals(enc.getLocationID())) {
 %>
-                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>" id="<%=me.getKey()%>-select" class="encLocation" checked="checked"/>&nbsp;<%=me.getValue()%><br/>
+                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>" class="encLocation" checked="checked"/>&nbsp;<%=me.getValue()%><br/>
 <%
             } else {
 %>
-                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>" id="<%=me.getKey()%>-new"/>&nbsp;<%=me.getValue()%><br/>
+                        <input name="locationID" type="checkbox" value="<%=me.getValue()%>"/>&nbsp;<%=me.getValue()%><br/>
 <%
             }
           }
@@ -267,12 +268,12 @@ try {
                       </tr>
                       </tbody>
                     </table>
-                    <button id="selectAll" class="smaller"><%= encprops.getProperty("mma.button.selectAll") %></button>
-                    <button id="selectNone" class="smaller"><%= MessageFormat.format(encprops.getProperty("mma.button.selectNone"), enc.getLocationID()) %></button>
-                    <input name="action" type="hidden" value="rescan" id="actionScan"/>
-                    <input name="number" type="hidden" value="<%=encNum%>" id="number-new"/>
-                    <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>" id="dataCollectionEventID-new"/>
-                    <p><input type="submit" id="scanFile" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
+                    <button id="selectAll-<%=spvKey%>" class="smaller"><%= encprops.getProperty("mma.button.selectAll") %></button>
+                    <button id="selectNone-<%=spvKey%>" class="smaller"><%= MessageFormat.format(encprops.getProperty("mma.button.selectNone"), enc.getLocationID()) %></button>
+                    <input name="action" type="hidden" value="rescan"/>
+                    <input name="number" type="hidden" value="<%=encNum%>"/>
+                    <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>"/>
+                    <p><input type="submit" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
                   </form>
                 </div>
               </td>
@@ -281,25 +282,25 @@ try {
           </table>
         </div>
         <script>
-          var dlgNewScan = $("#dialogNewScan").dialog({
+          var dlgNewScan_<%=spvKey%> = $("div#dialogNewScan-<%=spvKey%>").dialog({
             autoOpen: false,
             draggable: false,
             resizable: false,
             width: 600
           });
-          $("button#buttonNewScan").click(function(e) {
+          $("button#buttonNewScan-<%=spvKey%>").click(function(e) {
             e.preventDefault();
-            dlgNewScan.dialog("open");
+            dlgNewScan_<%=spvKey%>.dialog("open");
           });
           // Define checkbox selections.
-          $('button#selectAll').click(function(e) {
+          $('button#selectAll-<%=spvKey%>').click(function(e) {
             e.preventDefault();
-            $('form#scanForm input[name="locationID"]').prop('checked', 'checked');
+            $('form#scanForm-<%=spvKey%> input[name="locationID"]').prop('checked', 'checked');
           });
-          $('button#selectNone').click(function(e) {
+          $('button#selectNone-<%=spvKey%>').click(function(e) {
             e.preventDefault();
-            $('form#scanForm input[name="locationID"]').prop('checked', false);
-            $('form#scanForm input[name="locationID"].encLocation').prop('checked', 'checked');
+            $('form#scanForm-<%=spvKey%> input[name="locationID"]').prop('checked', false);
+            $('form#scanForm-<%=spvKey%> input[name="locationID"].encLocation').prop('checked', 'checked');
           });
         </script>
         <!-- End: New Scan popup dialog -->
