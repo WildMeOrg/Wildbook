@@ -118,6 +118,36 @@ try {
 
   if (isAuthorized && hasPhotos) {
 %>
+<%--Scan dialog--%>
+<div id="dlgScan" title="MantaMatcher algorithm" style="display:none">
+  <table>
+    <tr>
+      <td align="left" valign="top">
+        <%= encprops.getProperty("mma.waitForScan") %>
+      </td>
+    </tr>
+  </table>
+</div>
+<script>
+  var dlgScan = $("#dlgScan").dialog({
+    autoOpen: false,
+    draggable: false,
+    resizable: false,
+    modal: true,
+    width: 600,
+    close: function(event, ui) {
+      window.stop();
+    }
+  });
+  $("input#scanFile").click(function() {
+    dlgNewScan.dialog("close");
+    dlgScan.dialog("open");
+  });
+  $("input#rescanFile").click(function() {
+    dlgScan.dialog("open");
+  });
+</script>
+<%--END: Scan dialog--%>
   <div id="mma" class="section">
     <p class="sectionTitle"><%= encprops.getProperty("mma.sectionTitle") %></p>
 <%
@@ -209,7 +239,7 @@ try {
   }
 %>
                     <input name="scanId" type="hidden" value="<%=mmaScan.getId()%>"/>
-                    <input name="rescanFile" type="submit" class="smaller" value="<%= encprops.getProperty("mma.submit.rescan") %>"/>
+                    <input name="rescanFile" type="submit" id="rescanFile-<%=spvKey%>" class="smaller" value="<%= encprops.getProperty("mma.submit.rescan") %>"/>
                   </form>
                 </td>
               </tr>
@@ -273,7 +303,7 @@ try {
                     <input name="action" type="hidden" value="rescan"/>
                     <input name="number" type="hidden" value="<%=encNum%>"/>
                     <input name="dataCollectionEventID" type="hidden" value="<%=spv.getDataCollectionEventID() %>"/>
-                    <p><input type="submit" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
+                    <p><input type="submit" id="scanFile-<%=spvKey%>" value="<%= encprops.getProperty("mma.submit.scan") %>"/></p>
                   </form>
                 </div>
               </td>
@@ -302,7 +332,15 @@ try {
             $('form#scanForm-<%=spvKey%> input[name="locationID"]').prop('checked', false);
             $('form#scanForm-<%=spvKey%> input[name="locationID"].encLocation').prop('checked', 'checked');
           });
-        </script>
+          // Configure generic scanning popup based on this scan.
+          $("input#scanFile-<%=spvKey%>").click(function() {
+            dlgNewScan_<%=spvKey%>.dialog("close");
+            dlgScan.dialog("open");
+          });
+          $("input#rescanFile-<%=spvKey%>").click(function() {
+            dlgScan.dialog("open");
+          });
+          </script>
         <!-- End: New Scan popup dialog -->
 
       </div><%--End: featureRegionResults--%>
@@ -351,37 +389,6 @@ try {
     </div><%--End featureRegionUpload--%>
 
   </div><%--End section 'mma'--%>
-
-<%--Scan dialog--%>
-<div id="dlgScan" title="MantaMatcher algorithm" style="display:none">
-  <table>
-    <tr>
-      <td align="left" valign="top">
-        <%= encprops.getProperty("mma.waitForScan") %>
-      </td>
-    </tr>
-  </table>
-</div>
-<script>
-var dlgScan = $("#dlgScan").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  modal: true,
-  width: 600,
-  close: function(event, ui) {
-    window.stop();
-  }
-  });
-$("input#scanFile").click(function() {
-  dlgNewScan.dialog("close");
-  dlgScan.dialog("open");
-});
-$("input#rescanFile").click(function() {
-  dlgScan.dialog("open");
-});
-</script>
-<%--END: Scan dialog--%>
 <%
   }
 }
