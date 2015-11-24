@@ -63,6 +63,8 @@ public class MatchObject implements java.io.Serializable {
   public Double euclideanDistanceValue=0.0;
   
   public Double dateDiff=0.0;
+  
+  public Double patterningCodeDiff=0.0;
 
 
   //used for JDO enhance
@@ -310,6 +312,8 @@ public class MatchObject implements java.io.Serializable {
   public void setEuclideanDistanceValue(Double value){euclideanDistanceValue=value;}
   public Double getEuclideanDistanceValue(){return euclideanDistanceValue;}
   
+  public void setPatterningCodeDiffValue(Double value){patterningCodeDiff=value;}
+  public Double getPatterningCodeDiff(){return patterningCodeDiff;}
 
   
 }

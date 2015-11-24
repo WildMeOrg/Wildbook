@@ -91,6 +91,7 @@ public class EncounterLite implements java.io.Serializable {
   public String dynamicProperties;
   private Long dateLong=null;
   private String genusSpecies="";
+  private String patterningCode;
   
   public EncounterLite() {
   }
@@ -122,7 +123,7 @@ public class EncounterLite implements java.io.Serializable {
     }
     if(enc.getDynamicProperties()!=null){this.dynamicProperties=enc.getDynamicProperties();}
 
-
+    if(enc.getPatterningCode()!=null){this.patterningCode=enc.getPatterningCode();}
     //get spots
 
   if (isDorsalFin(enc)) {
@@ -4185,6 +4186,9 @@ System.out.println("hit top at i=" + i);
     public String getGenusSpecies(){return genusSpecies;}
     public void setGenusSpecies(String value){genusSpecies=value;}
     
+    public String getPatterningCode(){return patterningCode;}
+    public void setPatterningCode(String value){patterningCode=value;}
+    
     //Technique developed by Erin Falcone at Cascadia Research Collective
     //The lower the number the better
     //Both EncounterLite objects must have the full 19 left reference spots for this to work
@@ -4454,6 +4458,8 @@ System.out.println("hit top at i=" + i);
           return null;
       
     }
+    
+    
     
 }
 
