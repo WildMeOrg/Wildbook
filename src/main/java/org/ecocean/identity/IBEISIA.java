@@ -22,7 +22,7 @@ public class IBEISIA {
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String species) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
@@ -34,8 +34,7 @@ public class IBEISIA {
         map.put("image_height_list", new ArrayList<Integer>());
 
         for (MediaAsset ma : mas) {
-            //map.get("image_uuid_list").add(ma.getUUID());
-            map.get("image_uuid_list").add(Util.generateUUID());
+            map.get("image_uuid_list").add(ma.getUUID());
 
             JSONObject params = new JSONObject(ma.getParameters(), JSONObject.getNames(ma.getParameters()));
             params.put("store_type", ma.getStore().getType());
@@ -50,28 +49,30 @@ public class IBEISIA {
     }
 
 
-/*
 
             //Annotation ann = new Annotation(ma, species);
 
-    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String species) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONArray annotations = new JSONArray();
-        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+    public static JSONObject sendAnnotations(ArrayList<Annotation> anns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
+        URL url = new URL(u);
+
+        HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
+        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("annot_uuid_list", new ArrayList<String>());
+        map.put("annot_species_list", new ArrayList<String>());
+        map.put("annot_bbox_list", new ArrayList<int[]>());
+
         for (Annotation ann : anns) {
-            annotations.put(ann.toJSONObject());
-            if (!mas.contains(ann.getMediaAsset())) mas.add(ann.getMediaAsset());
+            map.get("image_uuid_list").add(ann.getMediaAsset().getUUID());
+            map.get("annot_uuid_list").add(ann.getUUID());
+            map.get("annot_species_list").add(ann.getSpeciesText());
+            map.get("annot_bbox_list").add(ann.getBbox());
         }
 
-        JSONArray images = new JSONArray();
-        for (MediaAsset ma : mas) {
-            images.put(imageJSONObjectFromMediaAsset(ma));
-        }
-        JSONObject obj = new JSONObject();
-        obj.put("image_attrs_list", images);
-        obj.put("annot_attrs_list", annotations);
-        return send(obj);
+        return RestClient.post(url, new JSONObject(map));
     }
-*/
+
 
 /*   no longer needed??
     public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {

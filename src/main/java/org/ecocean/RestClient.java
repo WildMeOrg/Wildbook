@@ -29,7 +29,6 @@ https://stackoverflow.com/a/29053050/1525311
 public class RestClient {
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
-    //here, "data" should(?) be JSONObject or JSONArray -- or something else which .toString() returns valid json!
     public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("POST", url, data);
     }
@@ -38,6 +37,7 @@ public class RestClient {
         return anyMethod("GET", url, null);
     }
 
+    //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setReadTimeout(10000);

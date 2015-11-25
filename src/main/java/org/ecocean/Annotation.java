@@ -49,8 +49,25 @@ public class Annotation implements java.io.Serializable {
         this.name_text = this.annot_uuid + " on " + ma.getUUID();
     }
 
+    public String getUUID() {
+        return annot_uuid;
+    }
+
     public MediaAsset getMediaAsset() {
         return asset;
+    }
+
+    public String getSpeciesText() {
+        return species_text;
+    }
+
+    public int[] getBbox() {
+        int[] bbox = new int[4];
+        bbox[0] = annot_xtl;
+        bbox[1] = annot_ytl;
+        bbox[2] = annot_width;
+        bbox[3] = annot_height;
+        return bbox;
     }
 
     public JSONObject toJSONObject() {

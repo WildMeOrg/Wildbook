@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import java.util.UUID;
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used
@@ -115,7 +116,16 @@ public class MediaAsset implements java.io.Serializable {
 
     //this is for Annotation mostly?
     public String getUUID() {
-        return "ID " + this.id;
+        if (id == MediaAssetFactory.NOT_SAVED) return null;
+        //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "MAnnnn" where "nnnn" is the int id
+        byte[] b = new byte[6];
+        b[0] = (byte) 77;
+        b[1] = (byte) 65;
+        b[2] = (byte) (id >> 24);
+        b[3] = (byte) (id >> 16);
+        b[4] = (byte) (id >> 8);
+        b[5] = (byte) (id >> 0);
+        return UUID.nameUUIDFromBytes(b).toString();
     }
 
     public AssetStore getStore()
