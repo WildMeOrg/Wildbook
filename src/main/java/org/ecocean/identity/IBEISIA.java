@@ -2,7 +2,9 @@ package org.ecocean.identity;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
+import org.ecocean.Util;
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.net.URL;
@@ -11,29 +13,48 @@ import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
+import java.security.InvalidKeyException;
 
 
 public class IBEISIA {
 
-
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
-    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String species) throws RuntimeException, MalformedURLException, IOException {
-        JSONArray annotations = new JSONArray();
-        JSONArray images = new JSONArray();
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, String species) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
+        URL url = new URL(u);
+
+        HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
+        map.put("image_uri_list", new ArrayList<JSONObject>());
+        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("image_width_list", new ArrayList<Integer>());
+        map.put("image_height_list", new ArrayList<Integer>());
+
         for (MediaAsset ma : mas) {
-            Annotation ann = new Annotation(ma, species);
-            annotations.put(ann.toJSONObject());
-            images.put(imageJSONObjectFromMediaAsset(ma));
+            //map.get("image_uuid_list").add(ma.getUUID());
+            map.get("image_uuid_list").add(Util.generateUUID());
+
+            JSONObject params = new JSONObject(ma.getParameters(), JSONObject.getNames(ma.getParameters()));
+            params.put("store_type", ma.getStore().getType());
+            map.get("image_uri_list").add(params);
+
+            ImageAttributes iatt = ma.getImageAttributes();
+            map.get("image_width_list").add((int) iatt.getWidth());
+            map.get("image_height_list").add((int) iatt.getHeight());
         }
-        JSONArray all = new JSONArray();
-        all.put(annotations);
-        all.put(images);
-        return send(all);
+
+        return RestClient.post(url, new JSONObject(map));
     }
 
-    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String species) throws RuntimeException, MalformedURLException, IOException {
+
+/*
+
+            //Annotation ann = new Annotation(ma, species);
+
+    public static JSONObject sendAnnotations(ArrayList<Annotation> anns, String species) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONArray annotations = new JSONArray();
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (Annotation ann : anns) {
@@ -45,21 +66,21 @@ public class IBEISIA {
         for (MediaAsset ma : mas) {
             images.put(imageJSONObjectFromMediaAsset(ma));
         }
-        JSONArray all = new JSONArray();
-        all.put(annotations);
-        all.put(images);
-        return send(all);
+        JSONObject obj = new JSONObject();
+        obj.put("image_attrs_list", images);
+        obj.put("annot_attrs_list", annotations);
+        return send(obj);
     }
+*/
 
-    public static JSONObject send(JSONArray jsa) throws RuntimeException, MalformedURLException, IOException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrl", "context0");
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrl is not set");
-        URL iaUrl = new URL(CommonConfiguration.getProperty("IBEISIARestUrl", "context0"));
-System.out.println("SENDING: \n" + jsa.toString() + " to " + iaUrl.toString());
-        JSONObject jout = RestClient.post(iaUrl, jsa);
-System.out.println("RESPONSE:\n" + jout.toString());
-        return jout;
+/*   no longer needed??
+    public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+System.out.println("SENDING: ------\n" + jobj.toString() + "\n---------- to " + iaUrl.toString());
+        JSONObject jrtn = RestClient.post(iaUrl, jobj);
+System.out.println("RESPONSE:\n" + jrtn.toString());
+        return jrtn;
     }
+*/
 
 
 
@@ -85,6 +106,8 @@ image_attrs = {
     *'party_tag': 'TEXT',
 }
 */
+
+/*
     public static JSONObject imageJSONObjectFromMediaAsset(MediaAsset ma) {
         JSONObject obj = new JSONObject();
         obj.put("image_uuid", ma.getUUID());
@@ -92,8 +115,13 @@ image_attrs = {
         obj.put("image_width", (int) iatt.getWidth());
         obj.put("image_height", (int) iatt.getHeight());
         obj.put("image_ext", iatt.getExtension());
+
+        JSONObject params = new JSONObject(ma.getParameters(), JSONObject.getNames(ma.getParameters()));
+        params.put("store_type", ma.getStore().getType());
+        obj.put("image_storage_parameters", params);
         return obj;
     }
+*/
 
 }
 

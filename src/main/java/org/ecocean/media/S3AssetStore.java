@@ -94,6 +94,11 @@ public class S3AssetStore extends AssetStore {
         return AssetStoreType.S3;
     }
 
+    public AmazonS3 getS3Client() {
+        if (s3Client == null) s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
+        return s3Client;
+    }
+
     /**
      * Create a new MediaAsset that points to an existing file under
      * our root.
@@ -141,7 +146,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
-        S3Object s3object = s3Client.getObject(new GetObjectRequest(bp.toString(), kp.toString()));
+        S3Object s3object = getS3Client().getObject(new GetObjectRequest(bp.toString(), kp.toString()));
         return s3object;
     }
 
@@ -170,7 +175,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
-        s3Client.putObject(new PutObjectRequest(bp.toString(), kp.toString(), file));
+        getS3Client().putObject(new PutObjectRequest(bp.toString(), kp.toString(), file));
         return new MediaAsset(this, params);
     }
 
@@ -183,7 +188,7 @@ System.out.println("cacheLocal trying to write to " + lpath);
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
-        s3Client.deleteObject(new DeleteObjectRequest(bp.toString(), kp.toString()));
+        getS3Client().deleteObject(new DeleteObjectRequest(bp.toString(), kp.toString()));
     }
 
 
