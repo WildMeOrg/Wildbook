@@ -194,7 +194,7 @@ for(int i=0;i<numInstances;i++){
       
 
           //System.out.println(myInstance.stringValue(5));
-          if(myInstance.stringValue(8).equals("match")){output=0;}
+          if(myInstance.stringValue(9).equals("match")){output=0;}
           
           
           //HolmbergIntersection
@@ -217,9 +217,11 @@ for(int i=0;i<numInstances;i++){
           Double dateDiff=new Double(myInstance.value(6));
           
           Double eucValue=new Double(myInstance.value(7));
+          
+          Double patterningDiff=new Double(myInstance.value(8));
         
      
-          Instance iExample = new Instance(9);
+          Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
           
           iExample.setDataset(instances);
           iExample.setValue(0, numIntersections.doubleValue());
@@ -230,6 +232,7 @@ for(int i=0;i<numInstances;i++){
           iExample.setValue(5, (new Double(swaleValue).doubleValue()));
           iExample.setValue(6, (new Double(dateDiff).doubleValue()));
           iExample.setValue(7, (new Double(eucValue).doubleValue()));
+          iExample.setValue(8, (new Double(patterningDiff).doubleValue()));
           
           
           double[] fDistribution = booster.distributionForInstance(iExample);
@@ -1119,7 +1122,8 @@ fvClassVal.addElement("nonmatch");
 Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
 Attribute swaleAttr = new Attribute("Swale");     
 Attribute dateAttr = new Attribute("dateDiffLong");  
-Attribute eucAttr = new Attribute("EuclideanDistance");     
+Attribute eucAttr = new Attribute("EuclideanDistance");  
+Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff"); 
 
 //define feature vector
 // Declare the feature vector
@@ -1132,6 +1136,7 @@ fvWekaAttributes.addElement(msmAttr);
 fvWekaAttributes.addElement(swaleAttr);
 fvWekaAttributes.addElement(dateAttr);
 fvWekaAttributes.addElement(eucAttr);
+fvWekaAttributes.addElement(patterningCodeDiffAttr);
 fvWekaAttributes.addElement(ClassAttribute);
 
 
@@ -1146,7 +1151,7 @@ while(sampledTrueInstances<numTestInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(7).equals("match")){
+	if(popMe.stringValue(9).equals("match")){
 		instances.delete(selected);
 		isTrainingSet.add(popMe);
 		sampledTrueInstances++;
@@ -1157,7 +1162,7 @@ while(sampledFalseInstances<numTestInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(7).equals("nonmatch")){
+	if(popMe.stringValue(9).equals("nonmatch")){
 		instances.delete(selected);
 		isTrainingSet.add(popMe);
 		sampledFalseInstances++;
@@ -1169,7 +1174,7 @@ while(sampledTrueClassInstances<numTrainingInstances){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(7).equals("match")){
+	if(popMe.stringValue(9).equals("match")){
 		instances.delete(selected);
 		classifierSet.add(popMe);
 		sampledTrueClassInstances++;
@@ -1180,7 +1185,7 @@ while(sampledFalseClassInstances<(numTrainingInstances*falseClassMultiplier)){
 	Random myRan=new Random();
 	int selected=myRan.nextInt(instances.numInstances()-1);
 	Instance popMe=instances.instance(selected);
-	if(popMe.stringValue(7).equals("nonmatch")){
+	if(popMe.stringValue(9).equals("nonmatch")){
 		instances.delete(selected);
 		classifierSet.add(popMe);
 		sampledFalseClassInstances++;
