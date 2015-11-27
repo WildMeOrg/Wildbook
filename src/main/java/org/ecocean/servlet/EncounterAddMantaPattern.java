@@ -23,10 +23,7 @@ import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.*;
 import org.ecocean.mmutil.ListHelper;
 import org.ecocean.mmutil.MantaMatcherScan;
 import org.ecocean.mmutil.MantaMatcherUtilities;
@@ -523,12 +520,13 @@ System.out.println("looks like cr format and target format are the same! -> " + 
           myShepherd.commitDBTransaction();
           
           if ((action.equals("imageadd"))||(action.equals("imageadd2"))) {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Confirmed:</strong> I have successfully added your mantamatcher data image file.");
-            out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-            
-            out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
+            String link = ServletUtilities.getEncounterURL(request, context, encounterNumber);
+            ActionResult actRes = new ActionResult_Encounter("encounter.mma.addCR", true, link)
+                    .setLinkParams(encounterNumber)
+                    .setDetailParams(resultComment.toString())
+                    .setDetailTextPreformatted(true);
+            request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
+            getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
           }
           else if (action.equals("rescan")) {
             String paramSPV = String.format("%s=%s", MantaMatcher.PARAM_KEY_SPV, URLEncoder.encode(spv.getDataCollectionEventID()));
@@ -540,11 +538,13 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             response.sendRedirect(ServletUtilities.getEncounterURL(request, context, encounterNumber));
           }
           else {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Confirmed:</strong> I have successfully removed your mantamatcher data image file.");
-            out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-            out.println("<p><strong>Additional comments from the operation</strong><br />"+resultComment.toString()+"</p>");
-            out.println(ServletUtilities.getFooter(context));
+            String link = ServletUtilities.getEncounterURL(request, context, encounterNumber);
+            ActionResult actRes = new ActionResult_Encounter("encounter.mma.removeCR", true, link)
+                    .setLinkParams(encounterNumber)
+                    .setDetailParams(resultComment.toString())
+                    .setDetailTextPreformatted(true);
+            request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
+            getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
           }
         }
         else {
