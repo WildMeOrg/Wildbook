@@ -639,6 +639,12 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
             }
 
+      // Process patterning code.
+      if (CommonConfiguration.showProperty("showPatterningCode", context)) {
+        String pc = getVal(fv, "patterningCode").trim();
+        if (CommonConfiguration.getIndexedValues("patterningCode", context).contains(pc))
+          enc.setPatterningCode(pc);
+      }
 
       if(fv.get("scars")!=null){
         enc.setDistinguishingScar(fv.get("scars").toString());
