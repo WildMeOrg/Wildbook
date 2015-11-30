@@ -9,6 +9,7 @@ import org.ecocean.Util;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.media.*;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -254,5 +255,16 @@ System.out.println("um, i am sanitizing " + this);
             return jobj;
         }
 
+
+    public MediaAsset toMediaAsset(Shepherd myShepherd) {
+        //TODO get default AssetStore instead
+        LocalAssetStore las = ((LocalAssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(LocalAssetStore.class, 1), true)));
+        org.json.JSONObject params = new org.json.JSONObject();
+        params.put("path", this.fullFileSystemPath);
+        params.put("sourceSinglePhotoVideoID", this.getDataCollectionEventID());
+        MediaAsset ma = las.create(params);
+        MediaAssetFactory.save(ma, myShepherd);
+        return ma;
+    }
 
 }
