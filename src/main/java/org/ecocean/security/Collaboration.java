@@ -202,10 +202,10 @@ public class Collaboration implements java.io.Serializable {
 
 		if (request.getUserPrincipal() == null) return false;
 		String username = request.getUserPrincipal().getName();
-//System.out.println("username->"+username);
+//System.out.println("canUserAccessEncounter loggedin username->"+username);
 		String owner = enc.getAssignedUsername();
-		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("owner->" + owner);
+		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
 //System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
 		return canCollaborate(context, owner, username);
 	}

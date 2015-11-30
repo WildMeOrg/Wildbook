@@ -426,7 +426,7 @@ margin-bottom: 8px !important;
 							String uid = null;
 							String name = null;
 							if (request.getUserPrincipal() == null) {
-								cmsg = "<p>Your submission is saved.</p>";
+								cmsg = "<p>Access limited.</p>";
 							} if ((c == null) || (c.getState() == null)) {
 								uid = enc.getAssignedUsername();
 								name = enc.getSubmitterName();
@@ -438,11 +438,10 @@ margin-bottom: 8px !important;
 							}
 
 							cmsg = cmsg.replace("'", "\\'");
-							if (!User.isUsernameAnonymous(uid)) {
+							if (!User.isUsernameAnonymous(uid) && (request.getUserPrincipal() != null)) {
 								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' + _collaborateHtml('" + uid + "', '" + name.replace("'", "\\'") + "') }) });</script>";
 							} else {
-								cmsg += "<p><input type=\"button\" onClick=\"window.history.back()\" value=\"BACK\" /></p>";
-								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '" + cmsg + "' }) });</script>";
+								blocker = "<script>$(document).ready(function() { $.blockUI({ message: '<p>" + cmsg + "' + collabBackOrCloseButton() + '</p>' }) });</script>";
 							}
 							out.println(blocker);
 						}
