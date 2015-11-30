@@ -307,6 +307,14 @@ console.log('ok?');
 }
 
 
+function collabBackOrCloseButton() {
+    if (!window.history || (window.history.length == 1)) {
+        return '<input type="button" value="CLOSE" onClick="window.close()" />';
+    } else {
+        return '<input type="button" value="BACK" onClick="window.history.back()" />';
+    }
+}
+
 function blockerCancel() {
     if (!window.history || (window.history.length == 1)) {
         window.close();
