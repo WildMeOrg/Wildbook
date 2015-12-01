@@ -3,7 +3,7 @@
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties" %>
+                 java.util.*" %>
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
@@ -612,13 +612,13 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div>
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude")%></label>
-          <input class="form-control" name="lat" type="text" id="lat"> ??
+          <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude")%> </label>
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
-          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude")%></label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> ??
+          <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude")%> </label>
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
@@ -632,7 +632,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
  <div class="form-inline">
-      <label class="control-label"><%=props.getProperty("submit_depth")%></label>
+      <label class="control-label"><%=props.getProperty("submit_depth")%> </label>
       <input class="form-control" name="depth" type="text" id="depth">
       &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
@@ -780,13 +780,13 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
           <div class="col-xs-6 col-lg-8">
             <label class="radio-inline"> 
-              <input type="radio" name="sex" value="male"> Male
+              <input type="radio" name="sex" value="male"> <%=props.getProperty("submit_male")%>
             </label> 
             <label class="radio-inline">
-              <input type="radio" name="sex" value="female"> Female
+              <input type="radio" name="sex" value="female"> <%=props.getProperty("submit_female")%>
             </label>
             <label class="radio-inline"> 
-              <input name="sex" type="radio" value="unknown" checked="checked"> Unknown
+              <input name="sex" type="radio" value="unknown" checked="checked"> <%=props.getProperty("submit_unsure")%>
             </label>
           </div>
         </div>
@@ -804,26 +804,14 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected">unknown</option>
-  <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+<%
+  for (String item : CommonConfiguration.getIndexedValues("genusSpecies", context)) {
+%>
+              <option value="<%=item%>"><%=item%></option>
+<%
+  }
+%>
   </select>
     </div>
         </div>
@@ -840,8 +828,8 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="livingStatus" id="livingStatus">
-              <option value="alive" selected="selected">Alive</option>
-              <option value="dead">Dead</option>
+              <option value="alive" selected="selected"><%=props.getProperty("submit_alive")%></option>
+              <option value="dead"><%=props.getProperty("submit_dead")%></option>
             </select>
           </div>
         </div>
@@ -857,14 +845,13 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
       <div class="col-xs-6 col-lg-8">
         <select class="form-control" name="patterningCode" id="patterningCode">
-          <option value="" selected="selected">none</option>
+          <option value="" selected="selected"><%=props.getProperty("pigmentationNone")%></option>
 <%
-    if(CommonConfiguration.showProperty("showPatterningCode",context)){
-      for (String item : CommonConfiguration.getIndexedValues("patterningCode", context)) {
+    Map<String, String> mapPC = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
+    for (Map.Entry<String, String> item : mapPC.entrySet()) {
 %>
-          <option value="<%=item%>"><%=item%></option>
+          <option value="<%=item.getValue()%>"><%=props.getProperty(item.getKey())%></option>
 <%
-      }
     }
 %>
         </select>
@@ -906,29 +893,17 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-  <select name="lifeStage" id="lifeStage">
+  <select class="form-control" name="lifeStage" id="lifeStage">
       <option value="" selected="selected"></option>
-  <%
-                     boolean hasMoreStages=true;
-                     int stageNum=0;
-                     
-                     while(hasMoreStages){
-                           String currentLifeStage = "lifeStage"+stageNum;
-                           if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-                               %>
-                                
-                                 <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-                               <%
-                             stageNum++;
-                        }
-                        else{
-                          hasMoreStages=false;
-                        }
-                        
-                   }
-                   
- %>
-  </select>   
+<%
+  Map<String, String> mapLS = CommonConfiguration.getIndexedValuesMap("lifeStage", context);
+  for (Map.Entry<String, String> item : mapLS.entrySet()) {
+%>
+    <option value="<%=item.getValue()%>"><%=props.getProperty(item.getKey())%></option>
+<%
+  }
+%>
+  </select>
   </div>
         </div>
        
@@ -963,11 +938,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <c:forEach items="${items}" var="item">
     <tr>
     <td>${item.label}</td>
-    <td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+    <td><input class="form-control" name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
     <td><c:out value="${item.unitsLabel}"/></td>
     <c:if test="${!empty samplingProtocols}">
       <td>
-        <select name="measurement(${item.type}samplingProtocol)">
+        <select class="form-control" name="measurement(${item.type}samplingProtocol)">
         <c:forEach items="${samplingProtocols}" var="optionDesc">
           <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
         </c:forEach>
@@ -1000,7 +975,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
  <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("physicalTags") %></label>
+            <label class="control-label"><%=props.getProperty("physicalTags") %></label>
           </div>
 
 <div class="col-xs-12 col-lg-8"> 
@@ -1011,7 +986,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     <c:forEach items="${metalTags}" var="metalTagDesc">
       <tr>
         <td><c:out value="${metalTagDesc.locationLabel}:"/></td>
-        <td><input name="metalTag(${metalTagDesc.location})"/></td>
+        <td><input class="form-control" name="metalTag(${metalTagDesc.location})"/></td>
       </tr>
     </c:forEach>
     </table>
@@ -1022,17 +997,17 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <c:if test="${showAcousticTag}">
  <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("acousticTag") %></label>
+            <label class="control-label"><%=props.getProperty("acousticTag") %></label>
           </div>
 <div class="col-xs-12 col-lg-8"> 
       <table class="acousticTag">
       <tr>
       <td><%=props.getProperty("serialNumber") %></td>
-      <td><input name="acousticTagSerial"/></td>
+      <td><input class="form-control" name="acousticTagSerial"/></td>
       </tr>
       <tr>
         <td><%=props.getProperty("id") %></td>
-        <td><input name="acousticTagId"/></td>
+        <td><input class="form-control" name="acousticTagId"/></td>
       </tr>
       </table>
     </div>
@@ -1042,7 +1017,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <c:if test="${showSatelliteTag}">
  <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label><%=props.getProperty("satelliteTag") %></label>
+            <label class="control-label"><%=props.getProperty("satelliteTag") %></label>
           </div>
 <%
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
@@ -1052,7 +1027,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <tr>
         <td><%=props.getProperty("name") %></td>
         <td>
-            <select name="satelliteTagName">
+            <select class="form-control" name="satelliteTagName">
               <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
                 <option value="${satelliteTagName}">${satelliteTagName}</option>
               </c:forEach>
@@ -1061,11 +1036,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </tr>
       <tr>
         <td><%=props.getProperty("serialNumber") %></td>
-        <td><input name="satelliteTagSerial"/></td>
+        <td><input class="form-control" name="satelliteTagSerial"/></td>
       </tr>
       <tr>
         <td><%=props.getProperty("argosNumber") %></td>
-        <td><input name="satelliteTagArgosPttNumber"/></td>
+        <td><input class="form-control" name="satelliteTagArgosPttNumber"/></td>
       </tr>
       </table>
     </div>
