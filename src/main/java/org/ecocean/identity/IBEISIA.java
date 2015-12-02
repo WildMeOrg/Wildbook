@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
+import org.joda.time.DateTime;
 
 
 public class IBEISIA {
@@ -23,15 +24,24 @@ public class IBEISIA {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return sendMediaAssets(mas, null);
+    }
+
+    //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
+    public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
 
+        //see: https://erotemic.github.io/ibeis/ibeis.web.html?highlight=add_images_json#ibeis.web.app.add_images_json
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
         map.put("image_uuid_list", new ArrayList<String>());
         map.put("image_width_list", new ArrayList<Integer>());
         map.put("image_height_list", new ArrayList<Integer>());
+        map.put("image_time_posix_list", new ArrayList<Integer>());
+        map.put("image_gps_lat_list", new ArrayList<Double>());
+        map.put("image_gps_lon_list", new ArrayList<Double>());
 
         for (MediaAsset ma : mas) {
             map.get("image_uuid_list").add(ma.getUUID());
@@ -40,9 +50,27 @@ public class IBEISIA {
             params.put("store_type", ma.getStore().getType());
             map.get("image_uri_list").add(params);
 
-            ImageAttributes iatt = ma.getImageAttributes();
-            map.get("image_width_list").add((int) iatt.getWidth());
-            map.get("image_height_list").add((int) iatt.getHeight());
+            ImageAttributes iatt = null;
+            try {
+                iatt = ma.getImageAttributes();
+            } catch (Exception ex) { }
+            if (iatt == null) {
+                map.get("image_width_list").add(0);
+                map.get("image_height_list").add(0);
+            } else {
+                map.get("image_width_list").add((int) iatt.getWidth());
+                map.get("image_height_list").add((int) iatt.getHeight());
+            }
+
+            map.get("image_gps_lat_list").add(ma.getLatitude());
+            map.get("image_gps_lon_list").add(ma.getLongitude());
+
+            DateTime t = ma.getDateTime();
+            if (t == null) {
+                map.get("image_time_posix_list").add(0);
+            } else {
+                map.get("image_time_posix_list").add((int)Math.floor(t.getMillis() / 1000));  //IBIES-IA wants seconds since epoch
+            }
         }
 
         return RestClient.post(url, new JSONObject(map));

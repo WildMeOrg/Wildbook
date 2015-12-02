@@ -123,7 +123,8 @@ public class S3AssetStore extends AssetStore {
     public boolean cacheLocal(MediaAsset ma, boolean force) throws IOException {
         Path lpath = localPath(ma);
         if (lpath == null) return false;  //TODO or throw Exception?
-System.out.println("cacheLocal trying to write to " + lpath);
+        if (!force && Files.exists(lpath)) return true;  //we assume if we have it, then we should be cool
+        System.out.println("S3.cacheLocal() trying to write to " + lpath);
         S3Object s3obj = getS3Object(ma);
         if (s3obj == null) return false;
         InputStream data = s3obj.getObjectContent();

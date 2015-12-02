@@ -34,7 +34,7 @@ public class Annotation implements java.io.Serializable {
 
     //the "trivial" Annotation - its bounding box is the same as the MediaAsset image
     public Annotation(MediaAsset ma, String species) {
-        this(ma, species, ma.getImageAttributes());
+        this(ma, species, ma.getImageAttributesOrNull());
     }
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
