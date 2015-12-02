@@ -22,7 +22,10 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import java.net.URL;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
+import java.nio.file.Files;
+//import java.time.LocalDateTime;
+import org.joda.time.DateTime;
+import java.util.Date;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Set;
@@ -30,6 +33,21 @@ import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
+import java.io.File;
+//import java.io.FileInputStream;
+
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+/*
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.util.Iterator;
+*/
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.*;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 /**
  * MediaAsset describes a photo or video that can be displayed or used
@@ -45,6 +63,10 @@ public class MediaAsset implements java.io.Serializable {
     protected Integer parentId;
 
     protected String revision;
+
+    protected ImageAttributes imageAttributes = null;
+    protected Metadata metadata = null;
+
     //protected MediaAssetType type;
     //protected Integer submitterid;
 
@@ -167,11 +189,102 @@ public class MediaAsset implements java.io.Serializable {
         return store.cacheLocal(this, force);
     }
 
-    public ImageAttributes getImageAttributes() {
-        double w = 300.0;
-        double h = 200.0;
-        String ext = "jpg";
-        return new ImageAttributes(w, h, ext);
+    //indisputable attributes about the image (e.g. type, dimensions, colorspaces etc)
+    // note this is different from Metadata which is read from the image meta contents... tho it may *use* Metadata to derive... maybe???
+    // TODO should be persisted, but for now on-the-fly :(
+    public ImageAttributes getImageAttributes() throws Exception {
+        if (this.imageAttributes != null) return this.imageAttributes;
+        if (!this.cacheLocal()) return null;
+        if (this.localPath() == null) return null;
+        File lfile = this.localPath().toFile();
+        if (!lfile.exists()) return null;
+/*
+        //ImageInputStream iis = ImageIO.createImageInputStream(new FileInputStream(lfile));
+        ImageInputStream iis = ImageIO.createImageInputStream(lfile);
+        Iterator<ImageReader> imageReaders = ImageIO.getImageReaders(iis);
+        //if (!imageReaders.hasNext()) return null;  TODO do we need?
+        ImageReader reader = (ImageReader) imageReaders.next();  //note: we are only taking first.  is this bad?
+        reader.setInput(iis);
+        this.imageAttributes = new ImageAttributes((double)reader.getWidth(0), (double)reader.getHeight(0), reader.getFormatName());
+*/
+        BufferedImage bimg = ImageIO.read(lfile);
+        if (bimg == null) return null;
+        this.imageAttributes = new ImageAttributes((double)bimg.getWidth(), (double)bimg.getHeight(), Files.probeContentType(this.localPath()));
+        return this.imageAttributes;
+    }
+
+    //basically eats any Exceptions
+    public ImageAttributes getImageAttributesOrNull() {
+        ImageAttributes iatts = null;
+        try {
+            iatts = this.getImageAttributes();
+        } catch (Exception ex) { }
+        return iatts;
+    }
+
+    /////////////// regarding pulling "useful" Metadata, see: https://github.com/drewnoakes/metadata-extractor/issues/10
+
+    //TODO this should be persisted, but for now we get on the fly (yuk)
+    public Metadata getImageMetadata() throws Exception {
+        if (this.metadata != null) return this.metadata;
+        if (!this.cacheLocal()) return null;
+        if (this.localPath() == null) return null;
+        File lfile = this.localPath().toFile();
+        if (!lfile.exists()) return null;
+        try {
+            Metadata md = ImageMetadataReader.readMetadata(lfile);
+            this.metadata = md;
+            return md;
+        } catch (Exception ex) {
+            System.out.println("MediaAsset.getImageMetadata() threw exception " + ex.toString());
+            return null;
+        }
+    }
+
+    //will return the first Tag object that matches by name (in any Metadata directory)
+    public Tag getImageMetadataByTagName(String name) {
+        Metadata md = null;
+        try {
+            md = this.getImageMetadata();
+        } catch (Exception ex) { }
+        if (md == null) return null;
+        for (Directory directory : md.getDirectories()) {
+            for (Tag tag : directory.getTags()) {
+                if (tag.getTagName().equals(name)) return tag;
+            }
+        }
+        return null;
+    }
+
+    /**
+     this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
+     human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
+    */
+    public DateTime getDateTime() {
+        DateTime t = null;
+        Metadata md = null;
+        try {
+            md = this.getImageMetadata();
+        } catch (Exception ex) { }
+        if (md != null) {
+            ExifSubIFDDirectory directory = md.getDirectory(ExifSubIFDDirectory.class);
+            if (directory != null) {
+//System.out.println("well at least we got a directory");
+                Date d = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL);
+                if (d != null) t = new DateTime(d);
+            }
+        }
+        return t;
+    }
+
+    /**
+      like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
+    */
+    public Double getLatitude() {
+        return null;
+    }
+    public Double getLongitude() {
+        return null;
     }
 
 /*

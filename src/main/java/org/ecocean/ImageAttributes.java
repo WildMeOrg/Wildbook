@@ -2,6 +2,7 @@
 package org.ecocean;
 
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.ecocean.media.MediaAsset;
 
 
@@ -10,19 +11,19 @@ public class ImageAttributes {
     private double height;
     private double xOffset;
     private double yOffset;
-    private String extension = null;
+    private String fileType = null;
 
 
-    public ImageAttributes(double w, double h, double x, double y, String ext) {
+    public ImageAttributes(double w, double h, double x, double y, String type) {
         this.width = w;
         this.height = h;
         this.xOffset = x;
         this.yOffset = y;
-        this.extension = ext;
+        this.fileType = type;
     }
 
-    public ImageAttributes(double w, double h, String ext) {
-        this(w, h, 0.0, 0.0, ext);
+    public ImageAttributes(double w, double h, String type) {
+        this(w, h, 0.0, 0.0, type);
     }
 
 
@@ -38,7 +39,18 @@ public class ImageAttributes {
     public double getYOffset() {
         return yOffset;
     }
-    public String getExtension() {
-        return extension;
+    public String getFileType() {
+        return fileType;
+    }
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("width", width)
+                .append("height", height)
+                .append("xOffset", xOffset)
+                .append("yOffset", yOffset)
+                .append("fileType", fileType)
+                .toString();
     }
 }
