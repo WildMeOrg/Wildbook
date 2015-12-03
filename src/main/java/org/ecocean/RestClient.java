@@ -45,7 +45,7 @@ public class RestClient {
         conn.setDoOutput(true);
         conn.setDoInput(true);
         conn.setRequestMethod(method);
-        ///conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
         conn.setRequestProperty("Authorization", getAuthorizationHeader(url.toString()));
         if (data != null) {
             OutputStream os = conn.getOutputStream();

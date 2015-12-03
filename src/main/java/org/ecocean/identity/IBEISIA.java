@@ -45,10 +45,7 @@ public class IBEISIA {
 
         for (MediaAsset ma : mas) {
             map.get("image_uuid_list").add(ma.getUUID());
-
-            JSONObject params = new JSONObject(ma.getParameters(), JSONObject.getNames(ma.getParameters()));
-            params.put("store_type", ma.getStore().getType());
-            map.get("image_uri_list").add(params);
+            map.get("image_uri_list").add(mediaAssetToUri(ma));
 
             ImageAttributes iatt = null;
             try {
@@ -101,6 +98,25 @@ public class IBEISIA {
         return RestClient.post(url, new JSONObject(map));
     }
 
+
+    private static Object mediaAssetToUri(MediaAsset ma) {
+        if (ma.getStore() instanceof LocalAssetStore) {
+            return ma.localPath().toString();
+        } else if (ma.getStore() instanceof S3AssetStore) {
+            return ma.getParameters();
+/*
+            JSONObject params = ma.getParameters();
+            if (params == null) return null;
+            //return "s3://s3.amazon.com/" + params.getString("bucket") + "/" + params.getString("key");
+            JSONObject b = new JSONObject();
+            b.put("bucket", params.getString("bucket"));
+            b.put("key", params.getString("key"));
+            return b;
+*/
+        } else {
+            return ma.toString();
+        }
+    }
 
 /*   no longer needed??
     public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
