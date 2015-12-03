@@ -524,8 +524,10 @@ public final class EmailTemplate {
     List<Address> list = new ArrayList<>(x.size());
 		for (String s : x) {
       try {
-        if (s != null && !"".equals(s.trim()))
-          list.add(new InternetAddress(s.trim()));
+        if (s != null && !"".equals(s.trim())) {
+          for (String ss : StringUtils.parseCommaSeparatedList(s))
+            list.add(new InternetAddress(ss));
+        }
         else
           log.warn("Invalid email address; ignoring: " + s);
       } catch (AddressException ex) {
