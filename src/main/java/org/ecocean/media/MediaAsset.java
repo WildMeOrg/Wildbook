@@ -139,10 +139,10 @@ public class MediaAsset implements java.io.Serializable {
     //this is for Annotation mostly?
     public String getUUID() {
         if (id == MediaAssetFactory.NOT_SAVED) return null;
-        //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "MAnnnn" where "nnnn" is the int id
+        //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "Ma____" where "____" is the int id
         byte[] b = new byte[6];
         b[0] = (byte) 77;
-        b[1] = (byte) 65;
+        b[1] = (byte) 97;
         b[2] = (byte) (id >> 24);
         b[3] = (byte) (id >> 16);
         b[4] = (byte) (id >> 8);
