@@ -37,8 +37,8 @@ import com.google.gson.*;
 
 //train weka
 import weka.core.Attribute;
-import weka.core.FastVector;
 import weka.core.Instances;
+import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
@@ -207,8 +207,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
           double b1_adjustedValue=0;
 
             
-            Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
-            Instance b1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+            Instance a1Example = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+            Instance b1Example = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
             
               a1Example.setDataset(instances);
               a1Example.setValue(0, a1.getIntersectionCount());
@@ -314,7 +314,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         
-        Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
+        Instance iExample = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
        iExample.setDataset(instances);
         TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo,myShepherd);
         

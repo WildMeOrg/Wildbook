@@ -34,24 +34,19 @@ import com.reijns.I3S.Compare;
 import com.reijns.I3S.FingerPrint;
 import com.reijns.I3S.Point2D;
 
-import weka.core.Instance;
 
 import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
-import org.ecocean.servlet.ServletUtilities;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Vector;
-import java.awt.geom.Line2D.*;
-import java.awt.geom.Point2D.*;
 import java.lang.Double;
 import java.awt.geom.*;
+
+import weka.core.Utils;
 
 import org.apache.commons.math3.linear.*;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
@@ -4194,7 +4189,7 @@ System.out.println("hit top at i=" + i);
     //Both EncounterLite objects must have the full 19 left reference spots for this to work
     public static Double getCascadiaDorsalProportionsScore(EncounterLite theEnc, EncounterLite theEnc2){
       
-      java.lang.Double theScore=Instance.missingValue();
+      java.lang.Double theScore=weka.core.Utils.missingValue();
       if((theEnc.getLeftReferenceSpots().length<10)||(theEnc2.getLeftReferenceSpots().length<10)){return theScore;}
       
       try{

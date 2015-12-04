@@ -9,6 +9,8 @@
 	com.fastdtw.timeseries.TimeSeriesBase.*,
 	com.fastdtw.dtw.*,
 	com.fastdtw.util.Distances,
+	weka.core.Utils,
+	weka.core.DenseInstance,
 	com.fastdtw.timeseries.TimeSeriesBase.Builder,
 	com.fastdtw.timeseries.*,
 	org.ecocean.grid.* ,
@@ -383,7 +385,7 @@ try {
   		double reward=25;
   			double epsilon=0.002089121713611485;
   
-          double date = Instance.missingValue();
+          double date = weka.core.Utils.missingValue();
           if((theEnc.getDateLong()!=null)&&(theEnc2.getDateLong()!=null)){
             try{
               date=Math.abs((new Long(theEnc2.getDateLong()-theEnc.getDateLong())).doubleValue());
@@ -396,7 +398,7 @@ try {
           double msmDist=MSM.getMSMDistance(theEnc, theEnc2);
           double swaleDist=EncounterLite.getSwaleMatchScore(theEnc, theEnc2, penalty, reward, epsilon);
           
-	      Instance a1Example = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+	      Instance a1Example = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
 	      a1Example.setDataset(instances);
           a1Example.setValue(0, finalInter);
           a1Example.setValue(1, distance);

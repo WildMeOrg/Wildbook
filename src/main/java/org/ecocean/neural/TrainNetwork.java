@@ -43,9 +43,9 @@ import org.ecocean.grid.msm.*;
 
 //train weka
 import weka.core.Attribute;
-import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
+import weka.core.DenseInstance;
 import weka.core.SerializationHelper;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.bayes.BayesNet;
@@ -53,6 +53,7 @@ import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
 import weka.core.converters.ArffSaver;
 import weka.core.converters.ArffLoader;
+import weka.core.Utils;
 
 import java.util.ArrayList;
 
@@ -549,7 +550,7 @@ public class TrainNetwork {
           
           int sampledFalseInstances=0;
           //let's use the golden proportion and have 1.61 more false matches to train with than matches
-          while(sampledFalseInstances<(numMatches*20)){
+          while(sampledFalseInstances<(numMatches*5)){
             Random myRan=new Random();
             int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
             Instance popMe=isTrainingSet.instance(selected);
@@ -586,11 +587,11 @@ public class TrainNetwork {
       
         }
  
-    public static FastVector getWekaAttributesPerSpecies(String genusSpecies){
+    public static ArrayList getWekaAttributesPerSpecies(String genusSpecies){
       
       genusSpecies=genusSpecies.replaceAll(" ", "");
       
-      FastVector fvWekaAttributes = new FastVector();
+      ArrayList fvWekaAttributes = new ArrayList();
       
       //prep weka for AdaBoost
       // Declare numeric attributes
@@ -605,52 +606,52 @@ public class TrainNetwork {
       Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff"); 
      
       // Declare the class attribute along with its values
-      FastVector fvClassVal = new FastVector(2);
-      fvClassVal.addElement("match");
-      fvClassVal.addElement("nonmatch");
+      ArrayList fvClassVal = new ArrayList(2);
+      fvClassVal.add("match");
+      fvClassVal.add("nonmatch");
       Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
       
       
       if(genusSpecies.equals("Physetermacrocephalus")){
-        fvWekaAttributes = new FastVector(10);
-        fvWekaAttributes.addElement(intersectAttr);
-        fvWekaAttributes.addElement(fastDTWAttr);
-        fvWekaAttributes.addElement(i3sAttr);
-        fvWekaAttributes.addElement(proportionAttr);
-        fvWekaAttributes.addElement(msmAttr);
-        fvWekaAttributes.addElement(swaleAttr);
-        fvWekaAttributes.addElement(dateAttr);
-        fvWekaAttributes.addElement(euclideanAttr);
-        fvWekaAttributes.addElement(patterningCodeDiffAttr);
-        fvWekaAttributes.addElement(ClassAttribute);
+        fvWekaAttributes = new ArrayList();
+        fvWekaAttributes.add(intersectAttr);
+        fvWekaAttributes.add(fastDTWAttr);
+        fvWekaAttributes.add(i3sAttr);
+        fvWekaAttributes.add(proportionAttr);
+        fvWekaAttributes.add(msmAttr);
+        fvWekaAttributes.add(swaleAttr);
+        fvWekaAttributes.add(dateAttr);
+        fvWekaAttributes.add(euclideanAttr);
+        fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
-        fvWekaAttributes = new FastVector(10);
-        fvWekaAttributes.addElement(intersectAttr);
-        fvWekaAttributes.addElement(fastDTWAttr);
-        fvWekaAttributes.addElement(i3sAttr);
-        fvWekaAttributes.addElement(proportionAttr);
-        fvWekaAttributes.addElement(msmAttr);
-        fvWekaAttributes.addElement(swaleAttr);
-        fvWekaAttributes.addElement(dateAttr);
-        fvWekaAttributes.addElement(euclideanAttr);
-        fvWekaAttributes.addElement(patterningCodeDiffAttr);
-        fvWekaAttributes.addElement(ClassAttribute);
+        fvWekaAttributes = new ArrayList();
+        fvWekaAttributes.add(intersectAttr);
+        fvWekaAttributes.add(fastDTWAttr);
+        fvWekaAttributes.add(i3sAttr);
+        fvWekaAttributes.add(proportionAttr);
+        fvWekaAttributes.add(msmAttr);
+        fvWekaAttributes.add(swaleAttr);
+        fvWekaAttributes.add(dateAttr);
+        fvWekaAttributes.add(euclideanAttr);
+        fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       else if(genusSpecies.equals("Megapteranovaeangliae")){
-        fvWekaAttributes = new FastVector(10);
-        fvWekaAttributes.addElement(intersectAttr);
-        fvWekaAttributes.addElement(fastDTWAttr);
-        fvWekaAttributes.addElement(i3sAttr);
-        fvWekaAttributes.addElement(proportionAttr);
-        fvWekaAttributes.addElement(msmAttr);
-        fvWekaAttributes.addElement(swaleAttr);
-        fvWekaAttributes.addElement(dateAttr);
-        fvWekaAttributes.addElement(euclideanAttr);
-        fvWekaAttributes.addElement(patterningCodeDiffAttr);
-        fvWekaAttributes.addElement(ClassAttribute);
+        fvWekaAttributes = new ArrayList();
+        fvWekaAttributes.add(intersectAttr);
+        fvWekaAttributes.add(fastDTWAttr);
+        fvWekaAttributes.add(i3sAttr);
+        fvWekaAttributes.add(proportionAttr);
+        fvWekaAttributes.add(msmAttr);
+        fvWekaAttributes.add(swaleAttr);
+        fvWekaAttributes.add(dateAttr);
+        fvWekaAttributes.add(euclideanAttr);
+        fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
       
@@ -668,10 +669,10 @@ public class TrainNetwork {
       // Create the instance
       Instance instance = null;
       
-     FastVector fvWekaAttributes = getWekaAttributesPerSpecies(genusSpecies);
+     ArrayList fvWekaAttributes = getWekaAttributesPerSpecies(genusSpecies);
 
      //return our result
-      instance=new Instance(fvWekaAttributes.size());
+      instance=new DenseInstance(fvWekaAttributes.size());
       instance.setDataset(isTrainingSet);
       return instance;
       
@@ -701,7 +702,7 @@ public class TrainNetwork {
       
       
       // Create the instance
-      FastVector fvWekaAttributes=getWekaAttributesPerSpecies(genusSpecies);
+      ArrayList fvWekaAttributes=getWekaAttributesPerSpecies(genusSpecies);
       //System.out.println("!!!!!!fvvvvv: "+fvWekaAttributes.size());
       
       
@@ -759,13 +760,13 @@ public class TrainNetwork {
     }
     
     public static int getClassIndex(String genusSpecies){
-      FastVector attrs=getWekaAttributesPerSpecies(genusSpecies);
+      ArrayList attrs=getWekaAttributesPerSpecies(genusSpecies);
       //System.out.println("Num attributes: "+attrs.size());
       
       int numAttrs=attrs.size();
       for(int i=0;i<numAttrs;i++){
         //System.out.println("Name: "+((Attribute)attrs.elementAt(i)).name());
-        if(((Attribute)attrs.elementAt(i)).name().equals("theClass")){
+        if(((Attribute)attrs.get(i)).name().equals("theClass")){
           //System.out.println("class index at: "+i);
           return i;
         }
@@ -797,7 +798,7 @@ public class TrainNetwork {
         
         //I3S
         I3SMatchObject newDScore=EncounterLite.improvedI3SScan(el1, el2);
-        double i3sScore=Instance.missingValue();
+        double i3sScore=weka.core.Utils.missingValue();
         if((newDScore!=null)&&(newDScore.getI3SMatchValue()!=java.lang.Double.MAX_VALUE)){i3sScore=newDScore.getI3SMatchValue();}
         
         //Proportion metric
@@ -822,7 +823,7 @@ public class TrainNetwork {
         
         Double swaleVal=EncounterLite.getSwaleMatchScore(el1, el2, penalty, reward, epsilon);
         
-        double date = Instance.missingValue();
+        double date = weka.core.Utils.missingValue();
         if((el1.getDateLong()!=null)&&(el2.getDateLong()!=null)){
           try{
             date=Math.abs((new Long(el1.getDateLong()-el2.getDateLong())).doubleValue());
@@ -835,7 +836,7 @@ public class TrainNetwork {
         //Euclidean distance
         Double eucVal=EncounterLite.getEuclideanDistanceScore(el1, el2);
         
-        double pattCodeDiff = Instance.missingValue();
+        double pattCodeDiff = weka.core.Utils.missingValue();
         if((el1.getPatterningCode()!=null)&&(el2.getPatterningCode()!=null)){
           String enc1Val=el1.getPatterningCode().replaceAll("[^\\d.]", "");
           String enc2Val=el2.getPatterningCode().replaceAll("[^\\d.]", "");
