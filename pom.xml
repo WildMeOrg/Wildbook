@@ -400,17 +400,31 @@
 
 
 
-    <dependency>
-		<groupId>nz.ac.waikato.cms.weka</groupId>
-		<artifactId>weka-stable</artifactId>
-		<version>3.6.12</version>
-	</dependency>
+ <dependency>
+	<groupId>nz.ac.waikato.cms.weka</groupId>
+	<artifactId>weka-dev</artifactId>
+	<version>3.7.13</version>
+</dependency>
+
 	
 	    <dependency>
         	<groupId>ch.ethz.ganymed</groupId>
         	<artifactId>ganymed-ssh2</artifactId>
         	<version>build210</version>
     </dependency>
+	
+	<dependency>
+	<groupId>nz.ac.waikato.cms.weka</groupId>
+	<artifactId>realAdaBoost</artifactId>
+	<version>1.0.1</version>
+</dependency>
+
+<dependency>
+	<groupId>nz.ac.waikato.cms.weka</groupId>
+	<artifactId>LibSVM</artifactId>
+	<version>1.0.6</version>
+</dependency>
+
 
 
   </dependencies>

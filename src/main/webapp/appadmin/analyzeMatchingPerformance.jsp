@@ -15,7 +15,6 @@ org.ecocean.neural.*,
 	org.ecocean.grid.msm.*,
 	weka.classifiers.meta.*,
 	weka.classifiers.meta.AdaBoostM1,
-	weka.classifiers.meta.MultiBoostAB,
 	weka.classifiers.*,
 	org.apache.commons.math.stat.descriptive.SummaryStatistics,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException"%>
@@ -221,7 +220,7 @@ for(int i=0;i<numInstances;i++){
           Double patterningDiff=new Double(myInstance.value(8));
         
      
-          Instance iExample = new Instance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+          Instance iExample = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
           
           iExample.setDataset(instances);
           iExample.setValue(0, numIntersections.doubleValue());
@@ -1116,9 +1115,9 @@ Attribute msmAttr = new Attribute("MSM");
 
 //class vector
 // Declare the class attribute along with its values
-FastVector fvClassVal = new FastVector(2);
-fvClassVal.addElement("match");
-fvClassVal.addElement("nonmatch");
+ArrayList fvClassVal = new ArrayList(2);
+fvClassVal.add("match");
+fvClassVal.add("nonmatch");
 Attribute ClassAttribute = new Attribute("theClass", fvClassVal);
 Attribute swaleAttr = new Attribute("Swale");     
 Attribute dateAttr = new Attribute("dateDiffLong");  
@@ -1127,17 +1126,17 @@ Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff");
 
 //define feature vector
 // Declare the feature vector
-FastVector fvWekaAttributes = new FastVector(6);
-fvWekaAttributes.addElement(intersectAttr);
-fvWekaAttributes.addElement(fastDTWAttr);
-fvWekaAttributes.addElement(i3sAttr);
-fvWekaAttributes.addElement(proportionAttr);
-fvWekaAttributes.addElement(msmAttr);
-fvWekaAttributes.addElement(swaleAttr);
-fvWekaAttributes.addElement(dateAttr);
-fvWekaAttributes.addElement(eucAttr);
-fvWekaAttributes.addElement(patterningCodeDiffAttr);
-fvWekaAttributes.addElement(ClassAttribute);
+ArrayList fvWekaAttributes = new ArrayList(6);
+fvWekaAttributes.add(intersectAttr);
+fvWekaAttributes.add(fastDTWAttr);
+fvWekaAttributes.add(i3sAttr);
+fvWekaAttributes.add(proportionAttr);
+fvWekaAttributes.add(msmAttr);
+fvWekaAttributes.add(swaleAttr);
+fvWekaAttributes.add(dateAttr);
+fvWekaAttributes.add(eucAttr);
+fvWekaAttributes.add(patterningCodeDiffAttr);
+fvWekaAttributes.add(ClassAttribute);
 
 
 Instances isTrainingSet = new Instances("Rel", fvWekaAttributes, numTestInstances);

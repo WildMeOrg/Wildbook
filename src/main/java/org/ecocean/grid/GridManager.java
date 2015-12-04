@@ -29,7 +29,6 @@ import org.ecocean.servlet.ServletUtilities;
 
 //train weka
 import weka.core.Attribute;
-import weka.core.FastVector;
 import weka.core.Instances;
 import weka.core.Instance;
 import weka.classifiers.Evaluation;

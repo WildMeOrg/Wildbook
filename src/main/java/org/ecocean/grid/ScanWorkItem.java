@@ -32,6 +32,7 @@ import org.ecocean.SuperSpot;
 import java.util.*;
 import com.fastdtw.dtw.*;
 import org.ecocean.grid.msm.*;
+import weka.core.Utils;
 
 
 /**
@@ -274,7 +275,7 @@ public class ScanWorkItem implements java.io.Serializable {
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
-      double date = Instance.missingValue();
+      double date = weka.core.Utils.missingValue();
       if((newEncounter.getDateLong()!=null)&&(existingEncounter.getDateLong()!=null)){
         try{
           date=Math.abs((new Long(newEncounter.getDateLong()-existingEncounter.getDateLong())).doubleValue());
@@ -297,7 +298,7 @@ public class ScanWorkItem implements java.io.Serializable {
       
     //patterningCode
       
-      double pattCodeDiff = Instance.missingValue();
+      double pattCodeDiff = weka.core.Utils.missingValue();
       if((existingEncounter.getPatterningCode()!=null)&&(newEncounter.getPatterningCode()!=null)){
         String enc1Val=existingEncounter.getPatterningCode().replaceAll("[^\\d.]", "");
         String enc2Val=newEncounter.getPatterningCode().replaceAll("[^\\d.]", "");

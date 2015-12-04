@@ -22,7 +22,7 @@ import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
-import org.ecocean.grid.FlukeMatchComparator;
+
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.MatchObject;
