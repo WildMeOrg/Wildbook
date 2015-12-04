@@ -3,14 +3,11 @@ package org.ecocean.servlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.util.Date;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.IncorrectCredentialsException;
@@ -18,9 +15,7 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 
-import org.pac4j.core.client.*;
 import org.pac4j.core.context.*;
-import org.pac4j.oauth.*;
 import org.pac4j.oauth.client.*;
 import org.pac4j.oauth.credentials.*;
 import org.pac4j.oauth.profile.facebook.*;
@@ -29,8 +24,6 @@ import org.apache.shiro.web.util.WebUtils;
 import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
 
-import org.scribe.builder.*;
-import org.scribe.builder.api.*;
 import org.scribe.model.*;
 import org.scribe.oauth.*;
 
