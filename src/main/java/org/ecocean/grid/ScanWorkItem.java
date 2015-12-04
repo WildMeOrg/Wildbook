@@ -201,13 +201,13 @@ public class ScanWorkItem implements java.io.Serializable {
     I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
       newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
-      double newScore=-1;
-      if(newDScore!=null){
-        newScore=newDScore.getI3SMatchValue();
+      double newScore=Utils.missingValue();
+      //if(newDScore.getI3SMatchValue()>=0){
+       if(newDScore.getI3SMatchValue()>=0){ newScore=newDScore.getI3SMatchValue();}
         
         
         //
-        if(newScore<0.0000001){newScore=2.0;}
+        //if(newScore<0.0000001){newScore=2.0;}
         
         //create a Vector of Points
         Vector points = new Vector();
@@ -225,8 +225,8 @@ public class ScanWorkItem implements java.io.Serializable {
   
         //add the I3S results to the matchObject sent back
         result.setI3SValues(points, newScore);
-      }
-      System.out.println("     I3S score is: "+newScore);
+     // }
+      //System.out.println("     I3S score is: "+newScore);
     //}
     
    // if(algorithms.indexOf("FastDTW")>-1){
