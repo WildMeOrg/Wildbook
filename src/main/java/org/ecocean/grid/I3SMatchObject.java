@@ -20,6 +20,7 @@
 package org.ecocean.grid;
 
 import java.util.TreeMap;
+import weka.core.Utils;
 //import com.reijns.I3S.*;
 
 /**
@@ -115,7 +116,13 @@ public class I3SMatchObject implements java.io.Serializable {
   }
   
 
-  public double getMatchValue(){return matchValue;}
+  public double getMatchValue(){
+    
+    //don't return the default failure value...screws up boosting
+    if(matchValue==1000000000){return weka.core.Utils.missingValue();}
+    
+    return matchValue;
+  }
   
   public void setEncounterNumber(String num){this.encounterNumber=num;}
   public void setIndividualID(String id){this.individualName=id;}
