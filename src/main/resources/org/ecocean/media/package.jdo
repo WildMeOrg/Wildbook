@@ -11,14 +11,21 @@
             	<field name="parentId" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="true"/>
             	</field>
+            	<field name="revision" persistence-modifier="persistent">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+            	</field>
 		<property name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</property>
-<!--
-            	<field name="parameters" persistence-modifier="persistent" serialized="false">
-                	<column jdbc-type="LONGVARCHAR" />
+		<property name="derivationMethodAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
+		</property>
+
+		<field name="annotations" mapped-by="mediaAsset">
+			<collection element-type="org.ecocean.Annotation"/>
+			<join />
 		</field>
--->
+
 	</class>
 
 

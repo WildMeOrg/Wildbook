@@ -63,7 +63,8 @@ public class MediaAssetFactory {
     /**
      * Store to the given database.
      */
-    public static void save(final MediaAsset ma, Shepherd myShepherd) {
+    public static void save(MediaAsset ma, Shepherd myShepherd) {
+        //ma.setRevision();
         myShepherd.getPM().makePersistent(ma);
     }
 

@@ -20,6 +20,7 @@ package org.ecocean.media;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
+import org.ecocean.Annotation;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -34,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
 import java.io.File;
+import java.util.ArrayList;
 //import java.io.FileInputStream;
 
 import java.awt.image.BufferedImage;
@@ -62,10 +64,15 @@ public class MediaAsset implements java.io.Serializable {
 
     protected Integer parentId;
 
-    protected String revision;
+    protected long revision;
 
+    protected JSONObject derivationMethod = null;
+
+    //not persisted, but for caching in object
     protected ImageAttributes imageAttributes = null;
     protected Metadata metadata = null;
+
+    protected ArrayList<Annotation> annotations;
 
     //protected MediaAssetType type;
     //protected Integer submitterid;
@@ -107,7 +114,7 @@ public class MediaAsset implements java.io.Serializable {
         this.id = id;
         this.store = store;
         this.parameters = params;
-        this.revision = String.valueOf(System.currentTimeMillis());
+        this.setRevision();
     }
 
 
@@ -165,12 +172,43 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public void setParametersAsString(String p) {
+        if (p == null) {
+            parameters = null;
+            return;
+        }
         try {
             parameters = new JSONObject(p);
         } catch (JSONException je) {
             System.out.println(this + " -- error parsing parameters json string (" + p + "): " + je.toString());
             parameters = null;
         }
+    }
+
+/*
+    public JSONObject getDerivationMethod() {
+        return derivationMethod;
+    }
+*/
+    public String getDerivationMethodAsString() {
+        if (derivationMethod == null) return null;
+        return derivationMethod.toString();
+    }
+    public void setDerivationMethodAsString(String d) {
+        if (d == null) {
+            derivationMethod = null;
+            return;
+        }
+        try {
+            derivationMethod = new JSONObject(d);
+        } catch (JSONException je) {
+            System.out.println(this + " -- error parsing parameters json string (" + d + "): " + je.toString());
+            derivationMethod = null;
+        }
+    }
+
+    public long setRevision() {
+        this.revision = System.currentTimeMillis();
+        return this.revision;
     }
 
     public Path localPath()
@@ -285,6 +323,15 @@ public class MediaAsset implements java.io.Serializable {
     }
     public Double getLongitude() {
         return null;
+    }
+
+    public ArrayList<Annotation> getAnnotations() {
+        return annotations;
+    }
+
+    public int getAnnotationCount() {
+        if (annotations == null) return 0;
+        return annotations.size();
     }
 
 /*
