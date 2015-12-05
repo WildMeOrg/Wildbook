@@ -7,18 +7,20 @@ package org.ecocean;
 
 import org.ecocean.ImageAttributes;
 import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONObject;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 //import java.time.LocalDateTime;
 
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
-    private String annot_uuid;  //TODO java.util.UUID ?
-    private int annot_xtl;
-    private int annot_ytl;
-    private int annot_width;
-    private int annot_height;
-    private double annot_theta;
+    private String id;  //TODO java.util.UUID ?
+    private int x;
+    private int y;
+    private int width;
+    private int height;
+    private double theta;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
     //~'annot_exemplar_flag': 'INTEGER',
@@ -27,10 +29,11 @@ public class Annotation implements java.io.Serializable {
     //~'annot_semantic_uuid': 'UUID',
     //*'annot_quality': 'INTEGER',
     //~'annot_tags': 'TEXT',
-    private String species_text;
-    private String name_text;
+    private String species;
+    private String name;
     //private String image_uuid;  //TODO UUID?
-    private MediaAsset asset;
+
+    private MediaAsset mediaAsset = null;
 
     //the "trivial" Annotation - its bounding box is the same as the MediaAsset image
     public Annotation(MediaAsset ma, String species) {
@@ -38,38 +41,97 @@ public class Annotation implements java.io.Serializable {
     }
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
-        this.asset = ma;
-        this.annot_uuid = org.ecocean.Util.generateUUID();
-        this.annot_xtl = (int) iatt.getXOffset();
-        this.annot_ytl = (int) iatt.getYOffset();
-        this.annot_width = (int) iatt.getWidth(); 
-        this.annot_height = (int) iatt.getHeight();
-        this.annot_theta = 0.0;  /// TODO ????
-        this.species_text = species;
-        this.name_text = this.annot_uuid + " on " + ma.getUUID();
+        this.id = org.ecocean.Util.generateUUID();
+        this.setMediaAsset(ma);
+        this.x = (int) iatt.getXOffset();
+        this.y = (int) iatt.getYOffset();
+        this.width = (int) iatt.getWidth(); 
+        this.height = (int) iatt.getHeight();
+        this.theta = 0.0;  /// TODO ????
+        this.species = species;
+        //this.name = this.annot_uuid + " on " + ma.getUUID();
+    }
+
+
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getUUID() {
-        return annot_uuid;
+        return id;
     }
 
+    public int getX() {
+        return x;
+    }
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+    public void setWidth(int w) {
+        width = w;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+    public void setHeight(int h) {
+        height = h;
+    }
+
+    public double getTheta() {
+        return theta;
+    }
+    public void setTheta(double t) {
+        theta = t;
+    }
     public MediaAsset getMediaAsset() {
-        return asset;
+        return mediaAsset;
+    }
+    public void setMediaAsset(MediaAsset ma) {
+        mediaAsset = ma;
+        if ((ma.getAnnotationCount() == 0) || !ma.getAnnotations().contains(this)) {
+            ma.getAnnotations().add(this);
+        }
     }
 
-    public String getSpeciesText() {
-        return species_text;
+    public String getSpecies() {
+        return species;
+    }
+    public void setSpecies(String s) {
+        species = s;
+    }
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String n) {
+        name = n;
     }
 
     public int[] getBbox() {
         int[] bbox = new int[4];
-        bbox[0] = annot_xtl;
-        bbox[1] = annot_ytl;
-        bbox[2] = annot_width;
-        bbox[3] = annot_height;
+        bbox[0] = x;
+        bbox[1] = y;
+        bbox[2] = width;
+        bbox[3] = height;
         return bbox;
     }
 
+/*  TODO should this use the IBEIS-IA attribute names or what?
     public JSONObject toJSONObject() {
         JSONObject obj = new JSONObject();
         obj.put("annot_uuid", annot_uuid);
@@ -79,8 +141,20 @@ public class Annotation implements java.io.Serializable {
         obj.put("annot_height", annot_height);
         obj.put("annot_theta", annot_theta);
         obj.put("species_text", species_text);
-        obj.put("image_uuid", this.asset.getUUID());
+        obj.put("image_uuid", this.mediaAsset.getUUID());
         obj.put("name_text", name_text);
         return obj;
     }
+*/
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("species", species)
+                .append("bbox", getBbox())
+                .append("asset", mediaAsset)
+                .toString();
+    }
+
+
 }

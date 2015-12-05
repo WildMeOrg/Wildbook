@@ -338,6 +338,25 @@
         </class>
 
 
+	<class name="Annotation" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="36" />
+		</field>
+		<field name="mediaAsset">
+			<column name="mediaAssetId" />
+		</field>
+<!--
+		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
+		<field name="annot_xtl" />
+		<field name="annot_ytl" />
+		<field name="annot_width" />
+		<field name="annot_height" />
+		<field name="annot_theta" />
+		<field name="species_text" />
+		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
+-->
+	</class>
+
         <class name="DataCollectionEvent" identity-type="application">
             <inheritance strategy="new-table" />
             <field name="correspondingEncounterNumber">

@@ -91,7 +91,7 @@ public class IBEISIA {
         for (Annotation ann : anns) {
             map.get("image_uuid_list").add(ann.getMediaAsset().getUUID());
             map.get("annot_uuid_list").add(ann.getUUID());
-            map.get("annot_species_list").add(ann.getSpeciesText());
+            map.get("annot_species_list").add(ann.getSpecies());
             map.get("annot_bbox_list").add(ann.getBbox());
         }
 
