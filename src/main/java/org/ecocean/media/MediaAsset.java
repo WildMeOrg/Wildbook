@@ -329,6 +329,18 @@ public class MediaAsset implements java.io.Serializable {
         return annotations;
     }
 
+    //this will create the "trivial" Annotation (dimensions of the MediaAsset) iff no Annotations exist
+    public ArrayList<Annotation> getAnnotationsGenerate(String species) {
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        if (annotations.size() < 1) addTrivialAnnotation(species);
+        return annotations;
+    }
+
+    //TODO check if it is already here?  maybe?
+    public Annotation addTrivialAnnotation(String species) {
+       return new Annotation(this, species);  //this will add it to our .annotations collection as well 
+    }
+
     public int getAnnotationCount() {
         if (annotations == null) return 0;
         return annotations.size();
