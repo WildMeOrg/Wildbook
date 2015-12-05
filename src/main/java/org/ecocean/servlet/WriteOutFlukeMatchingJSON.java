@@ -161,8 +161,13 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
     File encounterDir=new File(encountersDir,num);
     if(!encounterDir.exists())encounterDir.mkdirs();
     File file = new File(Encounter.dir(shepherdDataDir, num) + "/flukeMatching.json");
+    
     System.out.println("     ...target JSON file for output is: "+file.getAbsolutePath());
 
+    
+     
+
+    
     
     
     
@@ -286,7 +291,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       
           
-       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "score_proportion", "msm","swale"};
+       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "msm","swale","euclidean","patterningCode","dateDiff"};
        jsonOut.append(gson.toJson(header)+",\n");
        
        
@@ -320,7 +325,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         Double myClass=booster.classifyInstance(iExample);
         double[] fDistribution = booster.distributionForInstance(iExample);
-        System.out.println("IndividualID: "+individualID+"    fClass: "+myClass+"   fDistribution score: "+fDistribution[myClass.intValue()]);
+        //System.out.println("IndividualID: "+individualID+"    fClass: "+myClass+"   fDistribution score: "+fDistribution[myClass.intValue()]);
         //individual scores
         result.add(new JsonPrimitive(i+1));
         
@@ -351,12 +356,14 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
           result.add(new JsonPrimitive(""));
         }
         
+        /*
         if(mo.getProportionValue()!=null){
           result.add(new JsonPrimitive(mo.getProportionValue()));
         }
         else{
           result.add(new JsonPrimitive(""));
         }
+        */
         
       if(mo.getMSMValue()!=null){ 
         result.add(new JsonPrimitive(TrainNetwork.round(mo.getMSMValue().doubleValue(),3)));
@@ -372,7 +379,22 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       }
       
       if(mo.getEuclideanDistanceValue()!=null){  
-        result.add(new JsonPrimitive(TrainNetwork.round(mo.getEuclideanDistanceValue().doubleValue(),3)));
+        result.add(new JsonPrimitive(TrainNetwork.round(mo.getEuclideanDistanceValue().doubleValue(),4)));
+      }
+      else{
+        result.add(new JsonPrimitive(""));
+      }
+      
+      if(mo.getPatterningCodeDiff()!=null){  
+        result.add(new JsonPrimitive(TrainNetwork.round(mo.getPatterningCodeDiff().doubleValue(),3)));
+      }
+      else{
+        result.add(new JsonPrimitive(""));
+      }
+      
+      if(mo.getDateDiff()!=null){  
+        int days = (int) (mo.getDateDiff() / (1000*60*60*24));
+        result.add(new JsonPrimitive(days));
       }
       else{
         result.add(new JsonPrimitive(""));

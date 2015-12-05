@@ -50,12 +50,12 @@ var columnInfo = {
         sortValue: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
-    score_proportion: {
-        label: 'proportion',
-        value: _cleanFloatValue,
-        sortValue: _getValue,
-	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-    },
+    //score_proportion: {
+    //    label: 'proportion',
+    //    value: _cleanFloatValue,
+    //    sortValue: _getValue,
+	//sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    //},
     rank: {
         label: 'rank',
         value: _getValue,
@@ -71,7 +71,21 @@ var columnInfo = {
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
-
+	euclidean: {
+        label: 'Euc.',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+	patterningCode: {
+        label: 'PattDiff',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
+	dateDiff: {
+        label: 'DaysDiff',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    },
 };
 
 
