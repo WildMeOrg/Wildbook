@@ -550,7 +550,7 @@ public class TrainNetwork {
           
           int sampledFalseInstances=0;
           //let's use the golden proportion and have 1.61 more false matches to train with than matches
-          while(sampledFalseInstances<(numMatches*5)){
+          while(sampledFalseInstances<(numMatches*1)){
             Random myRan=new Random();
             int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
             Instance popMe=isTrainingSet.instance(selected);
