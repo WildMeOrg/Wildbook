@@ -275,6 +275,11 @@ public class ScanWorkItem implements java.io.Serializable {
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
+      Double eucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
+      System.out.println("     Euc. result is: "+swaleValue.doubleValue());
+      result.setEuclideanDistanceValue(eucValue);
+      
+      
       double date = weka.core.Utils.missingValue();
       if((newEncounter.getDateLong()!=null)&&(existingEncounter.getDateLong()!=null)){
         try{
