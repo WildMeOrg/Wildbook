@@ -23,6 +23,7 @@ package org.ecocean.grid;
 
 import java.util.ArrayList;
 import java.util.Vector;
+import weka.core.Utils;
 
 
 /**
@@ -254,7 +255,8 @@ public class MatchObject implements java.io.Serializable {
   }
 
   public double getI3SMatchValue() {
-    return i3sMatchValue;
+    if(i3sMatchValue<1000000000){return i3sMatchValue;}
+    return weka.core.Utils.missingValue();
   }
 
   public void setI3SValues(Vector map2, double i3sMatchValue) {
