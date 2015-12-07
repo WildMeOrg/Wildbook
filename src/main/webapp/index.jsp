@@ -529,6 +529,7 @@ finally{
                     <ul class="encounter-list list-unstyled">
                        
                        <%
+                       try {
                        ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
@@ -555,6 +556,11 @@ finally{
                         <%
                         }
                         myShepherd.rollbackDBTransaction();
+                       }
+                       catch (IndexOutOfBoundsException e) {
+                    	   %> <p><i> No data to display at this time </i></p>  <%
+                    	   }
+					   finally {}
                         %>
                        
                     </ul>
