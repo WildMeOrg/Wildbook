@@ -159,7 +159,7 @@ public abstract class AssetStore implements java.io.Serializable {
     public ArrayList<MediaAsset> findAll(String hashCode, Shepherd myShepherd) {
         if (hashCode == null) return null;
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
-        Query matches = myShepherd.getPM().newQuery(mac, "hashCode == \"" + hashCode + "\"");
+        Query matches = myShepherd.getPM().newQuery(mac, "hashCode == \"" + hashCode + "\" && this.store.id == " + this.id);
         try {
             Collection c = (Collection) (matches.execute());
             ArrayList<MediaAsset> all = new ArrayList<MediaAsset>(c);
