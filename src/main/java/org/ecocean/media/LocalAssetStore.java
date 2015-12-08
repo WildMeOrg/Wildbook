@@ -153,6 +153,12 @@ System.out.println("create() has subpath = " + subpath);
         }
     }
 
+    //convenience method to create directly from single File arguement (LocalAssetStore only)
+    public MediaAsset create(File file) throws IllegalArgumentException {
+        JSONObject params = new JSONObject();
+        params.put("path", file.getAbsolutePath().toString());
+        return create(params);
+    }
 
     public boolean cacheLocal(MediaAsset ma, boolean force) {
         return true;  //easy!
