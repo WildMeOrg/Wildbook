@@ -67,6 +67,31 @@ context=ServletUtilities.getContext(request);
 		</tr>
 		
 	</table>
+	
+	<p><strong>Excel Data Import</strong></p>
+    <p>This importer is custom-built for the excel files used by the Spot a Shark team.</p>
+	<p><img src="../images/Warning_icon.png" width="25px" height="*" align="absmiddle" /> <em>Importing an SRGD file may override existing data and cause data loss.</em></p>
+	<p>
+		<!--  ignore this comment -->
+	
+	<table>
+		<tr>
+			<td class="para">
+				<form action="../ImportExcel" method="post"
+					enctype="multipart/form-data" name="ImportExcel">
+					<strong> <img align="absmiddle" src="../images/CSV.png" />
+						Excel file:
+					</strong>&nbsp; <input name="file2add" type="file" size="40" />
+					<p>
+						<input name="addtlFile" type="submit" id="addtlFile"
+							value="Upload" />
+					</p>
+				</form>
+			</td>
+		</tr>
+		
+	</table>
+	
 
 </div>
 
