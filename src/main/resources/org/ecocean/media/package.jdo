@@ -26,6 +26,10 @@
 			<join />
 		</field>
 
+		<field name="hashCode">
+			<column length="75" />
+		</field>
+
 	</class>
 
 

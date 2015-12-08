@@ -221,6 +221,14 @@ public class S3AssetStore extends AssetStore {
         return u;
     }
 
+    @Override
+    public String hashCode(JSONObject params) {
+        if (params == null) return null;
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        if ((bp == null) || (kp == null)) return null;
+        return bp.toString().substring(0,10) + S3AssetStore.hexStringSHA256(bp.toString() + "/" + kp.toString());
+    }
 }
 
 

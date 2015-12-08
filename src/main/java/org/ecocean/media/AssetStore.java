@@ -18,19 +18,26 @@
 
 package org.ecocean.media;
 
+import org.ecocean.Shepherd;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
+import java.security.MessageDigest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jdo.*;
 
 /**
  * AssetStore describes a location and methods for access to a set of
@@ -130,6 +137,57 @@ public abstract class AssetStore implements java.io.Serializable {
     public abstract URL webURL(MediaAsset ma);
 
     public abstract MediaAsset create(JSONObject params);
+
+    //this should be unique (as possible) for a combination of params -- used for searching, see find()
+    // limit to the somewhat arbitrary 75 char (which is enough for 64char of sha256 has + 11 "extra"?)
+    public abstract String hashCode(JSONObject params);
+
+    public String hashCode(MediaAsset ma) {
+        return hashCode(ma.getParameters());
+    }
+
+    public MediaAsset find(JSONObject params, Shepherd myShepherd) {
+        return find(hashCode(params), myShepherd);
+    }
+
+    public MediaAsset find(String hashCode, Shepherd myShepherd) {
+        ArrayList<MediaAsset> all = findAll(hashCode, myShepherd);
+        if ((all == null) || (all.size() < 1)) return null;
+        return all.get(0);
+    }
+
+    public ArrayList<MediaAsset> findAll(String hashCode, Shepherd myShepherd) {
+        if (hashCode == null) return null;
+        Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
+        //String foo = "hashCode == \"" + hashCode + "\" && store == this";
+//System.out.println("findAll() -> " + foo);
+        Query matches = myShepherd.getPM().newQuery(mac, "hashCode == \"" + hashCode + "\"");
+        try {
+            Collection c = (Collection) (matches.execute());
+            ArrayList<MediaAsset> all = new ArrayList<MediaAsset>(c);
+            matches.closeAll();
+            return all;
+
+        } catch (javax.jdo.JDOException ex) {
+            System.out.println(this.toString() + " .findAll(" + hashCode + ") threw exception " + ex.toString());
+ex.printStackTrace();
+            return null;
+        }
+    }
+
+    //utility function to get hex string of SHA256 digest of an input string
+    //   h/t https://stackoverflow.com/a/3103722
+    public static String hexStringSHA256(String in) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("SHA-256");
+            md.update(in.getBytes("UTF-8"));
+        } catch (Exception ex) {  //i like to think this should never happen. FLW
+            System.out.println("hexStringSHA256 threw: " + ex.toString());
+            return "[" + in.substring(0,62) + "]";
+        }
+        return String.format("%064x", new java.math.BigInteger(1, md.digest()));
+    }
 
     public abstract AssetStoreType getType();
 

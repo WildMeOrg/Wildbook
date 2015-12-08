@@ -74,6 +74,8 @@ public class MediaAsset implements java.io.Serializable {
 
     protected ArrayList<Annotation> annotations;
 
+    protected String hashCode;
+
     //protected MediaAssetType type;
     //protected Integer submitterid;
 
@@ -115,6 +117,7 @@ public class MediaAsset implements java.io.Serializable {
         this.store = store;
         this.parameters = params;
         this.setRevision();
+        this.setHashCode();
     }
 
 
@@ -209,6 +212,13 @@ public class MediaAsset implements java.io.Serializable {
     public long setRevision() {
         this.revision = System.currentTimeMillis();
         return this.revision;
+    }
+
+    public String setHashCode() {
+        if (store == null) return null;
+        this.hashCode = store.hashCode(parameters);
+System.out.println("hashCode on " + this + " = " + this.hashCode);
+        return this.hashCode;
     }
 
     public Path localPath()
