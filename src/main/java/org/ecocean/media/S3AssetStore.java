@@ -29,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.json.JSONObject;
+import java.util.Iterator;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -43,6 +44,10 @@ import com.amazonaws.services.s3.model.S3Object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.ecocean.Shepherd;
+
+import javax.jdo.*;
+import java.util.Collection;
 
 /**
  * S3AssetStore references MediaAssets on the current host's
@@ -229,6 +234,32 @@ public class S3AssetStore extends AssetStore {
         if ((bp == null) || (kp == null)) return null;
         return bp.toString().substring(0,10) + S3AssetStore.hexStringSHA256(bp.toString() + "/" + kp.toString());
     }
+
+
+
+    //kind of a kludgey way to just grab the first one we have. :/  TODO generalize within AssetStore (using getMap() etc?)
+    public static S3AssetStore getFirst(Shepherd myShepherd) {
+//S3AssetStore s3as2 = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
+        Extent ext = myShepherd.getPM().getExtent(S3AssetStore.class, true);
+        Query matches = myShepherd.getPM().newQuery(ext);
+        try {
+            Collection c = (Collection) (matches.execute());
+            if (c.size() < 1) return null;
+            Iterator i = c.iterator();
+            while (i.hasNext()) {
+                S3AssetStore s3 = (S3AssetStore) i.next();
+                if (s3.getType() == AssetStoreType.S3) return s3;
+            }
+            return null;
+        } catch (javax.jdo.JDOException ex) {
+            System.out.println("S3AssetStore.getFirst() threw exception " + ex.toString());
+ex.printStackTrace();
+            return null;
+        }
+    }
+
+  //}
+
 }
 
 

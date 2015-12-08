@@ -42,6 +42,9 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
+import org.ecocean.media.*;
+
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -974,6 +977,30 @@ public class Encounter implements java.io.Serializable {
 
   //----------------
 
+
+    //this makes assumption (for flukes) that both right and left image files are identical
+    public MediaAsset spotImageAsMediaAsset(String baseDir, Shepherd myShepherd) {
+        if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
+        File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
+        if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
+        S3AssetStore astore = S3AssetStore.getFirst(myShepherd);
+        if (astore == null) {
+            System.out.println("No S3AssetStore in Encounter.spotImageAsMediaAsset()");
+            return null;
+        }
+System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
+        org.json.JSONObject sp = new org.json.JSONObject();
+        //TODO how the heck **do** we determine these anyway???  do we need to pad out key with some server/species/etc ??
+        sp.put("bucket", "test-asset-store");
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma == null) {
+System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
+            ma = astore.create(sp);
+            MediaAssetFactory.save(ma, myShepherd);
+        }
+        return ma;
+    }
 
   public void setSubmitterID(String username) {
     if(username!=null){submitterID = username;}
