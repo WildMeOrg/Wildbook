@@ -173,6 +173,13 @@ ex.printStackTrace();
         }
     }
 
+
+    public MediaAsset findOrCreate(JSONObject params, Shepherd myShepherd) {
+        MediaAsset ma = find(params, myShepherd);
+        if (ma != null) return ma;
+        return create(params);
+    }
+
     //utility function to get hex string of SHA256 digest of an input string
     //   h/t https://stackoverflow.com/a/3103722
     public static String hexStringSHA256(String in) {
