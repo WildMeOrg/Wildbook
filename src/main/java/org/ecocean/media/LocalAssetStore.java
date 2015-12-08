@@ -254,23 +254,6 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
 
-/*
-    //will find it or create it
-    public MediaAsset getMediaAssetForFile(File file, Shepherd myShepherd) {
-        if (!file.exists()) return null;
-        JSONObject params = new JSONObject();
-        params.put("path", file.getAbsolutePath());
-////////TODO see if it exists in db!
-        MediaAsset ma = null;
-        try {
-            ma = create(params);
-        } catch (Exception ex) {
-            System.out.println("LocalAssetStore.getMediaAssetForFile(" + file + ") caught exception " + ex.toString());
-        }
-        return ma;
-    }
-*/
-
     /**
      * Make sure path is under the root, either passed in as a
      * relative path or as an absolute path under the root.
