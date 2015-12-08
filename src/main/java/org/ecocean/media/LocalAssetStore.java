@@ -254,6 +254,22 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
 
+/*
+    //will find it or create it
+    public MediaAsset getMediaAssetForFile(File file, Shepherd myShepherd) {
+        if (!file.exists()) return null;
+        JSONObject params = new JSONObject();
+        params.put("path", file.getAbsolutePath());
+////////TODO see if it exists in db!
+        MediaAsset ma = null;
+        try {
+            ma = create(params);
+        } catch (Exception ex) {
+            System.out.println("LocalAssetStore.getMediaAssetForFile(" + file + ") caught exception " + ex.toString());
+        }
+        return ma;
+    }
+*/
 
     /**
      * Make sure path is under the root, either passed in as a
@@ -314,6 +330,15 @@ System.out.println("webURL() path = "+path);
             logger.warn("Can't construct web path", e);
             return null;
         }
+    }
+
+    @Override
+    public String hashCode(JSONObject params) {
+        if (params == null) return null;
+        Path path = pathFromParameters(params);
+        if (path == null) return null;
+        String abs = path.toAbsolutePath().toString();
+        return abs.substring(0,10) + LocalAssetStore.hexStringSHA256(abs);
     }
 
 }
