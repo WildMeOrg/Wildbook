@@ -22,12 +22,18 @@ package org.ecocean.grid;
 import org.ecocean.Encounter;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
+import org.ecocean.identity.IBEISIA;
+import org.ecocean.servlet.ServletUtilities;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import javax.jdo.Query;
+
+import javax.servlet.*;
 
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
@@ -40,6 +46,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   java.util.Properties props2 = new java.util.Properties();
   boolean finished = false;
   GridManager gm;
+    ServletContext sctx;
   String context="context0";
   String jdoql="SELECT FROM org.ecocean.Encounter";
   String algorithms="";
@@ -49,11 +56,12 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   /**
    * Constructor to create a new thread object
    */
-  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql, String genus, String species) {
+  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql, String genus, String species, ServletContext sctx) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     this.rightSide = rightSide;
     this.encounterNumber = encounterNum;
+    this.sctx = sctx;
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("scanWorkItemCreation_" + taskID));
     this.context=context;
@@ -139,6 +147,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       Iterator encounters = c.iterator();
       
 
+        ArrayList<Encounter> tencs = new ArrayList<Encounter>();  //this is to pass to IBEISIA
       
       int count = 0;
 
@@ -149,6 +158,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         //TBD- ok, for now we're going to hardcode the check for species here
         
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
+            tencs.add(enc);
           //if((enc.getSpots()!=null)&&(enc.getSpots().size()>0)&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
           
             /*  
@@ -207,6 +217,13 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       
       ScanTask st=myShepherd.getScanTask(taskID);
       st.setNumComparisons(count);
+
+
+        String rootDir = sctx.getRealPath("/");
+        String baseDir = ServletUtilities.dataDir(context, rootDir);
+        ArrayList<Encounter> qencs = new ArrayList<Encounter>();
+        qencs.add(myShepherd.getEncounter(encounterNumber));
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species));
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");

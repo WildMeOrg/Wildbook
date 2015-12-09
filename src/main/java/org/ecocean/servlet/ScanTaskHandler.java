@@ -267,11 +267,11 @@ public class ScanTaskHandler extends HttpServlet {
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
             //now build our jobs for the task
             if(jdoql.equals("")){
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species));
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species, getServletContext()));
               
             }
             else{
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null));
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null, getServletContext()));
             }
 
           } catch (Exception e) {

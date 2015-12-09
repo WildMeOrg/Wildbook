@@ -998,7 +998,9 @@ System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString
 System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
             try {
                 ma = astore.copyIn(fullPath, sp);
+//System.out.println("params? " + ma.getParameters());
                 MediaAssetFactory.save(ma, myShepherd);
+//System.out.println("params? " + ma.getParameters());
             } catch (java.io.IOException ex) {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
             }

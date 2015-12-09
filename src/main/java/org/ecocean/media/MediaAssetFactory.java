@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import org.ecocean.Shepherd;
+import org.json.JSONObject;
 
 import javax.jdo.*;
 
@@ -65,7 +66,10 @@ public class MediaAssetFactory {
      */
     public static void save(MediaAsset ma, Shepherd myShepherd) {
         //ma.setRevision();
+        //for some reason (!?) parameters are getting lost when saving... sigh.  HACK for now... lookout.  TODO
+        ////JSONObject p = ma.getParameters();
         myShepherd.getPM().makePersistent(ma);
+        ////if (p != null) ma.setParameters(p);
     }
 
     /**

@@ -3,6 +3,8 @@ package org.ecocean.identity;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Annotation;
 import org.ecocean.Util;
+import org.ecocean.Shepherd;
+import org.ecocean.Encounter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.json.JSONObject;
@@ -99,7 +101,31 @@ public class IBEISIA {
     }
 
 
+    public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
+        URL url = new URL(u);
+
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        map.put("callback_url", "https://www.sito.org/cgi-bin/test.cgi");  //TODO read from config, or derive?
+        ArrayList<String> qlist = new ArrayList<String>();
+        ArrayList<String> tlist = new ArrayList<String>();
+
+        for (Annotation ann : qanns) {
+            qlist.add(ann.getUUID());
+        }
+        for (Annotation ann : tanns) {
+            tlist.add(ann.getUUID());
+        }
+        map.put("qannot_uuid_list", qlist);
+        map.put("adata_annot_uuid_list", tlist);
+
+        return RestClient.post(url, new JSONObject(map));
+    }
+
+
     private static Object mediaAssetToUri(MediaAsset ma) {
+//System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
         if (ma.getStore() instanceof LocalAssetStore) {
             return ma.localPath().toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
@@ -117,6 +143,56 @@ public class IBEISIA {
             return ma.toString();
         }
     }
+
+
+    //actually ties the whole thing together and starts a job with all the pieces needed
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species) {
+        //TODO possibly could exclude qencs from tencs?
+        JSONObject results = new JSONObject();
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
+        ArrayList<Annotation> qanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        try {
+            for (Encounter enc : queryEncs) {
+                MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                if (ma == null) continue;
+                mas.add(ma);
+                ArrayList<Annotation> someAnns = ma.getAnnotationsGenerate(species);  //this "should" always get one (the trivial one)
+                for (Annotation ann : someAnns) {
+                    qanns.add(ann);
+                    allAnns.add(ann);
+                }
+            }
+            for (Encounter enc : targetEncs) {
+                MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                if (ma == null) continue;
+                mas.add(ma);
+//System.out.println("=================------------- " + ma + "\n(" + ma.getParameters() + ")\n");
+                ArrayList<Annotation> someAnns = ma.getAnnotationsGenerate(species);  //this "should" always get one (the trivial one)
+                for (Annotation ann : someAnns) {
+                    tanns.add(ann);
+                    allAnns.add(ann);
+                }
+//System.out.println("=222222==========------------- " + ma + "\n(" + ma.getParameters() + ")\n");
+            }
+
+            results.put("sendMediaAssets", sendMediaAssets(mas));
+            results.put("sendAnnotations", sendAnnotations(allAnns));
+            results.put("sendIdentify", sendIdentify(qanns, tanns));
+            results.put("success", true);
+
+        } catch (Exception ex) {  //most likely from sendFoo()
+            System.out.println("WARN: IBEISIA.beginIdentity() failed due to an exception: " + ex.toString());
+            ex.printStackTrace();
+            results.put("success", false);
+            results.put("error", ex.toString());
+        }
+
+        return results;
+    }
+
 
 /*   no longer needed??
     public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
