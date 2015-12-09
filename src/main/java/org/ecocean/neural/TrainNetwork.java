@@ -22,6 +22,9 @@ package org.ecocean.neural;
 import org.ecocean.*;
 import org.ecocean.servlet.ServletUtilities;
 
+import java.util.Set;
+import java.util.SortedMap;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
@@ -32,6 +35,10 @@ import org.ecocean.grid.*;
 
 import java.util.Vector;
 import java.util.Random;
+
+import java.util.TreeMap;
+
+import org.ecocean.neural.WildbookInstance;
 
 //import com.fastdtw.timeseries.TimeSeriesBase.*;
 import com.fastdtw.dtw.*;
@@ -56,6 +63,14 @@ import weka.core.converters.ArffLoader;
 import weka.core.Utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class TrainNetwork {
 
@@ -468,6 +483,9 @@ public class TrainNetwork {
           Instances isTrainingSet = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (2*numEncs*(numEncs-1)/2));
           isTrainingSet.setClassIndex(getClassIndex(genusSpecies));
           
+          TreeMap<WildbookInstance,MatchObject> tm=new TreeMap<WildbookInstance,MatchObject>();
+          
+          
           
           //RESTORE ME
           for(int i=0;i<(numEncs-1);i++){
@@ -477,21 +495,27 @@ public class TrainNetwork {
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
               EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
               
+              
+              
              try{
                         System.out.println("Learning: "+enc1.getEncounterNumber()+" and "+enc2.getEncounterNumber());
                         
                         //if both have spots, then we need to compare them
                      
                         // add the instance
-                        Instance iExample=buildInstance(genusSpecies,isTrainingSet);
-                        Instance iExample2=buildInstance(genusSpecies,isTrainingSet);
+                        WildbookInstance iExample=buildInstance(genusSpecies,isTrainingSet);
+                        WildbookInstance iExample2=buildInstance(genusSpecies,isTrainingSet);
                         
                         MatchObject mo=getMatchObject(genusSpecies,enc1, enc2);
+                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1);
+
                         populateInstanceValues(genusSpecies, iExample, enc1,enc2,mo,myShepherd);
-                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo,myShepherd);
+                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo2,myShepherd);
                         
-                        isTrainingSet.add(iExample);
-                        isTrainingSet.add(iExample2);
+                        
+                        tm.put(iExample,mo);
+                        tm.put(iExample2,mo2);
+
                         System.out.println("     isTrainingSetSize: "+isTrainingSet.numInstances());
                   
                     
@@ -528,6 +552,39 @@ public class TrainNetwork {
              
               }
             }
+          
+          
+          //now we have to populate instance rank attributes so we can boost those
+          SortedMap intersectionSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"intersection"));
+          SortedMap fastDTWSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"fastDTW"));
+          SortedMap msmSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"MSM"));
+          SortedMap swaleSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"swale"));
+          SortedMap euclideanSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"euclidean"));
+          SortedMap i3sSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"i3s"));
+          
+          //let's check sorting
+          Collection c=intersectionSortedData.values();
+          Iterator iter=c.iterator();
+          while(iter.hasNext()){
+            MatchObject mo=(MatchObject)iter.next();
+            System.out.println("     OrderedIntersect: "+mo.getIntersectionCount());
+          }
+          c=msmSortedData.values();
+          iter=c.iterator();
+          while(iter.hasNext()){
+            MatchObject mo=(MatchObject)iter.next();
+            System.out.println("     OrderedMSM: "+mo.getMSMValue());
+          }
+          
+          
+          //now add the fully populated examples
+          Set<WildbookInstance> keys=tm.keySet();
+          Iterator keysIterator=keys.iterator();
+          while(keysIterator.hasNext()){
+            isTrainingSet.add((Instance)keysIterator.next());
+          }
+          
+          
           
           //ok, now we need to build a set if Instances that only have matches and then add an equal number of nonmatches
           Instances balancedInstances = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (numMatches*2));
@@ -579,7 +636,10 @@ public class TrainNetwork {
           return balancedInstances;
           
           }
-          catch(Exception e){return null;}
+        catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
         finally{
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
@@ -604,6 +664,14 @@ public class TrainNetwork {
       Attribute dateAttr = new Attribute("dateDiffLong");   
       Attribute euclideanAttr = new Attribute("EuclideanDistance"); 
       Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff"); 
+      
+      //ranks of matchers
+      Attribute intersectRankAttr  = new Attribute("interectRank"); 
+      Attribute fastDTWRankAttr = new Attribute("fastDTWRank");
+      Attribute i3sRankAttr = new Attribute("I3SRank"); 
+      Attribute proportionRankAttr = new Attribute("proportionRank"); 
+      Attribute msmRankAttr = new Attribute("MSMRank");
+      Attribute swaleRankAttr = new Attribute("SwaleRank"); 
      
       // Declare the class attribute along with its values
       ArrayList fvClassVal = new ArrayList(2);
@@ -623,6 +691,14 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        
+        fvWekaAttributes.add(intersectRankAttr);
+        fvWekaAttributes.add(fastDTWRankAttr);
+        fvWekaAttributes.add(i3sRankAttr);
+        fvWekaAttributes.add(proportionRankAttr);
+        fvWekaAttributes.add(msmRankAttr);
+        fvWekaAttributes.add(swaleRankAttr);
+        
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
@@ -637,6 +713,14 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        
+        fvWekaAttributes.add(intersectRankAttr);
+        fvWekaAttributes.add(fastDTWRankAttr);
+        fvWekaAttributes.add(i3sRankAttr);
+        fvWekaAttributes.add(proportionRankAttr);
+        fvWekaAttributes.add(msmRankAttr);
+        fvWekaAttributes.add(swaleRankAttr);
+        
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
@@ -651,6 +735,14 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        
+        fvWekaAttributes.add(intersectRankAttr);
+        fvWekaAttributes.add(fastDTWRankAttr);
+        fvWekaAttributes.add(i3sRankAttr);
+        fvWekaAttributes.add(proportionRankAttr);
+        fvWekaAttributes.add(msmRankAttr);
+        fvWekaAttributes.add(swaleRankAttr);
+        
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
       }
@@ -662,17 +754,17 @@ public class TrainNetwork {
     }
     
     
-    public static Instance buildInstance(String genusSpecies,Instances isTrainingSet){
+    public static WildbookInstance buildInstance(String genusSpecies,Instances isTrainingSet){
       
       //concat genus and species to a single string of characters with no spaces
       genusSpecies=genusSpecies.replace(" ", "");
       // Create the instance
-      Instance instance = null;
+      WildbookInstance instance = null;
       
      ArrayList fvWekaAttributes = getWekaAttributesPerSpecies(genusSpecies);
 
      //return our result
-      instance=new DenseInstance(fvWekaAttributes.size());
+      instance=new WildbookInstance(fvWekaAttributes.size());
       instance.setDataset(isTrainingSet);
       return instance;
       
@@ -809,7 +901,7 @@ public class TrainNetwork {
         
         Double msm=MSM.getMSMDistance(el1, el2);
         
-        //swale setup - default is flukes for Physeter macrocephalus
+        //Swale setup - default is flukes for Physeter macrocephalus
         double penalty=0;
         double reward=25;
         double epsilon=0.002089121713611485;
@@ -870,6 +962,69 @@ public class TrainNetwork {
         mo.setPatterningCodeDiffValue(pattCodeDiff);
         
         return mo;
+    }
+    
+    /** inner class to do sorting of the map **/
+    private static class RankComparator implements Comparator {
+      
+      private Map<WildbookInstance,MatchObject>  _data = null;
+      String algorithm;
+      
+      public RankComparator (Map<WildbookInstance,MatchObject> data, String algorithm){
+        super();
+        _data = data;
+        this.algorithm=algorithm;
+      }
+      
+      public int compare(Object o1, Object o2) {
+        
+        
+        try{
+        
+               MatchObject a1 =  _data.get((Instance)o1);
+               MatchObject b1 =  _data.get((Instance)o2);
+
+
+             //intersection
+               if((algorithm.equals("intersection"))||(algorithm.equals("swale"))){   
+                 
+                 double a1_adjustedValue = a1.getIntersectionCount();
+                 double b1_adjustedValue = b1.getIntersectionCount();
+                 
+                 if (a1_adjustedValue > b1_adjustedValue) {
+                   return -1;
+                 } 
+                 else if (a1_adjustedValue == b1_adjustedValue) {
+                   return 0;
+                 } 
+                 else {
+                   return 1;
+                 }
+               }
+               else if((algorithm.equals("euclidean"))||(algorithm.equals("i3s"))||(algorithm.equals("MSM"))||(algorithm.equals("fastDTW"))){
+                 double a1_adjustedValue = a1.getIntersectionCount();
+                 double b1_adjustedValue = b1.getIntersectionCount();
+                 
+                 if (a1_adjustedValue > b1_adjustedValue) {
+                   return 1;
+                 } 
+                 else if (a1_adjustedValue == b1_adjustedValue) {
+                   return 0;
+                 } 
+                 else {
+                   return -1;
+                 }
+               }
+
+        }
+        catch(Exception e){
+          e.printStackTrace();
+          System.out.println("In the compare method!!!!!!");
+        }
+               return 0;
+               
+               
+      }
     }
     
     
