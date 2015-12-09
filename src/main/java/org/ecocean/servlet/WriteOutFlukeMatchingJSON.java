@@ -43,6 +43,8 @@ import weka.core.Instance;
 import weka.classifiers.Evaluation;
 import weka.classifiers.Classifier;
 import weka.classifiers.bayes.BayesNet;
+import org.ecocean.neural.WildbookInstance;
+
 
 
 public class WriteOutFlukeMatchingJSON extends HttpServlet {
@@ -165,7 +167,6 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
     System.out.println("     ...target JSON file for output is: "+file.getAbsolutePath());
 
     
-     
 
     
     
@@ -183,6 +184,79 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         tempGenusSpecies=gsEnc.getGenus()+gsEnc.getSpecificEpithet();
       }
       final String genusSpecies=tempGenusSpecies;
+      
+      
+      
+      //to get rank, copy the swirs array into a WIldbookInstance array
+      ArrayList<WildbookInstance> list=new ArrayList<WildbookInstance>();
+      int numResults=swirs.size();
+      for(int i=0;i<numResults;i++){
+        WildbookInstance wi=new WildbookInstance(new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1));
+        wi.setMatchObject(swirs.get(i));
+        list.add(wi);
+      }
+      int listSize=list.size();
+      //now we have to populate instance rank attributes so we can boost those
+      Collections.sort(list,new RankComparator("intersection"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(9, (i+1));
+        //System.out.println("intersection score: "+wi.getMatchObject().getIntersectionCount()+" and rank: "+(i+1));
+      }
+      Collections.sort(list,new RankComparator("fastDTW"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(10, (i+1));
+        //System.out.println("FastDTW score: "+wi.getMatchObject().getLeftFastDTWResult()+" and rank: "+(i+1));
+        
+      }
+      Collections.sort(list,new RankComparator("i3s"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(11, (i+1));
+        //System.out.println("I3S score: "+wi.getMatchObject().getI3SMatchValue()+" and rank: "+(i+1));
+        
+      }
+      Collections.sort(list,new RankComparator("proportion"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(12, (i+1));
+        //System.out.println("prop. score: "+wi.getMatchObject().getProportionValue()+" and rank: "+(i+1));
+        
+      }
+      Collections.sort(list,new RankComparator("MSM"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(13, (i+1));
+        //System.out.println("MSM score: "+wi.getMatchObject().getMSMValue()+" and rank: "+(i+1));
+        
+      }
+      Collections.sort(list,new RankComparator("swale"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(14, (i+1));
+        //System.out.println("Swale score: "+wi.getMatchObject().getSwaleValue()+" and rank: "+(i+1));
+        
+      }
+      Collections.sort(list,new RankComparator("euclidean"));
+      for(int i=0;i<listSize;i++){
+        WildbookInstance wi=list.get(i);
+        DenseInstance inst=wi.getInstance();
+        inst.setValue(15, (i+1));
+        //System.out.println("Euc. score: "+wi.getMatchObject().getEuclideanDistanceValue()+" and rank: "+(i+1));
+        
+      }
+      
+      
+      
+      
+      
       String pathToClassifierFile=TrainNetwork.getAbsolutePathToClassifier(genusSpecies,request);
       String instancesFileFullPath=TrainNetwork.getAbsolutePathToInstances(genusSpecies, request);
       
@@ -204,39 +278,39 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       //MatchObject[] matches = swirs;
 
       //Arrays.sort(swirs, new FlukeMatchComparator(request,booster,bayesBooster,instances));
-      Collections.sort(swirs, new Comparator<MatchObject>(){
+      Collections.sort(list, new Comparator<WildbookInstance>(){
 
-        public int compare(MatchObject a1, MatchObject b1)
+        public int compare(WildbookInstance a1, WildbookInstance b1)
         {
           double a1_adjustedValue=0;
           double b1_adjustedValue=0;
 
             
-            Instance a1Example = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
-            Instance b1Example = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size()-1);
+            Instance a1Example = a1.getInstance();
+            Instance b1Example = b1.getInstance();
             
               a1Example.setDataset(instances);
-              a1Example.setValue(0, a1.getIntersectionCount());
-              a1Example.setValue(1, a1.getLeftFastDTWResult().doubleValue());
-              a1Example.setValue(2,  a1.getI3SMatchValue());
-              a1Example.setValue(3, (new Double(a1.getProportionValue()).doubleValue()));
-              a1Example.setValue(4, (new Double(a1.getMSMValue()).doubleValue()));
-              a1Example.setValue(5, (new Double(a1.getSwaleValue()).doubleValue()));
-              a1Example.setValue(6, (new Double(a1.getDateDiff()).doubleValue()));
-              a1Example.setValue(7, (new Double(a1.getEuclideanDistanceValue()).doubleValue()));
-              a1Example.setValue(8, (new Double(a1.getPatterningCodeDiff()).doubleValue()));
+              a1Example.setValue(0, a1.getMatchObject().getIntersectionCount());
+              a1Example.setValue(1, a1.getMatchObject().getLeftFastDTWResult().doubleValue());
+              a1Example.setValue(2,  a1.getMatchObject().getI3SMatchValue());
+              a1Example.setValue(3, (new Double(a1.getMatchObject().getProportionValue()).doubleValue()));
+              a1Example.setValue(4, (new Double(a1.getMatchObject().getMSMValue()).doubleValue()));
+              a1Example.setValue(5, (new Double(a1.getMatchObject().getSwaleValue()).doubleValue()));
+              a1Example.setValue(6, (new Double(a1.getMatchObject().getDateDiff()).doubleValue()));
+              a1Example.setValue(7, (new Double(a1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
+              a1Example.setValue(8, (new Double(a1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
               
               
               b1Example.setDataset(instances);
-              b1Example.setValue(0, b1.getIntersectionCount());
-              b1Example.setValue(1, b1.getLeftFastDTWResult().doubleValue());
-              b1Example.setValue(2,  b1.getI3SMatchValue());
-              b1Example.setValue(3, (new Double(b1.getProportionValue()).doubleValue()));
-              b1Example.setValue(4, (new Double(b1.getMSMValue()).doubleValue()));
-              b1Example.setValue(5, (new Double(b1.getSwaleValue()).doubleValue()));
-              b1Example.setValue(6, (new Double(b1.getDateDiff()).doubleValue()));
-              b1Example.setValue(7, (new Double(b1.getEuclideanDistanceValue()).doubleValue()));
-              b1Example.setValue(8, (new Double(b1.getPatterningCodeDiff()).doubleValue()));
+              b1Example.setValue(0, b1.getMatchObject().getIntersectionCount());
+              b1Example.setValue(1, b1.getMatchObject().getLeftFastDTWResult().doubleValue());
+              b1Example.setValue(2,  b1.getMatchObject().getI3SMatchValue());
+              b1Example.setValue(3, (new Double(b1.getMatchObject().getProportionValue()).doubleValue()));
+              b1Example.setValue(4, (new Double(b1.getMatchObject().getMSMValue()).doubleValue()));
+              b1Example.setValue(5, (new Double(b1.getMatchObject().getSwaleValue()).doubleValue()));
+              b1Example.setValue(6, (new Double(b1.getMatchObject().getDateDiff()).doubleValue()));
+              b1Example.setValue(7, (new Double(b1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
+              b1Example.setValue(8, (new Double(b1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
               
               Double aClass=0.0;
               Double bClass=0.0;
@@ -271,7 +345,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         }
       });
       
-      int resultsSize = swirs.size();
+      int resultsSize = list.size();
       
       
       System.out.println("     ...Results sorted.");
@@ -296,11 +370,11 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
        
        
        
-      int numMatches=swirs.size();
+      int numMatches=list.size();
       for (int i = 0; i < numMatches; i++) {
-        MatchObject mo = swirs.get(i);
+        MatchObject mo = list.get(i).getMatchObject();
         Encounter enc = myShepherd.getEncounter(mo.getEncounterNumber());
-        //System.out.println("           Writing out result for: "+mo.getEncounterNumber());
+        System.out.println("           Writing out result for: "+mo.getEncounterNumber());
         
         //resultarray
         JsonArray result=new JsonArray();
@@ -319,9 +393,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         
-        Instance iExample = new DenseInstance(TrainNetwork.getWekaAttributesPerSpecies(genusSpecies).size());
+        Instance iExample = list.get(i).getInstance();
        iExample.setDataset(instances);
-        TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo,myShepherd);
+        //TrainNetwork.populateInstanceValues(genusSpecies, iExample, new EncounterLite(),new EncounterLite(),mo,myShepherd);
         
         Double myClass=booster.classifyInstance(iExample);
         double[] fDistribution = booster.distributionForInstance(iExample);
