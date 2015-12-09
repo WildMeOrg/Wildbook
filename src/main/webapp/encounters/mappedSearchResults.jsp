@@ -174,6 +174,13 @@ margin-bottom: 8px !important;
  
         
         <%
+
+//now remove encounters this user cannot see
+for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
+	Encounter enc = (Encounter)rEncounters.get(i);
+	if (!enc.canUserAccess(request)) rEncounters.remove(i);
+}
+
 int rEncountersSize=rEncounters.size();
         int count = 0;
 
@@ -185,7 +192,6 @@ if(rEncounters.size()>0){
  for(int y=0;y<havegpsSize;y++){
 	 Encounter thisEnc=(Encounter)rEncounters.get(y);
 		String encSubdir = thisEnc.subdir();
-	 
 
  %>
           
