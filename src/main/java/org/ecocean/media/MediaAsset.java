@@ -166,19 +166,30 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public JSONObject getParameters() {
+//System.out.println("getParameters() called -> " + parameters);
         return parameters;
     }
 
+    public void setParameters(JSONObject p) {
+//System.out.println("setParameters(" + p + ") called");
+        parameters = p;
+    }
+
     public String getParametersAsString() {
+//System.out.println("getParametersAsString() called -> " + parameters);
         if (parameters == null) return null;
         return parameters.toString();
     }
 
     public void setParametersAsString(String p) {
+//System.out.println("setParametersAsString(" + p + ") called");
+        if (p == null) return;
+/*  skipping this for now, cuz weirdness going on  TODO
         if (p == null) {
             parameters = null;
             return;
         }
+*/
         try {
             parameters = new JSONObject(p);
         } catch (JSONException je) {

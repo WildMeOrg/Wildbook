@@ -115,7 +115,7 @@ public class RestClient {
                 System.out.println("caught exception on key " + key + ": " + uee.toString());
             }
         }
-System.out.println("------- getPostDataString=" + result.toString());
+System.out.println("------- getPostDataString=(\n" + result.toString() + "\n)--------\n");
         return result.toString();
     }
 }
