@@ -483,12 +483,13 @@ public class TrainNetwork {
           Instances isTrainingSet = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (2*numEncs*(numEncs-1)/2));
           isTrainingSet.setClassIndex(getClassIndex(genusSpecies));
           
-          TreeMap<WildbookInstance,MatchObject> tm=new TreeMap<WildbookInstance,MatchObject>();
+          ArrayList<WildbookInstance> list=new ArrayList<WildbookInstance>();
           
           
           
           //RESTORE ME
           for(int i=0;i<(numEncs-1);i++){
+          //for(int i=0;i<=2;i++){
            // for(int i=0;i<10;i++){
             for(int j=(i+1);j<numEncs;j++){
               
@@ -509,14 +510,17 @@ public class TrainNetwork {
                         MatchObject mo=getMatchObject(genusSpecies,enc1, enc2);
                         MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1);
 
-                        populateInstanceValues(genusSpecies, iExample, enc1,enc2,mo,myShepherd);
-                        populateInstanceValues(genusSpecies, iExample2, enc2,enc1,mo2,myShepherd);
+                        populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
+                        populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
                         
                         
-                        tm.put(iExample,mo);
-                        tm.put(iExample2,mo2);
+                        iExample.setMatchObject(mo);
+                        iExample2.setMatchObject(mo2);
+                        
+                        list.add(iExample);
+                        list.add(iExample2);
 
-                        System.out.println("     isTrainingSetSize: "+isTrainingSet.numInstances());
+                        System.out.println("     isTrainingSetSize: "+list.size());
                   
                     
                         
@@ -554,34 +558,73 @@ public class TrainNetwork {
             }
           
           
-          //now we have to populate instance rank attributes so we can boost those
-          SortedMap intersectionSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"intersection"));
-          SortedMap fastDTWSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"fastDTW"));
-          SortedMap msmSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"MSM"));
-          SortedMap swaleSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"swale"));
-          SortedMap euclideanSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"euclidean"));
-          SortedMap i3sSortedData = new TreeMap<WildbookInstance,MatchObject>(new RankComparator(tm,"i3s"));
           
-          //let's check sorting
-          Collection c=intersectionSortedData.values();
-          Iterator iter=c.iterator();
-          while(iter.hasNext()){
-            MatchObject mo=(MatchObject)iter.next();
-            System.out.println("     OrderedIntersect: "+mo.getIntersectionCount());
+          int listSize=list.size();
+          //now we have to populate instance rank attributes so we can boost those
+          Collections.sort(list,new RankComparator("intersection"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(9, (i+1));
+            System.out.println("intersection score: "+wi.getMatchObject().getIntersectionCount()+" and rank: "+(i+1));
           }
-          c=msmSortedData.values();
-          iter=c.iterator();
-          while(iter.hasNext()){
-            MatchObject mo=(MatchObject)iter.next();
-            System.out.println("     OrderedMSM: "+mo.getMSMValue());
+          Collections.sort(list,new RankComparator("fastDTW"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(10, (i+1));
+            System.out.println("FastDTW score: "+wi.getMatchObject().getLeftFastDTWResult()+" and rank: "+(i+1));
+            
           }
+          Collections.sort(list,new RankComparator("i3s"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(11, (i+1));
+            System.out.println("I3S score: "+wi.getMatchObject().getI3SMatchValue()+" and rank: "+(i+1));
+            
+          }
+          Collections.sort(list,new RankComparator("proportion"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(12, (i+1));
+            System.out.println("prop. score: "+wi.getMatchObject().getProportionValue()+" and rank: "+(i+1));
+            
+          }
+          Collections.sort(list,new RankComparator("MSM"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(13, (i+1));
+            System.out.println("MSM score: "+wi.getMatchObject().getMSMValue()+" and rank: "+(i+1));
+            
+          }
+          Collections.sort(list,new RankComparator("swale"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(14, (i+1));
+            System.out.println("Swale score: "+wi.getMatchObject().getSwaleValue()+" and rank: "+(i+1));
+            
+          }
+          Collections.sort(list,new RankComparator("euclidean"));
+          for(int i=0;i<listSize;i++){
+            WildbookInstance wi=list.get(i);
+            DenseInstance inst=wi.getInstance();
+            inst.setValue(15, (i+1));
+            System.out.println("Euc. score: "+wi.getMatchObject().getEuclideanDistanceValue()+" and rank: "+(i+1));
+            
+          }
+          
+          
           
           
           //now add the fully populated examples
-          Set<WildbookInstance> keys=tm.keySet();
-          Iterator keysIterator=keys.iterator();
-          while(keysIterator.hasNext()){
-            isTrainingSet.add((Instance)keysIterator.next());
+          
+          for(int i=0;i<listSize;i++){
+            isTrainingSet.add(list.get(i).getInstance());
+            System.out.println(" Adding instance: "+i);
           }
           
           
@@ -599,7 +642,7 @@ public class TrainNetwork {
               //pop it off the original stack
               
               i--;
-              //System.out.println("  Balanced match added!");
+              System.out.println("  Balanced match added!");
             }
             
           }
@@ -672,6 +715,7 @@ public class TrainNetwork {
       Attribute proportionRankAttr = new Attribute("proportionRank"); 
       Attribute msmRankAttr = new Attribute("MSMRank");
       Attribute swaleRankAttr = new Attribute("SwaleRank"); 
+      Attribute eucRankAttr = new Attribute("euclideanRank"); 
      
       // Declare the class attribute along with its values
       ArrayList fvClassVal = new ArrayList(2);
@@ -698,6 +742,7 @@ public class TrainNetwork {
         fvWekaAttributes.add(proportionRankAttr);
         fvWekaAttributes.add(msmRankAttr);
         fvWekaAttributes.add(swaleRankAttr);
+        fvWekaAttributes.add(eucRankAttr);
         
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
@@ -720,6 +765,7 @@ public class TrainNetwork {
         fvWekaAttributes.add(proportionRankAttr);
         fvWekaAttributes.add(msmRankAttr);
         fvWekaAttributes.add(swaleRankAttr);
+        fvWekaAttributes.add(eucRankAttr);
         
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
@@ -742,6 +788,7 @@ public class TrainNetwork {
         fvWekaAttributes.add(proportionRankAttr);
         fvWekaAttributes.add(msmRankAttr);
         fvWekaAttributes.add(swaleRankAttr);
+        fvWekaAttributes.add(eucRankAttr);
         
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
@@ -764,8 +811,10 @@ public class TrainNetwork {
      ArrayList fvWekaAttributes = getWekaAttributesPerSpecies(genusSpecies);
 
      //return our result
-      instance=new WildbookInstance(fvWekaAttributes.size());
-      instance.setDataset(isTrainingSet);
+     DenseInstance di=new DenseInstance(fvWekaAttributes.size());
+     di.setDataset(isTrainingSet);
+      instance=new WildbookInstance(di);
+      
       return instance;
       
     }
@@ -938,7 +987,7 @@ public class TrainNetwork {
             double enc1code=(new Double(enc1Val)).doubleValue();
             double enc2code=(new Double(enc2Val)).doubleValue();
             pattCodeDiff=Math.abs(enc1code-enc2code);
-            System.out.println("Found a patterning code difference of: "+pattCodeDiff);
+            //System.out.println("Found a patterning code difference of: "+pattCodeDiff);
           }
           catch(Exception diffe){
             System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+el1.getEncounterNumber()+" of "+el1.getPatterningCode());
@@ -960,72 +1009,12 @@ public class TrainNetwork {
         mo.setDateDiff(date);
         mo.setEuclideanDistanceValue(eucVal);
         mo.setPatterningCodeDiffValue(pattCodeDiff);
+        mo.setProportionValue(proportion);
         
         return mo;
     }
     
-    /** inner class to do sorting of the map **/
-    private static class RankComparator implements Comparator {
-      
-      private Map<WildbookInstance,MatchObject>  _data = null;
-      String algorithm;
-      
-      public RankComparator (Map<WildbookInstance,MatchObject> data, String algorithm){
-        super();
-        _data = data;
-        this.algorithm=algorithm;
-      }
-      
-      public int compare(Object o1, Object o2) {
-        
-        
-        try{
-        
-               MatchObject a1 =  _data.get((Instance)o1);
-               MatchObject b1 =  _data.get((Instance)o2);
-
-
-             //intersection
-               if((algorithm.equals("intersection"))||(algorithm.equals("swale"))){   
-                 
-                 double a1_adjustedValue = a1.getIntersectionCount();
-                 double b1_adjustedValue = b1.getIntersectionCount();
-                 
-                 if (a1_adjustedValue > b1_adjustedValue) {
-                   return -1;
-                 } 
-                 else if (a1_adjustedValue == b1_adjustedValue) {
-                   return 0;
-                 } 
-                 else {
-                   return 1;
-                 }
-               }
-               else if((algorithm.equals("euclidean"))||(algorithm.equals("i3s"))||(algorithm.equals("MSM"))||(algorithm.equals("fastDTW"))){
-                 double a1_adjustedValue = a1.getIntersectionCount();
-                 double b1_adjustedValue = b1.getIntersectionCount();
-                 
-                 if (a1_adjustedValue > b1_adjustedValue) {
-                   return 1;
-                 } 
-                 else if (a1_adjustedValue == b1_adjustedValue) {
-                   return 0;
-                 } 
-                 else {
-                   return -1;
-                 }
-               }
-
-        }
-        catch(Exception e){
-          e.printStackTrace();
-          System.out.println("In the compare method!!!!!!");
-        }
-               return 0;
-               
-               
-      }
-    }
+    
     
     
 }

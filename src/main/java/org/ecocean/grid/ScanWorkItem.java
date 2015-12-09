@@ -313,7 +313,7 @@ public class ScanWorkItem implements java.io.Serializable {
           double enc1code=(new Double(enc1Val)).doubleValue();
           double enc2code=(new Double(enc2Val)).doubleValue();
           pattCodeDiff=Math.abs(enc1code-enc2code);
-          System.out.println("Found a patterning code difference of: "+pattCodeDiff);
+          //System.out.println("Found a patterning code difference of: "+pattCodeDiff);
         }
         catch(Exception diffe){
           System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+existingEncounter.getEncounterNumber()+" of "+existingEncounter.getPatterningCode());
