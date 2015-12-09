@@ -331,4 +331,14 @@ public class Util {
     
   }
 
+
+    //got sick of having to concat these strings with a space in the middle.
+    // TODO: someday make a Taxonomy class for storing/processing this stuff right! (or find the wheel someone already invented!!)
+    public static String taxonomyString(String genus, String species) {
+        if ((genus != null) && (species != null)) return genus + " " + species;
+        if (genus != null) return genus;
+        if (species != null) return species;
+        return null;
+    }
+
 }
