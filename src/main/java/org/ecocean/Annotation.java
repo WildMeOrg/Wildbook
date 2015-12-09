@@ -42,13 +42,13 @@ public class Annotation implements java.io.Serializable {
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
         this.id = org.ecocean.Util.generateUUID();
-        this.setMediaAsset(ma);
         this.x = (int) iatt.getXOffset();
         this.y = (int) iatt.getYOffset();
         this.width = (int) iatt.getWidth(); 
         this.height = (int) iatt.getHeight();
         this.theta = 0.0;  /// TODO ????
         this.species = species;
+        this.setMediaAsset(ma);
         //this.name = this.annot_uuid + " on " + ma.getUUID();
     }
 
