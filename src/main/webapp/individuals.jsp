@@ -1441,7 +1441,7 @@ System.out.println("name -> "+thisName);
 
                       <tr>
                         <td>
-xxxxxx
+
 	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
                         	<span class="caption"><%=props.getProperty("location") %>: 
                         		<%
