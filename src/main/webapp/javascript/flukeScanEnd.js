@@ -159,6 +159,16 @@ function init() {
         chartShownFirstTime = true;
         //displayChart(encounterNumber, flukeMatchingData[results[0]][columnInfo.encounterID.i]);
     }
+
+
+    window.addEventListener("keydown", function(ev) {
+        var w = ev.keyCode;
+        if ((w == 38) || (w == 40)) {
+            ev.preventDefault();
+            nudge(w - 39);
+        }
+    }, false);
+
 }
 
 
