@@ -166,6 +166,13 @@ margin-bottom: 8px !important;
  
         
         <%
+
+//now remove encounters this user cannot see
+for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
+	Encounter enc = (Encounter)rEncounters.get(i);
+	if (!enc.canUserAccess(request)) rEncounters.remove(i);
+}
+
         //Vector haveGPSData = new Vector();
         int rEncountersSize=rEncounters.size();
         int count = 0;
