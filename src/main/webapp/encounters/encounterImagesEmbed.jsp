@@ -156,9 +156,20 @@ int imageCount = 0;
 
 <%
 if(CommonConfiguration.useSpotPatternRecognition(context)){
+	
+	String isDorsalFin="";
+	String genusSpecies="";
+	if((imageEnc.getGenus()!=null)&&(imageEnc.getSpecificEpithet()!=null)){genusSpecies=imageEnc.getGenus()+imageEnc.getSpecificEpithet();}
+	if((genusSpecies.equals("Physetermacrocephalus"))||(genusSpecies.equals("Megapteranovaeangliae"))){
+		isDorsalFin="&isDorsalFin=false";
+	}
+	else if(genusSpecies.equals("Tursiopstruncatus")){
+		isDorsalFin="&isDorsalFin=true";
+	}
+	
 %>
 <li>
-	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("matchPattern") %></a>
+	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a>
 </li>
 <%
 }
