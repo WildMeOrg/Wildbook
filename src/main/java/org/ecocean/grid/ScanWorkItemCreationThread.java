@@ -223,7 +223,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         String baseDir = ServletUtilities.dataDir(context, rootDir);
         ArrayList<Encounter> qencs = new ArrayList<Encounter>();
         qencs.add(myShepherd.getEncounter(encounterNumber));
-        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species));
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID);
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");

@@ -22,6 +22,8 @@ import org.joda.time.DateTime;
 
 public class IBEISIA {
 
+    private static String SERVICE_NAME = "IBEISIA";
+
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
@@ -38,7 +40,7 @@ public class IBEISIA {
         //see: https://erotemic.github.io/ibeis/ibeis.web.html?highlight=add_images_json#ibeis.web.app.add_images_json
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uri_list", new ArrayList<JSONObject>());
-        map.put("image_uuid_list", new ArrayList<String>());
+        map.put("image_uuid_list", new ArrayList<JSONObject>());
         map.put("image_width_list", new ArrayList<Integer>());
         map.put("image_height_list", new ArrayList<Integer>());
         map.put("image_time_posix_list", new ArrayList<Integer>());
@@ -46,7 +48,7 @@ public class IBEISIA {
         map.put("image_gps_lon_list", new ArrayList<Double>());
 
         for (MediaAsset ma : mas) {
-            map.get("image_uuid_list").add(ma.getUUID());
+            map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
             ImageAttributes iatt = null;
@@ -91,8 +93,8 @@ public class IBEISIA {
         map.put("annot_bbox_list", new ArrayList<int[]>());
 
         for (Annotation ann : anns) {
-            map.get("image_uuid_list").add(ann.getMediaAsset().getUUID());
-            map.get("annot_uuid_list").add(ann.getUUID());
+            map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
+            map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
             map.get("annot_species_list").add(ann.getSpecies());
             map.get("annot_bbox_list").add(ann.getBbox());
         }
@@ -108,19 +110,94 @@ public class IBEISIA {
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", "https://www.sito.org/cgi-bin/test.cgi");  //TODO read from config, or derive?
-        ArrayList<String> qlist = new ArrayList<String>();
-        ArrayList<String> tlist = new ArrayList<String>();
+        ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
+        ArrayList<JSONObject> tlist = new ArrayList<JSONObject>();
 
         for (Annotation ann : qanns) {
-            qlist.add(ann.getUUID());
+            qlist.add(toFancyUUID(ann.getUUID()));
         }
         for (Annotation ann : tanns) {
-            tlist.add(ann.getUUID());
+            tlist.add(toFancyUUID(ann.getUUID()));
         }
         map.put("qannot_uuid_list", qlist);
         map.put("adata_annot_uuid_list", tlist);
 
         return RestClient.post(url, new JSONObject(map));
+    }
+
+
+    public static JSONObject getJobStatus(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
+        URL url = new URL(u + "?jobid=" + jobID);
+        return RestClient.get(url);
+    }
+
+    public static JSONObject getJobResult(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobResult is not set");
+        URL url = new URL(u + "?jobid=" + jobID);
+        return RestClient.get(url);
+    }
+
+
+    //null return means we are still waiting... JSONObject will have success property = true/false (and results or error)
+    /*
+       we get back an *array* like this:
+             json_result: "[{"qaid": 492, "daid_list": [493], "score_list": [1.5081310272216797], "qauuid": {"__UUID__": "f6b27df2-5d81-4e62-b770-b56fe1dcf5c2"}, "dauuid_list": [{"__UUID__": "d88c974b-c746-49db-8178-e7b7414708cf"}]}]"
+       there would be one element for each queried annotation (492 here)... but we are FOR NOW always only sending one.  we should TODO adapt for many-to-many eventually?
+    */
+    public static JSONObject getTaskResults(String taskID, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) {
+            rtn.put("success", false);
+            rtn.put("error", "could not find any log of task ID = " + taskID);
+            return rtn;
+        }
+        JSONObject last = logs.get(logs.size() - 1).getStatusJson();
+
+// note: jobstatus == completed seems to be the thing we want
+        if ("getJobStatus".equals(last.getString("_action")) && "unknown".equals(last.getJSONObject("_response").getJSONObject("response").getString("jobstatus"))) {
+            rtn.put("success", false);
+            rtn.put("details", last.get("_response"));
+            rtn.put("error", "final log for task " + taskID + " was an unknown jobstatus, so results were not obtained");
+            return rtn;
+        }
+
+        if (last.getString("_action").equals("getJobResult")) {
+            if (last.getJSONObject("_response").getJSONObject("status").getBoolean("success") && "ok".equals(last.getJSONObject("_response").getJSONObject("response").getString("status"))) {
+                rtn.put("success", true);
+                rtn.put("_debug", last);
+
+                JSONArray resOut = new JSONArray();
+                JSONArray res = new JSONArray(last.getJSONObject("_response").getJSONObject("response").getString("json_result")); //"should never" fail. HA!
+
+                for (int i = 0 ; i < res.length() ; i++) {
+                    JSONObject el = new JSONObject();
+                    el.put("score_list", res.getJSONObject(i).get("score_list"));
+                    el.put("query_annot_uuid", fromFancyUUID(res.getJSONObject(i).getJSONObject("qauuid")));
+                    JSONArray matches = new JSONArray();
+                    JSONArray dlist = res.getJSONObject(i).getJSONArray("dauuid_list");
+                    for (int d = 0 ; d < dlist.length() ; d++) {
+                        matches.put(fromFancyUUID(dlist.getJSONObject(d)));
+                    }
+                    el.put("match_annot_list", matches);
+                    resOut.put(el);
+                }
+
+                rtn.put("results", resOut);
+
+            } else {
+                rtn.put("error", "getJobResult for task " + taskID + " logged as either non successful or with a status not OK");
+                rtn.put("details", last.get("_response"));
+                rtn.put("success", false);
+            }
+            return rtn;
+        }
+
+        //TODO we could also do a comparison with when it was started to enable a failure due to timeout
+        return null;  //if we fall through, it means we are still waiting ......
     }
 
 
@@ -146,13 +223,16 @@ public class IBEISIA {
 
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species) {
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID) {
         //TODO possibly could exclude qencs from tencs?
+        String jobID = "-1";
         JSONObject results = new JSONObject();
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> qanns = new ArrayList<Annotation>();
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        log(taskID, jobID, new JSONObject("{\"_action\": \"init\"}"), myShepherd);
 
         try {
             for (Encounter enc : queryEncs) {
@@ -180,7 +260,11 @@ public class IBEISIA {
 
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
-            results.put("sendIdentify", sendIdentify(qanns, tanns));
+            JSONObject identRtn = sendIdentify(qanns, tanns);
+            results.put("sendIdentify", identRtn);
+
+            //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
+            jobID = identRtn.get("response").toString();
             results.put("success", true);
 
         } catch (Exception ex) {  //most likely from sendFoo()
@@ -190,7 +274,41 @@ public class IBEISIA {
             results.put("error", ex.toString());
         }
 
+        JSONObject jlog = new JSONObject();
+        jlog.put("_action", "sendIdentify");
+        jlog.put("_response", results);
+        log(taskID, jobID, jlog, myShepherd);
+
         return results;
+    }
+
+
+    public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, Shepherd myShepherd) {
+        IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
+        log.save(myShepherd);
+        return log;
+    }
+
+
+    //this finds the taskID associated with this IBEIS-IA jobID
+    public static String findTaskIDFromJobID(String jobID, Shepherd myShepherd) {
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
+        if (logs == null) return null;
+        for (IdentityServiceLog l : logs) {
+            if (l.getTaskID() != null) return l.getTaskID();  //get first one we find. too bad!
+        }
+        return null;
+    }
+
+
+    // IBEIS-IA wants a uuid as a single-key json object like: {"__UUID__": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx"} so we use these to go back and forth
+    public static String fromFancyUUID(JSONObject u) {
+        return u.getString("__UUID__");
+    }
+    public static JSONObject toFancyUUID(String u) {
+        JSONObject j = new JSONObject();
+        j.put("__UUID__", u);
+        return j;
     }
 
 
