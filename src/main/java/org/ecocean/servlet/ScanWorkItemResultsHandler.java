@@ -121,7 +121,9 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       }
 
 
-      int returnedSize = returnedResults.size();
+      int returnedSize = 0;
+      
+      if(returnedResults!=null){returnedSize=returnedResults.size();}
 
       System.out.println(".....trying to check in # results:  "+returnedSize);
 

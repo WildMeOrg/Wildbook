@@ -282,13 +282,75 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
         public int compare(WildbookInstance a1, WildbookInstance b1)
         {
-          double a1_adjustedValue=0;
-          double b1_adjustedValue=0;
+          
+            
+          /*
+          //define our weights
+          double intersectionWeight=0.127;
+          double dtwWeight=0.094;
+          double i3sWeight=0.181;
+          double patterningCodeWeight=1;
+          double eucWeight=0.491;
+          double swaleWeight=0.35;
+          double msmWeight=0.435;
+          
+          
+            
+            //Create our voting council
+            double a1VoteTotal=0;
+            double b1VoteTotal=0;
+            
+            MatchObject a1mo = a1.getMatchObject();
+            MatchObject b1mo = b1.getMatchObject();
+            
+            //Intersection
+            
+            if(a1mo.getIntersectionCount()>b1mo.getIntersectionCount()){a1VoteTotal=a1VoteTotal+1*intersectionWeight;}
+            else if(b1mo.getIntersectionCount()>a1mo.getIntersectionCount()){b1VoteTotal=b1VoteTotal+1*intersectionWeight;}
+            
+            //FastDTW
+            
+            if(a1mo.getLeftFastDTWResult()<b1mo.getLeftFastDTWResult()){a1VoteTotal=a1VoteTotal+1*dtwWeight;}
+            else if(b1mo.getLeftFastDTWResult()<a1mo.getLeftFastDTWResult()){b1VoteTotal=b1VoteTotal+1*dtwWeight;}
+            
+            //I3S
+            
+            if(a1mo.getI3SMatchValue()<b1mo.getI3SMatchValue()){a1VoteTotal=a1VoteTotal+1*i3sWeight;}
+            else if(b1mo.getI3SMatchValue()<a1mo.getI3SMatchValue()){b1VoteTotal=b1VoteTotal+1*i3sWeight;}
+            
+            //MSM
+            
+            if(a1mo.getMSMValue()<b1mo.getMSMValue()){a1VoteTotal=a1VoteTotal+1*msmWeight;}
+            else if(b1mo.getMSMValue()<a1mo.getMSMValue()){b1VoteTotal=b1VoteTotal+1*msmWeight;}
+            
+            //SWALE
+
+            if(a1mo.getSwaleValue()>b1mo.getSwaleValue()){a1VoteTotal=a1VoteTotal+1*swaleWeight;}
+            else if(b1mo.getSwaleValue()>a1mo.getSwaleValue()){b1VoteTotal=b1VoteTotal+1*swaleWeight;}
+            
+            //EUCLIDEAN
+
+            if(a1mo.getEuclideanDistanceValue()<b1mo.getEuclideanDistanceValue()){a1VoteTotal=a1VoteTotal+1*eucWeight;}
+            else if(b1mo.getEuclideanDistanceValue()<a1mo.getEuclideanDistanceValue()){b1VoteTotal=b1VoteTotal+1*eucWeight;}
+            
+            //PatterningCode
+
+            if(a1mo.getPatterningCodeDiff()<b1mo.getPatterningCodeDiff()){a1VoteTotal=a1VoteTotal+1*patterningCodeWeight;}
+            else if(b1mo.getPatterningCodeDiff()<a1mo.getPatterningCodeDiff()){b1VoteTotal=b1VoteTotal+1*patterningCodeWeight;}
+            
+            
+            return Double.compare(a1VoteTotal, b1VoteTotal);
+            
+            */
+            
+              
+               double a1_adjustedValue=0;
+                double b1_adjustedValue=0;
 
             
-            Instance a1Example = a1.getInstance();
-            Instance b1Example = b1.getInstance();
-            
+              Instance a1Example = a1.getInstance();
+              Instance b1Example = b1.getInstance();
+          
               a1Example.setDataset(instances);
               a1Example.setValue(0, a1.getMatchObject().getIntersectionCount());
               a1Example.setValue(1, a1.getMatchObject().getLeftFastDTWResult().doubleValue());
@@ -317,7 +379,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               
               try{
                 aClass=booster.classifyInstance(a1Example);
-                //System.out.println("Predicted Aclass: "+aClass);
+                System.out.println("Predicted Aclass: "+aClass);
                 
                 //int ArrayResultPosition=0;
                 //if(aClass==1.0)ArrayResultPosition=1;
@@ -331,16 +393,12 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               }
               catch(Exception e){e.printStackTrace();}
             
+              if(a1_adjustedValue > b1_adjustedValue){return -1;}
+              else if(a1_adjustedValue < b1_adjustedValue){return 1;}
+              else{return 0;}
               
-              //System.out.println("     COMPARING: "+a1_adjustedValue+ " to "+b1_adjustedValue);
-            
               
-                
-                
               
-                if(a1_adjustedValue > b1_adjustedValue){return -1;}
-                else if(a1_adjustedValue < b1_adjustedValue){return 1;}
-                else{return 0;}
              
         }
       });
@@ -406,6 +464,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         
         
         result.add(new JsonPrimitive(fDistribution[0]));
+      //result.add(new JsonPrimitive(""));
         result.add(new JsonPrimitive(0));
         
         if(mo.getIntersectionCount()!=null){
