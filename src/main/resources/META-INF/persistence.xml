@@ -9,6 +9,7 @@
     <mapping-file>org/ecocean/package.jdo</mapping-file>
     <mapping-file>org/ecocean/genetics/package.jdo</mapping-file>
     <mapping-file>org/ecocean/media/package.jdo</mapping-file>
+    <mapping-file>org/ecocean/identity/package.jdo</mapping-file>
     <mapping-file>org/ecocean/tag/package.jdo</mapping-file>
         <properties>
             <property name="datanucleus.ConnectionDriverName" value="com.mysql.jdbc.Driver"/>
