@@ -106,7 +106,7 @@
                 [urls]
                 
 				/DeleteAllDataPermanently = authc, roles[destroyer]
-				
+				/appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				/appadmin/** = authc, roles[admin]
 				 /logs/** = authc, roles[admin]
              
@@ -128,7 +128,7 @@
 				  /InterconnectSubmitSpots = authc, roles[researcher]
 				  /interconnectSubmitSpots= authc, roles[researcher]
 				   /ImportSRGD = authc, roles[admin]
-				   /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
+				   
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
 				   /UpdateEmailAddress = authc, roles[admin]
