@@ -424,14 +424,15 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                   <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
                                 <% 
                                 }
-                                %>
+                                 
+                            } //end if admin 
+                            %>
                                 <li class="divider"></li>
                                   <li class="dropdown-header"><%=props.getProperty("grid")%></li>
                                   
                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp?context=context0"><%=props.getProperty("gridAdministration")%></a></li>
                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                              <%  
-                            } //end if admin %>
+                              
                         </ul>
                       </li>
                     </ul>
