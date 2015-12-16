@@ -73,7 +73,7 @@ public class ImportExcel extends HttpServlet {
 
   // the image file is in a folder whose name is somewhat difficult to derive
   // this will return a File f, and f.exists() might be true or false depending on the success of the search
-  private File getEncDataFolder(File imgDir, Encounter enc, StringBuffer messages) {
+  static File getEncDataFolder(File imgDir, Encounter enc, StringBuffer messages) {
     String fName = "";
     String imgName = enc.getCatalogNumber();
     String photographer = enc.getPhotographerName();
@@ -95,18 +95,28 @@ public class ImportExcel extends HttpServlet {
   
   
   
-  private File getEncPicture(File imgDir, Encounter enc, StringBuffer messages) {
+  static File getEncPicture(File imgDir, Encounter enc, StringBuffer messages) {
     File dataFolder = getEncDataFolder(imgDir, enc, messages);
     File pFile = new File(dataFolder, enc.getCatalogNumber()+".jpg");
     return pFile;
   }
   
-  private File getEncFGP(File imgDir, Encounter enc, StringBuffer messages) {
+  static File getEncFGP(File imgDir, Encounter enc, StringBuffer messages) {
     File dataFolder = getEncDataFolder(imgDir, enc, messages);
     File fgpFile = new File(dataFolder, enc.getCatalogNumber()+".fgp");
     return fgpFile;
   }
   
+  // I'll let this function live here until I can download the latest version of com.reijns.I3S
+  static ArrayList<SuperSpot> loadFgpSpots(DataInputStream data, int n) throws IOException {
+    ArrayList<SuperSpot> out = new ArrayList<SuperSpot>();
+    for (int i=0; i<n; i++) {
+      double x = data.readDouble();
+      double y = data.readDouble();
+      out.add(new SuperSpot(x,y));
+    }
+    return out;
+  }
   
   
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -371,10 +381,12 @@ public class ImportExcel extends HttpServlet {
             
             
             
-            // IMAGE FINDING SECTION
+            // DATA FINDING SECTION
             if (imageDir.exists() && encID!=null) {
               File dataFolder = getEncDataFolder(imageDir, enc, messages);
               System.out.println("\tdata folder: "+dataFolder.getAbsolutePath());
+              
+              // Find and load shark pic:
               File pFile = new File(dataFolder, encID+".jpg");
               if (pFile.exists()) {
                 SinglePhotoVideo picture = new SinglePhotoVideo(encID, pFile);
@@ -386,6 +398,37 @@ public class ImportExcel extends HttpServlet {
                 System.out.println("\timage: NOT FOUND");
                 messages.append("<li>No image found for encounter "+encID+" on row "+rowNum+".</li>");
               }
+              
+              // Find and load shark .FGP
+              File fgpFile = new File(dataFolder, encID+".fgp");
+              if (fgpFile.exists() && fgpFile.canRead()) {
+                // inspired by com.reijns.I3S.FgpFileOpen.OpenFgpFile
+                FileInputStream fStream = new FileInputStream(fgpFile);
+                DataInputStream spotData = new DataInputStream(new BufferedInputStream(fStream));
+                                
+                // load reference_spots, which are the first three points in the FGP;
+                ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3);
+                
+                // The next value in the fgp file encodes the number of points.
+                int nPoints = spotData.readInt();
+                
+                ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints);
+                // are normed_spots needed for anything?
+                // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
+                
+                // Now load spots into encounter object; defaults to left side if no flank info
+                if ((flank!=null)&&(flank.equals("R"))){
+                  enc.setRightReferenceSpots(reference_spots);
+                  enc.setRightSpots(spots);
+                }
+                else {
+                  enc.setLeftReferenceSpots(reference_spots);
+                  enc.setSpots(spots);
+                }
+                
+              }
+              
+              
             }
             
             
