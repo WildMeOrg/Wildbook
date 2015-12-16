@@ -118,6 +118,21 @@ public class ImportExcel extends HttpServlet {
     return out;
   }
   
+  /**
+   * Closes the FGP opened as any InputStream descendant.
+   *
+   * copied from com.reijns.I3S.FgpOpenFile.java but made static
+   */
+  static void closeFile(InputStream data) {
+    try {
+      if (data != null) {
+        data.close();
+      }
+    } catch (IOException e) {
+      System.err.println("Caught IOException closing file: " + e.getMessage());
+    }
+  }
+  
   
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
@@ -404,28 +419,38 @@ public class ImportExcel extends HttpServlet {
               if (fgpFile.exists() && fgpFile.canRead()) {
                 // inspired by com.reijns.I3S.FgpFileOpen.OpenFgpFile
                 FileInputStream fStream = new FileInputStream(fgpFile);
+ 
                 DataInputStream spotData = new DataInputStream(new BufferedInputStream(fStream));
-                                
-                // load reference_spots, which are the first three points in the FGP;
-                ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3);
                 
-                // The next value in the fgp file encodes the number of points.
-                int nPoints = spotData.readInt();
-                
-                ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints);
-                // are normed_spots needed for anything?
-                // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
-                
-                // Now load spots into encounter object; defaults to left side if no flank info
-                if ((flank!=null)&&(flank.equals("R"))){
-                  enc.setRightReferenceSpots(reference_spots);
-                  enc.setRightSpots(spots);
+                try {
+                  // load reference_spots, which are the first three points in the FGP;
+                  ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3);
+                  // The next value in the fgp file encodes the number of points.
+                  int nPoints = spotData.readInt();
+                  ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints);
+                  // are normed_spots needed for anything?
+                  // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
+                  // Now load spots into encounter object; defaults to left side if no flank info
+                  if ((flank!=null)&&(flank.equals("R"))){
+                    enc.setRightReferenceSpots(reference_spots);
+                    enc.setRightSpots(spots);
+                  }
+                  else {
+                    enc.setLeftReferenceSpots(reference_spots);
+                    enc.setSpots(spots);
+                  }
+                } catch (IOException e) {
+                  System.out.println("\t\tERROR reading FGP file for encounter "+encID+" on row "+rowNum+".</li>");
+                } finally {
+                  closeFile(spotData);
                 }
-                else {
-                  enc.setLeftReferenceSpots(reference_spots);
-                  enc.setSpots(spots);
-                }
-                
+                closeFile(fStream);
+                System.out.println("\tSpot File: "+encID+".fgp");
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added spots from " + encID+".fgp.</p>");
+              }
+              else {
+                System.out.println("\tFGP file: NOT FOUND");
+                messages.append("<li>No FGP file found for encounter "+encID+" on row "+rowNum+".</li>");
               }
               
               
