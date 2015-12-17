@@ -23,6 +23,7 @@ import com.oreilly.servlet.multipart.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.ecocean.mmutil.FileUtilities;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -212,7 +213,7 @@ public class ImportExcel extends HttpServlet {
           Iterator<Row> rowIterator = sheet.iterator();
           
           // Little temporary memory-saver
-          int maxRows = 400;
+          int maxRows = 4000000;
           
           int rowNum = 1;
           // eat non-data rows
@@ -225,10 +226,11 @@ public class ImportExcel extends HttpServlet {
           int nNewSharks=0;
           int nNewSharksAccordingSheet=0;
           boolean overwriting=false;
+          ArrayList<String> missingData = new ArrayList<String>();
           
           // objects for getting images
           String imageDirName = "shark_imgs/";
-          File imageDir = new File(webappsDir, imageDirName);
+          File imageDir = new File("/data/sharkimgs");
           if (!imageDir.exists()) {
             String warn = "Image directory was not found!";
             System.out.println(warn);
@@ -404,19 +406,39 @@ public class ImportExcel extends HttpServlet {
               // Find and load shark pic:
               File pFile = new File(dataFolder, encID+".jpg");
               if (pFile.exists()) {
-                SinglePhotoVideo picture = new SinglePhotoVideo(encID, pFile);
+                String fname = "noExtract"+encID+".jpg";
+                if ((flank!=null)&&(flank.equals("R"))){
+                  fname = "extractRight"+encID+".jpg";
+                  enc.setRightSpotImageFileName(fname);
+                }
+                else {
+                  fname = "extract"+encID+".jpg";
+                  enc.setSpotImageFileName(fname);
+                }
+                File cpFile = new File(fname);
+                // pFile.renameTo(cpFile);
+                // catches the case where we've already copied this file
+                if (!cpFile.exists()) {
+                  FileUtilities.copyFile(pFile, cpFile);
+                  System.out.println("\timage copied.");
+                } else {
+                  System.out.println("\timage copy already found.");
+                }
+                SinglePhotoVideo picture = new SinglePhotoVideo(encID, cpFile);
                 enc.addSinglePhotoVideo(picture);
                 System.out.println("\timage: "+picture.getFilename());
                 enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added photo " + picture.getFilename() + ".</p>");
+              
               }
               else {
                 System.out.println("\timage: NOT FOUND");
-                messages.append("<li>No image found for encounter "+encID+" on row "+rowNum+".</li>");
+                missingData.add(encID);
               }
               
               // Find and load shark .FGP
               File fgpFile = new File(dataFolder, encID+".fgp");
               if (fgpFile.exists() && fgpFile.canRead()) {
+                System.out.println("\tSpot File: "+encID+".fgp");
                 // inspired by com.reijns.I3S.FgpFileOpen.OpenFgpFile
                 FileInputStream fStream = new FileInputStream(fgpFile);
  
@@ -434,26 +456,31 @@ public class ImportExcel extends HttpServlet {
                   if ((flank!=null)&&(flank.equals("R"))){
                     enc.setRightReferenceSpots(reference_spots);
                     enc.setRightSpots(spots);
+                    enc.setRightSpotImageFileName(encID+".jpg");
+                    enc.hasRightSpotImage = true;
                   }
                   else {
                     enc.setLeftReferenceSpots(reference_spots);
                     enc.setSpots(spots);
+                    enc.setSpotImageFileName("extract"+encID+".jpg");
+                    enc.hasSpotImage = true;
                   }
                 } catch (IOException e) {
-                  System.out.println("\t\tERROR reading FGP file for encounter "+encID+" on row "+rowNum+".</li>");
+                  System.out.println("\t\tIOERROR reading FGP file for encounter "+encID+" on row "+rowNum+".");
                 } finally {
                   closeFile(spotData);
                 }
                 closeFile(fStream);
-                System.out.println("\tSpot File: "+encID+".fgp");
                 enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added spots from " + encID+".fgp.</p>");
               }
               else {
                 System.out.println("\tFGP file: NOT FOUND");
-                messages.append("<li>No FGP file found for encounter "+encID+" on row "+rowNum+".</li>");
               }
               
               
+            } else {
+              System.out.println("\t Data Folder: NOT FOUND");
+              missingData.add(encID);
             }
             
             
@@ -512,6 +539,14 @@ public class ImportExcel extends HttpServlet {
             out.println("OVERWRITE ALERT:\tThe uploaded spreadsheet overwrote data already in the DB.");
           }
           
+          // add message for missing data
+          if (!missingData.isEmpty()) {
+            messages.append("<p>A number of encounters were uploaded whose data appear to be missing. Missing filenames are: <ul><li>");
+            for (String n: missingData) {
+              messages.append(n+", ");
+            }
+            messages.append("</li></ul></p>");
+          }
           
           
         } // endif (successfullyWroteFile)
@@ -537,9 +572,12 @@ public class ImportExcel extends HttpServlet {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
           out.println(ServletUtilities.getHeader(request));
-          out.println("<p><strong>Success!</strong> I have successfully uploaded and imported your Excel file.</p>");
+          
+          
+          out.println("<p><strong>Success!</strong> I have successfully uploaded and imported "+fileName+".</p>");
 
           if(messages.toString().equals("")){messages.append("None");}
+                    
           out.println("<p>The following error messages were reported during the import process:<br /><ul>"+messages+"</ul></p>" );
                      
           
