@@ -51,6 +51,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.PrefixFileFilter;
+
 /**
  * Uploads an Excel file for data import
  *
@@ -77,8 +81,7 @@ public class ImportExcel extends HttpServlet {
   static File getEncDataFolder(File imgDir, Encounter enc, StringBuffer messages) {
     String fName = "";
     String imgName = enc.getCatalogNumber();
-    String photographer = enc.getPhotographerName();
-    
+    String photographer = enc.getPhotographerName();    
     if (imgName != null && photographer != null) {
       // the data folder naming convention used in our data is:
       fName = imgName.substring(0,9) + photographer;
@@ -93,6 +96,34 @@ public class ImportExcel extends HttpServlet {
     }
     return dataFolder;
   }
+  
+  // should find some folders that #1 misses
+  // defaults to the nameless empty dir, in the parent imgDir you supplied
+  static File getEncDataFolder2(File imgDir, Encounter enc, StringBuffer messages) {
+    String imgName = enc.getCatalogNumber()+".jpg";
+    String dirPrefix = imgName.substring(0,9);    
+    
+    // generate list of all possible folder names (concatenating two lists of possibilities)
+    String[] possFolders1 = imgDir.list( new PrefixFileFilter(dirPrefix));
+    String[] possFolders2 = imgDir.list( new PrefixFileFilter("_"+dirPrefix));
+    String[] possibleFolders = new String[possFolders1.length + possFolders2.length];
+    System.arraycopy(possFolders1, 0, possibleFolders, 0, possFolders1.length);
+    System.arraycopy(possFolders2, 0, possibleFolders, possFolders1.length, possFolders2.length);
+    
+    // Check each possible folder, and return whichever one has the right image in it
+    for (String fName: possibleFolders) {
+      File testF = new File(imgDir, fName);
+      if (testF.exists() && testF.isDirectory()) {
+        File outF = new File(testF, imgName);
+        if (outF.exists() && outF.isFile()) {
+          return testF;
+        }
+      } 
+    }
+    return new File(imgDir, "");
+  }
+  
+  
   
   
   
@@ -114,6 +145,9 @@ public class ImportExcel extends HttpServlet {
     for (int i=0; i<n; i++) {
       double x = data.readDouble();
       double y = data.readDouble();
+      if (Double.isNaN(x) || Double.isNaN(y)) {
+        throw new IOException("Caught IOException on parsing fgp file: a spot coordinate was NaN.");
+      };
       out.add(new SuperSpot(x,y));
     }
     return out;
@@ -164,6 +198,7 @@ public class ImportExcel extends HttpServlet {
     boolean successfullyWroteFile=false;
 
     File finalFile=new File(tempSubdir,"temp.csv");
+    
 
     try {
       MultipartParser mp = new MultipartParser(request, (CommonConfiguration.getMaxMediaSizeInMegabytes(context) * 1048576));
@@ -215,6 +250,10 @@ public class ImportExcel extends HttpServlet {
           // Little temporary memory-saver
           int maxRows = 4000000;
           
+          // how many blank excel lines it reads before it decides the file is empty
+          int endSheetSensitivity=3;
+          int blankRows=0;
+          
           int rowNum = 1;
           // eat non-data rows
           while (rowIterator.hasNext() && rowNum < 3) {
@@ -229,8 +268,8 @@ public class ImportExcel extends HttpServlet {
           ArrayList<String> missingData = new ArrayList<String>();
           
           // objects for getting images
-          String imageDirName = "shark_imgs/";
-          File imageDir = new File("/data/sharkimgs");
+          String imageDirName = "/data/shark_imgs/";
+          File imageDir = new File(imageDirName);
           if (!imageDir.exists()) {
             String warn = "Image directory was not found!";
             System.out.println(warn);
@@ -238,7 +277,7 @@ public class ImportExcel extends HttpServlet {
           }
 
           
-          while (rowIterator.hasNext() && rowNum < maxRows)
+          while (rowIterator.hasNext() && rowNum < maxRows && blankRows < endSheetSensitivity)
           {
             System.out.println("Processing row "+rowNum+". Data combed:");
             boolean newEncounter=true;
@@ -259,8 +298,13 @@ public class ImportExcel extends HttpServlet {
             
             // Because there is one unique photo per encounter, sample_ID is the image name in row 3
             Cell imageNameCell = row.getCell(2);
+            if (imageNameCell==null){
+              blankRows += 1;
+              continue;
+            }
             String encID = imageNameCell.getStringCellValue();
             if( (encID!=null) && !encID.equals("") ) {
+              blankRows = 0;
               System.out.println("\tEncounter ID: "+ encID);
               
               if(myShepherd.isEncounter(encID)){
@@ -268,16 +312,21 @@ public class ImportExcel extends HttpServlet {
                 enc.setOccurrenceID("-1");
                 newEncounter=false;
                 overwriting=true;
+                System.out.println("/tEncounter already in db.");
               }
               else{
                 enc.setCatalogNumber(encID);
                 enc.setState("approved");
+                System.out.println("/tEncounter added to DB.");
               }
             }
             else {
+              blankRows += 1;
               ok2import = false;
-              messages.append("<li>Row "+rowNum+": could not find sample/encounter ID in the first column of row "+rowNum+".</li>");
+              // messages.append("<li>Row "+rowNum+": could not find sample/encounter ID in the first column of row "+rowNum+".</li>");
               System.out.println("          Could not find sample/encounter ID in the first column of row "+rowNum+".");
+              // don't do any more parsing if there's no encID
+              continue;
             }
             
             Cell sharkIDCell = row.getCell(1);
@@ -400,7 +449,7 @@ public class ImportExcel extends HttpServlet {
             
             // DATA FINDING SECTION
             if (imageDir.exists() && encID!=null) {
-              File dataFolder = getEncDataFolder(imageDir, enc, messages);
+              File dataFolder = getEncDataFolder2(imageDir, enc, messages);
               System.out.println("\tdata folder: "+dataFolder.getAbsolutePath());
               
               // Find and load shark pic:
@@ -409,25 +458,35 @@ public class ImportExcel extends HttpServlet {
                 String fname = "noExtract"+encID+".jpg";
                 if ((flank!=null)&&(flank.equals("R"))){
                   fname = "extractRight"+encID+".jpg";
-                  enc.setRightSpotImageFileName(fname);
                 }
                 else {
                   fname = "extract"+encID+".jpg";
-                  enc.setSpotImageFileName(fname);
                 }
-                File cpFile = new File(fname);
+                String contFolder = pFile.getParent();
+                String fullFname = contFolder+"/"+fname;
+                File cpFile = new File(fullFname);
                 // pFile.renameTo(cpFile);
                 // catches the case where we've already copied this file
                 if (!cpFile.exists()) {
                   FileUtilities.copyFile(pFile, cpFile);
-                  System.out.println("\timage copied.");
+                  System.out.println("\timage copied to "+fullFname+".");
                 } else {
-                  System.out.println("\timage copy already found.");
+                  System.out.println("\timage copy already found in "+fullFname+".");
                 }
                 SinglePhotoVideo picture = new SinglePhotoVideo(encID, cpFile);
-                enc.addSinglePhotoVideo(picture);
-                System.out.println("\timage: "+picture.getFilename());
-                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added photo " + picture.getFilename() + ".</p>");
+                // check to make sure this encounter isn't already linked to this picture
+                if (!enc.getRightSpotImageFileName().equals(picture.getFilename()) & !enc.spotImageFileName.equals(picture.getFilename())){
+                  // link enc->pic
+                  if ((flank!=null)&&(flank.equals("R"))){
+                    enc.setRightSpotImageFileName(fname);
+                  } else {
+                    enc.setSpotImageFileName(fname);
+                  }
+                  enc.addSinglePhotoVideo(picture);
+                  enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath), picture, false);
+                  System.out.println("\timage: "+picture.getFilename());
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added photo " + picture.getFilename() + ".</p>");
+                }
               
               }
               else {
@@ -456,13 +515,11 @@ public class ImportExcel extends HttpServlet {
                   if ((flank!=null)&&(flank.equals("R"))){
                     enc.setRightReferenceSpots(reference_spots);
                     enc.setRightSpots(spots);
-                    enc.setRightSpotImageFileName(encID+".jpg");
                     enc.hasRightSpotImage = true;
                   }
                   else {
                     enc.setLeftReferenceSpots(reference_spots);
                     enc.setSpots(spots);
-                    enc.setSpotImageFileName("extract"+encID+".jpg");
                     enc.hasSpotImage = true;
                   }
                 } catch (IOException e) {
@@ -541,9 +598,12 @@ public class ImportExcel extends HttpServlet {
           
           // add message for missing data
           if (!missingData.isEmpty()) {
-            messages.append("<p>A number of encounters were uploaded whose data appear to be missing. Missing filenames are: <ul><li>");
+            String dataWarn = "("+fileName+"): A number of encounters were uploaded whose data appear to be missing. Missing filenames are:";
+            messages.append("<p>"+dataWarn+"<ul><li>");
+            System.out.println(dataWarn+"\n\t");
             for (String n: missingData) {
               messages.append(n+", ");
+              System.out.print(n+", ");
             }
             messages.append("</li></ul></p>");
           }
