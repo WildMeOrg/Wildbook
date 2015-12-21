@@ -213,16 +213,21 @@ public class ImportExcel extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
-    System.out.println("\n\nStarting ImportExcel servlet...");
+    System.out.println("\n\n"+new java.util.Date().toString()+": Starting ImportExcel servlet.");
 
     //setup data dir
+    System.out.println("Beginning directory creation...");
     String rootWebappPath = getServletContext().getRealPath("/");
+    System.out.println("\twebapp path:\t"+rootWebappPath);
     File webappsDir = new File(rootWebappPath).getParentFile();
+    System.out.println("\twebapps dir:\t"+webappsDir.getAbsolutePath());
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
+    System.out.println("\tdata dir:\t"+shepherdDataDir.getAbsolutePath());
     File tempSubdir = new File(webappsDir, "temp");
     if(!tempSubdir.exists()){tempSubdir.mkdirs();}
-    System.out.println("\n\n     Finished directory creation...");
+    System.out.println("\ttemp subdir:\t"+tempSubdir.getAbsolutePath());
+    System.out.println("Finished directory creation.\n");
 
 
     //set up for response
@@ -491,6 +496,7 @@ public class ImportExcel extends HttpServlet {
                   + photographer + ".</p>");
             }
             
+            /* disabled for now bc we don't support dynamic numeric properties; I recall jason saying these fields not needed.
             try {
               // # sharks at cave
               Cell sharksCaveCell = row.getCell(19);
@@ -504,7 +510,7 @@ public class ImportExcel extends HttpServlet {
             catch (Exception e) {
               System.out.println("\t# sharks in cave: COULD NOT PARSE");
             }
-
+            
             try {
               // # sharks at overhang
               Cell sharksOverhangCell = row.getCell(20);
@@ -518,6 +524,7 @@ public class ImportExcel extends HttpServlet {
             catch (Exception e) {
               System.out.println("\t# sharks in overhang: COULD NOT PARSE");
             }
+            */
 
                                     
             // lat/long section
