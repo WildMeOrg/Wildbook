@@ -97,6 +97,45 @@ public class ImportExcel extends HttpServlet {
     return dataFolder;
   }
   
+  // Somewhat tedious; parses a string of the type "151° 15’ 50 E" and returns the signed decimal repres
+  static Double degStrToDouble(String DMS) {
+    int i=0;
+    String deg = "";
+    while (Character.isDigit(DMS.charAt(i))) {
+      deg += DMS.charAt(i);
+      i += 1;
+    };
+    while (!Character.isDigit(DMS.charAt(i))) {
+      i += 1;
+    }
+    String min = "";
+    while (Character.isDigit(DMS.charAt(i))) {
+      min += DMS.charAt(i);
+      i += 1;
+    };
+    while (!Character.isDigit(DMS.charAt(i))) {
+      i += 1;
+    }
+    String sec = "";
+    while (Character.isDigit(DMS.charAt(i))) {
+      sec += DMS.charAt(i);
+      i += 1;
+    };
+    int D = Integer.parseInt(deg);
+    int M = Integer.parseInt(min);
+    int S = Integer.parseInt(sec);
+    Double mag = D + (M/60.0) + (S/3600.0);
+    int sign = 1;
+    while (!Character.isLetter(DMS.charAt(i))) {
+      i += 1;
+    }
+    if (Character.isLetter(DMS.charAt(i))) {
+      char c = DMS.charAt(i);
+      if ( c=='S' || c=='s' || c=='W' || c=='w' ) sign = -1;
+    }
+    return mag*sign;
+  }
+  
   // should find some folders that #1 misses
   // defaults to the nameless empty dir, in the parent imgDir you supplied
   static File getEncDataFolder2(File imgDir, Encounter enc, StringBuffer messages) {
@@ -291,7 +330,12 @@ public class ImportExcel extends HttpServlet {
             
             // the row object will now be parsed to make each event
             Cell newSharkSheetCell = row.getCell(0);
+            if (newSharkSheetCell==null){
+              blankRows+=1;
+              continue;
+            }
             String newSharkSheet = newSharkSheetCell.getStringCellValue();
+            
             // TODO: make this a lookup rather than trusting the sheet;
             boolean newSharkInSheet = ( newSharkSheet.equals("New") );
             
@@ -312,12 +356,12 @@ public class ImportExcel extends HttpServlet {
                 enc.setOccurrenceID("-1");
                 newEncounter=false;
                 overwriting=true;
-                System.out.println("/tEncounter already in db.");
+                System.out.println("\tEncounter already in db.");
               }
               else{
                 enc.setCatalogNumber(encID);
                 enc.setState("approved");
-                System.out.println("/tEncounter added to DB.");
+                System.out.println("\tEncounter added to DB.");
               }
             }
             else {
@@ -371,11 +415,14 @@ public class ImportExcel extends HttpServlet {
             try {
               Cell yearCell = row.getCell(4);
               int year = (int) yearCell.getNumericCellValue();
+              // accounts for them only writing the last two year digits
+              if (year<100) year += 2000;
               enc.setYear(year);
               enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set year to " + year + ".</p>"); 
               System.out.println("\tyear: "+year);
 
             }
+            
             catch (Exception e) {
               String warn = "DATA WARNING: did not successfully parse year info for encounter " + enc.getCatalogNumber();
               System.out.println(warn);
@@ -402,7 +449,7 @@ public class ImportExcel extends HttpServlet {
               }
               enc.setMonth(month);
               enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set month to " + month + ".</p>"); 
-              System.out.println("\tmonth: "+month);
+              System.out.println("\tmonth: "+monthStr+", "+month);
             }
             catch (Exception e) {
               String warn = "DATA WARNING: did not successfully parse month info for encounter " + enc.getCatalogNumber();
@@ -420,7 +467,7 @@ public class ImportExcel extends HttpServlet {
               else { enc.setSex("unknown"); }
               
               System.out.println("\tsex: "+sex);
-              enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set sex to " + enc.getSex() + ".</p>");
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set sex to " + sex + ".</p>");
               
             }
 
@@ -430,7 +477,7 @@ public class ImportExcel extends HttpServlet {
             if((flank!=null)&&(!flank.equals(""))){
               enc.setDynamicProperty("flank", flank);
               System.out.println("\tflank: "+flank);
-              enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set flank to " + enc.getDynamicPropertyValue("flank") + ".</p>");
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set flank to " + flank + ".</p>");
             }
 
             Cell photographerCell = row.getCell(8);
@@ -441,10 +488,75 @@ public class ImportExcel extends HttpServlet {
               enc.addComments("<p><em>" + request.getRemoteUser() + " on "
                   + (new java.util.Date()).toString() + "</em><br>"
                   + "ImportExcel process set flank to "
-                  + enc.getPhotographerName() + ".</p>");
+                  + photographer + ".</p>");
             }
-                        
             
+            try {
+              // # sharks at cave
+              Cell sharksCaveCell = row.getCell(19);
+              String sharksCave = sharksCaveCell.getStringCellValue();
+              if(sharksCave!=null && !sharksCave.equals("")) {
+                enc.setDynamicProperty("# sharks in cave", sharksCave);
+                System.out.println("\t# sharks in cave: "+sharksCave);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set #SharksInCave to " + sharksCave + ".</p>");
+              }
+            }
+            catch (Exception e) {
+              System.out.println("\t# sharks in cave: COULD NOT PARSE");
+            }
+
+            try {
+              // # sharks at overhang
+              Cell sharksOverhangCell = row.getCell(20);
+              String sharksOverhang = sharksOverhangCell.getStringCellValue();
+              if(sharksOverhang!=null && !sharksOverhang.equals("")) {
+                enc.setDynamicProperty("# sharks in overhang", sharksOverhang);
+                System.out.println("\t# sharks in overhang: "+sharksOverhang);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set #SharksInOverhang to " + sharksOverhang + ".</p>");
+              }
+            }
+            catch (Exception e) {
+              System.out.println("\t# sharks in overhang: COULD NOT PARSE");
+            }
+
+                                    
+            // lat/long section
+            try {
+              Cell latCell = row.getCell(17);
+              String latString = latCell.getStringCellValue();
+              if(latString!=null && !latString.equals("")) {
+                System.out.println("\tlatitude string: "+latString);
+                Double lat = degStrToDouble(latString);
+                enc.setDecimalLatitude(lat);
+                System.out.println("\tlatitude double: "+lat);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                    + (new java.util.Date()).toString() + "</em><br>"
+                    + "ImportExcel process set latitude to "
+                    + lat + ".</p>");
+              }
+            }
+            catch (Exception e) {
+              System.out.println("\tlatitude string: COULD NOT PARSE");
+            }
+            try {
+              Cell longCell = row.getCell(18);
+              String longString = longCell.getStringCellValue();
+              if(longString!=null && !longString.equals("")) {
+                System.out.println("\tlongitude string: "+longString);
+                Double longit = degStrToDouble(longString);
+                enc.setDecimalLongitude(longit);
+                System.out.println("\tlongitude double: "+longit);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                    + (new java.util.Date()).toString() + "</em><br>"
+                    + "ImportExcel process set longitude to "
+                    + longit + ".</p>");
+              }
+            }
+            catch (Exception e) {
+              System.out.println("\tlongitude string: COULD NOT PARSE");
+            }
+
+
             
             
             // DATA FINDING SECTION
