@@ -44,6 +44,7 @@ import org.ecocean.genetics.*;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.nio.file.Files;
 
 /* imports for dealing with spreadsheets and .xlsx files */
 import org.apache.poi.ss.usermodel.Cell;
@@ -55,16 +56,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.PrefixFileFilter;
 
-/**
- * Uploads an Excel file for data import
- *
- * @author drewblount
- */
 
 /**
+ * Uploads an Excel file for data import
  * Built initially from a copy of Jason Holmberg's org.ecocean.servlet.importer.ImportSRGD
  * @author drewblount
- *
  */
 public class ImportExcel extends HttpServlet {
 
@@ -95,6 +91,49 @@ public class ImportExcel extends HttpServlet {
       System.out.println("\tfName = "+fName); 
     }
     return dataFolder;
+  }
+  
+  //should find some folders that #1 misses
+  // defaults to the nameless empty dir, in the parent imgDir you supplied
+  static File getEncDataFolder2(File imgDir, Encounter enc, StringBuffer messages) {
+    String imgName = enc.getCatalogNumber()+".jpg";
+    String dirPrefix = imgName.substring(0,9);    
+
+    // generate list of all possible folder names (concatenating two lists of possibilities)
+    String[] possFolders1 = imgDir.list( new PrefixFileFilter(dirPrefix));
+    String[] possFolders2 = imgDir.list( new PrefixFileFilter("_"+dirPrefix));
+    String[] possibleFolders = new String[possFolders1.length + possFolders2.length];
+    System.arraycopy(possFolders1, 0, possibleFolders, 0, possFolders1.length);
+    System.arraycopy(possFolders2, 0, possibleFolders, possFolders1.length, possFolders2.length);
+
+    // Check each possible folder, and return whichever one has the right image in it
+    for (String fName: possibleFolders) {
+      File testF = new File(imgDir, fName);
+      if (testF.exists() && testF.isDirectory()) {
+        File outF = new File(testF, imgName);
+        if (outF.exists() && outF.isFile()) {
+          return testF;
+        }
+      } 
+    }
+    return new File(imgDir, "");
+  }
+  
+  // returns the folder containing an encounter's db data.
+  // for encounter abc123, returns dataDir/encounters/a/b/abc123
+  // for encounters whose name cannot be parsed, returns dataDir/encounters/
+  static File getEncDBFolder (File dataDir, String encID) {
+    String subDir = "encounters/";
+    if (encID!=null && encID.length()>1) {
+      subDir += encID.charAt(0) + "/" + encID.charAt(1) + "/";
+    }
+    subDir += encID;
+    File out = new File(dataDir, subDir);
+    out.mkdirs();
+    return out;
+  }
+  static File getEncDBFolder (File dataDir, Encounter enc) {
+    return getEncDBFolder(dataDir, enc.getCatalogNumber());
   }
   
   // Somewhat tedious; parses a string of the type "151° 15’ 50 E" and returns the signed decimal repres
@@ -135,34 +174,6 @@ public class ImportExcel extends HttpServlet {
     }
     return mag*sign;
   }
-  
-  // should find some folders that #1 misses
-  // defaults to the nameless empty dir, in the parent imgDir you supplied
-  static File getEncDataFolder2(File imgDir, Encounter enc, StringBuffer messages) {
-    String imgName = enc.getCatalogNumber()+".jpg";
-    String dirPrefix = imgName.substring(0,9);    
-    
-    // generate list of all possible folder names (concatenating two lists of possibilities)
-    String[] possFolders1 = imgDir.list( new PrefixFileFilter(dirPrefix));
-    String[] possFolders2 = imgDir.list( new PrefixFileFilter("_"+dirPrefix));
-    String[] possibleFolders = new String[possFolders1.length + possFolders2.length];
-    System.arraycopy(possFolders1, 0, possibleFolders, 0, possFolders1.length);
-    System.arraycopy(possFolders2, 0, possibleFolders, possFolders1.length, possFolders2.length);
-    
-    // Check each possible folder, and return whichever one has the right image in it
-    for (String fName: possibleFolders) {
-      File testF = new File(imgDir, fName);
-      if (testF.exists() && testF.isDirectory()) {
-        File outF = new File(testF, imgName);
-        if (outF.exists() && outF.isFile()) {
-          return testF;
-        }
-      } 
-    }
-    return new File(imgDir, "");
-  }
-  
-  
   
   
   
@@ -221,9 +232,13 @@ public class ImportExcel extends HttpServlet {
     System.out.println("\twebapp path:\t"+rootWebappPath);
     File webappsDir = new File(rootWebappPath).getParentFile();
     System.out.println("\twebapps dir:\t"+webappsDir.getAbsolutePath());
+    String dataDirName = CommonConfiguration.getDataDirectoryName(context);
+    System.out.println("\tdata dir name:\t"+dataDirName);
+    //File shepherdDataDir = new File("/data/wildbook_data_dir");
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-    System.out.println("\tdata dir:\t"+shepherdDataDir.getAbsolutePath());
+    System.out.println("\tdata dir absolute:\t"+shepherdDataDir.getAbsolutePath());
+    System.out.println("\tdata dir canonical:\t"+shepherdDataDir.getCanonicalPath());    
     File tempSubdir = new File(webappsDir, "temp");
     if(!tempSubdir.exists()){tempSubdir.mkdirs();}
     System.out.println("\ttemp subdir:\t"+tempSubdir.getAbsolutePath());
@@ -292,7 +307,7 @@ public class ImportExcel extends HttpServlet {
           Iterator<Row> rowIterator = sheet.iterator();
           
           // Little temporary memory-saver
-          int maxRows = 4000000;
+          int maxRows = 40;
           
           // how many blank excel lines it reads before it decides the file is empty
           int endSheetSensitivity=3;
@@ -308,7 +323,6 @@ public class ImportExcel extends HttpServlet {
           // Keeps track of some upload metadata
           int nNewSharks=0;
           int nNewSharksAccordingSheet=0;
-          boolean overwriting=false;
           ArrayList<String> missingData = new ArrayList<String>();
           
           // objects for getting images
@@ -360,7 +374,6 @@ public class ImportExcel extends HttpServlet {
                 enc=myShepherd.getEncounter(encID);
                 enc.setOccurrenceID("-1");
                 newEncounter=false;
-                overwriting=true;
                 System.out.println("\tEncounter already in db.");
               }
               else{
@@ -395,7 +408,6 @@ public class ImportExcel extends HttpServlet {
                 System.out.println(warn);
                 messages.append("<li>"+warn+"</li>");
               } else if (!newShark && newSharkInSheet) {
-                overwriting = true;
                 // These warnings seemed superfluous
                 // String warn = "OVERWRITE NOTE: On row " +rowNum+"; Sheet says \'this shark is not already in the DB\', but the database already has an individual with id "+individualID+".";
                 // System.out.println(warn);
@@ -582,15 +594,19 @@ public class ImportExcel extends HttpServlet {
                   fname = "extract"+encID+".jpg";
                 }
                 String contFolder = pFile.getParent();
-                String fullFname = contFolder+"/"+fname;
-                File cpFile = new File(fullFname);
+                // changing this to look in the dataDir/encounters/a/b/abc123 (for encounter abc123)
+                /*String fullFname = contFolder+"/"+fname;
+                 *File cpFile = new File(fullFname);
+                 */
+                File encounterFolder = getEncDBFolder(shepherdDataDir, encID);
+                File cpFile = new File(encounterFolder, fname);
                 // pFile.renameTo(cpFile);
                 // catches the case where we've already copied this file
                 if (!cpFile.exists()) {
                   FileUtilities.copyFile(pFile, cpFile);
-                  System.out.println("\timage copied to "+fullFname+".");
+                  System.out.println("\timage copied to "+cpFile.getCanonicalPath()+".");
                 } else {
-                  System.out.println("\timage copy already found in "+fullFname+".");
+                  System.out.println("\timage copy already found in "+cpFile.getCanonicalPath()+".");
                 }
                 SinglePhotoVideo picture = new SinglePhotoVideo(encID, cpFile);
                 // check to make sure this encounter isn't already linked to this picture
