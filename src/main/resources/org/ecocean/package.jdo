@@ -294,6 +294,12 @@
                 <join />
             </field>
 
+            <field name="media" persistence-modifier="persistent" default-fetch-group="true">
+                <collection element-type="org.ecocean.media.MediaAsset"
+                    dependent-element="true" />
+                <join />
+            </field>
+
 
             <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.Measurement"
