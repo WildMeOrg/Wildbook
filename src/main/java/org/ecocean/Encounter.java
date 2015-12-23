@@ -680,6 +680,10 @@ public class Encounter implements java.io.Serializable {
 	public String dir(String baseDir) {
 		return baseDir + File.separator + "encounters" + File.separator + this.subdir();
 	}
+	public String dir(String baseDir, boolean forceUID) {
+	  return baseDir + File.separator + "encounters" + File.separator + this.subdir(forceUID);
+	}
+
 
 
 	//like above, but class method so you pass the encID
@@ -692,19 +696,29 @@ public class Encounter implements java.io.Serializable {
 	public static String dir(File baseDir, String id) {
 		return baseDir.getAbsolutePath() + File.separator + "encounters" + File.separator + subdir(id);
 	}
+	
+	
 
 
 	//subdir() is kind of a utility function, which can be called as enc.subdir() or Encounter.subdir(IDSTRING) as needed
 	public String subdir() {
 		return subdir(this.getEncounterNumber());
 	}
+	public String subdir(boolean forceUID) {
+	  return subdir(this.getEncounterNumber(), forceUID);
+	}
 
 	public static String subdir(String id) {
-		String d = id;  //old-world
-		if (Util.isUUID(id)) {  //new-world
-			d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
-		}
-		return d;
+	  return subdir(id, false);
+	}
+	
+	public static String subdir(String id, boolean forceUID) {
+	   String d = id;  //old-world
+	    // I THINK THIS LINE IS THE ISSUEE!!!! i was assuming that file names are unique id's, but they do not return true on Util.isUUID!!!!
+	    if (Util.isUUID(id) || forceUID) {  //new-world
+	      d = id.charAt(0) + File.separator + id.charAt(1) + File.separator + id;
+	    }
+	    return d;
 	}
 
 
@@ -2018,6 +2032,21 @@ thus, we have to treat it as a special case.
 			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
+	//as above, but forces UID check
+    public boolean refreshAssetFormats(String context, String baseDir, SinglePhotoVideo spv, boolean doThumb, boolean forceUID) {
+      if (spv == null) return false;
+      String encDir = this.dir(baseDir, forceUID);
+
+      boolean ok = true;
+      if (doThumb) ok &= spv.scaleTo(context, 100, 75, encDir + File.separator + "thumb.jpg");
+      //TODO some day this will be a structure/definition that lives in a config file or on MediaAsset, etc.  for now, ya get hard-coded
+
+      //this will first try watermark version, then regular
+      ok &= (spv.scaleToWatermark(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg", "") || spv.scaleTo(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg"));
+
+      ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
+      return ok;
+    }
 
 
 	//see also: future, MediaAssets

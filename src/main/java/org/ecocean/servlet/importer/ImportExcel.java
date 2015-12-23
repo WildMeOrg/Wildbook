@@ -334,13 +334,16 @@ public class ImportExcel extends HttpServlet {
             messages.append("<li>"+warn+"</li>");
           }
 
+          // handles singlephotovideo persistence
+          SinglePhotoVideo picture = new SinglePhotoVideo();
+          boolean loadPicture = false;
           
           while (rowIterator.hasNext() && rowNum < maxRows && blankRows < endSheetSensitivity)
           {
             System.out.println("Processing row "+rowNum+". Data combed:");
             boolean newEncounter=true;
             boolean newShark=true;
-            
+            loadPicture=false;
             boolean ok2import=true;
             Encounter enc=new Encounter();            
             myShepherd.beginDBTransaction();
@@ -574,9 +577,6 @@ public class ImportExcel extends HttpServlet {
             catch (Exception e) {
               System.out.println("\tlongitude string: COULD NOT PARSE");
             }
-
-
-            
             
             // DATA FINDING SECTION
             if (imageDir.exists() && encID!=null) {
@@ -608,17 +608,17 @@ public class ImportExcel extends HttpServlet {
                 } else {
                   System.out.println("\timage copy already found in "+cpFile.getCanonicalPath()+".");
                 }
-                SinglePhotoVideo picture = new SinglePhotoVideo(encID, cpFile);
+                picture = new SinglePhotoVideo(encID, cpFile);
                 // check to make sure this encounter isn't already linked to this picture
                 if (!enc.getRightSpotImageFileName().equals(picture.getFilename()) & !enc.spotImageFileName.equals(picture.getFilename())){
                   // link enc->pic
                   if ((flank!=null)&&(flank.equals("R"))){
-                    enc.setRightSpotImageFileName(fname);
+                    enc.setRightSpotImageFileName(picture.getFilename());
                   } else {
-                    enc.setSpotImageFileName(fname);
+                    enc.setSpotImageFileName(picture.getFilename());
                   }
                   enc.addSinglePhotoVideo(picture);
-                  enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath), picture, false);
+                  loadPicture = true;
                   System.out.println("\timage: "+picture.getFilename());
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added photo " + picture.getFilename() + ".</p>");
                 }
@@ -683,8 +683,16 @@ public class ImportExcel extends HttpServlet {
           if(ok2import){
             System.out.println("\tOK to import, storing encounter.");
             myShepherd.commitDBTransaction();
-            if(newEncounter){myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());}
-
+            if(newEncounter){
+              myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+            }
+            if(loadPicture){
+              String baseDir = getEncDBFolder(shepherdDataDir,encID).getCanonicalPath();
+              System.out.println("\tRefreshing asset formats with baseDir = "+baseDir);
+              enc.refreshAssetFormats(context, baseDir, picture, false, true);
+            }
+              
+              
 
           // upload/update the MarkedIndividual object
           if (!individualID.equals("")) {
