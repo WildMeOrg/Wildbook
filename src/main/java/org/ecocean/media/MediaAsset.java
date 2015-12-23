@@ -74,6 +74,8 @@ public class MediaAsset implements java.io.Serializable {
 
     protected ArrayList<Annotation> annotations;
 
+    protected ArrayList<String> labels;
+
     protected String hashCode;
 
     //protected MediaAssetType type;
@@ -165,6 +167,13 @@ public class MediaAsset implements java.io.Serializable {
         return store;
     }
 
+    public Integer getParentId() {
+        return parentId;
+    }
+    public void setParentId(Integer pid) {
+        parentId = pid;
+    }
+
     public JSONObject getParameters() {
 //System.out.println("getParameters() called -> " + parameters);
         return parameters;
@@ -230,6 +239,17 @@ public class MediaAsset implements java.io.Serializable {
         this.hashCode = store.hashCode(parameters);
 System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
+    }
+
+    public ArrayList<String> getLabels() {
+        return labels;
+    }
+    public void setLabels(ArrayList<String> l) {
+        labels = l;
+    }
+    public void addLabel(String s) {
+        if (labels == null) labels = new ArrayList<String>();
+        if (!labels.contains(s)) labels.add(s);
     }
 
     public Path localPath()

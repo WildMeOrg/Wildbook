@@ -30,6 +30,7 @@
 			<column length="75" />
 		</field>
 
+		<field name="labels" serialized="true" column="LABELS" />
 	</class>
 
 

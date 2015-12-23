@@ -224,6 +224,7 @@ public class Encounter implements java.io.Serializable {
   //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
+  private ArrayList<MediaAsset> media;
   private List<Measurement> measurements;
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
@@ -978,11 +979,67 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
+    //unfortunately we dont have a lineage of spot images (which SinglePhotoVideo they came from) so we cant put those as children under their parent MA
+    public ArrayList<MediaAsset> generateMedia(String baseDir, Shepherd myShepherd) {
+        if ((media != null) && ((images == null) || (images.size() <= media.size()))) return media;  //probably(?!) have already done the work
+        if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
+        if (media == null) media = new ArrayList<MediaAsset>();
+        boolean thumbDone = false;
+        for (SinglePhotoVideo spv : images) {
+            MediaAsset ma = spv.toMediaAsset(myShepherd);
+            ma.addLabel("_original");
+            if ((ma != null) && !media.contains(ma)) media.add(ma);
+            //now we iterate through flavors that could be derived
+            //TODO is it bad to assume ".jpg" ? i forget!
+            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
+            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
+
+            // note: we "assume" thumb was created from 0th spv, cuz we simply dont know but want it living somewhere
+            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
+            thumbDone = true;
+        }
+        MediaAsset sma = spotImageAsMediaAsset(baseDir, myShepherd);
+        if ((sma != null) && !media.contains(sma)) media.add(sma);
+        return media;
+    }
+
+
+    //utility method for created MediaAssets and adding to .media if appropriate
+    // note: also will check for existence of mpath and fail silently if doesnt exist
+    private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
+        if ((mpath == null) || !mpath.exists()) return null;
+        S3AssetStore astore = S3AssetStore.getFirst(myShepherd);  ///TODO see trouble with this generically
+        org.json.JSONObject sp = new org.json.JSONObject();
+        sp.put("bucket", "test-asset-store");
+        sp.put("key", key);
+        if (media == null) media = new ArrayList<MediaAsset>();
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma != null) {
+            //TODO do we potentially (re-)set parent on an existing MediaAsset????
+            if (!media.contains(ma)) media.add(ma);
+            return ma;
+        }
+System.out.println("creating new MediaAsset for key=" + key);
+        try {
+            ma = astore.copyIn(mpath, sp);
+        } catch (IOException ioe) {
+            System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
+            return null;
+        }
+        if (parentMA != null) ma.setParentId(parentMA.getId());
+        MediaAssetFactory.save(ma, myShepherd);
+        media.add(ma);
+        return ma;
+    }
+
+
     //this makes assumption (for flukes) that both right and left image files are identical
+    //  TODO handle that they are different
     public MediaAsset spotImageAsMediaAsset(String baseDir, Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
         File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
         if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
+        //TODO handle generic case of using "default" AssetStore (or whatever we should do)
         S3AssetStore astore = S3AssetStore.getFirst(myShepherd);
         if (astore == null) {
             System.out.println("No S3AssetStore in Encounter.spotImageAsMediaAsset()");
@@ -1870,6 +1927,13 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     
     public List<SinglePhotoVideo> getImages(){return images;}
     
+    public ArrayList<MediaAsset> getMedia() {
+        return media;
+    }
+    public void setMedia(ArrayList<MediaAsset> m) {
+        media = m;
+    }
+
     public boolean hasKeyword(Keyword word){
      int imagesSize=images.size();
      for(int i=0;i<imagesSize;i++){
