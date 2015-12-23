@@ -1016,6 +1016,7 @@ public class Encounter implements java.io.Serializable {
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
             //TODO do we potentially (re-)set parent on an existing MediaAsset????
+            ma.addLabel(label);
             if (!media.contains(ma)) media.add(ma);
             return ma;
         }
@@ -1026,9 +1027,10 @@ System.out.println("creating new MediaAsset for key=" + key);
             System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
             return null;
         }
+        ma.addLabel(label);
         if (parentMA != null) ma.setParentId(parentMA.getId());
         MediaAssetFactory.save(ma, myShepherd);
-        media.add(ma);
+        if (parentMA == null) media.add(ma);  //TODO note: we assume(!) here that parent was already added to .media list.  trouble??? maybe should check?
         return ma;
     }
 
