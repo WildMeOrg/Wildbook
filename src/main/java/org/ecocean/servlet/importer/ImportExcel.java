@@ -125,7 +125,7 @@ public class ImportExcel extends HttpServlet {
   static File getEncDBFolder (File dataDir, String encID) {
     String subDir = "encounters/";
     if (encID!=null && encID.length()>1) {
-      subDir += encID.charAt(0) + "/" + encID.charAt(1) + "/";
+      //subDir += encID.charAt(0) + "/" + encID.charAt(1) + "/";
     }
     subDir += encID;
     File out = new File(dataDir, subDir);
@@ -599,29 +599,38 @@ public class ImportExcel extends HttpServlet {
                  *File cpFile = new File(fullFname);
                  */
                 File encounterFolder = getEncDBFolder(shepherdDataDir, encID);
-                File cpFile = new File(encounterFolder, fname);
+                File cpFile = new File(encounterFolder, pFile.getName());
+                File extractFile = new File(encounterFolder, fname);
                 // pFile.renameTo(cpFile);
                 // catches the case where we've already copied this file
+                
+                //copy original file by its original name
                 if (!cpFile.exists()) {
                   FileUtilities.copyFile(pFile, cpFile);
                   System.out.println("\timage copied to "+cpFile.getCanonicalPath()+".");
                 } else {
                   System.out.println("\timage copy already found in "+cpFile.getCanonicalPath()+".");
                 }
+                
+                //also copy over the extract file assuming spot processing has occurred
+                if (!extractFile.exists()) {
+                  FileUtilities.copyFile(pFile, extractFile);
+                }
+                
                 picture = new SinglePhotoVideo(encID, cpFile);
                 // check to make sure this encounter isn't already linked to this picture
-                if (!enc.getRightSpotImageFileName().equals(picture.getFilename()) & !enc.spotImageFileName.equals(picture.getFilename())){
+                //if (!enc.getRightSpotImageFileName().equals(picture.getFilename()) & !enc.spotImageFileName.equals(picture.getFilename())){
                   // link enc->pic
                   if ((flank!=null)&&(flank.equals("R"))){
-                    enc.setRightSpotImageFileName(picture.getFilename());
+                    enc.setRightSpotImageFileName(extractFile.getName());
                   } else {
-                    enc.setSpotImageFileName(picture.getFilename());
+                    enc.setSpotImageFileName(extractFile.getName());
                   }
                   enc.addSinglePhotoVideo(picture);
                   loadPicture = true;
                   System.out.println("\timage: "+picture.getFilename());
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process added photo " + picture.getFilename() + ".</p>");
-                }
+               // }
               
               }
               else {
