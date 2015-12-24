@@ -191,17 +191,36 @@ public class ImportExcel extends HttpServlet {
   
   // I'll let this function live here until I can download the latest version of com.reijns.I3S
   static ArrayList<SuperSpot> loadFgpSpots(DataInputStream data, int n) throws IOException {
+    return loadFgpSpots(data, n, false, false);
+  }
+  // if spacingZeroes, there is a 0.0 between each pair of doubles
+  static ArrayList<SuperSpot> loadFgpSpots(DataInputStream data, int n, boolean verbose, boolean spacingZeroes) throws IOException {
     ArrayList<SuperSpot> out = new ArrayList<SuperSpot>();
     for (int i=0; i<n; i++) {
       double x = data.readDouble();
       double y = data.readDouble();
+      if (spacingZeroes) data.readDouble();
       if (Double.isNaN(x) || Double.isNaN(y)) {
         throw new IOException("Caught IOException on parsing fgp file: a spot coordinate was NaN.");
       };
+      if (verbose) System.out.println("\t\tSpot: ("+x+", "+y+")");
       out.add(new SuperSpot(x,y));
     }
     return out;
   }
+
+  
+  
+  private boolean checkFileType(DataInputStream data) throws IOException {
+    byte[] b = new byte[4];
+    // read in first 4 bytes, and check file type.
+    data.read(b, 0, 4);
+    if (((char) b[0] == 'I' && (char) b[1] == 'f' && (char) b[2] == '0' && (char) b[3] == '1') == false) {
+      return false;
+    }
+    return true;
+  }
+
   
   /**
    * Closes the FGP opened as any InputStream descendant.
@@ -649,10 +668,14 @@ public class ImportExcel extends HttpServlet {
                 
                 try {
                   // load reference_spots, which are the first three points in the FGP;
-                  ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3);
+                  System.out.println("\treference spots:");
+                  System.out.println("\t FGP file type check: " + checkFileType(spotData));
+                  ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3, true, false);
                   // The next value in the fgp file encodes the number of points.
                   int nPoints = spotData.readInt();
-                  ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints);
+                  System.out.println("\tn spots: " + nPoints);
+                  // seems like, from catalina.out, there are spacing zeroes after parsing N
+                  ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints, true, true);
                   // are normed_spots needed for anything?
                   // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
                   // Now load spots into encounter object; defaults to left side if no flank info
@@ -666,6 +689,7 @@ public class ImportExcel extends HttpServlet {
                     enc.setSpots(spots);
                     enc.hasSpotImage = true;
                   }
+                  System.out.println("FGP file parsed and added to encounter.");
                 } catch (IOException e) {
                   System.out.println("\t\tIOERROR reading FGP file for encounter "+encID+" on row "+rowNum+".");
                 } finally {
