@@ -307,7 +307,7 @@ public class ImportExcel extends HttpServlet {
           Iterator<Row> rowIterator = sheet.iterator();
           
           // Little temporary memory-saver
-          int maxRows = 40;
+          int maxRows = 40000;
           
           // how many blank excel lines it reads before it decides the file is empty
           int endSheetSensitivity=3;
@@ -696,9 +696,9 @@ public class ImportExcel extends HttpServlet {
               myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
             }
             if(loadPicture){
-              String baseDir = getEncDBFolder(shepherdDataDir,encID).getCanonicalPath();
+              String baseDir = shepherdDataDir.getCanonicalPath();
               System.out.println("\tRefreshing asset formats with baseDir = "+baseDir);
-              enc.refreshAssetFormats(context, baseDir, picture, false, true);
+              enc.refreshAssetFormats(context, baseDir, picture, false);
             }
               
               
