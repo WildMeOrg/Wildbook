@@ -698,7 +698,7 @@ public class ImportExcel extends HttpServlet {
             if(loadPicture){
               String baseDir = shepherdDataDir.getCanonicalPath();
               System.out.println("\tRefreshing asset formats with baseDir = "+baseDir);
-              enc.refreshAssetFormats(context, baseDir, picture, false);
+              enc.refreshAssetFormats(context, baseDir, picture, true);
             }
               
               
