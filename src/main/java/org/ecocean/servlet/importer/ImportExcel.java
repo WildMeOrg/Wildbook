@@ -208,6 +208,14 @@ public class ImportExcel extends HttpServlet {
     }
     return out;
   }
+  
+  static String printSpotList(ArrayList<SuperSpot> spotList) {
+    String out = "";
+    for (SuperSpot s : spotList) {
+      out += "\n("+s.getCentroidX()+", "+s.getCentroidY()+")";
+    }
+    return out;
+  }
 
   
   
@@ -668,25 +676,31 @@ public class ImportExcel extends HttpServlet {
                 
                 try {
                   // load reference_spots, which are the first three points in the FGP;
-                  System.out.println("\treference spots:");
-                  System.out.println("\t FGP file type check: " + checkFileType(spotData));
-                  ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3, true, false);
+                  System.out.println("\tFGP file type check: " + checkFileType(spotData));
+                  ArrayList<SuperSpot> reference_spots = loadFgpSpots(spotData, 3, false, false);
                   // The next value in the fgp file encodes the number of points.
                   int nPoints = spotData.readInt();
-                  System.out.println("\tn spots: " + nPoints);
                   // seems like, from catalina.out, there are spacing zeroes after parsing N
-                  ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints, true, true);
+                  ArrayList<SuperSpot> spots = loadFgpSpots(spotData, nPoints, false, true);
                   // are normed_spots needed for anything?
                   // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
                   // Now load spots into encounter object; defaults to left side if no flank info
                   if ((flank!=null)&&(flank.equals("R"))){
+                    enc.setNumRightSpots(nPoints);
+                    System.out.println("\tn R-spots: " + nPoints);
                     enc.setRightReferenceSpots(reference_spots);
+                    System.out.println("\tR-reference spots:"+ printSpotList(reference_spots));
                     enc.setRightSpots(spots);
+                    System.out.println("\tR-spots:"+ printSpotList(spots));
                     enc.hasRightSpotImage = true;
                   }
                   else {
+                    enc.setNumLeftSpots(nPoints);
+                    System.out.println("\tn spots: " + nPoints);
                     enc.setLeftReferenceSpots(reference_spots);
+                    System.out.println("\treference spots:"+ printSpotList(reference_spots));
                     enc.setSpots(spots);
+                    System.out.println("\tspots:"+ printSpotList(spots));
                     enc.hasSpotImage = true;
                   }
                   System.out.println("FGP file parsed and added to encounter.");
