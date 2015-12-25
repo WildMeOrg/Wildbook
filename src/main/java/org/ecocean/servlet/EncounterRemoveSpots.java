@@ -97,16 +97,16 @@ public class EncounterRemoveSpots extends HttpServlet {
 
           if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
             despotMe.removeRightSpots();
-            despotMe.hasRightSpotImage = false;
-            despotMe.rightSpotImageFileName = "";
+            //despotMe.hasRightSpotImage = false;
+            despotMe.rightSpotImageFileName = null;
             side = "right";
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
             despotMe.setNumRightSpots(0);
           } else if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("false"))) {
 
             despotMe.removeSpots();
-            despotMe.hasSpotImage = false;
-            despotMe.spotImageFileName = "";
+            //despotMe.hasSpotImage = false;
+            despotMe.spotImageFileName = null;
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
             despotMe.setNumLeftSpots(0);
           }
