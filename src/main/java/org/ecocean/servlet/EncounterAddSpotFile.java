@@ -114,10 +114,10 @@ public class EncounterAddSpotFile extends HttpServlet {
         	try {
           	if (side.equals("right")) {
             	add2shark.setRightSpotImageFileName(fileName);
-            	add2shark.hasRightSpotImage = true;
+            	//add2shark.hasRightSpotImage = true;
           	} else {
             	add2shark.setSpotImageFileName(fileName);
-            	add2shark.hasSpotImage = true;
+            	//add2shark.hasSpotImage = true;
           	}
 
           	String user = "Unknown User";
@@ -223,10 +223,10 @@ public class EncounterAddSpotFile extends HttpServlet {
         try {
           if (side.equals("right")) {
             add2shark.setRightSpotImageFileName(fileName);
-            add2shark.hasRightSpotImage = true;
+            //add2shark.hasRightSpotImage = true;
           } else {
             add2shark.setSpotImageFileName(fileName);
-            add2shark.hasSpotImage = true;
+            //add2shark.hasSpotImage = true;
           }
 
           String user = "Unknown User";
