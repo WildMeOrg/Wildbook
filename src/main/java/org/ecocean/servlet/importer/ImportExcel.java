@@ -44,6 +44,7 @@ import org.ecocean.genetics.*;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.HashMap;
 import java.nio.file.Files;
 
 /* imports for dealing with spreadsheets and .xlsx files */
@@ -339,6 +340,54 @@ public class ImportExcel extends HttpServlet {
           FileInputStream excelInput = new FileInputStream(finalFile);
           //Create Workbook instance holding reference to .xlsx file
           XSSFWorkbook workbook = new XSSFWorkbook(excelInput);
+          
+          // this code block parses a separate tab of the workbook, which holds some temperature info
+          XSSFSheet temperatureSheet = workbook.getSheetAt(7);
+          HashMap<String,Object> infoLookup = new HashMap<String,Object>();
+          Iterator<Row> infoRows = temperatureSheet.iterator();
+          // skip one row
+          if (infoRows.hasNext()) infoRows.next();
+          System.out.println("parsing sheet 7 for temperature and other info...");
+          int infoRowNum = 1;
+          while (infoRows.hasNext()) {
+            Row row = infoRows.next();            
+            // the row object will now be parsed to make each event
+            Cell idStringCell = row.getCell(0);
+            if (idStringCell==null) continue;
+            String idString = idStringCell.getStringCellValue();
+            System.out.println("Row "+infoRowNum+":");
+            HashMap<String,Integer> thisInfo = new HashMap<String,Integer>();
+            // get temperature
+            Cell tempCell = row.getCell(1);
+            try {
+              int temp = (int) tempCell.getNumericCellValue();
+              thisInfo.put("temp", temp);
+              System.out.println("\ttemp: "+temp);
+            }
+            catch (Exception e) {
+              System.out.println("\ttemp: not parsed");
+            }
+            Cell caveCell = row.getCell(2);
+            try {
+              int sharksCave = (int) caveCell.getNumericCellValue();
+              thisInfo.put("sharksCave",sharksCave);
+              System.out.println("\tsharksCave: "+sharksCave);
+            }
+            catch (Exception e) {
+              System.out.println("\tsharksCave: not parsed");
+            }
+            Cell overhangCell = row.getCell(3);
+            try {
+              int sharksOverhang = (int) overhangCell.getNumericCellValue();
+              thisInfo.put("sharksOverhang",sharksOverhang);
+              System.out.println("\tsharksOverhang: "+sharksOverhang);
+            }
+            catch (Exception e) {
+              System.out.println("\tsharksOverhang: not parsed");
+            }
+            infoLookup.put(idString, thisInfo);
+          }
+          
 
           // in all the sheets (TODO: double check), the relevant data is in the second sheet.
           //Get first/desired sheet from the workbook
@@ -759,13 +808,13 @@ public class ImportExcel extends HttpServlet {
               nfe.printStackTrace();
             }
             //end length
-            
-            
-            /* disabled for now bc we don't support dynamic numeric properties; I recall jason saying these fields not needed.
+                        
             try {
               // # sharks at cave
               Cell sharksCaveCell = row.getCell(19);
-              String sharksCave = sharksCaveCell.getStringCellValue();
+              String sharksCave = "";
+              int i = (int)sharksCaveCell.getNumericCellValue(); 
+              sharksCave = String.valueOf(i); 
               if(sharksCave!=null && !sharksCave.equals("")) {
                 enc.setDynamicProperty("# sharks in cave", sharksCave);
                 System.out.println("\t# sharks in cave: "+sharksCave);
@@ -773,23 +822,51 @@ public class ImportExcel extends HttpServlet {
               }
             }
             catch (Exception e) {
-              System.out.println("\t# sharks in cave: COULD NOT PARSE");
+              System.out.println("\t# sharks in cave: none parsed");
             }
             
             try {
               // # sharks at overhang
               Cell sharksOverhangCell = row.getCell(20);
-              String sharksOverhang = sharksOverhangCell.getStringCellValue();
+              String sharksOverhang = "";
+              int i = (int)sharksOverhangCell.getNumericCellValue(); 
+              sharksOverhang = String.valueOf(i); 
               if(sharksOverhang!=null && !sharksOverhang.equals("")) {
-                enc.setDynamicProperty("# sharks in overhang", sharksOverhang);
-                System.out.println("\t# sharks in overhang: "+sharksOverhang);
-                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set #SharksInOverhang to " + sharksOverhang + ".</p>");
+                enc.setDynamicProperty("# sharks at overhang", sharksOverhang);
+                System.out.println("\t# sharks at overhang: "+sharksOverhang);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set #SharksNearOverhang to " + sharksOverhang + ".</p>");
               }
             }
             catch (Exception e) {
-              System.out.println("\t# sharks in overhang: COULD NOT PARSE");
+              System.out.println("\t# sharks at overhang: none parsed");
             }
-            */
+            
+            // comments
+            try {
+              Cell commentCell = row.getCell(21);
+              String comment = commentCell.getStringCellValue();
+              if(comment!=null && !comment.equals("")) {
+                enc.setComments(comment);
+                System.out.println("\tcomment: "+comment);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set occurenceRemarks to " + comment + ".</p>");
+              }
+            }
+            catch (Exception e) {
+              System.out.println("\tcomments: none parsed");
+            }
+            
+            try {
+              Cell tempCell = row.getCell(16);
+              int temperature = (int) tempCell.getNumericCellValue();
+              if(!Double.isNaN(temperature)) {
+                
+              }
+            }
+            catch (Exception e) {
+                
+            }
+            
+            
 
                                     
             // lat/long section
