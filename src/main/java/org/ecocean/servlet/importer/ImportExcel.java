@@ -444,7 +444,7 @@ public class ImportExcel extends HttpServlet {
             
             //let's create co-occurrences
             int encIDLength=encID.length();
-            String occurrenceID=encID.substring(0,encIDLength-4);
+            String occurrenceID=encID.substring(0,encIDLength-5);
             Occurrence occur=new Occurrence();
             if(myShepherd.isOccurrence(occurrenceID)){
               occur=myShepherd.getOccurrence(occurrenceID);
@@ -699,9 +699,12 @@ public class ImportExcel extends HttpServlet {
               Cell precaudalCell = row.getCell(13);
               
               if(precaudalCell!=null) {
+                
                 Double pc = new Double(precaudalCell.getNumericCellValue());
                 //need new measurement
+                if(pc>0.0){
                 Measurement pcmeasurement=new Measurement();
+                
                 if(enc.getMeasurement("precaudallength")!=null){
                   pcmeasurement=enc.getMeasurement("precaudallength");
                   pcmeasurement.setValue(pc);
@@ -716,6 +719,7 @@ public class ImportExcel extends HttpServlet {
                     + "ImportExcel process set precaudal length to "
                     + pc + " cm.</p>");
               }
+            }
               
             }
             catch(NumberFormatException nfe){
@@ -733,21 +737,22 @@ public class ImportExcel extends HttpServlet {
               if(lengthCell!=null) {
                 Double pc = new Double(lengthCell.getNumericCellValue());
                 //need new measurement
-                Measurement pcmeasurement=new Measurement();
-                if(enc.getMeasurement("length")!=null){
-                  pcmeasurement=enc.getMeasurement("length");
-                  pcmeasurement.setValue(pc);
+                if(pc>0.0){
+                  Measurement pcmeasurement=new Measurement();
+                  if(enc.getMeasurement("length")!=null){
+                    pcmeasurement=enc.getMeasurement("length");
+                    pcmeasurement.setValue(pc);
+                  }
+                  else{
+                    pcmeasurement = new Measurement(encID, "length", pc, "cm", "directly measured");
+                  }
+                  
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                      + (new java.util.Date()).toString() + "</em><br>"
+                      + "ImportExcel process set length to "
+                      + pc + " cm.</p>");
                 }
-                else{
-                  pcmeasurement = new Measurement(encID, "length", pc, "cm", "directly measured");
-                }
-                
-                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
-                    + (new java.util.Date()).toString() + "</em><br>"
-                    + "ImportExcel process set length to "
-                    + pc + " cm.</p>");
-              }
-              
+            }
             }
             catch(NumberFormatException nfe){
               System.out.println("I could not format the precaudal length for:"+encID);
