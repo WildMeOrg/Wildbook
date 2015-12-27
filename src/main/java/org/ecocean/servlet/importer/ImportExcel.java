@@ -402,13 +402,20 @@ public class ImportExcel extends HttpServlet {
               
               if(myShepherd.isEncounter(encID)){
                 enc=myShepherd.getEncounter(encID);
-                enc.setOccurrenceID("-1");
+                //enc.setOccurrenceID("-1");
                 newEncounter=false;
                 System.out.println("\tEncounter already in db.");
               }
               else{
                 enc.setCatalogNumber(encID);
                 enc.setState("approved");
+                
+                //persist it
+                myShepherd.rollbackDBTransaction();
+                myShepherd.storeNewEncounter(enc, encID);
+                myShepherd.beginDBTransaction();
+                
+                
                 System.out.println("\tEncounter added to DB.");
               }
             }
@@ -730,9 +737,9 @@ public class ImportExcel extends HttpServlet {
           if(ok2import){
             System.out.println("\tOK to import, storing encounter.");
             myShepherd.commitDBTransaction();
-            if(newEncounter){
-              myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
-            }
+            //if(newEncounter){
+            //  myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+            //}
             if(loadPicture){
               String baseDir = shepherdDataDir.getCanonicalPath();
               System.out.println("\tRefreshing asset formats with baseDir = "+baseDir);
