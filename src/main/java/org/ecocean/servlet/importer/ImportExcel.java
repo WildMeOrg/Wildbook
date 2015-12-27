@@ -343,7 +343,7 @@ public class ImportExcel extends HttpServlet {
           
           // this code block parses a separate tab of the workbook, which holds some temperature info
           XSSFSheet temperatureSheet = workbook.getSheetAt(7);
-          HashMap<String,Object> infoLookup = new HashMap<String,Object>();
+          HashMap<String,HashMap<String,Integer>> infoLookup = new HashMap<String,HashMap<String,Integer>>();
           Iterator<Row> infoRows = temperatureSheet.iterator();
           // skip one row
           if (infoRows.hasNext()) infoRows.next();
@@ -356,6 +356,7 @@ public class ImportExcel extends HttpServlet {
             if (idStringCell==null) continue;
             String idString = idStringCell.getStringCellValue();
             System.out.println("Row "+infoRowNum+":");
+            System.out.println("\tID: "+idString);
             HashMap<String,Integer> thisInfo = new HashMap<String,Integer>();
             // get temperature
             Cell tempCell = row.getCell(1);
@@ -386,8 +387,9 @@ public class ImportExcel extends HttpServlet {
               System.out.println("\tsharksOverhang: not parsed");
             }
             infoLookup.put(idString, thisInfo);
+            infoRowNum++;
           }
-          
+                    
 
           // in all the sheets (TODO: double check), the relevant data is in the second sheet.
           //Get first/desired sheet from the workbook
@@ -396,7 +398,7 @@ public class ImportExcel extends HttpServlet {
           //Iterate through each rows one by one
           Iterator<Row> rowIterator = sheet.iterator();
           
-          // Little temporary memory-saver
+          // Little temporary memory/time-saver
           int maxRows = 40000;
           
           // how many blank excel lines it reads before it decides the file is empty
@@ -850,20 +852,55 @@ public class ImportExcel extends HttpServlet {
                 System.out.println("\tcomment: "+comment);
                 enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set occurenceRemarks to " + comment + ".</p>");
               }
+              else {
+                System.out.println("\tcomment: empty field");
+              }
             }
             catch (Exception e) {
               System.out.println("\tcomments: none parsed");
             }
             
             try {
+              System.out.println("\tparsing temp...");
               Cell tempCell = row.getCell(16);
-              int temperature = (int) tempCell.getNumericCellValue();
-              if(!Double.isNaN(temperature)) {
-                
+              double temperature = -1.0;
+              
+              if (tempCell!=null) {
+                System.out.println("\tparsing tempCell...");
+                try {
+                temperature = tempCell.getNumericCellValue();
+                System.out.println("\ttempCell parsed as "+temperature);
+                } catch (Exception e) {
+                  System.out.println("\ttempCell parse leads to ERROR");
+                }
+              }
+              if(Double.isNaN(temperature) || temperature == -1.0) {
+                // try looking up in the temperature
+                System.out.println("\t\tlooking up in temp table...");
+                System.out.println("\t\tSubstring = "+encID.substring(0,9));
+                HashMap<String,Integer> thisInfo = infoLookup.get(encID.substring(0,9));
+                System.out.println("\t\tthis encounter in temp table: "+(thisInfo!=null));
+                if (thisInfo!=null) temperature = thisInfo.get("temp");
+              }
+              if(!Double.isNaN(temperature) && temperature != -1.0 && temperature !=0.0) {
+                Measurement tempMeasurement = new Measurement();
+                if (enc.getMeasurement("Temp.")!=null){
+                  tempMeasurement = enc.getMeasurement("Temp.");
+                  tempMeasurement.setValue(temperature);
+                }
+                else {
+                  tempMeasurement = new Measurement(encID, "Temp.", temperature, "Celsius", "directly measured");
+                }
+                enc.setMeasurement(tempMeasurement, myShepherd);
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                    + (new java.util.Date()).toString() + "</em><br>"
+                    + "ImportExcel process set temperature to "
+                    + temperature + " cm.</p>");
+                System.out.println("\ttemperature: "+temperature);
               }
             }
             catch (Exception e) {
-                
+                System.out.println("\ttemperature: none parsed");
             }
             
             
@@ -991,20 +1028,20 @@ public class ImportExcel extends HttpServlet {
                   // Now load spots into encounter object; defaults to left side if no flank info
                   if ((flank!=null)&&(flank.equals("R"))){
                     enc.setNumRightSpots(nPoints);
-                    System.out.println("\tn R-spots: " + nPoints);
+                    //System.out.println("\tn R-spots: " + nPoints);
                     enc.setRightReferenceSpots(reference_spots);
-                    System.out.println("\tR-reference spots:"+ printSpotList(reference_spots));
+                    //System.out.println("\tR-reference spots:"+ printSpotList(reference_spots));
                     enc.setRightSpots(spots);
-                    System.out.println("\tR-spots:"+ printSpotList(spots));
+                    //System.out.println("\tR-spots:"+ printSpotList(spots));
                     enc.hasRightSpotImage = true;
                   }
                   else {
                     enc.setNumLeftSpots(nPoints);
-                    System.out.println("\tn spots: " + nPoints);
+                    //System.out.println("\tn spots: " + nPoints);
                     enc.setLeftReferenceSpots(reference_spots);
-                    System.out.println("\treference spots:"+ printSpotList(reference_spots));
+                    //System.out.println("\treference spots:"+ printSpotList(reference_spots));
                     enc.setSpots(spots);
-                    System.out.println("\tspots:"+ printSpotList(spots));
+                    //System.out.println("\tspots:"+ printSpotList(spots));
                     enc.hasSpotImage = true;
                   }
                   System.out.println("FGP file parsed and added to encounter.");
