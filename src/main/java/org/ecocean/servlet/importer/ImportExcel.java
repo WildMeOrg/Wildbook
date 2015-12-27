@@ -428,6 +428,22 @@ public class ImportExcel extends HttpServlet {
               continue;
             }
             
+            //let's create co-occurrences
+            int encIDLength=encID.length();
+            String occurrenceID=encID.substring(0,encIDLength-4);
+            Occurrence occur=new Occurrence();
+            if(myShepherd.isOccurrence(occurrenceID)){
+              occur=myShepherd.getOccurrence(occurrenceID);
+            }
+            else{
+              occur=new Occurrence(occurrenceID, enc);
+              myShepherd.commitDBTransaction();
+              myShepherd.storeNewOccurrence(occur);
+              myShepherd.beginDBTransaction();
+            }
+            //end occurrence creation
+            
+            
             Cell sharkIDCell = row.getCell(1);
             String individualID = sharkIDCell.getStringCellValue();
             if ( (individualID!=null) && !individualID.equals("") ) {
