@@ -504,6 +504,10 @@ public class ImportExcel extends HttpServlet {
               enc.setMonth(month);
               enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set month to " + month + ".</p>"); 
               System.out.println("\tmonth: "+monthStr+", "+month);
+              
+              
+              
+              
             }
             catch (Exception e) {
               String warn = "DATA WARNING: did not successfully parse month info for encounter " + enc.getCatalogNumber();
@@ -511,6 +515,9 @@ public class ImportExcel extends HttpServlet {
               messages.append("<li>"+warn+"</li>");
               
             }
+            
+            //refresh date properties
+            enc.resetDateInMilliseconds();
             
             Cell sexCell = row.getCell(6);
             String sex = sexCell.getStringCellValue();
