@@ -250,6 +250,20 @@ public class ImportExcel extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    
+    //create the Hookmark keyword if it does not exist yet
+    /* 
+    myShepherd.beginDBTransaction();
+    if(!myShepherd.isKeyword("Hookmark")){
+      myShepherd.rollbackDBTransaction();
+      Keyword kw=new Keyword("Hookmark");
+      myShepherd.storeNewKeyword(kw);
+    }
+    else{
+      myShepherd.rollbackDBTransaction();
+    }
+    */
+    
 
     System.out.println("\n\n"+new java.util.Date().toString()+": Starting ImportExcel servlet.");
 
@@ -434,6 +448,7 @@ public class ImportExcel extends HttpServlet {
             Occurrence occur=new Occurrence();
             if(myShepherd.isOccurrence(occurrenceID)){
               occur=myShepherd.getOccurrence(occurrenceID);
+              occur.addEncounter(enc);
             }
             else{
               occur=new Occurrence(occurrenceID, enc);
@@ -618,6 +633,67 @@ public class ImportExcel extends HttpServlet {
                   + "ImportExcel process set flank to "
                   + photographer + ".</p>");
             }
+            
+            //laser
+            Cell laserCell = row.getCell(12);
+            String laser = laserCell.getStringCellValue();
+            if(laser!=null && !laser.equals("")) {
+              enc.setDynamicProperty("Laser", laser);
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                  + (new java.util.Date()).toString() + "</em><br>"
+                  + "ImportExcel process set laser to "
+                  + laser + ".</p>");
+            }
+            
+            
+            //migration
+            Cell migCell = row.getCell(10);
+            String mig = migCell.getStringCellValue();
+            if(mig!=null && !mig.equals("")) {
+              enc.setDynamicProperty("Migration", mig);
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                  + (new java.util.Date()).toString() + "</em><br>"
+                  + "ImportExcel process set migration to "
+                  + mig + ".</p>");
+            }
+            //end migration
+            
+            //hook mark
+            Cell hookCell = row.getCell(11);
+            String hook = hookCell.getStringCellValue();
+            if(hook!=null && !hook.equals("")) {
+              enc.setDynamicProperty("Hookmark", hook);
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                  + (new java.util.Date()).toString() + "</em><br>"
+                  + "ImportExcel process set hookmark to "
+                  + hook + ".</p>");
+            }
+            //Keyword hookmarkKW=myShepherd.getKeyword("Hookmark");
+            //picture.addKeyword(hookmarkKW);
+            //end hookmark
+            
+            //precaudal length
+            try{
+              Cell precaudalCell = row.getCell(13);
+              
+              if(precaudalCell!=null) {
+                Double pc = new Double(precaudalCell.getNumericCellValue());
+                //need new measurement
+                Measurement pcmeasurement = new Measurement(encID, "precaudallength", pc, "cm", "directly measured");
+                enc.setMeasurement(pcmeasurement, myShepherd);
+                
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                    + (new java.util.Date()).toString() + "</em><br>"
+                    + "ImportExcel process set prcaudal length to "
+                    + pc + " cm.</p>");
+              }
+              
+            }
+            catch(NumberFormatException nfe){
+              System.out.println("I could not format the precaudal length for:"+encID);
+              nfe.printStackTrace();
+            }
+            
             
             /* disabled for now bc we don't support dynamic numeric properties; I recall jason saying these fields not needed.
             try {
