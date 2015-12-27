@@ -658,6 +658,26 @@ public class ImportExcel extends HttpServlet {
             }
             //end migration
             
+            
+            
+            //lifestage
+            Cell lifeCell = row.getCell(15);
+            String life = lifeCell.getStringCellValue();
+            if(life!=null && !life.equals("")) {
+              enc.setDynamicProperty("Age", life);
+              
+              if(life.toLowerCase().equals("a")){enc.setLifeStage("adult");}
+              else if(life.toLowerCase().equals("j")){enc.setLifeStage("juvenile");}
+              else if(life.toLowerCase().equals("s")){enc.setLifeStage("sub-adult");}
+              
+              enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                  + (new java.util.Date()).toString() + "</em><br>"
+                  + "ImportExcel process set Lifestage to "
+                  + life + ".</p>");
+            }
+            //lifestage
+            
+            
             //hook mark
             Cell hookCell = row.getCell(11);
             String hook = hookCell.getStringCellValue();
@@ -668,6 +688,8 @@ public class ImportExcel extends HttpServlet {
                   + "ImportExcel process set hookmark to "
                   + hook + ".</p>");
             }
+            
+            
             //Keyword hookmarkKW=myShepherd.getKeyword("Hookmark");
             //picture.addKeyword(hookmarkKW);
             //end hookmark
@@ -679,12 +701,19 @@ public class ImportExcel extends HttpServlet {
               if(precaudalCell!=null) {
                 Double pc = new Double(precaudalCell.getNumericCellValue());
                 //need new measurement
-                Measurement pcmeasurement = new Measurement(encID, "precaudallength", pc, "cm", "directly measured");
+                Measurement pcmeasurement=new Measurement();
+                if(enc.getMeasurement("precaudallength")!=null){
+                  pcmeasurement=enc.getMeasurement("precaudallength");
+                  pcmeasurement.setValue(pc);
+                }
+                else{
+                  pcmeasurement = new Measurement(encID, "precaudallength", pc, "cm", "directly measured");
+                }
                 enc.setMeasurement(pcmeasurement, myShepherd);
                 
                 enc.addComments("<p><em>" + request.getRemoteUser() + " on "
                     + (new java.util.Date()).toString() + "</em><br>"
-                    + "ImportExcel process set prcaudal length to "
+                    + "ImportExcel process set precaudal length to "
                     + pc + " cm.</p>");
               }
               
@@ -693,6 +722,38 @@ public class ImportExcel extends HttpServlet {
               System.out.println("I could not format the precaudal length for:"+encID);
               nfe.printStackTrace();
             }
+            //end precaudal length
+            
+
+            
+            //length
+            try{
+              Cell lengthCell = row.getCell(14);
+              
+              if(lengthCell!=null) {
+                Double pc = new Double(lengthCell.getNumericCellValue());
+                //need new measurement
+                Measurement pcmeasurement=new Measurement();
+                if(enc.getMeasurement("length")!=null){
+                  pcmeasurement=enc.getMeasurement("length");
+                  pcmeasurement.setValue(pc);
+                }
+                else{
+                  pcmeasurement = new Measurement(encID, "length", pc, "cm", "directly measured");
+                }
+                
+                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                    + (new java.util.Date()).toString() + "</em><br>"
+                    + "ImportExcel process set length to "
+                    + pc + " cm.</p>");
+              }
+              
+            }
+            catch(NumberFormatException nfe){
+              System.out.println("I could not format the precaudal length for:"+encID);
+              nfe.printStackTrace();
+            }
+            //end length
             
             
             /* disabled for now bc we don't support dynamic numeric properties; I recall jason saying these fields not needed.
@@ -761,6 +822,10 @@ public class ImportExcel extends HttpServlet {
             catch (Exception e) {
               System.out.println("\tlongitude string: COULD NOT PARSE");
             }
+            
+            String strOutputDateTime = ServletUtilities.getDate();
+            enc.setDWCDateLastModified(strOutputDateTime);
+            enc.setDWCDateAdded(strOutputDateTime);
             
             // DATA FINDING SECTION
             if (imageDir.exists() && encID!=null) {
