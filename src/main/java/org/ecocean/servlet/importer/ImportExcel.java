@@ -455,7 +455,8 @@ public class ImportExcel extends HttpServlet {
               enc.setIndividualID("Unassigned");
             }
 
-            
+            enc.setGenus("Carcharius");
+            enc.setSpecificEpithet("taurus");
             
             Cell locationCell = row.getCell(3);
             String locationID = locationCell.getStringCellValue();
@@ -463,6 +464,56 @@ public class ImportExcel extends HttpServlet {
               enc.setLocationID(locationID);
               enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "ImportExcel process set location ID to " + locationID + ".</p>"); 
               System.out.println("\tlocation ID: "+locationID);
+              
+              
+              
+              
+
+              
+              //let's also set location description based on locationID
+              if(locationID.equals("BH")){enc.setLocation("Boat Harbour");}
+              else if(locationID.equals("BI")){enc.setLocation("Broughton Island");}
+              else if(locationID.equals("BS")){enc.setLocation("Big Seal");}
+              else if(locationID.equals("BT")){enc.setLocation("Bait Grounds, Forster");}
+              else if(locationID.equals("CC")){enc.setLocation("Cherubs Cave");}
+              else if(locationID.equals("CG")){enc.setLocation("Cod Grounds, Laurieton");}
+              else if(locationID.equals("CH")){enc.setLocation("Coffs Harbour");}
+              else if(locationID.equals("DD")){enc.setLocation("Drum & Drumsticks");}
+              else if(locationID.equals("DP")){enc.setLocation("Dalmeny Point");}
+              else if(locationID.equals("FB")){enc.setLocation("Fairy Bower");}
+              else if(locationID.equals("FC")){enc.setLocation("Foggy Cave, Terrigal");}
+              else if(locationID.equals("FL")){enc.setLocation("Flinders Reef");}
+              else if(locationID.equals("FO")){enc.setLocation("Forster");}
+              else if(locationID.equals("FR")){enc.setLocation("Fish Rock");}
+              else if(locationID.equals("FT")){enc.setLocation("Flat Rock");}
+              else if(locationID.equals("GI")){enc.setLocation("Green Island");}
+              else if(locationID.equals("GS")){enc.setLocation("The Grotto Seal Rocks");}
+              else if(locationID.equals("HE")){enc.setLocation("Hendersons");}
+              else if(locationID.equals("HU")){enc.setLocation("Hutchisons");}
+              else if(locationID.equals("JR")){enc.setLocation("Julian Rocks");}
+              else if(locationID.equals("LF")){enc.setLocation("Long Reef, Sydney");}
+              else if(locationID.equals("LR")){enc.setLocation("Latitude Reef, Forster");}
+              else if(locationID.equals("LS")){enc.setLocation("Little Seal");}
+              else if(locationID.equals("MI")){enc.setLocation("Montague Island");}
+              else if(locationID.equals("MP")){enc.setLocation("Magic Point");}
+              else if(locationID.equals("MR")){enc.setLocation("Mermaid Reef");}
+              else if(locationID.equals("NB")){enc.setLocation("North Bondi");}
+              else if(locationID.equals("NM")){enc.setLocation("Nine Mile Tweed");}
+              else if(locationID.equals("NS")){enc.setLocation("North Solitary");}
+              else if(locationID.equals("PF")){enc.setLocation("Pinnacle Forster");}
+              else if(locationID.equals("SF")){enc.setLocation("Status Reef, Forster");}
+              else if(locationID.equals("SK")){enc.setLocation("Skeleton Reef, Forster");}
+              else if(locationID.equals("SR")){enc.setLocation("Seal Rocks");}
+              else if(locationID.equals("SS")){enc.setLocation("South Solitary Island");}
+              else if(locationID.equals("ST")){enc.setLocation("Sawtooth");}
+              else if(locationID.equals("TB")){enc.setLocation("The Barge");}
+              else if(locationID.equals("TG")){enc.setLocation("Tollgate");}
+              else if(locationID.equals("WR")){enc.setLocation("Wolf Rock");}
+              
+
+              
+              
+              
             }
 
             
