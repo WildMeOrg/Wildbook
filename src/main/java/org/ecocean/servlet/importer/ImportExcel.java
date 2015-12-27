@@ -776,6 +776,7 @@ public class ImportExcel extends HttpServlet {
             
             myShepherd.commitDBTransaction();
             if(newShark){ myShepherd.storeNewMarkedIndividual(indie);}
+            myShepherd.beginDBTransaction();
 
           } // endif (!individualID.equals(""))
           } // endif (ok2import)
@@ -857,8 +858,10 @@ public class ImportExcel extends HttpServlet {
         out.println("<strong>Error:</strong> I was unable to import Excel data as no file was specified.");
         out.println(ServletUtilities.getFooter(context));
       }
+      finally{myShepherd.closeDBTransaction();}
+    
       out.close();
-    }
+      }
 
 
   }
