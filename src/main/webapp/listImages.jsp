@@ -20,6 +20,13 @@
 
 response.setContentType("application/json");
 
+%>
+{
+"mediaAssets": [
+    
+
+<%
+
 String context="context0";
 	Shepherd myShepherd=new Shepherd(context);
 
@@ -35,17 +42,27 @@ if(request.getParameter("species")!=null){species=request.getParameter("species"
 
 c=myShepherd.getAllEncountersForSpeciesWithSpots(genus, species);
 Iterator encounters = c.iterator();
-
+int counter=0;
 
 try{
 
 
 while(encounters.hasNext()){
-
+	counter++;
 			Encounter enc=(Encounter)encounters.next();
 			String individualID="";
 			if(enc.getIndividualID()!=null){individualID=enc.getIndividualID();}
+			
+			if(counter>1){
 			%>
+			,
+			<%	
+			}
+			
+			%>
+			
+			
+			
 {
 	
 	"catalogNumber": "<%=enc.getCatalogNumber() %>",
@@ -109,4 +126,6 @@ catch(Exception ex) {
 
 }
 %>
+]
+}
 
