@@ -110,6 +110,8 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript">
 
 function validate() {
+	alert("validating!")
+	return false;
     var requiredfields = "";
 
     if ($("#submitterName").val().length == 0) {
@@ -141,6 +143,7 @@ function validate() {
 	//this is negated cuz we want to halt validation (submit action) if we are sending via background iframe --
 	// it will do the submit via on('load')
 	return !sendSocialPhotosBackground();
+	//return false;
 }
 
 
@@ -333,7 +336,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
  
   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
       <h1 class="intro">Report an encounter</h1>
-
+	  <h2>-under construction-</h2>
       <p>
         Use the online form below to record the details of your encounter. Be as accurate and specific as possible. Please note that by submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.
       </p>
@@ -353,18 +356,34 @@ google.maps.event.addDomListener(window, 'load', initialize);
       name="encounter_submission" 
       target="_self" dir="ltr" 
       lang="en"
-      onsubmit="return false;"
+      onsubmit="checkDateHasYM()"
       class="form-horizontal"
 >
       
 <div class="dz-message"></div>
 
-
-
-
-
 <script>
 
+function checkDateHasYM() {
+	alert("check date called");
+	return false;
+}
+
+$('#encounterForm').submit(function( event ) {
+	alert( "#encounterForm.submit() called." );	
+});
+
+$('#encounterForm').on('submit', function( event ){
+    alert("encounterForm.on('submit')");
+});
+
+//this is a simple wrapper to this, as it is called from 2 places (so far)
+function submitForm() {
+	alert("submitForm() is called");
+	document.forms['encounterForm'].submit(function (event) {
+		alert("submit function of encounterForm is called")		
+	});
+}
 
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
@@ -383,20 +402,14 @@ $('#social_files_iframe').on('load', function(ev) {
 });
 
 
-//this is a simple wrapper to this, as it is called from 2 places (so far)
-function submitForm() {
-	document.forms['encounterForm'].submit();
-}
-
-
 //we need to first check here if we need to do the background social image send... in which case,
 // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
 function sendButtonClicked() {
-console.log('sendButtonClicked()');
+	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
-console.log('fell through -- must be no social!');
+	console.log('fell through -- must be no social!');
 	submitForm();
-	return true;
+	return false;
 }
 
 
@@ -467,12 +480,13 @@ function showUploadBox() {
 <fieldset>
 <h3><%=props.getProperty("dateAndLocation")%></h3>
 
+<!-- Here is the datepicker button -->
 <div class="form-group required">
 
     <div class="form-group required">
       
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
-        <label class="control-label text-danger">Encounter date</label>
+        <label class="control-label text-danger">Encounter date <span class="text-warning">(year and month required)</span></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
 </div>
 
@@ -483,7 +497,6 @@ function showUploadBox() {
             <li>2014-01-05 12:30</li>
             <li>2014-03-23</li>
             <li>2013-12</li>
-            <li>2010</li>
           </ul>
         </p>
       </div>
