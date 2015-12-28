@@ -111,7 +111,6 @@ context=ServletUtilities.getContext(request);
 
 function validate() {
 	alert("validating!")
-	return false;
     var requiredfields = "";
 
     if ($("#submitterName").val().length == 0) {
@@ -184,6 +183,15 @@ $(function() {
     //
     resetMap();
     
+    function checkDateHasYM(dateStr) {
+    	// As far as I can tell, this correctly discerns bad datestrings (note that you by default can't submit a time w/o a complete date)
+    	var ymRegex = /\d{4}-\d/
+    	if(!ymRegex.test(dateStr.substring(0,6))){
+    		alert("Please input at least a valid year and month")
+    		return false;
+    	}
+    	return true;
+    }
     
 
     $( "#datepicker" ).datetimepicker({
@@ -192,7 +200,11 @@ $(function() {
       dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
       controlType: 'select',
-      alwaysSetTime: false
+      alwaysSetTime: false,
+	  onSelect: function(dateText, inst) { 
+	      checkDateHasYM(dateText)},
+	  onClose: function(dateText, inst) { 
+	      checkDateHasYM(dateText)}
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 
@@ -347,7 +359,8 @@ google.maps.event.addDomListener(window, 'load', initialize);
   </div>
   
 
-  <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
+
+<div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm" 
 	  action="EncounterForm" 
@@ -364,11 +377,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 <script>
 
-function checkDateHasYM() {
-	alert("check date called");
-	return false;
-}
-
+/*
 $('#encounterForm').submit(function( event ) {
 	alert( "#encounterForm.submit() called." );	
 });
@@ -376,6 +385,7 @@ $('#encounterForm').submit(function( event ) {
 $('#encounterForm').on('submit', function( event ){
     alert("encounterForm.on('submit')");
 });
+*/
 
 //this is a simple wrapper to this, as it is called from 2 places (so far)
 function submitForm() {
@@ -383,6 +393,7 @@ function submitForm() {
 	document.forms['encounterForm'].submit(function (event) {
 		alert("submit function of encounterForm is called")		
 	});
+	document.forms['encounterForm'].submit();
 }
 
 $('#social_files_iframe').on('load', function(ev) {
