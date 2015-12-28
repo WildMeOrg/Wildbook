@@ -748,34 +748,38 @@ public class ImportExcel extends HttpServlet {
             //precaudal length
             try{
               Cell precaudalCell = row.getCell(13);
-              
+
+
               if(precaudalCell!=null) {
-                
                 Double pc = new Double(precaudalCell.getNumericCellValue());
                 //need new measurement
                 if(pc>0.0){
-                Measurement pcmeasurement=new Measurement();
-                
-                if(enc.getMeasurement("precaudallength")!=null){
-                  pcmeasurement=enc.getMeasurement("precaudallength");
-                  pcmeasurement.setValue(pc);
+                  Measurement pcmeasurement=new Measurement();
+
+                  if(enc.getMeasurement("precaudallength")!=null){
+                    pcmeasurement=enc.getMeasurement("precaudallength");
+                    pcmeasurement.setValue(pc);
+                  }
+                  else{
+                    pcmeasurement = new Measurement(encID, "precaudallength", pc, "cm", "directly measured");
+                  }
+                  enc.setMeasurement(pcmeasurement, myShepherd);
+
+                  enc.addComments("<p><em>" + request.getRemoteUser() + " on "
+                      + (new java.util.Date()).toString() + "</em><br>"
+                      + "ImportExcel process set precaudal length to "
+                      + pc + " cm.</p>");
                 }
-                else{
-                  pcmeasurement = new Measurement(encID, "precaudallength", pc, "cm", "directly measured");
-                }
-                enc.setMeasurement(pcmeasurement, myShepherd);
-                
-                enc.addComments("<p><em>" + request.getRemoteUser() + " on "
-                    + (new java.util.Date()).toString() + "</em><br>"
-                    + "ImportExcel process set precaudal length to "
-                    + pc + " cm.</p>");
               }
-            }
-              
+
+
             }
             catch(NumberFormatException nfe){
-              System.out.println("I could not format the precaudal length for:"+encID);
+              System.out.println("\tPrecaudal length: could not parse");
               nfe.printStackTrace();
+            }
+            catch(Exception e) {
+              System.out.println("\tPrecaudal length: could not parse");
             }
             //end precaudal length
             
