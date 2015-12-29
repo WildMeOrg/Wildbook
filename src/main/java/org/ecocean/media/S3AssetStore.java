@@ -236,30 +236,6 @@ public class S3AssetStore extends AssetStore {
     }
 
 
-
-    //kind of a kludgey way to just grab the first one we have. :/  TODO generalize within AssetStore (using getMap() etc?)
-    public static S3AssetStore getFirst(Shepherd myShepherd) {
-//S3AssetStore s3as2 = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
-        Extent ext = myShepherd.getPM().getExtent(S3AssetStore.class, true);
-        Query matches = myShepherd.getPM().newQuery(ext);
-        try {
-            Collection c = (Collection) (matches.execute());
-            if (c.size() < 1) return null;
-            Iterator i = c.iterator();
-            while (i.hasNext()) {
-                S3AssetStore s3 = (S3AssetStore) i.next();
-                if (s3.getType() == AssetStoreType.S3) return s3;
-            }
-            return null;
-        } catch (javax.jdo.JDOException ex) {
-            System.out.println("S3AssetStore.getFirst() threw exception " + ex.toString());
-ex.printStackTrace();
-            return null;
-        }
-    }
-
-  //}
-
 }
 
 

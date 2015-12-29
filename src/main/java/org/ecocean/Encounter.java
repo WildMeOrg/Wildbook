@@ -1008,7 +1008,7 @@ public class Encounter implements java.io.Serializable {
     // note: also will check for existence of mpath and fail silently if doesnt exist
     private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
         if ((mpath == null) || !mpath.exists()) return null;
-        S3AssetStore astore = S3AssetStore.getFirst(myShepherd);  ///TODO see trouble with this generically
+        AssetStore astore = AssetStore.getDefault();
         org.json.JSONObject sp = new org.json.JSONObject();
         sp.put("bucket", "test-asset-store");
         sp.put("key", key);
@@ -1042,9 +1042,9 @@ System.out.println("creating new MediaAsset for key=" + key);
         File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
         if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
         //TODO handle generic case of using "default" AssetStore (or whatever we should do)
-        S3AssetStore astore = S3AssetStore.getFirst(myShepherd);
+        AssetStore astore = AssetStore.getDefault();
         if (astore == null) {
-            System.out.println("No S3AssetStore in Encounter.spotImageAsMediaAsset()");
+            System.out.println("No AssetStore in Encounter.spotImageAsMediaAsset()");
             return null;
         }
 System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());

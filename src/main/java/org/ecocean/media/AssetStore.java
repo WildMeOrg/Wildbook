@@ -26,7 +26,7 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -76,7 +76,7 @@ public abstract class AssetStore implements java.io.Serializable {
     }
 
     public static synchronized void init(final List<AssetStore> storelist) {
-        stores = new HashMap<Integer, AssetStore>();
+        stores = new LinkedHashMap<Integer, AssetStore>();
         for (AssetStore store : storelist) {
             stores.put(store.id, store);
         }
@@ -217,7 +217,13 @@ ex.printStackTrace();
 
     public abstract void deleteFrom(final MediaAsset ma);
 
-    public static AssetStore getDefault()
+    //TODO how do we deterimine this?  speaking of, how do we determine when to use one store vs another!?
+    //  for now, we will let order determine default.... thus burden is on list passed into init()
+    public static AssetStore getDefault() {
+        if ((stores == null) || (stores.size() < 1)) return null;
+        return (AssetStore)stores.values().toArray()[0];
+    }
+/*
     {
         for (AssetStore store : getMap().values()) {
             if (store.type == AssetStoreType.LOCAL) {
@@ -234,6 +240,7 @@ ex.printStackTrace();
 
         return null;
     }
+*/
 
     //utility function to always get a null or Object without throwing an exception
     public Object getParameter(JSONObject params, String key) {

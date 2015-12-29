@@ -1,6 +1,10 @@
 package org.ecocean.media;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Collection;
+import org.ecocean.Shepherd;
+import javax.jdo.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,25 +12,33 @@ import org.slf4j.LoggerFactory;
 public class AssetStoreFactory {
     private static Logger logger = LoggerFactory.getLogger(AssetStoreFactory.class);
 
-    private static final String TABLENAME_ASSETSTORE = "assetstore";
+    ///////private static final String TABLENAME_ASSETSTORE = "assetstore";
 
     private AssetStoreFactory() {
         // do not instantiate
     }
 
-/*
-    public static List<AssetStore> getStores(final Database db) throws DatabaseException {
-        Table table = db.getTable(TABLENAME_ASSETSTORE);
-        return table.selectList((rs) -> {
-            return buildAssetStore(rs.getInteger("id"),
-                                   rs.getString("name"),
-                                   AssetStoreType.valueOf(rs.getString("type")),
-                                   new AssetStoreConfig(rs.getString("config")),
-                                   rs.getBoolean("writable"));
-        });
-    }
-*/
+    //TODO this *should* make an attempt to put the "default" one first (or generally order it in a preferred way????) based on configuration
+    //  this is because AssetStore.getDefault() currently uses the 0th element as default
+    public static List<AssetStore> getStores(final Shepherd myShepherd) {
+        Collection c;
+        Extent ext = myShepherd.getPM().getExtent(AssetStore.class, true);
+        Query all = myShepherd.getPM().newQuery(ext);
+        try {
+            c = (Collection) (all.execute());
+        } catch (Exception npe) {
+            npe.printStackTrace();
+            return null;
+        }
 
+        List<AssetStore> s = new ArrayList<AssetStore>();
+        for (Object obj : c) {
+            s.add((AssetStore)obj);
+        }
+        return s;
+    }
+
+/*
     private static AssetStore buildAssetStore(final Integer id,
                                               final String name,
                                               final AssetStoreType type,
@@ -45,6 +57,7 @@ public class AssetStoreFactory {
         }
     }
 
+*/
 
     public static void save(final AssetStore store) {
     }
