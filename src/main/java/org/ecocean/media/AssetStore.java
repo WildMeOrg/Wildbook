@@ -215,6 +215,12 @@ ex.printStackTrace();
                                       final JSONObject params)
                                               throws IOException;
 
+    /**
+     *  should create the ("base") set of parameters for the specific store-type based on file.
+     *  note this can take into account store-specific config settings (like bucket for S3)
+     */
+    public abstract JSONObject createParameters(final File file);
+
     public abstract void deleteFrom(final MediaAsset ma);
 
     //TODO how do we deterimine this?  speaking of, how do we determine when to use one store vs another!?

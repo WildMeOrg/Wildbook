@@ -265,10 +265,7 @@ System.out.println("um, i am sanitizing " + this);
         //TODO get default AssetStore instead -- and how do we then generically set params for that *type* of AssetStore???
         // see also Encounter.spotImageAsMediaAsset() for similar quandries
         AssetStore astore = AssetStore.getDefault();
-        //LocalAssetStore las = ((LocalAssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(LocalAssetStore.class, 1), true)));
-        //params.put("path", this.fullFileSystemPath);
-        org.json.JSONObject sp = new org.json.JSONObject();
-        sp.put("bucket", "test-asset-store");
+        org.json.JSONObject sp = astore.createParameters(new File(fullFileSystemPath));
         sp.put("key", "spv/" + this.getDataCollectionEventID() + "/" + filename);
         sp.put("sourceSinglePhotoVideoID", this.getDataCollectionEventID());
         MediaAsset ma = null;

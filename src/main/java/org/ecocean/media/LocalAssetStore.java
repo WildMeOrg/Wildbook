@@ -330,6 +330,14 @@ System.out.println("webURL() path = "+path);
         return abs.substring(0,10) + LocalAssetStore.hexStringSHA256(abs);
     }
 
+
+    @Override
+    public JSONObject createParameters(File file) {
+        JSONObject p = new JSONObject();
+        if (file != null) p.put("path", file.toPath());  //note: we could do better and create the "suggested" location within the root path (if file outside of it) TODO
+        return p;
+    }
+
 }
 
 

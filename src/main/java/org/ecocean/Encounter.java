@@ -1009,9 +1009,8 @@ public class Encounter implements java.io.Serializable {
     private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
         if ((mpath == null) || !mpath.exists()) return null;
         AssetStore astore = AssetStore.getDefault();
-        org.json.JSONObject sp = new org.json.JSONObject();
-        sp.put("bucket", "test-asset-store");
-        sp.put("key", key);
+        org.json.JSONObject sp = astore.createParameters(mpath);
+        if (key != null) sp.put("key", key);  //will use default from createParameters() (if there was one even)
         if (media == null) media = new ArrayList<MediaAsset>();
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
@@ -1048,10 +1047,8 @@ System.out.println("creating new MediaAsset for key=" + key);
             return null;
         }
 System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
-        org.json.JSONObject sp = new org.json.JSONObject();
-        //TODO how the heck **do** we determine these anyway???  do we need to pad out key with some server/species/etc ??
-        sp.put("bucket", "test-asset-store");
-        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);
+        org.json.JSONObject sp = astore.createParameters(fullPath);
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);  //note: this really only applies to S3 AssetStores, but shouldnt hurt others?
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma == null) {
 System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
