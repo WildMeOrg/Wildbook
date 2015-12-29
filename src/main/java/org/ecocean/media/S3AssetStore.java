@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.ecocean.Shepherd;
+import org.ecocean.Util;
 
 import javax.jdo.*;
 import java.util.Collection;
@@ -80,9 +81,9 @@ public class S3AssetStore extends AssetStore {
      * @param writable True if we are allowed to save files under the
      * root.
      */
-    public S3AssetStore(final String name, final boolean writable)
+    public S3AssetStore(final String name, final AssetStoreConfig cfg, final boolean writable)
     {
-        this(null, name, null, writable);
+        this(null, name, cfg, writable);
     }
 
     /**
@@ -235,7 +236,15 @@ public class S3AssetStore extends AssetStore {
         return bp.toString().substring(0,10) + S3AssetStore.hexStringSHA256(bp.toString() + "/" + kp.toString());
     }
 
-
+    @Override
+    public JSONObject createParameters(File file) {
+        JSONObject p = new JSONObject();
+        if ((this.config == null) || (this.config.getString("bucket") == null)) throw new IllegalArgumentException(this + " does not have a default bucket value");
+        p.put("bucket", this.config.getString("bucket"));
+        //note: this key is simply to try to encourage uniqueness, but can be later re-set with something better if desired
+        if (file != null) p.put("key", Util.hashDirectories(Util.generateUUID(), "/") + "/" + file.getName());
+        return p;
+    }
 }
 
 
