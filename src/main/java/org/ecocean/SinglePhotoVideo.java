@@ -264,7 +264,7 @@ System.out.println("um, i am sanitizing " + this);
     public MediaAsset toMediaAsset(Shepherd myShepherd, boolean allowDuplicate) {
         //TODO get default AssetStore instead -- and how do we then generically set params for that *type* of AssetStore???
         // see also Encounter.spotImageAsMediaAsset() for similar quandries
-        S3AssetStore astore = S3AssetStore.getFirst(myShepherd);
+        AssetStore astore = AssetStore.getDefault();
         //LocalAssetStore las = ((LocalAssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(LocalAssetStore.class, 1), true)));
         //params.put("path", this.fullFileSystemPath);
         org.json.JSONObject sp = new org.json.JSONObject();
