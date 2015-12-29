@@ -341,4 +341,15 @@ public class Util {
         return null;
     }
 
+
+    //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
+    // TODO check for incoming slashes and similar weirdness
+    public static String hashDirectories(String in, String separator) {
+        if ((in == null) || (in.length() < 4)) return in;
+        return in.charAt(0) + separator + in.charAt(1) + separator + in;
+    }
+    public static String hashDirectories(String in) {
+        return hashDirectories(in, File.separator);
+    }
+
 }
