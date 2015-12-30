@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 //import java.io.FileInputStream;
 
@@ -528,9 +529,15 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
-                .append("labels", labels.toString())
+                .append("labels", ((labels == null) ? "" : labels.toString()))
                 .append("store", store.toString())
                 .toString();
+    }
+
+
+    public void copyIn(File file) throws IOException {
+        if (store == null) throw new IOException("store is null on " + this);
+        store.copyIn(file, parameters, false);
     }
 
 }

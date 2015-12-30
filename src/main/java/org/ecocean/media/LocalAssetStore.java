@@ -209,21 +209,8 @@ System.out.println("subpath = " + subpath);
         return path;
     }
 
-    /**
-     * Create a new asset from a File. The file is
-     * copied in to the store as part of this process.
-     *
-     * @param file File to copy in.
-     *
-     * @param params params.path is the (optional) subdirectory and (required) filename
-     * relative to the asset store root in which to store the file.
-     *
-     */
     @Override
-    public MediaAsset copyIn(final File file,
-                             final JSONObject params)
-        throws IOException
-    {
+    public MediaAsset copyIn(final File file, final JSONObject params, final boolean createMediaAsset) throws IOException {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
         Path subpath = pathFromParameters(params);
         if (subpath == null) throw new IOException("no path passed in parameters");
@@ -234,6 +221,7 @@ System.out.println("subpath = " + subpath);
         logger.debug("copying from " + file + " to " + fullpath);
         Files.copy(file.toPath(), fullpath, REPLACE_EXISTING);
         params.put("path", subpath.toString());  //always store it relative, not absolute (in case it was passed in as such)
+        if (!createMediaAsset) return null;
         return new MediaAsset(this, params);
     }
 
