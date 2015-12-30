@@ -93,8 +93,18 @@ public abstract class AssetStore implements java.io.Serializable {
         return stores;
     }
 
-
 /*
+    public void setName(String n) {
+        name = n;
+    }
+    public String getName() {
+        return name;
+    }
+
+    public AssetStoreConfig getConfig() {
+        return config;
+    }
+
     public boolean getWritable() {
         return writable;
     }
@@ -238,10 +248,18 @@ ex.printStackTrace();
 
     //TODO how do we deterimine this?  speaking of, how do we determine when to use one store vs another!?
     //  for now, we will let order determine default.... thus burden is on list passed into init()
+/* fail. TODO fix whole init() debacle eventually?
     public static AssetStore getDefault() {
         if ((stores == null) || (stores.size() < 1)) return null;
         return (AssetStore)stores.values().toArray()[0];
     }
+*/
+    public static AssetStore getDefault(Shepherd myShepherd) {
+        init(AssetStoreFactory.getStores(myShepherd));
+        if ((stores == null) || (stores.size() < 1)) return null;
+        return (AssetStore)stores.values().toArray()[0];
+    }
+
 /*
     {
         for (AssetStore store : getMap().values()) {
@@ -261,6 +279,9 @@ ex.printStackTrace();
     }
 */
 
+public static Map<Integer, AssetStore> getStores() {
+    return stores;
+}
     //utility function to always get a null or Object without throwing an exception
     public Object getParameter(JSONObject params, String key) {
         if (params == null) return null;

@@ -264,7 +264,7 @@ System.out.println("um, i am sanitizing " + this);
     public MediaAsset toMediaAsset(Shepherd myShepherd, boolean allowDuplicate) {
         //TODO get default AssetStore instead -- and how do we then generically set params for that *type* of AssetStore???
         // see also Encounter.spotImageAsMediaAsset() for similar quandries
-        AssetStore astore = AssetStore.getDefault();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
         org.json.JSONObject sp = astore.createParameters(new File(fullFileSystemPath));
         sp.put("key", "spv/" + this.getDataCollectionEventID() + "/" + filename);
         sp.put("sourceSinglePhotoVideoID", this.getDataCollectionEventID());
