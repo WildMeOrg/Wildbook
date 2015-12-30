@@ -1008,7 +1008,7 @@ public class Encounter implements java.io.Serializable {
     // note: also will check for existence of mpath and fail silently if doesnt exist
     private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
         if ((mpath == null) || !mpath.exists()) return null;
-        AssetStore astore = AssetStore.getDefault();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
         org.json.JSONObject sp = astore.createParameters(mpath);
         if (key != null) sp.put("key", key);  //will use default from createParameters() (if there was one even)
         if (media == null) media = new ArrayList<MediaAsset>();
@@ -1041,7 +1041,7 @@ System.out.println("creating new MediaAsset for key=" + key);
         File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
         if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
         //TODO handle generic case of using "default" AssetStore (or whatever we should do)
-        AssetStore astore = AssetStore.getDefault();
+        AssetStore astore = AssetStore.getDefault(myShepherd);
         if (astore == null) {
             System.out.println("No AssetStore in Encounter.spotImageAsMediaAsset()");
             return null;
