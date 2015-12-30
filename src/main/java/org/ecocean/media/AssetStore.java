@@ -211,9 +211,22 @@ ex.printStackTrace();
      * on how to store the incoming file.
      *
      */
-    public abstract MediaAsset copyIn(final File file,
-                                      final JSONObject params)
-                                              throws IOException;
+    public MediaAsset copyIn(final File file, final JSONObject params) throws IOException {
+        return copyIn(file, params, true);
+    }
+
+    /**
+     * Like above, but pass in MediaAsset and copy file to AssetStore accordingly (does the real dirty work for above).
+     *
+     * @param file File to copy in
+     *
+     * @param ma The MediaAsset
+     */
+    public void copyIn(final File file, final MediaAsset ma) throws IOException {
+        copyIn(file, ma.getParameters(), false);
+    }
+
+    protected abstract MediaAsset copyIn(final File file, final JSONObject params, final boolean createMediaAsset) throws IOException;
 
     /**
      *  should create the ("base") set of parameters for the specific store-type based on file.

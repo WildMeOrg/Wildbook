@@ -158,21 +158,7 @@ public class S3AssetStore extends AssetStore {
     }
 
 
-    /**
-     * Create a new asset from a File. The file is
-     * copied in to the store as part of this process.
-     *
-     * @param file File to copy in.
-     *
-     * @param params params.bucket and params.key are the required items to store in S3.
-     * 
-     *
-     */
-    @Override
-    public MediaAsset copyIn(final File file,
-                             final JSONObject params)
-        throws IOException
-    {
+    public MediaAsset copyIn(final File file, final JSONObject params, final boolean createMediaAsset) throws IOException {
         if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
         if (!file.exists()) throw new IOException(file.toString() + " does not exist");
 
@@ -183,6 +169,7 @@ public class S3AssetStore extends AssetStore {
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) throw new IllegalArgumentException("Invalid bucket and/or key value");
         getS3Client().putObject(new PutObjectRequest(bp.toString(), kp.toString(), file));
+        if (!createMediaAsset) return null;
         return new MediaAsset(this, params);
     }
 
