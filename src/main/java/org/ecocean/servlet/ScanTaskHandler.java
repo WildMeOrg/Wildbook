@@ -26,6 +26,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.grid.*;
 
 import javax.jdo.FetchPlan;
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -34,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -188,7 +190,15 @@ public class ScanTaskHandler extends HttpServlet {
         //int currentNumScanTasks=0;
         if (currentNumScanTasks < taskLimit) {
 
-          int numComparisons = myShepherd.getAllEncountersForSpeciesWithSpots(genus, species).size();
+          /*
+          Query query=null;
+          Collection c=null;
+         String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE spots != null && genus == '"+genus+"' && specificEpithet == '"+species+"'";
+         query=myShepherd.getPM().newQuery(keywordQueryString);
+         c = (Collection) (query.execute());
+           int numComparisons = c.size();
+           query.closeAll();
+           */
               
           myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
 
