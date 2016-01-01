@@ -131,8 +131,10 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         c = (Collection) (query.execute());
       }
       else{
-        c= myShepherd.getAllEncountersForSpeciesWithSpots(genus, species);
-            
+        //c= myShepherd.getAllEncountersForSpeciesWithSpots(genus, species);
+        String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE spots != null && genus == '"+genus+"' && specificEpithet == '"+species+"'";
+        query=myShepherd.getPM().newQuery(keywordQueryString);
+        c = (Collection) (query.execute());
       }
       
       //System.out.println("Num scans to do: "+c.size());
