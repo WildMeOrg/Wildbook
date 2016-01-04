@@ -22,7 +22,9 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Keyword;
 import org.ecocean.Shepherd;
+import org.ecocean.SinglePhotoVideo;
 
+import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -88,9 +90,23 @@ public class KeywordHandler extends HttpServlet {
       } 
       else if ((action.equals("removeWord")) && (request.getParameter("keyword") != null)) {
         myShepherd.beginDBTransaction();
-        Keyword word = myShepherd.getKeyword(request.getParameter("keyword"));
+        Keyword word = myShepherd.getKeyword(request.getParameter("keyword").trim());
         String desc = word.getReadableName();
-        myShepherd.throwAwayKeyword(word);
+        
+        //need to first delete the keyword from all SinglePhotoVIdeos it is assigned to
+        ArrayList<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+        int numPhotos=photos.size();
+        for(int i=0;i<numPhotos;i++){
+        	SinglePhotoVideo spv=photos.get(i);
+        	spv.removeKeyword(word);
+        	myShepherd.commitDBTransaction();
+        	myShepherd.beginDBTransaction();
+        }
+        
+        //now we can safely delete the Keyword object
+        myShepherd.getPM().deletePersistent(word);
+        
+        
         myShepherd.commitDBTransaction();
 
         //confirm success

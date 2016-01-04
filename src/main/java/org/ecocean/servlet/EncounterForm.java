@@ -401,9 +401,6 @@ System.out.println("*** trying redirect?");
       if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
         spamBot = true;
       }
-      if (spamFields.toString().toLowerCase().indexOf("new york") != -1) {
-        spamBot = true;
-      }
       //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
       //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
@@ -623,7 +620,7 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
       List<Measurement> measurements = getMeasurements(fv, encID, context);
       for (Measurement measurement : measurements) {
-        enc.setMeasurement(measurement,myShepherd);
+        enc.setMeasurement(measurement, myShepherd);
       }
 
 
@@ -656,9 +653,11 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
             }
 
 
-
-      enc.setDistinguishingScar(fv.get("scars").toString());
-
+      if(fv.get("scars")!=null){
+        enc.setDistinguishingScar(fv.get("scars").toString());
+      }
+      
+      
       int sizePeriod=0;
       if ((fv.get("measureUnits") != null) && fv.get("measureUnits").toString().equals("Feet")) {
 

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+<Configure id="Server" class="org.eclipse.jetty.server.Server">
+    <Call name="addBean">
+      <Arg>
+        <New class="org.eclipse.jetty.security.HashLoginService">
+          <Set name="name">Shepherd Realm</Set>
+          <Set name="config"><SystemProperty name="shepherd.home" default="."/>/shepherd.properties</Set>
+          <Set name="refreshInterval">0</Set>
+        </New>
+      </Arg>
+    </Call>
+</Configure>

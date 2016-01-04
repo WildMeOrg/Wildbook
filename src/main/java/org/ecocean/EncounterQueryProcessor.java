@@ -623,6 +623,33 @@ public class EncounterQueryProcessor {
     }
     //end hasPhoto filters-----------------------------------------------
     
+    //------------------------------------------------------------------
+    
+    
+    //hasSpots filters-------------------------------------------------
+    if(request.getParameter("hasSpots")!=null){
+          prettyPrint.append("Has patterning points.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="spots != null ";}
+            else if (filter.indexOf("spots != null")==-1){filter+=(" && spots !=null ");}
+
+            prettyPrint.append("<br />");
+            
+    }
+    //end hasSpots filters-----------------------------------------------
+    
+    //has no Spots filters-------------------------------------------------
+    if(request.getParameter("hasNoSpots")!=null){
+          prettyPrint.append("Has no patterning points.");
+
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="spots == null ";}
+            else if (filter.indexOf("spots == null")==-1){filter+=(" && spots == null ");}
+
+            prettyPrint.append("<br />");
+            
+    }
+    //end has no Spots filters-----------------------------------------------
+    
     //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
     if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
       int numResights=1;

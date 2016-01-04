@@ -1,24 +1,4 @@
-<%--
-  ~ Wildbook - A Mark-Recapture Framework
-  ~ Copyright (C) 2014 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public License
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
 <%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
 javax.servlet.http.HttpSession,
@@ -67,47 +47,9 @@ if (session.getAttribute("message") != null) {
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
-<html>
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+<jsp:include page="header.jsp" flush="true"/>
 
-
-<script src="javascript/core.js"></script>
-
-  <style type="text/css">
-    <!--
-    .style1 {
-      color: #FF0000
-    }
-
-    -->
-  </style>
-</head>
-
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="header.jsp" flush="true">
-
-      <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
-
-
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-
+<div class="container maincontent">
 
 	<h1 class="intro"><%=(props.getProperty("userAccount")+" "+request.getUserPrincipal()) %></h1>
 
@@ -263,7 +205,7 @@ if (session.getAttribute("message") != null) {
             </tr>
             </table>
 <br ></br>
-<h1><%=props.getProperty("socialMediaConnections") %></h1>
+<h2><%=props.getProperty("socialMediaConnections") %></h2>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
@@ -355,7 +297,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     	
     </p>
     
-    <h3><%=props.getProperty("myData") %></h3>
+    <h2><%=props.getProperty("myData") %></h2>
     
 
 <%
@@ -363,11 +305,6 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
 %>
     <jsp:include page="encounters/encounterSearchResultsAnalysisEmbed.jsp" flush="true">
     	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
-    	<jsp:param name="showTaxonomy" value="false" />
-    	<jsp:param name="showHaplotype" value="false" />
-    	<jsp:param name="showUsers" value="false" />
-    	<jsp:param name="showCountry" value="false" />
-    	<jsp:param name="showBioMeasurements" value="false" />
     </jsp:include>
     
     <p><strong>Links to My Data</strong></p>
@@ -376,11 +313,6 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
     <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
     
 
-      <jsp:include page="footer.jsp" flush="true"/>
-    </div>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
 <%
 myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
@@ -400,8 +332,8 @@ function socialConnect(svc) {
 }
 
 </script>
+</div>
 
-</body>
-</html>
+<jsp:include page="footer.jsp" flush="true"/>
 
 
