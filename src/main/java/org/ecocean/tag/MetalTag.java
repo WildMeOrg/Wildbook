@@ -1,6 +1,7 @@
 package org.ecocean.tag;
 
 public class MetalTag extends AbstractTag {
+  static final long serialVersionUID = 9015223799239301859L;
   private String tagNumber;
   private String location;
   

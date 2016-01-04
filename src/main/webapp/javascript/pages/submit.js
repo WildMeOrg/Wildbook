@@ -128,7 +128,10 @@ $(function() {
 
     $.each(wildbook.social.myServices(), function() {
         var service = this.toString(); //comes out a String obect
-				if (!wildbook.social.featureEnabled(service, 'images')) return;
+        if (!wildbook.social.featureEnabled(service, 'images')) {
+            return;
+        };
+        
         var button = $("<button>").attr("title", "Import from " + service).addClass("zocial").addClass("icon").addClass(service);
         button.click(function() {
             getAlbums(service);

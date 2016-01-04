@@ -57,11 +57,11 @@ public class LoginIT {
     setTextField("username", "tomcat");
     setTextField("password", "tomcat123");
     submit();
-    assertTextPresent("Login success!");
-    clickLinkWithExactText("Home");
+    assertTextPresent("User Agreement");
+    submit("acceptUserAgreement");
     assertLinkPresentWithExactText("Logout");
     clickLinkWithExactText("Logout");
-    assertTextPresent("You are now safely logged out.");
+    assertTextPresent("Logout");
   }
 
   @Test
@@ -73,12 +73,10 @@ public class LoginIT {
     setTextField("password", "bar");
     submit();
 
-    assertTextPresent("Database login");
+    assertTextPresent("Username");
     gotoPage("/appadmin/admin.jsp");
-    assertTextPresent("Database login");
+    assertTextPresent("Username");
   }
-  
-
   
   @After
   public void close() {

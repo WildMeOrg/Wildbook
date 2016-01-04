@@ -276,9 +276,14 @@
  		 }
  		 
  		 //weekly frequency tabulation
- 		 if((thisEnc.getYear()>0)&&(thisEnc.getMonth()>0)&&(thisEnc.getDay()>0)){
- 			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth(), thisEnc.getDay());
+ 		 if((thisEnc.getYear()>-1)&&(thisEnc.getMonth()>-1)&&(thisEnc.getDay()>-1)){
+ 			 GregorianCalendar cal=new GregorianCalendar(thisEnc.getYear(),thisEnc.getMonth()-1, thisEnc.getDay());
  			 int weekOfYear=cal.get(Calendar.WEEK_OF_YEAR);
+ 			 %>
+ 			 
+ 			 <!-- zzzAdding this date: week of year is <%=weekOfYear  %> for date: <%=thisEnc.getDate() %> -->
+ 			 
+ 			 <%
  			 Integer valueForWeek=frequencyWeeks.get(weekOfYear)+1;
  			 frequencyWeeks.put(weekOfYear, valueForWeek);
  		 }
@@ -891,9 +896,6 @@
 			<p>No measurement types defined.</p>
 			<% 
 		}
-
-if((request.getParameter("showBioMeasurements")==null)||(request.getParameter("showBioMeasurements").equals("true"))){
-
 %>
 <p><strong>Biological/Chemical Measurements</strong></p>
 <%
@@ -932,40 +934,23 @@ if((request.getParameter("showBioMeasurements")==null)||(request.getParameter("s
 			<% 
 		}
 
-}
+
      try {
  %>
  
 <p><strong>Charting</strong></p>
 
-<%
-if((request.getParameter("showHaplotype")==null)||(request.getParameter("showHaplotype").equals("true"))){
-%>
  <div id="chart_div"></div>
- <%
-}
- %>
 
-<%
-if((request.getParameter("showSex")==null)||(request.getParameter("showSex").equals("true"))){
-%>
 <div id="sexchart_div"></div>
-<%
-}
-%>
 
  <%
         if(CommonConfiguration.showProperty("showTaxonomy",context)){
-        
-			if((request.getParameter("showTaxonomy")==null)||(request.getParameter("showTaxonomy").equals("true"))){
-			%>
-				<div id="specieschart_div"></div>
-			<%
-        	}
+        %>
+		<div id="specieschart_div"></div>
+		<%
         }
-
- 
- 
+		
         if(CommonConfiguration.showProperty("showCountry",context)){
         %>
 		<div id="countrieschart_div"></div>
@@ -973,21 +958,8 @@ if((request.getParameter("showSex")==null)||(request.getParameter("showSex").equ
         }
 		%>
  	<div id="discoveryCurve_div"></div>
- 	
- 	<%
- 	if((request.getParameter("showFrequency")==null)||(request.getParameter("showFrequency").equals("true"))){
-	%>		
  	<div id="frequency_div"></div>
- 	<%
- 	}
- 	
- 	if((request.getParameter("showUsers")==null)||(request.getParameter("showUsers").equals("true"))){
-	%>		
  	<div id="userschart_div"></div>
- 	<%
- 	}
- 	%>
- 	
  	<div id="states_div"></div>
  	<div id="yearadded_div"></div>
  	<div id="yeartotals_div"></div>

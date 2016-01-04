@@ -1,28 +1,33 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java" import="java.util.ArrayList,org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.GridManager,org.ecocean.grid.GridManagerFactory,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.io.IOException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java"
+     import="org.ecocean.*,
+              org.ecocean.servlet.ServletUtilities,
+              java.util.ArrayList,
+              java.util.List,
+              java.util.Map,
+              java.util.Iterator,
+              java.util.Properties,
+              java.util.StringTokenizer
+              "
+%>
 
 
 
+<jsp:include page="header.jsp" flush="true"/>
 
 <%
+String context=ServletUtilities.getContext(request);
 
-//grab a gridManager
-GridManager gm=GridManagerFactory.getGridManager();
-int numProcessors = gm.getNumProcessors();
-int numWorkItems = gm.getIncompleteWork().size();
+//set up our Shepherd
 
-String context="context0";
-context=ServletUtilities.getContext(request);
+Shepherd myShepherd=null;
+myShepherd=new Shepherd(context);
 
 
-  Shepherd myShepherd = new Shepherd(context);
+//check for and inject a default user 'tomcat' if none exists
   
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
   	ArrayList<User> users=myShepherd.getAllUsers();
-  	
-  	
   	if(users.size()==0){
   		String salt=ServletUtilities.getSalt().toHex();
         String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
@@ -32,339 +37,699 @@ context=ServletUtilities.getContext(request);
   		User newUser=new User("tomcat",hashedPassword,salt);
   		myShepherd.getPM().makePersistent(newUser);
   		System.out.println("Creating tomcat user account...");
-  		
+  		myShepherd.commitDBTransaction();
+		
   	  	ArrayList<Role> roles=myShepherd.getAllRoles();
   	  	if(roles.size()==0){
-  	  	System.out.println("Creating tomcat roles...");
+  	  		
+  	  		myShepherd.beginDBTransaction();
+  	  		System.out.println("Creating tomcat roles...");
   	  		
   	  		Role newRole1=new Role("tomcat","admin");
-  	  		newRole1.setContext(context);
-  	  		
+  	  		newRole1.setContext("context0");
   	  		myShepherd.getPM().makePersistent(newRole1);
 	  		Role newRole4=new Role("tomcat","destroyer");
+	  		newRole4.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole4);
-	  		newRole4.setContext(context);
-	  		
-	  		Role newRole5=new Role("tomcat","researcher");
-	  		myShepherd.getPM().makePersistent(newRole5);
-	  		newRole5.setContext(context);
-	  		
-	  		Role newRole6=new Role("tomcat","approve");
-	  		myShepherd.getPM().makePersistent(newRole6);
-	  		newRole6.setContext(context);
-	  		
-	  		Role newRole7=new Role("tomcat","imageProcessor");
+			
+			Role newRole7=new Role("tomcat","rest");
+	  		newRole7.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole7);
-	  		newRole7.setContext(context);
-	  		
-	  		Role newRole8=new Role("tomcat","adoption");
-	  		myShepherd.getPM().makePersistent(newRole8);
-	  		newRole8.setContext(context);
-	  		
-	  		
-	  		Role newRole9=new Role("tomcat","identifier");
-	  		myShepherd.getPM().makePersistent(newRole9);
-	  		newRole9.setContext(context);
+			
+			myShepherd.commitDBTransaction();
+			
 	  		
 	  		System.out.println("Creating tomcat user account...");
   	  	}
   	}
+
+
+%>
+
+<style type="text/css">
+.full_screen_map {
+position: absolute !important;
+top: 0px !important;
+left: 0px !important;
+z-index: 1 !imporant;
+width: 100% !important;
+height: 100% !important;
+margin-top: 0px !important;
+margin-bottom: 8px !important;
+</style>
+
+<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+
+
+<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
+<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
+
+
+
+  <script type="text/javascript">
+  
+//Define the overlay, derived from google.maps.OverlayView
+  function Label(opt_options) {
+   // Initialization
+   this.setValues(opt_options);
+
+   // Label specific
+   var span = this.span_ = document.createElement('span');
+   span.style.cssText = 'font-weight: bold;' +
+                        'white-space: nowrap; ' +
+                        'padding: 2px; z-index: 999 !important;';
+   span.style.zIndex=999;
+
+   var div = this.div_ = document.createElement('div');
+   div.style.zIndex=999;
+   
+   div.appendChild(span);
+   div.style.cssText = 'position: absolute; display: none;z-index: 999 !important;';
+  };
+  Label.prototype = new google.maps.OverlayView;
+
+  // Implement onAdd
+  Label.prototype.onAdd = function() {
+   var pane = this.getPanes().overlayLayer;
+   pane.appendChild(this.div_);
+
+   // Ensures the label is redrawn if the text or position is changed.
+   var me = this;
+   this.listeners_ = [
+     google.maps.event.addListener(this, 'position_changed',
+         function() { me.draw(); }),
+     google.maps.event.addListener(this, 'text_changed',
+         function() { me.draw(); })
+   ];
+  };
+
+  // Implement onRemove
+  Label.prototype.onRemove = function() {
+   this.div_.parentNode.removeChild(this.div_);
+
+   // Label is removed from the map, stop updating its position/text.
+   for (var i = 0, I = this.listeners_.length; i < I; ++i) {
+     google.maps.event.removeListener(this.listeners_[i]);
+   }
+  };
+
+  // Implement draw
+  Label.prototype.draw = function() {
+   var projection = this.getProjection();
+   var position = projection.fromLatLngToDivPixel(this.get('position'));
+
+   var div = this.div_;
+   div.style.left = position.x + 'px';
+   div.style.top = position.y + 'px';
+   div.style.display = 'block';
+   div.style.zIndex=999;
+
+   this.span_.innerHTML = this.get('text').toString();
+  };
+  
+  
+  		//map
+  		var map;
+  
+      function initialize() {
+    	  
+    	  
+    	// Create an array of styles for our Goolge Map.
+  	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
+
+      
+        var center = new google.maps.LatLng(0,0);
+        var mapZoom = 1;
+    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    	var bounds = new google.maps.LatLngBounds();
+        
+        map = new google.maps.Map(document.getElementById('map_canvas'), {
+          zoom: mapZoom,
+          center: center,
+          mapTypeId: google.maps.MapTypeId.HYBRID
+        });
+
+    	  //adding the fullscreen control to exit fullscreen
+    	  var fsControlDiv = document.createElement('DIV');
+    	  var fsControl = new FSControl(fsControlDiv, map);
+    	  fsControlDiv.index = 1;
+    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+
+    
+    	    // Create a new StyledMapType object, passing it the array of styles,
+    	    // as well as the name to be displayed on the map type control.
+    	    var styledMap = new google.maps.StyledMapType(gmap_styles, {name: "Styled Map"});
+    	
+    	    //Associate the styled map with the MapTypeId and set it to display.
+    	    map.mapTypes.set('map_style', styledMap);
+    	    map.setMapTypeId('map_style');
+    	  
+        var markers = [];
+ 	    var movePathCoordinates = [];
+ 	    
+ 	    //iterate here to add points per location ID
+ 	    
+ 		var maxZoomService = new google.maps.MaxZoomService();
+ 		maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
+ 			    if (response.status == google.maps.MaxZoomStatus.OK) {
+ 			    	if(response.zoom < map.getZoom()){
+ 			    		map.setZoom(response.zoom);
+ 			    	}
+ 			    }
+ 			    
+ 		});
+
+ 		
+ 		//let's add map points for our locationIDs
+ 		<%
+ 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		int numLocationIDs = locs.size();
+ 		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
+ 		myShepherd.beginDBTransaction();
+ 		
+ 		for(int i=0;i<numLocationIDs;i++){
+ 			
+ 			String locID = locs.get(i);
+ 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
+ 				
+ 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
+ 				String lat = st.nextToken();
+ 				String longit=st.nextToken();
+ 				String thisLatLong=lat+","+longit;
+ 				
+ 		        //now  let's calculate how many
+ 		        int numSightings=myShepherd.getNumEncounters(locID);
+ 		        if(numSightings>0){
+ 		        
+ 		        	Integer numSightingsInteger=new Integer(numSightings);
+ 		          
+ 		          
+ 		          %>
+ 		          
+ 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+		          bounds.extend(latLng);
+ 		          
+ 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+ 		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
+ 		         
+ 		         var marker<%=i%> = new RichMarker({
+ 		            position: latLng,
+ 		            map: map,
+ 		            draggable: false,
+ 		           content: divString<%=i%>,
+ 		           flat: true 
+ 		        });
+ 		               
+ 		          
+ 		          
+ 			      markers.push(marker<%=i%>);
+ 		          map.fitBounds(bounds); 
+ 				
+ 				<%
+ 			} //end if
+ 				
+ 			}  //end if
+ 			
+ 		}  //end for
+ 		myShepherd.rollbackDBTransaction();
+ 	 	%>
+ 	 
+
+ 	 } // end initialize function
+        
+      function fullScreen(){
+  		$("#map_canvas").addClass('full_screen_map');
+  		$('html, body').animate({scrollTop:0}, 'slow');
+  		initialize();
+  		
+  		//hide header
+  		$("#header_menu").hide();
+  		
+  		if(overlaysSet){overlaysSet=false;setOverlays();}
+  		//alert("Trying to execute fullscreen!");
+  	}
+
+
+  	function exitFullScreen() {
+  		$("#header_menu").show();
+  		$("#map_canvas").removeClass('full_screen_map');
+
+  		initialize();
+  		if(overlaysSet){overlaysSet=false;setOverlays();}
+  		//alert("Trying to execute exitFullScreen!");
+  	}
+  	
   	
 
 
-  	myShepherd.commitDBTransaction();
+  	//making the exit fullscreen button
+  	function FSControl(controlDiv, map) {
 
-//setup our Properties object to hold all properties
-	
-	//test comment
-	
-	//language setup
-	String langCode=ServletUtilities.getLanguageCode(request);
+  	  // Set CSS styles for the DIV containing the control
+  	  // Setting padding to 5 px will offset the control
+  	  // from the edge of the map
+  	  controlDiv.style.padding = '5px';
 
-	Properties props=ShepherdProperties.getProperties("overview.properties", langCode,context);
-	
-	//adding a comment here
-	
-	//load our variables for the overview page
-	String title=props.getProperty("overview_title");
-	String overview_maintext=props.getProperty("overview_maintext");
-	String overview_reportit=props.getProperty("overview_reportit");
-	String overview_language=props.getProperty("overview_language");
-	String what_do=props.getProperty("what_do");
-	String read_overview=props.getProperty("read_overview");
-	String see_all_encounters=props.getProperty("see_all_encounters");
-	String see_all_sharks=props.getProperty("see_all_sharks");
-	String report_encounter=props.getProperty("report_encounter");
-	String log_in=props.getProperty("log_in");
-	String contact_us=props.getProperty("contact_us");
-	String search=props.getProperty("search");
-	String encounter=props.getProperty("encounter");
-	String shark=props.getProperty("shark");
-	String join_the_dots=props.getProperty("join_the_dots");
-	String menu=props.getProperty("menu");
-	String last_sightings=props.getProperty("last_sightings");
-	String more=props.getProperty("more");
-	String ws_info=props.getProperty("ws_info");
-	String about=props.getProperty("about");
-	String contributors=props.getProperty("contributors");
-	String forum=props.getProperty("forum");
-	String blog=props.getProperty("blog");
-	String area=props.getProperty("area");
-	String match=props.getProperty("match");
-	
-	//link path to submit page with appropriate language
-	String submitPath="submit.jsp?langCode="+langCode;
+  	  // Set CSS for the control border
+  	  var controlUI = document.createElement('DIV');
+  	  controlUI.style.backgroundColor = '#f8f8f8';
+  	  controlUI.style.borderStyle = 'solid';
+  	  controlUI.style.borderWidth = '1px';
+  	  controlUI.style.borderColor = '#a9bbdf';;
+  	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+  	  controlUI.style.cursor = 'pointer';
+  	  controlUI.style.textAlign = 'center';
+  	  controlUI.title = 'Toggle the fullscreen mode';
+  	  //controlDiv.appendChild(controlUI);
 
-%>
+  	  // Set CSS for the control interior
+  	  var controlText = document.createElement('DIV');
+  	  controlText.style.fontSize = '12px';
+  	  controlText.style.fontWeight = 'bold';
+  	  controlText.style.color = '#000000';
+  	  controlText.style.paddingLeft = '4px';
+  	  controlText.style.paddingRight = '4px';
+  	  controlText.style.paddingTop = '3px';
+  	  controlText.style.paddingBottom = '2px';
+  	  controlUI.appendChild(controlText);
+  	  controlText.style.visibility='hidden';
+  	  //toggle the text of the button
+  	   
+  	  if($("#map_canvas").hasClass("full_screen_map")){
+  	      controlText.innerHTML = 'Exit Fullscreen';
+  	    } else {
+  	      controlText.innerHTML = 'Fullscreen';
+  	    }
 
-<html>
-<head>
-<title><%=title%></title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
-<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
+  	  // Setup the click event listeners: toggle the full screen
 
-<link rel="shortcut icon" href="images/favicon.ico" />
-<style type="text/css">
-<!--
+  	  google.maps.event.addDomListener(controlUI, 'click', function() {
 
+  	   if($("#map_canvas").hasClass("full_screen_map")){
+  	    exitFullScreen();
+  	    } else {
+  	    fullScreen();
+  	    }
+  	  });
 
-table.adopter {
-	border-width: 0px 0px 0px 0px;
-	border-spacing: 0px;
-	border-style: solid solid solid solid;
-	border-color: black black black black;
-	border-collapse: separate;
-	
-}
+  	}
 
-table.adopter td {
-	border-width: 1px 1px 1px 1px;
-	padding: 3px 3px 3px 3px;
-	border-style: none none none none;
-	border-color: gray gray gray gray;
-	background-color: #D7E0ED;
-	-moz-border-radius: 0px 0px 0px 0px;
-	font-size: 12px;
-	color: #330099;
-}
+    
 
-table.adopter td.name {
-	font-size: 12px;
-	text-align:center;
-	background-color: #D7E0ED;
-	
-}
+  	
+    
+    google.maps.event.addDomListener(window, 'load', initialize);
+    google.maps.event.addDomListener(window, "resize", function() {
+    	 var center = map.getCenter();
+    	 google.maps.event.trigger(map, "resize");
+    	 map.setCenter(center); 
+    	});
+    
+    
+    
+    
+  </script>
 
-table.adopter td.image {
-	padding: 0px 0px 0px 0px;
-	
-}
-.style4 {color: #000000}
-
--->
-</style>
-</head>
-
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-</jsp:include>
-<div id="main">
-
-	<div id="maincol-wide">
-		 
-		 <div>
-		 	<a href="<%=submitPath%>"><img src="images/stumpy_banner.png" title="Report a whale shark encounter!" alt="Report a whale shark encounter! - photograph courtesy of Amber Triglone" border="0" />
-			</a>
-		 </div>
-<br />
-	    <div id="maintext"><%=overview_maintext%>
-		 		 <p>
-		 		 <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />53000+ photos collected<br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />25000+  sighting reports</strong><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />5200+ whale sharks collaboratively tagged</strong><br />
-			   
-			   <span style="margin: 0px 0px 1em 0px;" #invalid_attr_id="0px"><strong><strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />4000+ data contributors</strong></strong></span><br />
-		       <strong><img src="images/lilshark2.gif" width="13" align="absmiddle" />365 research days/year</strong><br />
-		       
-			   <p align="center"><strong><a href="adoptashark.jsp">Please consider adopting a shark to support our mission!</a></strong></p>
-		       </strong></span></p>
-		 
-	    </div>
-        
-        
-		 
-		 <div id="1000tagged">
-		   <h1 class="intro">Growing Success </h1>
-		   <p align="center"><img src="images/usablereportsgif.gif" /></p>
-
-		 </div>
-
-
-		
-
-
-		<div id="maintext"><h1 class="intro">Contact Us</h1>
-		<p class="caption">Wild Me is always looking for opportunities to better tell the story of whale sharks and the growing body of research and discoveries made possible by dedicated scientists, volunteers, and the general public.</p>
-		<p class="caption"><a href="contactus.jsp">Please contact us with your questions.</a></p>
-		</div>
-		
-	
-								
-		
-				<div class="module">
-		    	<h1 class="intro">Data Sharing</h1>
-		    	<p><a href="http://data.gbif.org/datasets/provider/261"><img src="images/gbif.gif" border="0" alt="Data sharing with the Global Biodiversity Information Facility"/></a>
-				<a href="http://ecovision.mit.edu/~ecovision/"><img src="http://web.mit.edu/img/google/google-mithome-logo.gif" alt="Data sharing with the Massachusetts Institute of Technology" border="0" />
-				</a>
-				<a href="http://www.iobis.org/"><img src="images/OBIS_logo.gif" alt="Data sharing with the Ocean Biogeographic Information System" border="0" />
-				</a>
-				<a href="ttp://www.coml.org/"><img src="images/coml.gif" alt="Data sharing with the census of marine life" border="0" />
-				</a></p>
-			</div>
-			
-							<div class="module">
-		    	<h1 class="intro">Development</h1>
-		    	<p class="caption"><img border="1"  style="padding:2px; border:1px; margin:2px;" align="left" src="http://www.wildme.org/wildbook/lib/exe/fetch.php?w=150&amp;media=jason_profile.jpg" class="media" title="jason_profile.jpg" alt="jason_profile.jpg" width="75">Wildbook for Whale Sharks is maintained and developed by <a href="https://www.facebook.com/holmbergius">Jason Holmberg (Information Architect)</a> with significant support and input from the <a href="whoAreWe.jsp#collaborators">research community</a>.</p>
-			</div>
-					
-
-	  </div><!-- end maincol -->
-	 <div id="rightcol">
-
-
-			 <div class="module">
-		
-         <div id="supporters"><h3>Our Supporters</h3>
-		<p class="caption">We gratefully acknowledge the financial support of the following organizations and individuals, without which continuing operation of this Wildbook would not be possible.</p>
-		<table>
-			<tr>
-			
-				<tr>
-				<td class="image"><a href="http://www.qatarwhalesharkproject.com"><img src="images/QWSP_Logo.png" width="150" alt="Qatar Whale Shark Research Project" border="0"/></a>
-			</td>
-			</tr>
-				<td><img src="images/Siren_Fleet.jpg" width="150" alt="Siren Fleet" border="0"/></td>
-				</tr>
-			
-			
-		</table>
-		</div>
-				
 <%
-Adoption ad=myShepherd.getRandomAdoption();
-if(ad!=null){
-%>
-<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
-<tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame.gif" /></a></td></tr>
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" /></a></td></tr>
-			 
-			 <tr><td class="name">
-			 	<center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%></font></strong></center>
-			 </td></tr>
-		<tr><td>&nbsp;</td></tr>
-		<tr><td><table cellpadding="1" border="0"><tr><td>Adopted shark: 
-		
-		<%
-		if((ad.getMarkedIndividual()!=null)&&(!ad.getMarkedIndividual().equals(""))) {
-		%>
-		<a href="individuals.jsp?number=<%=ad.getMarkedIndividual()%>"><%=ad.getMarkedIndividual()%></a>
-		<%
-		}
-		else if((ad.getEncounter()!=null)&&(!ad.getEncounter().equals(""))) {
-		%>
-		<a href="encounters/encounter.jsp?number=<%=ad.getEncounter()%>"><%=ad.getEncounter()%></a>
-		<%
-		}
-		%>
-		
-		</td></tr></table></td></tr>
-		<tr><td>&nbsp;</td></tr>
-		
-		<%
-			if((ad.getAdopterQuote()!=null)&&(!ad.getAdopterQuote().equals(""))){
-		%>
-		
-			 <tr><td><table cellpadding="1" border="0"><tr><td>Why are shark research and conservation important?</td></tr></table></td></tr>
-			 <tr><td><table cellpadding="1" border="0"><tr><td><em>"<%=ad.getAdopterQuote()%>"</em></td></tr></table></td></tr>
-			 <tr><td>&nbsp;</td></tr>
-			 <tr><td><table cellpadding="1" border="0"><tr><td><span class="caption">Your adoption gift to Wild Me is tax deductible in the United States. <a href="adoptashark.jsp">Click here to learn more.</a></span></td></tr></table></td></tr>
-			 
-			 <%
-			 }
-			 %>
-			
-			 <tr><td class="image"><a href="http://www.whaleshark.org/adoptashark.jsp"><img border="0" src="images/meet-adopter-frame-bottom.gif" /></a></td></tr>
-			 
-			 
-			 </tr>
 
-		  </table>
-<%
+
+//let's quickly get the data we need from Shepherd
+
+int numMarkedIndividuals=0;
+int numEncounters=0;
+int numDataContributors=0;
+
+
+try{
+    myShepherd.beginDBTransaction();
+    
+    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numEncounters=myShepherd.getNumEncounters();
+    numDataContributors=myShepherd.getNumUsers();
+
+    
+}
+catch(Exception e){
+    e.printStackTrace();
+}
+finally{
+    if(myShepherd!=null){
+        if(myShepherd.getPM()!=null){
+            myShepherd.rollbackDBTransaction();
+            if(!myShepherd.getPM().isClosed()){myShepherd.closeDBTransaction();}
+        }
+    }
 }
 %>
 
+<section class="hero container-fluid main-section relative">
+    <div class="container relative">
+        <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
+            <h1 class="hidden">Wildbook</h1>
+            <h2>Wildbook helps you study, <br/> identify and protect wildlife populations!</h2>
+            <!--
+            <button id="watch-movie" class="large light">
+				Watch the movie 
+				<span class="button-icon" aria-hidden="true">
+			</button>
+			-->
+            <a href="submit.jsp">
+                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+            </a>
+        </div>
 
+	</div>
+	 <div class="video-wrapper">
+		<div class="embed-container">
+			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+		</div>
+	</div>
+    
+</section>
+
+<section class="container text-center main-section">
+	
+	<h2 class="section-header">How it works</h2>
+
+	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
+		<ol class="list-inline carousel-indicators slide-nav">
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	    </ol> 
+		<div class="carousel-inner text-left">
+			<div class="item active">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Photograph the ID area</h3>
+					<p class="lead">
+						Each animal should have an individual fingerprint: the pattern of spots or other markings. Get an image or video of their &ldquo;print&rdquo; and we can match that pattern to others already in the database, or your animal might be completely new to the database.
+					</p>
+					<p class="lead">
+						<a href="photographing.jsp" title="">See the photography guide</a>
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Submit photo/video</h3>
+					<p class="lead">
+						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed by a researcher.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Researcher verification</h3>
+					<p class="lead">
+						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Matching process</h3>
+					<p class="lead">
+						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, sometimes using a computer vision algorithm. The algorithm is like facial recognition software for animal paterns.
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
+				</div>
+			</div>
+			<div class="item">
+				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+					<h3>Match Result</h3>
+					<p class="lead">
+						The algorithm (or manual comparison) provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing animal in the database, or create a new individual profile. 
+					</p>
+				</div>
+				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<div class="container-fluid relative data-section">
+
+    <aside class="container main-section">
+        <div class="row">
+        
+            <!-- Random user profile to select -->
+            <%
+            myShepherd.beginDBTransaction();
+            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
+            if(featuredUser!=null){
+                String profilePhotoURL="images/empty_profile.jpg";
+                if(featuredUser.getUserImage()!=null){
+                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
+                } 
+            
+            %>
+                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                    <div class="focusbox-inner opec">
+                        <h2>Our contributors</h2>
+                        <div>
+                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+                            <p><%=featuredUser.getFullName() %> 
+                                <%
+                                if(featuredUser.getAffiliation()!=null){
+                                %>
+                                <i><%=featuredUser.getAffiliation() %></i>
+                                <%
+                                }
+                                %>
+                            </p>
+                            <p><%=featuredUser.getUserStatement() %></p>
+                        </div>
+                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+                    </div>
+                </section>
+            <%
+            }
+            myShepherd.rollbackDBTransaction();
+            %>
+            
+            
+            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <h2>Latest animal encounters</h2>
+                    <ul class="encounter-list list-unstyled">
+                       
+                       <%
+                       ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       int numResults=latestIndividuals.size();
+                       myShepherd.beginDBTransaction();
+                       for(int i=0;i<numResults;i++){
+                           Encounter thisEnc=latestIndividuals.get(i);
+                           %>
+                            <li>
+                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+                                <small>
+                                    <time>
+                                        <%=thisEnc.getDate() %>
+                                        <%
+                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
+                                        %>/ <%=thisEnc.getLocationID() %>
+                                        <%
+                                           }
+                                        %>
+                                    </time>
+                                </small>
+                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
+                           
+                           
+                            </li>
+                        <%
+                        }
+                        myShepherd.rollbackDBTransaction();
+                        %>
+                       
+                    </ul>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
+                </div>
+            </section>
+            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
+                <div class="focusbox-inner opec">
+                    <h2>Top spotters (past 30 days)</h2>
+                    <ul class="encounter-list list-unstyled">
+                    <%
+                    myShepherd.beginDBTransaction();
+                    
+                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
+                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
+                    
+                    System.out.println("  I think my startTime is: "+startTime);
+                    
+                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+                    int numUsersToDisplay=3;
+                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
+                    Iterator<String> keys=spotters.keySet().iterator();
+                    Iterator<Integer> values=spotters.values().iterator();
+                    while((keys.hasNext())&&(numUsersToDisplay>0)){
+                          String spotter=keys.next();
+                          int numUserEncs=values.next().intValue();
+                          if(myShepherd.getUser(spotter)!=null){
+                        	  String profilePhotoURL="images/empty_profile.jpg";
+                              User thisUser=myShepherd.getUser(spotter);
+                              if(thisUser.getUserImage()!=null){
+                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                              } 
+                              //System.out.println(spotters.values().toString());
+                            Integer myInt=spotters.get(spotter);
+                            //System.out.println(spotters);
+                            
+                          %>
+                                <li>
+                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
+                                    <%
+                                    if(thisUser.getAffiliation()!=null){
+                                    %>
+                                    <small><%=thisUser.getAffiliation() %></small>
+                                    <%
+                                      }
+                                    %>
+                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
+                                </li>
+                                
+                           <%
+                           numUsersToDisplay--;
+                    }    
+                   } //end while
+                   myShepherd.rollbackDBTransaction();
+                   %>
+                        
+                    </ul>   
+                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
+                </div>
+            </section>
+        </div>
+    </aside>
+</div>
+
+<div class="container-fluid">
+    <section class="container text-center  main-section">
+        <div class="row">
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+            </section>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+            </section>
+            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+                
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+            </section>
+        </div>
+
+        <hr/>
+
+        <main class="container">
+            <article class="text-center">
+                <div class="row">
+                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
+                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
+                        <h1>Why we do this</h1>
+                        <p class="lead">
+                            <i>&ldquo;This is an inspiration quote from you.&rdquo;</i> - Your Name, Project Leader</p>
+                        <a href="#" title="">I want to know more</a>
+                    </div>
+                </div>
+            </article>
+        <main>
+        
+    </section>
+</div>
+
+<div class="container-fluid main-section">
+    <h2 class="section-header">Encounters around the world</h2>
+    
+      <div id="map_canvas" style="width: 770px; height: 510px; margin: 0 auto;"></div>
+   
+</div>
+
+<div class="container-fluid">
+    <section class="container main-section">
+        <h2 class="section-header">How can I help?</h2>
+        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
+
+        <section class="adopt-section row">
+            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3 class="uppercase">Adopt an animal</h3>
+                <ul>
+                    <li>Support individual research programs in different regions</li>
+					<li>Receive email updates when we resight your adopted animal</li>
+					<li>Display your photo and a quote on the animal's page in our database</li>
+</ul>
+                <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
+            </div>
+            <%
+            myShepherd.beginDBTransaction();
+            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
+            if(adopt!=null){
+            %>
+            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
+	                <div class="focusbox-inner" style="overflow: hidden;">
+	                	<%
+	                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
+	                    
+	                	%>
+	                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
+	                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
+	                    <%
+	                    if(adopt.getAdopterQuote()!=null){
+	                    %>
+		                    <blockquote>
+		                        <%=adopt.getAdopterQuote() %>
+		                    </blockquote>
+	                    <%
+	                    }
+	                    %>
+	                </div>
+	            </div>
+            
+            <%
+			}
+            myShepherd.rollbackDBTransaction();
+            %>
+            
+            
+        </section>
+        <hr />
+        <section class="donate-section">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h3>Donate</h3>
+                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
+                <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
+            </div>
+            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
+                <a href="adoptananimal.jsp">
+	                <button class="large contrast">
+	                    Donate
+	                    <span class="button-icon" aria-hidden="true">
+	                </button>
+                </a>
+            </div>
+        </section>
+    </section>
 </div>
 
 
-		
-	    <div class="module">
-			 <h3><%=last_sightings%></h3>
-			 <script language="JavaScript" src="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation(request)%>%2Frss.xml&amp;utf=y" type="text/javascript"></script>
-			 <noscript>
-			 <a href="http://feed2js.org//feed2js.php?src=http%3A%2F%2F<%=CommonConfiguration.getURLLocation(request)%>%2Frss.xml&amp;utf=y&amp;html=y">View RSS feed</a>
-			 </noscript>
-			 <p align="left"><a href="rss.xml"><img src="images/rssfeed.gif" width="80" height="15" border="0" alt="Whaleshark.org RSS News Feed" /></a></p>
-			 <p align="left">
-			 <a href="atom.xml"><img src="images/atom-feed-icon.gif" border="0" alt="ATOM News Feed" /></a></p>
-	    </div>
-	
- 
-	
+<jsp:include page="footer.jsp" flush="true"/>
 
-	
-
-	
-	</div><!-- end rightcol -->
-	
-</div><!-- end main -->
-<jsp:include page="footer.jsp" flush="true" />
-</div><!-- end page -->
-</div><!--end wrapper -->
-<script type='text/javascript'>
-// Conversion Name: ACC_Ecocean_Landing
-// INSTRUCTIONS 
-// The Conversion Tags should be placed at the top of the <BODY> section of the HTML page. 
-// In case you want to ensure that the full page loads as a prerequisite for a conversion 
-// being recorded, place the tag at the bottom of the page. Note, however, that this may 
-// skew the data in the case of slow-loading pages and in general not recommended. 
-//
-// NOTE: It is possible to test if the tags are working correctly before campaign launch 
-// as follows:  Browse to http://bs.serving-sys.com/BurstingPipe/adServer.bs?cn=at, which is 
-// a page that lets you set your local machine to 'testing' mode.  In this mode, when 
-// visiting a page that includes an conversion tag, a new window will open, showing you 
-// the data sent by the conversion tag to the MediaMind servers. 
-// 
-// END of instructions (These instruction lines can be deleted from the actual HTML)
-var ebRand = Math.random()+'';
-ebRand = ebRand * 1000000;
-//<![CDATA[ 
-document.write('<scr'+'ipt src="HTTP://bs.serving-sys.com/BurstingPipe/ActivityServer.bs?cn=as&amp;ActivityID=104657&amp;rnd=' + ebRand + '"></scr' + 'ipt>');
-//]]>
-</script>
-<noscript>
-<img width="1" height="1" style="border:0" src="HTTP://bs.serving-sys.com/BurstingPipe/ActivityServer.bs?cn=as&amp;ActivityID=104657&amp;ns=1"/>
-</noscript>
-
-</body>
-</html>
+<%
+myShepherd.closeDBTransaction();
+myShepherd=null;
+%>

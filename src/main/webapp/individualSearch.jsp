@@ -1,23 +1,3 @@
-<%--
-  ~ The Shepherd Project - A Mark-Recapture Framework
-  ~ Copyright (C) 2011-14 Jason Holmberg
-  ~
-  ~ This program is free software; you can redistribute it and/or
-  ~ modify it under the terms of the GNU General Public Licensef
-  ~ as published by the Free Software Foundation; either version 2
-  ~ of the License, or (at your option) any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program; if not, write to the Free Software
-  ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  --%>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
@@ -50,25 +30,8 @@ context=ServletUtilities.getContext(request);
 	
 %>
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml">
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
- <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.2/themes/smoothness/jquery-ui.css" />
-  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
-  <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
-  
+<jsp:include page="header.jsp" flush="true"/>
   
     <!-- Sliding div content: STEP1 Place inside the head section -->
   <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
@@ -84,6 +47,7 @@ context=ServletUtilities.getContext(request);
     animatedcollapse.addDiv('export', 'fade=1')
     animatedcollapse.addDiv('genetics', 'fade=1')
 	animatedcollapse.addDiv('social', 'fade=1')
+	animatedcollapse.addDiv('patternrecognition', 'fade=1')
 
     animatedcollapse.ontoggle = function($, divobj, state) { //fires each time a DIV is expanded/contracted
       //$: Access to jQuery
@@ -102,8 +66,6 @@ context=ServletUtilities.getContext(request);
   <!-- /STEP2 Place inside the head section -->
   
   
-
-</head>
 
 
 <style type="text/css">v\:* {
@@ -137,14 +99,7 @@ margin-bottom: 8px !important;
   }
 </script>
 
-<body onload="resetMap()" onunload="resetMap()">
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="main">
+<div class="container maincontent">
 <table width="720">
 <tr>
 <td>
@@ -1443,6 +1398,17 @@ else {
               <br></em></p>
           </td>
         </tr>
+        <tr>
+          <td>
+            <p><strong><%=props.getProperty("nickName")%>:</strong> <em> <input
+              name="nickNameField" type="text" id="nickNameField" size="25"
+              maxlength="100"> <span class="para"><a
+              href="<%=CommonConfiguration.getWikiLocation(context)%>nickName"
+              target="_blank"><img src="images/information_icon_svg.gif"
+                                   alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
+              <br></em></p>
+          </td>
+        </tr>
 
         <tr>
           <td>
@@ -1597,20 +1563,19 @@ else {
   </td>
 </tr>
 
-
-
-
-
 <tr>
 <td>
   <div id="metadata" style="display:none; ">
   <p><%=props.getProperty("metadataInstructions") %></p>
+
+	<strong><%=props.getProperty("username")%></strong><br />
       <%
-        ArrayList<User> users = myShepherd.getAllUsers();
+      	Shepherd inShepherd=new Shepherd("context0");
+        ArrayList<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
-	<strong><%=props.getProperty("username")%></strong><br />
+
       <select multiple size="5" name="username" id="username">
         <option value="None"></option>
         <%
@@ -1627,11 +1592,50 @@ else {
           }
         %>
       </select>
+<%
+inShepherd.rollbackDBTransaction();
+inShepherd.closeDBTransaction();
 
+%>
 </div>
 </td>
 </tr>
 
+<%
+if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
+%>
+<tr>
+  <td>
+
+    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
+      href="javascript:animatedcollapse.toggle('patternrecognition')" style="text-decoration:none"><img
+      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
+      <font color="#000000">Pattern Recognition</font></a></h4>
+  </td>
+</tr>
+<tr>
+  <td>
+    <div id="patternrecognition" style="display:none; ">
+      
+      <table width="720px" align="left">
+        <tr>
+          <td>
+            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;Has mapped fluke.</label>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;Has NO mapped fluke patterning.</label>
+          </td>
+        </tr>
+      </table>
+   </div>
+  </td>
+</tr>          
+
+<%
+}
+%>
 
 
 <%
@@ -1654,11 +1658,10 @@ else {
 </tr>
 </table>
 <br>
+</div>
+
 <jsp:include page="footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
+
 
 <%
   kwQuery.closeAll();
@@ -1667,7 +1670,5 @@ else {
   myShepherd = null;
 %>
 
-</body>
-</html>
 
 
