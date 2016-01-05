@@ -540,4 +540,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         store.copyIn(file, parameters, false);
     }
 
+    public MediaAsset updateChild(String type, HashMap<String, Object> opts) throws IOException {
+        if (store == null) throw new IOException("store is null on " + this);
+        return store.updateChild(this, type, opts);
+    }
+
+    public MediaAsset updateChild(String type) throws IOException {
+        return updateChild(type, null);
+    }
+
 }

@@ -28,8 +28,10 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 import java.util.Iterator;
+import java.util.HashMap;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -231,6 +233,74 @@ public class S3AssetStore extends AssetStore {
         //note: this key is simply to try to encourage uniqueness, but can be later re-set with something better if desired
         if (file != null) p.put("key", Util.hashDirectories(Util.generateUUID(), "/") + "/" + file.getName());
         return p;
+    }
+
+    @Override
+    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+        if (!this.writable) return null; //should we silently fail or throw exception??
+
+        String action = "resize";
+        int width = 0;
+        int height = 0;
+        try {
+            parent.cacheLocal();
+        } catch (Exception ex) {
+            System.out.println("parent.cacheLocal() produced " + ex.toString()); // .exists() failure below will throw exception to caller
+        }
+        File sourceFile = parent.localPath().toFile();
+        if (!sourceFile.exists()) throw new IOException("Could not find local sourceFile " + sourceFile.toString());
+
+        JSONObject params = parent.getParameters();
+        Object bp = getParameter(params, "bucket");
+        Object kp = getParameter(params, "key");
+        File kfile = new File(kp.toString());
+/*
+        String basename = kfile.getName();
+        int dot = basename.lastIndexOf(".");
+        if (dot > -1) basename = basename.substring(0,dot);
+        String targetname = basename + "-" + type + ".jpg";
+*/
+        String targetname = Util.generateUUID() + "-" + type + ".jpg";  //generally want to obscure filename for children (thumb, watermark)
+        String args = null;  //i think the only real arg would be watermark text (which is largely unused)
+
+        switch (type) {
+            case "thumb":
+                width = 100;
+                height = 75;
+                break;
+            case "mid":
+                width = 1024;
+                height = 768;
+                break;
+            case "watermark":
+                action = "watermark";
+                width = 250;
+                height = 200;
+                break;
+            default:
+                throw new IOException("updateChild() type " + type + " unknown");
+        }
+        params.put("key", kfile.getParent() + "/" + targetname);
+System.out.println(params);
+        MediaAsset ma = this.create(params);
+        ma.addLabel("_" + type);
+        ma.setParentId(parent.getId());
+        String target = ma.localPath().toString();
+System.out.println("S3AssetStore.updateChild(): " + sourceFile + " --> " + target);
+
+        ImageProcessor iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), target, args);
+        Thread t = new Thread(iproc);
+        t.start();
+        try {
+            t.join();  //we have to wait for it to finish, so we can do the copyIn() below
+        } catch (InterruptedException ex) {
+            throw new IOException("updateChild() ImageProcessor failed due to interruption: " + ex.toString());
+        }
+
+        File tfile = new File(target);
+        if (!tfile.exists()) throw new IOException("updateChild() failed to create " + tfile.toString());
+        ma.copyIn(tfile);
+        return ma;
     }
 }
 
