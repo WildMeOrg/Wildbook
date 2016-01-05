@@ -27,6 +27,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import org.ecocean.Util;
+import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;
@@ -324,6 +327,66 @@ System.out.println("webURL() path = "+path);
         JSONObject p = new JSONObject();
         if (file != null) p.put("path", file.toPath());  //note: we could do better and create the "suggested" location within the root path (if file outside of it) TODO
         return p;
+    }
+
+    @Override
+    //see note below: perhaps "update" is the wrong word here, since a change to a source *likely* means we should be a new MediaAsset anyway
+    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+        if (!this.writable) return null; //should we silently fail or throw exception??
+
+        String action = "resize";
+        int width = 0;
+        int height = 0;
+        File sourceFile = parent.localPath().toFile();
+/*
+        String basename = sourceFile.getName();
+        int dot = basename.lastIndexOf(".");
+        if (dot > -1) basename = basename.substring(0,dot);
+*/
+        //generally want to obscure actual filename for children MediaAsset (thumb, watermark, etc)
+        String target = sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg";
+        String args = null;  //i think the only real arg would be watermark text (which is largely unused)
+
+        switch (type) {
+            case "thumb":
+                width = 100;
+                height = 75;
+                break;
+            case "mid":
+                width = 1024;
+                height = 768;
+                break;
+            case "watermark":
+                action = "watermark";
+                width = 250;
+                height = 200;
+                break;
+            default:
+                throw new IOException("updateChild() type " + type + " unknown");
+        }
+System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + target);
+
+/* a quandry - i *think* "we all" (?) have generally agreed that a *new* MediaAsset should be created for each change in the contents of the source file.
+   as such, finding an existing child MediaAsset of the type desired probably means it should either be deleted or orphaned ... or maybe simply marked older?
+   in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should never" be
+   altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon */
+
+        ImageProcessor iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), target, args);
+        Thread t = new Thread(iproc);
+        t.start();
+        try {
+            t.join();  //we have to wait for it to finish, so we can do the copyIn() below
+        } catch (InterruptedException ex) {
+            throw new IOException("updateChild() ImageProcessor failed due to interruption: " + ex.toString());
+        }
+
+        File tfile = new File(target);
+        if (!tfile.exists()) throw new IOException("updateChild() failed to create " + tfile.toString());
+        JSONObject sp = this.createParameters(tfile);
+        MediaAsset ma = this.copyIn(tfile, sp);
+        ma.addLabel("_" + type);
+        ma.setParentId(parent.getId());
+        return ma;
     }
 
 }

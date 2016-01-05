@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -205,6 +206,8 @@ ex.printStackTrace();
     }
 
     public abstract AssetStoreType getType();
+
+    public abstract MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException;
 
 /*  do we even want to allow this?
     public MediaAsset create(String jsonString) {
