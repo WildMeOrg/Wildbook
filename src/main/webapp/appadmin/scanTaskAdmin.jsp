@@ -107,7 +107,7 @@ else{
 %>
 
 <h3><%=showContext %>Pending scanTasks</h3>
-<table class="tablesorter">
+<table class="table">
 <thead>
   <tr>
     <th><strong>Identifier</strong></th>
@@ -136,9 +136,9 @@ else{
 
         int numGenerated = gm.getNumWorkItemsIncompleteForTask(st.getUniqueNumber());
 
-        int numTaskTot = numComplete + numGenerated;
-
-
+        //int numTaskTot = st.getNumComparisons();
+		String numTaskTot=numComplete+"/"+st.getNumComparisons();
+		if(st.getNumComparisons()==Integer.MAX_VALUE){numTaskTot="Building...";}
         
         
    String styleString="";
@@ -150,12 +150,14 @@ else{
     </td>
     <td><%=st.getSubmitter()%>
     </td>
-    <td><%=numComplete%>/<%=numTaskTot%>
+    <td><%=numTaskTot%>
     </td>
     <td>
-      <%if ((numComplete > 0) && (numComplete >= numTaskTot)) {%>
+      <%
+      if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+      %>
       <form name="scanNum<%=scanNum%>_writeOut" method="post"
-            action="../WriteOutScanTask"><input name="number" type="hidden"
+            action="../<%=CommonConfiguration.getProperty("patternMatchingEndPointServletName", context) %>"><input name="number" type="hidden"
                                                 id="number" value="<%=st.getUniqueNumber()%>"> <%
 
         %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
@@ -216,7 +218,7 @@ else{
 
 <h3><%=showContext %>Completed scanTasks</h3>
 
-  <table class="tablesorter">
+  <table class="table">
   <thead>
   <tr>
     <th width="62" class="ptcol"><strong>Identifier</strong></th>
@@ -263,7 +265,7 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/scanEndApplet.jsp";
+      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
       if (st.getUniqueNumber().equals("TuningTask")) {
         gotoURL = "endTuningTask.jsp";
       }
@@ -339,7 +341,7 @@ single scan are allowed to exceed the total.</span>
 <%
   if (gm.getNumNodes() > 0) {
 %>
-<table class="tablesorter">
+<table class="table">
 <thead>
   <tr>
     <th width="18"><span>IP</span></th>
@@ -394,7 +396,7 @@ single scan are allowed to exceed the total.</span>
   if (request.isUserInRole("admin")) {
 %>
 <h3>gridManager adjustment</h3>
-<table>
+<table class="table">
   <tr>
     <form name="setNumAllowedNodes" id="setNumAllowedNodes" method="get"
           action="scanTaskAdmin.jsp">
@@ -464,8 +466,102 @@ single scan are allowed to exceed the total.</span>
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
+  
+ if(request.isUserInRole("machinelearning")){ 
 %>
+
+
+<h2>Build Weka Instances</h2>
+<p><em>(resource intensive: use only in offline Wildbooks)</em></p>
+
+<form id="arffForm" 
+	  action="../GenerateARFF4Species" 
+	  method="post" 
+	  
+      target="_self" dir="ltr" 
+      lang="en"
+      
+      
+>
+
+  <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	
+  <%
+                     boolean hasMoreTax=true;
+                     int taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
+ %>
+  </select>
+<button class="large" type="submit">
+          Train Classifier by Species 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+</form>
+
+
+
+
+
+<h2>Sequence Weighted ALignmEnt (SWALE) Tuning</h2>
+<p><em>(use only in offline Wildbooks)</em></p>
+
+<form id="swaleForm" 
+	  action="../TrainSwale" 
+	  method="post" 
+	  
+      target="_self" dir="ltr" 
+      lang="en"
+      
+      
+>
+
+  <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	
+  <%
+                     hasMoreTax=true;
+                     taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
+ %>
+  </select>
+<button class="large" type="submit">
+          Tune Swale Performance by Species 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+</form>
+<%
+}
+%>
+
 </div>
+
 
 
 <jsp:include page="../footer.jsp" flush="true" />
