@@ -281,8 +281,12 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
-                          	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                        	<li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                               
+                               <li><a href="<%=urlLoc %>/publications.jsp">Publications</a></li>
+                             
+                             <li class="dropdown"><a href="<%=urlLoc %>/whoAreWe.jsp">Collaborators</a></li>
+                          	
                                  
                           	<li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("learnAboutShepherd")%></a></li>
                         </ul>
@@ -294,11 +298,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <%
                         if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
                         %>
-                          <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
+                          <li><a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a></li>
                         <%
                         }
                         %>  
-                          <li><a href="<%=urlLoc %>/userAgreement.jsp"><%=props.getProperty("userAgreement")%></a></li>
+                          <li><a href="http://www.whaleshark.org/wiki/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
                           
                           <!--  examples of navigation dividers
                           <li class="divider"></li>
@@ -339,28 +343,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       
-                      <!-- start locationID sites -->
-                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("sites") %> <span class="caret"></span></a>
-                        <ul class="dropdown-menu" role="menu">
-                         
-                        
-                        <!-- list sites by locationID -->
-                          <% boolean moreLocationIDs=true;
-                             int siteNum=0;
-                             while(moreLocationIDs) {
-                                 String currentLocationID = "locationID"+siteNum;
-                                 if (CommonConfiguration.getProperty(currentLocationID,context)!=null) { %>
-                                   <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=CommonConfiguration.getProperty(currentLocationID,context) %>"><%=WordUtils.capitalize(CommonConfiguration.getProperty(currentLocationID,context)) %></a></li>
-                                 <% siteNum++;
-                                 } else {
-                                	 moreLocationIDs=false;
-                                 }
-                            } //end while %>
-                        
-                        </ul>
-                      </li>
-                      <!-- end locationID sites -->
+                     
                      
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("search")%> <span class="caret"></span></a>
@@ -383,16 +366,31 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             if(request.getUserPrincipal()!=null) {
                             %>
                               <li><a href="<%=urlLoc %>/myAccount.jsp"><%=props.getProperty("myAccount")%></a></li>
+                            
+                            <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
+                                <li class="divider"></li>
+                                  <li class="dropdown-header">SharkGrid</li>
+                                  
+                                <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Check SharkGrid</a></li>
+                                
+                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                                <li class="divider"></li>
+                                <% } %>
+                            
+                            
                             <% }
                             if(CommonConfiguration.allowBatchUpload(context) && (request.isUserInRole("admin"))) { %>
                               <li><a href="<%=urlLoc %>/BatchUpload/start"><%=props.getProperty("batchUpload")%></a></li>
                             <% }
                             if(request.isUserInRole("admin")) { %>
+                            
+                            
+                            <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
-                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-                                <% } %>
+                                
+                                
+                                
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
@@ -409,11 +407,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
-                                <% if(CommonConfiguration.isCatalogEditable(context)) { %>
-                                  <li class="divider"></li>
-                                  <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
-                                <% }
+                                <% 
                             } //end if admin %>
                         </ul>
                       </li>
