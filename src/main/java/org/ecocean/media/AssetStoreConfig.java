@@ -37,6 +37,8 @@ import com.google.gson.reflect.TypeToken;
  * AssetStore.
  */
 public class AssetStoreConfig implements java.io.Serializable {
+    private static final long serialVersionUID = 3467831207510138929L;
+//stream classdesc serialVersionUID = 3467831207510138929, local class serialVersionUID = 7067475630720091192
     private static Logger log = LoggerFactory.getLogger(AssetStoreConfig.class);
     private Map<String, String> config;
 
@@ -93,6 +95,13 @@ public class AssetStoreConfig implements java.io.Serializable {
      */
     public String getString(final String key) {
         return config.get(key);
+    }
+
+    /**
+     * Return a config variable of the boolean type.
+     */
+    public boolean getBoolean(final String key) {
+        return "true".equalsIgnoreCase(config.get(key));
     }
 
     /**

@@ -94,22 +94,14 @@ public abstract class AssetStore implements java.io.Serializable {
         return stores;
     }
 
-/*
-    public void setName(String n) {
-        name = n;
-    }
-    public String getName() {
-        return name;
-    }
 
     public AssetStoreConfig getConfig() {
         return config;
     }
-
-    public boolean getWritable() {
-        return writable;
+    public void setConfig(AssetStoreConfig c) {
+        config = c;
     }
-*/
+
 
     public static synchronized void add(final AssetStore store)
     {
