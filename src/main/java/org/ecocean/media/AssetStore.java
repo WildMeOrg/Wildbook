@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
 import java.security.MessageDigest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -183,6 +184,28 @@ ex.printStackTrace();
         return create(params);
     }
 
+
+    public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
+        if ((parent == null) || (parent.getId() < 1)) return null;
+//System.out.println("pid = " + parent.getId());
+        Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
+//System.out.println("parentId == " + parent.getId() + " && this.store.id == " + this.id);
+        Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
+        //Query matches = myShepherd.getPM().newQuery(mac, "parentId == 30 && this.store.id == " + this.id);
+        try {
+            Collection c = (Collection) (matches.execute());
+            ArrayList<MediaAsset> all = new ArrayList<MediaAsset>(c);
+            matches.closeAll();
+            return all;
+
+        } catch (javax.jdo.JDOException ex) {
+            System.out.println(this.toString() + " .findAllChildren(" + parent.toString() + ") threw exception " + ex.toString());
+ex.printStackTrace();
+            return null;
+        }
+    }
+
+
     //utility function to get hex string of SHA256 digest of an input string
     //   h/t https://stackoverflow.com/a/3103722
     public static String hexStringSHA256(String in) {
@@ -274,9 +297,10 @@ ex.printStackTrace();
     }
 */
 
-public static Map<Integer, AssetStore> getStores() {
-    return stores;
-}
+    public static Map<Integer, AssetStore> getStores() {
+        return stores;
+    }
+
     //utility function to always get a null or Object without throwing an exception
     public Object getParameter(JSONObject params, String key) {
         if (params == null) return null;
@@ -293,4 +317,24 @@ public static Map<Integer, AssetStore> getStores() {
                 .append("type", this.getType())
                 .toString();
     }
+
+
+    //override this per-AssetStore if needed
+    public String mediaAssetToHtmlElement(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd) {
+        URL url = ma.webURL();
+        if (url == null) return "<div id=\"media-asset-" + ma.getId() + "\" class=\"media-asset no-media-url\">no webURL</div>";
+
+//TODO branch based upon permissions
+
+        String smallUrl = url.toString();
+        ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_watermark");
+        if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) smallUrl = kids.get(0).webURL().toString(); 
+
+        String more = "";
+        more = "data-full-url=\"" + url + "\"";
+        return "<div id=\"media-asset-" + ma.getId() + "\" class=\"media-asset media-default\" " + more + "><img src=\"" + smallUrl + "\" /></div>";
+        //return "<div>(" + ma.toString() + "<br />" + smallUrl + "<br />" + url + ")</div>";
+    }
+
+
 }

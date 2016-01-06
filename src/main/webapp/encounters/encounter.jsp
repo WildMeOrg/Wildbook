@@ -453,12 +453,11 @@ margin-bottom: 8px !important;
       			if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
         			livingStatus = " (deceased)";
       			}
-      			//int numImages = enc.getAdditionalImageNames().size();
-				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
-      
+
 if (request.getParameter("refreshImages") != null) {
 	System.out.println("refreshing images!!! ==========");
-	enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+	enc.refreshAssetFormats(myShepherd);
 	System.out.println("============ out ==============");
 }
 
@@ -3620,7 +3619,7 @@ $("a#dynamicPropertyAdd").click(function() {
 </td>
 
   <td style="vertical-align: top;padding-left: 10px;">
-    <jsp:include page="encounterImagesEmbed.jsp" flush="true">
+    <jsp:include page="encounterMediaEmbed.jsp" flush="true">
     	<jsp:param name="encounterNumber" value="<%=num%>" />
     	<jsp:param name="isOwner" value="<%=isOwner %>" />
     	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
