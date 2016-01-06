@@ -63,6 +63,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 %>
 
+<style>
+td, th {
+    border: 1px solid black;
+}
+table {
+    border-collapse: collapse;
+}
+</style>
+
 <jsp:include page="../header.jsp" flush="true" />
      <div class="container maincontent">
 <h1>Grid Administration
