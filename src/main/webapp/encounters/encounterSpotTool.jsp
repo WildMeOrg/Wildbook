@@ -77,49 +77,11 @@ String langCode=ServletUtilities.getLanguageCode(request);
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
 
-
-  //pageContext.setAttribute("num", num);
-
-
-
-  //pageContext.setAttribute("set", encprops.getProperty("set"));
 %>
 
-<html>
 
-<head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  
-  
-<!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+<jsp:include page="../header.jsp" flush="true"/>
 
-<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-
-<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-
-<meta property="og:type" content="website" />
-
-<!-- social meta end -->
-
-  
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <style type="text/css">
     <!--
 
@@ -228,58 +190,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	margin: 0 6px;
 }
 
-    .style2 {
-      color: #000000;
-      font-size: small;
-    }
-
-    .style3 {
-      font-weight: bold
-    }
-
-    .style4 {
-      color: #000000
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-    -->
-
+ -->
 
 
 
@@ -631,44 +542,14 @@ function allGood(d) {
 
 
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
-
 
 
 <body <%if (request.getParameter("noscript") == null) {%>
   xonload="initialize()" <%}%>>
 
-	<div id="wrapper">
-		<div id="page">
-			<jsp:include page="../header.jsp" flush="true">
-  				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-			</jsp:include>
-			
-			
-			<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-
-
  <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
-  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+ 
  
 <script src="../javascript/imageTools.js"></script>
 <script>
@@ -677,8 +558,9 @@ $(document).ready(function() {
 });
 </script>
 
-			
-			<div id="main">
+		<div class="container maincontent">
+		
+		
 <div id="imageTools-wrapper">
 	<div id="imageTools-wl-wrapper">
 		<div class="instruction">Place spots here</div>
@@ -705,25 +587,12 @@ $(document).ready(function() {
 
 
 </div>
-
-
+<div style="height: 800px;"></div>
 
 </div>
-
 
 
 <jsp:include page="../footer.jsp" flush="true"/>
 
-</div>
-<!-- end page -->
-
-</div>
-
-<!--end wrapper -->
-
-
-
-</body>
-</html>
 
 
