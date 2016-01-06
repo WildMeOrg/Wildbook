@@ -202,9 +202,12 @@ public class S3AssetStore extends AssetStore {
      */
     @Override
     public URL webURL(final MediaAsset ma) {
+        if (!config.getBoolean("urlAccessible")) return null;
         JSONObject params = ma.getParameters();
+/*  meh, fooey on this per-asset setting; lets only use per-store setting
         Object up = getParameter(params, "urlAccessible");
         if ((up == null) || !params.getBoolean("urlAccessible")) return null;
+*/
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
