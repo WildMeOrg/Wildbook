@@ -2127,11 +2127,34 @@ it should be considered an asyncronous action that happens in the background mag
 */
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
+                public boolean refreshAssetFormats(Shepherd myShepherd) {
+                    ArrayList<MediaAsset> mas = this.getMedia();
+                    if ((mas == null) || (mas.size() < 1)) return true;
+                    boolean ok = true;
+                    String[] types = new String[]{"thumb", "mid", "watermark"};
+                    for (MediaAsset ma : mas) {
+                        for (int i = 0 ; i < types.length ; i++) {
+                            MediaAsset c = null;
+                            try {
+                                c = ma.updateChild(types[i]);
+                            } catch (IOException ex) {
+                                System.out.println("refreshAssetFormats() failed on " + ma + " with " + ex.toString());
+                            }
+                            if (c == null) {
+                                ok = false;
+                            } else {
+                                MediaAssetFactory.save(c, myShepherd);
+                            }
+                        }
+                    }
+                    return ok;
+                }
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
 this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.
 thus, we have to treat it as a special case.
 */
+/*
 		public boolean refreshAssetFormats(String context, String baseDir) {
 			boolean ok = true;
 			//List<SinglePhotoVideo> allSPV = this.getImages();
@@ -2160,6 +2183,7 @@ thus, we have to treat it as a special case.
 		}
 
 
+*/
 	//see also: future, MediaAssets
 	public String getThumbnailUrl(String context) {
 		List<SinglePhotoVideo> spvs = this.images;

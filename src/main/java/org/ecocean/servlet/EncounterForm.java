@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
@@ -46,9 +47,11 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
+import org.ecocean.Util;
 import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
+import org.ecocean.media.*;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
@@ -59,6 +62,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.json.JSONObject;
 //import java.lang.*;
 //import java.util.List;
 /*
@@ -538,11 +542,40 @@ System.out.println("about to do enc()");
 System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
+            AssetStore astore = AssetStore.getDefault(myShepherd);
+            ArrayList<MediaAsset> newMedia = new ArrayList<MediaAsset>();
+
+            for (FileItem item : formFiles) {
+                JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
+                sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
+                MediaAsset ma = astore.create(sp);
+                File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
+System.out.println("attempting to write uploaded file to " + tmpFile);
+                try {
+		    item.write(tmpFile);
+                } catch (Exception ex) {
+                    System.out.println("Could not write " + tmpFile + ": " + ex.toString());
+                }
+                if (tmpFile.exists()) {
+                    ma.addLabel("_original");
+                    ma.copyIn(tmpFile);
+                    newMedia.add(ma);
+                } else {
+                    System.out.println("failed to write file " + tmpFile);
+                }
+            }
+
+            ///////////////////TODO social files also!!!
+
+            enc.setMedia(newMedia);
+
+
+/*
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             ArrayList<SinglePhotoVideo> images = new ArrayList<SinglePhotoVideo>();
             for (FileItem item : formFiles) {
-                /* this will actually write file to filesystem (or [FUTURE] wherever)
-                   TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc. */
+                // this will actually write file to filesystem (or [FUTURE] wherever)
+                //  TODO: either (a) undo this if any failure of writing encounter; or (b) dont write til success of enc.
                 try {
                     //SinglePhotoVideo spv = new SinglePhotoVideo(encID, item, context, encDataDir);
                     SinglePhotoVideo spv = new SinglePhotoVideo(enc, item, context, baseDir);
@@ -562,6 +595,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
                 SinglePhotoVideo spv = new SinglePhotoVideo(encID, targetFile);
                 enc.addSinglePhotoVideo(spv);
             }
+*/
 
 
       //now let's add our encounter to the database
@@ -975,7 +1009,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
             String newnum = "";
             if (!spamBot) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
-                enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
+                //enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
+                enc.refreshAssetFormats(myShepherd);
 
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
