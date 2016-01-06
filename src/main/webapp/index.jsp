@@ -229,7 +229,7 @@ margin-bottom: 8px !important;
  		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 		          bounds.extend(latLng);
  		          
- 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+ 		          var divString<%=i%> = "<div style=\"padding-top: 25px;font-weight:bold;text-align: center;line-height: 35px;vertical-align: middle;width:60px;height:49px; background-image: url('http://www.whaleshark.org/cust/mantamatcher/img/fin-silhouette.svg');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
  		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
  		         
  		         var marker<%=i%> = new RichMarker({
@@ -535,7 +535,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
                            Encounter thisEnc=latestIndividuals.get(i);
                            %>
                             <li>
-                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
+                                <img src="cust/mantamatcher/img/whalesharkbw.svg" alt="" class="pull-left" />
                                 <small>
                                     <time>
                                         <%=thisEnc.getDate() %>

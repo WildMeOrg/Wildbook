@@ -1,53 +1,28 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Properties,java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<%
+
+String context="context0";
+context=ServletUtilities.getContext(request);
 	
-	<%
-	String context="context0";
-	context=ServletUtilities.getContext(request);
+	//language setup
+	String langCode="en";
+	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
 
-	%>
+	Properties props=new Properties();
+	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
-<html>
-<head>
-<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>" />
-<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>" />
-<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>" />
-<link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>" rel="stylesheet" type="text/css" />
-<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>" />
-
-<style>
-.myTableText td { color:#FFFFFF; }
-.myTableText td a:link { color:#FFFFFF;text-decoration:underline; }
-.myTableText td a:visited { color:#FFFFFF; }
-.myTableText td a:hover { color:#FFFFFF;text-decoration:underline; }
-.myTableText td a:active { color:#FFFFFF; }
-
-</style>
-
-</head>
-
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="header.jsp" flush="true">
-	<jsp:param name="isResearcher" value="<%=request.isUserInRole(\"researcher\")%>"/>
-	<jsp:param name="isManager" value="<%=request.isUserInRole(\"manager\")%>"/>
-	<jsp:param name="isReviewer" value="<%=request.isUserInRole(\"reviewer\")%>"/>
-	<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-</jsp:include>	
-<div id="main" style="padding-top:0px">
 	
-	<div id="maincol-wide-solo">
+	
+%>
+<jsp:include page="header.jsp" flush="true"/>
+
+<div class="container maincontent">
 
 
-
-
-		<div id="maintext">
-		  <h1 class="intro"><img src="images/adoption.gif" width="56" height="48" align="absmiddle" />Adopt a Shark</h1>
-		</div>
-			<table><tr>
+		  <h1 class="intro">Adopt a Shark</h1>
+	
+			
+						<table><tr>
 			<td valign="top"><p>You can support the ongoing research of the Wildbook for Whale Sharks photo-identification library by adopting a whale shark. A whale shark adoption allows you to: 
 			<ul>
 			  <li>support cutting-edge whale shark research</li>
@@ -124,13 +99,6 @@
 	<p><em><strong>Thank you for adopting a shark and supporting our global research efforts! </strong></em></p>
 	</td>
 	</tr></table>
-	</div>
-	<!-- end maintext -->
-
-  </div><!-- end maincol -->
-
+	   </div>
 <jsp:include page="footer.jsp" flush="true" />
-</div><!-- end page -->
-</div><!--end wrapper -->
-</body>
-</html>
+

@@ -600,10 +600,15 @@ $(function() {
 
   <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
       
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<% 
+//if (isOwner && CommonConfiguration.isCatalogEditable(context)) { 
+if(false){
+%>
+<!--  -->
 <div class="encounter-vm-button">
 	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
 </div>
+-->
 <% } %>
       
 								
