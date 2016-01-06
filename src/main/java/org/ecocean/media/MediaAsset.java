@@ -20,7 +20,9 @@ package org.ecocean.media;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
+import org.ecocean.Keyword;
 import org.ecocean.Annotation;
+import org.ecocean.Shepherd;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.HashMap;
+import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
@@ -547,6 +550,33 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
     public MediaAsset updateChild(String type) throws IOException {
         return updateChild(type, null);
+    }
+
+    public ArrayList<MediaAsset> findChildren(Shepherd myShepherd) {
+        if (store == null) return null;
+        ArrayList<MediaAsset> all = store.findAllChildren(this, myShepherd);
+        return all;
+    }
+
+    public ArrayList<MediaAsset> findChildrenByLabel(Shepherd myShepherd, String label) {
+        ArrayList<MediaAsset> all = this.findChildren(myShepherd);
+        if ((all == null) || (all.size() < 1)) return null;
+        ArrayList<MediaAsset> matches = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : all) {
+            if ((ma.getLabels() != null) && ma.getLabels().contains(label)) matches.add(ma);
+        }
+        return matches;
+    }
+
+    //TODO until we get keywords migrated to MediaAsset
+    public List<Keyword> getKeywords() {
+        return new ArrayList<Keyword>();
+    }
+ 
+
+    public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
+        if (store == null) return "<!-- ERROR: MediaAsset.toHtmlElement() has no .store value for " + this.toString() + " -->";
+        return store.mediaAssetToHtmlElement(this, request, myShepherd);
     }
 
 }
