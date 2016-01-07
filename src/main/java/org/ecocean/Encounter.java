@@ -979,7 +979,6 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
-    //unfortunately we dont have a lineage of spot images (which SinglePhotoVideo they came from) so we cant put those as children under their parent MA
     public ArrayList<MediaAsset> generateMedia(String baseDir, Shepherd myShepherd) {
         if ((media != null) && ((images == null) || (images.size() <= media.size()))) return media;  //probably(?!) have already done the work
         if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
@@ -998,8 +997,9 @@ public class Encounter implements java.io.Serializable {
             if (!thumbDone) addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
             thumbDone = true;
         }
-        MediaAsset sma = spotImageAsMediaAsset(baseDir, myShepherd);
-        if ((sma != null) && !media.contains(sma)) media.add(sma);
+
+        //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
+        MediaAsset sma = spotImageAsMediaAsset(media.get(0), baseDir, myShepherd);
         return media;
     }
 
@@ -1014,9 +1014,12 @@ public class Encounter implements java.io.Serializable {
         if (media == null) media = new ArrayList<MediaAsset>();
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
-            //TODO do we potentially (re-)set parent on an existing MediaAsset????
             ma.addLabel(label);
-            if (!media.contains(ma)) media.add(ma);
+            if (parentMA != null) {
+                ma.setParentId(parentMA.getId());
+            } else if (!media.contains(ma)) {
+                media.add(ma);
+            }
             return ma;
         }
 System.out.println("creating new MediaAsset for key=" + key);
@@ -1036,11 +1039,15 @@ System.out.println("creating new MediaAsset for key=" + key);
 
     //this makes assumption (for flukes) that both right and left image files are identical
     //  TODO handle that they are different
-    public MediaAsset spotImageAsMediaAsset(String baseDir, Shepherd myShepherd) {
+    //  TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
+    public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
         File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
         if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
-        //TODO handle generic case of using "default" AssetStore (or whatever we should do)
+        if (parent == null) {
+            System.out.println("seems like we do not have a parent .media MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add spot MediaAsset for " + fullPath.toString());
+            return null;
+        }
         AssetStore astore = AssetStore.getDefault(myShepherd);
         if (astore == null) {
             System.out.println("No AssetStore in Encounter.spotImageAsMediaAsset()");
@@ -1054,6 +1061,7 @@ System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString
 System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
             try {
                 ma = astore.copyIn(fullPath, sp);
+                ma.addLabel("_spot");
 //System.out.println("params? " + ma.getParameters());
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
@@ -1061,6 +1069,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
+        ma.setParentId(parent.getId());
         return ma;
     }
 
@@ -1931,6 +1940,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
     public void setMedia(ArrayList<MediaAsset> m) {
         media = m;
+    }
+
+    public MediaAsset findOneMediaByLabel(Shepherd myShepherd, String label) {
+        return MediaAsset.findOneByLabel(media, myShepherd, label);
     }
 
     public boolean hasKeyword(Keyword word){
