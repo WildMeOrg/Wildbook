@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<style type="text/css">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <style type="text/css">
 html, body {
 	background-image: none;
 	background-color: white;
 }
+
 body {
   margin: 0px;
   padding: 0px;
   text-align: left;
   font-family: Verdana, Arial, sans-serif;
   font-size: 14px;
-  height: auto;
+  height:100%;
+  width:100%;
 }
 img.masthead {
 	margin: none;
@@ -54,40 +56,88 @@ li.batchWarning {
 	font-size: 0.8em;
 	color: #600;
 }
-</style>
-</head>
-<body>
+#mailHeader{
+	background-color: black;
+  width: 100%
+}
+</style> <link rel="stylesheet" type="text/css" href="http://www.whaleshark.org/cust/mantamatcher/css/manta.css">
+  </head>
+  <body>
+    <table style="width: 100%;">
+      <tbody>
+        <tr>
+          <td colspan="2" style="width:100%;background-color: rgb(43,43,43);"><a href="http://www.whaleshark.org/"
+              title="Wildbook for Whale Sharks">
+              <div style="background-color: #2B2B2B;" id="masthead"> <img style="background-color: #2B2B2B;" width="800px" height="*" class="masthead" src="http://www.whaleshark.org/cust/mantamatcher/img/wildbook_logo_grey2.png"
+                  alt="Wildbook for Whale Sharks: you can help photograph, identify, and protect the world's biggest fish!">
+              </div>
+            </a>
+            </td>
+          </tr>
+          <tr>
+              <td width="75%" style="padding: 3px;vertical-align: top;text-align: left;">
+            <div id="mailContent"> @EMAIL_CONTENT@
+              <p>Sincerely,</p>
+              <p>The Wild Me Team</p>
+              <div class="mailLogoFB"> <a href="https://www.facebook.com/wildmeorg/"><img
+                    src="http://www.whaleshark.org/images/facebookicon_small.png"></a>
+              </div>
+            </div>
+                      <div class="legal caption">
+      <p class="title">LEGAL STATEMENT</p>
+      <p>Wildbook is copyrighted 2016 by Wild Me. Individual contributors to
+        Wildbook retain copyrights for submitted images. No reproduction or
+        usage of material in this library is permitted without the express
+        permission of the copyright holders.</p>
+    </div>
+          </td>
+          <td width="25%" style="padding: 3px;vertical-align: top;text-align: left; border: none; background-color: #dcdcdc;">
+            <h4>Adopt-A-Shark</h4>
+            <p class="caption"><span style="font-style: italic;">Can you help
+                researchers study and protect whale sharks?</span></p>
+            <p class="caption"><a href="https://www.facebook.com/wildmeorg">Wild
+                Me</a> is a 501(c)(3) non-profit that develops the cutting edge
+              technology for a global community of wildlife researchers. Are you
+              interested in further supporting our mission? Please
+              adopt-a-shark!</p>
+            <p class="caption">Children's adoption = USD $25/year<br>
+              Individual adoption = USD $50/year<br>
+              Dive Group adoption = USD $200/year</p>
+            <table cellpadding="5">
+              <tbody>
+                <tr>
+                  <td>
+                    <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+                      <input name="cmd" value="_s-xclick" type="hidden"> <input
 
-<div id="mailHeader">
-	<a href="http://www.mantamatcher.org/" title="MantaMatcher: global online database for manta rays">
-		<div id="masthead">
-			<img class="masthead" src="http://www.mantamatcher.org/images/masthead.jpg" alt="MantaMatcher: you can help photograph, identify, and protect mantas!">
-		</div>
-	</a>
-</div>
+                        name="hosted_button_id" value="5075222" type="hidden"> <input
 
-<div id="mailContent">
+                        src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif"
 
-@EMAIL_CONTENT@
+                        name="submit" alt="PayPal - The safer, easier way to pay online!"
 
-	<p>Sincerely,</p>
-	<p>The MantaMatcher Team</p>
-	<div class="mailLogoFB">
-		<a href="https://www.facebook.com/mantamatcher"><img src="http://www.whaleshark.org/images/facebookicon_small.png"></a>
-	</div>
+                        border="0" type="image"> <img alt="" src="https://www.paypal.com/en_US/i/scr/pixel.gif"
 
-	<div class="legal caption">
-	<p class="title">LEGAL STATEMENT</p>
-	<p>MantaMatcher is copyrighted 2009-2015 by Wild Me. Individual contributors to MantaMatcher retain copyrights for submitted images. No reproduction or usage of material in this library is permitted without the express permission of the copyright holders.</p>
-	</div>
+                        border="0" height="1" width="1"> </form>
+                  </td>
+                  <!--
+<td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top"><input type="hidden" name="cmd" value="_s-xclick"><input type="hidden" name="hosted_button_id" value="47YS8D5TXGZBY"><input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!"><img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1"></form> </td> -->
+                </tr>
+              </tbody>
+            </table>
+            <img title="Meet a Whale Shark Adopter" alt="Meet a Whale Shark Adopter"
 
-<!--@REMOVEME_START@-->
-	<div id="removeMe" class="caption">
-		<p>Do you want to REMOVE your email address from this database? Click <a href="@REMOVEME_LINK@">here</a> to remove it. You will no longer receive updates on your encounters.</p>
-	</div>
-<!--@REMOVEME_END@-->
+              src="http://www.whaleshark.org/images/meetadopter.png"> </td>
+        </tr>
+      </tbody>
+    </table>
 
-</div>
-
-</body>
+    <!--@REMOVEME_START@-->
+    <div id="removeMe" class="caption">
+      <p>Do you want to REMOVE your email address from this database? Click <a
+          href="@REMOVEME_LINK@">here</a> to remove it. You will no longer
+        receive updates on your encounters.</p>
+    </div>
+    <!--@REMOVEME_END@-->
+  </body>
 </html>

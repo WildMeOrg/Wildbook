@@ -395,8 +395,16 @@ finally{
             <a href="submit.jsp">
                 <button style="background: #80B3FF;" class="large">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
+            <br>
+            <a href="adoptashark.jsp">
+                <button style="background: #80B3FF;" class="large">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+            </a>
+            <br>
+            <br>
+            <h4 style="color: white;">Our work is possible with the generous support of:</h4>
+            <img border="1px" src="images/QWSP_Logo.png" height="125px" width="*" /> <img border="1px" src="images/Siren_Fleet.jpg" height="125px" width="*"  />
         </div>
-
+		
 	</div>
 
     
@@ -524,7 +532,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
             
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
+                    <h2>Latest shark encounters</h2>
                     <ul class="encounter-list list-unstyled">
                        
                        <%
@@ -622,14 +630,14 @@ You too can assist with whale shark research, by submitting photos and sighting 
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
             </section>
         </div>
 
