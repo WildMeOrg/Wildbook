@@ -568,6 +568,38 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return matches;
     }
 
+
+    // NOTE: these currrently do not recurse.  this makes a big assumption that one only wants children of _original
+    //   (e.g. on an encounter) and will *probably* need to change in the future.    TODO?
+    public static MediaAsset findOneByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd, String label) {
+        ArrayList<MediaAsset> all = findAllByLabel(mas, myShepherd, label, true);
+        if ((all == null) || (all.size() < 1)) return null;
+        return all.get(0);
+    }
+    public static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd, String label) {
+        return findAllByLabel(mas, myShepherd, label, false);
+    }
+    private static ArrayList<MediaAsset> findAllByLabel(ArrayList<MediaAsset> mas, Shepherd myShepherd, String label, boolean onlyOne) {
+        if ((mas == null) || (mas.size() < 1)) return null;
+        ArrayList<MediaAsset> found = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : mas) {
+            if ((ma.getLabels() != null) && ma.getLabels().contains(label)) {
+                found.add(ma);
+                if (onlyOne) return found;
+            }
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, label);
+            if ((kids != null) && (kids.size() > 0)) {
+                if (onlyOne) {
+                    found.add(kids.get(0));
+                    return found;
+                } else {
+                    found.addAll(kids);
+                }
+            }
+        }
+        return found;
+    }
+
     //TODO until we get keywords migrated to MediaAsset
     public List<Keyword> getKeywords() {
         return new ArrayList<Keyword>();

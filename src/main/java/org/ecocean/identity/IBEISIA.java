@@ -236,7 +236,9 @@ public class IBEISIA {
 
         try {
             for (Encounter enc : queryEncs) {
-                MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                //MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                MediaAsset ma = enc.findOneMediaByLabel(myShepherd, "_spot");
+System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
                 if (ma == null) continue;
                 mas.add(ma);
                 ArrayList<Annotation> someAnns = ma.getAnnotationsGenerate(species);  //this "should" always get one (the trivial one)
@@ -246,7 +248,9 @@ public class IBEISIA {
                 }
             }
             for (Encounter enc : targetEncs) {
-                MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                //MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
+                MediaAsset ma = enc.findOneMediaByLabel(myShepherd, "_spot");
+System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
                 if (ma == null) continue;
                 mas.add(ma);
 //System.out.println("=================------------- " + ma + "\n(" + ma.getParameters() + ")\n");
