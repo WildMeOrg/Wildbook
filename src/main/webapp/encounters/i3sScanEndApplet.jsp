@@ -105,6 +105,14 @@ context=ServletUtilities.getContext(request);
   
 </style>
 
+<style>
+td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+</style>
+
 
 <div class="container maincontent">
 
@@ -247,6 +255,8 @@ context=ServletUtilities.getContext(request);
 		  </OBJECT>
 		</p>
 <a name="resultstable" /><table class="tablesorter">
+
+<table width="800px">
   <thead>
   
         <tr align="left" valign="top">

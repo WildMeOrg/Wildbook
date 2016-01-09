@@ -105,6 +105,11 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     border-bottom: 1px solid #8DBDD8;
   }
   
+  td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+  
 </style>
 
 
@@ -228,9 +233,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 
-<p>
 
-<p>
+
 
 <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
@@ -267,7 +271,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </OBJECT>
 </p>
   
-      <a name="resultstable"/><table class="tablesorter">
+      <a name="resultstable"/>
+      
+      <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
           <th><strong>Individual ID</strong></th>
@@ -292,14 +298,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr>
           <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
+            <a
                   href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
-                </a></td>
-              </tr>
-            </table>
+                </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
@@ -352,16 +353,12 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
         %>
+        
         <tr align="left" valign="top">
           <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
-                </a></td>
-              </tr>
-            </table>
+            <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            	<%=enc1.attributeValue("assignedToShark")%>
+            </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
