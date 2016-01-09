@@ -240,7 +240,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
-    System.out.println("Base URL is: " + baseURL);
+    //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
@@ -252,7 +252,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       rightSA = "&filePrefix=extractRight";
     }
-    System.out.println("I made it to the Flash without exception.");
+    //System.out.println("I made it to the Flash without exception.");
   %>
   <OBJECT id=sharkflash
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
