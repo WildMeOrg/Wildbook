@@ -351,12 +351,11 @@ google.maps.event.addDomListener(window, 'load', initialize);
 	  action="EncounterForm"
 	  method="post"
 	  enctype="multipart/form-data"
-      name="encounter_submission"
-      target="_self" dir="ltr"
-      lang="en"
-      onsubmit="return false;"
-      class="form-horizontal"
->
+    name="encounter_submission"
+    target="_self" dir="ltr"
+    lang="en"
+    onsubmit="return false;"
+    class="form-horizontal">
 
 <div class="dz-message"></div>
 
@@ -484,7 +483,7 @@ function showUploadBox() {
             <li>2014Jan05 12:30</li>
             <li>2014MAR23</li>
             <li>2013AUG</li>
-            <li>2010</li>
+            <li>2010sep</li>
           </ul>
         </p>
       </div>
@@ -515,77 +514,69 @@ if(CommonConfiguration.showReleaseDate(context)){
         <input name="location" type="text" id="location" size="40" class="form-control">
       </div>
     </div>
-
-
 <%
 //add locationID to fields selectable
 
 
 if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
 	%>
-    <div class="form-group required">
+  <div class="form-group required">
+    <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
+      <label class="control-label" style="text-align:left;">Was this one of our study sites?</label>
+    </div>
 
-      <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label" style="text-align:left;">Was this one of our study sites?</label>
-      </div>
-
-      <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-          <option value="" selected="selected"></option>
-            <%
-            	boolean hasMoreLocationsIDs=true;
-            	int locNum=0;
-            	while(hasMoreLocationsIDs){
-	            	String currentLocationID = "locationID"+locNum;
-	            	if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-            			%><option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option><%
-                	locNum++;
-								}
-                else {
-                  hasMoreLocationsIDs=false;
-                }
-							}
-						%>
-      </select>
-      </div>
+    <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
+      <select name="locationID" id="locationID" class="form-control">
+        <option value="" selected="selected"></option>
+          <%
+        	boolean hasMoreLocationsIDs=true;
+        	int locNum=0;
+        	while(hasMoreLocationsIDs){
+          	String currentLocationID = "locationID"+locNum;
+          	if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+        			%><option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option><%
+            	locNum++;
+						}
+            else {
+              hasMoreLocationsIDs=false;
+            }
+					}
+					%>
+    </select>
+    </div>
     </div>
 	<%
 }
 
 if(CommonConfiguration.showProperty("showCountry",context)){
-
-%>
-          <div class="form-group required">
+	%>
+    <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label"><%=props.getProperty("country") %></label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreCountries=true;
-                         int taxNum=0;
-
-                         while(hasMoreCountries){
-                               String currentCountry = "country"+taxNum;
-                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-                                   <%
-                                 taxNum++;
-                            }
-                            else{
-                               hasMoreCountries=false;
-                            }
-
-                       }
-
-     %>
-   </select>
-      </div>
-    </div>
+      	<select name="locationID" id="locationID" class="form-control">
+          <option value="" selected="selected"></option>
+          <%
+          boolean hasMoreCountries=true;
+          int taxNum=0;
+					while(hasMoreCountries){
+						String currentCountry = "country"+taxNum;
+						if(CommonConfiguration.getProperty(currentCountry,context)!=null){
+							%>
+							<option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
+							<%
+							taxNum++;
+						}
+						else {
+							hasMoreCountries=false;
+						}
+					}
+					%>
+					</select>
+				</div>
+			</div>
 
 <%
 }  //end if showCountry
@@ -762,373 +753,345 @@ if(request.getRemoteUser()!=null){
 		</div>
 	</fieldset>
 
-		<hr/>
+	<hr/>
+	<fieldset>
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Organization</label>
+			</div>
+
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Project</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Additional comments</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+			</div>
+		</div>
+	</fieldset>
+
+
+
+
+	<h4 class="accordion">
+		<a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+			<img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+				<%=props.getProperty("advancedInformation") %>
+		</a>
+	</h4>
+
+	<div id="advancedInformation" fade="1" style="display: none;">
+
+		<h3>About the animal</h3>
+
 		<fieldset>
-			<div class="form-group">
-				<div class="col-xs-6 col-md-4">
-					<label class="control-label">Organization</label>
-				</div>
-
-				<div class="col-xs-6 col-lg-8">
-					<input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
-				</div>
-			</div>
 
 			<div class="form-group">
 				<div class="col-xs-6 col-md-4">
-					<label class="control-label">Project</label>
+					<label class="control-label">Sex</label>
 				</div>
-				<div class="col-xs-6 col-lg-8">
-					<input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
-				</div>
-			</div>
 
-			<div class="form-group">
-				<div class="col-xs-6 col-md-4">
-					<label class="control-label">Additional comments</label>
-				</div>
 				<div class="col-xs-6 col-lg-8">
-					<textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+					<label class="radio-inline">
+						<input type="radio" name="sex" value="male"> Male
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="sex" value="female"> Female
+							</label>
+							<label class="radio-inline">
+								<input name="sex" type="radio" value="unknown" checked="checked"> Unknown
+								</label>
 				</div>
 			</div>
 		</fieldset>
+	<%
+	if(CommonConfiguration.showProperty("showTaxonomy",context)){
+		%>
+		<fieldset>
+			<div class="form-group">
 
+				<div class="col-xs-6 col-md-4">
+					<label class="control-label">Species</label>
+				</div>
 
-
-
-		<h4 class="accordion">
-			<a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-				<img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
-					<%=props.getProperty("advancedInformation") %>
-				</a>
-			</h4>
-
-			<div id="advancedInformation" fade="1" style="display: none;">
-
-				<h3>About the animal</h3>
-
-				<fieldset>
-
-					<div class="form-group">
-						<div class="col-xs-6 col-md-4">
-							<label class="control-label">Sex</label>
-						</div>
-
-						<div class="col-xs-6 col-lg-8">
-							<label class="radio-inline">
-								<input type="radio" name="sex" value="male"> Male
-								</label>
-								<label class="radio-inline">
-									<input type="radio" name="sex" value="female"> Female
-									</label>
-									<label class="radio-inline">
-										<input name="sex" type="radio" value="unknown" checked="checked"> Unknown
-										</label>
-									</div>
-								</div>
-							</fieldset>
-							<%
-
-							if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-								%>
-								<fieldset>
-									<div class="form-group">
-										<div class="col-xs-6 col-md-4">
-											<label class="control-label">Species</label>
-										</div>
-
-										<div class="col-xs-6 col-lg-8">
-											<select class="form-control" name="genusSpecies" id="genusSpecies">
-												<option value="" selected="selected">unknown</option>
-												<%
-												boolean hasMoreTax=true;
-												int taxNum=0;
-												if(CommonConfiguration.showProperty("showTaxonomy",context)){
-													while(hasMoreTax){
-														String currentGenuSpecies = "genusSpecies"+taxNum;
-														if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-															%>
-															<option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-															<%
-															taxNum++;
-														}
-														else{
-															hasMoreTax=false;
-														}
-
-													}
-												}
-												%>
-											</select>
-										</div>
-									</div>
-
+				<div class="col-xs-6 col-lg-8">
+					<select class="form-control" name="genusSpecies" id="genusSpecies">
+						<option value="" selected="selected">unknown</option>
+						<%
+						boolean hasMoreTax=true;
+						int taxNum=0;
+						if(CommonConfiguration.showProperty("showTaxonomy",context)){
+							while(hasMoreTax){
+								String currentGenuSpecies = "genusSpecies"+taxNum;
+								if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+									%>
+									<option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
 									<%
+									taxNum++;
 								}
+								else{
+									hasMoreTax=false;
+								}
+							}
+						}
+						%>
+					</select>
+				</div>
+			</div>
+			<%
+		}
+		%>
 
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Status</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<select class="form-control" name="livingStatus" id="livingStatus">
+					<option value="alive" selected="selected">Alive</option>
+					<option value="dead">Dead</option>
+				</select>
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Observed behavior</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<input class="form-control" name="behavior" type="text" id="behavior" size="75">
+				</div>
+			</div>
+
+		<div class="form-group">
+			<div class="col-xs-6 col-md-4">
+				<label class="control-label">Noticeable scarring/hooking</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<select class="form-control" name="livingStatus" id="livingStatus">
+					<option value="none" selected="selected">None</option>
+					<option value="hooked">Hooked</option>
+					<option value="marked">Marked</option>
+				</select>
+			</div>
+		</div>
+
+		<%
+		if(CommonConfiguration.showProperty("showLifestage",context)){
+			%>
+			<div class="form-group">
+				<div class="col-xs-6 col-md-4">
+					<label class="control-label"><%=props.getProperty("lifeStage") %></label>
+				</div>
+				<div class="col-xs-6 col-lg-8">
+					<select name="lifeStage" id="lifeStage">
+						<option value="" selected="selected"></option>
+						<%
+						boolean hasMoreStages=true;
+						int stageNum=0;
+						while(hasMoreStages){
+							String currentLifeStage = "lifeStage"+stageNum;
+							if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
 								%>
-
-								<div class="form-group">
-									<div class="col-xs-6 col-md-4">
-										<label class="control-label">Status</label>
-									</div>
-
-									<div class="col-xs-6 col-lg-8">
-										<select class="form-control" name="livingStatus" id="livingStatus">
-											<option value="alive" selected="selected">Alive</option>
-											<option value="dead">Dead</option>
-										</select>
-									</div>
-								</div>
-
-								<div class="form-group">
-									<div class="col-xs-6 col-md-4">
-										<label class="control-label">Observed behavior</label>
-									</div>
-
-									<div class="col-xs-6 col-lg-8">
-										<input class="form-control" name="behavior" type="text" id="behavior" size="75">
-										</div>
-									</div>
-
-									<div class="form-group">
-										<div class="col-xs-6 col-md-4">
-											<label class="control-label">Noticeable scarring/hooking</label>
-										</div>
-
-										<div class="col-xs-6 col-lg-8">
-											<select class="form-control" name="livingStatus" id="livingStatus">
-												<option value="none" selected="selected">None</option>
-												<option value="hooked">Hooked</option>
-												<option value="marked">Marked</option>
-											</select>
-										</div>
-									</div>
-
-										<%
-
-										if(CommonConfiguration.showProperty("showLifestage",context)){
-
-											%>
-											<div class="form-group">
-												<div class="col-xs-6 col-md-4">
-													<label class="control-label"><%=props.getProperty("lifeStage") %></label>
-												</div>
-												<div class="col-xs-6 col-lg-8">
-													<select name="lifeStage" id="lifeStage">
-														<option value="" selected="selected"></option>
-														<%
-														boolean hasMoreStages=true;
-														int stageNum=0;
-
-														while(hasMoreStages){
-															String currentLifeStage = "lifeStage"+stageNum;
-															if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-																%>
-
-																<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-																<%
-																stageNum++;
-															}
-															else{
-																hasMoreStages=false;
-															}
-
-														}
-
-														%>
-													</select>
-												</div>
-											</div>
-
-
-											<%
-										}
-										%>
-
-
-
-									</fieldset>
-									<%
-									pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-									%>
-									<c:if test="${showMeasurements}">
-										<hr>
-											<fieldset>
-												<%
-												pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
-												pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
-												%>
-
-												<div class="form-group">
-													<h3>Measurements</h3>
-
-
-													<div class="col-xs-12 col-lg-8">
-														<table class="measurements">
-															<tr>
-																<th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
-															</tr>
-															<c:forEach items="${items}" var="item">
-																<!--the below line makes it so that temp is not listed here (temp is listed above)-->
-																<c:if test="${item.label!='Temp.'}">
-																	<tr>
-																		<td>${item.label}</td>
-																		<td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
-																		<td><c:out value="${item.unitsLabel}"/></td>
-																		<c:if test="${!empty samplingProtocols}">
-																			<td>
-																				<select name="measurement(${item.type}samplingProtocol)">
-																					<c:forEach items="${samplingProtocols}" var="optionDesc">
-																						<option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-																					</c:forEach>
-																				</select>
-																			</td>
-																		</c:if>
-																	</tr>
-																</c:if>
-															</c:forEach>
-														</table>
-													</div>
-												</div>
-											</fieldset>
+								<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+								<%
+								stageNum++;
+							}
+							else {
+								hasMoreStages=false;
+							}
+						}
+						%>
+					</select>
+				</div>
+			</div>
+			<%
+			}
+			%>
+		</fieldset>
+		<%
+		pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+		%>
+		<c:if test="${showMeasurements}">
+			<hr/>
+			<fieldset>
+				<%
+				pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+				pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
+				%>
+				<div class="form-group">
+					<h3>Measurements</h3>
+					<div class="col-xs-12 col-lg-8">
+						<table class="measurements">
+							<tr>
+								<th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
+							</tr>
+							<c:forEach items="${items}" var="item">
+								<!--the below line makes it so that temp is not listed here (temp is listed above)-->
+								<c:if test="${item.label!='Temp.'}">
+									<tr>
+										<td>${item.label}</td>
+										<td><input name="measurement(${item.type})" id="${item.type}"/><input type="hidden" name="measurement(${item.type}units)" value="${item.units}"/></td>
+										<td><c:out value="${item.unitsLabel}"/></td>
+										<c:if test="${!empty samplingProtocols}">
+											<td>
+												<select name="measurement(${item.type}samplingProtocol)">
+													<c:forEach items="${samplingProtocols}" var="optionDesc">
+														<option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+													</c:forEach>
+												</select>
+											</td>
 										</c:if>
+									</tr>
+								</c:if>
+							</c:forEach>
+						</table>
+					</div>
+				</div>
+			</fieldset>
+		</c:if>
+		<hr/>
+
+		<fieldset>
+			<div class="col-xs-12 col-lg-8">
+				<h3>Number of sharks at cave</h3>
+				<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
+				<input name="location" type="text" id="location" size="40" class="form-control">
+			</div>
+		</fieldset>
+
+		<hr />
 
 
+		<fieldset>
+			<h3>Tags</h3>
+			<%
+			pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
+			pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+			pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+			pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
+			%>
+
+			<c:if test="${showMetalTags and !empty metalTags}">
+
+				<div class="form-group">
+					<div class="col-xs-6 col-md-4">
+						<label><%=props.getProperty("physicalTags") %></label>
+					</div>
+
+					<div class="col-xs-12 col-lg-8">
+						<table class="metalTags">
+							<tr>
+								<th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
+							</tr>
+							<c:forEach items="${metalTags}" var="metalTagDesc">
+								<tr>
+									<td><c:out value="${metalTagDesc.locationLabel}:"/></td>
+									<td><input name="metalTag(${metalTagDesc.location})"/></td>
+								</tr>
+							</c:forEach>
+						</table>
+					</div>
+				</div>
+			</c:if>
+
+			<c:if test="${showAcousticTag}">
+				<div class="form-group">
+					<div class="col-xs-6 col-md-4">
+						<label><%=props.getProperty("acousticTag") %></label>
+					</div>
+					<div class="col-xs-12 col-lg-8">
+						<table class="acousticTag">
+							<tr>
+								<td><%=props.getProperty("serialNumber") %></td>
+								<td><input name="acousticTagSerial"/></td>
+							</tr>
+							<tr>
+								<td><%=props.getProperty("id") %></td>
+								<td><input name="acousticTagId"/></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</c:if>
+
+			<c:if test="${showSatelliteTag}">
+				<div class="form-group">
+					<div class="col-xs-6 col-md-4">
+						<label><%=props.getProperty("satelliteTag") %></label>
+					</div>
+					<%
+					pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
+					%>
+					<div class="col-xs-12 col-lg-8">
+						<table class="satelliteTag">
+							<tr>
+								<td><%=props.getProperty("name") %></td>
+								<td>
+									<select name="satelliteTagName">
+										<c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+											<option value="${satelliteTagName}">${satelliteTagName}</option>
+										</c:forEach>
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<td><%=props.getProperty("serialNumber") %></td>
+								<td><input name="satelliteTagSerial"/></td>
+							</tr>
+							<tr>
+								<td><%=props.getProperty("argosNumber") %></td>
+								<td><input name="satelliteTagArgosPttNumber"/></td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</c:if>
+		</fieldset>
+		<hr/>
+
+		<div class="form-group">
+			<label class="control-label">Other email addresses to inform of resightings and status</label>
+			<input class="form-control" name="informothers" type="text" id="informothers" size="75">
+				<p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
+			</div>
+		</div>
+
+		<p class="text-center">
+			<button class="large" type="submit" onclick="return sendButtonClicked();">
+				Send encounter report
+				<span class="button-icon" aria-hidden="true" />
+			</button>
+		</p>
 
 
-										<hr/>
-
-										<fieldset>
-											<div class="col-xs-12 col-lg-8">
-												<h3>Number of sharks at cave</h3>
-												<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
-												<input name="location" type="text" id="location" size="40" class="form-control">
-											</div>
-										</fieldset>
-
-										<hr />
-
-
-										<fieldset>
-											<h3>Tags</h3>
-											<%
-											pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
-											pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-											pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-											pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
-											%>
-
-											<c:if test="${showMetalTags and !empty metalTags}">
-
-												<div class="form-group">
-													<div class="col-xs-6 col-md-4">
-														<label><%=props.getProperty("physicalTags") %></label>
-													</div>
-
-													<div class="col-xs-12 col-lg-8">
-														<table class="metalTags">
-															<tr>
-																<th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
-															</tr>
-															<c:forEach items="${metalTags}" var="metalTagDesc">
-																<tr>
-																	<td><c:out value="${metalTagDesc.locationLabel}:"/></td>
-																	<td><input name="metalTag(${metalTagDesc.location})"/></td>
-																</tr>
-															</c:forEach>
-														</table>
-													</div>
-												</div>
-											</c:if>
-
-											<c:if test="${showAcousticTag}">
-												<div class="form-group">
-													<div class="col-xs-6 col-md-4">
-														<label><%=props.getProperty("acousticTag") %></label>
-													</div>
-													<div class="col-xs-12 col-lg-8">
-														<table class="acousticTag">
-															<tr>
-																<td><%=props.getProperty("serialNumber") %></td>
-																<td><input name="acousticTagSerial"/></td>
-															</tr>
-															<tr>
-																<td><%=props.getProperty("id") %></td>
-																<td><input name="acousticTagId"/></td>
-															</tr>
-														</table>
-													</div>
-												</div>
-											</c:if>
-
-											<c:if test="${showSatelliteTag}">
-												<div class="form-group">
-													<div class="col-xs-6 col-md-4">
-														<label><%=props.getProperty("satelliteTag") %></label>
-													</div>
-													<%
-													pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
-													%>
-													<div class="col-xs-12 col-lg-8">
-														<table class="satelliteTag">
-															<tr>
-																<td><%=props.getProperty("name") %></td>
-																<td>
-																	<select name="satelliteTagName">
-																		<c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-																			<option value="${satelliteTagName}">${satelliteTagName}</option>
-																		</c:forEach>
-																	</select>
-																</td>
-															</tr>
-															<tr>
-																<td><%=props.getProperty("serialNumber") %></td>
-																<td><input name="satelliteTagSerial"/></td>
-															</tr>
-															<tr>
-																<td><%=props.getProperty("argosNumber") %></td>
-																<td><input name="satelliteTagArgosPttNumber"/></td>
-															</tr>
-														</table>
-													</div>
-												</div>
-											</c:if>
-
-										</fieldset>
-
-										<hr/>
-
-										<div class="form-group">
-											<label class="control-label">Other email addresses to inform of resightings and status</label>
-											<input class="form-control" name="informothers" type="text" id="informothers" size="75">
-												<p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
-											</div>
-										</div>
-
-										<p class="text-center">
-											<button class="large" type="submit" onclick="return sendButtonClicked();">
-												Send encounter report
-												<span class="button-icon" aria-hidden="true" />
-											</button>
-										</p>
-
-
-										<p>&nbsp;</p>
-										<%if (request.getRemoteUser() != null) {%>
-										<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/>
-										<%}
-										else {%>
-										<input name="submitterID" type="hidden" value="N/A"/>
-										<%
-									}
-									%>
-
-
-<p>&nbsp;</p>
-</form>
-
+		<p>&nbsp;</p>
+		<%if (request.getRemoteUser() != null) {
+			%>
+			<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/>
+			<%
+		}
+		else {%>
+			<input name="submitterID" type="hidden" value="N/A"/>
+		<%
+		}
+		%>
+		<p>&nbsp;</p>
+	</form>
 </div>
 </div>
 </div>
