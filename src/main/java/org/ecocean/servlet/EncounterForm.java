@@ -582,6 +582,15 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
+      if (fv.get("hookmark") != null && fv.get("hookmark").toString().length() > 0) {
+              enc.setDynamicProperty("Hookmark", fv.get("hookmark").toString());
+          }
+      if (fv.get("flank") != null && fv.get("flank").toString().length() > 0) {
+              enc.setDynamicProperty("flank", fv.get("flank").toString());
+          }
+      if (fv.get("nsharks") != null && fv.get("nsharks").toString().length() > 0) {
+              enc.setDynamicProperty("# sharks in cave", fv.get("nsharks").toString());
+          }
 /*
 got regular field (measurement(weight))=(111)
 got regular field (measurement(weightunits))=(kilograms)
@@ -656,8 +665,8 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
       if(fv.get("scars")!=null){
         enc.setDistinguishingScar(fv.get("scars").toString());
       }
-      
-      
+
+
       int sizePeriod=0;
       if ((fv.get("measureUnits") != null) && fv.get("measureUnits").toString().equals("Feet")) {
 
@@ -758,14 +767,13 @@ System.out.println("depth --> " + fv.get("depth").toString());
             }
          }
 
-
         //let's handle the GPS
-        if ((fv.get("lat") != null) && (fv.get("longitude") != null) && !fv.get("lat").toString().equals("") && !fv.get("longitude").toString().equals("")) {
+        if ((fv.get("latitude") != null) && (fv.get("longitude") != null) && !fv.get("latitude").toString().equals("") && !fv.get("longitude").toString().equals("")) {
         //enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
 
 
         try {
-          double degrees = (new Double(fv.get("lat").toString())).doubleValue();
+          double degrees = (new Double(fv.get("latitude").toString())).doubleValue();
           double position = degrees;
           /*
           if (!gpsLatitudeMinutes.equals("")) {
@@ -943,6 +951,3 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
 
 }
-
-
-

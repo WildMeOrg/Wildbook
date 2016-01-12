@@ -740,13 +740,14 @@ if(request.getRemoteUser()!=null){
 			</div>
 		</div>
 		<div class="col-xs-12 col-lg-12">
+			<label class="control-label">flank</label>:
 			<div class='wrapper text-center'>
 				<div class="btn-group" data-toggle="buttons">
 					<label class="btn btn-secondary flank-btn active">
-						<input type="radio" name="flank side" value="left" id="leftFlank" checked="checked"> Left
+						<input type="radio" name="flank" value="L" id="L" checked="checked"> Left
 					</label>
 					<label class="btn btn-secondary flank-btn">
-						<input type="radio" name="flank side" value="right" id="rightFlank"> Right
+						<input type="radio" name="flank" value="R" id="R"> Right
 					</label>
 				</div>
 			</div>
@@ -808,13 +809,13 @@ if(request.getRemoteUser()!=null){
 				<div class="col-xs-6 col-lg-8">
 					<label class="radio-inline">
 						<input type="radio" name="sex" value="male"> Male
-						</label>
-						<label class="radio-inline">
-							<input type="radio" name="sex" value="female"> Female
-							</label>
-							<label class="radio-inline">
-								<input name="sex" type="radio" value="unknown" checked="checked"> Unknown
-								</label>
+					</label>
+					<label class="radio-inline">
+						<input type="radio" name="sex" value="female"> Female
+					</label>
+					<label class="radio-inline">
+						<input name="sex" type="radio" value="unknown" checked="checked"> Unknown
+					</label>
 				</div>
 			</div>
 		</fieldset>
@@ -862,7 +863,7 @@ if(request.getRemoteUser()!=null){
 			</div>
 			<div class="col-xs-6 col-lg-8">
 				<select class="form-control" name="livingStatus" id="livingStatus">
-					<option value="alive" selected="selected">Alive</option>
+					<option value="alive" id=selected="selected">Alive</option>
 					<option value="dead">Dead</option>
 				</select>
 			</div>
@@ -882,10 +883,10 @@ if(request.getRemoteUser()!=null){
 				<label class="control-label">Noticeable scarring/hooking</label>
 			</div>
 			<div class="col-xs-6 col-lg-8">
-				<select class="form-control" name="livingStatus" id="livingStatus">
-					<option value="none" selected="selected">None</option>
-					<option value="hooked">Hooked</option>
-					<option value="marked">Marked</option>
+				<select class="form-control" name="hookmark" id="hookmark">
+					<option value="N" selected="selected">None</option>
+					<option value="H">Hooked</option>
+					<option value="O">Marked</option>
 				</select>
 			</div>
 		</div>
@@ -970,7 +971,7 @@ if(request.getRemoteUser()!=null){
 			<div class="col-xs-12 col-lg-8">
 				<h3>Number of sharks at cave</h3>
 				<p class="help-block">If photographed near the cave, about how many sharks did you see there? Leave blank if not applicable.</p>
-				<input name="location" type="text" id="location" size="40" class="form-control">
+				<input name="nsharks" type="text" id="nsharks" size="40" class="form-control">
 			</div>
 		</fieldset>
 
