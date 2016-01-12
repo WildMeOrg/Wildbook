@@ -165,7 +165,7 @@ console.log('iframeUrl %o', iframeUrl);
 
 $(function() {
   function resetMap() {
-      var ne_lat_element = document.getElementById('lat');
+      var ne_lat_element = document.getElementById('latitude');
       var ne_long_element = document.getElementById('longitude');
 
 
@@ -186,7 +186,7 @@ $(function() {
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
       changeYear: true,
-      dateFormat: 'yy-mm-dd',
+      dateFormat: 'yyMdd',
       maxDate: '+1d',
       controlType: 'select',
       alwaysSetTime: false
@@ -196,7 +196,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker({
         changeMonth: true,
         changeYear: true,
-        dateFormat: 'yy-mm-dd'
+        dateFormat: 'yy-M-dd'
     });
     $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
@@ -246,7 +246,7 @@ function placeMarker(location) {
 
       //adding the fullscreen control to exit fullscreen
       var fsControlDiv = document.createElement('DIV');
-      addFullscreenButton(fsControlDiv, map);
+      //addFullscreenButton(fsControlDiv, map);
       fsControlDiv.index = 1;
       map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
@@ -466,9 +466,9 @@ function showUploadBox() {
 <hr />
 
 <fieldset>
-<h3><%=props.getProperty("dateAndLocation")%></h3>
 
 <div class="form-group required">
+	<h3><%=props.getProperty("dateAndLocation")%></h3>
 
     <div class="form-group required">
 
@@ -481,9 +481,9 @@ function showUploadBox() {
         <p class="help-block">
           Examples:
           <ul>
-            <li>2014-01-05 12:30</li>
-            <li>2014-03-23</li>
-            <li>2013-12</li>
+            <li>2014Jan05 12:30</li>
+            <li>2014MAR23</li>
+            <li>2013AUG</li>
             <li>2010</li>
           </ul>
         </p>
@@ -498,22 +498,18 @@ if(CommonConfiguration.showReleaseDate(context)){
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
         <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
-      </div>
+    </div>
+	</div>
 
 <%
 }
 %>
 
-</fieldset>
-
-<hr />
-
-<fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
-
+		<p class="help-block"><%=props.getProperty("where") %></p>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
-        <label class="control-label"><%=props.getProperty("where") %></label>
+        <label class="control-label">Location description:</label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <input name="location" type="text" id="location" size="40" class="form-control">
@@ -601,7 +597,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
 
-<div>
+<div style="text-align:center;">
 	<p id="map">
 		<!--
 		<p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
