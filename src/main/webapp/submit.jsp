@@ -522,39 +522,34 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 
 if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
-%>
+	%>
     <div class="form-group required">
+
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label" style="text-align:left;">Was this one of our study sites?</label>
       </div>
 
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
-            <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-
-                       }
-
-     %>
+          <option value="" selected="selected"></option>
+            <%
+            	boolean hasMoreLocationsIDs=true;
+            	int locNum=0;
+            	while(hasMoreLocationsIDs){
+	            	String currentLocationID = "locationID"+locNum;
+	            	if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+            			%><option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option><%
+                	locNum++;
+								}
+                else {
+                  hasMoreLocationsIDs=false;
+                }
+							}
+						%>
       </select>
       </div>
     </div>
-<%
+	<%
 }
 
 if(CommonConfiguration.showProperty("showCountry",context)){
