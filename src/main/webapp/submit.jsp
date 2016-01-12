@@ -333,7 +333,6 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
       <h1 class="intro">Report an encounter</h1>
-      <h2>UNDER CONSTRUCTION</h2>
 
       <p>
         Use the online form below to record the details of your encounter. Be as accurate and specific as possible. Please note that by submitting data and images, you are granting unlimited usage of these materials for research and conservation purposes only.
@@ -545,6 +544,82 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
     </select>
     </div>
     </div>
+
+		<script type="text/javascript">
+		// This script updates the lat/lang fields when the dropdown is changed
+		// I love JS objects!
+		function setLatLong(locationKey) {
+			var latLongRaw = {BI:["32 37 30 S", 	"152 20 20 E"],
+				BS:		["32 28 00 S", 	"152 33 00 E"],
+				CH:		["30 14 50 S"	, "153 21 60 E"],
+				F0:   ["", ""],
+				FR:		["30 56 25 S", 	"153 05 45 E"],
+				GS:   ["", ""],
+				JR:		["28 36 50 S", 	"153 37 35 E"],
+				LR:		["32 12 32 S", 	"152 34 05 E"],
+				LS:		["32 28 35 S", 	"152 32 50 E"],
+				MI:		["36 14 30 S", 	"150 13 35 E"],
+				MP:		["33 57 45 S", 	"151 15 50 E"],
+				PF:		["32 14 25 S", 	"152 36 05 E"],
+				SR:		["32 28 00 S", 	"152 33 00 E"],
+				SS:		["30 12 30 S", 	"153 17 00 E"],
+				TB:		["32 09 10 S", 	"152 32 20 E"],
+				WR:		["25 54 40 S", 	"153 12 20 E"],
+				TG:		["35 45 20 S", 	"150 15 15 E"],
+				BT:		["32 10 75 S",	"152 31 31 E"],
+				FC:		["33 24 128 S", "151 32 18 E"],
+				FL:		["26 59 00 S", 	"153 29 05 E"],
+				GI:		["30 54 45 S", 	"153 05 10 E"],
+				SK:		["32 24 30 S", 	"152 32 20 E"],
+				SF:   ["", ""],
+				NB:		["33 54 05 S", 	"151 16 20 E"],
+				CG:		["31 40 55 S", 	"152 54 35 E"],
+				DP:		["36 10 00 S",	"150 08 00 E"],
+				FT:		["27 08 00 S", 	"153 33 30 E"],
+				ST:		["32 26 41 S", 	"152 32 20 E"],
+				CC:		["27 07 00 S", 	"153 28 30 E"],
+				HE:   ["", ""],
+				HU:   ["", ""],
+				NM:   ["", ""],
+				LF:		["33 44 10 S", 	"151 19 30 E"],
+				NS:		["29 55 05 S", 	"153 23 00 E"],
+				BH:   ["", ""],
+				DD:		["35 02 50 S",	"150 50 43 E"],
+				MR:		["31 46 05 S",  "152 48 25 E"],
+				FB:		["33 47 96 S",	"151 17 91 E"]
+			}
+			// a very brittle single-use function, only for parsing the S coords above
+			function dmsSToDec(dmsSString) {
+				var vals = dmsSS.split(" ");
+				var total = parseInt(dmsSString.substring(0,2)) + parseInt(dmsSString.substring(4,6))/60.0 + parseInt(dmsSString.substring(8,10))/3600.0;
+				return total
+			}
+			function dmsEToDec(dmsEString) {
+				var total = parseInt(dmsEString.substring(0,3)) + parseInt(dmsEString.substring(5,7))/60.0 + parseInt(dmsEString.subString(9,11))/3600.0;
+			}
+			function dmsToDec(dmsString) {
+				var subs = dmsString.split(" ");
+				var sign = 1.0;
+				if (subs[3]=="S" || subs[3]=="W") sign = -1.0;
+				var total = parseInt(subs[0]) + parseInt(subs[1])/60.0 + parseInt(subs[2])/3600.0;
+				return total*sign;
+			}
+			// if locationKey is in the latLongRaw data
+			if (latLongRaw.hasOwnProperty(locationKey)) {
+			 	if (latLongRaw[locationKey][0]!="") {
+					// set default value on 'latitude' text field in html
+					$("#latitude").val(dmsToDec(latLongRaw[locationKey][0]));
+					$("#longitude").val(dmsToDec(latLongRaw[locationKey][1]));
+			}
+
+		}
+	}
+		$("#locationID").change( function() {
+			var locationKey = this.value.substring(0,2);
+			setLatLong(locationKey);
+		});
+
+	</script>
 	<%
 }
 
