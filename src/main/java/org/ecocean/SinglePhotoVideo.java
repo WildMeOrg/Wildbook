@@ -9,6 +9,7 @@ import org.ecocean.Util;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.media.*;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -263,5 +264,29 @@ System.out.println("um, i am sanitizing " + this);
             return this.sanitizeJson(request, false);
         }
 
+
+    public MediaAsset toMediaAsset(Shepherd myShepherd) {
+        return toMediaAsset(myShepherd, false);
+    }
+
+    //allowDuplicate = true means create one if one already exists
+    public MediaAsset toMediaAsset(Shepherd myShepherd, boolean allowDuplicate) {
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        org.json.JSONObject sp = astore.createParameters(new File(fullFileSystemPath));
+        sp.put("key", "spv/" + this.getDataCollectionEventID() + "/" + filename);
+        sp.put("sourceSinglePhotoVideoID", this.getDataCollectionEventID());
+        MediaAsset ma = null;
+        if (!allowDuplicate) ma = astore.find(sp, myShepherd);
+        if (ma != null) return ma;
+System.out.println("creating MediaAsset for " + this);
+        try {
+            ma = astore.copyIn(new File(fullFileSystemPath), sp);
+        } catch (IOException ioe) {
+            System.out.println("Could not create MediaAsset for " + fullFileSystemPath + ": " + ioe.toString());
+            return null;
+        }
+        MediaAssetFactory.save(ma, myShepherd);
+        return ma;
+    }
 
 }

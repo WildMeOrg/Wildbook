@@ -42,6 +42,9 @@ import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
+import org.ecocean.media.*;
+
+
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -221,6 +224,7 @@ public class Encounter implements java.io.Serializable {
   //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
+  private ArrayList<MediaAsset> media;
   private List<Measurement> measurements;
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
@@ -976,6 +980,100 @@ public class Encounter implements java.io.Serializable {
 
   //----------------
 
+
+    public ArrayList<MediaAsset> generateMedia(String baseDir, Shepherd myShepherd) {
+        if ((media != null) && ((images == null) || (images.size() <= media.size()))) return media;  //probably(?!) have already done the work
+        if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
+        if (media == null) media = new ArrayList<MediaAsset>();
+        boolean thumbDone = false;
+        for (SinglePhotoVideo spv : images) {
+            MediaAsset ma = spv.toMediaAsset(myShepherd);
+            ma.addLabel("_original");
+            if ((ma != null) && !media.contains(ma)) media.add(ma);
+            //now we iterate through flavors that could be derived
+            //TODO is it bad to assume ".jpg" ? i forget!
+            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
+            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
+
+            // note: we "assume" thumb was created from 0th spv, cuz we simply dont know but want it living somewhere
+            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
+            thumbDone = true;
+        }
+
+        //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
+        MediaAsset sma = spotImageAsMediaAsset(media.get(0), baseDir, myShepherd);
+        return media;
+    }
+
+
+    //utility method for created MediaAssets and adding to .media if appropriate
+    // note: also will check for existence of mpath and fail silently if doesnt exist
+    private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
+        if ((mpath == null) || !mpath.exists()) return null;
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        org.json.JSONObject sp = astore.createParameters(mpath);
+        if (key != null) sp.put("key", key);  //will use default from createParameters() (if there was one even)
+        if (media == null) media = new ArrayList<MediaAsset>();
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma != null) {
+            ma.addLabel(label);
+            if (parentMA != null) {
+                ma.setParentId(parentMA.getId());
+            } else if (!media.contains(ma)) {
+                media.add(ma);
+            }
+            return ma;
+        }
+System.out.println("creating new MediaAsset for key=" + key);
+        try {
+            ma = astore.copyIn(mpath, sp);
+        } catch (IOException ioe) {
+            System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
+            return null;
+        }
+        ma.addLabel(label);
+        if (parentMA != null) ma.setParentId(parentMA.getId());
+        MediaAssetFactory.save(ma, myShepherd);
+        if (parentMA == null) media.add(ma);  //TODO note: we assume(!) here that parent was already added to .media list.  trouble??? maybe should check?
+        return ma;
+    }
+
+
+    //this makes assumption (for flukes) that both right and left image files are identical
+    //  TODO handle that they are different
+    //  TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
+    public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
+        if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
+        File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
+        if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
+        if (parent == null) {
+            System.out.println("seems like we do not have a parent .media MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add spot MediaAsset for " + fullPath.toString());
+            return null;
+        }
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (astore == null) {
+            System.out.println("No AssetStore in Encounter.spotImageAsMediaAsset()");
+            return null;
+        }
+System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString());
+        org.json.JSONObject sp = astore.createParameters(fullPath);
+        sp.put("key", this.subdir() + "/spotImage-" + spotImageFileName);  //note: this really only applies to S3 AssetStores, but shouldnt hurt others?
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma == null) {
+System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
+            try {
+                ma = astore.copyIn(fullPath, sp);
+                ma.addLabel("_spot");
+//System.out.println("params? " + ma.getParameters());
+                MediaAssetFactory.save(ma, myShepherd);
+//System.out.println("params? " + ma.getParameters());
+            } catch (java.io.IOException ex) {
+                System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
+            }
+        }
+        ma.setParentId(parent.getId());
+        return ma;
+    }
 
   public void setSubmitterID(String username) {
     if(username!=null){submitterID = username;}
@@ -1840,6 +1938,17 @@ public class Encounter implements java.io.Serializable {
     
     public List<SinglePhotoVideo> getImages(){return images;}
     
+    public ArrayList<MediaAsset> getMedia() {
+        return media;
+    }
+    public void setMedia(ArrayList<MediaAsset> m) {
+        media = m;
+    }
+
+    public MediaAsset findOneMediaByLabel(Shepherd myShepherd, String label) {
+        return MediaAsset.findOneByLabel(media, myShepherd, label);
+    }
+
     public boolean hasKeyword(Keyword word){
      int imagesSize=images.size();
      for(int i=0;i<imagesSize;i++){
@@ -2038,11 +2147,34 @@ it should be considered an asyncronous action that happens in the background mag
 */
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
+                public boolean refreshAssetFormats(Shepherd myShepherd) {
+                    ArrayList<MediaAsset> mas = this.getMedia();
+                    if ((mas == null) || (mas.size() < 1)) return true;
+                    boolean ok = true;
+                    String[] types = new String[]{"thumb", "mid", "watermark"};
+                    for (MediaAsset ma : mas) {
+                        for (int i = 0 ; i < types.length ; i++) {
+                            MediaAsset c = null;
+                            try {
+                                c = ma.updateChild(types[i]);
+                            } catch (IOException ex) {
+                                System.out.println("refreshAssetFormats() failed on " + ma + " with " + ex.toString());
+                            }
+                            if (c == null) {
+                                ok = false;
+                            } else {
+                                MediaAssetFactory.save(c, myShepherd);
+                            }
+                        }
+                    }
+                    return ok;
+                }
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
 this is a problem, as we cant make a thumb in refreshAssetFormats(req, spv) since we dont know if that is the "right" spv.
 thus, we have to treat it as a special case.
 */
+/*
 		public boolean refreshAssetFormats(String context, String baseDir) {
 			boolean ok = true;
 			//List<SinglePhotoVideo> allSPV = this.getImages();
@@ -2071,6 +2203,7 @@ thus, we have to treat it as a special case.
 		}
 
 
+*/
 	//see also: future, MediaAssets
 	public String getThumbnailUrl(String context) {
 		List<SinglePhotoVideo> spvs = this.images;

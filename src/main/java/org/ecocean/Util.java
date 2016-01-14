@@ -331,4 +331,25 @@ public class Util {
     
   }
 
+
+    //got sick of having to concat these strings with a space in the middle.
+    // TODO: someday make a Taxonomy class for storing/processing this stuff right! (or find the wheel someone already invented!!)
+    public static String taxonomyString(String genus, String species) {
+        if ((genus != null) && (species != null)) return genus + " " + species;
+        if (genus != null) return genus;
+        if (species != null) return species;
+        return null;
+    }
+
+
+    //a generic version of our uuid-dir-structure-creating algorithm -- adjust as needed!?
+    // TODO check for incoming slashes and similar weirdness
+    public static String hashDirectories(String in, String separator) {
+        if ((in == null) || (in.length() < 4)) return in;
+        return in.charAt(0) + separator + in.charAt(1) + separator + in;
+    }
+    public static String hashDirectories(String in) {
+        return hashDirectories(in, File.separator);
+    }
+
 }
