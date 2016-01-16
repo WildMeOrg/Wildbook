@@ -97,12 +97,12 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     //now, add the workItems
     myShepherd.beginDBTransaction();
     try {
-      Iterator encounters = myShepherd.getAllEncountersNoQuery();
+      Iterator<Encounter> encounters = myShepherd.getAllEncountersNoQuery();
       int count = 0;
 
       while (encounters.hasNext()) {
         //System.out.println("Iterating encounters to create scanWorkItems...");
-        Encounter enc = (Encounter) encounters.next();
+        Encounter enc = encounters.next();
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
           String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
           if (rightSide && (enc.getRightSpots() != null) && (enc.getRightSpots().size() > 0)) {

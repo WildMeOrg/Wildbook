@@ -1,0 +1,9 @@
+# Definitions for spam filtering.
+# Each line specifies a filter for items which are considered "definite spam".
+# A plain text filter entry acts as a case-insensitive substring search.
+# A regular-expression filter (/ delimited) entry acts as a full-text match.
+# For example, an entry "foo" will match any of { "foo", "HelloFOo World!", "LOVELY FOOD" }.
+# An entry "/[Bb]ar.*/" will match any of { "bar", "Barton Fink", "barrister" }, but not { "BAR", "abar" }.
+
+/(?i).*porn.*/
+/(?i).*\bhref\b.*/

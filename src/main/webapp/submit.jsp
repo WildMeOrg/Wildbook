@@ -524,7 +524,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 //add locationID to fields selectable
 
 
-if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
+if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -615,12 +615,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left">GPS Latitude</label>
-          <input class="form-control" name="lat" type="text" id="lat"> ??
+          <input class="form-control" name="lat" type="text" id="lat"> &deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left">GPS Longitude</label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> ??
+          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
         </div>
       </div>
 
@@ -767,7 +767,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
   </h4>
@@ -796,12 +796,14 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
         </fieldset>
+        <hr>
+        <fieldset>
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
-<fieldset>
+
       <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Species</label>

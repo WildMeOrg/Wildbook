@@ -151,7 +151,7 @@
     int numMatchedIndividuals=matchedIndividuals.size();
     
     //let's prep the HashTable for the haplo pie chart
-    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
     Hashtable<String,Integer> pieHashtable1 = new Hashtable<String,Integer>();
     Hashtable<String,Integer> pieHashtable2 = new Hashtable<String,Integer>();
@@ -570,7 +570,7 @@ var selectedRectangle2;
         data.addColumn('number', 'No. Recorded');
         data.addRows([
           <%
-          ArrayList<String> allHaplos1=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos1=myShepherd.getAllHaplotypes(); 
           int numHaplos1 = allHaplos1.size();
           
 
@@ -663,7 +663,7 @@ var selectedRectangle2;
         data.addColumn('number', 'No. Recorded');
         data.addRows([
           <%
-          ArrayList<String> allHaplos2a=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos2a=myShepherd.getAllHaplotypes(); 
           int numHaplos2a = allHaplos2a.size();
           
 
@@ -777,7 +777,7 @@ var selectedRectangle2;
 				 //now we need to calculate some inbreeding statistics using haplotypes
  			
  				//first get all haplotypes
- 				ArrayList<String> allHaplos=myShepherd.getAllHaplotypes();
+ 				List<String> allHaplos=myShepherd.getAllHaplotypes();
 			 	int numHaplosHere=allHaplos.size();
  			
 				/**  HFStatistics approach! **/			 	
@@ -821,7 +821,7 @@ var selectedRectangle2;
 		
 		//let's calculate Fst for each of the loci
 		//iterate through the loci
-		ArrayList<String> loci=myShepherd.getAllLoci();
+		List<String> loci=myShepherd.getAllLoci();
 		int numLoci=loci.size();
 		for(int r=0;r<numLoci;r++){
 			String locus=loci.get(r);

@@ -104,7 +104,7 @@
 		boolean accessible = (blocked.size() < 1);
 
     //let's prep the HashTable for the haplo pie chart
-    ArrayList<String> allHaplos2=myShepherd.getAllHaplotypes(); 
+    List<String> allHaplos2=myShepherd.getAllHaplotypes(); 
     int numHaplos2 = allHaplos2.size();
     Hashtable<String,Integer> pieHashtable = new Hashtable<String,Integer>();
  	for(int gg=0;gg<numHaplos2;gg++){
@@ -119,7 +119,7 @@
  	sexHashtable.put("unknown", new Integer(0));
  	
  	//let's prep the HashTable for the species pie chart
- 	  ArrayList<String> allSpecies2=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
+ 	  List<String> allSpecies2=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
  	  int numSpecies2 = allSpecies2.size();
  	  Hashtable<String,Integer> speciesHashtable = new Hashtable<String,Integer>();
  		for(int gg=0;gg<numSpecies2;gg++){
@@ -139,7 +139,7 @@
  		
  		
  		//let's prep the HashTable for the country pie chart
- 		  ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+ 		  List<String> allCountries=myShepherd.getAllCountries(); 
  		  int numCountries= allCountries.size();
  		  Hashtable<String,Integer> countriesHashtable = new Hashtable<String,Integer>();
  			for(int gg=0;gg<numCountries;gg++){
@@ -151,7 +151,7 @@
  			}
  			
  	 		//let's prep the HashTable for the state pie chart
- 	 		  ArrayList<String> states=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+ 	 		  List<String> states=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
  	 		  int numStates= states.size();
  	 		  Hashtable<String,Integer> statesHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numStates;gg++){
@@ -164,7 +164,7 @@
  			
  			
  	 		//let's prep the HashTable for the assigned users pie chart
- 	 		  ArrayList<User> allUsers=myShepherd.getAllUsers(); 
+ 	 		  List<User> allUsers=myShepherd.getAllUsers(); 
  	 		  int numUsers= allUsers.size();
  	 		  Hashtable<String,Integer> usersHashtable = new Hashtable<String,Integer>();
  	 			for(int gg=0;gg<numUsers;gg++){
@@ -454,7 +454,7 @@
         data.addColumn('number', 'No. Recorded');
         data.addRows([
           <%
-          ArrayList<String> allHaplos=myShepherd.getAllHaplotypes(); 
+          List<String> allHaplos=myShepherd.getAllHaplotypes(); 
           int numHaplos = allHaplos.size();
           
 
@@ -576,7 +576,7 @@
         speciesData.addColumn('number', 'No. Recorded');
         speciesData.addRows([
           <%
-          ArrayList<String> allSpecies=CommonConfiguration.getSequentialPropertyValues("genusSpecies",context); 
+          List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context); 
           int numSpecies = speciesHashtable.size();
           Enumeration<String> speciesKeys=speciesHashtable.keys();
 
@@ -613,7 +613,7 @@
         countriesData.addColumn('number', 'No. Recorded');
         countriesData.addRows([
           <%
-          //ArrayList<String> allCountries=myShepherd.getAllCountries(); 
+          //List<String> allCountries=myShepherd.getAllCountries(); 
           //int numSpecies = speciesHashtable.size();
           Enumeration<String> countriesKeys=countriesHashtable.keys();
 

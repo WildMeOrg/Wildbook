@@ -50,9 +50,9 @@ public class Util {
   
   public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
-    List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT,context);
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(MEASUREMENT,context);
     if (types.size() > 0) {
-      List<String> units = CommonConfiguration.getIndexedValues(UNITS,context);
+      List<String> units = CommonConfiguration.getIndexedPropertyValues(UNITS,context);
       for (int i = 0; i < types.size() && i < units.size(); i++) {
         String type = types.get(i);
         String unit = units.get(i);
@@ -66,9 +66,9 @@ public class Util {
   
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
-    List<String> types = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENT,context);
+    List<String> types = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENT,context);
     if (types.size() > 0) {
-      List<String> units = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENTUNITS,context);
+      List<String> units = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENTUNITS,context);
       for (int i = 0; i < types.size() && i < units.size(); i++) {
         String type = types.get(i);
         String unit = units.get(i);
@@ -102,7 +102,7 @@ public class Util {
    * @return
    */
   public static List<OptionDesc> findSamplingProtocols(String langCode,String context) {
-    List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol",context);
+    List<String> values = CommonConfiguration.getIndexedPropertyValues("samplingProtocol",context);
     List<OptionDesc> list = new ArrayList<OptionDesc>();
     
     /*
@@ -134,7 +134,7 @@ public class Util {
   }
   
   public static List<MetalTagDesc> findMetalTagDescs(String langCode,String context) {
-    List<String> metalTagLocations = CommonConfiguration.getIndexedValues(METAL_TAG_LOCATION,context);
+    List<String> metalTagLocations = CommonConfiguration.getIndexedPropertyValues(METAL_TAG_LOCATION,context);
     List<MetalTagDesc> list = new ArrayList<MetalTagDesc>();
     for (String location : metalTagLocations) {
       String locationLabel = findLabel(location, langCode,context);
@@ -163,7 +163,7 @@ public class Util {
   }
   
   public static List<String> findSatelliteTagNames(String context) {
-    return CommonConfiguration.getIndexedValues(SATELLITE_TAG_NAME,context);
+    return CommonConfiguration.getIndexedPropertyValues(SATELLITE_TAG_NAME,context);
   }
   
   private static String findLabel(String key, String langCode, String context) {

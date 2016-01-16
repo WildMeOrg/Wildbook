@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,org.springframework.mock.web.MockHttpServletRequest,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar, java.util.List" %>
 <%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 
@@ -452,7 +453,7 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
         if (totalLocIDs >= 1) {
@@ -642,7 +643,7 @@ function FSControl(controlDiv, map) {
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
       <%
-        ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+        List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
 
 
@@ -776,7 +777,7 @@ function FSControl(controlDiv, map) {
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
@@ -893,9 +894,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <%
 
 
-        Iterator keys = myShepherd.getAllKeywords(kwQuery);
+        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
         for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = (Keyword) keys.next();
+          Keyword word = keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
@@ -1081,7 +1082,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 
@@ -1119,7 +1120,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
@@ -1159,7 +1160,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {
@@ -1240,7 +1241,7 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
- 				ArrayList<String> communities = myShepherd.getAllSocialUnitNames();
+ 				List<String> communities = myShepherd.getAllSocialUnitNames();
  			        
  					//System.out.println(haplos.toString());
 
@@ -1286,9 +1287,9 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
-        //ArrayList<String> roles = myShepherd.getAllRoleNames();
+        //List<String> roles = myShepherd.getAllRoleNames();
         
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 			
 		//System.out.println(haplos.toString());
 

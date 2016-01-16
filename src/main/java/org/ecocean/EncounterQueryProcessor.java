@@ -742,7 +742,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //ms markers filters-------------------------------------------------
       myShepherd.beginDBTransaction();
-      ArrayList<String> markers=myShepherd.getAllLoci();
+      List<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
         String theseMarkers="";
         boolean hasMarkers=false;
@@ -1406,7 +1406,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     if(allEncounters!=null){
       while (allEncounters.hasNext()) {
-        Encounter temp_enc=(Encounter)allEncounters.next();
+        Encounter temp_enc=allEncounters.next();
         rEncounters.add(temp_enc);
       }
     }
@@ -1506,7 +1506,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 		//silo security logging
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String url = request.getRequestURL().toString() + "?" + request.getQueryString();
 		Date now = new Date();
 
