@@ -5,7 +5,7 @@
   <%
   String context="context0";
   context=ServletUtilities.getContext(request);
-	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -58,7 +58,7 @@
 
     //int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
 	int numThumbnails=0;
-	ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+	List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 	thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
 	
     

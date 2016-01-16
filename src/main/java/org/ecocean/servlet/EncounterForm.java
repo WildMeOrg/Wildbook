@@ -45,12 +45,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Measurement;
-import org.ecocean.Shepherd;
-import org.ecocean.ShepherdProperties;
-import org.ecocean.SinglePhotoVideo;
+import org.ecocean.*;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
@@ -151,7 +146,7 @@ private final String UPLOAD_DIRECTORY = "/tmp";
         //List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
     //dynamically adapt to project-specific measurements
-        List<String> keys=CommonConfiguration.getSequentialPropertyValues("measurement", context);
+        List<String> keys=CommonConfiguration.getIndexedPropertyValues("measurement", context);
 
     for (String key : keys) {
       String value = getVal(fv, "measurement(" + key + ")");
@@ -386,26 +381,6 @@ System.out.println("*** trying redirect?");
 
 
 //{submitterID=tomcat, submitterProject=, photographerEmail=, metalTag(left)=, sex=unknown, measurement(weight)=34234, location=, acousticTagId=, behavior=yow behavior..., measurement(weightunits)=kilograms, acousticTagSerial=, photographerName=, lifeStage=sub-adult, submitterAddress=, satelliteTagSerial=, releaseDate=, photographerPhone=, measurement(lengthunits)=meters, measurement(weightsamplingProtocol)=samplingProtocol0, measurement(length)=, submitterOrganization=, photographerAddress=, longitude=, year=2014, lat=, measurement(lengthsamplingProtocol)=samplingProtocol0, submitterEmail=, minutes=00, elevation=, measurement(height)=, measurement(heightsamplingProtocol)=samplingProtocol0, scars=None, submitterPhone=, submitterName=tomcat, hour=-1, livingStatus=alive, depth=, country=, satelliteTagName=Wild Life Computers, metalTag(right)=, month=1, measurement(heightunits)=meters, Submit=Send encounter report, informothers=, day=0, satelliteTagArgosPttNumber=, comments=}
-
-      //check for spamBots   TODO possibly move this to Util for general/global usage?
-      boolean spamBot = false;
-            String[] spamFieldsToCheck = new String[]{"submitterPhone", "submitterName", "photographerName", "photographerPhone", "location", "comments", "behavior"};
-      StringBuffer spamFields = new StringBuffer();
-            for (int i = 0 ; i < spamFieldsToCheck.length ; i++) {
-          spamFields.append(getVal(fv, spamFieldsToCheck[i]));
-            }
-
-      if (spamFields.toString().toLowerCase().indexOf("porn") != -1) {
-        spamBot = true;
-      }
-      if (spamFields.toString().toLowerCase().indexOf("href") != -1) {
-        spamBot = true;
-      }
-      //else if(spamFields.toString().toLowerCase().indexOf("[url]")!=-1){spamBot=true;}
-      //else if(spamFields.toString().toLowerCase().indexOf("url=")!=-1){spamBot=true;}
-      //else if(spamFields.toString().toLowerCase().trim().equals("")){spamBot=true;}
-      //else if((theForm.getSubmitterID()!=null)&&(theForm.getSubmitterID().equals("N%2FA"))) {spamBot=true;}
-
 
       String locCode = "";
 System.out.println(" **** here is what i think locationID is: " + fv.get("locationID"));
@@ -738,7 +713,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
             }
             catch(java.lang.NumberFormatException nfe){
                 enc.addComments("<p>Reported elevation was problematic: " + fv.get("elevation").toString() + "</p>");
-                fv.put("elevatoin", "");
+                fv.put("elevation", "");
             }
             catch(NullPointerException npe){
                 fv.put("elevation", "");
@@ -873,6 +848,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
       enc.addComments(processingNotes.toString());
 
+      // Check for spamBot submissions.
+      SpamChecker.Result spamCheck = new SpamChecker().isSpam(enc);
 
       if(CommonConfiguration.getProperty("encounterState0",context)!=null){
         enc.setState(CommonConfiguration.getProperty("encounterState0",context));
@@ -882,7 +859,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       } else {
         enc.setSubmitterID("N/A");
       }
-      if (!getVal(fv, "locCode").equals("")) {
+      if (spamCheck == SpamChecker.Result.NOT_SPAM && !getVal(fv, "locCode").equals("")) {
         enc.setLocationCode(locCode);
       }
       if (!getVal(fv, "country").equals("")) {
@@ -906,9 +883,8 @@ System.out.println("depth --> " + fv.get("depth").toString());
       //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
-
             String newnum = "";
-            if (!spamBot) {
+            if (spamCheck != SpamChecker.Result.SPAM) {
                 newnum = myShepherd.storeNewEncounter(enc, encID);
                 enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootDir));
 
@@ -928,7 +904,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
       //return a forward to display.jsp
       System.out.println("Ending data submission.");
-      if (!spamBot) {
+      if (spamCheck != SpamChecker.Result.SPAM) {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/confirmSubmit.jsp?number=" + encID);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/spambot.jsp");

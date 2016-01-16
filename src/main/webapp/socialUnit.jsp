@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
   <%
@@ -24,7 +24,7 @@
     int numResults = 0;
 
 
-    ArrayList<MarkedIndividual> rIndividuals = new ArrayList<MarkedIndividual>();
+    List<MarkedIndividual> rIndividuals = new ArrayList<MarkedIndividual>();
     myShepherd.beginDBTransaction();
     String order ="";
 

@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -354,7 +355,7 @@ public class WriteOutScanTask extends HttpServlet {
           predictInput[7] = Integer.toString(Math.abs((encA.getYear() - encB.getYear())));
 
           //boost num matching keywords
-          ArrayList keywords = myShepherd.getKeywordsInCommon(encA.getEncounterNumber(), encB.getEncounterNumber());
+          List<String> keywords = myShepherd.getKeywordsInCommon(encA.getEncounterNumber(), encB.getEncounterNumber());
           int keywordsSize = keywords.size();
           boostString = boostString + keywordsSize + ",";
           predictInput[8] = Integer.toString(keywordsSize);
@@ -661,7 +662,7 @@ public class WriteOutScanTask extends HttpServlet {
           }
 
           //let's find the keywords in common
-          ArrayList keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
+          List<String> keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
           int keywordsSize = keywords.size();
           if (keywordsSize > 0) {
             Element kws = match.addElement("keywords");
@@ -957,7 +958,7 @@ public class WriteOutScanTask extends HttpServlet {
             enc2.addAttribute("size", (newEncSize + " meters"));
 
             //let's find the keywords in common
-            ArrayList keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
+            List<String> keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
             int keywordsSize = keywords.size();
             if (keywordsSize > 0) {
               Element kws = match.addElement("keywords");

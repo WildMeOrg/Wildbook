@@ -34,7 +34,7 @@ myShepherd.beginDBTransaction();
 
 Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
 Query encQuery=myShepherd.getPM().newQuery(encClass);
-Iterator allEncs;
+Iterator<Encounter> allEncs;
 
 
 
@@ -42,7 +42,7 @@ Iterator allEncs;
 
 Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
-Iterator allSharks;
+Iterator<MarkedIndividual> allSharks;
 
 
 
@@ -64,7 +64,7 @@ DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 while(allEncs.hasNext()){
 	
 
-	Encounter sharky=(Encounter)allEncs.next();
+	Encounter sharky=allEncs.next();
 
 
 	
@@ -136,7 +136,7 @@ while(allEncs.hasNext()){
 
 while(allSharks.hasNext()){
 
-	MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
+	MarkedIndividual sharky=allSharks.next();
 	sharky.refreshDependentProperties(context);
 	myShepherd.commitDBTransaction();
 	myShepherd.beginDBTransaction();

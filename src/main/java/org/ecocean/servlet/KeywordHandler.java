@@ -34,6 +34,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 
 //import javax.jdo.*;
 //import com.poet.jdo.*;
@@ -77,7 +78,7 @@ public class KeywordHandler extends HttpServlet {
         out.println("<strong>Success:</strong> The new image indexing keyword <em>" + readableName + "</em> has been added.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -94,7 +95,7 @@ public class KeywordHandler extends HttpServlet {
         String desc = word.getReadableName();
         
         //need to first delete the keyword from all SinglePhotoVIdeos it is assigned to
-        ArrayList<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+        List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
         int numPhotos=photos.size();
         for(int i=0;i<numPhotos;i++){
         	SinglePhotoVideo spv=photos.get(i);
@@ -114,7 +115,7 @@ public class KeywordHandler extends HttpServlet {
         out.println("<strong>Success:</strong> The image indexing keyword <i>" + desc + "</i> has been removed.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/kwAdmin.jsp\">Return to keyword administration page.</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -147,7 +148,7 @@ public class KeywordHandler extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
         //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation()+"/individuals.jsp?number="+request.getParameter("shark")+"\">Return to shark <strong>"+request.getParameter("shark")+"</strong></a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
