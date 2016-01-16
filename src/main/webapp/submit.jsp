@@ -481,8 +481,7 @@ function showUploadBox() {
           <ul>
             <li>2014Jan05 12:30</li>
             <li>2014MAR23</li>
-            <li>2013AUG</li>
-            <li>2010sep</li>
+
           </ul>
         </p>
       </div>
