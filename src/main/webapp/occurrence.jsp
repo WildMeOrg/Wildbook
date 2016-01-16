@@ -939,7 +939,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-    <input name="Submit" type="submit" value="<%=props.getProperty("addComments") %>">
+    <input name="Submit" type="submit" value="<%=props.getProperty("addComments") %>"></p>
 </form>
 </p>
 <%
@@ -948,22 +948,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
   } //if isOwner
 %>
-
-
-</p>
-
-
-</td>
-</tr>
-
-
-</table>
-
-</td>
-</tr>
-</table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
 
 
 <br />
@@ -981,32 +965,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 } 
 
-//could not find the specified individual!
-else {
 
 
-
-%>
-
-
-<p><%=props.getProperty("matchingRecord") %>:
-<br /><strong><%=request.getParameter("number")%>
-</strong><br/><br />
-  <%=props.getProperty("tryAgain") %>
-</p>
-
-
-<%
-      }
-	  %>
-      </td>
-</tr>
-</table>
-
-
-
-      
-      <%
     
   } catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in occurrence.jsp!");
