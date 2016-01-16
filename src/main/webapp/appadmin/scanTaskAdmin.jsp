@@ -65,7 +65,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 <style>
 td, th {
-    border: 1px solid black;
+    border: 1px solid black;font-size: 10pt;
+
 }
 table {
     border-collapse: collapse;
@@ -122,7 +123,7 @@ else{
     <th><strong>Identifier</strong></th>
     <th><strong>User</strong></th>
     <th><strong>Completion</strong></th>
-    <th><strong>Actions</strong></th>
+    <th colspan="2"><strong>Actions</strong></th>
   </tr>
   </thead>
   <tbody>
@@ -171,7 +172,7 @@ else{
 
         %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
                   id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
-      <br> <%
+       <%
       }
       boolean hasPermissionForThisEncounter=false;
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
@@ -187,7 +188,8 @@ else{
                                                                                      id="taskID"
                                                                                      value="<%=st.getUniqueNumber()%>"><input
         name="delete" type="submit" id="delete" value="Delete"></form>
-        <br />
+        </td>
+        <td>
         <%
         if(request.isUserInRole("admin")){
         %>
