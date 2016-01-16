@@ -66,10 +66,10 @@ public class MarkedIndividual implements java.io.Serializable {
   private String nickName = "", nickNamer = "";
 
   //Vector of approved encounter objects added to this MarkedIndividual
-  private Vector encounters = new Vector();
+  private Vector<Encounter> encounters = new Vector<Encounter>();
 
   //Vector of unapproved encounter objects added to this MarkedIndividual
-  private Vector unidentifiableEncounters = new Vector();
+  //private Vector unidentifiableEncounters = new Vector();
 
   //Vector of String filenames of additional files added to the MarkedIndividual
   private Vector dataFiles = new Vector();
@@ -78,7 +78,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private int numberEncounters;
 
   //number of unapproved encounters (log) of this MarkedIndividual
-  private int numUnidentifiableEncounters;
+  //private int numUnidentifiableEncounters;
 
   //number of locations for this MarkedIndividual
   private int numberLocations;
@@ -116,7 +116,7 @@ public class MarkedIndividual implements java.io.Serializable {
     if(enc.getSex()!=null){
       this.sex = enc.getSex();
     }
-    numUnidentifiableEncounters = 0;
+    //numUnidentifiableEncounters = 0;
     maxYearsBetweenResightings=0;
   }
 
@@ -225,13 +225,14 @@ public class MarkedIndividual implements java.io.Serializable {
 		return this.thumbnailUrl;
 	}
 
-
+/*
   public int totalLogEncounters() {
     if (unidentifiableEncounters == null) {
-      unidentifiableEncounters = new Vector();
+      //unidentifiableEncounters = new Vector();
     }
     return unidentifiableEncounters.size();
   }
+*/
 
   public Vector returnEncountersWithGPSData(){
     return returnEncountersWithGPSData(false,false,"context0");
@@ -267,21 +268,23 @@ public class MarkedIndividual implements java.io.Serializable {
   }
 
   public boolean isDeceased() {
-    if (unidentifiableEncounters == null) {
-      unidentifiableEncounters = new Vector();
-    }
+    //if (unidentifiableEncounters == null) {
+    //  unidentifiableEncounters = new Vector();
+    //}
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
       if (temp.getLivingStatus().equals("dead")) {
         return true;
       }
     }
+    /*
     for (int d = 0; d < numUnidentifiableEncounters; d++) {
       Encounter temp = (Encounter) unidentifiableEncounters.get(d);
       if (temp.getLivingStatus().equals("dead")) {
         return true;
       }
     }
+    */
     return false;
   }
 
@@ -547,9 +550,11 @@ public class MarkedIndividual implements java.io.Serializable {
     return (Encounter) encounters.get(i);
   }
 
+  /*
   public Encounter getLogEncounter(int i) {
     return (Encounter) unidentifiableEncounters.get(i);
   }
+  */
 
   /**
    * Returns the complete Vector of stored encounters for this MarkedIndividual.
@@ -589,12 +594,14 @@ public class MarkedIndividual implements java.io.Serializable {
   }
   */
 
+  /*
   public Vector getUnidentifiableEncounters() {
     if (unidentifiableEncounters == null) {
       unidentifiableEncounters = new Vector();
     }
     return unidentifiableEncounters;
   }
+  */
 
   /**
    * Returns any additional, general comments recorded for this MarkedIndividual as a whole.
@@ -1477,7 +1484,7 @@ public ArrayList getAllEmailsToUpdate(){
 	ArrayList notifyUs=new ArrayList();
 
 	int numEncounters=encounters.size();
-	int numUnidetifiableEncounters=unidentifiableEncounters.size();
+	//int numUnidetifiableEncounters=unidentifiableEncounters.size();
 
 	//process encounters
 	for(int i=0;i<numEncounters;i++){
@@ -1518,6 +1525,7 @@ public ArrayList getAllEmailsToUpdate(){
 
 	}
 
+	/*
 		//process log encounters
 		for(int i=0;i<numUnidentifiableEncounters;i++){
 			Encounter enc=(Encounter)unidentifiableEncounters.get(i);
@@ -1556,12 +1564,13 @@ public ArrayList getAllEmailsToUpdate(){
 			}
 
 	}
+		*/
 
 	return notifyUs;
 
 }
 
-public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
+//public void removeLogEncounter(Encounter enc){if(unidentifiableEncounters.contains(enc)){unidentifiableEncounters.remove(enc);}}
 
 public float distFrom(float lat1, float lng1, float lat2, float lng2) {
   double earthRadius = 3958.75;
