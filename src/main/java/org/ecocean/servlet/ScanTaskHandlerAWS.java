@@ -235,15 +235,19 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					                //check if this is a restart
 					                //if it is, delete the old work items
+					          
 					                if(request.getParameter("restart")!=null){
 					                  ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 					                  ScanTask restartTask=myShepherd.getScanTask(taskIdentifier);
 					                  if(restartTask.getUniqueNumber().startsWith("scanR")){
 					                    isRightScan=true;
 					                    writeThis=restartTask.getWriteThis();
+					                    numComparisons=myShepherd.getNumEncountersWithSpotData(true);
 
 					                  }
+					                  else{numComparisons=myShepherd.getNumEncountersWithSpotData(false);}
 					                  st.setFinished(false);
+					                  st.setNumComparisons(numComparisons-1);
 					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
@@ -254,7 +258,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                }
 
 
-					                myShepherd.rollbackDBTransaction();
+					                myShepherd.commitDBTransaction();
 					                myShepherd.closeDBTransaction();
 
 

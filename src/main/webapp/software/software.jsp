@@ -33,34 +33,13 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-<html>
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
 
-</head>
+<jsp:include page="../header.jsp" flush="true"/>
+<div class="container maincontent">
 
-<body>
-<div id="wrapper">
-  <div id="page">
-    <jsp:include page="../header.jsp" flush="true">
-<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-    </jsp:include>
-    <div id="main">
-
-      <div id="maincol-wide">
-
-        <div id="maintext">
+      
           <h1 class="intro">Client Software</h1>
-        </div>
+        
         <p>Click on a link below to download the appropriate software
           client.</p>
 
@@ -72,12 +51,6 @@ context=ServletUtilities.getContext(request);
         </p>
 
 
-      </div>
-      <!-- end maintext --></div>
-    <!-- end maincol -->
+     </div>
+
     <jsp:include page="../footer.jsp" flush="true"/>
-  </div>
-  <!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
