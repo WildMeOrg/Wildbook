@@ -35,6 +35,7 @@ import java.util.HashMap;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -73,7 +74,7 @@ public class S3AssetStore extends AssetStore {
     TODO possibly allow per-AssetStore or even per-MediaAsset credentials. these should be
     passed by reference (e.g. dont store them in, for example, MediaAsset parameters) perhaps to Profile or some properties etc?
     */
-    AmazonS3 s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
+    AmazonS3 s3Client = null;
 
     /**
      * Create a new S3 asset store.
@@ -103,7 +104,12 @@ public class S3AssetStore extends AssetStore {
     }
 
     public AmazonS3 getS3Client() {
-        if (s3Client == null) s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
+        if (s3Client != null) return s3Client;
+        if ((config.getString("AWSAccessKeyId") != null) && (config.getString("AWSSecretAccessKey") != null)) {
+            s3Client = new AmazonS3Client(new BasicAWSCredentials(config.getString("AWSAccessKeyId"), config.getString("AWSSecretAccessKey")));
+        } else {  //we try the default credentials file
+            s3Client = new AmazonS3Client(new ProfileCredentialsProvider());
+        }
         return s3Client;
     }
 
