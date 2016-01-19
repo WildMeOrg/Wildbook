@@ -53,25 +53,22 @@
 			<field name="individualID" primary-key="true">
 				<column length="100"/>
 			</field>
-			<field name="comments" persistence-modifier="persistent" default-fetch-group="false">
+			<field name="comments" persistence-modifier="persistent" default-fetch-group="false" >
 				<column jdbc-type="LONGVARCHAR" />
 			</field>
-            		<field name="encounters" persistence-modifier="persistent">
+            		<field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
                 		<collection element-type="org.ecocean.Encounter"/>
 				<join/>
             		</field>
-            		<field name="unidentifiableEncounters" persistence-modifier="persistent">
-                		<collection element-type="org.ecocean.Encounter" />
-				<join/>
-            		</field>
+            		
             		<field name="dataFiles" persistence-modifier="persistent">
                 		<collection element-type="java.lang.String"/>
             		</field>
-            		<field name="interestedResearchers" persistence-modifier="persistent" default-fetch-group="false">
+            		<field name="interestedResearchers" persistence-modifier="persistent" >
                 		<collection element-type="java.lang.String"/>
             		</field>
             	
-		        <field name="dateTimeCreated" persistence-modifier="persistent" default-fetch-group="false">
+		        <field name="dateTimeCreated" persistence-modifier="persistent" >
 				            		<column jdbc-type="LONGVARCHAR" />
 		        </field>
 		        <field name="alternateid" persistence-modifier="persistent">
@@ -108,7 +105,7 @@
 						<column length="100"/>
 					</field>
 				
-		            		<field name="encounters" persistence-modifier="persistent">
+		            		<field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
 		                		<collection element-type="org.ecocean.Encounter"/>
 						<join/>
 		            		</field>
@@ -138,11 +135,11 @@
                 <column length="100" />
             </field>
             <field name="otherCatalogNumbers"
-                persistence-modifier="persistent" default-fetch-group="false">
+                persistence-modifier="persistent" default-fetch-group="true">
                 <column length="1024" allows-null="true" />
             </field>
             <field name="informothers" persistence-modifier="persistent"
-                default-fetch-group="false">
+                default-fetch-group="true">
                 <column length="1024" allows-null="true" />
             </field>
 
@@ -171,7 +168,7 @@
 
 
             <field name="occurrenceRemarks" persistence-modifier="persistent"
-                default-fetch-group="false">
+                default-fetch-group="true">
                 <column jdbc-type="LONGVARCHAR" />
             </field>
 
@@ -237,16 +234,16 @@
             </field>
 
             <field name="eventID" persistence-modifier="persistent"
-                default-fetch-group="false">
+                default-fetch-group="true">
                 <column length="1024" allows-null="true" />
             </field>
 
             <field name="dynamicProperties" persistence-modifier="persistent"
-                default-fetch-group="false">
+                default-fetch-group="true">
                 <column jdbc-type="LONGVARCHAR" />
             </field>
             <field name="identificationRemarks"
-                persistence-modifier="persistent" default-fetch-group="false">
+                persistence-modifier="persistent">
                 <column jdbc-type="LONGVARCHAR" />
             </field>
 
