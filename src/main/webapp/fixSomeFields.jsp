@@ -36,17 +36,6 @@ myShepherd.beginDBTransaction();
 
 //build queries
 
-Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);
-Query encQuery=myShepherd.getPM().newQuery(encClass);
-Iterator allEncs;
-
-
-
-
-
-Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
-Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
-Iterator allSharks;
 
 
 
@@ -56,27 +45,35 @@ try{
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 	
-allEncs=myShepherd.getAllEncountersForSpecies("Megaptera", "novaeangliae").iterator();
-allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
+	Iterator allSPV=myShepherd.getAllSinglePhotoVideosNoQuery();
+   
+   
+	while(allSPV.hasNext()){
+		
+		SinglePhotoVideo spv=(SinglePhotoVideo)allSPV.next();
+		
+		//String encNumber=spv.getCorrespondingEncounterNumber();
+		String newPath=spv.getFullFileSystemPath();
+		if(newPath.indexOf("encounters")!=-1){
+			int position=newPath.indexOf("encounters");
+			newPath=newPath.substring(position);
+			newPath="/var/lib/tomcat7/webapps/wildbook_data_dir/"+newPath;
+		}
+		
+		%>
+		
+		<%=newPath %><br>
+		<%
+		
+		
+		//spv.setFullFileSystemPath(newPath);
+		
+		//myShepherd.commitDBTransaction();
+		//myShepherd.beginDBTransaction();
+	}
+	myShepherd.rollbackDBTransaction();
 
-ArrayList<String> kwords=new ArrayList<String>();
-kwords.add("5U");
-kwords.add("5S");
-kwords.add("5R");
-kwords.add("5M");
-kwords.add("5C");
-kwords.add("4C");
-kwords.add("4B");
-kwords.add("4A");
-kwords.add("3C");
-kwords.add("3B");
-kwords.add("3A");
-kwords.add("2C");
-kwords.add("2B");
-kwords.add("2A");
-kwords.add("1");
-
-
+/*
 
 while(allEncs.hasNext()){
 	
@@ -99,6 +96,8 @@ while(allEncs.hasNext()){
 	}
 	
 }
+    
+    */
 
 %>
 
@@ -111,16 +110,12 @@ catch(Exception ex) {
 
 	System.out.println("!!!An error occurred on page fixSomeFields.jsp. The error was:");
 	ex.printStackTrace();
-	//System.out.println("fixSomeFields.jsp page is attempting to rollback a transaction because of an exception...");
-	encQuery.closeAll();
-	encQuery=null;
-	//sharkQuery.closeAll();
-	//sharkQuery=null;
+	myShepherd.rollbackDBTransaction();
 
 
 }
 finally{
-	myShepherd.rollbackDBTransaction();
+	
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
 }
