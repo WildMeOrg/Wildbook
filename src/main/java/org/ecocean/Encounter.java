@@ -988,15 +988,21 @@ public class Encounter implements java.io.Serializable {
         boolean thumbDone = false;
         for (SinglePhotoVideo spv : images) {
             MediaAsset ma = spv.toMediaAsset(myShepherd);
+            if (ma == null) {
+                System.out.println("WARNING: Encounter.generateMedia() could not create MediaAsset from SinglePhotoVideo " + spv.getDataCollectionEventID() + "; skipping");
+                continue;
+            }
             ma.addLabel("_original");
-            if ((ma != null) && !media.contains(ma)) media.add(ma);
+            if (!media.contains(ma)) media.add(ma);
+            //File idir = new File(this.dir(baseDir));
+            File idir = new File(spv.getFullFileSystemPath()).getParentFile();
             //now we iterate through flavors that could be derived
             //TODO is it bad to assume ".jpg" ? i forget!
-            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
-            addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/" + spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
 
             // note: we "assume" thumb was created from 0th spv, cuz we simply dont know but want it living somewhere
-            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(this.dir(baseDir) + "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
+            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(idir, "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
             thumbDone = true;
         }
 
