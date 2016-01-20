@@ -135,7 +135,7 @@ if((request.getParameter("individualDistanceSearch")!=null)||(request.getParamet
 		}
 	}
 	
-    ArrayList<String> loci=myShepherd.getAllLoci();
+    List<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
     String[] theLoci=new String[numLoci];
     for(int q=0;q<numLoci;q++){
@@ -453,7 +453,7 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
 
@@ -644,7 +644,7 @@ function FSControl(controlDiv, map) {
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
       <%
-        ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+        List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
 
 
@@ -780,7 +780,7 @@ function FSControl(controlDiv, map) {
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
@@ -977,9 +977,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
               <%
 
 
-                Iterator keys = myShepherd.getAllKeywords(kwQuery);
+                Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
                 for (int n = 0; n < totalKeywords; n++) {
-                  Keyword word = (Keyword) keys.next();
+                  Keyword word = keys.next();
               %>
               <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
               </option>
@@ -1166,7 +1166,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 
@@ -1204,7 +1204,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
@@ -1265,7 +1265,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {
@@ -1461,7 +1461,7 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
- 				ArrayList<String> communities = myShepherd.getAllSocialUnitNames();
+ 				List<String> communities = myShepherd.getAllSocialUnitNames();
  			        
  					//System.out.println(haplos.toString());
 
@@ -1509,9 +1509,9 @@ else {
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
-        //ArrayList<String> roles = myShepherd.getAllRoleNames();
+        //List<String> roles = myShepherd.getAllRoleNames();
         
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+		List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 			
 		//System.out.println(haplos.toString());
 
@@ -1571,7 +1571,7 @@ else {
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
       	Shepherd inShepherd=new Shepherd("context0");
-        ArrayList<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>

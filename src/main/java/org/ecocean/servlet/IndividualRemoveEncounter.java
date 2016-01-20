@@ -107,7 +107,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
           removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
 
-          if ((removeFromMe.totalEncounters() + removeFromMe.totalLogEncounters()) == 0) {
+          if (removeFromMe.totalEncounters() == 0) {
             myShepherd.throwAwayMarkedIndividual(removeFromMe);
             wasRemoved = true;
           }
