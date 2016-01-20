@@ -264,7 +264,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         result = root.relativize(result.normalize());
 
         if (result.startsWith("..")) {
-            throw new IllegalArgumentException("Path not under given root");
+            throw new IllegalArgumentException("Path not under given root (root=" + root.toString() + "; path=" + path.toString() + ")");
         }
 
         return result;
