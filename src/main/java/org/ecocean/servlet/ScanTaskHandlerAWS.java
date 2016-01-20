@@ -295,7 +295,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
             es.execute(new EC2RequestThread());
 						
             //now build our jobs for the task
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
+						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
 
 						
 
