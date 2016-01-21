@@ -10,12 +10,12 @@ context=ServletUtilities.getContext(request);
   //let's load encounterSearch.properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
   encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-  
+
 
   Shepherd myShepherd = new Shepherd(context);
 
@@ -152,7 +152,7 @@ td.tdw:hover div {
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+    font: 0.5em "Arial", sans-serif;
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -172,15 +172,15 @@ td.tdw:hover div {
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
 </style>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -204,7 +204,7 @@ td.tdw:hover div {
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
- 
+
 
 <ul id="tabmenu">
 
@@ -354,7 +354,7 @@ var colDefn = [
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
-	
+
 ];
 
 
@@ -912,8 +912,3 @@ console.log(t);
 %>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-
-
-
