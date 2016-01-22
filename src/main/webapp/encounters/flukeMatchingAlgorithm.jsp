@@ -1,4 +1,6 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File,org.ecocean.neural.TrainNetwork" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,
+org.ecocean.media.MediaAsset,
+java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File,org.ecocean.neural.TrainNetwork" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -202,6 +204,7 @@ try {
     <%
 		 	if (request.getParameter("isOwner").equals("true")&&CommonConfiguration.useSpotPatternRecognition(context)&&((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		 	
+/**** all can go away? 
 
 		 			
 		 			//File extractImage=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getImageDirectory()+File.separator+imageEncNum+"/extract"+imageEncNum+".jpg");
@@ -308,8 +311,17 @@ try {
 									
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
 								String filelocR="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getRightSpotImageFileName());
-					%>
+*/
 
+	//TODO in future we could have multiple spot files but in that case much of this spot junk would have to change
+	//  so must therefore use "generic image suite" to show this at some point!!!  ####
+	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_spot");
+	String fileloc = null;
+	if (spotMA != null) fileloc = spotMA.webURL().toString();
+//System.out.println(spotMA);
+//System.out.println(fileloc);
+
+%>
 
 
   <table border="0" cellpadding="5"><tr>
@@ -319,7 +331,7 @@ try {
 	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
 //combine both flukes to one image
-  if ((enc.getNumSpots() + enc.getNumRightSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
+  if ((enc.getNumSpots() + enc.getNumRightSpots() > 0) && (fileloc != null)) {
 		spotJson = "[";
 		if (enc.getNumSpots() > 0) {
       			spots = enc.getSpots();

@@ -23,6 +23,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
 import org.ecocean.Shepherd;
+import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -41,6 +42,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 //import java.io.FileInputStream;
+import javax.jdo.Query;
 
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
@@ -176,6 +178,14 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setParentId(Integer pid) {
         parentId = pid;
+    }
+
+    public MediaAsset getParentRoot(Shepherd myShepherd) {
+        Integer pid = this.getParentId();
+        if (pid == null) return this;
+        MediaAsset par = MediaAssetFactory.load(pid, myShepherd);
+        if (par == null) return this;  //orphaned!  fail!!
+        return par.getParentRoot(myShepherd);
     }
 
     public JSONObject getParameters() {
@@ -389,6 +399,18 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     public int getAnnotationCount() {
         if (annotations == null) return 0;
         return annotations.size();
+    }
+
+    public Encounter getCorrespondingEncounter(Shepherd myShepherd) {
+        return Encounter.findByMediaAsset(this, myShepherd);
+    }
+
+    public static MediaAsset findByAnnotation(Annotation annot, Shepherd myShepherd) {
+        String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE annotations.contains(ann) && ann.id == \"" + annot.getId() + "\"";
+        Query query = myShepherd.getPM().newQuery(queryString);
+        List results = (List)query.execute();
+        if (results.size() < 1) return null;
+        return (MediaAsset)results.get(0);
     }
 
 /*

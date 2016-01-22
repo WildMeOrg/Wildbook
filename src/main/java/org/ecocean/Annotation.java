@@ -10,6 +10,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import javax.jdo.Query;
 
 //import java.time.LocalDateTime;
 
@@ -156,5 +157,8 @@ public class Annotation implements java.io.Serializable {
                 .toString();
     }
 
+    public MediaAsset getCorrespondingMediaAsset(Shepherd myShepherd) {
+        return MediaAsset.findByAnnotation(this, myShepherd);
+    }
 
 }
