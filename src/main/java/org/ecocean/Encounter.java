@@ -32,6 +32,7 @@ import java.util.GregorianCalendar;
 import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
+import javax.jdo.Query;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -2238,6 +2239,27 @@ throw new Exception();
 		return true;
 	}
 
+        //if MediaAsset has no Encounter, this will just be null
+        public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
+            MediaAsset root = ma.getParentRoot(myShepherd);
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE media.contains(ma) && ma.id ==" + root.getId();
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List results = (List)query.execute();
+            if (results.size() < 1) return null;
+            return (Encounter)results.get(0);
+        }
+
+        public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
+            MediaAsset ma = annot.getCorrespondingMediaAsset(myShepherd);
+            if (ma == null) return null;
+            return findByMediaAsset(ma, myShepherd);
+        }
+
+        public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
+            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annid), true)));
+            if (ann == null) return null;
+            return findByAnnotation(ann, myShepherd);
+        }
 
 /*  not really sure we need this now/yet
 

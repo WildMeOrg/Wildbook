@@ -79,7 +79,27 @@ no media
 
 } else {
 
+
+
 	for (MediaAsset ma : media) {
+
+//hacky menu, for now.  TODO break this out as part of toHtmlElement so it is part of image suite
+		if (CommonConfiguration.useSpotPatternRecognition(context)) {
+			String isDorsalFin="";
+			String genusSpecies="";
+			if ((imageEnc.getGenus()!=null) && (imageEnc.getSpecificEpithet()!=null)) genusSpecies=imageEnc.getGenus()+imageEnc.getSpecificEpithet();
+			if((genusSpecies.equals("Physetermacrocephalus"))||(genusSpecies.equals("Megapteranovaeangliae"))){
+				isDorsalFin="&isDorsalFin=false";
+			}
+			else if(genusSpecies.equals("Tursiopstruncatus")){
+				isDorsalFin="&isDorsalFin=true";
+			}
+%>
+	<p><a href="encounterSpotTool.jsp?imageID=<%=ma.getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+
+<%
+		}
+
 		out.println(ma.toHtmlElement(request, imageShepherd));
 	}
 

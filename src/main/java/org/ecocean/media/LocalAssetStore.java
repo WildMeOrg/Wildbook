@@ -294,7 +294,6 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         if ((webRoot() == null) || (ma == null)) return null;
         Path path = pathFromParameters(ma.getParameters());
         if (path == null) return null;
-System.out.println("webURL() path = "+path);
 
         try {
             URL url;
@@ -338,6 +337,9 @@ System.out.println("webURL() path = "+path);
         int width = 0;
         int height = 0;
         File sourceFile = parent.localPath().toFile();
+        float clientWidth = 0;
+        float[] transformArray = new float[0];
+        boolean needsTransform = false;
 /*
         String basename = sourceFile.getName();
         int dot = basename.lastIndexOf(".");
@@ -361,6 +363,11 @@ System.out.println("webURL() path = "+path);
                 width = 250;
                 height = 200;
                 break;
+            case "spot":
+                needsTransform = true;
+                clientWidth = (float)opts.get("clientWidth");
+                transformArray = (float[])opts.get("transformArray");
+                break;
             default:
                 throw new IOException("updateChild() type " + type + " unknown");
         }
@@ -371,7 +378,26 @@ System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + ta
    in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should never" be
    altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon */
 
-        ImageProcessor iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), target, args);
+        ImageProcessor iproc = null;
+        if (needsTransform) {
+            iproc = new ImageProcessor("context0", sourceFile.toString(), target, transformArray, clientWidth);
+/*
+        public boolean transformTo(String context, float[] transform, float clientWidth, String targetPath) {
+		String cmd = CommonConfiguration.getProperty("imageTransformCommand", context);
+		if ((cmd == null) || cmd.equals("")) return false;
+		String sourcePath = this.getFullFileSystemPath();
+		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
+		ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform, clientWidth);
+		Thread t = new Thread(iproc);
+		t.start();
+		return true;
+        }
+*/
+
+        } else {
+            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), target, args);
+        }
+
         Thread t = new Thread(iproc);
         t.start();
         try {

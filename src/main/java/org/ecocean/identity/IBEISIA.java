@@ -103,13 +103,13 @@ public class IBEISIA {
     }
 
 
-    public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
-        map.put("callback_url", "https://www.sito.org/cgi-bin/test.cgi");  //TODO read from config, or derive?
+        map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
         ArrayList<JSONObject> tlist = new ArrayList<JSONObject>();
 
@@ -200,11 +200,40 @@ public class IBEISIA {
         return null;  //if we fall through, it means we are still waiting ......
     }
 
+    public static HashMap<String,Object> getTaskResultsAsHashMap(String taskID, Shepherd myShepherd) {
+        JSONObject jres = getTaskResults(taskID, myShepherd);
+        HashMap<String,Object> res = new HashMap<String,Object>();
+        res.put("taskID", taskID);
+        res.put("success", jres.get("success"));
+        if (jres.has("error")) res.put("error", jres.get("error"));
+
+        if (jres.has("results")) {
+            HashMap<String,Object> rout = new HashMap<String,Object>();
+            JSONArray r = jres.getJSONArray("results");
+            for (int i = 0 ; i < r.length() ; i++) {
+                if (r.getJSONObject(i).has("query_annot_uuid")) {
+                    HashMap<String,Double> scores = new HashMap<String,Double>();
+                    JSONArray m = r.getJSONObject(i).getJSONArray("match_annot_list");
+                    JSONArray s = r.getJSONObject(i).getJSONArray("score_list");
+                    for (int j = 0 ; j < m.length() ; j++) {
+                        Encounter menc = Encounter.findByAnnotationId(m.getString(j), myShepherd);
+                        scores.put(menc.getCatalogNumber(), s.getDouble(j));
+                    }
+                    Encounter enc = Encounter.findByAnnotationId(r.getJSONObject(i).getString("query_annot_uuid"), myShepherd);
+                    rout.put(enc.getCatalogNumber(), scores);
+                } 
+            }
+            res.put("results", rout);
+        }
+
+        return res;
+    }
 
     private static Object mediaAssetToUri(MediaAsset ma) {
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
         if (ma.getStore() instanceof LocalAssetStore) {
-            return ma.localPath().toString();
+            //return ma.localPath().toString(); //nah, lets skip local and go for "url" flavor?
+            return ma.webURL().toString();
         } else if (ma.getStore() instanceof S3AssetStore) {
             return ma.getParameters();
 /*
@@ -223,7 +252,7 @@ public class IBEISIA {
 
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID) {
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID, String baseUrl) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
@@ -264,7 +293,7 @@ System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
 
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
-            JSONObject identRtn = sendIdentify(qanns, tanns);
+            JSONObject identRtn = sendIdentify(qanns, tanns, baseUrl);
             results.put("sendIdentify", identRtn);
 
             //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/

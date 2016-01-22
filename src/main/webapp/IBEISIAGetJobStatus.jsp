@@ -32,6 +32,7 @@ myShepherd = new Shepherd("context0");
 response.setHeader("Content-type", "application/javascript");
 
 String jobID = request.getParameter("jobid");
+System.out.println("IBEIS-IA callback got jobid=" + jobID);
 if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": false, \"error\": \"invalid Job ID\"}");
 

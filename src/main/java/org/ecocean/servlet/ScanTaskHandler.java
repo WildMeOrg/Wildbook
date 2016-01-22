@@ -281,11 +281,11 @@ public class ScanTaskHandler extends HttpServlet {
             
             //now build our jobs for the task
             if(jdoql.equals("")){
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species, getServletContext()));
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species, getServletContext(), request));
               
             }
             else{
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null, getServletContext()));
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null, getServletContext(), request));
             }
 
           } catch (Exception e) {

@@ -20,6 +20,8 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.media.MediaAsset;
+import org.ecocean.media.MediaAssetFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -69,24 +71,23 @@ System.out.println("GOT " + jb.toString());
 
     JsonElement jel = new JsonParser().parse(jb.toString());
     JsonObject jobj = jel.getAsJsonObject();
-    String id = jobj.get("id").getAsString();
+    int id = jobj.get("id").getAsInt();
     boolean isDorsalFin = false;
     try {
         isDorsalFin = jobj.get("isDorsalFin").getAsBoolean();
     } catch (Exception ex) {}
 
     myShepherd.beginDBTransaction();
-    SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(id);
-    if (spv == null) {
-        out.print("{\"error\": \"invalid id " + id + "\"}");
+    MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+    if (ma == null) {
+        out.print("{\"error\": \"invalid MediaAsset id " + id + "\"}");
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         return;
     }
-    String num = spv.getCorrespondingEncounterNumber();
-    Encounter enc = myShepherd.getEncounter(num);
-    if (spv == null) {
-        out.print("{\"error\": \"invalid encounter " + num + "\"}");
+    Encounter enc = ma.getCorrespondingEncounter(myShepherd);
+    if (enc == null) {
+        out.print("{\"error\": \"no Encounter for MediaAsset id=" + id + "\"}");
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         return;
@@ -128,7 +129,7 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
             double x = pt.get(0).getAsDouble();
             double y = pt.get(1).getAsDouble();
             //String type = pt.get(2).getAsString();
-System.out.println(num + " refspot[" + i + "]: " + x + ", " + y);
+System.out.println(enc.getCatalogNumber() + " refspot[" + i + "]: " + x + ", " + y);
             refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
             if (i == 1) notchX = x;
         }
@@ -176,7 +177,7 @@ System.out.println("refspot [b]: " + x + ", " + y);
 
 
     //String name = jobj.get("name").getAsString();
-    String name = "extract" + num + ".jpg";
+    String name = "extract" + enc.getCatalogNumber() + ".jpg";
     enc.setRightSpotImageFileName(name);
     enc.setSpotImageFileName(name);
 
@@ -186,15 +187,29 @@ System.out.println("refspot [b]: " + x + ", " + y);
     for (int i = 0 ; i < t.size() ; i++) {
         transform[i] = t.get(i).getAsFloat();
     }
+/*
     File f = new File(spv.getFullFileSystemPath());
     String targetPath = f.getParent() + "/" + name;
     boolean trying = spv.transformTo(context, transform, clientWidth, targetPath);
+*/
+    HashMap<String,Object> copts = new HashMap<String,Object>();
+    copts.put("clientWidth", clientWidth);
+    copts.put("transformArray", transform);
+//System.out.println(copts);
+    MediaAsset spotMA = ma.updateChild("spot", copts);
+    MediaAssetFactory.save(spotMA, myShepherd);
 
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 
     HashMap m = new HashMap();
-    m.put("success", trying);
+    m.put("success", !(spotMA == null));
+    if (spotMA != null) {
+        m.put("spotMAId", spotMA.getId());
+System.out.println("SubmitSpotsAndTranform generated a new spotMA id=" + spotMA.getId());
+    } else {
+        System.out.println("ERROR: SubmitSpotsAndTranform failed to generate a spot MediaAsset!");
+    }
     m.put("name", name);
     Gson gson = new Gson();
     out.println(gson.toJson(m));

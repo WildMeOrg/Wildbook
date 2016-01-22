@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import javax.jdo.Query;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import java.net.URISyntaxException;
 
 
 public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
@@ -47,6 +49,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   boolean finished = false;
   GridManager gm;
     ServletContext sctx;
+    String baseUrl = "http://unknown-url.example.com";
   String context="context0";
   String jdoql="SELECT FROM org.ecocean.Encounter";
   String algorithms="";
@@ -56,7 +59,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   /**
    * Constructor to create a new thread object
    */
-  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql, String genus, String species, ServletContext sctx) {
+  public ScanWorkItemCreationThread(String taskID, boolean rightSide, String encounterNum, boolean writeThis, String context, String jdoql, String genus, String species, ServletContext sctx, HttpServletRequest request) {
     this.taskID = taskID;
     this.writeThis = writeThis;
     this.rightSide = rightSide;
@@ -65,6 +68,12 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
     gm = GridManagerFactory.getGridManager();
     threadCreationObject = new Thread(this, ("scanWorkItemCreation_" + taskID));
     this.context=context;
+    try {
+        baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+    } catch (URISyntaxException ex) {
+        System.out.println("ScanWorkItemCreationThread() failed to obtain baseUrl: " + ex.toString());
+    }
+System.out.println("baseUrl --> " + baseUrl);
     
     if((jdoql!=null)&&(!jdoql.trim().equals(""))){
       this.jdoql=jdoql;
@@ -225,7 +234,9 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
         String baseDir = ServletUtilities.dataDir(context, rootDir);
         ArrayList<Encounter> qencs = new ArrayList<Encounter>();
         qencs.add(myShepherd.getEncounter(encounterNumber));
-        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID);
+//System.out.println("qencs = " + qencs);
+//System.out.println("tencs = " + tencs);
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID, baseUrl);
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");

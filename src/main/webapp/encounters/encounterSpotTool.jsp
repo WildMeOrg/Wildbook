@@ -20,7 +20,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.joda.time.format.DateTimeFormat,
+org.ecocean.media.MediaAsset,
+org.ecocean.media.MediaAssetFactory,
+org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -34,20 +37,15 @@ context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 
 
-String imageID = request.getParameter("imageID");
-SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(imageID);
-String num = spv.getCorrespondingEncounterNumber();
-Encounter enc = myShepherd.getEncounter(num);
+int imageID = Integer.parseInt(request.getParameter("imageID"));
+MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
+if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
+Encounter enc = ma.getCorrespondingEncounter(myShepherd);
+if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
 
-/*
-List<Keyword> imageKeywords = spv.getKeywords();
-boolean isDorsalFin = false;
-if (imageKeywords != null) {
-	for (Keyword k : imageKeywords) {
-		if (k.getReadableName().equals("dorsal")) isDorsalFin = true;
-	}
-}
-*/
+
+//TODO we might(?) want to get the _mid sized image at some point??
+
 
 //allow passing of dorsal-ness by way of param:
 boolean passedDorsal = (request.getParameter("isDorsalFin") != null);
@@ -65,7 +63,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 */
 
-String imgSrc = spv.asUrl(enc, baseDir);
+String imgSrc = ma.webURL().toString();
 
 
 //handle some cache-related security
@@ -215,7 +213,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 
-var encounterNumber = '<%=num%>';
+var encounterNumber = '<%=enc.getCatalogNumber()%>';
 var imageID = '<%=imageID%>';
 var passedDorsal = <%=passedDorsal%>;
 var isDorsalFin = <%=isDorsalFin%>;
@@ -330,7 +328,7 @@ console.log(pdata);
 	<div id="scan-tool" class="tool"><b class="tool-head">scan for matches</b>
 		<form target="_new" method="post" action="../ScanTaskHandler">
 			<input name="action" type="hidden" id="action" value="addTask" /> 
-			<input name="encounterNumber" type="hidden" value="<%=num%>" />
+			<input name="encounterNumber" type="hidden" value="<%=enc.getCatalogNumber()%>" />
 			<!-- input name="jdoql" type="text" id="jdoql" size="80" -->
 			<input name="writeThis" type="hidden" id="writeThis" value="true" />
 			<input name="cutoff" type="hidden" value="0.02" />
