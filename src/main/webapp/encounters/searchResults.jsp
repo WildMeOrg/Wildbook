@@ -179,6 +179,14 @@ td.tdw:hover div {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
+  td.tableHeaderColumn {
+    width: 40%;
+    padding-right: 30px;
+  }
+  td.tableDataColumn {
+    width: 20%;
+  }
+
 
 
 </style>
@@ -492,24 +500,45 @@ function show() {
 function computeCounts() {
 	counts.total = sTable.matchesFilter.length;
 	counts.unid = 0;
+  counts.unidL = 0;
+  counts.unidR = 0;
 	counts.ided = 0;
+  counts.idedL = 0;
+  counts.idedR = 0;
 	counts.dailydup = 0;
+  counts.dailydupL = 0;
+  counts.dailydupR = 0;
 	var uniq = {};
 
 	for (var i = 0 ; i < counts.total ; i++) {
-		var iid = searchResults[sTable.matchesFilter[i]].get('individualID');
+		var encJson = searchResults[sTable.matchesFilter[i]];
+		var iid = encJson.get('individualID');
+    var dProps = encJson.get('dynamicProperties');
+    var isLeftFlank = dProps.includes("flank=L");
 		if (iid == 'Unassigned') {
 			counts.unid++;
+      if (isLeftFlank) { counts.unidL++; }
+      else             { counts.unidR++; }
 		} else {
-			var k = iid + ':' + searchResults[sTable.matchesFilter[i]].get('year') + ':' + searchResults[sTable.matchesFilter[i]].get('month') + ':' + searchResults[sTable.matchesFilter[i]].get('day');
+			var k = iid + ':' + encJson.get('year') + ':' + encJson.get('month') + ':' + encJson.get('day');
 			if (!uniq[k]) {
 				uniq[k] = true;
 				counts.ided++;
+        // note that dProps is a string listing all dynamic properties in json-like sequence, with ; between properties
+        if (isLeftFlank) { counts.idedL++; }
+        else             { counts.idedR++; }
+				console.log("enc "+iid+" dProps: "+dProps);
+        console.log("isLeftFlank: "+isLeftFlank);
 			} else {
 				counts.dailydup++;
+        if (isLeftFlank) { counts.dailydupL++; }
+        else             { counts.dailydupR++; }
 			}
 		}
 	}
+  counts.totalL = counts.unidL + counts.idedL + counts.dailydupL;
+  counts.totalR = counts.unidR + counts.idedR + counts.dailydupR;
+  console.log("counts: "+JSON.stringify(counts));
 /*
 	var k = Object.keys(uniq);
 	counts.ided = k.length;
@@ -850,18 +879,71 @@ console.log(t);
 
 
 <p>
-<table width="810" border="0" cellspacing="0" cellpadding="0">
+<table border="0" cellspacing="0" cellpadding="0">
   <tr>
-    <td align="left">
-      <p><strong><%=encprops.getProperty("matchingEncounters")%>
-      </strong>: <span id="count-total"></span>
-        <%
-          if (request.getUserPrincipal()!=null) {
-        %>
-        <br/>
-        <span id="count-ided"><%=numUniqueEncounters%></span> <%=encprops.getProperty("identifiedUnique")%><br/>
-        <span id="count-unid"><%=numUnidentifiedEncounters%></span> <%=encprops.getProperty("unidentified")%><br/>
-        <span id="count-dailydup"><%=(numDuplicateEncounters)%></span> <%=encprops.getProperty("dailyDuplicates")%>
+    <td class="tableHeaderColumn"></td>
+    <td class="tableDataColumn">
+      <strong> Total </strong>
+    </td>
+    <td class="tableDataColumn">
+      <strong> L</strong>-flank
+    </td>
+    <td class="tableDataColumn">
+      <strong> R</strong>-flank
+    </td>
+  </tr>
+  <tr>
+    <td class="tableHeaderColumn">
+      <p><strong><%=encprops.getProperty("matchingEncounters")%></strong>
+    </td><td class="tableDataColumn">
+      <span id="count-total"></span>
+    </td><td class="tableDataColumn">
+      <span id = "count-totalL"></span>
+    </td><td class="tableDataColumn">
+      <span id = "count-totalR"></span>
+    </td><td class="tableDataColumn">
+  </tr><tr>
+    <%
+      if (request.getUserPrincipal()!=null) {
+    %>
+    <td class="tableHeaderColumn">
+      <%=encprops.getProperty("identifiedUnique")%>
+    </td><td class="tableDataColumn">
+     <span id="count-ided"><%=numUniqueEncounters%></span>
+    </td><td class="tableDataColumn">
+      <span id = "count-idedL"> </span>
+    </td><td class="tableDataColumn">
+      <span id = "count-idedR"> </span>
+    </td>
+  </tr>
+  <tr>
+    <td class="tableHeaderColumn">
+      <%=encprops.getProperty("unidentified")%>
+    </td>
+    <td class="tableDataColumn">
+      <span id="count-unid"><%=numUnidentifiedEncounters%></span>
+    </td>
+    <td class="tableDataColumn">
+      <span id = "count-unidL"></span>
+    </td>
+    <td class="tableDataColumn">
+      <span id = "count-unidR"></span>
+    </td>
+  </tr>
+    <td class="tableHeaderColumn">
+      <%=encprops.getProperty("dailyDuplicates")%>
+    </td>
+    <td class="tableDataColumn">
+      <span id="count-dailydup"><%=(numDuplicateEncounters)%></span>
+    </td>
+    <td class="tableDataColumn">
+      <span id = "count-dailydupL"></span>
+    </td>
+    <td class="tableDataColumn">
+      <span id = "count-dailydupR"></span>
+    </td>
+  </br>
+  <tr>
         <%
           }
         %>
@@ -870,7 +952,8 @@ console.log(t);
         myShepherd.beginDBTransaction();
       %>
       <p><strong><%=encprops.getProperty("totalEncounters")%>
-      </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
+      : <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
+      </strong>
       </p>
     </td>
     <%
@@ -878,11 +961,10 @@ console.log(t);
     %>
   </tr>
 </table>
-
+</br>
 <table>
   <tr>
     <td align="left">
-
       <p><strong><%=encprops.getProperty("queryDetails")%>
       </strong></p>
 
