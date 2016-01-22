@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (c) 2009 Erik Bengtson and others. All rights reserved. 
+Copyright (c) 2009 Erik Bengtson and others. All rights reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -10,8 +10,8 @@ Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
-limitations under the License. 
- 
+limitations under the License.
+
 
 Contributors:
     ...
@@ -96,7 +96,7 @@ public class RestServlet extends HttpServlet
 
     public void init(ServletConfig config) throws ServletException
     {
-      
+
      /*
         String factory = config.getInitParameter("persistence-context");
         if (factory == null)
@@ -104,7 +104,7 @@ public class RestServlet extends HttpServlet
             throw new ServletException("You haven't specified \"persistence-context\" property defining the persistence unit");
         }
 
-  
+
         try
         {
             LOGGER_REST.info("REST : Creating PMF for factory=" + factory);
@@ -233,14 +233,14 @@ public class RestServlet extends HttpServlet
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
+                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
                     else
                     {
                         JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
@@ -275,14 +275,14 @@ public class RestServlet extends HttpServlet
                     if (result instanceof Collection)
                     {
                         JSONArray jsonobj = convertToJson(req, (Collection)result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result, 
+                        //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)result,
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
                     else
                     {
                         JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
-                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                        //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
@@ -347,7 +347,7 @@ public class RestServlet extends HttpServlet
                             Query query = pm.newQuery("JDOQL", queryString);
                             List result = (List)filterResult(query.execute());
                             JSONArray jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
-                            //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result, 
+                            //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result,
                                 //((JDOPersistenceManager)pm).getExecutionContext());
                             tryCompress(req, resp, jsonobj, useCompression);
                             resp.setHeader("Content-Type", "application/json");
@@ -405,7 +405,7 @@ public class RestServlet extends HttpServlet
                     pm.currentTransaction().begin();
                     Object result = filterResult(pm.getObjectById(id));
                     JSONObject jsonobj = convertToJson(req, result, ((JDOPersistenceManager)pm).getExecutionContext());
-                    //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result, 
+                    //JSONObject jsonobj = RESTUtils.getJSONObjectFromPOJO(result,
                         //((JDOPersistenceManager)pm).getExecutionContext());
                     tryCompress(req, resp, jsonobj, useCompression);
                     //resp.getWriter().write(jsonobj.toString());
@@ -466,10 +466,10 @@ public class RestServlet extends HttpServlet
         resp.setContentLength(0);
     }
 
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) 
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-      
+
         getPMF(req);
         if (req.getContentLength() < 1)
         {
@@ -628,10 +628,10 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
         resp.setStatus(201);// created
     }
 
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) 
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-      
+
         getPMF(req);
         PersistenceManager pm = pmf.getPersistenceManager();
         try
@@ -882,7 +882,7 @@ System.out.println(thisRequest);
 
 
         JSONObject convertToJson(HttpServletRequest req, Object obj, ExecutionContext ec) {
-System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
+//System.out.println("convertToJson(non-Collection) trying class=" + obj.getClass());
             JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(obj, ec);
             Method sj = null;
             try {
@@ -951,7 +951,7 @@ System.out.println("??? TRY COMPRESS ??");
                 o.close();
             }
         }
-        
+
         private void getPMF(HttpServletRequest req){
             String context="context0";
             context=ServletUtilities.getContext(req);
