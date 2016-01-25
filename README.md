@@ -18,5 +18,4 @@ Wildbook (formerly the “Shepherd Project”) is an open source software framew
 Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (http://www.whaleshark.org). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
 Please see http://www.wildme.org/wildbook for documentation.
-
-![Wild Me logo](/src/main/webapp/images/wild-me-logo-only-100-100.png) Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization. http://www.wildme.org
+<img style="float: right;" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization. http://www.wildme.org
