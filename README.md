@@ -17,4 +17,4 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 Please see http://www.wildme.org/wildbook for documentation.
 
-<p><img style="float: right;" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
+<p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
