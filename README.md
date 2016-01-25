@@ -1,6 +1,7 @@
 
 
-![Wild Me logo](/src/main/webapp/images/wild-me-logo-only-100-100.png) # Wildbook #
+ # Wildbook #
+ 
 
 Wildbook (formerly the “Shepherd Project”) is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
 
@@ -18,4 +19,4 @@ Wildbook started as a collaborative software platform for globally-coordinated w
 
 Please see http://www.wildme.org/wildbook for documentation.
 
-Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization. http://www.wildme.org
+![Wild Me logo](/src/main/webapp/images/wild-me-logo-only-100-100.png) Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization. http://www.wildme.org
