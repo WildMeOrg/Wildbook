@@ -5,7 +5,8 @@
               java.util.Map,
               java.util.Iterator,
               java.util.Properties,
-              java.util.StringTokenizer
+              java.util.StringTokenizer,
+              javax.jdo.Query
               "
 %>
 
@@ -61,6 +62,8 @@ myShepherd=new Shepherd(context);
 	  		System.out.println("Creating tomcat user account...");
   	  	}
   	}
+
+// Here I'll do some preliminary stuff for
 
 
 %>
@@ -357,15 +360,19 @@ margin-bottom: 8px !important;
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
+int numMarkedIndividualsLeftFlank=0;
+int numEncountersLeftFlank=0;
 
+try {
 
-try{
     myShepherd.beginDBTransaction();
 
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
 
+    numEncountersLeftFlank = myShepherd.getNumEncountersLeftFlank();
+    numMarkedIndividualsLeftFlank = myShepherd.getNumMarkedIndividualsLeftFlank();
 
 }
 catch(Exception e){
@@ -628,10 +635,17 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals </br>
+                <%=numMarkedIndividualsLeftFlank %> Left,
+                <%= numMarkedIndividuals - numMarkedIndividualsLeftFlank %> Right
+                </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span>
+                reported encounters </br>
+                <%=numEncountersLeftFlank %> Left,
+                <%= numEncounters - numEncountersLeftFlank %> Right
+                </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 

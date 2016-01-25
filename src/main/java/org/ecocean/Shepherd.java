@@ -1901,6 +1901,10 @@ public class Shepherd {
     q.closeAll();
     return num;
   }
+  public int getNumMarkedIndividualsLeftFlank() {
+    String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
+    return getNumMarkedIndividualsWithEncMatching(lFlankFilter);
+  }
 
   public int getNumUsers() {
     int num = 0;
@@ -2119,7 +2123,10 @@ public class Shepherd {
       return 0;
     }
   }
-
+  public int getNumEncountersLeftFlank() {
+    String lFlankFilter = "this.dynamicProperties.indexOf(\"flank=L\") > -1";
+    return getNumEncountersMatching(lFlankFilter);
+  }
 
 
   public int getNumRejectedEncounters() {
