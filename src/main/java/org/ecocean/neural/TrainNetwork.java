@@ -493,7 +493,9 @@ public class TrainNetwork {
           
           
           //kick off IBEIS for each Encounter
-          for(int i=0;i<(numEncs-1);i++){
+          //RESTORE ME
+          //for(int i=0;i<(numEncs-1);i++){
+          for(int i=0;i<20;i++){
             ArrayList<Encounter> qencs=new ArrayList<Encounter>();
             Encounter myEnc=(Encounter)encounters.get(i);
             qencs.add(myEnc);
@@ -529,8 +531,10 @@ public class TrainNetwork {
           
           
           
+          
+          for(int i=0;i<20;i++){
           //RESTORE ME
-          for(int i=0;i<(numEncs-1);i++){
+          //for(int i=0;i<(numEncs-1);i++){
             for(int j=(i+1);j<numEncs;j++){
               
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
