@@ -25,11 +25,13 @@ import org.ecocean.servlet.ServletUtilities;
 import java.util.Set;
 import java.util.SortedMap;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 
 import java.io.*;
+import java.net.URISyntaxException;
 
 import org.ecocean.grid.*;
 
@@ -39,6 +41,8 @@ import java.util.Random;
 import java.util.TreeMap;
 
 import org.ecocean.neural.WildbookInstance;
+
+import org.ecocean.identity.IBEISIA;
 
 //import com.fastdtw.timeseries.TimeSeriesBase.*;
 import com.fastdtw.dtw.*;
@@ -66,6 +70,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -85,7 +90,7 @@ public class TrainNetwork {
     return (double) tmp / factor;
 }
   
-  
+ /* 
   public static SummaryStatistics getMatchedIntersectionPerformance(Shepherd myShepherd, double intersectionProportion){
     SummaryStatistics stats=new SummaryStatistics();
     
@@ -129,7 +134,7 @@ public class TrainNetwork {
     
     return stats;
   }
-  
+  */
   
   
   public static double getOverallFlukeMatchScore(HttpServletRequest request, double intersectionsValue, double dtwValue, double i3sValue, double proportionsValue, SummaryStatistics intersectionStats, SummaryStatistics dtwStats,SummaryStatistics i3sStats, SummaryStatistics proportionStats, double numIntersectionStdDev,double numDTWStdDev,double numI3SStdDev,double numProportionStdDev, double intersectHandicap, double dtwHandicap, double i3sHandicap, double proportionHandicap){
@@ -454,7 +459,7 @@ public class TrainNetwork {
       
       
     
-    //create text file so we can also use this training data in the Neuroph UI
+    //create text file
       BufferedWriter writer = null;
       
       int numMatches=0;
@@ -487,10 +492,45 @@ public class TrainNetwork {
           
           
           
+          //kick off IBEIS for each Encounter
+          for(int i=0;i<(numEncs-1);i++){
+            ArrayList<Encounter> qencs=new ArrayList<Encounter>();
+            Encounter myEnc=(Encounter)encounters.get(i);
+            qencs.add(myEnc);
+            ArrayList<Encounter> tencs=new ArrayList<Encounter>();
+            
+
+            for(int j=(i+1);j<numEncs;j++){
+              tencs.add((Encounter)encounters.get(j));
+            } 
+            
+            //now actually call IBEIS
+            //kick off IBEIS comparison ==============================
+            String baseUrl="example.com";
+            try {
+              baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+            } 
+            catch (URISyntaxException ex) {
+              System.out.println("ScanWorkItemCreationThread() failed to obtain baseUrl: " + ex.toString());
+            }
+            System.out.println("baseUrl --> " + baseUrl);
+            ServletContext sctx=request.getSession().getServletContext();
+            String rootDir = sctx.getRealPath("/");
+            String baseDir = ServletUtilities.dataDir(context, rootDir);
+            String taskID=myEnc.getEncounterNumber();
+            
+            IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(myEnc.getGenus(), myEnc.getSpecificEpithet()), taskID, baseUrl);
+            //proceed now that IBEIS is woken  =============================
+
+          }
+          //end IBEIS instantiations
+          
+          
+          
+          
+          
           //RESTORE ME
           for(int i=0;i<(numEncs-1);i++){
-          //for(int i=0;i<=2;i++){
-           // for(int i=0;i<10;i++){
             for(int j=(i+1);j<numEncs;j++){
               
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
@@ -507,8 +547,8 @@ public class TrainNetwork {
                         WildbookInstance iExample=buildInstance(genusSpecies,isTrainingSet);
                         WildbookInstance iExample2=buildInstance(genusSpecies,isTrainingSet);
                         
-                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2);
-                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1);
+                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, request, myShepherd);
+                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, request, myShepherd);
 
                         populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
                         populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
@@ -565,14 +605,14 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(9, (i+1));
+            inst.setValue(10, (i+1));
             System.out.println("intersection score: "+wi.getMatchObject().getIntersectionCount()+" and rank: "+(i+1));
           }
           Collections.sort(list,new RankComparator("fastDTW"));
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(10, (i+1));
+            inst.setValue(11, (i+1));
             System.out.println("FastDTW score: "+wi.getMatchObject().getLeftFastDTWResult()+" and rank: "+(i+1));
             
           }
@@ -580,7 +620,7 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(11, (i+1));
+            inst.setValue(12, (i+1));
             System.out.println("I3S score: "+wi.getMatchObject().getI3SMatchValue()+" and rank: "+(i+1));
             
           }
@@ -588,7 +628,7 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(12, (i+1));
+            inst.setValue(13, (i+1));
             System.out.println("prop. score: "+wi.getMatchObject().getProportionValue()+" and rank: "+(i+1));
             
           }
@@ -596,7 +636,7 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(13, (i+1));
+            inst.setValue(14, (i+1));
             System.out.println("MSM score: "+wi.getMatchObject().getMSMValue()+" and rank: "+(i+1));
             
           }
@@ -604,7 +644,7 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(14, (i+1));
+            inst.setValue(15, (i+1));
             System.out.println("Swale score: "+wi.getMatchObject().getSwaleValue()+" and rank: "+(i+1));
             
           }
@@ -612,7 +652,7 @@ public class TrainNetwork {
           for(int i=0;i<listSize;i++){
             WildbookInstance wi=list.get(i);
             DenseInstance inst=wi.getInstance();
-            inst.setValue(15, (i+1));
+            inst.setValue(16, (i+1));
             System.out.println("Euc. score: "+wi.getMatchObject().getEuclideanDistanceValue()+" and rank: "+(i+1));
             
           }
@@ -707,6 +747,7 @@ public class TrainNetwork {
       Attribute dateAttr = new Attribute("dateDiffLong");   
       Attribute euclideanAttr = new Attribute("EuclideanDistance"); 
       Attribute patterningCodeDiffAttr = new Attribute("PatterningCodeDiff"); 
+      Attribute ibeisColorAttr = new Attribute("ibeisColor"); 
       
       //ranks of matchers
       Attribute intersectRankAttr  = new Attribute("interectRank"); 
@@ -716,6 +757,7 @@ public class TrainNetwork {
       Attribute msmRankAttr = new Attribute("MSMRank");
       Attribute swaleRankAttr = new Attribute("SwaleRank"); 
       Attribute eucRankAttr = new Attribute("euclideanRank"); 
+      
      
       // Declare the class attribute along with its values
       ArrayList fvClassVal = new ArrayList(2);
@@ -735,6 +777,8 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ibeisColorAttr);
+        
         
         fvWekaAttributes.add(intersectRankAttr);
         fvWekaAttributes.add(fastDTWRankAttr);
@@ -758,6 +802,8 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ibeisColorAttr);
+        
         
         fvWekaAttributes.add(intersectRankAttr);
         fvWekaAttributes.add(fastDTWRankAttr);
@@ -781,6 +827,7 @@ public class TrainNetwork {
         fvWekaAttributes.add(dateAttr);
         fvWekaAttributes.add(euclideanAttr);
         fvWekaAttributes.add(patterningCodeDiffAttr);
+        fvWekaAttributes.add(ibeisColorAttr);
         
         fvWekaAttributes.add(intersectRankAttr);
         fvWekaAttributes.add(fastDTWRankAttr);
@@ -789,6 +836,8 @@ public class TrainNetwork {
         fvWekaAttributes.add(msmRankAttr);
         fvWekaAttributes.add(swaleRankAttr);
         fvWekaAttributes.add(eucRankAttr);
+        
+        
         
         fvWekaAttributes.add(ClassAttribute);
         //System.out.println("Building attributes for: "+genusSpecies);
@@ -858,6 +907,7 @@ public class TrainNetwork {
           iExample.setValue(6, mo.getDateDiff().doubleValue());
           iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
           iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
+          iExample.setValue(9, mo.getIBEISColor().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -869,6 +919,7 @@ public class TrainNetwork {
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
         iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
+        iExample.setValue(9, mo.getIBEISColor().doubleValue());
     }
     else if(genusSpecies.equals("Megapteranovaeangliae")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -880,7 +931,7 @@ public class TrainNetwork {
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
         iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
-        
+        iExample.setValue(9, mo.getIBEISColor());
 
         
     }
@@ -916,8 +967,14 @@ public class TrainNetwork {
     }
     
     
-    public static MatchObject getMatchObject(String genusSpecies,EncounterLite el1, EncounterLite el2){
-        MatchObject mo=new MatchObject();
+    public static MatchObject getMatchObject(String genusSpecies,EncounterLite el1, EncounterLite el2, HttpServletRequest request, Shepherd myShepherd){
+        
+
+      
+      MatchObject mo=new MatchObject();
+        
+        
+        
         
         //FIRST PASS
         
@@ -999,6 +1056,33 @@ public class TrainNetwork {
         }
         
         
+        //let's get the IBEIS value ===================================================
+        HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
+        long loopStartTime=System.currentTimeMillis();
+        String success="";
+        if(res.get("success")!=null){success=(String)res.get("success");}
+        while(((System.currentTimeMillis()-loopStartTime)<300000)&&(success.equals(""))){
+          try{
+            Thread.sleep(5000);
+            if(res.get("success")!=null){success=(String)res.get("success");}
+          }
+          catch(Exception e){e.printStackTrace();}
+        }
+        if(res.get("results")!=null){
+          HashMap<String,Object> rout=(HashMap<String,Object>)res.get("results");
+          if(rout.get(el1.getEncounterNumber())!=null){
+            HashMap<String,Double> thisResult=(HashMap<String,Double>)rout.get(el1.getEncounterNumber());
+            if(thisResult.get(el2.getEncounterNumber())!=null){
+              Double score=(Double)thisResult.get(el2.getEncounterNumber());
+              mo.setIBEISColorValue(score);
+              System.out.println("Setting IBEIS COLOR SCORE of: "+score);
+            }
+            else{System.out.println(" IBEIS COLOR el2 object was null: "+el2.getEncounterNumber());}
+          }
+          else{System.out.println(" IBEIS COLOR el1 object was null: "+el1.getEncounterNumber());}
+        }
+        else{System.out.println(" IBEIS COLOR results object was null.");}
+        if(mo.getIBEISColor()==null){mo.setIBEISColorValue(weka.core.Utils.missingValue());}
         
         
         mo.setIntersectionCount(numIntersections.doubleValue());

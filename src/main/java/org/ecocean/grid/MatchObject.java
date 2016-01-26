@@ -66,6 +66,8 @@ public class MatchObject implements java.io.Serializable {
   public Double dateDiff=0.0;
   
   public Double patterningCodeDiff=0.0;
+  
+  public Double ibeisColor;
 
 
   //used for JDO enhance
@@ -316,6 +318,9 @@ public class MatchObject implements java.io.Serializable {
   
   public void setPatterningCodeDiffValue(Double value){patterningCodeDiff=value;}
   public Double getPatterningCodeDiff(){return patterningCodeDiff;}
+  
+  public void setIBEISColorValue(Double value){ibeisColor=value;}
+  public Double getIBEISColor(){return ibeisColor;}
 
   
 }
