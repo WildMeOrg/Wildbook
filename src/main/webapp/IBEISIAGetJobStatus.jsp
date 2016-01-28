@@ -37,7 +37,16 @@ if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": false, \"error\": \"invalid Job ID\"}");
 
 } else {
-	JSONObject statusResponse = IBEISIA.getJobStatus(jobID);
+System.out.println("---<<");
+	JSONObject statusResponse = new JSONObject();
+	try {
+		statusResponse = IBEISIA.getJobStatus(jobID);
+	} catch (Exception ex) {
+System.out.println("except? " + ex.toString());
+		statusResponse.put("_error", ex.toString());
+	}
+System.out.println(statusResponse.toString());
+System.out.println(">>>>---");
 	JSONObject jlog = new JSONObject();
 	jlog.put("jobID", jobID);
 
@@ -58,7 +67,9 @@ if ((jobID == null) || jobID.equals("")) {
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
 
-	if (statusResponse.getJSONObject("status").getBoolean("success") &&
+	if ((statusResponse != null) && statusResponse.has("status") &&
+	    statusResponse.getJSONObject("status").getBoolean("success") &&
+	    statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
             "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
             "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
             "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
