@@ -57,21 +57,21 @@ public class EncounterSetPatterningCode extends HttpServlet {
       if(!locked){
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the colorCode for encounter "+encNum+" to "+colorCode+".</p>");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        String message="The colorCode for encounter "+encNum+" was set to "+colorCode+".";
+        String link = ServletUtilities.getEncounterURL(request, context, enc.getCatalogNumber());
+        ActionResult actRes = new ActionResult_Encounter("encounter.setPatterningCode", true, link)
+                .setLinkParams(enc.getCatalogNumber())
+                .setMessageParams(enc.getCatalogNumber(), colorCode);
+        request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
+        getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
       }
       else{
 
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> An exception occurred during processing. Please ask the webmaster to check the log for more information.");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        String link = ServletUtilities.getEncounterURL(request, context, enc.getCatalogNumber());
+        ActionResult actRes = new ActionResult_Encounter("encounter.setPatterningCode", false, link)
+                .setLinkParams(enc.getCatalogNumber())
+                .setCommentParams(enc.getCatalogNumber());
+        request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
+        getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
       }
                   }
                 else {
