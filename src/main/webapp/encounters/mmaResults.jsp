@@ -16,10 +16,9 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <link href="../css/mma.css" rel="stylesheet" type="text/css"/>
-<%@page contentType="text/html; charset=iso-8859-1" language="java"
+<%@page contentType="text/html; charset=utf-8" language="java"
         import="org.ecocean.CommonConfiguration"
         import="org.ecocean.Encounter"
         import="org.ecocean.Shepherd"
@@ -110,7 +109,6 @@
 	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
 	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
 	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
