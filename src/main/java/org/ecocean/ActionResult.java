@@ -29,6 +29,8 @@ public class ActionResult {
   protected String actionKey;
   /** String representing onward navigation link. */
   protected String link;
+  /** Object parameters for filling message (if needed). */
+  protected Object[] messageParams;
   /** Object parameters for filling link text (if needed). */
   protected Object[] linkParams;
   /** Object parameters for filling comments (if needed). */
@@ -61,6 +63,16 @@ public class ActionResult {
 
   public ActionResult setLink(String link) {
     this.link = link;
+    return this;
+  }
+
+  /**
+   * Sets the parameters for displayed message text.
+   * @param o object array for use in formatted message
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult setMessageParams(Object... o) {
+    this.messageParams = o;
     return this;
   }
 
@@ -131,7 +143,11 @@ public class ActionResult {
    * @return String representing message text
    */
   public String getMessage(Properties bundle) {
-    return bundle.getProperty(String.format("%s.message.%s", actionKey, succeeded ? "success" : "failure"));
+    String[] keys = {
+            String.format("%s.message.%s", actionKey, succeeded ? "success" : "failure"),
+    };
+    String text = findFirstMatchingNonNull(bundle, keys);
+    return messageParams == null ? text : MessageFormat.format(text, messageParams);
   }
 
   /**
