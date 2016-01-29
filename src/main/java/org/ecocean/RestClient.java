@@ -40,7 +40,7 @@ public class RestClient {
     //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(10000);
+        conn.setReadTimeout(12000);
         conn.setConnectTimeout(15000);
         conn.setDoOutput(true);
         conn.setDoInput(true);
