@@ -24,6 +24,9 @@ public class IBEISIA {
 
     private static String SERVICE_NAME = "IBEISIA";
 
+    private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
+    private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
+
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
@@ -48,6 +51,7 @@ public class IBEISIA {
         map.put("image_gps_lon_list", new ArrayList<Double>());
 
         for (MediaAsset ma : mas) {
+            if (!needToSend(ma)) continue;
             map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
@@ -72,8 +76,10 @@ public class IBEISIA {
             } else {
                 map.get("image_time_posix_list").add((int)Math.floor(t.getMillis() / 1000));  //IBIES-IA wants seconds since epoch
             }
+            markSent(ma);
         }
 
+//TODO dont send empty requests?
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -93,12 +99,15 @@ public class IBEISIA {
         map.put("annot_bbox_list", new ArrayList<int[]>());
 
         for (Annotation ann : anns) {
+            if (!needToSend(ann)) continue;
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
             map.get("annot_species_list").add(ann.getSpecies());
             map.get("annot_bbox_list").add(ann.getBbox());
+            markSent(ann);
         }
 
+//TODO dont send empty requests?
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -120,8 +129,11 @@ public class IBEISIA {
             tlist.add(toFancyUUID(ann.getUUID()));
         }
         map.put("qannot_uuid_list", qlist);
-        map.put("adata_annot_uuid_list", tlist);
+        map.put("dannot_uuid_list", tlist);
 
+System.out.println("===================================== qlist & tlist =========================");
+System.out.println(qlist);
+System.out.println(tlist);
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -204,7 +216,7 @@ public class IBEISIA {
         JSONObject jres = getTaskResults(taskID, myShepherd);
         HashMap<String,Object> res = new HashMap<String,Object>();
         res.put("taskID", taskID);
-        res.put("success", jres.get("success"));
+        if (jres.has("success")) res.put("success", jres.get("success"));
         if (jres.has("error")) res.put("error", jres.get("error"));
 
         if (jres.has("results")) {
@@ -265,32 +277,35 @@ public class IBEISIA {
 
         try {
             for (Encounter enc : queryEncs) {
+/*
                 //MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
                 MediaAsset ma = enc.findOneMediaByLabel(myShepherd, "_spot");
 System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
-                if (ma == null) continue;
-                mas.add(ma);
-                ArrayList<Annotation> someAnns = ma.getAnnotationsGenerate(species);  //this "should" always get one (the trivial one)
-                for (Annotation ann : someAnns) {
-                    qanns.add(ann);
+*/
+                ArrayList<Annotation> annotations = enc.getAnnotations();
+                for (Annotation ann : annotations) {
                     allAnns.add(ann);
+                    qanns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
                 }
             }
             for (Encounter enc : targetEncs) {
-                //MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
-                MediaAsset ma = enc.findOneMediaByLabel(myShepherd, "_spot");
-System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
-                if (ma == null) continue;
-                mas.add(ma);
-//System.out.println("=================------------- " + ma + "\n(" + ma.getParameters() + ")\n");
-                ArrayList<Annotation> someAnns = ma.getAnnotationsGenerate(species);  //this "should" always get one (the trivial one)
-                for (Annotation ann : someAnns) {
-                    tanns.add(ann);
+                ArrayList<Annotation> annotations = enc.getAnnotations();
+                for (Annotation ann : annotations) {
                     allAnns.add(ann);
+                    tanns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
                 }
-//System.out.println("=222222==========------------- " + ma + "\n(" + ma.getParameters() + ")\n");
             }
 
+System.out.println("======= beginIdentify (qanns, tanns, allAnns) =====");
+System.out.println(qanns);
+System.out.println(tanns);
+System.out.println(allAnns);
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
             JSONObject identRtn = sendIdentify(qanns, tanns, baseUrl);
@@ -344,6 +359,21 @@ System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
         return j;
     }
 
+
+    private static boolean needToSend(MediaAsset ma) {
+        return true;
+        //return ((alreadySentMA.get(ma.getId()) == null) || !alreadySentMA.get(ma.getId()));
+    }
+    private static void markSent(MediaAsset ma) {
+        alreadySentMA.put(ma.getId(), true);
+    }
+    private static boolean needToSend(Annotation ann) {
+        return true;
+        //return ((alreadySentAnn.get(ann.getId()) == null) || !alreadySentAnn.get(ann.getId()));
+    }
+    private static void markSent(Annotation ann) {
+        alreadySentAnn.put(ann.getId(), true);
+    }
 
 /*   no longer needed??
     public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {

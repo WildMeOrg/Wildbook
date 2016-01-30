@@ -225,7 +225,8 @@ public class Encounter implements java.io.Serializable {
   //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
-  private ArrayList<MediaAsset> media;
+  //private ArrayList<MediaAsset> media;
+  private ArrayList<Annotation> annotations;
   private List<Measurement> measurements;
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
@@ -982,10 +983,11 @@ public class Encounter implements java.io.Serializable {
   //----------------
 
 
-    public ArrayList<MediaAsset> generateMedia(String baseDir, Shepherd myShepherd) {
-        if ((media != null) && ((images == null) || (images.size() <= media.size()))) return media;  //probably(?!) have already done the work
+    //really only intended to convert legacy SinglePhotoVideo to MediaAsset/Annotation world
+    public ArrayList<Annotation> generateAnnotations(String baseDir, Shepherd myShepherd) {
+        if ((annotations != null) && (annotations.size() > 0)) return annotations;
         if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
-        if (media == null) media = new ArrayList<MediaAsset>();
+        if (annotations == null) annotations = new ArrayList<Annotation>();
         boolean thumbDone = false;
         for (SinglePhotoVideo spv : images) {
             MediaAsset ma = spv.toMediaAsset(myShepherd);
@@ -994,7 +996,8 @@ public class Encounter implements java.io.Serializable {
                 continue;
             }
             ma.addLabel("_original");
-            if (!media.contains(ma)) media.add(ma);
+            annotations.add(new Annotation(ma, getTaxonomyString()));
+            //if (!media.contains(ma)) media.add(ma);
             //File idir = new File(this.dir(baseDir));
             File idir = new File(spv.getFullFileSystemPath()).getParentFile();
             //now we iterate through flavors that could be derived
@@ -1008,27 +1011,22 @@ public class Encounter implements java.io.Serializable {
         }
 
         //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
-        MediaAsset sma = spotImageAsMediaAsset(media.get(0), baseDir, myShepherd);
-        return media;
+        MediaAsset sma = spotImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
+        return annotations;
     }
 
 
-    //utility method for created MediaAssets and adding to .media if appropriate
+    //utility method for created MediaAssets
     // note: also will check for existence of mpath and fail silently if doesnt exist
     private MediaAsset addMediaIfNeeded(Shepherd myShepherd, File mpath, String key, MediaAsset parentMA, String label) {
         if ((mpath == null) || !mpath.exists()) return null;
         AssetStore astore = AssetStore.getDefault(myShepherd);
         org.json.JSONObject sp = astore.createParameters(mpath);
         if (key != null) sp.put("key", key);  //will use default from createParameters() (if there was one even)
-        if (media == null) media = new ArrayList<MediaAsset>();
         MediaAsset ma = astore.find(sp, myShepherd);
         if (ma != null) {
             ma.addLabel(label);
-            if (parentMA != null) {
-                ma.setParentId(parentMA.getId());
-            } else if (!media.contains(ma)) {
-                media.add(ma);
-            }
+            if (parentMA != null) ma.setParentId(parentMA.getId());
             return ma;
         }
 System.out.println("creating new MediaAsset for key=" + key);
@@ -1041,7 +1039,6 @@ System.out.println("creating new MediaAsset for key=" + key);
         ma.addLabel(label);
         if (parentMA != null) ma.setParentId(parentMA.getId());
         MediaAssetFactory.save(ma, myShepherd);
-        if (parentMA == null) media.add(ma);  //TODO note: we assume(!) here that parent was already added to .media list.  trouble??? maybe should check?
         return ma;
     }
 
@@ -1052,9 +1049,10 @@ System.out.println("creating new MediaAsset for key=" + key);
     public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
         File fullPath = new File(this.dir(baseDir) + "/" + spotImageFileName);
+//System.out.println("**** * ***** looking for spot file " + fullPath.toString());
         if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
         if (parent == null) {
-            System.out.println("seems like we do not have a parent .media MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add spot MediaAsset for " + fullPath.toString());
+            System.out.println("seems like we do not have a parent MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add spot MediaAsset for " + fullPath.toString());
             return null;
         }
         AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -1081,6 +1079,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         ma.setParentId(parent.getId());
         return ma;
     }
+
 
   public void setSubmitterID(String username) {
     if(username!=null){submitterID = username;}
@@ -1676,6 +1675,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 	else{specificEpithet=null;}
   }
 
+    public String getTaxonomyString() {
+        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    }
+
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
 
@@ -1945,16 +1948,29 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     
     public List<SinglePhotoVideo> getImages(){return images;}
     
-    public ArrayList<MediaAsset> getMedia() {
-        return media;
+    public ArrayList<Annotation> getAnnotations() {
+        return annotations;
     }
-    public void setMedia(ArrayList<MediaAsset> m) {
-        media = m;
+    public void setAnnotations(ArrayList<Annotation> anns) {
+        annotations = anns;
     }
 
+    //convenience method
+    public ArrayList<MediaAsset> getMedia() {
+        ArrayList<MediaAsset> m = new ArrayList<MediaAsset>();
+        if ((annotations == null) || (annotations.size() < 1)) return m;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma != null) m.add(ma);
+        }
+        return m;
+    }
+
+/*
     public MediaAsset findOneMediaByLabel(Shepherd myShepherd, String label) {
         return MediaAsset.findOneByLabel(media, myShepherd, label);
     }
+*/
 
     public boolean hasKeyword(Keyword word){
      int imagesSize=images.size();
@@ -2155,6 +2171,7 @@ it should be considered an asyncronous action that happens in the background mag
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
                 public boolean refreshAssetFormats(Shepherd myShepherd) {
+/*
                     ArrayList<MediaAsset> mas = this.getMedia();
                     if ((mas == null) || (mas.size() < 1)) return true;
                     boolean ok = true;
@@ -2175,6 +2192,8 @@ it should be considered an asyncronous action that happens in the background mag
                         }
                     }
                     return ok;
+*/
+                    return false;
                 }
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!
@@ -2239,6 +2258,7 @@ throw new Exception();
 		return true;
 	}
 
+/*
         //if MediaAsset has no Encounter, this will just be null
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             MediaAsset root = ma.getParentRoot(myShepherd);
@@ -2249,10 +2269,13 @@ throw new Exception();
             return (Encounter)results.get(0);
         }
 
+*/
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
-            MediaAsset ma = annot.getCorrespondingMediaAsset(myShepherd);
-            if (ma == null) return null;
-            return findByMediaAsset(ma, myShepherd);
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id ==" + annot.getId();
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List results = (List)query.execute();
+            if (results.size() < 1) return null;
+            return (Encounter)results.get(0);
         }
 
         public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
@@ -2260,6 +2283,7 @@ throw new Exception();
             if (ann == null) return null;
             return findByAnnotation(ann, myShepherd);
         }
+
 
 /*  not really sure we need this now/yet
 

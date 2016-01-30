@@ -78,8 +78,6 @@ public class MediaAsset implements java.io.Serializable {
     protected ImageAttributes imageAttributes = null;
     protected Metadata metadata = null;
 
-    protected ArrayList<Annotation> annotations;
-
     protected ArrayList<String> labels;
 
     protected String hashCode;
@@ -154,13 +152,17 @@ public class MediaAsset implements java.io.Serializable {
         id = i;
     }   
 
-    //this is for Annotation mostly?
+    //this is for Annotation mostly?  provides are reproducible uuid based on the MediaAsset id
     public String getUUID() {
-        if (id == MediaAssetFactory.NOT_SAVED) return null;
         //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "Ma____" where "____" is the int id
+        return generateUUIDv3((byte)77, (byte)97);
+    }
+
+    private String generateUUIDv3(byte b1, byte b2) {
+        if (id == MediaAssetFactory.NOT_SAVED) return null;
         byte[] b = new byte[6];
-        b[0] = (byte) 77;
-        b[1] = (byte) 97;
+        b[0] = b1;
+        b[1] = b2;
         b[2] = (byte) (id >> 24);
         b[3] = (byte) (id >> 16);
         b[4] = (byte) (id >> 8);
@@ -380,6 +382,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return null;
     }
 
+/*
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
@@ -393,16 +396,15 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
     //TODO check if it is already here?  maybe?
     public Annotation addTrivialAnnotation(String species) {
-       return new Annotation(this, species);  //this will add it to our .annotations collection as well 
+        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well 
+        String newId = generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID relative to our ID  An___
+        if (newId != null) ann.setId(newId);
+        return ann;
     }
 
     public int getAnnotationCount() {
         if (annotations == null) return 0;
         return annotations.size();
-    }
-
-    public Encounter getCorrespondingEncounter(Shepherd myShepherd) {
-        return Encounter.findByMediaAsset(this, myShepherd);
     }
 
     public static MediaAsset findByAnnotation(Annotation annot, Shepherd myShepherd) {
@@ -412,6 +414,15 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if (results.size() < 1) return null;
         return (MediaAsset)results.get(0);
     }
+*/
+
+    public Encounter getCorrespondingEncounter(Shepherd myShepherd) {
+//TODO
+        //return Encounter.findByMediaAsset(this, myShepherd);
+        return null;
+    }
+
+
 
 /*
     public Path getThumbPath()

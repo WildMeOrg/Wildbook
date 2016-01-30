@@ -31,9 +31,11 @@ if (enc == null) {
 	out.println("invalid encounter number: " + num);
 
 } else {
-	enc.generateMedia(baseDir, myShepherd);
+	enc.generateAnnotations(baseDir, myShepherd);
 	out.println("<a href=\"encounters/encounter.jsp?number=" + num + "\" target=\"_new\">" + num + "</a><p>");
-	out.println(enc.getMedia());
+	for (Annotation ann : enc.getAnnotations()) {
+		out.println("<hr><p>" + ann.toString() + "</p><p>" + ann.getMediaAsset().toString() + "</p>");
+	}
 }
 
 
