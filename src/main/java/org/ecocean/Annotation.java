@@ -42,6 +42,13 @@ public class Annotation implements java.io.Serializable {
     }
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
+/*
+        if ((ma == null) || (ma.getId() < 1)) {
+            this.id = org.ecocean.Util.generateUUID();
+        } else {
+            this.id = ma.generateUUIDv3((byte)65, (byte)110);  //An____
+        }
+*/
         this.id = org.ecocean.Util.generateUUID();
         this.x = (int) iatt.getXOffset();
         this.y = (int) iatt.getYOffset();
@@ -49,7 +56,7 @@ public class Annotation implements java.io.Serializable {
         this.height = (int) iatt.getHeight();
         this.theta = 0.0;  /// TODO ????
         this.species = species;
-        this.setMediaAsset(ma);
+        this.mediaAsset = ma;
         //this.name = this.annot_uuid + " on " + ma.getUUID();
     }
 
@@ -104,10 +111,21 @@ public class Annotation implements java.io.Serializable {
     }
     public void setMediaAsset(MediaAsset ma) {
         mediaAsset = ma;
+    }
+
+    // get the MediaAsset created using this Annotation
+    public MediaAsset getDerivedMediaAsset() {
+        return null;
+    }
+
+/*
+    public void setMediaAsset(MediaAsset ma) {
+        mediaAsset = ma;
         if ((ma.getAnnotationCount() == 0) || !ma.getAnnotations().contains(this)) {
             ma.getAnnotations().add(this);
         }
     }
+*/
 
     public String getSpecies() {
         return species;
@@ -157,8 +175,10 @@ public class Annotation implements java.io.Serializable {
                 .toString();
     }
 
+/*
     public MediaAsset getCorrespondingMediaAsset(Shepherd myShepherd) {
         return MediaAsset.findByAnnotation(this, myShepherd);
     }
+*/
 
 }

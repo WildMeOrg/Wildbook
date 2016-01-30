@@ -37,14 +37,23 @@ if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": false, \"error\": \"invalid Job ID\"}");
 
 } else {
-System.out.println("---<<");
 	JSONObject statusResponse = new JSONObject();
+
+	int tries = 10;
+	boolean success = false;
+
+while (!success && (tries > 0)) {
+System.out.println("---<< jobID=" + jobID + ", tries=" + tries);
+
 	try {
 		statusResponse = IBEISIA.getJobStatus(jobID);
+		success = true;
 	} catch (Exception ex) {
 System.out.println("except? " + ex.toString());
 		statusResponse.put("_error", ex.toString());
+		success = !(ex instanceof java.net.SocketTimeoutException);  //for now only re-try if we had a timeout; so may *fail* for other reasons
 	}
+
 System.out.println(statusResponse.toString());
 System.out.println(">>>>---");
 	JSONObject jlog = new JSONObject();
@@ -59,6 +68,7 @@ System.out.println(">>>>---");
 	}
 
 	jlog.put("_action", "getJobStatus");
+	jlog.put("_tries", tries);
 	jlog.put("_response", statusResponse);
 
 
@@ -84,6 +94,16 @@ System.out.println(">>>>---");
 
 	all.put("_timestamp", System.currentTimeMillis());
 	out.println(all.toString());
+
+	tries--;
+	if (!success) {
+System.out.println("resting and will try again...");
+		Thread.sleep(2000);
+	}
+
+}  //end while (success...)
+
+
 }
 
 

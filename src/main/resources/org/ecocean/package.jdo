@@ -291,12 +291,11 @@
                 <join />
             </field>
 
-            <field name="media" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.media.MediaAsset"
+            <field name="annotations" persistence-modifier="persistent" default-fetch-group="true">
+                <collection element-type="org.ecocean.Annotation"
                     dependent-element="true" />
                 <join />
             </field>
-
 
             <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
                 <collection element-type="org.ecocean.Measurement"
@@ -345,18 +344,15 @@
 		<field name="id" primary-key="true">
 			<column length="36" />
 		</field>
-		<field name="mediaAsset">
-			<column name="mediaAssetId" />
-		</field>
-<!--
+
 		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
+<!--
 		<field name="annot_xtl" />
 		<field name="annot_ytl" />
 		<field name="annot_width" />
 		<field name="annot_height" />
 		<field name="annot_theta" />
 		<field name="species_text" />
-		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" />
 -->
 	</class>
 

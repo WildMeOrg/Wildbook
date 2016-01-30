@@ -21,10 +21,12 @@
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
 
+<!--
 		<field name="annotations" mapped-by="mediaAsset">
 			<collection element-type="org.ecocean.Annotation"/>
 			<join />
 		</field>
+-->
 
 		<field name="hashCode">
 			<column length="75" />

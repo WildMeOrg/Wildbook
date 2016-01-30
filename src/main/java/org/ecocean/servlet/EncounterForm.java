@@ -77,6 +77,7 @@ import org.ecocean.User;
 import org.apache.shiro.web.util.WebUtils;
 //import org.ecocean.*;
 import org.ecocean.security.SocialAuth;
+import org.ecocean.Annotation;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
@@ -532,6 +533,33 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
                 guess = fv.get("guess").toString();
             }
 
+
+      //let's handle genus and species for taxonomy
+              String genus = null;
+              String specificEpithet = null;
+
+      try {
+
+              //now we have to break apart genus species
+                if (fv.get("genusSpecies") != null) {
+                  StringTokenizer tokenizer=new StringTokenizer(fv.get("genusSpecies").toString()," ");
+                  if(tokenizer.countTokens()>=2){
+
+                        genus = tokenizer.nextToken();
+                      //enc.setGenus(tokenizer.nextToken());
+                      specificEpithet = tokenizer.nextToken().replaceAll(",","").replaceAll("_"," ");
+                      //enc.setSpecificEpithet(tokenizer.nextToken().replaceAll(",","").replaceAll("_"," "));
+
+                  }
+              //handle malformed Genus Species formats
+                  else{throw new Exception("The format of the submitted genusSpecies parameter did not have two tokens delimited by a space (e.g., \"Rhincodon typus\"). The submitted value was: "+fv.get("genusSpecies"));}
+                }
+
+            } catch (Exception le) {
+
+            }
+
+
 System.out.println("about to do enc()");
 
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
@@ -543,7 +571,7 @@ System.out.println("hey, i think i may have made an encounter, encID=" + encID);
 System.out.println("enc ?= " + enc.toString());
 
             AssetStore astore = AssetStore.getDefault(myShepherd);
-            ArrayList<MediaAsset> newMedia = new ArrayList<MediaAsset>();
+            ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 
             for (FileItem item : formFiles) {
                 JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
@@ -559,7 +587,7 @@ System.out.println("attempting to write uploaded file to " + tmpFile);
                 if (tmpFile.exists()) {
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
-                    newMedia.add(ma);
+                    newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }
@@ -567,7 +595,11 @@ System.out.println("attempting to write uploaded file to " + tmpFile);
 
             ///////////////////TODO social files also!!!
 
-            enc.setMedia(newMedia);
+            enc.setAnnotations(newAnnotations);
+
+
+            enc.setGenus(genus);
+            enc.setSpecificEpithet(specificEpithet);
 
 
 /*
@@ -662,29 +694,6 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
       enc.setSatelliteTag(getSatelliteTag(fv));
       enc.setSex(getVal(fv, "sex"));
       enc.setLivingStatus(getVal(fv, "livingStatus"));
-
-      //let's handle genus and species for taxonomy
-      try {
-
-              String genus="";
-              String specificEpithet = "";
-
-              //now we have to break apart genus species
-                if (fv.get("genusSpecies") != null) {
-                  StringTokenizer tokenizer=new StringTokenizer(fv.get("genusSpecies").toString()," ");
-                  if(tokenizer.countTokens()>=2){
-
-                      enc.setGenus(tokenizer.nextToken());
-                      enc.setSpecificEpithet(tokenizer.nextToken().replaceAll(",","").replaceAll("_"," "));
-
-                  }
-              //handle malformed Genus Species formats
-                  else{throw new Exception("The format of the submitted genusSpecies parameter did not have two tokens delimited by a space (e.g., \"Rhincodon typus\"). The submitted value was: "+fv.get("genusSpecies"));}
-                }
-
-            } catch (Exception le) {
-
-            }
 
 
       if(fv.get("scars")!=null){
