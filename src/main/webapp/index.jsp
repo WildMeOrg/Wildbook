@@ -402,7 +402,7 @@ finally{
             <br>
             <br>
             <h4 style="color: white;">Our work is possible with the generous support of:</h4>
-            <img border="1px" src="images/QWSP_Logo.png" height="125px" width="*" /> <img border="1px" src="images/Siren_Fleet.jpg" height="125px" width="*"  />
+            <img border="1px" src="images/QWSP_Logo_small.png" height="125px" width="170px" /> <img border="1px" src="images/Siren_Fleet_small.jpg" height="125px" width="128px"  />
         </div>
 		
 	</div>
