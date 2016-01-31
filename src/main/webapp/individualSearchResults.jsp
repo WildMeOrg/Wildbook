@@ -7,12 +7,12 @@
 
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
     //let's load out properties
     Properties props = new Properties();
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
 
@@ -74,7 +74,7 @@
       listNum = rIndividuals.size();
     }
   %>
- 
+
 <style type="text/css">
   #tabmenu {
     color: #000;
@@ -94,7 +94,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+    font: 0.5em "Arial", sans-serif;
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -114,15 +114,15 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
 </style>
 
 
@@ -146,7 +146,7 @@
         <%=props.getProperty("title")%>
       </h1>
 
- 
+
 <ul id="tabmenu">
 
 
@@ -182,11 +182,11 @@
   <%
 
     //set up the statistics counters
-    
+
 
     Vector histories = new Vector();
     int rIndividualsSize=rIndividuals.size();
-    
+
     int count = 0;
     int numNewlyMarked = 0;
 
@@ -280,7 +280,7 @@ var colDefn = [
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}
-	
+
 ];
 
 
@@ -571,7 +571,54 @@ if (percentage % 3 == 0) console.log(percentage);
 function _colIndividual(o) {
 	var i = '<b>' + o.individualID + '</b>';
 	var fi = o.dateFirstIdentified;
-	if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
+  // this line re-orders fi to look spotashark-like
+  if (fi) {
+  var monthYear = fi.split('/');
+  var monthStr = "";
+  if (monthYear.length>1 && !isNaN(parseInt(monthYear[0]))) {
+    var monthNo = parseInt(monthYear[0]);
+    switch(monthNo) {
+      case 1:
+        monthStr="JAN";
+        break;
+      case 2:
+        monthStr="FEB";
+        break;
+      case 3:
+        monthStr="MAR";
+        break;
+      case 4:
+        monthStr="APR";
+        break;
+      case 5:
+        monthStr="MAY";
+        break;
+      case 6:
+        monthStr="JUN";
+        break;
+      case 7:
+        monthStr="JUL";
+        break;
+      case 8:
+        monthStr="AUG";
+        break;
+      case 9:
+        monthStr="SEP";
+        break;
+      case 10:
+        monthStr="OCT";
+        break;
+      case 11:
+        monthStr="NOV";
+        break;
+      case 12:
+        monthStr="DEC";
+        break;
+    }
+    fi = monthYear[1]+"-"+monthStr;
+  }
+  i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
+  }
 	return i;
 }
 
@@ -727,6 +774,3 @@ console.log(t);
 
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-
