@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Photo paths to fix.</p>
+<p>Spurious encounters to remove.</p>
 <ul>
 <%
 
@@ -36,7 +36,7 @@ myShepherd.beginDBTransaction();
 
 //build queries
 
-
+int numFixes=0;
 
 
 try{
@@ -45,59 +45,29 @@ try{
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 	
-	Iterator allSPV=myShepherd.getAllSinglePhotoVideosNoQuery();
-   
-   
-	while(allSPV.hasNext()){
-		
-		SinglePhotoVideo spv=(SinglePhotoVideo)allSPV.next();
-		
-		//String encNumber=spv.getCorrespondingEncounterNumber();
-		String newPath=spv.getFullFileSystemPath();
-		if(newPath.indexOf("encounters")!=-1){
-			int position=newPath.indexOf("encounters");
-			newPath=newPath.substring(position);
-			newPath="/var/lib/tomcat7/webapps/wildbook_data_dir/"+newPath;
-		}
-		
-		%>
-		
-		<%=newPath %><br>
-		<%
-		
-		
-		//spv.setFullFileSystemPath(newPath);
-		
-		//myShepherd.commitDBTransaction();
-		//myShepherd.beginDBTransaction();
-	}
-	myShepherd.rollbackDBTransaction();
+	
+	
 
-/*
+	Iterator allEncs=myShepherd.getAllEncounters();
+	
+
 
 while(allEncs.hasNext()){
 	
 	Encounter enc=(Encounter)allEncs.next();
 
-	if(enc.getPatterningCode()==null){
-		int numKwords=kwords.size();
-		for(int i=0;i<numKwords;i++){
-			String keyword=kwords.get(i);
-			if(enc.hasKeyword(myShepherd.getKeyword(keyword))){
-				enc.setPatterningCode(keyword);
-				myShepherd.commitDBTransaction();
-				myShepherd.beginDBTransaction();
-			}
-			else if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
-				MarkedIndividual indy=myShepherd.getMarkedIndividual(enc.getIndividualID());
-				if(indy.getPatterningCode()!=null){enc.setPatterningCode(indy.getPatterningCode());}
-			}
-		}
+	if((enc.getLocation()!=null)&&(enc.getLocation().equals("New York"))&&(enc.getState().equals("unapproved"))&&(enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()==0)){
+		numFixes++;
+		
+		myShepherd.getPM().deletePersistent(enc);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		
 	}
 	
 }
     
-    */
+
 
 %>
 
@@ -122,6 +92,6 @@ finally{
 %>
 
 </ul>
-<p>Done successfully!</p>
+<p>Done successfully: <%=numFixes %></p>
 </body>
 </html>
