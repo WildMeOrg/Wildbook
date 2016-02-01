@@ -492,12 +492,13 @@ public class TrainNetwork {
           ArrayList<WildbookInstance> list=new ArrayList<WildbookInstance>();
           
           
+int testStart = 40;
 int testLimit = 5;
           
           //kick off IBEIS for each Encounter
           //RESTORE ME
           //for(int i=0;i<(numEncs-1);i++){
-          for(int i=0;i<testLimit;i++){
+          for(int i= testStart ;i< testStart+testLimit;i++){
             ArrayList<Encounter> qencs=new ArrayList<Encounter>();
             Encounter myEnc=(Encounter)encounters.get(i);
             qencs.add(myEnc);
@@ -505,7 +506,7 @@ int testLimit = 5;
             
 
             //for(int j=(i+1);j<numEncs;j++){
-            for(int j=(i+1);j<testLimit;j++){
+            for(int j=(i+1);j<(i+1+testLimit);j++){
               tencs.add((Encounter)encounters.get(j));
             } 
             
