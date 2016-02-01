@@ -364,27 +364,58 @@ public class ServletUtilities {
 
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
-    if (request.getUserPrincipal()!=null) {
-      isOwner = true;
-    } 
-    return isOwner;
+    if (request.isUserInRole("admin")) {
+      if (request.getUserPrincipal()!=null) {
+        isOwner = true;
+      } 
+      else if (request.isUserInRole(enc.getLocationCode())) {
+        isOwner = true;
+      } 
+      else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
+        isOwner = true;
+      }
+      return isOwner;
   }
+    return isOwner;
+}
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
-    if (request.getUserPrincipal()!=null) {
-      return true;
+    if (request.isUserInRole("admin")) {
+      if (request.getUserPrincipal()!=null) {
+        return true;
+      }
+  
+      Vector encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
+          return true;
+        }
+      }
     } 
     return false;
   }
   
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
-    if (request.getUserPrincipal()!=null) {
-      return true;
+    if (request.isUserInRole("admin")) {
+      if (request.getUserPrincipal()!=null) {
+        return true;
+      }
+  
+      ArrayList<Encounter> encounters = sharky.getEncounters();
+      int numEncs = encounters.size();
+      for (int y = 0; y < numEncs; y++) {
+        Encounter enc = (Encounter) encounters.get(y);
+        if (request.isUserInRole(enc.getLocationCode())) {
+          return true;
+        }
+      }
     } 
     return false;
   }
-
+  //occurrence
 
   public static Query setRange(Query query, int iterTotal, int highCount, int lowCount) {
 
