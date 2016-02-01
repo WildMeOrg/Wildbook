@@ -10,31 +10,31 @@
 
 	<h2>Species overview</h2>
 	<p>
-		Grey nurse sharks (<em>Carcharias taurus</em>) are found along the east and west coasts of Australia.  <em>C. taurus</em> have unique spot patterns along the sides of their bodies that can be used to identify individuals. This species is characterised by two dorsal fins of similar proportions, the first sitting well back from the pectoral fins, brownish spots on the body and tail and visibly long awl-like teeth in both jaws (read more on their teeth - http://www.elasmo.com/cunningham/c_taurus/sc_ct-files.html). The shape of their caudal (or tail) fin tends to push the snout of the shark down (3 &amp; 4). This is balanced with the lift produced by the pectoral fins, and to some extent, the ventral surface of the snout (3 &amp; 4).
+		Grey nurse sharks (<em>Carcharias taurus</em>) are found along the east and west coasts of Australia.  <em>C. taurus</em>&nbsp;&thinsp;have unique spot patterns along the sides of their bodies that can be used to identify individuals. This species is characterised by two dorsal fins of similar proportions, the first sitting well back from the pectoral fins, brownish spots on the body and tail and visibly long awl-like teeth in both jaws (read more on their teeth - http://www.elasmo.com/cunningham/c_taurus/sc_ct-files.html). The shape of their caudal (or tail) fin tends to push the snout of the shark down (3 &amp; 4). This is balanced with the lift produced by the pectoral fins, and to some extent, the ventral surface of the snout (3 &amp; 4).
 		<figure>
 			<img src="images/spotashark/Grey-Nurse-Shark-Sketch-Liss-Finney-4.png" alt="" width=80% style="display: block;margin: 0 auto;"/>
 			<figcaption>Illustration of a <em>C. taurus</em> by Liss Finney for Spot A Shark</figcaption>
 		</figure>
 	</p>
 	<p>
-		Like many other species of shark, <em>C. taurus</em> uses its large oily liver and its fins to control its buoyancy (3). They also swim to the surface and swallow air, allowing them to hover and appear motionless just above the seafloor. <em>C. taurus</em> are grey or bronze in colour on their upper surface and pale on the lower surface of their body, providing some form of camouflage by making it difficult for their unsuspecting fish prey to distinguish them from the surface (3).
+		Like many other species of shark, <em>C. taurus</em>&nbsp;&thinsp;uses its large oily liver and its fins to control its buoyancy (3). They also swim to the surface and swallow air, allowing them to hover and appear motionless just above the seafloor. <em>C. taurus</em>&nbsp;&thinsp;are grey or bronze in colour on their upper surface and pale on the lower surface of their body, providing some form of camouflage by making it difficult for their unsuspecting fish prey to distinguish them from the surface (3).
 	</p>
 
 
 	<h2>Habitat, life cycle and feeding</h2>
 	<p>
-		<em>Carcharias taurus</em> are frequently viewed by divers at most of the major aggregation sites along NSW and QLD coasts. A separate population also exists along the west coast of Australia (6). They are often seen lingering motionless just above the seafloor in gutters, overhangs and in caves. There is some evidence to suggest that they move to distinct habitats for part of their life cycle for breeding, pupping and for feeding (5).
+		<em>Carcharias taurus</em>&nbsp;&thinsp;are frequently viewed by divers at most of the major aggregation sites along NSW and QLD coasts. A separate population also exists along the west coast of Australia (6). They are often seen lingering motionless just above the seafloor in gutters, overhangs and in caves. There is some evidence to suggest that they move to distinct habitats for part of their life cycle for breeding, pupping and for feeding (5).
 		<figure>
 			<img src="images/spotashark/MP-Overhang-with-Grey-Nurse-1.jpg" alt="" width=70% style="display: block;margin: 0 auto;"/>
 		</figure>
 	</p>
 	<p>
-		Unlike other sharks, female <em>C. taurus</em> have two uteruses. They fertilise their eggs internally and these are released into both uteruses simultaneously. As the pups mature in the uterus they eat other pups until only one remains (6). These then continue to mature, living off additional eggs produced by the mother. After a further 9-12 month period, both pups are born. As this only occurs once every two years, female sharks only average one pup per year. They are considered to have the lowest reproduction rate for all sharks. Female grey nurse sharks mature at 220-230 cm, males at 190-195 cm (4), and pups are born at around 100 cm (1). They can grow to a maximum total length of 318 cm and a maximum weight of approximately 190 kilograms (kg) (4). These sharks mainly eat a range of bony fish, rays, juvenile sharks and crustaceans (2).
+		Unlike other sharks, female <em>C. taurus</em>&nbsp;&thinsp;have two uteruses. They fertilise their eggs internally and these are released into both uteruses simultaneously. As the pups mature in the uterus they eat other pups until only one remains (6). These then continue to mature, living off additional eggs produced by the mother. After a further 9-12 month period, both pups are born. As this only occurs once every two years, female sharks only average one pup per year. They are considered to have the lowest reproduction rate for all sharks. Female grey nurse sharks mature at 220-230 cm, males at 190-195 cm (4), and pups are born at around 100 cm (1). They can grow to a maximum total length of 318 cm and a maximum weight of approximately 190 kilograms (kg) (4). These sharks mainly eat a range of bony fish, rays, juvenile sharks and crustaceans (2).
 	</p>
 
 	<h2>Distribution</h2>
 	<p>
-		<em>Carcharias taurus</em> has a disjunct sub-population distribution and occurs in either coastal tropical or temperate seas of the north and south Atlantic, Indian and western Pacific Oceans (4). In Australia, <em>C. taurus</em> occurs on both east and west coasts, although populations are genetically distinct (7). The east coast population is listed as Critically Endangered due to its small population size and ongoing anthropogenic impacts (15 &amp; 17). On the east coast, <em>C. taurus</em> is usually observed at inshore rocky reefs from southern Queensland to southern New South Wales (9). This species has been recorded from the surf zone down to the continental shelf at depths of 190 m and sometimes at depths of 230 m (14).
+		<em>Carcharias taurus</em>&nbsp;&thinsp;has a disjunct sub-population distribution and occurs in either coastal tropical or temperate seas of the north and south Atlantic, Indian and western Pacific Oceans (4). In Australia, <em>C. taurus</em>&nbsp;&thinsp;occurs on both east and west coasts, although populations are genetically distinct (7). The east coast population is listed as Critically Endangered due to its small population size and ongoing anthropogenic impacts (15 &amp; 17). On the east coast, <em>C. taurus</em>&nbsp;&thinsp;is usually observed at inshore rocky reefs from southern Queensland to southern New South Wales (9). This species has been recorded from the surf zone down to the continental shelf at depths of 190 m and sometimes at depths of 230 m (14).
 	</p>
 	<p>
 		The range of the east coast population is approximately 2,700 km and extends from the Capricornia Coast in Queensland to Narooma in southern New South Wales (14). Grey nurse sharks have been recorded at 153 locations along the east Australian coast as far south as the NSW/Victorian border (4). The range of the west coast population is less well known but records indicate the species occupies sites from the North West Shelf (including coastal waters in Exmouth Gulf), south to coastal waters near Cocklebiddy in the Great Australian Bight (6), covering a range of approximately 2,900 km.
@@ -44,7 +44,7 @@
 		</figure>
 	</p>
 	<p>
-		<em>Carcharias taurus</em> undergoes coastal seasonal migration associated with the reproductive cycle and governed by water temperature (19 &amp; 20). Tagging studies have revealed a northerly migration occurs along the east coast of Australia during autumn and winter, followed by a southerly migration in spring and summer (16).
+		<em>Carcharias taurus</em>&nbsp;&thinsp;undergoes coastal seasonal migration associated with the reproductive cycle and governed by water temperature (19 &amp; 20). Tagging studies have revealed a northerly migration occurs along the east coast of Australia during autumn and winter, followed by a southerly migration in spring and summer (16).
 	</p>
 	<p>
 		Migratory movements have been shown to be sex-biased and linked to level of maturity. The distribution and movement patterns of larger individuals on the east coast of Australia varies with reproductive activities while immature sharks of both sexes tend to be found mostly in the mid to southern parts of the species east coast range (9, 16 and 18). Mature grey nurse sharks have been recorded moving distances of up to 1,260 km for a female (21) and up to 1,550 km for a male (16), while immature grey nurse sharks have been shown to travel distances exceeding 500 km (9, 21, 14).
@@ -53,7 +53,7 @@
 		Similar information can be gained through non-invasive photographic methods (Photo-ID). Barker and Williamson (2010) examined the movement patterns of seventeen sharks, describing both north to south and south to north movement patterns over distances ranging from 200 to 1,150km. The average site-to-site movement pattern was 350 km.
 	</p>
 	<p>
-		One individual first documented on 21 October 2005 at Julian Rocks (Byron Bay) was resighted on the 4 July 2008 at South Solitary Island and then at Montague Island 1,150km further south on the 15 March 2009. Strong philopatric and movement behaviour for <em>C. taurus</em> was observed during our studies, although the exact timing of sharks either leaving or arriving at these sites during photographic resighting remains unclear. This aspect would require multiple years to collect sufficient data relating to temperature, sex and size classes of male, female and young-of-the-year juvenile sharks. Further up-to-date migration information will be published soon and will hopefully reveal important information on the exact timing of these movement patterns along the east coast of Australia.
+		One individual first documented on 21 October 2005 at Julian Rocks (Byron Bay) was resighted on the 4 July 2008 at South Solitary Island and then at Montague Island 1,150km further south on the 15 March 2009. Strong philopatric and movement behaviour for <em>C. taurus</em>&nbsp;&thinsp;was observed during our studies, although the exact timing of sharks either leaving or arriving at these sites during photographic resighting remains unclear. This aspect would require multiple years to collect sufficient data relating to temperature, sex and size classes of male, female and young-of-the-year juvenile sharks. Further up-to-date migration information will be published soon and will hopefully reveal important information on the exact timing of these movement patterns along the east coast of Australia.
 	</p>
 	<p>
 		Research on the west coast of Australia examined the movements of three juvenile grey nurse sharks and found that the juvenile sharks moved hundreds of kilometres along the mid-west coast between Perth and Kalbarri (22). This study suggested that individual grey nurse sharks were not restricted to particular localities or habitats for the west coast, although one of these sharks returned to within 10 km of its release location within three months of its release. Additionally, tagged sharks moved between depths of 20 and 160 m, indicating broad use of the continental shelf in Western Australia (22).
@@ -86,7 +86,7 @@
 			Stow, A., Zenger, K., Briscoe, D., Gillings, M., Peddemors, V.M., Otway, N., Harcourt, R. (2006) Isolation and genetic diversity of endangered grey nurse shark (<em>Carcharias taurus</em>) populations. Biol. Lett. 2: 308-311.
 		</li>
 		<li>
-			West, R. (2008). Final determination to omit <em>C. taurus</em> into Part 1 of schedule 4A Critically Endangered Species of the Act. http://www.dpi.nsw.gov.au/fisheries/. [accessed 2009 March 8]
+			West, R. (2008). Final determination to omit <em>C. taurus</em>&nbsp;&thinsp;into Part 1 of schedule 4A Critically Endangered Species of the Act. http://www.dpi.nsw.gov.au/fisheries/. [accessed 2009 March 8]
 		</li>
 		<li>
 			Otway, N, &amp; Burke, A. (2004) Mark-recapture population estimate and movements of Grey Nurse Sharks. NSW Fisheries Conservation Research, Port Stephens, NSW.
@@ -127,12 +127,12 @@
 		</li>
 		<li>
 			Parker, P., and Bucher, D. J. (2000). Seasonal variation in abundance and sex
-			ratio of grey nurse (sand tiger) sharks <em>Carcharias taurus</em> in northern New
+			ratio of grey nurse (sand tiger) sharks <em>Carcharias taurus</em>&nbsp;&thinsp;in northern New
 			South Wales, Australia: a survey based on observations of recreational
 			scuba divers. Pacific Conservation Biology 5, 336-346.
 		</li>
 		<li>
-			Bansemer, C., &amp; Bennett, M. (2009). Reproductive periodicity, localised movements and behavioural segregation of pregnant <em>Carcharias taurus</em> at Wolf Rock, southeast Queensland, Australia. Marine Ecological Progress Series 374, 215-227.
+			Bansemer, C., &amp; Bennett, M. (2009). Reproductive periodicity, localised movements and behavioural segregation of pregnant <em>Carcharias taurus</em>&nbsp;&thinsp;at Wolf Rock, southeast Queensland, Australia. Marine Ecological Progress Series 374, 215-227.
 		</li>
 		<li>
 			McAuley, R. (2004). Western Australian Grey Nurse Shark Pop Up Archival Tag Project. Final Report to Department of Environment and Heritage. Department of Fisheries, Western Australia. pp 49.
