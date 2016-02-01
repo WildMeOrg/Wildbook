@@ -989,12 +989,18 @@ public class Encounter implements java.io.Serializable {
         if ((images == null) || (images.size() < 1)) return null;  //probably pointless, so...
         if (annotations == null) annotations = new ArrayList<Annotation>();
         boolean thumbDone = false;
+        ArrayList<MediaAsset> haveMedia = new ArrayList<MediaAsset>();  //so we dont add duplicates!
         for (SinglePhotoVideo spv : images) {
             MediaAsset ma = spv.toMediaAsset(myShepherd);
             if (ma == null) {
-                System.out.println("WARNING: Encounter.generateMedia() could not create MediaAsset from SinglePhotoVideo " + spv.getDataCollectionEventID() + "; skipping");
+                System.out.println("WARNING: Encounter.generateAnnotations() could not create MediaAsset from SinglePhotoVideo " + spv.getDataCollectionEventID() + "; skipping");
                 continue;
             }
+            if (haveMedia.contains(ma)) {
+                System.out.println("WARNING: Encounter.generateAnnotations() found a duplicate MediaAsset in the SinglePhotoVideo images; skipping -- " + ma);
+                continue;
+            }
+            haveMedia.add(ma);
             ma.addLabel("_original");
             annotations.add(new Annotation(ma, getTaxonomyString()));
             //if (!media.contains(ma)) media.add(ma);
