@@ -635,20 +635,20 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals </br>
-                <%=numMarkedIndividualsLeftFlank %> Left,
-                <%= numMarkedIndividuals - numMarkedIndividualsLeftFlank %> Right
+                <p class="brand-primary"><i>
+                  <span class="half-massive"><%=numMarkedIndividualsLeftFlank %> Left </span></br>
+                  <span class="half-massive"><%= numMarkedIndividuals - numMarkedIndividualsLeftFlank %> Right </span> </br>
+                  unique individuals
                 </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span>
-                reported encounters </br>
-                <%=numEncountersLeftFlank %> Left,
-                <%= numEncounters - numEncountersLeftFlank %> Right
+                <p class="brand-primary"><i>
+                  <span class="half-massive"><%=numEncountersLeftFlank %> Left </span></br>
+                  <span class="half-massive"><%= numEncounters - numEncountersLeftFlank %> Right </span></br>
+                  reported encounters
                 </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
             </section>
         </div>
