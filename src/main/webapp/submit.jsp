@@ -813,8 +813,9 @@ if(request.getRemoteUser()!=null){
 				</div>
 			</div>
 		</div>
+		<div class="row">
 		<div class="col-xs-12 col-lg-12">
-			<label class="control-label">flank</label>:
+			<label class="text-danger control-label">Flank</label>:
 			<div class='wrapper text-center'>
 				<div class="btn-group" data-toggle="buttons">
 					<label class="btn btn-secondary flank-btn active">
@@ -826,6 +827,27 @@ if(request.getRemoteUser()!=null){
 				</div>
 			</div>
 		</div>
+	</div>
+	<div class="row">
+	</br><br>
+		<div class="form-group">
+			<div class="col-xs-12 col-lg-12">
+				<h3>Hookmark</h3>
+				<p class="text-danger">Is a hookmark or scar noticable in your photo?</p>
+			</div>
+			<div class="col-xs-6 col-md-4">
+				<label class="text-danger control-label">Scarring/hookmark:</label>
+			</div>
+			<div class="col-xs-6 col-lg-8">
+				<select class="form-control" name="hookmark" id="hookmark">
+					<option value="N" selected="selected">None</option>
+					<option value="H">Hooked</option>
+					<option value="O">Marked</option>
+				</select>
+			</div>
+		</div>
+	</div>
+
 	</fieldset>
 
 	<hr/>
@@ -952,18 +974,6 @@ if(request.getRemoteUser()!=null){
 				</div>
 			</div>
 
-		<div class="form-group">
-			<div class="col-xs-6 col-md-4">
-				<label class="control-label">Noticeable scarring/hooking</label>
-			</div>
-			<div class="col-xs-6 col-lg-8">
-				<select class="form-control" name="hookmark" id="hookmark">
-					<option value="N" selected="selected">None</option>
-					<option value="H">Hooked</option>
-					<option value="O">Marked</option>
-				</select>
-			</div>
-		</div>
 
 		<%
 		if(CommonConfiguration.showProperty("showLifestage",context)){
