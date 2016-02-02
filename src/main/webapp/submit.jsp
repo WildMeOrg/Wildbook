@@ -384,7 +384,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
   <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
 <form id="encounterForm" 
-	  action="EncounterForm" 
+	  action="spambot.jsp" 
 	  method="post" 
 	  enctype="multipart/form-data"
       name="encounter_submission" 
@@ -434,7 +434,10 @@ function sendButtonClicked() {
 	console.log('fell through -- must be no social!');
 	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
     console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-	if(!isEmpty(recaptachaResponse)) submitForm();
+	if(!isEmpty(recaptachaResponse)) {		
+		$("#encounterForm").attr("action", "EncounterForm");
+		submitForm();
+	}
 	//alert(recaptachaResponse);
 	return true;
 }
