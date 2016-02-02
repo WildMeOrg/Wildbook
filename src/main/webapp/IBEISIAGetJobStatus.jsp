@@ -34,24 +34,44 @@ response.setHeader("Content-type", "application/javascript");
 String jobID = request.getParameter("jobid");
 System.out.println("IBEIS-IA callback got jobid=" + jobID);
 if ((jobID == null) || jobID.equals("")) {
+//System.out.println("fake fail * * * * * * * * * *");
 	out.println("{\"success\": false, \"error\": \"invalid Job ID\"}");
 
 } else {
+
+	runIt(jobID, myShepherd);
+	out.println("{\"success\": true}");
+System.out.println("((((all done with main thread))))");
+}
+
+%>
+
+<%!
+
+private void runIt(final String jobID, final Shepherd myShepherd) {
+System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. . .................................");
+
+	Runnable r = new Runnable() {
+		public void run() {
+			tryToGet(jobID, myShepherd);
+		}
+	};
+	new Thread(r).start();
+System.out.println("((( done runIt() )))");
+	return;
+}
+ 
+private void tryToGet(String jobID, Shepherd myShepherd) {
+System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
-
-	int tries = 10;
-	boolean success = false;
-
-while (!success && (tries > 0)) {
-System.out.println("---<< jobID=" + jobID + ", tries=" + tries);
+//if (jobID != null) return;
 
 	try {
 		statusResponse = IBEISIA.getJobStatus(jobID);
-		success = true;
 	} catch (Exception ex) {
 System.out.println("except? " + ex.toString());
 		statusResponse.put("_error", ex.toString());
-		success = !(ex instanceof java.net.SocketTimeoutException);  //for now only re-try if we had a timeout; so may *fail* for other reasons
+		//success = !(ex instanceof java.net.SocketTimeoutException);  //for now only re-try if we had a timeout; so may *fail* for other reasons
 	}
 
 System.out.println(statusResponse.toString());
@@ -68,7 +88,6 @@ System.out.println(">>>>---");
 	}
 
 	jlog.put("_action", "getJobStatus");
-	jlog.put("_tries", tries);
 	jlog.put("_response", statusResponse);
 
 
@@ -77,12 +96,14 @@ System.out.println(">>>>---");
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
 
+try {
 	if ((statusResponse != null) && statusResponse.has("status") &&
 	    statusResponse.getJSONObject("status").getBoolean("success") &&
 	    statusResponse.has("response") && statusResponse.getJSONObject("response").has("status") &&
             "ok".equals(statusResponse.getJSONObject("response").getString("status")) &&
             "completed".equals(statusResponse.getJSONObject("response").getString("jobstatus")) &&
             "ok".equals(statusResponse.getJSONObject("response").getString("exec_status"))) {
+System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		JSONObject resultResponse = IBEISIA.getJobResult(jobID);
 		JSONObject rlog = new JSONObject();
 		rlog.put("jobID", jobID);
@@ -91,18 +112,13 @@ System.out.println(">>>>---");
 		IBEISIA.log(taskID, jobID, rlog, myShepherd);
 		all.put("jobResult", rlog);
 	}
+} catch (Exception ex) {
+ System.out.println("whoops got exception: " + ex.toString());
+}
 
 	all.put("_timestamp", System.currentTimeMillis());
-	out.println(all.toString());
-
-	tries--;
-	if (!success) {
-System.out.println("resting and will try again...");
-		Thread.sleep(2000);
-	}
-
-}  //end while (success...)
-
+System.out.println("-------- >>> " + all.toString());
+	return;
 
 }
 
