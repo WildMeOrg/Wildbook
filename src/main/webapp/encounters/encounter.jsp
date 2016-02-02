@@ -1910,7 +1910,7 @@ $("a#country").click(function() {
  				<%
  				}
  
-				if (isOwner) {
+				if (visible) {
 
 					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
 					%>
