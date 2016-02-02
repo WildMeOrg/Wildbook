@@ -1068,12 +1068,12 @@ System.out.println(i + ") beginIdentify ========================================
         //let's get the IBEIS value ===================================================
         HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
         long loopStartTime=System.currentTimeMillis();
-        String success="";
-        if(res.get("success")!=null){success=(String)res.get("success");}
-        while(((System.currentTimeMillis()-loopStartTime)<300000)&&(success.equals(""))){
+        Boolean success=false;
+        if(res.get("success")!=null){success=(Boolean)res.get("success");}
+        while(((System.currentTimeMillis()-loopStartTime)<300000)&&(!success)){
           try{
             Thread.sleep(5000);
-            if(res.get("success")!=null){success=(String)res.get("success");}
+            if(res.get("success")!=null){success=(Boolean)res.get("success");}
           }
           catch(Exception e){e.printStackTrace();}
         }
