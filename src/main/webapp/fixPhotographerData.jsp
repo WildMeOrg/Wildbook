@@ -47,6 +47,7 @@ Iterator<MarkedIndividual> allSharks;
 
 HashMap<String, String> shortToLong = new HashMap<String,String>();
 HashMap<String, String> shortToEmail = new HashMap<String,String>();
+HashMap<String,String> nameToEmail = new HashMap<String,String>();
 
 try{
 
@@ -126,6 +127,61 @@ try{
   shortToEmail.put("AGR", "ajhgreen@gmail.com");
   shortToEmail.put("BBA", "bbarker@internode.on.net");
 
+  nameToEmail.put("A. Roche",	"anitar@bigpond.net.au");
+  nameToEmail.put("Ben Birt",	"benbirt2@hotmail.com");
+  nameToEmail.put("C. Hamilton", "chris@yambabeach.net.au");
+  nameToEmail.put("C. Day",	"chris.p.day.s@gmail.com");
+  nameToEmail.put("C. Unger",	"cjunger@bigpond.com");
+  nameToEmail.put("D. Silcock",	"don.silcock@ge.com");
+  nameToEmail.put("D. Slezac",	"dcslez@yahoo.com.au");
+  nameToEmail.put("E. Brookes",	"elly.brookes@gmail.com");
+  nameToEmail.put("G. Toland",	"g.toland54@gmail.com");
+  nameToEmail.put("GLUG",	"glug88@gmail.com");
+  nameToEmail.put("Feet First Dive", "enquiries@feetfirstdive.com.au");
+  nameToEmail.put("H. Porter",	"huw@huwporter.com");
+  nameToEmail.put("I. Signorelli",	"ivan.signorelli@gmail.com");
+  nameToEmail.put("J. Bennett",	"jennibennett@gmail.com");
+  nameToEmail.put("John Granbury",	"john@professionaldiveservices.com.au");
+  nameToEmail.put("J. Jeayes",	"john.jeayes@gmail.com");
+  nameToEmail.put("J. Kato",	"scubaninja.j@gmail.com");
+  nameToEmail.put("J. Regan",	"jregan@jcregan.com");
+  nameToEmail.put("J. Swift",	"johngoby@ozemail.com.au");
+  nameToEmail.put("J. Weinman",	"bwds@tpg.com.au");
+  nameToEmail.put("K. Cullen",	"kevin@breseight.com.au");
+  nameToEmail.put("Kevin Hitchins",	"info@southwestrocksdive.com.au");
+  nameToEmail.put("K. Jackson",	"kjackson_au@optusnet.com.au");
+  nameToEmail.put("K. McCleery",	"krisinmaui@gmail.com");
+  nameToEmail.put("K. Raubenheimer",	"k_raubenheimer@hotmail.com");
+  nameToEmail.put("L. Brodie",	"lbrodie52@optusnet.com.au");
+  nameToEmail.put("L. Clarke",	"lynda@lyndaclarke.net");
+  nameToEmail.put("M. Gray",	"mgray@gotalk.net.au");
+  nameToEmail.put("M. Harwood",	"maree_harwood@hotmail.com");
+  nameToEmail.put("M. Parsons",	"mnparso@gmail.com");
+  nameToEmail.put("N. Coombes",	"nige77@hotmail.com");
+  nameToEmail.put("N. Kerhsler",	"niccikershler@gmail.com");
+  nameToEmail.put("N. Spargo",	"nspargo@mac.com");
+  nameToEmail.put("O. Kristensen",	"iibm5210@bigpond.net.au");
+  nameToEmail.put("P. Craig",	"PeterC@ggs.vic.edu.au");
+  nameToEmail.put("Peter Hitchins",	"info@southwestrocksdive.com.au");
+  nameToEmail.put("P. Krattinger",	"pkrattiger1@hotmail.com");
+  nameToEmail.put("P. McGee",	"petermcgee28@gmail.com");
+  nameToEmail.put("P. Sharp",	"petermcgee28@gmail.com");
+  nameToEmail.put("P. Simpson",	"peter@pandcjoinery.com.au");
+  nameToEmail.put("R. Davis",	"rebecca@saveoursharks.com.au");
+  nameToEmail.put("R. Nagy",	"rnramaley@gmail.com");
+  nameToEmail.put("R. Proctor",	"rpprocter@yahoo.co.uk");
+  nameToEmail.put("R. Ramaley",	"rnramaley@gmail.com");
+  nameToEmail.put("R. Van Zalm",	"rob.vanderzalm@gmail.com");
+  nameToEmail.put("Rod Hodgkins",	"rodh@ccconsulting.com.au");
+  nameToEmail.put("S. Barker",	"seanmbarker@hotmail.com");
+  nameToEmail.put("S. Mittag",	"simonmittag@me.com");
+  nameToEmail.put("Silke Stuckenbrock",	"silkephoto@hotmail.com");
+  nameToEmail.put("WRDC",	"ajhgreen@gmail.com");
+  nameToEmail.put("Scott Portelli",	"scott.portelli@swimmingwithgentlegiants.com");
+  nameToEmail.put("A. Green",	"ajhgreen@gmail.com");
+  nameToEmail.put("B. Barker",	"bbarker@internode.on.net");
+  nameToEmail.put("Isabelle Stratton",	"glug88@gmail.com");
+  nameToEmail.put("Nick Dawkins",	"nick@nickdawkins.com");
 
 allEncs=myShepherd.getAllEncounters(encQuery);
 allSharks=myShepherd.getAllMarkedIndividuals(sharkQuery);
