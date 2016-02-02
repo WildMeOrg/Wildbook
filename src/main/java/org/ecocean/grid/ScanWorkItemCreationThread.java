@@ -236,7 +236,7 @@ System.out.println("baseUrl --> " + baseUrl);
         qencs.add(myShepherd.getEncounter(encounterNumber));
 //System.out.println("qencs = " + qencs);
 //System.out.println("tencs = " + tencs);
-        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID, baseUrl);
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID, baseUrl, context);
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");

@@ -24,7 +24,10 @@ org.ecocean.media.*
 <%
 
 Shepherd myShepherd=null;
-myShepherd = new Shepherd("context0");
+
+String context = "context0";
+
+myShepherd = new Shepherd(context);
 
 //String rootDir = getServletContext().getRealPath("/");
 //String baseDir = ServletUtilities.dataDir("context0", rootDir);
@@ -39,7 +42,7 @@ if ((jobID == null) || jobID.equals("")) {
 
 } else {
 
-	runIt(jobID, myShepherd);
+	runIt(jobID, myShepherd, context);
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
@@ -48,12 +51,12 @@ System.out.println("((((all done with main thread))))");
 
 <%!
 
-private void runIt(final String jobID, final Shepherd myShepherd) {
+private void runIt(final String jobID, final Shepherd myShepherd, final String context) {
 System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. . .................................");
 
 	Runnable r = new Runnable() {
 		public void run() {
-			tryToGet(jobID, myShepherd);
+			tryToGet(jobID, myShepherd, context);
 		}
 	};
 	new Thread(r).start();
@@ -61,7 +64,7 @@ System.out.println("((( done runIt() )))");
 	return;
 }
  
-private void tryToGet(String jobID, Shepherd myShepherd) {
+private void tryToGet(String jobID, Shepherd myShepherd, String context) {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
 //if (jobID != null) return;
@@ -91,7 +94,7 @@ System.out.println(">>>>---");
 	jlog.put("_response", statusResponse);
 
 
-	IBEISIA.log(taskID, jobID, jlog, myShepherd);
+	IBEISIA.log(taskID, jobID, jlog, context);
 
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
@@ -109,7 +112,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		rlog.put("jobID", jobID);
 		rlog.put("_action", "getJobResult");
 		rlog.put("_response", resultResponse);
-		IBEISIA.log(taskID, jobID, rlog, myShepherd);
+		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
 	}
 } catch (Exception ex) {

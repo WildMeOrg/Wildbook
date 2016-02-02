@@ -292,6 +292,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     @Override
     public URL webURL(final MediaAsset ma) {
         if ((webRoot() == null) || (ma == null)) return null;
+System.out.println("# # # # # # # # # # # webURL on " + ma.toString());
         Path path = pathFromParameters(ma.getParameters());
         if (path == null) return null;
 
