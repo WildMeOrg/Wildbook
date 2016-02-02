@@ -1067,6 +1067,8 @@ System.out.println(i + ") beginIdentify ========================================
         
         //let's get the IBEIS value ===================================================
         HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
+        
+        System.out.println("I HAVE an IBEIS results object: "+res.toString());
         long loopStartTime=System.currentTimeMillis();
         Boolean success=false;
         if(res.get("success")!=null){success=(Boolean)res.get("success");}
@@ -1080,6 +1082,9 @@ System.out.println(i + ") beginIdentify ========================================
           catch(Exception e){e.printStackTrace();}
         }
         if(res.get("results")!=null){
+          
+          System.out.println("I HAVE an IBEIS results object and it claims success!");
+          
           HashMap<String,Object> rout=(HashMap<String,Object>)res.get("results");
           if(rout.get(el1.getEncounterNumber())!=null){
             HashMap<String,Double> thisResult=(HashMap<String,Double>)rout.get(el1.getEncounterNumber());
