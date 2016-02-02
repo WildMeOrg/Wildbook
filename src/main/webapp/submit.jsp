@@ -361,9 +361,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
   <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
-<form id="encounterForm"
-	  action="EncounterForm"
-	  method="post"
+<form id="encounterForm" 
+	  action="spambot.jsp" 
+	  method="post" 
 	  enctype="multipart/form-data"
     name="encounter_submission"
     target="_self" dir="ltr"
@@ -411,7 +411,10 @@ function sendButtonClicked() {
 	console.log('fell through -- must be no social!');
 	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
     console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-	if(!isEmpty(recaptachaResponse)) submitForm();
+	if(!isEmpty(recaptachaResponse)) {		
+		$("#encounterForm").attr("action", "EncounterForm");
+		submitForm();
+	}
 	//alert(recaptachaResponse);
 	return true;
 }
@@ -1173,6 +1176,22 @@ if(request.getRemoteUser()!=null){
 				<p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
 			</div>
 		</div>
+      
+   
+         
+         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+           <script>
+	           var captchaWidgetId = grecaptcha.render( 
+	        	'myCaptcha', {
+		  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
+		  			'theme' : 'light'
+				});
+	           
+           </script>
+        
+        
+
+      
 
 		<p class="text-center">
 			<button class="large" type="submit" onclick="return sendButtonClicked();">
