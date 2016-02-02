@@ -525,6 +525,7 @@ int testLimit = 5;
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             String taskID=myEnc.getEncounterNumber();
             
+System.out.println(i + ") beginIdentify =================================================================================================");
             IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(myEnc.getGenus(), myEnc.getSpecificEpithet()), taskID, baseUrl);
             //proceed now that IBEIS is woken  =============================
 
