@@ -849,10 +849,10 @@ System.out.println(i + ") beginIdentify ========================================
         
         
         fvWekaAttributes.add(ClassAttribute);
-        //System.out.println("Building attributes for: "+genusSpecies);
+        System.out.println("Building attributes for: "+genusSpecies);
       }
       
-      //System.out.println("     fvWekaAttriubutes has a size of: "+fvWekaAttributes.size());
+      System.out.println("     fvWekaAttriubutes has a size of: "+fvWekaAttributes.size());
       return fvWekaAttributes;
       
       
@@ -860,7 +860,7 @@ System.out.println(i + ") beginIdentify ========================================
     
     
     public static WildbookInstance buildInstance(String genusSpecies,Instances isTrainingSet){
-      
+      System.out.println("Building an instance...");
       //concat genus and species to a single string of characters with no spaces
       genusSpecies=genusSpecies.replace(" ", "");
       // Create the instance
@@ -872,7 +872,7 @@ System.out.println(i + ") beginIdentify ========================================
      DenseInstance di=new DenseInstance(fvWekaAttributes.size());
      di.setDataset(isTrainingSet);
       instance=new WildbookInstance(di);
-      
+      System.out.println("Returning an instance...");
       return instance;
       
     }
@@ -983,7 +983,7 @@ System.out.println(i + ") beginIdentify ========================================
       MatchObject mo=new MatchObject();
         
         
-        
+        System.out.println("Starting TrainNetwork.getMatchObject");
         
         //FIRST PASS
         
