@@ -1073,6 +1073,8 @@ System.out.println(i + ") beginIdentify ========================================
         while(((System.currentTimeMillis()-loopStartTime)<300000)&&(!success)){
           try{
             Thread.sleep(5000);
+            System.out.println("...Sleeping while waiting for IBEIS...");
+            res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
             if(res.get("success")!=null){success=(Boolean)res.get("success");}
           }
           catch(Exception e){e.printStackTrace();}
