@@ -525,8 +525,8 @@ int testLimit = 5;
             String baseDir = ServletUtilities.dataDir(context, rootDir);
             String taskID=myEnc.getEncounterNumber();
             
-System.out.println(i + ") beginIdentify =================================================================================================");
-            IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(myEnc.getGenus(), myEnc.getSpecificEpithet()), taskID, baseUrl);
+System.out.println(i + ") beginIdentify (taskID=" + taskID + ") =================================================================================================");
+            IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(myEnc.getGenus(), myEnc.getSpecificEpithet()), taskID, baseUrl, context);
             //proceed now that IBEIS is woken  =============================
 
           }
@@ -537,10 +537,10 @@ System.out.println(i + ") beginIdentify ========================================
           
           
           
-          for(int i=0;i<testLimit;i++){
+          for(int i= testStart ;i< testStart+testLimit;i++){
           //RESTORE ME
           //for(int i=0;i<(numEncs-1);i++){
-            for(int j=(i+1);j<testLimit;j++){
+            for(int j=(i+1);j<(i+1+testLimit);j++){
               
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
               EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
@@ -556,8 +556,9 @@ System.out.println(i + ") beginIdentify ========================================
                         WildbookInstance iExample=buildInstance(genusSpecies,isTrainingSet);
                         WildbookInstance iExample2=buildInstance(genusSpecies,isTrainingSet);
                         
-                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, request, myShepherd);
-                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, request, myShepherd);
+                        String taskID = enc1.getEncounterNumber();
+                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, taskID, request, myShepherd);
+                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, taskID, request, myShepherd);
 
                         populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
                         populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
@@ -976,7 +977,7 @@ System.out.println(i + ") beginIdentify ========================================
     }
     
     
-    public static MatchObject getMatchObject(String genusSpecies,EncounterLite el1, EncounterLite el2, HttpServletRequest request, Shepherd myShepherd){
+    public static MatchObject getMatchObject(String genusSpecies,EncounterLite el1, EncounterLite el2, String taskID, HttpServletRequest request, Shepherd myShepherd){
         
 
       
@@ -1066,7 +1067,7 @@ System.out.println(i + ") beginIdentify ========================================
         
         
         //let's get the IBEIS value ===================================================
-        HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
+        HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(taskID, myShepherd);
         
         System.out.println("I HAVE an IBEIS results object: "+res.toString());
         long loopStartTime=System.currentTimeMillis();

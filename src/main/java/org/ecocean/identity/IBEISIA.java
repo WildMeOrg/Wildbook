@@ -183,7 +183,8 @@ System.out.println(tlist);
                 rtn.put("_debug", last);
 
                 JSONArray resOut = new JSONArray();
-                JSONArray res = new JSONArray(last.getJSONObject("_response").getJSONObject("response").getString("json_result")); //"should never" fail. HA!
+                JSONArray res = last.getJSONObject("_response").getJSONObject("response").getJSONArray("json_result"); //"should never" fail. HA!
+                //JSONArray res = new JSONArray(last.getJSONObject("_response").getJSONObject("response").getString("json_result")); //"should never" fail. HA!
 
                 for (int i = 0 ; i < res.length() ; i++) {
                     JSONObject el = new JSONObject();
@@ -264,7 +265,7 @@ System.out.println(tlist);
 
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID, String baseUrl) {
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
@@ -273,7 +274,7 @@ System.out.println(tlist);
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
 
-        log(taskID, jobID, new JSONObject("{\"_action\": \"init\"}"), myShepherd);
+        log(taskID, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
 
         try {
             for (Encounter enc : queryEncs) {
@@ -325,15 +326,19 @@ System.out.println(allAnns);
         JSONObject jlog = new JSONObject();
         jlog.put("_action", "sendIdentify");
         jlog.put("_response", results);
-        log(taskID, jobID, jlog, myShepherd);
+        log(taskID, jobID, jlog, context);
 
         return results;
     }
 
 
-    public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, Shepherd myShepherd) {
+    public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
+System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
         IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
         log.save(myShepherd);
+        myShepherd.commitDBTransaction();
         return log;
     }
 
