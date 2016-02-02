@@ -5,11 +5,18 @@
                  org.ecocean.*,
                  java.util.Properties" %>
 
+
+<!-- Add reCAPTCHA -->
+
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
 <jsp:include page="header.jsp" flush="true"/>
+
+<!-- add recaptcha -->
+<script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -27,7 +34,9 @@ context=ServletUtilities.getContext(request);
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
-
+    
+    Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
+    
     Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
 
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
@@ -157,6 +166,12 @@ function sendSocialPhotosBackground() {
 console.log('iframeUrl %o', iframeUrl);
 	document.getElementById('social_files_iframe').src = iframeUrl;
 	return true;
+}
+</script>
+
+<script>
+function isEmpty(str) {
+    return (!str || 0 === str.length);
 }
 </script>
 
@@ -346,9 +361,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
   <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
-<form id="encounterForm"
-	  action="EncounterForm"
-	  method="post"
+<form id="encounterForm" 
+	  action="spambot.jsp" 
+	  method="post" 
 	  enctype="multipart/form-data"
     name="encounter_submission"
     target="_self" dir="ltr"
@@ -391,10 +406,16 @@ function submitForm() {
 //we need to first check here if we need to do the background social image send... in which case,
 // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
 function sendButtonClicked() {
-console.log('sendButtonClicked()');
+	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
-console.log('fell through -- must be no social!');
-	submitForm();
+	console.log('fell through -- must be no social!');
+	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+    console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+	if(!isEmpty(recaptachaResponse)) {		
+		$("#encounterForm").attr("action", "EncounterForm");
+		submitForm();
+	}
+	//alert(recaptachaResponse);
 	return true;
 }
 
@@ -1155,6 +1176,22 @@ if(request.getRemoteUser()!=null){
 				<p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
 			</div>
 		</div>
+      
+   
+         
+         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
+           <script>
+	           var captchaWidgetId = grecaptcha.render( 
+	        	'myCaptcha', {
+		  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
+		  			'theme' : 'light'
+				});
+	           
+           </script>
+        
+        
+
+      
 
 		<p class="text-center">
 			<button class="large" type="submit" onclick="return sendButtonClicked();">
