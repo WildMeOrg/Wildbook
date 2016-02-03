@@ -410,13 +410,26 @@ function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
-	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-    console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-	if(!isEmpty(recaptachaResponse)) {		
-		$("#encounterForm").attr("action", "EncounterForm");
-		submitForm();
-	}
+
+    <%
+    if(request.getUserPrincipal()!=null){
+    %>
+    	$("#encounterForm").attr("action", "EncounterForm");
+    	submitForm();
+    <%
+    }
+    else{
+    %>
+		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+   		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+		if(!isEmpty(recaptachaResponse)) {		
+			$("#encounterForm").attr("action", "EncounterForm");
+			submitForm();
+		}
 	//alert(recaptachaResponse);
+	<%
+    }
+	%>
 	return true;
 }
 
@@ -1083,7 +1096,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       </div>
       
    
-         
+         <%
+         if(request.getRemoteUser()==null){
+         %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 	           var captchaWidgetId = grecaptcha.render( 
@@ -1094,7 +1109,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 	           
            </script>
         
-        
+        <%
+         }
+        %>
 
       
 
