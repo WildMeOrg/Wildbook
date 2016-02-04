@@ -559,17 +559,17 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
                         
                         String taskID = enc1.getEncounterNumber();
                         MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, taskID, request, myShepherd);
-                        MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, taskID, request, myShepherd);
+                        //MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, taskID, request, myShepherd);
 
                         populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
-                        populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
+                        //populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
                         
                         
                         iExample.setMatchObject(mo);
-                        iExample2.setMatchObject(mo2);
+                        //iExample2.setMatchObject(mo2);
                         
                         list.add(iExample);
-                        list.add(iExample2);
+                        //list.add(iExample2);
 
                         System.out.println("     isTrainingSetSize: "+list.size());
                   
@@ -681,7 +681,7 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
           
           
           //ok, now we need to build a set if Instances that only have matches and then add an equal number of nonmatches
-          Instances balancedInstances = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (numMatches*2));
+          Instances balancedInstances = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (numMatches));
           System.out.println("     isTrainingSet size is: "+isTrainingSet.numInstances());
           balancedInstances.setClassIndex(getClassIndex(genusSpecies));
           for(int i=0;i<isTrainingSet.numInstances();i++){
