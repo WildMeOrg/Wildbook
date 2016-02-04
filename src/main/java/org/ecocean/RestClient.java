@@ -27,6 +27,7 @@ https://stackoverflow.com/a/29053050/1525311
 */
 
 public class RestClient {
+    ///TODO this is IBEIS-specific -- need to generalize for RestClient to be universal
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
 
     public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -56,12 +57,28 @@ public class RestClient {
         }
         conn.connect();
 
-        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
+        boolean success = true;
+        //TODO the 600 response here is IBEIS-specific, so we need to genericize this
+        if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK) && (conn.getResponseCode() != 600)) {
             //conn.disconnnect();
-            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+System.out.println("!!!!!!!!!!!!!!!!!!! bad response code = " + conn.getResponseCode());
+            success = false;
         }
 
-        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        BufferedReader br = null;
+/*
+        if (success) {
+            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        } else {
+            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+        }
+*/
+        try {
+            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        } catch (IOException ioe) {
+            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+        }
+
         String output;
         String jtext = "";
         while ((output = br.readLine()) != null) {
@@ -69,6 +86,11 @@ public class RestClient {
         }
         br.close();
         //conn.disconnect();
+        if (!success) {
+            System.out.println("========= anyMethod failed with code=" + conn.getResponseCode() + "\n" + jtext + "\n============");
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+        }
+
         if (jtext.equals("")) return null;
         return new JSONObject(jtext);
 
@@ -86,6 +108,9 @@ public class RestClient {
     }
 
 
+    ///TODO this chunk below is IBEIS-specific -- need to generalize for RestClient to be universal
+
+
     private static String getSignature(String key, byte[] messageToSendBytes) throws NoSuchAlgorithmException, InvalidKeyException {
         SecretKeySpec keyHmac = new SecretKeySpec(key.getBytes(), HMAC_SHA1_ALGORITHM);
         Mac mac = Mac.getInstance(HMAC_SHA1_ALGORITHM);
@@ -98,6 +123,9 @@ public class RestClient {
         String appSecret = "CB73808F-A6F6-094B-5FCD-385EBAFF8FC0";
         return appName + ":" + getSignature(appSecret, url.getBytes());
     }
+    ///// end TODO
+
+
 
     private static String getPostDataString(JSONObject obj) {
         StringBuilder result = new StringBuilder();
@@ -118,7 +146,7 @@ public class RestClient {
                 System.out.println("caught exception on key " + key + ": " + uee.toString());
             }
         }
-System.out.println("------- getPostDataString=(\n" + result.toString() + "\n)--------\n");
+//////System.out.println("------- getPostDataString=(\n" + result.toString() + "\n)--------\n");
         return result.toString();
     }
 }

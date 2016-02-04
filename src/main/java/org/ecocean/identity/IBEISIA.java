@@ -39,6 +39,7 @@ public class IBEISIA {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
+        int ct = 0;
 
         //see: https://erotemic.github.io/ibeis/ibeis.web.html?highlight=add_images_json#ibeis.web.app.add_images_json
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
@@ -77,9 +78,11 @@ public class IBEISIA {
                 map.get("image_time_posix_list").add((int)Math.floor(t.getMillis() / 1000));  //IBIES-IA wants seconds since epoch
             }
             markSent(ma);
+            ct++;
         }
 
-//TODO dont send empty requests?
+System.out.println("sendMediaAssets(): sending " + ct);
+        if (ct < 1) return null;  //null for "none to send" ?  is this cool?
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -92,6 +95,7 @@ public class IBEISIA {
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
 
+        int ct = 0;
         HashMap<String,ArrayList> map = new HashMap<String,ArrayList>();
         map.put("image_uuid_list", new ArrayList<String>());
         map.put("annot_uuid_list", new ArrayList<String>());
@@ -105,12 +109,21 @@ public class IBEISIA {
             map.get("annot_species_list").add(ann.getSpecies());
             map.get("annot_bbox_list").add(ann.getBbox());
             markSent(ann);
+            ct++;
         }
 
-//TODO dont send empty requests?
-        return RestClient.post(url, new JSONObject(map));
-    }
+System.out.println("sendAnnotations(): sending " + ct);
+        if (ct < 1) return null;
 
+        //this should only be checking for missing images, i guess?
+        boolean tryAgain = true;
+        JSONObject res = null;
+        while (tryAgain) {
+            res = RestClient.post(url, new JSONObject(map));
+            tryAgain = iaCheckMissing(res);
+        }
+        return res;
+    }
 
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
@@ -133,7 +146,7 @@ public class IBEISIA {
 
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist);
-System.out.println(tlist);
+System.out.println("tlist.size()=" + tlist.size());
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -216,6 +229,10 @@ System.out.println(tlist);
     public static HashMap<String,Object> getTaskResultsAsHashMap(String taskID, Shepherd myShepherd) {
         JSONObject jres = getTaskResults(taskID, myShepherd);
         HashMap<String,Object> res = new HashMap<String,Object>();
+        if (jres == null) {
+            System.out.println("WARNING: getTaskResultsAsHashMap() had null results from getTaskResults(" + taskID + "); return empty HashMap");
+            return res;
+        }
         res.put("taskID", taskID);
         if (jres.has("success")) res.put("success", jres.get("success"));
         if (jres.has("error")) res.put("error", jres.get("error"));
@@ -241,6 +258,64 @@ System.out.println(tlist);
 
         return res;
     }
+
+
+/*
+anyMethod failed with code=600
+{"status": {"cache": -1, "message": "Missing image and/or annotation UUIDs (0, 1)", "code": 600, "success": false}, "response": {"missing_image_uuid_list": [], "missing_annot_uuid_list": [{"__UUID__": "523e8e9d-941c-4879-a5a6-aeafebf34f65"}]}}
+
+########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
+===================================== qlist & tlist =========================
+[{"__UUID__":"cd67cf0f-f2f1-4b16-89e3-e00e5584d23a"}]
+tlist.size()=1885
+########## iaCheckMissing res -> {"response":{"missing_annot_uuid_list":[{"__UUID__":"523e8e9d-941c-4879-a5a6-aeafebf34f65"}],"missing_image_uuid_list":[]},"status":{"message":"Missing image and/or annotation UUIDs (0, 1)","cache":-1,"code":600,"success":false}}
+WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
+org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
+*/
+    //should return true if we attempted to add missing and caller should try again
+    private static boolean iaCheckMissing(JSONObject res) {
+System.out.println("########## iaCheckMissing res -> " + res);
+//if (res != null) throw new RuntimeException("fubar!");
+        if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
+        boolean tryAgain = false;
+
+//TODO handle loop where we keep trying to add same objects but keep failing (e.g. store count of attempts internally in class?)
+
+        if ((res.getJSONObject("response") != null) && res.getJSONObject("response").has("missing_image_uuid_list")) {
+            JSONArray list = res.getJSONObject("response").getJSONArray("missing_image_uuid_list");
+            if (list.length() > 0) {
+                for (int i = 0 ; i < list.length() ; i++) {
+                    String uuid = fromFancyUUID(list.getJSONObject(i));
+System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
+                    //TODO $##@*&!! need to have a way to load MediaAsset by uuid.  i knew it. :(
+                }
+            }
+        }
+
+        if ((res.getJSONObject("response") != null) && res.getJSONObject("response").has("missing_annot_uuid_list")) {
+            JSONArray list = res.getJSONObject("response").getJSONArray("missing_annot_uuid_list");
+            if (list.length() > 0) {
+                ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                Shepherd myShepherd = new Shepherd("context0");
+                for (int i = 0 ; i < list.length() ; i++) {
+                    String uuid = fromFancyUUID(list.getJSONObject(i));
+                    Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
+                    anns.add(ann);
+                }
+                //would this ever recurse? seems like a 600 would only happen inside sendAnnotations for missing MediaAssets. is this true? TODO
+System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
+                JSONObject srtn = null;
+                try {
+                    sendAnnotations(anns);
+                } catch (Exception ex) { }
+System.out.println(" returned --> " + srtn);
+                if ((srtn != null) && (srtn.getJSONObject("status") != null) && srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;  //it "worked"?
+            }
+        }
+System.out.println("iaCheckMissing -> " + tryAgain);
+        return tryAgain;
+    }
+
 
     private static Object mediaAssetToUri(MediaAsset ma) {
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
@@ -303,18 +378,34 @@ System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
                 }
             }
 
+/*
 System.out.println("======= beginIdentify (qanns, tanns, allAnns) =====");
 System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
+*/
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
-            JSONObject identRtn = sendIdentify(qanns, tanns, baseUrl);
+
+            //this should attempt to repair missing Annotations
+            boolean tryAgain = true;
+            JSONObject identRtn = null;
+            while (tryAgain) {
+                identRtn = sendIdentify(qanns, tanns, baseUrl);
+                tryAgain = iaCheckMissing(identRtn);
+            }
             results.put("sendIdentify", identRtn);
 
             //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
-            jobID = identRtn.get("response").toString();
-            results.put("success", true);
+//########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
+            if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
+                jobID = identRtn.get("response").toString();
+                results.put("success", true);
+            } else {
+System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn);
+                results.put("error", identRtn.get("status"));
+                results.put("success", false);
+            }
 
         } catch (Exception ex) {  //most likely from sendFoo()
             System.out.println("WARN: IBEISIA.beginIdentity() failed due to an exception: " + ex.toString());
@@ -333,7 +424,7 @@ System.out.println(allAnns);
 
 
     public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
-System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
+//System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
         IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
@@ -366,15 +457,15 @@ System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlo
 
 
     private static boolean needToSend(MediaAsset ma) {
-        return true;
-        //return ((alreadySentMA.get(ma.getId()) == null) || !alreadySentMA.get(ma.getId()));
+        //return true;
+        return ((alreadySentMA.get(ma.getId()) == null) || !alreadySentMA.get(ma.getId()));
     }
     private static void markSent(MediaAsset ma) {
         alreadySentMA.put(ma.getId(), true);
     }
     private static boolean needToSend(Annotation ann) {
-        return true;
-        //return ((alreadySentAnn.get(ann.getId()) == null) || !alreadySentAnn.get(ann.getId()));
+        //return true;
+        return ((alreadySentAnn.get(ann.getId()) == null) || !alreadySentAnn.get(ann.getId()));
     }
     private static void markSent(Annotation ann) {
         alreadySentAnn.put(ann.getId(), true);
