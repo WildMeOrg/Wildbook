@@ -497,6 +497,7 @@ int testLimit = 400;
           
           //kick off IBEIS for each Encounter
           //RESTORE ME
+/*
           for(int i=0;i<(numEncs-1);i++){
           //for(int i= testStart ;i< testStart+testLimit;i++){
             ArrayList<Encounter> qencs=new ArrayList<Encounter>();
@@ -530,6 +531,7 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
             //proceed now that IBEIS is woken  =============================
 
           }
+          */
           //end IBEIS instantiations
           
           
