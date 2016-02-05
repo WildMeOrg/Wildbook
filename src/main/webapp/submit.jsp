@@ -1,10 +1,7 @@
-
-<%@ page contentType="text/html; charset=utf-8" 
-		import="java.util.GregorianCalendar,
-                 org.ecocean.servlet.ServletUtilities,
-                 org.ecocean.*,
-                 java.util.*" %>
-
+<%@ page contentType="text/html; charset=utf-8" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
@@ -18,18 +15,12 @@ context=ServletUtilities.getContext(request);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
 
-    //set up the file input stream
-    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-    props = ShepherdProperties.getProperties("submit.properties", langCode, context);
-    
-    Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
-    
+  String langCode=ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("submit.properties", langCode, context);
+  Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
+  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 %>
@@ -81,7 +72,11 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
-<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<% if (!"en".equals(langCode)) { %>
+<script type="text/javascript" src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<% } %>
+
 <script src="javascript/pages/submit.js"></script>
 
 <script type="text/javascript" src="javascript/animatedcollapse.js"></script>
@@ -95,17 +90,6 @@ context=ServletUtilities.getContext(request);
     }
     animatedcollapse.init();
   </script>
-
- <%
- if(!langCode.equals("en")){
- %>
-
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
-
- <%
- }
- %>
 
 <script type="text/javascript">
 
@@ -532,26 +516,14 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreLocationsIDs=true;
-                         int locNum=0;
-                         
-                         while(hasMoreLocationsIDs){
-                               String currentLocationID = "locationID"+locNum;
-                               if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
-                                   %>
-                                    
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
-                                   <%
-                                 locNum++;
-                            }
-                            else{
-                               hasMoreLocationsIDs=false;
-                            }
-                            
-                       }
-                       
-     %>
+            <%
+              Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
+              for (Map.Entry<String, String> me : locMap.entrySet()) {
+            %>
+            <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+            <%
+              }
+            %>
       </select>
       </div>
     </div>
@@ -804,7 +776,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure")%></option>
+             	<option value="" selected="selected"> </option>
 <%
   for (String item : CommonConfiguration.getIndexedValues("genusSpecies", context)) {
 %>
@@ -845,7 +817,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
       <div class="col-xs-6 col-lg-8">
         <select class="form-control" name="patterningCode" id="patterningCode">
-          <option value="" selected="selected"><%=props.getProperty("pigmentationNone")%></option>
+          <option value="" selected="selected"> </option>
 <%
     Map<String, String> mapPC = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
     for (Map.Entry<String, String> item : mapPC.entrySet()) {
