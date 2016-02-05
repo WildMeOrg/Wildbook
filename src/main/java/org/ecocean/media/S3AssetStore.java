@@ -42,6 +42,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
 import org.slf4j.Logger;
@@ -181,10 +182,27 @@ public class S3AssetStore extends AssetStore {
         return new MediaAsset(this, params);
     }
 
+    @Override
+    public void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
+        //i guess we could pass this case along to AssetStore.copyAssetAny() ??
+        if ((fromMA == null) || (toMA == null) || (fromMA.getStore() == null) || (toMA.getStore() == null)) throw new IOException("null value(s) in copyAsset()");
+        if (!(fromMA.getStore() instanceof S3AssetStore) || !(toMA.getStore() instanceof S3AssetStore)) throw new IOException("invalid AssetStore type(s)");
+        if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
+
+        Object fromB = getParameter(fromMA.getParameters(), "bucket");
+        Object fromK = getParameter(fromMA.getParameters(), "key");
+        if ((fromB == null) || (fromK == null)) throw new IOException("Invalid bucket and/or key value for source MA " + fromMA);
+        Object toB = getParameter(toMA.getParameters(), "bucket");
+        Object toK = getParameter(toMA.getParameters(), "key");
+        if ((toB == null) || (toK == null)) throw new IOException("Invalid bucket and/or key value for target MA " + toMA);
+System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK.toString() + " --> " + toB.toString() + "|" + toK.toString());
+        getS3Client().copyObject(new CopyObjectRequest(fromB.toString(), fromK.toString(), toB.toString(), toK.toString()));
+    }
 
     @Override
     public void deleteFrom(final MediaAsset ma)
     {
+        if (!this.contains(ma)) return;
         if (!this.writable) return;
         JSONObject params = ma.getParameters();
         Object bp = getParameter(params, "bucket");
