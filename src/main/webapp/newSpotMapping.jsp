@@ -1,23 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-        <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.ShepherdProperties,org.ecocean.servlet.ServletUtilities,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.io.FileInputStream" %>
+<%@ page import="java.io.FileNotFoundException" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-  //setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-  //set up the file input stream
-  //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-  //props.load(propsInputStream);
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props = ShepherdProperties.getProperties("overview.properties", langCode,context);
-
-
+	String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
 %>
 
 <html>
