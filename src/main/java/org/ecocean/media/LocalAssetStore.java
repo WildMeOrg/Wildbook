@@ -55,7 +55,6 @@ public class LocalAssetStore extends AssetStore {
     private static final String KEY_ROOT = "root";
     private static final String KEY_WEB_ROOT = "webroot";
     private static final Logger logger = LoggerFactory.getLogger(org.ecocean.media.LocalAssetStore.class);
-
     private Path root;
     transient private String webRoot;
 
@@ -228,10 +227,18 @@ System.out.println("subpath = " + subpath);
         return new MediaAsset(this, params);
     }
 
+    @Override
+    public void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
+        //i guess we could pass this case along to AssetStore.copyAssetAny() ??
+        if ((fromMA == null) || (toMA == null) || (fromMA.getStore() == null) || (toMA.getStore() == null)) throw new IOException("null value(s) in copyAsset()");
+        if (!(fromMA.getStore() instanceof LocalAssetStore) || !(toMA.getStore() instanceof LocalAssetStore)) throw new IOException("invalid AssetStore type(s)");
+        if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
+throw new IOException("oops, LocalAssetStore.copyAsset() still not implemented. :/");  //TODO
+    }
 
     @Override
-    public void deleteFrom(final MediaAsset ma)
-    {
+    public void deleteFrom(final MediaAsset ma) {
+        if (!this.contains(ma)) return; //TODO ?? exception
         if (!this.writable) return;
         File file = localPath(ma).toFile();
 System.out.println("LocalAssetStore attempting to delete file=" + file);

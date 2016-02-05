@@ -548,6 +548,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         MediaAssetFactory.deleteFromStore(this);
     }
 */
+
+    //this takes contents of this MediaAsset and copies it to the target (note MediaAssets must exist with sufficient params already)
+    public void copyAssetTo(MediaAsset targetMA) throws IOException {
+        if (store == null) throw new IOException("copyAssetTo(): store is null on " + this);
+        store.copyAssetAny(this, targetMA);
+    }
+
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.get("parametersAsString")));
             //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new JSONObject(jobj.getString("parametersAsString")));
@@ -572,7 +579,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
 
     public void copyIn(File file) throws IOException {
-        if (store == null) throw new IOException("store is null on " + this);
+        if (store == null) throw new IOException("copyIn(): store is null on " + this);
         store.copyIn(file, parameters, false);
     }
 

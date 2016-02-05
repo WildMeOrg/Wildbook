@@ -103,6 +103,9 @@ public abstract class AssetStore implements java.io.Serializable {
         config = c;
     }
 
+    public Integer getId() {
+        return this.id;
+    }
 
     public static synchronized void add(final AssetStore store)
     {
@@ -257,6 +260,45 @@ ex.printStackTrace();
     protected abstract MediaAsset copyIn(final File file, final JSONObject params, final boolean createMediaAsset) throws IOException;
 
     /**
+     * does a store-specific copy of asset (contents) from one MediaAsset (location) to another
+     *  note: these may be on different stores, so we handle the various cases
+     */
+    public void copyAssetAny(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
+        if (fromMA == null) throw new IOException("copyAssetAny(): fromMA is null");
+        if (toMA == null) throw new IOException("copyAssetAny(): toMA is null");
+        if (fromMA.getStore() == null) throw new IOException("copyAssetAny(): fromMA store is null");
+        if (toMA.getStore() == null) throw new IOException("copyAssetAny(): toMA store is null");
+        if (fromMA.getStore().typeEquals(toMA.getStore())) {
+            fromMA.getStore().copyAsset(fromMA, toMA);
+        } else {
+            copyAssetAcross(fromMA, toMA);
+        }
+    }
+
+    //this is within the same flavor of AssetStore, so is handled by the subclass
+    protected abstract void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException;
+
+    //to copy across flavors of AssetStore
+    private void copyAssetAcross(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
+        throw new IOException("copyAssetAcross() not yet implemented!  :/");
+/*
+        //we basically always use a local version as the go-between...
+        Path fromPath = null;
+        try {
+            fromMa.cacheLocal();
+            fromPath = fromMa.localPath();
+        } catch (Exception ex) {
+            throw new IOException("error creating local copy of " + fromMA.toString() + ": " + ex.toString());
+        }
+        try {
+            toMA.copyIn(fromPath.toFile());
+        } catch (Exception ex) {
+            throw new IOException("error copying to " + toMA.toString() + ": " + ex.toString());
+        }
+*/
+    }
+
+    /**
      *  should create the ("base") set of parameters for the specific store-type based on file.
      *  note this can take into account store-specific config settings (like bucket for S3)
      */
@@ -307,6 +349,24 @@ ex.printStackTrace();
         if (!params.has(key)) return null;
         return params.get(key);
     }
+
+    //really only conceptually, not whether asset is really there!
+    public boolean contains(MediaAsset ma) {
+        if ((ma == null) || (ma.getStore() == null)) return false;
+        return this.equals(ma.getStore());
+    }
+
+
+    public boolean equals(AssetStore s) {
+        if (s == null) return false;
+        return (this.getId() == s.getId());
+    }
+
+    public boolean typeEquals(AssetStore s) {
+        if (s == null) return false;
+        return this.getType().equals(s.getType());
+    }
+
 
     @Override
     public String toString()
