@@ -24,7 +24,7 @@ myShepherd=new Shepherd(context);
 
 
 //check for and inject a default user 'tomcat' if none exists
-  
+/*
   	//check usernames and passwords
 	myShepherd.beginDBTransaction();
   	ArrayList<User> users=myShepherd.getAllUsers();
@@ -63,7 +63,7 @@ myShepherd=new Shepherd(context);
   	  	}
   	}
 
-
+*/
 %>
 
 <style type="text/css">
