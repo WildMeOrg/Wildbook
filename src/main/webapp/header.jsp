@@ -302,7 +302,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <%
                         }
                         %>  
-                          <li><a href="http://www.whaleshark.org/wiki/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
+                          <li><a href="http://wiki.whaleshark.org/doku.php?id=user_agreement" target="_blank"><%=props.getProperty("userAgreement")%></a></li>
                           
                           <!--  examples of navigation dividers
                           <li class="divider"></li>
