@@ -183,11 +183,12 @@ public class S3AssetStore extends AssetStore {
     }
 
     @Override
+    //NOTE: *** s3 might give an "invalid key" if you try to copyObject a file immediately after it was created.  ymmv.
     public void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
         //i guess we could pass this case along to AssetStore.copyAssetAny() ??
         if ((fromMA == null) || (toMA == null) || (fromMA.getStore() == null) || (toMA.getStore() == null)) throw new IOException("null value(s) in copyAsset()");
         if (!(fromMA.getStore() instanceof S3AssetStore) || !(toMA.getStore() instanceof S3AssetStore)) throw new IOException("invalid AssetStore type(s)");
-        if (!this.writable) throw new IOException(this.name + " is a read-only AssetStore");
+        if (!toMA.getStore().writable) throw new IOException(toMA.getStore().name + " is a read-only AssetStore");
 
         Object fromB = getParameter(fromMA.getParameters(), "bucket");
         Object fromK = getParameter(fromMA.getParameters(), "key");
@@ -249,7 +250,9 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
         Object bp = getParameter(params, "bucket");
         Object kp = getParameter(params, "key");
         if ((bp == null) || (kp == null)) return null;
-        return bp.toString().substring(0,10) + S3AssetStore.hexStringSHA256(bp.toString() + "/" + kp.toString());
+        String prefix = bp.toString();
+        if (prefix.length() > 10) prefix = prefix.substring(0,10);
+        return prefix + S3AssetStore.hexStringSHA256(bp.toString() + "/" + kp.toString());
     }
 
     @Override

@@ -479,6 +479,11 @@
         <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
   </servlet>
 
+      <servlet>
+        <servlet-name>MediaAssetCreate</servlet-name>
+        <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
   <servlet>
     <servlet-name>EncounterResetDate</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterResetDate</servlet-class>
@@ -1096,6 +1101,12 @@
             <servlet-name>UserInfo</servlet-name>
             <url-pattern>/UserInfo</url-pattern>
   </servlet-mapping>
+
+     <servlet-mapping>
+            <servlet-name>MediaAssetCreate</servlet-name>
+            <url-pattern>/MediaAssetCreate</url-pattern>
+  </servlet-mapping>
+
   
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
