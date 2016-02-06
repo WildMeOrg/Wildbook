@@ -264,6 +264,8 @@ ex.printStackTrace();
      *  note: these may be on different stores, so we handle the various cases
      */
     public void copyAssetAny(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
+//System.out.println("FROM " + fromMA);
+//System.out.println("TO " + toMA);
         if (fromMA == null) throw new IOException("copyAssetAny(): fromMA is null");
         if (toMA == null) throw new IOException("copyAssetAny(): toMA is null");
         if (fromMA.getStore() == null) throw new IOException("copyAssetAny(): fromMA store is null");
@@ -318,6 +320,11 @@ ex.printStackTrace();
         init(AssetStoreFactory.getStores(myShepherd));
         if ((stores == null) || (stores.size() < 1)) return null;
         return (AssetStore)stores.values().toArray()[0];
+    }
+
+    public static AssetStore get(Shepherd myShepherd, int id) {
+        init(AssetStoreFactory.getStores(myShepherd));
+        return get(id);
     }
 
 /*
