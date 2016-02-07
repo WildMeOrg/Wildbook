@@ -1,32 +1,26 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
+  String context = "context0";
+  context = ServletUtilities.getContext(request);
 
-  //setup our Properties object to hold all properties
-  
   String langCode = ServletUtilities.getLanguageCode(request);
-
-  //set up the file input stream
-  //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-  //props.load(propsInputStream);
-  
-  
-
-  
-  String context=ServletUtilities.getContext(request);
+  Properties props = ShepherdProperties.getProperties("contactus.properties", langCode, context);
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
-          <h1 class="intro">Contact us </h1>
-     
 
-        <p>The team welcomes your comments and questions.</p>
+  <h1 class="intro"><%=props.getProperty("title")%></h1>
 
-<p>Please email us, and one of us will respond as quickly as possible.</p>
+  <p><%=props.getProperty("text1")%></p>
+
+  <p><%=props.getProperty("text2")%></p>
    
-      <!-- end maintext -->
-      </div>
+<!-- end maintext -->
+</div>
 
-    <jsp:include page="footer.jsp" flush="true"/>
+<jsp:include page="footer.jsp" flush="true"/>
 
