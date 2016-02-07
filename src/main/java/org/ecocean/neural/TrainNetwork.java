@@ -494,9 +494,12 @@ public class TrainNetwork {
           
 int testStart = 580;
 int testLimit = 400;
+
+int nonMatchMultiplier=3;
           
           //kick off IBEIS for each Encounter
           //RESTORE ME
+/*
           for(int i=0;i<(numEncs-1);i++){
           //for(int i= testStart ;i< testStart+testLimit;i++){
             ArrayList<Encounter> qencs=new ArrayList<Encounter>();
@@ -530,6 +533,7 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
             //proceed now that IBEIS is woken  =============================
 
           }
+          */
           //end IBEIS instantiations
           
           
@@ -537,44 +541,24 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
           
           
           
-          //for(int i= testStart ;i< testStart+testLimit;i++){
-          //RESTORE ME
+          
+          //Iterate through matches first
           for(int i=0;i<(numEncs-1);i++){
-            //for(int j=(i+1);j<(i+1+testLimit);j++){
             for(int j=(i+1);j<numEncs;j++){
-              
               EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
               EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
-              
-              
-              
-             try{
-                        System.out.println("Learning: "+enc1.getEncounterNumber()+" and "+enc2.getEncounterNumber());
+              if((!enc1.getIndividualID().equals(""))&&(!enc2.getIndividualID().equals(""))&&(enc1.getIndividualID().equals(enc2.getIndividualID()))){
+                try{
+                  System.out.println("Learning match: "+enc1.getEncounterNumber()+" and "+enc2.getEncounterNumber());
                         
-                        //if both have spots, then we need to compare them
-                     
                         // add the instance
                         WildbookInstance iExample=buildInstance(genusSpecies,isTrainingSet);
-                        WildbookInstance iExample2=buildInstance(genusSpecies,isTrainingSet);
-                        
                         String taskID = enc1.getEncounterNumber();
                         MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, taskID, request, myShepherd);
-                        //MatchObject mo2=getMatchObject(genusSpecies,enc2, enc1, taskID, request, myShepherd);
-
                         populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
-                        //populateInstanceValues(genusSpecies, iExample2.getInstance(), enc2,enc1,mo2,myShepherd);
-                        
-                        
                         iExample.setMatchObject(mo);
-                        //iExample2.setMatchObject(mo2);
-                        
                         list.add(iExample);
-                        //list.add(iExample2);
-
                         System.out.println("     isTrainingSetSize: "+list.size());
-                  
-                    
-                        
                         double output=1;
                         if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
                           if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
@@ -586,27 +570,73 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
                           }
                           
                         }
-                        if(output==0){
-                          numMatches+=2;
-                        }
+                        
+                        
+                        //if(output==0){
+                          numMatches++;
+                        //}
+                        /*
                         else{
                           numNonMatches+=2;
                           }
+                          */
                         // add the instance
-                        
-                        
-                        
-                        
-             }
+              }
               catch(Exception e){
                         e.printStackTrace();
-                      }
-        
-                    
-                      
-             
               }
             }
+          }
+        }
+          
+          
+          
+          //Iterate through non-matches
+          for(int i=0;i<(numEncs-1);i++){
+            for(int j=(i+1);j<numEncs;j++){
+              EncounterLite enc1=new EncounterLite((Encounter)encounters.get(i));
+              EncounterLite enc2=new EncounterLite((Encounter)encounters.get(j));
+              if((((enc1.getIndividualID().equals(""))&&(enc2.getIndividualID().equals("")))||(!enc1.getIndividualID().equals(enc2.getIndividualID())))&&(numNonMatches<(numMatches*nonMatchMultiplier))){
+                try{
+                  System.out.println("Learning match: "+enc1.getEncounterNumber()+" and "+enc2.getEncounterNumber());
+                        
+                        // add the instance
+                        WildbookInstance iExample=buildInstance(genusSpecies,isTrainingSet);
+                        String taskID = enc1.getEncounterNumber();
+                        MatchObject mo=getMatchObject(genusSpecies,enc1, enc2, taskID, request, myShepherd);
+                        populateInstanceValues(genusSpecies, iExample.getInstance(), enc1,enc2,mo,myShepherd);
+                        iExample.setMatchObject(mo);
+                        list.add(iExample);
+                        System.out.println("     isTrainingSetSize: "+list.size());
+                        double output=1;
+                        if((enc1.getIndividualID()!=null)&&(!enc1.getIndividualID().toLowerCase().equals("unassigned"))){
+                          if((enc2.getIndividualID()!=null)&&(!enc2.getIndividualID().toLowerCase().equals("unassigned"))){
+                            //train a match
+                            if(enc1.getIndividualID().equals(enc2.getIndividualID())){
+                              output=0;
+                              System.out.println("   Nice match!!!!");
+                            }
+                          }
+                          
+                        }
+                        
+                        
+                        //if(output==0){
+                          numNonMatches++;
+                        //}
+                        /*
+                        else{
+                          numNonMatches+=2;
+                          }
+                          */
+                        // add the instance
+              }
+              catch(Exception e){
+                        e.printStackTrace();
+              }
+            }
+          }
+        }
           
           
           
@@ -687,30 +717,17 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
           for(int i=0;i<isTrainingSet.numInstances();i++){
             
             Instance myInstance=isTrainingSet.instance(i);
-            if(myInstance.stringValue(getClassIndex(genusSpecies)).equals("match")){
+            //if(myInstance.stringValue(getClassIndex(genusSpecies)).equals("match")){
               isTrainingSet.delete(i);
               balancedInstances.add(myInstance);
               //pop it off the original stack
               
               i--;
-              System.out.println("  Balanced match added!");
-            }
+              //System.out.println("  Balanced match added!");
+            //}
             
           }
-          //now get a number of false instances to test with
-          
-          int sampledFalseInstances=0;
-          //let's use the golden proportion and have 1.61 more false matches to train with than matches
-          while(sampledFalseInstances<(numMatches*5)){
-            Random myRan=new Random();
-            int selected=myRan.nextInt(isTrainingSet.numInstances()-1);
-            Instance popMe=isTrainingSet.instance(selected);
-            if(popMe.stringValue(getClassIndex(genusSpecies)).equals("nonmatch")){
-              isTrainingSet.delete(selected);
-              balancedInstances.add(popMe);
-              sampledFalseInstances++;
-            }
-          }
+
           
           
           System.out.println("About to serialize with balancedInstances size: "+balancedInstances.numInstances());
