@@ -2,7 +2,9 @@ package org.ecocean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -10,9 +12,61 @@ import java.util.Properties;
  * To use, create an {@code ActionResult} instance and assign it as an attribute of the {@code HttpServletRequest}
  * before forwarding to the JSP page for display (see {@link #JSP_PAGE}).
  * <p>
- * To customize results messages, place resource definitions in the {@code actionResult.properties} files.
+ * To customize results messages, place resource definitions in the <em>actionResults.properties</em> files.
  * Link/comment/detail texts are processed via a {@code MessageFormat} instance, and client code may assign
  * object arrays for each to be formatted appropriately.
+ * <p>
+ * Example Usage:
+ * <pre>
+ * Locale locale = Locale.getDefault();
+ * // ...other code...
+ * boolean actionSucceeded = foo.performAction();
+ * String link = "http://...";
+ * ActionResult actRes = new ActionResult(locale, "doFoo", actionSucceeded, link);
+ * actRes.setMessageParams(foo.getId());
+ * actRes.setLinkParams(foo.getId());
+ * request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
+ * getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+ * </pre>
+ * For which in <em>actionResults.properties</em> might be the following properties defined:
+ * <pre>
+ * doFoo.message.success=Foo {0} successfully completed.
+ * doFoo.message.failure=Foo {0} couldn't be completed correctly.
+ * doFoo.link.common=Return to item {0}
+ * </pre>
+ * <p>
+ * Additional details may be provided, which help explain the action to the user, using the following methods:
+ * <ul>
+ * <li><strong>Message</strong> is the main message, displayed under the title.</li>
+ * <li><strong>Comment</strong> is an optional text panel displayed under the main message.</li>
+ * <li><strong>DetailText</strong> is an optional, collapsable, pre-formatted text panel underneath Comment.</li>
+ * <li><strong>Link</strong> is an optional link displayed underneath all text.</li>
+ * </ul>
+ * <p>
+ * All sections can take optional formatting parameters, which are assigned with the various
+ * {@code setXXXParams(...)} methods.
+ * <p>
+ * Each section also has a specified priority for resource key lookups, such that generic messages can be specified
+ * for convenience. The various key lookups are performed as follows
+ * (assuming for example: actionKey=foo, section=message, &amp; the action succeeded):
+ * <ol>
+ * <li>foo.message.success</li>
+ * <li>foo.message.common.success</li>
+ * <li>action.generic.message.success</li>
+ * <li>action.generic.message.common.success</li>
+ * <li>action.generic.message.common</li>
+ * </ol>
+ * <p>
+ * For &quot;failed&quot; ActionResult instances, simply replace <em>success</em> with <em>failure</em>
+ * in the above property lookup keys.
+ * <p>
+ * All sections can also optionally be overridden using any of the {@code setXXXOverrideKey(String)} methods.
+ * For example, for the example above, if {@code actRes.setMessageOverrideKey("custom")} was called, it would
+ * lookup the following key for a successful action result:
+ * <pre>
+ * doFoo.message.success.custom=Foo {0} successfully completed; great job!
+ * </pre>
+ * which allows ActionResult instances to be customized before finally being remitted.
  *
  * @author Giles Winstanley
  */
@@ -23,6 +77,8 @@ public class ActionResult {
   public static final String SESSION_KEY = "ActionResult";
   /** Path for referencing JSP page. */
   public static final String JSP_PAGE = "/actionResult.jsp";
+  /** Locale for formatting messages. */
+  protected Locale locale;
   /** Whether action succeeded. */
   protected boolean succeeded;
   /** String representing resource key for action. */
@@ -39,14 +95,24 @@ public class ActionResult {
   protected Object[] detailParams;
   /** Whether detail text is preformatted (as for HTML pre tags). */
   protected boolean pre;
+  /** Key denoting override for choosing message. */
+  protected String messageOverrideKey;
+  /** Key denoting override for choosing comment. */
+  protected String commentOverrideKey;
+  /** Key denoting override for choosing detail text. */
+  protected String detailTextOverrideKey;
+  /** Key denoting override for choosing link. */
+  protected String linkTextOverrideKey;
 
   /**
    * Creates a new instance.
+   * @param locale locale for message formatting
    * @param actionKey resource key for action
    * @param succeeded whether action succeeded
    * @param link URL link for onward navigation
    */
-  public ActionResult(String actionKey, boolean succeeded, String link) {
+  public ActionResult(Locale locale, String actionKey, boolean succeeded, String link) {
+    this.locale = locale;
     this.actionKey = actionKey;
     this.succeeded = succeeded;
     this.link = link;
@@ -56,9 +122,33 @@ public class ActionResult {
    * Creates a new instance.
    * @param actionKey resource key for action
    * @param succeeded whether action succeeded
+   * @param link URL link for onward navigation
+   */
+  public ActionResult(String actionKey, boolean succeeded, String link) {
+    this(Locale.getDefault(), actionKey, succeeded, link);
+  }
+
+  /**
+   * Creates a new instance.
+   * @param locale locale for message formatting
+   * @param actionKey resource key for action
+   * @param succeeded whether action succeeded
+   */
+  public ActionResult(Locale locale, String actionKey, boolean succeeded) {
+    this(locale, actionKey, succeeded, null);
+  }
+
+  /**
+   * Creates a new instance.
+   * @param actionKey resource key for action
+   * @param succeeded whether action succeeded
    */
   public ActionResult(String actionKey, boolean succeeded) {
     this(actionKey, succeeded, null);
+  }
+
+  public void setSucceeded(boolean succeeded) {
+    this.succeeded = succeeded;
   }
 
   public ActionResult setLink(String link) {
@@ -74,6 +164,14 @@ public class ActionResult {
   public ActionResult setMessageParams(Object... o) {
     this.messageParams = o;
     return this;
+  }
+
+  /**
+   * Sets the property key for overriding the message defaults.
+   * @param key property key for lookup
+   */
+  public void setMessageOverrideKey(String key) {
+    this.messageOverrideKey = key;
   }
 
   /**
@@ -138,24 +236,28 @@ public class ActionResult {
   }
 
   /**
-   * Returns the message text for this ActionResult.
-   * @param bundle resources for string lookup
-   * @return String representing message text
-   */
-  public String getMessage(Properties bundle) {
-    String[] keys = {
-            String.format("%s.message.%s", actionKey, succeeded ? "success" : "failure"),
-    };
-    String text = findFirstMatchingNonNull(bundle, keys);
-    return messageParams == null ? text : MessageFormat.format(text, messageParams);
-  }
-
-  /**
    * Returns the link (navigable URL) for this ActionResult.
    * @return String representing link
    */
   public String getLink() {
     return link;
+  }
+
+  /**
+   * Creates a set of keys for resource lookups based on the specified parameters.
+   * @param type type of resource to lookup (message/comment/detail/link)
+   * @param actionKey action-key to lookup
+   * @param ok whether action succeeded or not
+   * @return list of keys to attempt for resource lookup
+   */
+  protected static List<String> createKeys(String type, String actionKey, boolean ok) {
+    List<String> keys = Arrays.asList(
+            String.format("%s.%s.%s", actionKey, type, ok ? "success" : "failure"),
+            String.format("%s.%s.common", actionKey, type),
+            String.format("action.generic.%s.%s", type, ok ? "success" : "failure"),
+            String.format("action.generic.%s.common", type)
+    );
+    return keys;
   }
 
   /**
@@ -174,18 +276,33 @@ public class ActionResult {
   }
 
   /**
+   * Returns the message text for this ActionResult.
+   * @param bundle resources for string lookup
+   * @return String representing message text
+   */
+  public String getMessage(Properties bundle) {
+    List<String> keys = Arrays.asList(
+            String.format("%s.message.%s", actionKey, succeeded ? "success" : "failure")
+    );
+    if (messageOverrideKey != null) {
+      keys.add(0, String.format("%s.message.%s.%s", actionKey, succeeded ? "success" : "failure", messageOverrideKey));
+    }
+    String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    return messageParams == null ? text : StringUtils.format(locale, text, messageParams);
+  }
+
+  /**
    * Returns the link text for this ActionResult.
    * @param bundle resources for string lookup
    * @return String representing link text
    */
   public String getLinkText(Properties bundle) {
-    String[] keys = {
-            String.format("%s.link.%s", actionKey, succeeded ? "success" : "failure"),
-            String.format("%s.link.common", actionKey),
-            "action.generic.link.common"
-    };
-    String text = findFirstMatchingNonNull(bundle, keys);
-    return linkParams == null ? text : MessageFormat.format(text, linkParams);
+    List<String> keys = createKeys("link", actionKey, succeeded);
+    if (linkTextOverrideKey != null) {
+      keys.add(keys.get(0) + "." + linkTextOverrideKey);
+    }
+    String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    return linkParams == null ? text : StringUtils.format(locale, text, linkParams);
   }
 
   /**
@@ -194,16 +311,14 @@ public class ActionResult {
    * @return String representing comment text
    */
   public String getComment(Properties bundle) {
-    String[] keys = {
-            String.format("%s.comment.%s", actionKey, succeeded ? "success" : "failure"),
-            String.format("%s.comment.common", actionKey),
-            String.format("action.generic.comment.%s", succeeded ? "success" : "failure"),
-            "action.generic.comment.common"
-    };
-    String text = findFirstMatchingNonNull(bundle, keys);
+    List<String> keys = createKeys("comment", actionKey, succeeded);
+    if (commentOverrideKey != null) {
+      keys.add(keys.get(0) + "." + commentOverrideKey);
+    }
+    String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
     // If resource text is just a placeholder for parameter, return null if param doesn't exist,
     // otherwise return resource text.
-    return commentParams == null ? ("{0}".equals(text) ? null : text) : MessageFormat.format(text, commentParams);
+    return commentParams == null ? ("{0}".equals(text) ? null : text) : StringUtils.format(locale, text, commentParams);
   }
 
   /**
@@ -212,13 +327,11 @@ public class ActionResult {
    * @return String representing detail text
    */
   public String getDetailText(Properties bundle) {
-    String[] keys = {
-            String.format("%s.detail.%s", actionKey, succeeded ? "success" : "failure"),
-            String.format("%s.detail.common", actionKey),
-            String.format("action.generic.detail.%s", succeeded ? "success" : "failure"),
-            "action.generic.detail.common"
-    };
-    String text = findFirstMatchingNonNull(bundle, keys);
-    return detailParams == null ? ("{0}".equals(text) ? null : text) : MessageFormat.format(text, detailParams);
+    List<String> keys = createKeys("detail", actionKey, succeeded);
+    if (detailTextOverrideKey != null) {
+      keys.add(keys.get(0) + "." + detailTextOverrideKey);
+    }
+    String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    return detailParams == null ? ("{0}".equals(text) ? null : text) : StringUtils.format(locale, text, detailParams);
   }
 }

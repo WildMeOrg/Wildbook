@@ -17,15 +17,13 @@
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@page contentType="text/html; charset=utf-8" language="java"
-        import="org.ecocean.*"
-        import="org.ecocean.servlet.ServletUtilities"
-        import="java.util.Properties"
-%>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
   // Setup context.
-  String context = "context0";
-  context = ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
   // Page internationalization.
   String langCode = ServletUtilities.getLanguageCode(request);
   Properties bundle = ShepherdProperties.getProperties("actionResults.properties", langCode, context);

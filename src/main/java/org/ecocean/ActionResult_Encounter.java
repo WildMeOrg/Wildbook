@@ -1,8 +1,6 @@
 package org.ecocean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import java.text.MessageFormat;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -15,8 +13,16 @@ import java.util.Properties;
  */
 public class ActionResult_Encounter extends ActionResult {
 
+  public ActionResult_Encounter(Locale locale, String actionKey, boolean succeeded, String link) {
+    super(locale, actionKey, succeeded, link);
+  }
+
   public ActionResult_Encounter(String actionKey, boolean succeeded, String link) {
     super(actionKey, succeeded, link);
+  }
+
+  public ActionResult_Encounter(Locale locale, String actionKey, boolean succeeded) {
+    super(locale, actionKey, succeeded);
   }
 
   public ActionResult_Encounter(String actionKey, boolean succeeded) {
@@ -35,6 +41,6 @@ public class ActionResult_Encounter extends ActionResult {
             String.format("encounter.link.common", actionKey)
     };
     String text = findFirstMatchingNonNull(bundle, keys);
-    return linkParams == null ? text : MessageFormat.format(text, linkParams);
+    return linkParams == null ? text : StringUtils.format(locale, text, linkParams);
   }
 }

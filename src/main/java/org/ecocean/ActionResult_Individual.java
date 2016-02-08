@@ -1,6 +1,6 @@
 package org.ecocean;
 
-import java.text.MessageFormat;
+import java.util.Locale;
 import java.util.Properties;
 
 /**
@@ -13,8 +13,16 @@ import java.util.Properties;
  */
 public class ActionResult_Individual extends ActionResult {
 
+  public ActionResult_Individual(Locale locale, String actionKey, boolean succeeded, String link) {
+    super(locale, actionKey, succeeded, link);
+  }
+
   public ActionResult_Individual(String actionKey, boolean succeeded, String link) {
     super(actionKey, succeeded, link);
+  }
+
+  public ActionResult_Individual(Locale locale, String actionKey, boolean succeeded) {
+    super(locale, actionKey, succeeded);
   }
 
   public ActionResult_Individual(String actionKey, boolean succeeded) {
@@ -33,6 +41,6 @@ public class ActionResult_Individual extends ActionResult {
             String.format("individual.link.common", actionKey)
     };
     String text = findFirstMatchingNonNull(bundle, keys);
-    return linkParams == null ? text : MessageFormat.format(text, linkParams);
+    return linkParams == null ? text : StringUtils.format(locale, text, linkParams);
   }
 }
