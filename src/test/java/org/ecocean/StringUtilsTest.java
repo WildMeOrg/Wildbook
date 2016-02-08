@@ -36,6 +36,14 @@ public final class StringUtilsTest {
     assertEquals("<b>Foo</b>, <b>Bar</b>, <b>Baz</b>", StringUtils.collateStrings(c, res, "loc.%s", "<b>", "</b>", ", "));
   }
 
+  @Test
+  public void testFormat() {
+    String s = "{0}";
+    assertEquals("1,234", StringUtils.format(Locale.US, s, 1234));
+    assertEquals("1.234", StringUtils.format(new Locale("es"), s, 1234));
+    assertEquals("1.234", StringUtils.format(Locale.GERMAN, s, 1234));
+  }
+
   private final class TestBundle extends ListResourceBundle {
     @Override
     protected Object[][] getContents() {

@@ -1,5 +1,7 @@
 package org.ecocean;
 
+import java.text.FieldPosition;
+import java.text.MessageFormat;
 import java.util.*;
 
 public final class StringUtils {
@@ -97,5 +99,22 @@ public final class StringUtils {
    */
   public static String collateStrings(String[] c, String prefix, String suffix, String delimiter) {
     return collateStrings(Arrays.asList(c), null, null, prefix, suffix, delimiter);
+  }
+
+  /**
+   * Convenience method to simplify calls to {@link MessageFormat} with a specified {@link Locale}.
+   * This method assigns a locale to the MessageFormat instance, such that if the pattern string contains any
+   * locale-specific formatting (e.g. number formats) they get appropriately formatted for the target locale,
+   * instead of the default platform locale.
+   * @param loc {@code Locale} for which to format message
+   * @param pattern message pattern (as supplied to {@code MessageFormat} instance
+   * @param args format argument
+   * @return formatted string
+   */
+  public static String format(Locale loc, String pattern, Object... args) {
+    MessageFormat mf = new MessageFormat(pattern, loc);
+    StringBuffer sb = new StringBuffer();
+    mf.format(args, sb, new FieldPosition(0));
+    return sb.toString();
   }
 }
