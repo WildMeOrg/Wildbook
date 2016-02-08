@@ -1,25 +1,12 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <jsp:include page="header.jsp" flush="true"/>
-
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-  //setup our Properties object to hold all properties
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-
-//set up the file input stream
-  Properties props = new Properties();
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/login.properties"));
-  props = ShepherdProperties.getProperties("login.properties", langCode,context);
-
-
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("login.properties", langCode, context);
 %>
 
 
@@ -50,13 +37,13 @@ context=ServletUtilities.getContext(request);
               <form action="UserResetPasswordSendEmail" method="post">
     <table align="left" border="0" cellspacing="0" cellpadding="3">
         <tr>
-            <td><%=props.getProperty("usernameOrEmail") %></td>
+            <td><%=props.getProperty("usernameOrEmail")%>:</td>
             <td><input type="text" name="username" maxlength="50" /></td>
         </tr>
    
         
         <tr>
-            <td colspan="2" align="left"><input type="submit" name="submit" value="<%=props.getProperty("reset") %>" /></td>
+            <td colspan="2" align="left"><input type="submit" name="submit" value="<%=props.getProperty("reset")%>" /></td>
         </tr>
     </table>
 </form>
