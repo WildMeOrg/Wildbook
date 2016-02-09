@@ -5,13 +5,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>5.4.0-RELEASE</version>
+  <version>6.0.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <datanucleus.version>4.0.3</datanucleus.version>
+    <datanucleus.version>4.2.0-release</datanucleus.version>
 
     <datanucleus.lib.scope>compile</datanucleus.lib.scope>
 
@@ -202,14 +202,16 @@
 	
 	<!--Start JDO and DataNucleus dependencies -->
 <dependency>
-<groupId>javax.jdo</groupId>
-<artifactId>jdo-api</artifactId>
-<version>3.1-rc1</version>
+	<groupId>org.datanucleus</groupId>
+	<artifactId>javax.jdo</artifactId>
+	<version>3.2.0-m3</version>
 </dependency>
+
+
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-core</artifactId>
-<version>${datanucleus.version}</version>
+<version>4.1.7</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
@@ -219,33 +221,35 @@
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-jdo-query</artifactId>
-<version>${datanucleus.version}</version>
+<version>4.2.1</version>
 </dependency>
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-rdbms</artifactId>
-<version>${datanucleus.version}</version>
+<version>4.1.9</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-jodatime</artifactId>
-	<version>${datanucleus.version}</version>
+	<version>4.1.1</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-rest</artifactId>
-	<version>${datanucleus.version}</version>
+	<version>4.2.1</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-geospatial</artifactId>
-	<version>${datanucleus.version}</version>
+	<version>4.1.0-release</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-jpa</artifactId>
-	<version>${datanucleus.version}</version>
+	<version>4.1.7</version>
 </dependency>
+
+
 
 	<!--End JDO and DataNucleus dependencies -->
 	
