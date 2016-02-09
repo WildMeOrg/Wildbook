@@ -98,6 +98,42 @@ while(encounters.hasNext()){
     	}
 	    %>
 	    
+  	],
+  	
+  	"edgePoints": [
+  			<%
+  			if(enc.getSpots()!=null){
+	  			ArrayList<SuperSpot> spots=enc.getSpots();
+	  			int numSpots=spots.size();
+	  			
+	  			for(int p=0;p<numSpots;p++){
+	  				SuperSpot theSpot=spots.get(p);
+	  				String comma=",";
+	  				if(p==(numSpots-1)){comma="";}
+	  				%>
+	  				{"x": "<%=theSpot.getCentroidX() %>","y": "<%=theSpot.getCentroidY() %>"}<%=comma %>
+	  				<%
+	  			}
+  			}
+
+  			if(enc.getRightSpots()!=null){
+  				ArrayList<SuperSpot> spots=enc.getRightSpots();
+	  			int numSpots=spots.size();
+	  			if(numSpots>0){
+	  			%>
+	  			,
+	  			<%
+	  			}
+	  			for(int p=0;p<numSpots;p++){
+	  				SuperSpot theSpot=spots.get(p);
+	  				String comma=",";
+	  				if(p==(numSpots-1)){comma="";}
+	  				%>
+	  				{"x": "<%=theSpot.getCentroidX() %>","y": "<%=theSpot.getCentroidY() %>"}<%=comma %>
+	  				<%
+	  			}
+  			}
+  			%>
   	]		
 }			
 			
