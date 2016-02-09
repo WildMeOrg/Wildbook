@@ -1,5 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.MediaAsset,
+org.ecocean.identity.Feature,
+org.json.JSONArray,
+org.json.JSONObject,
 java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File,org.ecocean.neural.TrainNetwork" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
@@ -317,7 +320,11 @@ try {
 	//  so must therefore use "generic image suite" to show this at some point!!!  ####
 	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_spot");
 	String fileloc = null;
-	if (spotMA != null) fileloc = spotMA.webURL().toString();
+        ArrayList<Feature> features = null;
+        if (spotMA != null) {
+                fileloc = spotMA.webURL().toString();
+                features = spotMA.getFeatures();
+        }
 //System.out.println(spotMA);
 //System.out.println(fileloc);
 
@@ -326,26 +333,12 @@ try {
 
   <table border="0" cellpadding="5"><tr>
   <%
-	String spotJson = null;
+//	String spotJson = null;
 
-	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
+	//ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
 //combine both flukes to one image
-  if ((enc.getNumSpots() + enc.getNumRightSpots() > 0) && (fileloc != null)) {
-		spotJson = "[";
-		if (enc.getNumSpots() > 0) {
-      			spots = enc.getSpots();
-			for (SuperSpot s : spots) {
-				spotJson += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
-			}
-		}
-		if (enc.getNumRightSpots() > 0) {
-      			spots = enc.getRightSpots();
-			for (SuperSpot s : spots) {
-				spotJson += "{ \"type\": \"spot\", \"xy\" : [ " + s.getCentroidX() + "," + s.getCentroidY() + "] },\n";
-			}
-		}
-		spotJson += "];";
+  if (fileloc != null) {
 %>
 <td valign="top" class="spot-td spot-td-left">
 <div id="spot-image-wrapper-left">
@@ -353,19 +346,29 @@ try {
 	<canvas id="spot-image-canvas-left"></canvas>
 </div>
 </td> 
-  <%
+<%
     }
-
-
-if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
-
 %>
 
 
 <script type="text/javascript">
 	var spotJson = {};
-
 <%
+	if (features == null) {
+		out.println("var features = null;\n");
+	} else {
+		JSONArray fts = new JSONArray();
+		for (Feature f : features) {
+			JSONObject fj = new JSONObject();
+			fj.put("id", f.getId());
+			fj.put("revision", f.getRevision());
+			fj.put("type", f.getType().getId());
+			fj.put("parameters", f.getParameters());
+			fts.put(fj);
+		}
+		out.println("var features = " + fts.toString());
+	}
+/*
 	if (spotJson != null) out.println("spotJson.left = " + spotJson);
 
 	//currently i set *both* left & right ref spots with same values; but this may change
@@ -377,7 +380,38 @@ if (enc.getNumSpots() + enc.getNumRightSpots() > 0) {
 		}
 		out.println("spotJson.left = spotJson.left.concat([" + spotJson + "]);\n");
 	}
+*/
 %>
+
+var spotJson = {};
+
+//this is a hack/solution to bridge oldschool code with newschool Features
+function featuresToSpots() {
+	if (!features) return;
+	spotJson.left = [];
+	spotJson.right = [];
+	for (var i = 0 ; i < features.length ; i++) {
+		if ((features[i].type.indexOf('referenceSpots') > -1) && features[i].parameters && features[i].parameters.spots) {
+			for (var j = 0 ; j < features[i].parameters.spots.length ; j++) {
+				//we throw ref spots on the left for some historical reason
+				spotJson.left.push({ type: 'ref', xy: [ features[i].parameters.spots[j][0], features[i].parameters.spots[j][1] ] });
+			}
+		}
+			
+		if ((features[i].type.indexOf('edgeSpots') > -1) && features[i].parameters) {
+			for (var p in features[i].parameters) {
+				if (p.indexOf('spots') < 0) continue;
+				var side = p.substr(5).toLowerCase();
+				if ((side != 'right') && (side != 'left')) continue;
+				side = 'left';  //TODO we only are now supporting a single image format... must be generalized!
+				for (var j = 0 ; j < features[i].parameters[p].length ; j++) {
+					spotJson[side].push({ type: 'spot', xy: [ features[i].parameters[p][j][0], features[i].parameters[p][j][1] ] });
+				}
+			}
+		} 
+	}
+console.warn(spotJson);
+}
 
 var itool = {};
 
@@ -420,7 +454,9 @@ function spotInit(side) {
 function spotCheckImage(side) {
 	if (!spotJson[side]) return true;
 console.log('spotCheckImage(%s) ?', side);
+	//var jimg = $('#spot-image-' + side);
 	var jimg = $('#spot-image-' + side);
+	if (!jimg || !jimg[0]) return true;
 	if (jimg[0].complete && jimg[0].width) return true;
 console.log(side + 'not yet complete!');
 	jimg.bind('load', function() { spotCheckImages(); });
@@ -438,10 +474,11 @@ console.log('spotCheckImages() got ' + ready);
 }
 
 $(document).ready(function() {
+	featuresToSpots();
 	spotCheckImages();
 });
 </script>
-<% } %>
+
 
 </tr></table>
 <!-- END Pattern recognition image pieces -->	

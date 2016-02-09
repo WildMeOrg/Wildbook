@@ -40,7 +40,7 @@ Shepherd myShepherd = new Shepherd(context);
 int imageID = Integer.parseInt(request.getParameter("imageID"));
 MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
 if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
-Encounter enc = ma.getCorrespondingEncounter(myShepherd);
+Encounter enc = Encounter.findByMediaAsset(ma, myShepherd);
 if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
 
 

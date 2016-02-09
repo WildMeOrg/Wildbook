@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
+import org.ecocean.identity.Feature;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
+import org.json.JSONObject;
 
 
 public class SubmitSpotsAndTransformImage extends HttpServlet {
@@ -85,6 +87,7 @@ System.out.println("GOT " + jb.toString());
         myShepherd.closeDBTransaction();
         return;
     }
+/**
     Encounter enc = ma.getCorrespondingEncounter(myShepherd);
     if (enc == null) {
         out.print("{\"error\": \"no Encounter for MediaAsset id=" + id + "\"}");
@@ -92,6 +95,7 @@ System.out.println("GOT " + jb.toString());
         myShepherd.closeDBTransaction();
         return;
     }
+**/
 
 //List<List<Individual>> group = new ArrayList<List<Individual>>
     List<ArrayList<SuperSpot>> spots = new ArrayList<ArrayList<SuperSpot>>();
@@ -129,7 +133,7 @@ System.out.println("pathspot[" + i + "]: " + x + ", " + y);
             double x = pt.get(0).getAsDouble();
             double y = pt.get(1).getAsDouble();
             //String type = pt.get(2).getAsString();
-System.out.println(enc.getCatalogNumber() + " refspot[" + i + "]: " + x + ", " + y);
+System.out.println(ma + " refspot[" + i + "]: " + x + ", " + y);
             refSpots.add(new SuperSpot(x, y, new Double(-2.0)));
             if (i == 1) notchX = x;
         }
@@ -162,24 +166,6 @@ System.out.println("refspot [b]: " + x + ", " + y);
         }
     }
 
-    if ((spots.get(0) != null) && (spots.get(0).size() > 0)) {
-        enc.setSpots(spots.get(0));
-        enc.setNumLeftSpots(spots.get(0).size());
-    }
-    if ((spots.get(1) != null) && (spots.get(1).size() > 0)) {
-        enc.setRightSpots(spots.get(1));
-        enc.setNumRightSpots(spots.get(1).size());
-    }
-    if (refSpots.size() > 0) {  ///not sure this logic is right
-        enc.setRightReferenceSpots(refSpots);
-        enc.setLeftReferenceSpots(refSpots);
-    }
-
-
-    //String name = jobj.get("name").getAsString();
-    String name = "extract" + enc.getCatalogNumber() + ".jpg";
-    enc.setRightSpotImageFileName(name);
-    enc.setSpotImageFileName(name);
 
     float clientWidth = jobj.get("clientWidth").getAsFloat();
     JsonArray t = jobj.getAsJsonArray("transform");
@@ -196,7 +182,51 @@ System.out.println("refspot [b]: " + x + ", " + y);
     copts.put("clientWidth", clientWidth);
     copts.put("transformArray", transform);
 //System.out.println(copts);
+//TODO derivationMethod ? ref the transform array?
     MediaAsset spotMA = ma.updateChild("spot", copts);
+
+
+    if (spotMA != null) {
+//////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
+        JSONObject params = new JSONObject();
+//what *is* the deal with sidedness here? did we flip that in js ... i forget!  TODO
+        String typePrefix = "org.ecocean.flukeEdge";
+        if (isDorsalFin) typePrefix = "org.ecocean.dorsalEdge";
+        if (refSpots.size() > 0) {
+            JSONObject p = new JSONObject();
+            p.put("spots", SuperSpot.listToJSONArray(refSpots));
+            Feature f = new Feature(typePrefix + ".referenceSpots", p);
+            spotMA.addFeature(f);
+        }
+        JSONObject p = new JSONObject();
+        if ((spots.get(0) != null) && (spots.get(0).size() > 0)) {
+            p.put("spotsLeft", SuperSpot.listToJSONArray(spots.get(0)));
+        }
+        if ((spots.get(1) != null) && (spots.get(1).size() > 0)) {
+            p.put("spotsRight", SuperSpot.listToJSONArray(spots.get(1)));
+        }
+        if (p.has("spotsLeft") || p.has("spotsRight")) {
+            Feature f = new Feature(typePrefix + ".edgeSpots", p);
+            spotMA.addFeature(f);
+        }
+    }
+
+/*
+    if ((spots.get(0) != null) && (spots.get(0).size() > 0)) {
+        //enc.setSpots(spots.get(0));
+        //enc.setNumLeftSpots(spots.get(0).size());
+    }
+    if ((spots.get(1) != null) && (spots.get(1).size() > 0)) {
+        //enc.setRightSpots(spots.get(1));
+        //enc.setNumRightSpots(spots.get(1).size());
+    }
+    if (refSpots.size() > 0) {  ///not sure this logic is right
+        //enc.setRightReferenceSpots(refSpots);
+        //enc.setLeftReferenceSpots(refSpots);
+    }
+*/
+
+
     MediaAssetFactory.save(spotMA, myShepherd);
 
     myShepherd.commitDBTransaction();
@@ -210,7 +240,7 @@ System.out.println("SubmitSpotsAndTranform generated a new spotMA id=" + spotMA.
     } else {
         System.out.println("ERROR: SubmitSpotsAndTranform failed to generate a spot MediaAsset!");
     }
-    m.put("name", name);
+    /////m.put("name", name);  TODO return url to MA!!
     Gson gson = new Gson();
     out.println(gson.toJson(m));
     out.flush();

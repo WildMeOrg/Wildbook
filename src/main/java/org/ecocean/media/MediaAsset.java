@@ -24,6 +24,7 @@ import org.ecocean.Keyword;
 import org.ecocean.Annotation;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
+import org.ecocean.identity.Feature;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -79,6 +80,8 @@ public class MediaAsset implements java.io.Serializable {
     protected Metadata metadata = null;
 
     protected ArrayList<String> labels;
+
+    protected ArrayList<Feature> features;
 
     protected String hashCode;
 
@@ -268,6 +271,17 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if (!labels.contains(s)) labels.add(s);
     }
 
+    public ArrayList<Feature> getFeatures() {
+        return features;
+    }
+    public void setFeatures(ArrayList<Feature> f) {
+        features = f;
+    }
+    public void addFeature(Feature f) {
+        if (features == null) features = new ArrayList<Feature>();
+        if (!features.contains(f)) features.add(f);
+    }
+
     public Path localPath()
     {
         if (store == null) return null;
@@ -415,13 +429,6 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return (MediaAsset)results.get(0);
     }
 */
-
-    public Encounter getCorrespondingEncounter(Shepherd myShepherd) {
-//TODO
-        //return Encounter.findByMediaAsset(this, myShepherd);
-        return null;
-    }
-
 
 
 /*
