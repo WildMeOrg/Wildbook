@@ -19,6 +19,10 @@
 
 package org.ecocean;
 
+import java.util.ArrayList;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 //unenhanced comment
 
 
@@ -99,5 +103,21 @@ public class SuperSpot implements java.io.Serializable {
   public void setType(Double type){this.type=type;}
   public Double getType(){return type;}
   
+
+    public JSONArray toJSONObject() {
+        JSONArray arr = new JSONArray();
+        arr.put(centroidX);
+        arr.put(centroidY);
+        arr.put(type);
+        return arr;
+    }
+
+    public static JSONArray listToJSONArray(ArrayList<SuperSpot> spots) {
+        JSONArray arr = new JSONArray();
+        for (SuperSpot s : spots) {
+            arr.put(s.toJSONObject());
+        }
+        return arr;
+    }
 
 }
