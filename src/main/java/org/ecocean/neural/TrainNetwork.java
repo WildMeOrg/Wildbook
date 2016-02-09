@@ -1112,7 +1112,11 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
               mo.setIBEISColorValue(score);
               System.out.println("Setting IBEIS COLOR SCORE of: "+score);
             }
-            else{System.out.println(" IBEIS COLOR el2 object was null: "+el2.getEncounterNumber());}
+            else{
+              System.out.println(" IBEIS COLOR el2 object was null "+el2.getEncounterNumber() + " so setting to 0.0.");
+              //basic not-a-match return value for when IBEIS runs the match but it's clearly not a match
+              mo.setIBEISColorValue(0.0);
+            }
           }
           else{System.out.println(" IBEIS COLOR el1 object was null: "+el1.getEncounterNumber());}
         }
