@@ -33,6 +33,11 @@
 		</field>
 
 		<field name="labels" serialized="true" column="LABELS" />
+
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="false">
+                	<collection element-type="org.ecocean.identity.Feature" dependent-element="true" />
+                	<join />
+            	</field>
 	</class>
 
 
