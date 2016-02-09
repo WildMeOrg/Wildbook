@@ -699,6 +699,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
         Shepherd myShepherd=new Shepherd(context);
+        myShepherd.beginDBTransaction();
         if(myShepherd.getUser(submitterName)!=null){
             User user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
@@ -706,6 +707,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
             if(user.getUserProject()!=null){project=user.getUserProject();}
         }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
     }
     %>
  
