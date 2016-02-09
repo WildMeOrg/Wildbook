@@ -2264,18 +2264,14 @@ throw new Exception();
 		return true;
 	}
 
-/*
-        //if MediaAsset has no Encounter, this will just be null
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
-            MediaAsset root = ma.getParentRoot(myShepherd);
-            String queryString = "SELECT FROM org.ecocean.Encounter WHERE media.contains(ma) && ma.id ==" + root.getId();
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
             Query query = myShepherd.getPM().newQuery(queryString);
             List results = (List)query.execute();
             if (results.size() < 1) return null;
             return (Encounter)results.get(0);
         }
 
-*/
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" + annot.getId() + "'";
             Query query = myShepherd.getPM().newQuery(queryString);
