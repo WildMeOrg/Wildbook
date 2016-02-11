@@ -526,6 +526,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
+                .append("parent", parentId)
                 .append("labels", ((labels == null) ? "" : labels.toString()))
                 .append("store", store.toString())
                 .toString();

@@ -30,7 +30,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import org.ecocean.Util;
 import org.ecocean.Annotation;
-import org.ecocean.ImageProcessor;
+//import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
 import org.slf4j.Logger;
@@ -336,9 +336,24 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         return p;
     }
 
+/*
     @Override
     //see note below: perhaps "update" is the wrong word here, since a change to a source *likely* means we should be a new MediaAsset anyway
-    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+    public MediaAsset yyyyyupdateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+        File sourceFile = parent.localPath().toFile();
+        File targetFile = sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg";
+        boolean allowed = this._updateChildLocalWork(type, opts, sourceFile, targetFile);  //does the heavy lifting
+        if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
+        JSONObject sp = this.createParameters(targetFile);
+        MediaAsset ma = this.copyIn(targetFile, sp);
+        ma.addLabel("_" + type);
+        ma.setParentId(parent.getId());
+        return ma;
+    }
+
+    @Override
+    //see note below: perhaps "update" is the wrong word here, since a change to a source *likely* means we should be a new MediaAsset anyway
+    public MediaAsset xxxxxupdateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
         if (!this.writable) return null; //should we silently fail or throw exception??
 
         String action = "resize";
@@ -347,11 +362,6 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         File sourceFile = parent.localPath().toFile();
         float[] transformArray = new float[0];
         boolean needsTransform = false;
-/*
-        String basename = sourceFile.getName();
-        int dot = basename.lastIndexOf(".");
-        if (dot > -1) basename = basename.substring(0,dot);
-*/
         //generally want to obscure actual filename for children MediaAsset (thumb, watermark, etc)
         String target = sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg";
         String args = null;  //i think the only real arg would be watermark text (which is largely unused)
@@ -375,7 +385,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
                 needsTransform = true;
                 transformArray = (float[])opts.get("transformArray");
                 break;
-*/
+/
             case "annotation":
                 needsTransform = true;
                 Annotation ann = (Annotation)opts.get("annotation");
@@ -395,7 +405,7 @@ System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + ta
 /* a quandry - i *think* "we all" (?) have generally agreed that a *new* MediaAsset should be created for each change in the contents of the source file.
    as such, finding an existing child MediaAsset of the type desired probably means it should either be deleted or orphaned ... or maybe simply marked older?
    in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should never" be
-   altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon */
+   altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon /
 
         ImageProcessor iproc = null;
         if (needsTransform) {
@@ -420,20 +430,7 @@ System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + ta
         ma.setParentId(parent.getId());
         return ma;
     }
-
-    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
-        File file = localPath(ma).toFile();
-        if (!file.exists()) throw new IOException(file + " does not exist");
-
-        JSONObject data = new JSONObject();
-
-        JSONObject attr = AssetStore.extractMetadataAttributes(file);
-        if (attr != null) data.put("attributes", attr);
-        JSONObject exif = AssetStore.extractMetadataExif(file);
-        if (exif != null) data.put("exif", exif);
-
-        return new MediaAssetMetadata(data);
-    }
+*/
 
 }
 

@@ -43,6 +43,8 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import javax.jdo.*;
 
+import org.ecocean.ImageProcessor;
+import org.ecocean.Util;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.*;
@@ -235,7 +237,100 @@ ex.printStackTrace();
 
     public abstract AssetStoreType getType();
 
-    public abstract MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException;
+
+    //subclass can override, but this should work for AssetStores which can handle making a local cached copy of file
+    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+        if (parent == null) return null;
+        try {
+            parent.cacheLocal();
+        } catch (Exception ex) {
+            throw new IOException("updateChild() error caching local file: " + ex.toString());
+        }
+        File sourceFile = parent.localPath().toFile();
+        File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
+        boolean allowed = _updateChildLocalWork(type, opts, sourceFile, targetFile);  //does the heavy lifting
+        if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
+        JSONObject sp = this.createParameters(targetFile);
+        MediaAsset ma = this.copyIn(targetFile, sp);
+        ma.addLabel("_" + type);
+        ma.setParentId(parent.getId());
+        return ma;
+    }
+
+
+    //a helper/utility app for the above (if applicable) that works on localfiles (since many flavors will want that)
+    protected boolean _updateChildLocalWork(String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
+        if (!this.writable) return false; //should we silently fail or throw exception??
+        if (!sourceFile.exists()) throw new IOException("updateChild() " + sourceFile.toString() + " does not exist");
+
+        String action = "resize";
+        int width = 0;
+        int height = 0;
+        float[] transformArray = new float[0];
+        boolean needsTransform = false;
+        String args = null;  //i think the only real arg would be watermark text (which is largely unused)
+
+        switch (type) {
+            case "thumb":
+                width = 100;
+                height = 75;
+                break;
+            case "mid":
+                width = 1024;
+                height = 768;
+                break;
+            case "watermark":
+                action = "watermark";
+                width = 250;
+                height = 200;
+                break;
+/*
+            case "spot":  //really now comes from Annotation too, so kinda weirdly maybe should be "annot"ish....
+                needsTransform = true;
+                transformArray = (float[])opts.get("transformArray");
+                break;
+*/
+            case "annotation":
+                needsTransform = true;
+                Annotation ann = (Annotation)opts.get("annotation");
+                if (ann == null) throw new IOException("updateChild() has 'annotation' type without an Annotation passed in via opts");
+                width = ann.getWidth();
+                height = ann.getHeight();
+                transformArray = ann.getTransformMatrixClean();
+                if (!ann.needsTransform()) {  //above would be set to identity matrix, so lets set offsets only
+                    transformArray[4] = (float)ann.getX();
+                    transformArray[5] = (float)ann.getY();
+                }
+                break;
+            default:
+                throw new IOException("updateChild() type " + type + " unknown");
+        }
+System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetFile);
+
+/* a quandry - i *think* "we all" (?) have generally agreed that a *new* MediaAsset should be created for each change in the contents of the source file.
+   as such, finding an existing child MediaAsset of the type desired probably means it should either be deleted or orphaned ... or maybe simply marked older?
+   in short: "revisioning".  further, if the *parent has changed* should it also then not be a NEW MediaAsset itself anyway!? as such, we "should never" be
+   altering an existing child type on an existing parent.  i think.  ???  sigh.... not sure what TODO  -jon */
+
+        ImageProcessor iproc = null;
+        if (needsTransform) {
+            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray);
+        } else {
+            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args);
+        }
+
+        Thread t = new Thread(iproc);
+        t.start();
+        try {
+            t.join();  //we have to wait for it to finish, so we can do the copyIn() below
+        } catch (InterruptedException ex) {
+            throw new IOException("updateChild() ImageProcessor failed due to interruption: " + ex.toString());
+        }
+
+        if (!targetFile.exists()) throw new IOException("updateChild() failed to create " + targetFile.toString());
+        return true;
+    }
+
 
 /*  do we even want to allow this?
     public MediaAsset create(String jsonString) {
@@ -431,7 +526,23 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
     }
 
 
-    public abstract MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException; 
+    //this can be overridden if needed, but this should be fine for any AssetStore which can cacheLocal
+    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
+        try {
+            ma.cacheLocal();
+        } catch (Exception ex) {
+            throw new IOException("extractMetadata() error caching local file: " + ex.toString());
+        }
+        File file = ma.localPath().toFile();
+        if (!file.exists()) throw new IOException(file + " does not exist");
+        JSONObject data = new JSONObject();
+        JSONObject attr = extractMetadataAttributes(file);
+        if (attr != null) data.put("attributes", attr);
+        JSONObject exif = extractMetadataExif(file);
+        if (exif != null) data.put("exif", exif);
+        return new MediaAssetMetadata(data);
+    }
+
 
     //these can be used by subclasses who can access files, for within .extractMetadata()
 
