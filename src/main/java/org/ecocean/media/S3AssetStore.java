@@ -265,6 +265,7 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
         return p;
     }
 
+/*
     @Override
     public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
         if (!this.writable) return null; //should we silently fail or throw exception??
@@ -289,7 +290,7 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
         int dot = basename.lastIndexOf(".");
         if (dot > -1) basename = basename.substring(0,dot);
         String targetname = basename + "-" + type + ".jpg";
-*/
+/
         String targetname = Util.generateUUID() + "-" + type + ".jpg";  //generally want to obscure filename for children (thumb, watermark)
         String args = null;  //i think the only real arg would be watermark text (which is largely unused)
 
@@ -332,11 +333,9 @@ System.out.println("S3AssetStore.updateChild(): " + sourceFile + " --> " + targe
         ma.copyIn(tfile);
         return ma;
     }
+*/
 
 
-    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
-        return null;
-    }
 }
 
 
