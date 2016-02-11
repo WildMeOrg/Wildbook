@@ -19,6 +19,7 @@
 package org.ecocean.media;
 
 import org.ecocean.Shepherd;
+import org.ecocean.Annotation;
 
 import java.io.File;
 import java.io.IOException;
@@ -396,18 +397,35 @@ ex.printStackTrace();
 
 
     //override this per-AssetStore if needed
-    public String mediaAssetToHtmlElement(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd) {
+    //  Annotation can be useful, but may be null! so allow for that.
+    public String mediaAssetToHtmlElement(MediaAsset ma, HttpServletRequest request, Shepherd myShepherd, Annotation ann) {
         URL url = ma.webURL();
         if (url == null) return "<div id=\"media-asset-" + ma.getId() + "\" class=\"media-asset no-media-url\">no webURL</div>";
 
 //TODO branch based upon permissions
 
+        String more = "";
+        ArrayList<MediaAsset> kids = new ArrayList<MediaAsset>();
+
+//FOR NOW (TODO) we are disabling non-trivial annotations display, such is life?
+if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotation -->";
+/*
+        //for non-trivial annotations, lets try to find the 
+        if ((ann != null) && !ann.isTrivial()) {
+            kids = ma.findChildrenByLabel(myShepherd, "_annotation");
+            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) ma = kids.get(0);
+            url = ma.webURL();
+        }
+        if (ann != null) more += " data-annotation-id=\"" + ann.getId() + "\" ";
+*/
+
         String smallUrl = url.toString();
-        ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_watermark");
+        kids = ma.findChildrenByLabel(myShepherd, "_watermark");
         if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) smallUrl = kids.get(0).webURL().toString(); 
 
-        String more = "";
-        more = "data-full-url=\"" + url + "\"";
+        //this should be based on permission for example:
+        more += " data-full-url=\"" + url + "\" ";
+
         return "<div id=\"media-asset-" + ma.getId() + "\" class=\"media-asset media-default\" " + more + "><img src=\"" + smallUrl + "\" /></div>";
         //return "<div>(" + ma.toString() + "<br />" + smallUrl + "<br />" + url + ")</div>";
     }

@@ -14,6 +14,7 @@ import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Arrays;
+import javax.servlet.http.HttpServletRequest;
 
 //import java.time.LocalDateTime;
 
@@ -137,6 +138,10 @@ public class Annotation implements java.io.Serializable {
         return transformMatrix;
     }
         
+    public boolean isTrivial() {
+        if (mediaAsset == null) return false;
+        return (!needsTransform() && (getWidth() == (int)mediaAsset.getWidth()) && (getHeight() == (int)mediaAsset.getHeight()));
+    }
 
     public double getTheta() {
         return theta;
@@ -227,5 +232,10 @@ public class Annotation implements java.io.Serializable {
         return MediaAsset.findByAnnotation(this, myShepherd);
     }
 */
+
+    public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
+        if (mediaAsset == null) return "<!-- Annotation.toHtmlElement(): " + this + " has no MediaAsset -->";
+        return mediaAsset.toHtmlElement(request, myShepherd, this);
+    }
 
 }
