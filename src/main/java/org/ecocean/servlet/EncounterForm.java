@@ -588,6 +588,7 @@ System.out.println("attempting to write uploaded file to " + tmpFile);
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
                     newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                    ma.updateMetadata();
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }
