@@ -1960,6 +1960,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     public void setAnnotations(ArrayList<Annotation> anns) {
         annotations = anns;
     }
+    public void addAnnotation(Annotation ann) {
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        annotations.add(ann);
+    }
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
@@ -2177,29 +2181,12 @@ it should be considered an asyncronous action that happens in the background mag
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
                 public boolean refreshAssetFormats(Shepherd myShepherd) {
-/*
                     ArrayList<MediaAsset> mas = this.getMedia();
                     if ((mas == null) || (mas.size() < 1)) return true;
-                    boolean ok = true;
-                    String[] types = new String[]{"thumb", "mid", "watermark"};
                     for (MediaAsset ma : mas) {
-                        for (int i = 0 ; i < types.length ; i++) {
-                            MediaAsset c = null;
-                            try {
-                                c = ma.updateChild(types[i]);
-                            } catch (IOException ex) {
-                                System.out.println("refreshAssetFormats() failed on " + ma + " with " + ex.toString());
-                            }
-                            if (c == null) {
-                                ok = false;
-                            } else {
-                                MediaAssetFactory.save(c, myShepherd);
-                            }
-                        }
+                        ma.updateStandardChildren(myShepherd);
                     }
-                    return ok;
-*/
-                    return false;
+                    return true;
                 }
 /*
 NOTE on "thumb.jpg" ... we only get one of these per encounter; and we do not have stored (i dont think?) which SPV it came from!

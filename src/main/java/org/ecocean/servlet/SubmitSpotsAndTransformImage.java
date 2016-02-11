@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import com.google.gson.*;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import org.json.JSONObject;
@@ -90,6 +91,12 @@ System.out.println("GOT " + jb.toString());
     }
 
     Encounter enc = Encounter.findByMediaAsset(ma, myShepherd);
+    if (enc == null) {
+        out.print("{\"error\": \"could not find Encounter for MediaAsset=" + id + "\"}");
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return;
+    }
 
 //List<List<Individual>> group = new ArrayList<List<Individual>>
     List<ArrayList<SuperSpot>> spots = new ArrayList<ArrayList<SuperSpot>>();
@@ -167,31 +174,23 @@ System.out.println("refspot [b]: " + x + ", " + y);
     for (int i = 0 ; i < t.size() ; i++) {
         transform[i] = t.get(i).getAsFloat();
     }
-/*
-    File f = new File(spv.getFullFileSystemPath());
-    String targetPath = f.getParent() + "/" + name;
-    boolean trying = spv.transformTo(context, transform, clientWidth, targetPath);
-*/
-
-/***** old way; now we create annotation and get childMA from that
-    HashMap<String,Object> copts = new HashMap<String,Object>();
-    copts.put("clientWidth", clientWidth);
-    copts.put("transformArray", transform);
-//System.out.println(copts);
-//TODO derivationMethod ? ref the transform array?
-    MediaAsset spotMA = ma.updateChild("spot", copts);
-*/
 
     float pixelScale = 1;
     if ((clientWidth > 0) && (ma.getWidth() > 0)) pixelScale = (float)ma.getWidth() / clientWidth;
-System.out.println("pixelScale = " + pixelScale);
+System.out.println("pixelScale -> " + pixelScale);
     transform[4] *= pixelScale;
     transform[5] *= pixelScale;
+System.out.println("transform matrix -> " + Arrays.toString(transform));
     //note: for imagemagick, translate x,y will be moved to clipping offset
-    Annotation annot = new Annotation(ma, ((enc == null) ? "" : enc.getTaxonomyString()), 0, 0, (int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), transform);
+    Annotation annot = new Annotation(ma, enc.getTaxonomyString(), 0, 0, (int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), transform);
+    enc.addAnnotation(annot);
+System.out.println("annotation -> " + annot);
     MediaAsset spotMA = annot.createMediaAsset();
+System.out.println("spotMA -> " + spotMA);
 
     if (spotMA != null) {
+        //spotMA.updateMetadata();  //do we care about metadata for *derived* images?  going to say NO for now! will i regret it later??
+
 //////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
         JSONObject params = new JSONObject();
 //what *is* the deal with sidedness here? did we flip that in js ... i forget!  TODO

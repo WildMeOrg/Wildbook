@@ -13,6 +13,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Arrays;
 
 //import java.time.LocalDateTime;
 
@@ -215,6 +216,8 @@ public class Annotation implements java.io.Serializable {
                 .append("id", id)
                 .append("species", species)
                 .append("bbox", getBbox())
+                //.append("transform", ((getTransformMatrix == null) ? null : Arrays.toString(getTransformMatrix())))
+                .append("transform", Arrays.toString(getTransformMatrix()))
                 .append("asset", mediaAsset)
                 .toString();
     }

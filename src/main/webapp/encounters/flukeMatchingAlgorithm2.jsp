@@ -205,7 +205,7 @@ try {
 
   	<p>
     <%
-	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_spot");
+	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_annotation");
 	String fileloc = null;
 
 	if (request.getParameter("isOwner").equals("true") && CommonConfiguration.useSpotPatternRecognition(context) && (spotMA != null)) {

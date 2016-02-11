@@ -594,6 +594,31 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return found;
     }
 
+
+    //creates the "standard" derived children for a MediaAsset (thumb, mid, etc) -- TODO some day have this site-defined?
+    public ArrayList<MediaAsset> updateStandardChildren() {
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        String[] types = new String[]{"thumb", "mid", "watermark"};
+        for (int i = 0 ; i < types.length ; i++) {
+            MediaAsset c = null;
+            try {
+                c = this.updateChild(types[i]);
+            } catch (IOException ex) {
+                System.out.println("updateStandardChildren() failed on " + this + " with " + ex.toString());
+            }
+            if (c != null) mas.add(c);
+        }
+        return mas;
+    }
+    //as above, but saves them too
+    public ArrayList<MediaAsset> updateStandardChildren(Shepherd myShepherd) {
+        ArrayList<MediaAsset> mas = updateStandardChildren();
+        for (MediaAsset ma : mas) {
+            MediaAssetFactory.save(ma, myShepherd);
+        }
+        return mas;
+    }
+
     //TODO until we get keywords migrated to MediaAsset
     public List<Keyword> getKeywords() {
         return new ArrayList<Keyword>();
