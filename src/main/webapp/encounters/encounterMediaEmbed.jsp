@@ -69,9 +69,9 @@ Encounter imageEnc = imageShepherd.getEncounter(imageEncNum);
 <%
 
 
-ArrayList<MediaAsset> media = imageEnc.getMedia();
+ArrayList<Annotation> anns = imageEnc.getAnnotations();
 
-if ((media == null) || (media.size() < 1)) {
+if ((anns == null) || (anns.size() < 1)) {
 
 %>
 no media
@@ -81,7 +81,9 @@ no media
 
 
 
-	for (MediaAsset ma : media) {
+	for (Annotation ann : anns) {
+///SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW!   TODO
+		if (!ann.isTrivial()) continue;
 
 //hacky menu, for now.  TODO break this out as part of toHtmlElement so it is part of image suite
 		if (CommonConfiguration.useSpotPatternRecognition(context)) {
@@ -95,12 +97,12 @@ no media
 				isDorsalFin="&isDorsalFin=true";
 			}
 %>
-	<p><a href="encounterSpotTool.jsp?imageID=<%=ma.getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+	<p><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
 
 <%
 		}
 
-		out.println(ma.toHtmlElement(request, imageShepherd));
+		out.println(ann.toHtmlElement(request, imageShepherd));
 	}
 
 }

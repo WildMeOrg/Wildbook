@@ -625,9 +625,14 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
  
 
+    //if we dont have the Annotation... which kinda sucks but okay
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
+        return toHtmlElement(request, myShepherd, null);
+    }
+
+    public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd, Annotation ann) {
         if (store == null) return "<!-- ERROR: MediaAsset.toHtmlElement() has no .store value for " + this.toString() + " -->";
-        return store.mediaAssetToHtmlElement(this, request, myShepherd);
+        return store.mediaAssetToHtmlElement(this, request, myShepherd, ann);
     }
 
 
