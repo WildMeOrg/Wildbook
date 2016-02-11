@@ -1,16 +1,61 @@
-#!/bin/sh
+#!/bin/bash
 
-#create a placeholder (as the below may take "time"
+###   imageTransformCommand = /usr/local/bin/imageTransformWrapper.sh %imagesource %imagetarget %width %height %t0 %t1 %t2 %t3 %t4 %t5
 
-echo $3
-/usr/bin/convert -gravity Center -background '#AAA' -size 800x600 -pointsize 80 'label:Processing image...' $2
+#create a placeholder (as the below may take "time")
+
+source=$1
+target=$2
+width=$3
+height=$4
+t0=$5
+t1=$6
+t2=$7
+t3=$8
+t4=$9
+t5=${10}
 
 
-#imageTransformCommand = /usr/local/bin/imageTransformWrapper.sh %imagesource %imagetarget %widthx%height%T4%T5 %t0,%t1,%t2,%t3,0,0
 
-#/usr/bin/convert $1 -matte -virtual-pixel Transparent -affine $4 -transform +repage -gravity Center -crop $3 $2
-cmd="/usr/bin/convert $1 -matte -virtual-pixel Transparent -affine $4 -transform +repage -gravity Center -crop $3 $2"
+/usr/bin/convert -gravity Center -background '#AAA' -size 800x600 -pointsize 80 'label:Processing image...' $target
+
+echo "$source
+$target
+$width
+$height
+$t0
+$t1
+$t2
+$t3
+$t4
+$t5" > /tmp/args
+
+
+if [[ $t4 == \-* ]] ; then
+	offset=$t4
+else
+	offset="+$t4"
+fi
+if [[ $t5 == \-* ]] ; then
+	offset="$offset$t5"
+else
+	offset="$offset+$t5"
+fi
+crop="${width}x$height$offset"
+
+
+
+#identity matrix means we dont need to do crazy transform, only crop
+if [ "$t0" = "1.0" -a "$t1" = "0.0" -a "$t2" = "0.0" -a "$t3" = "1.0" ] ; then
+	cmd="/usr/bin/convert +repage -crop $crop $source $target"
+else
+	cmd="/usr/bin/convert $source -matte -virtual-pixel Transparent -affine $t0,$t1,$t2,$t3,0,0 -transform +repage -gravity Center -crop $crop $target"
+fi
+
 
 echo $cmd > /tmp/TEST
+echo $cmd
+
 
 $cmd
+
