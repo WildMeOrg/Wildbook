@@ -23,7 +23,6 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
-import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
@@ -52,6 +51,7 @@ import java.util.Iterator;
 */
 import org.json.JSONObject;
 import org.json.JSONException;
+import org.ecocean.Shepherd;
 
 
 /**
@@ -88,5 +88,19 @@ public class FeatureType implements java.io.Serializable {
         description = d;
     }
 
+
+    //TODO should probably have this loaded once like AssetStores
+    public static FeatureType load(final String id, Shepherd myShepherd) {
+        return ((FeatureType) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(FeatureType.class, id), true)));
+    }
+
+    public String toString() {
+        return id;
+/*
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .toString();
+*/
+    }
 
 }

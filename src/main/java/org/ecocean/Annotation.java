@@ -11,6 +11,8 @@ import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONObject;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
+import java.io.IOException;
+import java.util.HashMap;
 
 //import java.time.LocalDateTime;
 
@@ -21,6 +23,7 @@ public class Annotation implements java.io.Serializable {
     private int y;
     private int width;
     private int height;
+    private float[] transformMatrix;
     private double theta;
     //*'annot_yaw': 'REAL',
     //~'annot_detect_confidence': 'REAL',
@@ -38,7 +41,7 @@ public class Annotation implements java.io.Serializable {
 
     //the "trivial" Annotation - its bounding box is the same as the MediaAsset image
     public Annotation(MediaAsset ma, String species) {
-        this(ma, species, ma.getImageAttributesOrNull());
+        this(ma, species, ma.getImageAttributes());
     }
 
     public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
@@ -60,6 +63,17 @@ public class Annotation implements java.io.Serializable {
         //this.name = this.annot_uuid + " on " + ma.getUUID();
     }
 
+    public Annotation(MediaAsset ma, String species, int x, int y, int w, int h, float[] tm) {
+        this.id = org.ecocean.Util.generateUUID();
+        this.x = x;
+        this.y = y;
+        this.width = w;
+        this.height = h;
+        this.transformMatrix = tm;
+        this.theta = 0.0;
+        this.species = species;
+        this.mediaAsset = ma;
+    }
 
     public String getId() {
         return id;
@@ -99,6 +113,29 @@ public class Annotation implements java.io.Serializable {
     public void setHeight(int h) {
         height = h;
     }
+
+    public float[] getTransformMatrix() {
+        return transformMatrix;
+    }
+
+    public void setTransformMatrix(float[] t) {
+        transformMatrix = t;
+    }
+
+    //transform is not empty or "useless" (e.g. identity)
+    public boolean needsTransform() {
+        if (transformMatrix == null) return false;
+        if (transformMatrix.length != 6) return false;
+        if ((transformMatrix[0] == 1) && (transformMatrix[1] == 0) && (transformMatrix[2] == 0) &&
+            (transformMatrix[3] == 1) && (transformMatrix[4] == 0) && (transformMatrix[5] == 0)) return false;
+        return true;
+    }
+
+    public float[] getTransformMatrixClean() {
+        if (!needsTransform()) return new float[]{1,0,0,1,0,0};
+        return transformMatrix;
+    }
+        
 
     public double getTheta() {
         return theta;
@@ -165,6 +202,13 @@ public class Annotation implements java.io.Serializable {
         return obj;
     }
 */
+
+    public MediaAsset createMediaAsset() throws IOException {
+        if (mediaAsset == null) return null;
+        HashMap<String,Object> hmap = new HashMap<String,Object>();
+        hmap.put("annotation", this);
+        return mediaAsset.updateChild("annotation", hmap);
+    }
 
     public String toString() {
         return new ToStringBuilder(this)

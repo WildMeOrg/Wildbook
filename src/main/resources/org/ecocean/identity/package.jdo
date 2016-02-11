@@ -22,7 +22,7 @@
 		<field name="id" primary-key="true">
 			<column length="36" />
 		</field>
-		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.identity.FeatureType" />
+		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.identity.FeatureType" allows-null="false" />
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>

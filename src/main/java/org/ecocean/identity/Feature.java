@@ -58,9 +58,11 @@ public class Feature implements java.io.Serializable {
 
     protected long revision;
 
+/*
     public Feature(final String typeAsString, final JSONObject params) {
         this(new FeatureType(typeAsString), params);
     }
+*/
     public Feature(final FeatureType type, final JSONObject params) {
         this(Util.generateUUID(), type, params);
     }
@@ -125,5 +127,14 @@ public class Feature implements java.io.Serializable {
         return this.revision;
     }
 
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("rev", revision)
+                .append("type", type.toString())
+                .toString();
+    }
 
 }

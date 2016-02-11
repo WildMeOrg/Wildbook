@@ -39,7 +39,16 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.file.Files;
 import javax.jdo.*;
+
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.*;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import javax.imageio.IIOException;
 
 /**
  * AssetStore describes a location and methods for access to a set of
@@ -403,5 +412,45 @@ ex.printStackTrace();
         //return "<div>(" + ma.toString() + "<br />" + smallUrl + "<br />" + url + ")</div>";
     }
 
+
+    public abstract MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException; 
+
+    //these can be used by subclasses who can access files, for within .extractMetadata()
+
+    public static JSONObject extractMetadataAttributes(File file) throws IOException {  //some "generic attributes" (i.e. not from specific sources like exif)
+        BufferedImage bimg = null;
+        try {
+            bimg = ImageIO.read(file);
+        } catch (javax.imageio.IIOException ex) {
+            throw new IOException(ex.toString());
+        }
+        if (bimg == null) return null;
+        JSONObject j = new JSONObject();
+        j.put("width", (double)bimg.getWidth());
+        j.put("height", (double)bimg.getHeight());
+        j.put("contentType", Files.probeContentType(file.toPath()));
+        return j;
+    }
+
+
+    /////////////// regarding pulling "useful" Metadata, see: https://github.com/drewnoakes/metadata-extractor/issues/10
+    public static JSONObject extractMetadataExif(File file) throws IOException {
+        Metadata md = null;
+        try {
+            md = ImageMetadataReader.readMetadata(file);
+        } catch (Exception ex) {
+            throw new IOException("MediaAsset.getImageMetadata() threw exception " + ex.toString());
+        }
+
+        JSONObject j = new JSONObject();
+        for (Directory directory : md.getDirectories()) {
+            JSONObject d = new JSONObject();
+            for (Tag tag : directory.getTags()) {
+                d.put(tag.getTagName(), tag.getDescription());
+            }
+            j.put(directory.getName(), d);
+        }
+        return j;
+    }
 
 }
