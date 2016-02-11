@@ -332,6 +332,11 @@ System.out.println("S3AssetStore.updateChild(): " + sourceFile + " --> " + targe
         ma.copyIn(tfile);
         return ma;
     }
+
+
+    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
+        return null;
+    }
 }
 
 

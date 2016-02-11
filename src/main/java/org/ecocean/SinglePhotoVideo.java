@@ -238,10 +238,12 @@ System.out.println("yes. out. ))");
 		String cmd = CommonConfiguration.getProperty("imageTransformCommand", context);
 		if ((cmd == null) || cmd.equals("")) return false;
 		String sourcePath = this.getFullFileSystemPath();
+/*
 		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
-		ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform, clientWidth);
+		ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform); //, clientWidth);
 		Thread t = new Thread(iproc);
 		t.start();
+*/
 		return true;
         }
 

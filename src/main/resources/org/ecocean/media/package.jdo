@@ -14,6 +14,7 @@
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
+		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" />
 		<property name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</property>
@@ -41,6 +42,11 @@
 	</class>
 
 
+	<class name="MediaAssetMetadata">
+		<property name="dataAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="data" />
+		</property>
+	</class>
 
 	<class name="AssetStore" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>

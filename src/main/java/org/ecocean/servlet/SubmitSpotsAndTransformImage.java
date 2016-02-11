@@ -23,6 +23,7 @@ import org.ecocean.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.ecocean.identity.Feature;
+import org.ecocean.identity.FeatureType;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -87,15 +88,8 @@ System.out.println("GOT " + jb.toString());
         myShepherd.closeDBTransaction();
         return;
     }
-/**
-    Encounter enc = ma.getCorrespondingEncounter(myShepherd);
-    if (enc == null) {
-        out.print("{\"error\": \"no Encounter for MediaAsset id=" + id + "\"}");
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        return;
-    }
-**/
+
+    Encounter enc = Encounter.findByMediaAsset(ma, myShepherd);
 
 //List<List<Individual>> group = new ArrayList<List<Individual>>
     List<ArrayList<SuperSpot>> spots = new ArrayList<ArrayList<SuperSpot>>();
@@ -178,13 +172,24 @@ System.out.println("refspot [b]: " + x + ", " + y);
     String targetPath = f.getParent() + "/" + name;
     boolean trying = spv.transformTo(context, transform, clientWidth, targetPath);
 */
+
+/***** old way; now we create annotation and get childMA from that
     HashMap<String,Object> copts = new HashMap<String,Object>();
     copts.put("clientWidth", clientWidth);
     copts.put("transformArray", transform);
 //System.out.println(copts);
 //TODO derivationMethod ? ref the transform array?
     MediaAsset spotMA = ma.updateChild("spot", copts);
+*/
 
+    float pixelScale = 1;
+    if ((clientWidth > 0) && (ma.getWidth() > 0)) pixelScale = (float)ma.getWidth() / clientWidth;
+System.out.println("pixelScale = " + pixelScale);
+    transform[4] *= pixelScale;
+    transform[5] *= pixelScale;
+    //note: for imagemagick, translate x,y will be moved to clipping offset
+    Annotation annot = new Annotation(ma, ((enc == null) ? "" : enc.getTaxonomyString()), 0, 0, (int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), transform);
+    MediaAsset spotMA = annot.createMediaAsset();
 
     if (spotMA != null) {
 //////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
@@ -195,7 +200,7 @@ System.out.println("refspot [b]: " + x + ", " + y);
         if (refSpots.size() > 0) {
             JSONObject p = new JSONObject();
             p.put("spots", SuperSpot.listToJSONArray(refSpots));
-            Feature f = new Feature(typePrefix + ".referenceSpots", p);
+            Feature f = new Feature(FeatureType.load(typePrefix + ".referenceSpots", myShepherd), p);
             spotMA.addFeature(f);
         }
         JSONObject p = new JSONObject();
@@ -206,7 +211,7 @@ System.out.println("refspot [b]: " + x + ", " + y);
             p.put("spotsRight", SuperSpot.listToJSONArray(spots.get(1)));
         }
         if (p.has("spotsLeft") || p.has("spotsRight")) {
-            Feature f = new Feature(typePrefix + ".edgeSpots", p);
+            Feature f = new Feature(FeatureType.load(typePrefix + ".edgeSpots", myShepherd), p);
             spotMA.addFeature(f);
         }
     }

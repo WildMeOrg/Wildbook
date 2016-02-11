@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import org.ecocean.Util;
+import org.ecocean.Annotation;
 import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
@@ -345,7 +346,6 @@ System.out.println("# # # # # # # # # # # webURL on " + ma.toString());
         int width = 0;
         int height = 0;
         File sourceFile = parent.localPath().toFile();
-        float clientWidth = 0;
         float[] transformArray = new float[0];
         boolean needsTransform = false;
 /*
@@ -371,10 +371,22 @@ System.out.println("# # # # # # # # # # # webURL on " + ma.toString());
                 width = 250;
                 height = 200;
                 break;
-            case "spot":
+/*
+            case "spot":  //really now comes from Annotation too, so kinda weirdly maybe should be "annot"ish....
                 needsTransform = true;
-                clientWidth = (float)opts.get("clientWidth");
                 transformArray = (float[])opts.get("transformArray");
+                break;
+*/
+            case "annotation":
+                needsTransform = true;
+                Annotation ann = (Annotation)opts.get("annotation");
+                width = ann.getWidth();
+                height = ann.getHeight();
+                transformArray = ann.getTransformMatrixClean();
+                if (!ann.needsTransform()) {  //above would be set to identity matrix, so lets set offsets only
+                    transformArray[4] = (float)ann.getX();
+                    transformArray[5] = (float)ann.getY();
+                }
                 break;
             default:
                 throw new IOException("updateChild() type " + type + " unknown");
@@ -388,20 +400,7 @@ System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + ta
 
         ImageProcessor iproc = null;
         if (needsTransform) {
-            iproc = new ImageProcessor("context0", sourceFile.toString(), target, transformArray, clientWidth);
-/*
-        public boolean transformTo(String context, float[] transform, float clientWidth, String targetPath) {
-		String cmd = CommonConfiguration.getProperty("imageTransformCommand", context);
-		if ((cmd == null) || cmd.equals("")) return false;
-		String sourcePath = this.getFullFileSystemPath();
-		if (!Shepherd.isAcceptableImageFile(sourcePath)) return false;
-		ImageProcessor iproc = new ImageProcessor(context, sourcePath, targetPath, transform, clientWidth);
-		Thread t = new Thread(iproc);
-		t.start();
-		return true;
-        }
-*/
-
+            iproc = new ImageProcessor("context0", sourceFile.toString(), target, width, height, transformArray);
         } else {
             iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), target, args);
         }
@@ -421,6 +420,20 @@ System.out.println("LocalAssetStore.updateChild(): " + sourceFile + " --> " + ta
         ma.addLabel("_" + type);
         ma.setParentId(parent.getId());
         return ma;
+    }
+
+    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
+        File file = localPath(ma).toFile();
+        if (!file.exists()) throw new IOException(file + " does not exist");
+
+        JSONObject data = new JSONObject();
+
+        JSONObject attr = AssetStore.extractMetadataAttributes(file);
+        if (attr != null) data.put("attributes", attr);
+        JSONObject exif = AssetStore.extractMetadataExif(file);
+        if (exif != null) data.put("exif", exif);
+
+        return new MediaAssetMetadata(data);
     }
 
 }

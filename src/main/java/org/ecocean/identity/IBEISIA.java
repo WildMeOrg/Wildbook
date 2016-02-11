@@ -56,10 +56,7 @@ public class IBEISIA {
             map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
 
-            ImageAttributes iatt = null;
-            try {
-                iatt = ma.getImageAttributes();
-            } catch (Exception ex) { }
+            ImageAttributes iatt = ma.getImageAttributes();
             if (iatt == null) {
                 map.get("image_width_list").add(0);
                 map.get("image_height_list").add(0);

@@ -77,28 +77,32 @@ public final class ImageProcessor implements Runnable {
     }
 
     //no need for action when passing a transform, as it can only be one
-    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float[] transform, float clientWidth) {
-        BufferedImage bimg = null;
-        try {
-            bimg = ImageIO.read(new File(imageSourcePath));
-        } catch (Exception e) {
-        }
-        float pixelScale = 1;
-        if (bimg != null) {
-            this.width = bimg.getWidth();
-            this.height = bimg.getHeight();
-            pixelScale = this.width / clientWidth;
-        }
-System.out.println("pixelScale = " + pixelScale);
+    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float w, float h, float[] transform) {
         this.context = context;
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
+        this.width = Math.round(w);
+        this.height = Math.round(h);
         this.transform = transform;
-        this.transform[4] *= pixelScale;
-        this.transform[5] *= pixelScale;
         this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
     }
 
+    //the crop-only version of transforming; only takes x,y,w,h
+    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float x, float y, float w, float h) {
+        this.context = context;
+        this.imageSourcePath = imageSourcePath;
+        this.imageTargetPath = imageTargetPath;
+        this.width = Math.round(w);
+        this.height = Math.round(h);
+        this.transform = new float[6];
+        this.transform[0] = 1;
+        this.transform[1] = 0;
+        this.transform[2] = 0;
+        this.transform[3] = 1;
+        this.transform[4] = x;
+        this.transform[5] = y;
+        this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
+    }
 
 
     public void run()
@@ -132,13 +136,6 @@ System.out.println("pixelScale = " + pixelScale);
             for (int i = 0 ; i < this.transform.length ; i++) {
                 fullCommand = fullCommand.replaceAll("%t" + Integer.toString(i), Float.toString(this.transform[i]));
             }
-
-            //hacktacular fubar in order to: (a) negate transform[4] & [5], and then (b) handle wonky ImageMagick WxH+x+y format
-            String T4 = Float.toString(-this.transform[4]);
-            if (this.transform[4] < 0) T4 = "+" + T4;
-            String T5 = Float.toString(-this.transform[5]);
-            if (this.transform[5] < 0) T5 = "+" + T5;
-            fullCommand = fullCommand.replaceAll("%T4", T4).replaceAll("%T5", T5);
         }
 
         String[] command = fullCommand.split("\\s+");
