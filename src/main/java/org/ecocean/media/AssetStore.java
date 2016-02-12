@@ -252,8 +252,15 @@ ex.printStackTrace();
         if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
         JSONObject sp = this.createParameters(targetFile);
         MediaAsset ma = this.copyIn(targetFile, sp);
+        if (ma == null) return null; //not sure how this would happen *without* an exception, but meh.
         ma.addLabel("_" + type);
         ma.setParentId(parent.getId());
+
+        if ((opts != null) && (opts.get("annotation") != null)) {
+            Annotation ann = (Annotation)opts.get("annotation");
+            ma.addDerivationMethod("annotation", ann.getId());
+        }
+
         return ma;
     }
 

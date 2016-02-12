@@ -227,11 +227,17 @@ public class MediaAsset implements java.io.Serializable {
         }
     }
 
-/*
     public JSONObject getDerivationMethod() {
         return derivationMethod;
     }
-*/
+    public void setDerivationMethod(JSONObject dm) {
+        derivationMethod = dm;
+    }
+    public void addDerivationMethod(String k, Object val) {
+        if (derivationMethod == null) derivationMethod = new JSONObject();
+        derivationMethod.put(k, val);
+    }
+
     public String getDerivationMethodAsString() {
         if (derivationMethod == null) return null;
         return derivationMethod.toString();
