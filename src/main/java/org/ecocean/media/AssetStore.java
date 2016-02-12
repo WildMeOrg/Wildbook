@@ -545,8 +545,15 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         JSONObject data = new JSONObject();
         JSONObject attr = extractMetadataAttributes(file);
         if (attr != null) data.put("attributes", attr);
-        JSONObject exif = extractMetadataExif(file);
-        if (exif != null) data.put("exif", exif);
+
+        //we swallow the exif IOException, since it can flake (non-jpegs etc) and we "dont care" -- we would rather just have MetadataAttributes than nothing
+        try {
+            JSONObject exif = extractMetadataExif(file);
+            if (exif != null) data.put("exif", exif);
+        } catch (IOException ioe) {
+            System.out.println("WARNING: extractMetadataExif threw " + ioe.toString() + " on " + ma + "; ignoring");
+        }
+
         return new MediaAssetMetadata(data);
     }
 
