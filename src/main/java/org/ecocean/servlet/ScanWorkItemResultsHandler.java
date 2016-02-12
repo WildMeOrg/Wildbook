@@ -180,7 +180,9 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
       if (returnedSize > 0) {
         GridNode node = gm.getGridNode(nodeIdentifier);
-        node.checkin(returnedSize);
+        if(node!=null){
+          node.checkin(returnedSize);
+        }
         gm.incrementCompletedWorkItems(returnedSize);
       }
       
@@ -211,18 +213,21 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       }
       */
       
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      //myShepherd.rollbackDBTransaction();
+      //myShepherd.closeDBTransaction();
 
 
     } 
     catch (Exception e) {
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      
       System.out.println("scanWorkItemResultsHandler registered the following error...");
       e.printStackTrace();
       inputFromApplet.close();
       //statusText="failure";
+    }
+    finally{
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
 
 
