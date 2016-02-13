@@ -189,7 +189,7 @@ System.out.println("annotation -> " + annot);
 System.out.println("spotMA -> " + spotMA);
 
     if (spotMA != null) {
-        //spotMA.updateMetadata();  //do we care about metadata for *derived* images?  going to say NO for now! will i regret it later??
+        spotMA.setMinimalMetadata((int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), "image/jpeg");
 
 //////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
         JSONObject params = new JSONObject();
