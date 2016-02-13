@@ -532,9 +532,13 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         //return "<div>(" + ma.toString() + "<br />" + smallUrl + "<br />" + url + ")</div>";
     }
 
+    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
+        return extractMetadata(ma, false);
+    }
 
     //this can be overridden if needed, but this should be fine for any AssetStore which can cacheLocal
-    public MediaAssetMetadata extractMetadata(MediaAsset ma) throws IOException {
+    //  minimal means width/height/type (MetadataAttributes) only -- good for derived (i.e. exif-boring) images
+    public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
         try {
             ma.cacheLocal();
         } catch (Exception ex) {
@@ -545,8 +549,10 @@ if ((ann != null) && !ann.isTrivial()) return "<!-- skipping non-trivial annotat
         JSONObject data = new JSONObject();
         JSONObject attr = extractMetadataAttributes(file);
         if (attr != null) data.put("attributes", attr);
-        JSONObject exif = extractMetadataExif(file);
-        if (exif != null) data.put("exif", exif);
+        if (!minimal) {
+            JSONObject exif = extractMetadataExif(file);
+            if (exif != null) data.put("exif", exif);
+        }
         return new MediaAssetMetadata(data);
     }
 

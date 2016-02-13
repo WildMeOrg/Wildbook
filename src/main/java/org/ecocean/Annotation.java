@@ -211,6 +211,7 @@ public class Annotation implements java.io.Serializable {
 
     public MediaAsset createMediaAsset() throws IOException {
         if (mediaAsset == null) return null;
+        if (this.isTrivial()) return null;  //we shouldnt make a new MA that is identical, right?
         HashMap<String,Object> hmap = new HashMap<String,Object>();
         hmap.put("annotation", this);
         return mediaAsset.updateChild("annotation", hmap);

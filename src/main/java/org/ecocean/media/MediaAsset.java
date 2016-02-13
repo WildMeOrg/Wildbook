@@ -655,6 +655,28 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return metadata;
     }
 
+    //only gets the "attributes" portion -- which is usually all we need for derived images
+    public MediaAssetMetadata updateMinimalMetadata() {
+        if (store == null) return null;
+        try {
+            metadata = store.extractMetadata(this, true);  //true means "attributes" only
+        } catch (IOException ioe) {  //we silently eat IOExceptions, but will return null
+            System.out.println("WARNING: updateMinimalMetadata() on " + this + " got " + ioe.toString() + "; failed to set");
+            return null;
+        }
+        return metadata;
+    }
+
+    //handy cuz we dont need the actual file (if we have these values from elsewhere) and usually the only stuff we "need"
+    public MediaAssetMetadata setMinimalMetadata(int width, int height, String contentType) {
+        //note, this will overwrite existing "attributes" value if it exists
+        if (metadata == null) metadata = new MediaAssetMetadata();
+        metadata.getData().put("width", width);
+        metadata.getData().put("height", height);
+        metadata.getData().put("contentType", contentType);
+        return metadata;
+    }
+
 
 }
 

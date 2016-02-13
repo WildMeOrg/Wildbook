@@ -1043,6 +1043,7 @@ System.out.println("creating new MediaAsset for key=" + key);
             return null;
         }
         ma.addLabel(label);
+        ma.updateMinimalMetadata();
         if (parentMA != null) ma.setParentId(parentMA.getId());
         MediaAssetFactory.save(ma, myShepherd);
         return ma;
@@ -1075,6 +1076,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
             try {
                 ma = astore.copyIn(fullPath, sp);
                 ma.addLabel("_spot");
+                ma.addLabel("_annotation");
+                ma.addDerivationMethod("historicSpotImageConversion", true);
+                ma.updateMinimalMetadata();
 //System.out.println("params? " + ma.getParameters());
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
@@ -1974,6 +1978,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
             if (ma != null) m.add(ma);
         }
         return m;
+    }
+
+    public ArrayList<MediaAsset> findAllMediaByLabel(Shepherd myShepherd, String label) {
+        return MediaAsset.findAllByLabel(getMedia(), myShepherd, label);
     }
 
 /*
