@@ -55,6 +55,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <meta name="Keywords"
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+      <meta name="google-site-verification" content="80XsH3TKLdQp5PFQmzDPzSWMtebHN1JTjkge9PADhFE" />
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
