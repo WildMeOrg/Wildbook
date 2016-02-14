@@ -481,10 +481,37 @@ public class TrainNetwork {
           //StringBuffer writeMe=new StringBuffer();
           
           
-          ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpeciesWithSpots(genus, specificEpithet);
+          //ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpeciesWithSpots(genus, specificEpithet);
+
+            ArrayList<Encounter> encounters = Encounter.getEncountersForMatching(Util.taxonomyString(genus, specificEpithet), myShepherd);
+/*
+            String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List results = (List)query.execute();
+            for (int i = 0 ; i < results.size() ; i++) {
+                MediaAsset ma = (MediaAsset)results.get(i);
+                MediaAsset top = ma.getParentRoot(myShepherd);
+                if (top == null) continue;
+                Encounter enc = Encounter.findByMediaAsset(top, myShepherd);
+if (enc == null) System.out.println("could not find enc for ma " + ma);
+                if (enc == null) continue;
+                encounters.add(enc);
+            }
+*/
+
+
+/*
+          ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpecies(genus, specificEpithet);
+            for (var i = encounters.size() - 1 ; i >= 0 ; i--) {
+                Encounter enc = encounters.get(i);
+                ArrayList<MediaAsset> spots = enc.findAllMediaByLabel(myShepherd, "_spot"); //"annotation" in future??
+                if ((spots == null) || (spots.size() < 1)) encounters.remove(i);
+            }
+*/
 
           int numEncs=encounters.size();
           System.out.println("Using a training set size: "+numEncs);
+if (numEncs > 0) return null;
           
           Instances isTrainingSet = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (2*numEncs*(numEncs-1)/2));
           isTrainingSet.setClassIndex(getClassIndex(genusSpecies));

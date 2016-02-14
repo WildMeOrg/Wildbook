@@ -2291,6 +2291,23 @@ throw new Exception();
 
 */
 
+    public static ArrayList<Encounter> getEncountersForMatching(String taxonomyString, Shepherd myShepherd) {
+        ArrayList<Encounter> encs = new ArrayList<Encounter>();
+        String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
+        Query query = myShepherd.getPM().newQuery(queryString);
+        List results = (List)query.execute();
+        for (int i = 0 ; i < results.size() ; i++) {
+            MediaAsset ma = (MediaAsset)results.get(i);
+            MediaAsset top = ma.getParentRoot(myShepherd);
+            if (top == null) continue;
+            Encounter enc = Encounter.findByMediaAsset(top, myShepherd);
+if (enc == null) System.out.println("could not find enc for ma " + ma);
+            if (enc == null) continue;
+            if (!enc.getTaxonomyString().equals(taxonomyString)) continue;
+            encs.add(enc);
+        }
+        return encs;
+    }
 
 
 }
