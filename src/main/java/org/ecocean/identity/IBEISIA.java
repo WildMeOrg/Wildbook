@@ -257,6 +257,13 @@ System.out.println("tlist.size()=" + tlist.size());
     }
 
 
+    public static boolean waitingOnTask(String taskID, Shepherd myShepherd) {
+        JSONObject res = getTaskResults(taskID, myShepherd);
+//System.out.println(" . . . . . . . . . . . . waitingOnTask(" + taskID + ") -> " + res);
+        if (res == null) return true;
+        return false;  //anything else means we are done (good or bad)
+    }
+
 /*
 anyMethod failed with code=600
 {"status": {"cache": -1, "message": "Missing image and/or annotation UUIDs (0, 1)", "code": 600, "success": false}, "response": {"missing_image_uuid_list": [], "missing_annot_uuid_list": [{"__UUID__": "523e8e9d-941c-4879-a5a6-aeafebf34f65"}]}}
@@ -337,14 +344,24 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String baseDir, String species, String taskID, String baseUrl, String context) {
+    public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
+        results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
         ArrayList<Annotation> qanns = new ArrayList<Annotation>();
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        if (queryEncs.size() < 1) {
+            results.put("error", "queryEncs is empty");
+            return results;
+        }
+        if (targetEncs.size() < 1) {
+            results.put("error", "targetEncs is empty");
+            return results;
+        }
 
         log(taskID, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
 
@@ -518,73 +535,49 @@ image_attrs = {
     }
 */
 
+
+        //String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+    public static ArrayList<String> startTrainingJobs(ArrayList<Encounter> encs, String taskPrefix, String taxonomyString, Shepherd myShepherd, String baseUrl, String context) {
+        ArrayList<String> ids = new ArrayList<String>();
+System.out.println("beginning IBEIS-IA training jobs on " + encs.size() + " encounters (taskPrefix " + taskPrefix + ")");
+        for(int i = 0 ; i < encs.size() ; i++) {
+            Encounter qenc = encs.get(i);
+            ArrayList<Encounter> qencs=new ArrayList<Encounter>();
+            qencs.add(qenc);
+            ArrayList<Encounter> tencs=new ArrayList<Encounter>();
+            for (int j = (i+1) ; j < encs.size() ; j++) {
+              tencs.add(encs.get(j));
+            } 
+            String taskID = taskPrefix + qenc.getEncounterNumber();
+System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ========================================================================================");
+            JSONObject res = IBEISIA.beginIdentify(qencs, tencs, myShepherd, taxonomyString, taskID, baseUrl, context);
+            if (res.optBoolean("success")) {
+                ids.add(taskID);
+            } else {
+                System.out.println("WARNING - could not start job for " + taskID + ": " + res.optString("error", "[unknown error]") + "; skipping");
+            }
+        }
+        return ids;
+    }
+
+    public static void waitForTrainingJobs(ArrayList<String> taskIds, Shepherd myShepherd) {
+        boolean stillWaiting = true;
+        while (stillWaiting) {  //TODO we could have some way to bail i guess!
+            stillWaiting = false; //optimism; prove us wrong
+            int idLen = taskIds.size();
+            for (int i = 0 ; i < idLen ; i++) {
+                if (waitingOnTask(taskIds.get(i), myShepherd)) {
+System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(i) + " so will sleep a while (passed " + i + " of " + idLen +")");
+                    stillWaiting = true;
+                    break; //this is cause enough to sleep for a bit -- we dont need to check any more!
+                }
+            }
+            if (stillWaiting) {
+                try { Thread.sleep(2000); } catch (java.lang.InterruptedException ex) {}
+            }
+        }
+System.out.println("!!!! waitForTrainingJobs() has finished.");
+    }
+
 }
-
-
-/*
-Shepherd myShepherd=null;
-myShepherd = new Shepherd("context0");
-
-
-
-JSONObject params = new JSONObject();
-
-//LocalAssetStore las = new LocalAssetStore("testStore2", new File("/tmp/store").toPath(), "http://foo.bar/webroot/testStore", false);
-LocalAssetStore las = ((LocalAssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(LocalAssetStore.class, 1), true)));
-S3AssetStore s3as = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
-out.println(las);
-out.println(s3as);
-*/
- 
-
-
-
-
-//myShepherd.getPM().makePersistent(las);
-
-/*
-params.put("path", "/tmp/store/test.txt");
-MediaAsset ma = las.copyIn(new File("/tmp/incoming.txt"), params);
-out.println(ma.localPath());
-out.println(ma.webURL());
-*/
-
-
-/*
-params.put("path", "/tmp/store/fluke2.jpg");
-MediaAsset ma = las.create(params);
-MediaAssetFactory.save(ma, myShepherd);
-*/
-
-
-/*
-MediaAsset ma = MediaAssetFactory.load(1, myShepherd);
-
-out.println(ma.localPath());
-//out.println(ma.webPathString());
-out.println(ma.getId());
-*/
-
-
-
-
-
-
-/*
-S3AssetStore s3as = new S3AssetStore("test S3", true);
-myShepherd.getPM().makePersistent(s3as);
-*/
-
-
-
-
-/*
-sp.put("bucket", "temporary-test");
-sp.put("key", "dorsal-fin.jpg");
-sp.put("urlAccessible", true);
-MediaAsset ma3 = s3as.create(sp);
-out.println(ma3.localPath());
-out.println(ma3.webURL());
-ma3.cacheLocal();
-*/
 

@@ -230,13 +230,15 @@ System.out.println("baseUrl --> " + baseUrl);
       st.setNumComparisons(count);
 
 
+/*
         String rootDir = sctx.getRealPath("/");
         String baseDir = ServletUtilities.dataDir(context, rootDir);
+*/
         ArrayList<Encounter> qencs = new ArrayList<Encounter>();
         qencs.add(myShepherd.getEncounter(encounterNumber));
 //System.out.println("qencs = " + qencs);
 //System.out.println("tencs = " + tencs);
-        IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(genus, species), taskID, baseUrl, context);
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, Util.taxonomyString(genus, species), taskID, baseUrl, context);
 
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
