@@ -237,7 +237,6 @@ try {
             if(printEncs){%></br>Processing image <%=fname%><%}
             nImages++;
 
-            myShepherd.beginDBTransaction();
 
             String encID = getEncID(fname);
             if(printEncs){%> </br> encID = <%=encID %> <%}
