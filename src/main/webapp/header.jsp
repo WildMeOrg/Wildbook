@@ -55,6 +55,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <meta name="Keywords"
             content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
+      <meta name="google-site-verification" content="80XsH3TKLdQp5PFQmzDPzSWMtebHN1JTjkge9PADhFE" />
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
@@ -80,7 +81,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
      <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
   	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
  
-  
+  <script src='https://www.google.com/recaptcha/api.js'></script>
     </head>
     
     <body role="document">
@@ -393,6 +394,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <% if(CommonConfiguration.useSpotPatternRecognition(context)) { %>
                                  <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
+                                 <li><a href="<%=urlLoc %>/appadmin/scanTaskAdmin.jsp">Shark Grid</a></li>
                                 <% } %>
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
@@ -410,7 +412,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                   <li class="divider"></li>
                                 <% } %>
                                 <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <li><a href="<%=urlLoc %>/javadoc/index.html">Javadoc</a></li>
                                 <% if(CommonConfiguration.isCatalogEditable(context)) { %>
                                   <li class="divider"></li>
                                   <li><a href="<%=urlLoc %>/appadmin/import.jsp"><%=props.getProperty("dataImport")%></a></li>
