@@ -44,6 +44,24 @@ Extent sharkClass=myShepherd.getPM().getExtent(MarkedIndividual.class, true);
 Query sharkQuery=myShepherd.getPM().newQuery(sharkClass);
 Iterator<MarkedIndividual> allSharks;
 
+/*
+String isoTime=sharky.getDWCDateAdded();
+int month = -1;
+if      (encName.contains("JAN")) {month = 1;}
+else if (encName.contains("FEB")) {month = 2;}
+else if (encName.contains("MAR")) {month = 3;}
+else if (encName.contains("APR")) {month = 4;}
+else if (encName.contains("MAY")) {month = 5;}
+else if (encName.contains("JUN")) {month = 6;}
+else if (encName.contains("JUL")) {month = 7;}
+else if (encName.contains("AUG")) {month = 8;}
+else if (encName.contains("SEP")) {month = 9;}
+else if (encName.contains("OCT")) {month = 10;}
+else if (encName.contains("NOV")) {month = 11;}
+else if (encName.contains("DEC")) {month = 12;}
+
+sharky.setMonth(month);
+*/
 
 
 try{
@@ -59,7 +77,11 @@ int numIssues=0;
 DateTimeFormatter fmt = ISODateTimeFormat.date();
 DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
+int numMissingDays = 0;
+int numParseIntExceptions = 0;
+ArrayList<String> exceptionEncIDs = new ArrayList<String>();
 
+boolean committing = true;
 
 while(allEncs.hasNext()){
 
@@ -69,25 +91,47 @@ while(allEncs.hasNext()){
 	try{
 	if((sharky.getCatalogNumber()!=null)&&(sharky.getCatalogNumber()!="Unassigned")){
 		String encName = sharky.getCatalogNumber();
-		String isoTime=sharky.getDWCDateAdded();
-		int month = -1;
-		if      (encName.contains("JAN")) {month = 1;}
-		else if (encName.contains("FEB")) {month = 2;}
-		else if (encName.contains("MAR")) {month = 3;}
-		else if (encName.contains("APR")) {month = 4;}
-		else if (encName.contains("MAY")) {month = 5;}
-		else if (encName.contains("JUN")) {month = 6;}
-		else if (encName.contains("JUL")) {month = 7;}
-		else if (encName.contains("AUG")) {month = 8;}
-		else if (encName.contains("SEP")) {month = 9;}
-		else if (encName.contains("OCT")) {month = 10;}
-		else if (encName.contains("NOV")) {month = 11;}
-		else if (encName.contains("DEC")) {month = 12;}
 
-		sharky.setMonth(month);
-    %>
-    <%=sharky.getCatalogNumber() %> set month to: <%=month %>. <br />
-    <%
+
+
+    // checks if it is both missing a day, and has a name that can be parsed to find a day
+    if (sharky.getDay() == 0 && sharky.getCatalogNumber()!=null && sharky.getCatalogNumber().length()>8) {
+      %><br />
+      <%=sharky.getCatalogNumber() %> has no day! <br />
+      <%
+      numMissingDays++;
+
+      String dayStr = sharky.getCatalogNumber().substring(7,9);
+      %>
+       &nbsp&nbsp&nbsp&nbsp dayString = <%=dayStr%>  <br />
+      <%
+
+      try {
+        int dayInt = Integer.parseInt(dayStr);
+        %>
+         &nbsp&nbsp&nbsp&nbsp dayInt = <%=dayInt%>  <br />
+        <%
+        if (committing) {
+          sharky.setDay(dayInt);
+        }
+      } catch (NumberFormatException e) {
+        numParseIntExceptions++;
+        %>
+        &nbsp&nbsp&nbsp&nbsp<%=sharky.getCatalogNumber() %> has an un-parseable day <br />
+        <%
+
+        if (sharky.getCatalogNumber().length()>15) {
+          %>
+          &nbsp&nbsp&nbsp&nbsp CANDIDATE FOR DELETION <br />
+          <%
+          exceptionEncIDs.add(sharky.getCatalogNumber());
+        }
+
+      }
+
+
+    }
+
 
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
@@ -102,72 +146,14 @@ while(allEncs.hasNext()){
 
 
 	}
-  /*
-	else if((sharky.getDWCDateAdded()==null)&&(sharky.getDWCDateAddedLong()!=null)){
-		org.joda.time.DateTime dt=new org.joda.time.DateTime(sharky.getDWCDateAddedLong());
-		sharky.setDWCDateAdded(dt.toString(fmt));
-		myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	}
 
-
-	//check for old, incorrect dates
-
-	org.joda.time.DateTime dt=new org.joda.time.DateTime(sharky.getDWCDateAddedLong());
-
-	String encYear=Integer.toString(sharky.getYear());
-	String encSubmissionYear=Integer.toString(dt.getYear());
-	if((sharky.getYear()>0)&&(!Util.isUUID(sharky.getCatalogNumber()))&&(sharky.getCatalogNumber().indexOf(encSubmissionYear)==-1)){
-		numIssues++;
-		int my200Index=sharky.getCatalogNumber().indexOf("200");
-		String probableYear=sharky.getCatalogNumber().substring(my200Index,(my200Index+4));
-
-		%>
-		<p><%=sharky.getCatalogNumber() %> has a submission year of <%=encSubmissionYear %>, which I want to set to <%=probableYear %>.</p>
-		<%
-
-		sharky.setDWCDateAdded(probableYear);
-
-		sharky.setDWCDateAdded(parser1.parseDateTime(probableYear).getMillis());
-		myShepherd.commitDBTransaction();
-	    myShepherd.beginDBTransaction();
-	}
-
-
-	//fix for lack of assignment of Occurrence IDs to Encounter
-
-
-
-
-
-}
-
-while(allSharks.hasNext()){
-
-	MarkedIndividual sharky=allSharks.next();
-	sharky.refreshDependentProperties(context);
-	myShepherd.commitDBTransaction();
-	myShepherd.beginDBTransaction();
-
-
-	//populate max years between resightings
-
-	if(sharky.totalLogEncounters()>0){
-		//int numLogEncounters=);
-		for(int i=0;i<sharky.totalLogEncounters();i++){
-			Encounter enc=sharky.getLogEncounter(i);
-			sharky.removeLogEncounter(enc);
-			sharky.addEncounter(enc);
-			i--;
-			//check if log encounters still exist
-			numLogEncounters++;
-
-		}
-	}
-
-
-}*/
-
+  %>
+    <br/>to-delete bad encounters:<br/>
+  <%
+  for (String badEncID : exceptionEncIDs) {
+    %><br/>&nbsp&nbsp&nbsp&nbsp<%=badEncID%>
+    <%
+  }
 
   myShepherd.commitDBTransaction();
 	myShepherd.closeDBTransaction();
@@ -177,6 +163,8 @@ while(allSharks.hasNext()){
 
 <p>Done successfully!</p>
 <p><%=numIssues %> issues found.</p>
+<p><%=numMissingDays %> encounters with no "day" field.</p>
+
 
 
 <%
