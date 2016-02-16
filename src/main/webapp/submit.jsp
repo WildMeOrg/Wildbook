@@ -404,20 +404,34 @@ function submitForm() {
 
 
 //we need to first check here if we need to do the background social image send... in which case,
-// we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+//we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
-	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-    console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-	if(!isEmpty(recaptachaResponse)) {		
-		$("#encounterForm").attr("action", "EncounterForm");
-		submitForm();
-	}
+
+ <%
+ if(request.getUserPrincipal()!=null){
+ %>
+ 	$("#encounterForm").attr("action", "EncounterForm");
+ 	submitForm();
+ <%
+ }
+ else{
+ %>
+		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+		if(!isEmpty(recaptachaResponse)) {		
+			$("#encounterForm").attr("action", "EncounterForm");
+			submitForm();
+		}
 	//alert(recaptachaResponse);
+	<%
+ }
+	%>
 	return true;
 }
+
 
 
 
@@ -1179,6 +1193,9 @@ if(request.getRemoteUser()!=null){
       
    
          
+         <%
+         if(request.getRemoteUser()==null){
+         %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
 	           var captchaWidgetId = grecaptcha.render( 
@@ -1188,6 +1205,10 @@ if(request.getRemoteUser()!=null){
 				});
 	           
            </script>
+        
+        <%
+         }
+        %>
         
         
 

@@ -81,7 +81,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
      <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
   	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
  
-  
+  <script src='https://www.google.com/recaptcha/api.js'></script>
     </head>
     
     <body role="document">
