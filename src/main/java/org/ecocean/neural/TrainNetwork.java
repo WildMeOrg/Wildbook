@@ -483,35 +483,22 @@ public class TrainNetwork {
           
           //ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpeciesWithSpots(genus, specificEpithet);
 
+
+            //this is a little slow in computation; so should try to cache it or something in the future...
             ArrayList<Encounter> encounters = Encounter.getEncountersForMatching(Util.taxonomyString(genus, specificEpithet), myShepherd);
-/*
-            String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
-            Query query = myShepherd.getPM().newQuery(queryString);
-            List results = (List)query.execute();
-            for (int i = 0 ; i < results.size() ; i++) {
-                MediaAsset ma = (MediaAsset)results.get(i);
-                MediaAsset top = ma.getParentRoot(myShepherd);
-                if (top == null) continue;
-                Encounter enc = Encounter.findByMediaAsset(top, myShepherd);
-if (enc == null) System.out.println("could not find enc for ma " + ma);
-                if (enc == null) continue;
-                encounters.add(enc);
-            }
-*/
-
 
 /*
-          ArrayList<Encounter> encounters=myShepherd.getAllEncountersForSpecies(genus, specificEpithet);
-            for (var i = encounters.size() - 1 ; i >= 0 ; i--) {
-                Encounter enc = encounters.get(i);
-                ArrayList<MediaAsset> spots = enc.findAllMediaByLabel(myShepherd, "_spot"); //"annotation" in future??
-                if ((spots == null) || (spots.size() < 1)) encounters.remove(i);
-            }
+            NOTE:  this now makes the assumption that IBEIS IA has already been done on the same set of encounters with IBEISIA.startTrainingJobs()
+            and has been completed -- which could in theory be tested with IBEISIA.waitForTrainingJobs() if desired
+
+            the hard-coded "taskPrefix" value below is really only meant for testing stages to distinguish between multiple runs and would be
+            eliminated in the future somehow.  basically we need a way to distinguish one training run from another since using *only* the encounter
+            id would not be enough, as the results are stored in a table keyed by these.  (i.e. each run would have same id for each encounter)
 */
+
 
           int numEncs=encounters.size();
           System.out.println("Using a training set size: "+numEncs);
-if (numEncs > 0) return null;
           
           Instances isTrainingSet = new Instances("Rel", getWekaAttributesPerSpecies(genusSpecies), (2*numEncs*(numEncs-1)/2));
           isTrainingSet.setClassIndex(getClassIndex(genusSpecies));
@@ -523,48 +510,6 @@ int testStart = 580;
 int testLimit = 400;
 
 int nonMatchMultiplier=3;
-          
-          //kick off IBEIS for each Encounter
-          //RESTORE ME
-/*
-          for(int i=0;i<(numEncs-1);i++){
-          //for(int i= testStart ;i< testStart+testLimit;i++){
-            ArrayList<Encounter> qencs=new ArrayList<Encounter>();
-            Encounter myEnc=(Encounter)encounters.get(i);
-            qencs.add(myEnc);
-            ArrayList<Encounter> tencs=new ArrayList<Encounter>();
-            
-
-            for(int j=(i+1);j<numEncs;j++){
-            //for(int j=(i+1);j<(i+1+testLimit);j++){
-              tencs.add((Encounter)encounters.get(j));
-            } 
-            
-            //now actually call IBEIS
-            //kick off IBEIS comparison ==============================
-            String baseUrl="example.com";
-            try {
-              baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-            } 
-            catch (URISyntaxException ex) {
-              System.out.println("ScanWorkItemCreationThread() failed to obtain baseUrl: " + ex.toString());
-            }
-            System.out.println("baseUrl --> " + baseUrl);
-            ServletContext sctx=request.getSession().getServletContext();
-            String rootDir = sctx.getRealPath("/");
-            String baseDir = ServletUtilities.dataDir(context, rootDir);
-            String taskID=myEnc.getEncounterNumber();
-            
-System.out.println(i + ") beginIdentify (taskID=" + taskID + ") =================================================================================================");
-            IBEISIA.beginIdentify(qencs, tencs, myShepherd, baseDir, Util.taxonomyString(myEnc.getGenus(), myEnc.getSpecificEpithet()), taskID, baseUrl, context);
-            //proceed now that IBEIS is woken  =============================
-
-          }
-          */
-          //end IBEIS instantiations
-          
-          
-          
           
           
           
@@ -1112,24 +1057,16 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
         
         
         //let's get the IBEIS value ===================================================
-        HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(taskID, myShepherd);
+        String taskPrefix = "T6-";   //see previous note about this
+        HashMap<String,Object> res = IBEISIA.getTaskResultsAsHashMap(taskPrefix + taskID, myShepherd);
         
         System.out.println("I HAVE an IBEIS results object: "+res.toString());
-        long loopStartTime=System.currentTimeMillis();
-        Boolean success=false;
-        if(res.get("success")!=null){success=(Boolean)res.get("success");}
-        while(((System.currentTimeMillis()-loopStartTime)<300000)&&(!success)){
-          try{
-            Thread.sleep(5000);
-            System.out.println("...Sleeping while waiting for IBEIS...");
-            res = IBEISIA.getTaskResultsAsHashMap(el1.getEncounterNumber(), myShepherd);
-            if(res.get("success")!=null){success=(Boolean)res.get("success");}
-          }
-          catch(Exception e){e.printStackTrace();}
-        }
-        if(res.get("results")!=null){
+
+        //see longer note about ibeis training previously, but now we dont do concurrent IA matching, so we assume by the time we get here
+        // all the results have been run -- and if we *do not* have one (or do not have success) then it is just tough luck. (something failed)
+        if ((res.get("success") != null) && (Boolean)res.get("success") && (res.get("results") != null)) {
           
-          System.out.println("I HAVE an IBEIS results object and it claims success!");
+          System.out.println("[" + taskPrefix + taskID + "] I HAVE an IBEIS results object and it claims success!");
           
           HashMap<String,Object> rout=(HashMap<String,Object>)res.get("results");
           if(rout.get(el1.getEncounterNumber())!=null){
@@ -1146,8 +1083,11 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
             }
           }
           else{System.out.println(" IBEIS COLOR el1 object was null: "+el1.getEncounterNumber());}
+
+        } else {
+            System.out.println("[" + taskPrefix + taskID + "] IBEIS COLOR results object was null or got non-success.");
         }
-        else{System.out.println(" IBEIS COLOR results object was null.");}
+
         if(mo.getIBEISColor()==null){mo.setIBEISColorValue(weka.core.Utils.missingValue());}
         
         
