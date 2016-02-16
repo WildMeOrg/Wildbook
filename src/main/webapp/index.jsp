@@ -1,21 +1,14 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
-              org.ecocean.servlet.ServletUtilities,
-              java.util.ArrayList,
-              java.util.List,
-              java.util.Map,
-              java.util.Iterator,
-              java.util.Properties,
-              java.util.StringTokenizer
-              "
-%>
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <%
-String context=ServletUtilities.getContext(request);
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
+	Properties props = ShepherdProperties.getProperties("index.properties", langCode, context);
 
 //set up our Shepherd
 
@@ -74,7 +67,7 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
@@ -382,7 +375,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Manta Matcher</h1>
-            <h2>You can help photograph, <br/> identify and protect mantas!</h2>
+            <h2><%=props.getProperty("mainStrapline")%></h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie 
@@ -390,7 +383,7 @@ finally{
 			</button>
 			-->
             <a href="submit.jsp">
-                <button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>
+                <button class="large"><%=props.getProperty("buttonReport")%><span class="button-icon" aria-hidden="true"></button>
             </a>
         </div>
 
@@ -405,25 +398,25 @@ finally{
 
 <section class="container text-center main-section">
 	
-	<h2 class="section-header">How it works</h2>
+	<h2 class="section-header"><%=props.getProperty("howItWorks-title")%></h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph a manta<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("howItWorks-step1")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("howItWorks-step2")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("howItWorks-step3")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("howItWorks-step4")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("howItWorks-step5")%><span class="caret"></span></li>
 	    </ol> 
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Photograph the belly of a manta</h3>
+					<h3><%=props.getProperty("howItWorks-step1")%></h3>
 					<p class="lead">
-						Each manta has an individual fingerprint: the pattern of spots on its belly. Get an image or video of their &ldquo;bellyprint&rdquo; and we can match that pattern to mantas already in the database, or your manta might be completely new to the database.
+						<%=props.getProperty("howItWorks-step1-text")%>
 					</p>
 					<p class="lead">
-						<a href="photographing.jsp" title="">See the photography guide</a>
+						<a href="photographing.jsp" title=""><%=props.getProperty("howItWorks-step1-link")%></a>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -432,9 +425,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Submit photo/video</h3>
+					<h3><%=props.getProperty("howItWorks-step2")%></h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the manta, and add other information, such as species or sex, if you can. You will receive email updates when your manta is processed by a researcher.
+						<%=props.getProperty("howItWorks-step2-text")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -443,9 +436,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Researcher verification</h3>
+					<h3><%=props.getProperty("howItWorks-step3")%></h3>
 					<p class="lead">
-						When you submit a manta identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
+						<%=props.getProperty("howItWorks-step3-text")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -454,9 +447,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching process</h3>
+					<h3><%=props.getProperty("howItWorks-step4")%></h3>
 					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will run the Manta Matcher algorithm. The algorithm is like facial recognition software for manta bellies.
+						<%=props.getProperty("howItWorks-step4-text")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -465,9 +458,9 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Match Result</h3>
+					<h3><%=props.getProperty("howItWorks-step5")%></h3>
 					<p class="lead">
-						The algorithm provides researchers with a ranked selection of possible matches. Researchers will then visually confirm a match to an existing manta in the database, or create a new manta profile. 
+						<%=props.getProperty("howItWorks-step5-text")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -496,7 +489,7 @@ finally{
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                     <div class="focusbox-inner opec">
-                        <h2>Our contributors</h2>
+                        <h2><%=props.getProperty("contributors")%></h2>
                         <div>
                             <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                             <p><%=featuredUser.getFullName() %> 
@@ -510,7 +503,7 @@ finally{
                             </p>
                             <p><%=featuredUser.getUserStatement() %></p>
                         </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
+                        <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("contributors-linkText")%></a>
                     </div>
                 </section>
             <%
@@ -521,7 +514,7 @@ finally{
             
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest manta encounters</h2>
+                    <h2><%=props.getProperty("latestEncounters")%></h2>
                     <ul class="encounter-list list-unstyled">
                        
                        <%
@@ -554,12 +547,12 @@ finally{
                         %>
                        
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("latestEncounters-more")%></a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Top spotters (past 30 days)</h2>
+                    <h2><%=props.getProperty("topSpotters_30")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
                     myShepherd.beginDBTransaction();
@@ -608,7 +601,7 @@ finally{
                    %>
                         
                     </ul>   
-                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
+                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters")%></a>
                 </div>
             </section>
         </div>
@@ -619,14 +612,14 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("statText-identified")%></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("statText-encounters")%></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("statText-contributors")%></i></p>
             </section>
         </div>
 
@@ -637,10 +630,11 @@ finally{
                 <div class="row">
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
+                        <h1><%=props.getProperty("whyWeDoThis-title")%></h1>
                         <p class="lead">
-                            <i>&ldquo;Manta Matcher will revolutionize global research on these threatened rays and help change the way field researchers approach scientific research on wild animals by means of successful and meaningful public involvement.&rdquo;</i> - Dr. Andrea Marshall, co-founder</p>
-                        <a href="#" title="">I want to know more</a>
+													<%=props.getProperty("whyWeDoThis-text")%>
+                        </p>
+                        <a href="#" title=""><%=props.getProperty("whyWeDoThis-more")%></a>
                     </div>
                 </div>
             </article>
@@ -650,7 +644,7 @@ finally{
 </div>
 
 <div class="container-fluid main-section">
-    <h2 class="section-header">Encounters around the world</h2>
+    <h2 class="section-header"><%=props.getProperty("map-title")%></h2>
     
       <div id="map_canvas" style="width: 770px; height: 510px; margin: 0 auto;"></div>
    
@@ -658,18 +652,18 @@ finally{
 
 <div class="container-fluid">
     <section class="container main-section">
-        <h2 class="section-header">How can i Help out of the water</h2>
-        <p class="lead text-center">If you are not getting into the blue, there are still other ways to get engaged</p>
+        <h2 class="section-header"><%=props.getProperty("help-title")%></h2>
+        <p class="lead text-center"><%=props.getProperty("help-text")%></p>
 
         <section class="adopt-section row">
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt a manta</h3>
+                <h3 class="uppercase"><%=props.getProperty("help-adopt-title")%></h3>
                 <ul>
-                    <li>Support individual research programs in different regions</li>
-					<li>Receive email updates when we resight your adopted manta</li>
-					<li>Display your photo and a quote on the manta's page in our database</li>
-</ul>
-                <a href="adoptamanta.jsp" title="">Learn more about adopting a manta</a>
+                    <li><%=props.getProperty("help-adopt-text1")%></li>
+                    <li><%=props.getProperty("help-adopt-text2")%></li>
+                    <li><%=props.getProperty("help-adopt-text3")%></li>
+                </ul>
+                <a href="adoptamanta.jsp" title="<%=props.getProperty("help-adopt-linkText")%>"><%=props.getProperty("help-adopt-linkText")%></a>
             </div>
             <%
             myShepherd.beginDBTransaction();
@@ -706,14 +700,14 @@ finally{
         <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of MantaMatcher and can support effective, science-based conservation management, and safeguard these rays.</p>
-                <a href="adoptamanta.jsp" title="More information about donations">Learn more about how to donate</a>
+                <h3><%=props.getProperty("help-donate-title")%></h3>
+                <p><%=props.getProperty("help-donate-text")%></p>
+                <a href="adoptamanta.jsp" title="<%=props.getProperty("help-donate-linkText")%>"><%=props.getProperty("help-donate-linkText")%></a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
                 <a href="adoptamanta.jsp">
 	                <button class="large contrast">
-	                    Donate
+	                    <%=props.getProperty("help-donate-title")%>
 	                    <span class="button-icon" aria-hidden="true">
 	                </button>
                 </a>
