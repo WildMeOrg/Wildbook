@@ -505,10 +505,14 @@ function computeCounts() {
 	counts.ided = 0;
   counts.idedL = 0;
   counts.idedR = 0;
+  counts.individuals = 0;
+  counts.individualsL = 0;
+  counts.individualsR = 0;
 	counts.dailydup = 0;
   counts.dailydupL = 0;
   counts.dailydupR = 0;
 	var uniq = {};
+  var individuals = {};
 
 	for (var i = 0 ; i < counts.total ; i++) {
 		var encJson = searchResults[sTable.matchesFilter[i]];
@@ -527,18 +531,24 @@ function computeCounts() {
         // note that dProps is a string listing all dynamic properties in json-like sequence, with ; between properties
         if (isLeftFlank) { counts.idedL++; }
         else             { counts.idedR++; }
-				console.log("enc "+iid+" dProps: "+dProps);
-        console.log("isLeftFlank: "+isLeftFlank);
 			} else {
 				counts.dailydup++;
         if (isLeftFlank) { counts.dailydupL++; }
         else             { counts.dailydupR++; }
 			}
+      if (!individuals[iid]) {
+        individuals[iid] = true;
+        counts.individuals++;
+        // note that dProps is a string listing all dynamic properties in json-like sequence, with ; between properties
+        if (isLeftFlank) { counts.individualsL++; }
+        else             { counts.individualsR++; }
+      }
 		}
 	}
   counts.totalL = counts.unidL + counts.idedL + counts.dailydupL;
   counts.totalR = counts.unidR + counts.idedR + counts.dailydupR;
   console.log("counts: "+JSON.stringify(counts));
+  console.log("unique: "+JSON.stringify(uniq));
 /*
 	var k = Object.keys(uniq);
 	counts.ided = k.length;
@@ -574,7 +584,7 @@ function nudge(n) {
 	start += n;
 	if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
 	if (start < 0) start = 0;
-console.log('start -> %d', start);
+//console.log('start -> %d', start);
 	newSlice(sortCol, sortReverse);
 	show();
 }
@@ -901,13 +911,14 @@ console.log(t);
       <span id = "count-totalL"></span>
     </td><td class="tableDataColumn">
       <span id = "count-totalR"></span>
-    </td><td class="tableDataColumn">
-  </tr><tr>
+    </td>
+  </tr>
+  <tr>
     <%
       if (request.getUserPrincipal()!=null) {
     %>
     <td class="tableHeaderColumn">
-      <%=encprops.getProperty("identifiedUnique")%>
+      unique IDed encounters
     </td><td class="tableDataColumn">
      <span id="count-ided"><%=numUniqueEncounters%></span>
     </td><td class="tableDataColumn">
@@ -918,7 +929,7 @@ console.log(t);
   </tr>
   <tr>
     <td class="tableHeaderColumn">
-      <%=encprops.getProperty("unidentified")%>
+      unidentified encounters
     </td>
     <td class="tableDataColumn">
       <span id="count-unid"><%=numUnidentifiedEncounters%></span>
@@ -930,6 +941,7 @@ console.log(t);
       <span id = "count-unidR"></span>
     </td>
   </tr>
+  <tr>
     <td class="tableHeaderColumn">
       <%=encprops.getProperty("dailyDuplicates")%>
     </td>
@@ -942,6 +954,24 @@ console.log(t);
     <td class="tableDataColumn">
       <span id = "count-dailydupR"></span>
     </td>
+  </tr>
+    <td>&nbsp</td>
+    <td></td>
+    <td></td>
+    <td></td>
+  <tr>
+  </tr>
+  <tr style="padding-top:50em;">
+    <td class="tableHeaderColumn">
+      <strong>Unique Individuals</strong>
+    </td><td class="tableDataColumn">
+     <span id="count-individuals">0</span>
+    </td><td class="tableDataColumn">
+      <span id = "count-individualsL"> </span>
+    </td><td class="tableDataColumn">
+      <span id = "count-individualsR"> </span>
+    </td>
+  </tr>
   </br>
   <tr>
         <%
