@@ -433,6 +433,15 @@
   </servlet>
 
   
+	<servlet>
+		<servlet-name>ResumableUpload</servlet-name>
+		<servlet-class>ec.com.mapache.ngflow.servlet.UploadServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+ 		<servlet-name>ResumableUpload</servlet-name>
+		<url-pattern>/ResumableUpload</url-pattern>
+	</servlet-mapping>
+
     <servlet>
     <servlet-name>BatchUpload</servlet-name>
     <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
