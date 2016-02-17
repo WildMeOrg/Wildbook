@@ -77,7 +77,10 @@ public class EncounterAddMantaPattern extends HttpServlet {
     
     String context="context0";
     context=ServletUtilities.getContext(request);
-    
+
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     
@@ -521,7 +524,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
           
           if ((action.equals("imageadd"))||(action.equals("imageadd2"))) {
             String link = ServletUtilities.getEncounterURL(request, context, encounterNumber);
-            ActionResult actRes = new ActionResult_Encounter("encounter.mma.addCR", true, link)
+            ActionResult actRes = new ActionResult_Encounter(locale, "encounter.mma.addCR", true, link)
                     .setLinkParams(encounterNumber)
                     .setDetailParams(resultComment.toString())
                     .setDetailTextPreformatted(true);
@@ -539,7 +542,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
           }
           else {
             String link = ServletUtilities.getEncounterURL(request, context, encounterNumber);
-            ActionResult actRes = new ActionResult_Encounter("encounter.mma.removeCR", true, link)
+            ActionResult actRes = new ActionResult_Encounter(locale, "encounter.mma.removeCR", true, link)
                     .setLinkParams(encounterNumber)
                     .setDetailParams(resultComment.toString())
                     .setDetailTextPreformatted(true);

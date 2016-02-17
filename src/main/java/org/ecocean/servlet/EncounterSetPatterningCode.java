@@ -3,6 +3,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.util.Locale;
 
 import org.ecocean.*;
 
@@ -22,6 +23,10 @@ public class EncounterSetPatterningCode extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     String context="context0";
     context=ServletUtilities.getContext(request);
+
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+
     Shepherd myShepherd=new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -58,7 +63,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         String link = ServletUtilities.getEncounterURL(request, context, enc.getCatalogNumber());
-        ActionResult actRes = new ActionResult_Encounter("encounter.setPatterningCode", true, link)
+        ActionResult actRes = new ActionResult_Encounter(locale, "encounter.setPatterningCode", true, link)
                 .setLinkParams(enc.getCatalogNumber())
                 .setMessageParams(enc.getCatalogNumber(), colorCode);
         request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
@@ -67,7 +72,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
       else{
 
         String link = ServletUtilities.getEncounterURL(request, context, enc.getCatalogNumber());
-        ActionResult actRes = new ActionResult_Encounter("encounter.setPatterningCode", false, link)
+        ActionResult actRes = new ActionResult_Encounter(locale, "encounter.setPatterningCode", false, link)
                 .setLinkParams(enc.getCatalogNumber())
                 .setCommentParams(enc.getCatalogNumber());
         request.getSession().setAttribute(ActionResult.SESSION_KEY, actRes);
