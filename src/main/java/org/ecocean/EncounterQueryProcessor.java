@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 
 public class EncounterQueryProcessor {
 
-  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
+  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -1330,11 +1330,15 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //end GPS filters-----------------------------------------------
+    
+    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";}
+
 
     filter+=jdoqlVariableDeclaration;
 
     filter += parameterDeclaration;
-
+    System.out.println("EncounterQueryProcessor filter: "+filter);
+    
     return filter;
 
   }
@@ -1510,7 +1514,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 				}
 			}
 		}
-
+		//System.out.println("rEncounters size is: "+rEncounters.size());
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }
