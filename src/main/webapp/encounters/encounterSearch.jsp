@@ -1587,7 +1587,7 @@ inShepherd.closeDBTransaction();
 </tr>
 
 <%
-if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
+if(false && (CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
 <tr>
   <td>
