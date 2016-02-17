@@ -361,6 +361,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               a1Example.setValue(6, (new Double(a1.getMatchObject().getDateDiff()).doubleValue()));
               a1Example.setValue(7, (new Double(a1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
               a1Example.setValue(8, (new Double(a1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
+              a1Example.setValue(9, (new Double(a1.getMatchObject().getIBEISColor()).doubleValue()));
               
               
               b1Example.setDataset(instances);
@@ -373,6 +374,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               b1Example.setValue(6, (new Double(b1.getMatchObject().getDateDiff()).doubleValue()));
               b1Example.setValue(7, (new Double(b1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
               b1Example.setValue(8, (new Double(b1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
+              b1Example.setValue(9, (new Double(a1.getMatchObject().getIBEISColor()).doubleValue()));
               
               Double aClass=0.0;
               Double bClass=0.0;
@@ -423,7 +425,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       
       
           
-       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "msm","swale","euclidean","patterningCode","dateDiff"};
+       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "msm","swale","euclidean","patterningCode","dateDiff", "IBEISColor"};
        jsonOut.append(gson.toJson(header)+",\n");
        
        
@@ -532,6 +534,12 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
       else{
         result.add(new JsonPrimitive(""));
       }
+
+        if (mo.getIBEISColor() != null) {
+            result.add(new JsonPrimitive(TrainNetwork.round(mo.getIBEISColor().doubleValue(),3)));
+        } else {
+            result.add(new JsonPrimitive(""));
+        }
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         

@@ -86,6 +86,11 @@ var columnInfo = {
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
+    IBEISColor: {
+        label: 'IBEISColor',
+        value: _getValue,
+	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+    }
 };
 
 
