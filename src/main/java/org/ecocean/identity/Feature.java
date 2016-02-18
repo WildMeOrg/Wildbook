@@ -89,6 +89,10 @@ public class Feature implements java.io.Serializable {
     public void setType(FeatureType t) {
         type = t;
     }
+    public boolean isType(String tid) {  //pass in string version of FeatureType.id (e.g. "org.ecocean.fubar")
+        if (type == null) return false;  //"should never happen"
+        return type.getId().equals(tid);
+    }
 
     public JSONObject getParameters() {
 //System.out.println("getParameters() called -> " + parameters);

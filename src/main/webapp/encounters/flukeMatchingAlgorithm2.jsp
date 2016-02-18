@@ -205,7 +205,11 @@ try {
 
   	<p>
     <%
-	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_annotation");
+	///MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_annotation");
+    	ArrayList<MediaAsset> fmas = enc.findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
+	MediaAsset spotMA = null;
+	if (fmas.size() > 0) spotMA = fmas.get(0);
+
 	String fileloc = null;
 
 	if (request.getParameter("isOwner").equals("true") && CommonConfiguration.useSpotPatternRecognition(context) && (spotMA != null)) {

@@ -289,6 +289,17 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if (!features.contains(f)) features.add(f);
     }
 
+    //kinda sorta really only for Encounter.findAllMediaByFeatureId()
+    public boolean hasFeatures(String[] featureIds) {
+        if ((features == null) || (features.size() < 1)) return false;
+        for (Feature f : features) {
+            for (int i = 0 ; i < featureIds.length ; i++) {
+                if (f.isType(featureIds[i])) return true;   //short-circuit on first match
+            }
+        }
+        return false;
+    }
+
     public Path localPath()
     {
         if (store == null) return null;
