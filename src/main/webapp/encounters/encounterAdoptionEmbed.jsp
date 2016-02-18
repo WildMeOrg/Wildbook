@@ -1,6 +1,3 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption,org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.util.ArrayList" %>
-
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -19,16 +16,22 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.Adoption" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.Shepherd" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
+<%@ page import="java.util.*" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+
   Shepherd adoptShepherd = new Shepherd(context);
   String num = request.getParameter("encounterNumber");
 
   try {
-
-
 %>
   <style type="text/css">
 <!--
@@ -86,7 +89,7 @@ div.scroll {
 -->
 </style>
 <hr width="100%"/>
-  <h2>Adopters</strong></h2>
+  <h2><%=encprops.getProperty("adoption.section.title")%></h2>
 
 
 <%
@@ -123,9 +126,7 @@ if(numAdoptions>0){
   %>
 
   <tr>
-    <td>Why are research and conservation important for this
-      species?
-    </td>
+    <td><%=encprops.getProperty("adoption.quote")%></td>
   </tr>
   <tr>
     <td width="250px"><em>"<%=ad.getAdopterQuote()%>"</em></td>
@@ -140,24 +141,22 @@ if(numAdoptions>0){
     <td>&nbsp;</td>
   </tr>
   <tr>
-    <td><em>Adoption type:</em><br><%=ad.getAdoptionType()%>
+    <td><em><%=encprops.getProperty("adoption.type")%>:</em><br><%=ad.getAdoptionType()%>
     </td>
   </tr>
   <tr>
-    <td><em>Adoption start:</em><br><%=ad.getAdoptionStartDate()%>
+    <td><em><%=encprops.getProperty("adoption.startDate")%>:</em><br><%=ad.getAdoptionStartDate()%>
     </td>
   </tr>
   <tr>
-    <td><em>Adoption end:</em><br><%=ad.getAdoptionEndDate()%>
+    <td><em><%=encprops.getProperty("adoption.endDate")%>:</em><br><%=ad.getAdoptionEndDate()%>
     </td>
   </tr>
   <tr>
     <td>&nbsp;</td>
   </tr>
   <tr>
-    <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
-      this adoption]</a></td>
+    <td align="left"><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[<%=encprops.getProperty("adoption.edit")%>]</a></td>
   </tr>
   <tr>
     <td>&nbsp;</td>
@@ -172,18 +171,14 @@ if(numAdoptions>0){
   }
   else {
 	%>
-	<p>No adoptions defined.</p>  
+	<p><%=encprops.getProperty("adoption.none")%></p>
 <%	  
   }
-
-
 
   //add adoption
   if (request.getUserPrincipal()!=null) {
 %>
-<p><a
-  href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+]
-  Add adoption</a></p>
+<p><a href="../adoptions/adoption.jsp?encounter=<%=num%>#create">[+] <%=encprops.getProperty("adoption.add")%></a></p>
 <%
   }
 %>

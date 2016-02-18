@@ -1,4 +1,10 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="
+         java.awt.Dimension,
+         java.io.File,
+         java.util.*,
+         org.ecocean.*,
+         org.ecocean.servlet.ServletUtilities"
+%>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -20,55 +26,30 @@
   --%>
 
 <%
+	String context = ServletUtilities.getContext(request);
+	if(CommonConfiguration.useSpotPatternRecognition(context)){
+		String encNum = request.getParameter("encounterNumber");
+		Shepherd myShepherd = new Shepherd(context);
 
-String context="context0";
-context=ServletUtilities.getContext(request);
-if(CommonConfiguration.useSpotPatternRecognition(context)){
-	
-	
-String encNum = request.getParameter("encounterNumber");
+		//let's set up references to our file system components
+		String rootWebappPath = getServletContext().getRealPath("/");
+		File webappsDir = new File(rootWebappPath).getParentFile();
+		File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+		File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+		//File encounterDir = new File(encountersDir, encNum);
 
-
-Shepherd myShepherd = new Shepherd(context);
-		  
-//let's set up references to our file system components
-		 
-			String rootWebappPath = getServletContext().getRealPath("/");
-		  File webappsDir = new File(rootWebappPath).getParentFile();
-		  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-		  File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-		  //File encounterDir = new File(encountersDir, encNum);
-		
-		
 		File encounterDir = new File(Encounter.dir(shepherdDataDir, encNum));
-		
-try {
-	
-  	
 
-	
-	
-	
-  //get the encounter number
- 
+try {
   //set up the JDO pieces and Shepherd
   myShepherd.beginDBTransaction();
   Encounter enc=myShepherd.getEncounter(encNum);
 
-  //String langCode = "en";
-
   String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-  
-  
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-//handle translation
 
-  
   boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-	
-  
+
   boolean hasPhotos=false;
   if (enc.getSinglePhotoVideo() != null && enc.getSinglePhotoVideo().size() > 0) {
     hasPhotos=true;

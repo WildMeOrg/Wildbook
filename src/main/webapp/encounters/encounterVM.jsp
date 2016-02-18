@@ -1,4 +1,3 @@
-
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -17,10 +16,14 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -80,57 +83,41 @@
 %>
 
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context="context0";
+  context=ServletUtilities.getContext(request);
 
-//get encounter number
-String num = request.getParameter("number").replaceAll("\\+", "").trim();
+  // Get encounter number
+  String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
-//let's set up references to our file system components
-String rootWebappPath = getServletContext().getRealPath("/");
-String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+  // Set up references to our file system components
+  String rootWebappPath = getServletContext().getRealPath("/");
+  String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
 /*
-File webappsDir = new File(rootWebappPath).getParentFile();
-File encounterDir = new File(imageEnc.dir(baseDir));
-File encounterDir = new File(encountersDir, num);
-String rootWebappPath = getServletContext().getRealPath("/");
-String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File encounterDir = new File(imageEnc.dir(baseDir));
+  File encounterDir = new File(encountersDir, num);
+  String rootWebappPath = getServletContext().getRealPath("/");
+  String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
 */
-
 
   //GregorianCalendar cal = new GregorianCalendar();
   //int nowYear = cal.get(1);
 
-
-//handle some cache-related security
+  // Handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
-//gps decimal formatter
+  // GPS decimal formatter
   DecimalFormat gpsFormat = new DecimalFormat("###.####");
 
-//handle translation
-  String langCode = "en";
-
-  //check what language is requested
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
-
-
-//let's load encounters.properties
-  //Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-
+  // Handle translation
+  String langCode = ServletUtilities.getLanguageCode(request);
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode);
-
   Properties vmProps = ShepherdProperties.getProperties("visualMatcher.properties", langCode);
 
-
   pageContext.setAttribute("num", num);
-
 
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);

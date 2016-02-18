@@ -1,5 +1,12 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat, java.util.*" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.awt.Dimension" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.io.FileInputStream" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -21,44 +28,32 @@
   --%>
 
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+String context = ServletUtilities.getContext(request);
 try {
-
-//get the encounter number
-String imageEncNum = request.getParameter("encounterNumber");
+  //get the encounter number
+  String imageEncNum = request.getParameter("encounterNumber");
 	
-//set up the JDO pieces and Shepherd
-Shepherd imageShepherd = new Shepherd(context);
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
-boolean haveRendered = false;
+  //set up the JDO pieces and Shepherd
+  Shepherd imageShepherd = new Shepherd(context);
+  Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+  Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+  boolean haveRendered = false;
 
-//let's set up references to our file system components
-String rootWebappPath = getServletContext().getRealPath("/");
-File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+  //let's set up references to our file system components
+  String rootWebappPath = getServletContext().getRealPath("/");
+  File webappsDir = new File(rootWebappPath).getParentFile();
+  File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+  File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
 
+  String langCode = ServletUtilities.getLanguageCode(request);
+  String langCodeDef = CommonConfiguration.getProperty("defaultLanguage", context);
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+  Properties encpropsDef = ShepherdProperties.getProperties("encounter.properties", langCodeDef, context);
 
-//handle translation
-//String langCode = "en";
-String langCode=ServletUtilities.getLanguageCode(request);
-
-
-//let's load encounters.properties
-Properties encprops = new Properties();
-//encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-encprops=ShepherdProperties.getProperties("encounter.properties", langCode,context);
-
-
-String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
-File thisEncounterDir = new File(imageEnc.dir(baseDir));
-String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
-
-
-
+  String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+  Encounter imageEnc=imageShepherd.getEncounter(imageEncNum);
+  File thisEncounterDir = new File(imageEnc.dir(baseDir));
+  String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
 %>
 
  <script type="text/javascript">
@@ -404,7 +399,7 @@ System.out.println("trying to fork/create " + thumbPath);
                       composite="30" height="13" fillPaint="#99CCFF"></di:rectangle>
 
         <di:text x="4" y="<%=copyrightTextPosition %>" align="left" font="Arial-bold-11"
-                 fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
+                 fillPaint="#000000"><%=encpropsDef.getProperty("nocopying") %>
         </di:text>
       </di:img>
       <img width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
@@ -575,7 +570,7 @@ System.out.println("trying to fork/create " + thumbPath);
 		File tryCR = new File(images.get(myImage).getFullFileSystemPath().replaceFirst(".([^.]+)$", "_CR.$1"));
 		if (tryCR.exists()) {
 			String crimg = addTextFile.replaceFirst(".([^.]+)$", "_CR.$1");
-%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="<%=encUrlDir%>/<%=crimg%>" /></a><div class="note">Candidate Region</div></div><%
+%><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>"><img src="<%=encUrlDir%>/<%=crimg%>" /></a><div class="note"><%=encprops.getProperty("candidateRegion")%></div></div><%
 		} else {
 %><div class="enc-cr-wrapper"><a href="encounterCR.jsp?number=<%=imageEncNum%>&filename=<%=addTextFile%>" class="cr-button">[<%=encprops.getProperty("crButton")%>]</a></div><%
 		}
@@ -638,8 +633,7 @@ catch (Exception e) {
                      src="../images/upload_small.gif"/> <%=encprops.getProperty("addfile") %>:</strong><br/>
         <input name="file2add" accept=".jpg, .jpeg, .png, .bmp, .gif, .mov, .wmv, .avi, .mp4, .mpg" type="file" size="20">
 
-        <p><input name="addtlFile" type="submit" id="addtlFile"
-                  value="Upload"></p></form>
+        <p><input name="addtlFile" type="submit" id="addtlFile" value="<%=encprops.getProperty("upload") %>"></p></form>
 
     </td>
   </tr>
@@ -677,8 +671,7 @@ catch (Exception e) {
 <table width="250" bgcolor="#99CCFF">
   <tr>
     <td class="para">
-      <form onsubmit="return confirm('Are you sure you want to delete this image?');"  action="../EncounterRemoveImage" method="post"
-            name="encounterRemoveImage">
+      <form onsubmit="return confirm('<%=encprops.getProperty("removefile.confirm")%>');"  action="../EncounterRemoveImage" method="post" name="encounterRemoveImage">
             <input name="action" type="hidden" value="imageremover" id="action" />
         <input
           name="number" type="hidden" value="<%=imageEncNum%>" /> <strong><img
@@ -693,7 +686,7 @@ catch (Exception e) {
           %>
         </select><br/>
 
-        <p><input name="rmFile" type="submit" id="rmFile" value="Remove" /></p></form>
+        <p><input name="rmFile" type="submit" id="rmFile" value="<%=encprops.getProperty("remove")%>" /></p></form>
 
     </td>
   </tr>

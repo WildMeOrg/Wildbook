@@ -1,5 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.Util.*" %>
+<%@ page import="org.ecocean.genetics.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.tag.*" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
+<%@ page import="org.joda.time.LocalDateTime" %>
+<%@ page import="org.joda.time.format.DateTimeFormat" %>
+<%@ page import="org.joda.time.format.DateTimeFormatter" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -13,10 +26,7 @@
       if ((lcode != null) && (!lcode.equals(""))) {
 
         //let's see if we can find a string in the mapping properties file
-        Properties props = new Properties();
-        //set up the file input stream
-        //props.load(getClass().getResourceAsStream("/bundles/newIndividualNumbers.properties"));
-        props=ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
+        Properties props = ShepherdProperties.getProperties("newIndividualNumbers.properties", "",context);
 
         //let's see if the property is defined
         if (props.getProperty(lcode) != null) {
@@ -60,19 +70,20 @@
 %>
 
 <%
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
+	Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
+	//get encounter number
+	String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
-String context="context0";
-context=ServletUtilities.getContext(request);
-//get encounter number
-String num = request.getParameter("number").replaceAll("\\+", "").trim();
-
-//let's set up references to our file system components
-String rootWebappPath = getServletContext().getRealPath("/");
-File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-File encounterDir = new File(encountersDir, num);
+	String rootWebappPath = getServletContext().getRealPath("/");
+	File webappsDir = new File(rootWebappPath).getParentFile();
+	File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+	File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
+	File encounterDir = new File(encountersDir, num);
 
 
   GregorianCalendar cal = new GregorianCalendar();
@@ -88,26 +99,7 @@ File encounterDir = new File(encountersDir, num);
 //gps decimal formatter
   DecimalFormat gpsFormat = new DecimalFormat("###.####");
 
-//handle translation
-  //String langCode = "en";
-String langCode=ServletUtilities.getLanguageCode(request);
-    
-
-
-
-//let's load encounters.properties
-  //Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-
-
   pageContext.setAttribute("num", num);
-
 
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
@@ -383,8 +375,11 @@ margin-bottom: 8px !important;
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
  
-  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
- 
+<script type="text/javascript" src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<% if (!"en".equals(langCode)) { %>
+<script type="text/javascript" src="../javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
+<% } %>
+
 <script src="../javascript/imageTools.js"></script>
 
 			
@@ -435,7 +430,7 @@ margin-bottom: 8px !important;
       			pageContext.setAttribute("enc", enc);
       			String livingStatus = "";
       			if ((enc.getLivingStatus()!=null)&&(enc.getLivingStatus().equals("dead"))) {
-        			livingStatus = " (deceased)";
+        			livingStatus = String.format(" (%s)", cciProps.getProperty("livingStatus" + CommonConfiguration.getIndexNumberForValue("sex", "dead", context)));
       			}
       			//int numImages = enc.getAdditionalImageNames().size();
 				int numImages=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
@@ -494,8 +489,7 @@ $(function() {
       controlType: 'select',
       alwaysSetTime: false
     });
-    $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
-  
+
 
   });
   </script>
@@ -525,8 +519,7 @@ $(function() {
       
       
     });
-    $( "#releasedatepicker" ).datepicker( $.datepicker.regional[ "<%=langCode %>" ] );
-    
+
   });
   </script>
     			
@@ -957,7 +950,7 @@ $("a#alternateID").click(function() {
   </tr>
 </table>
 <br/>	
-<strong>--<%=encprops.getProperty("or") %>--</strong>	
+<strong>-- <%=encprops.getProperty("or")%> --</strong>
 <br />
 <br />
   <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -1012,12 +1005,10 @@ $("a#occurrence").click(function() {
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8">
 
-<h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
-</h2>
+<h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %></h2>
 <p>
 <%if(enc.getDateInMilliseconds()!=null){ %>
-  <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+  <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
     <%=enc.getDate()%>
   </a>
     <%
@@ -1167,7 +1158,7 @@ $("a#VBDate").click(function() {
           <br /> 
         <input name="number" type="hidden" value="<%=num%>" id="number" /> 
         <input name="action" type="hidden" value="changeEncounterDate" /> 
-        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setDate")%>" />
+        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("set")%>" />
         </form>
       </td>
     </tr>
@@ -1224,8 +1215,10 @@ if(enc.getLocation()!=null){
   %><a id="location" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
   <%
     }
+		Map<String, String> mapI18n = Util.getIndexedValuesMap(cciProps, "locationID");
+		String locID = mapI18n.get("locationID" + CommonConfiguration.getIndexNumberForValue("locationID", enc.getLocationID(), context));
   %>
-<br /><em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
+<br /><em><%=encprops.getProperty("locationID") %></em>: <%=locID%>
   <%
     if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
   <font size="-1"><a id="locationID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
@@ -1239,8 +1232,10 @@ if(enc.getLocation()!=null){
  <em><%=encprops.getProperty("country") %></em>: 
   <%
   if(enc.getCountry()!=null){
+		mapI18n = Util.getIndexedValuesMap(cciProps, "country");
+		String country = mapI18n.get("country" + CommonConfiguration.getIndexNumberForValue("country", enc.getCountry(), context));
   %>
-  <%=enc.getCountry()%>
+  <%=country%>
   <%
   }
     if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
@@ -1543,7 +1538,7 @@ $("a#elev").click(function() {
     				
 						<br/>
 						<br/>
-						<%=encprops.getProperty("gpsConverter")%> <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+						<%=encprops.getProperty("gpsConverter")%>
 						<input name="number" type="hidden" value=<%=num%> /> 
 				    				
 					</form>
@@ -1610,7 +1605,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
               
                                    <input name="number" type="hidden" value="<%=num%>" /> 
                                    <input name="action" type="hidden" value="addLocCode" />
-          							<input name="Set Location ID" type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>" />
+          							<input name="Set Location ID" type="submit" id="Add" value="<%=encprops.getProperty("set")%>" />
           </form>
       </td>
     </tr>
@@ -1648,7 +1643,7 @@ $("a#locationID").click(function() {
         <textarea name="location" size="15"><%=thisLocation%></textarea>
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="setLocation" /> 
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("set")%>" />
         </form>
       </td>
     </tr>
@@ -1875,7 +1870,7 @@ $("a#country").click(function() {
           						<td>
             						<input name="number" type="hidden" value="<%=num%>" /> 
             						<input name="action" type="hidden" value="editcontact" /> 
-            						<input name="EditContact" type="submit" id="EditContact" value="Update" />
+            						<input name="EditContact" type="submit" id="EditContact" value="<%=encprops.getProperty("set")%>" />
      							</td>
     						</tr>
   					</table>
@@ -1999,7 +1994,7 @@ $("a#country").click(function() {
           								<td>
             								<input name="number" type="hidden" value="<%=num%>" /> 
             								<input name="action" type="hidden" value="editcontact" /> 
-            								<input name="EditContact" type="submit" id="EditContact" value="Update" />
+            								<input name="EditContact" type="submit" id="EditContact" value="<%=encprops.getProperty("set")%>" />
       									</td>
     								</tr>
   								</table>
@@ -2205,8 +2200,10 @@ $("a#taxon").click(function() {
       <%=encprops.getProperty("status")%>: 
       <%
       if(enc.getLivingStatus()!=null){
+				mapI18n = Util.getIndexedValuesMap(cciProps, "livingStatus");
+				livingStatus = mapI18n.get("livingStatus" + CommonConfiguration.getIndexNumberForValue("livingStatus", enc.getLivingStatus(), context));
       %>
-      <%=enc.getLivingStatus()%>
+      <%=livingStatus%>
        <%
     }
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -2228,7 +2225,7 @@ $("a#taxon").click(function() {
         <option value="alive" selected><%=encprops.getProperty("alive")%></option>
         <option value="dead"><%=encprops.getProperty("dead")%></option>
       </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("set")%>" />
       </form>
     </td>
   </tr>
@@ -2255,7 +2252,10 @@ $("a#livingStatus").click(function() {
 <!--  START SEX SECTION --> 
 <%
 String sex="";
-if(enc.getSex()!=null){sex=enc.getSex();}
+if(enc.getSex()!=null){
+	mapI18n = Util.getIndexedValuesMap(cciProps, "sex");
+	sex = mapI18n.get("sex" + CommonConfiguration.getIndexNumberForValue("sex", enc.getSex(), context));
+}
 %>
 <p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=sex %> 
 <%
@@ -2287,7 +2287,7 @@ if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
         </select> 
         <input name="number" type="hidden" value="<%=num%>" id="number" />
         <input name="action" type="hidden" value="setEncounterSex" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>" />
+        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("set")%>" />
       </form>
     </td>
   </tr>
@@ -2345,7 +2345,7 @@ if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
           <input name="number" type="hidden" value="<%=num%>" id="number" />
           <input name="action" type="hidden" value="setScarring" /> 
           <br />
-          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>" />
+          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("set")%>" />
         </form>
       </td>
     </tr>
@@ -2421,7 +2421,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         </textarea>
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="editBehavior" /> <br />
-          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("submitEdit")%>" />
+          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("set")%>" />
         </form>
       </td>
     </tr>
@@ -2455,8 +2455,10 @@ $("a#behavior").click(function() {
 
   <%
     if (enc.getPatterningCode() != null) {
+			mapI18n = Util.getIndexedValuesMap(cciProps, "patterningCode");
+			String patterningCode = mapI18n.get("patterningCode" + CommonConfiguration.getIndexNumberForValue("patterningCode", enc.getPatterningCode(), context));
   %>
-  <%=enc.getPatterningCode()%>
+  <%=patterningCode%>
   <%
   } else {
   %>
@@ -2526,7 +2528,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
               }
               %>
           <input name="number" type="hidden" value="<%=num%>" /> 
-          <input name="EditPC" type="submit" id="EditPC" value="<%=encprops.getProperty("submitEdit")%>" />
+          <input name="EditPC" type="submit" id="EditPC" value="<%=encprops.getProperty("set")%>" />
         </form>
       </td>
     </tr>
@@ -2561,8 +2563,10 @@ $("a#patterningCode").click(function() {
 
   <%
     if (enc.getLifeStage() != null) {
+			mapI18n = Util.getIndexedValuesMap(cciProps, "lifeStage");
+			String lifeStage = mapI18n.get("lifeStage" + CommonConfiguration.getIndexNumberForValue("lifeStage", enc.getLifeStage(), context));
   %>
-  <%=enc.getLifeStage()%>
+  <%=lifeStage%>
   <%
   } 
  %>
@@ -2708,7 +2712,10 @@ $("a#comments").click(function() {
  								<%
         						
 									String state="";
-									if (enc.getState()!=null){state=enc.getState();}
+									if (enc.getState()!=null){
+										mapI18n = Util.getIndexedValuesMap(cciProps, "encounterState");
+										state = mapI18n.get("encounterState" + CommonConfiguration.getIndexNumberForValue("encounterState", enc.getState(), context));
+									}
 									%>
 									<p class="para">
 										 <%=encprops.getProperty("workflowState") %> <%=state %> 
@@ -2837,7 +2844,7 @@ $("a#comments").click(function() {
                          					<tr>
                          						<td>
                          							<center>
-                         								<p class="caption">(click to learn more)</p>
+                         								<p class="caption"><%=encprops.getProperty("assigned_user.click")%></p>
                          							</center>
                          						</td>
                          					</tr>
@@ -3532,7 +3539,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 			<input name="name" type="hidden" size="10" value="<%=nm %>" />
           <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" value="<%=vl %>"/>
           <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
+          <input name="Set" type="submit" id="set" value="<%=encprops.getProperty("initCapsSet")%>" />
         </form>
       </td>
     </tr>
