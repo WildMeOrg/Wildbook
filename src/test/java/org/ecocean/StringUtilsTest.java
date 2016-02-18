@@ -17,15 +17,15 @@ public final class StringUtilsTest {
       add("baz");
     }};
     try {
-      StringUtils.collateStrings((Collection<String>)null, null, null, null, null, null);
+      StringUtils.collateStrings((Collection<String>)null, (ResourceBundle)null, null, null, null, null);
       fail();
     }
     catch (NullPointerException ex) { /* expected */ }
-    assertEquals("", StringUtils.collateStrings(Collections.EMPTY_LIST, null, null, null, null, null));
-    assertEquals("foobarbaz", StringUtils.collateStrings(c, null, null, null, null, null));
-    assertEquals("foo,bar,baz", StringUtils.collateStrings(c, null, null, null, null, ","));
-    assertEquals("foo, bar, baz", StringUtils.collateStrings(c, null, null, null, null, ", "));
-    assertEquals("<b>foo</b>, <b>bar</b>, <b>baz</b>", StringUtils.collateStrings(c, null, null, "<b>", "</b>", ", "));
+    assertEquals("", StringUtils.collateStrings(Collections.EMPTY_LIST, (ResourceBundle)null, null, null, null, null));
+    assertEquals("foobarbaz", StringUtils.collateStrings(c, (ResourceBundle)null, null, null, null, null));
+    assertEquals("foo,bar,baz", StringUtils.collateStrings(c, (ResourceBundle)null, null, null, null, ","));
+    assertEquals("foo, bar, baz", StringUtils.collateStrings(c, (ResourceBundle)null, null, null, null, ", "));
+    assertEquals("<b>foo</b>, <b>bar</b>, <b>baz</b>", StringUtils.collateStrings(c, (ResourceBundle)null, null, "<b>", "</b>", ", "));
     TestBundle res = new TestBundle();
     assertEquals("<b>foo</b>, <b>bar</b>, <b>baz</b>", StringUtils.collateStrings(c, res, "loc", "<b>", "</b>", ", "));
     try {

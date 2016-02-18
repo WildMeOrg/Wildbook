@@ -81,13 +81,42 @@ public final class StringUtils {
 
   /**
    * Collates the specified strings into a single string using the specified extra string data.
+   * This method supports lookup of source strings in a Properties instance, to allow for convenient internationalization.
+   * @param c collection of strings to collate
+   * @param props Properties to use for string lookups
+   * @param resKey format string to use as resource key for lookups (e.g. &quot;keyPrefix.%s&quot;)
+   * @param prefix prefix for each string item
+   * @param suffix suffix for each string item
+   * @param delimiter delimiter between string items
+   * @return string representing collated for of string collection
+   */
+  public static String collateStrings(final Collection<String> c, Properties props, String resKey, String prefix, String suffix, String delimiter) {
+    Objects.requireNonNull(c);
+    StringBuilder sb = new StringBuilder();
+    for (Iterator<String> it = c.iterator(); it.hasNext();) {
+      if (prefix != null)
+        sb.append(prefix);
+      if (props != null && resKey != null && resKey.contains("%s"))
+        sb.append(props.getProperty(String.format(resKey, it.next())));
+      else
+        sb.append(it.next());
+      if (suffix != null)
+        sb.append(suffix);
+      if (delimiter != null && it.hasNext())
+        sb.append(delimiter);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Collates the specified strings into a single string using the specified extra string data.
    * @param prefix prefix for each string item
    * @param suffix suffix for each string item
    * @param delimiter delimiter between string items
    * @return string representing collated for of string collection
    */
   public static String collateStrings(Collection<String> c, String prefix, String suffix, String delimiter) {
-    return collateStrings(c, null, null, prefix, suffix, delimiter);
+    return collateStrings(c, (ResourceBundle)null, null, prefix, suffix, delimiter);
   }
 
   /**
@@ -98,7 +127,7 @@ public final class StringUtils {
    * @return string representing collated for of string collection
    */
   public static String collateStrings(String[] c, String prefix, String suffix, String delimiter) {
-    return collateStrings(Arrays.asList(c), null, null, prefix, suffix, delimiter);
+    return collateStrings(Arrays.asList(c), (ResourceBundle)null, null, prefix, suffix, delimiter);
   }
 
   /**
