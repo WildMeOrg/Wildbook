@@ -484,9 +484,18 @@ System.out.println("trying to fork/create " + thumbPath);
                 </td>
               </tr>
               <tr>
-                <td><span class="caption"><%=encprops.getProperty("individualID") %>: <a
-                  href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
-                </a></span></td>
+                <td>
+	                <span class="caption"><%=encprops.getProperty("individualID") %>
+	                <%
+	                if(imageEnc.getIndividualID()!=null){
+	                %> 
+	                	<a href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
+	                	</a>
+	                <%
+					}
+	                %>	
+	                </span>
+                </td>
               </tr>
               <tr>
                 <td><span class="caption"><%=encprops.getProperty("title") %>: <a

@@ -213,7 +213,7 @@ public class SideFeed extends HttpServlet{
     Iterator it3=myShepherd.getAllEncounters(query2, "individualID ascending");
     while(it3.hasNext()) {
       Encounter thisEnc = (Encounter)it3.next();
-      String thisName=thisEnc.getIndividualID();
+      String thisName=ServletUtilities.handleNullString(thisEnc.getIndividualID());
       StringBuffer sb=new StringBuffer();
       if((thisName.equals("Unassigned"))&&(thisEnc.getNumRightSpots()>0)){
 
