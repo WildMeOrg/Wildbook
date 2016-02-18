@@ -183,13 +183,27 @@ System.out.println("pixelScale -> " + pixelScale);
 System.out.println("transform matrix -> " + Arrays.toString(transform));
     //note: for imagemagick, translate x,y will be moved to clipping offset
     Annotation annot = new Annotation(ma, enc.getTaxonomyString(), 0, 0, (int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), transform);
-    enc.addAnnotation(annot);
 System.out.println("annotation -> " + annot);
-    MediaAsset spotMA = annot.createMediaAsset();
-System.out.println("spotMA -> " + spotMA);
 
+    /*
+        we dont want to make a duplicate Annotation (which *usually* means the trivial one -- since we (should!) already have that.
+        note however, that there is the slim(??) chance someone does the *exact* same transform that was done previously.  that will cause this
+        enc.addAnnotation to blow up with a psql constraint complaint.  ugh.
+    */
+
+    boolean spotMAisNew = false;
+    MediaAsset spotMA = ma;  //this is only the case when no transform was done, i.e. spots were just done on an unaltered image
+
+    if (!annot.isTrivial()) {
+        enc.addAnnotation(annot);
+        spotMAisNew = true;
+        spotMA = annot.createMediaAsset();
+System.out.println("NEW (transformed) spotMA created -> " + spotMA);
+    }
+
+    //now we add the spots (as a Feature) to the spotMA
     if (spotMA != null) {
-        spotMA.setMinimalMetadata((int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), "image/jpeg");
+        if (spotMAisNew) spotMA.setMinimalMetadata((int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), "image/jpeg");
 
 //////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
         JSONObject params = new JSONObject();
@@ -231,7 +245,7 @@ System.out.println("spotMA -> " + spotMA);
 */
 
 
-    MediaAssetFactory.save(spotMA, myShepherd);
+    if (spotMAisNew) MediaAssetFactory.save(spotMA, myShepherd);
 
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
@@ -240,7 +254,7 @@ System.out.println("spotMA -> " + spotMA);
     m.put("success", !(spotMA == null));
     if (spotMA != null) {
         m.put("spotMAId", spotMA.getId());
-System.out.println("SubmitSpotsAndTranform generated a new spotMA id=" + spotMA.getId());
+System.out.println("SubmitSpotsAndTranform " + (spotMAisNew ? "generated a new" : "put spots on existing") + " spotMA id=" + spotMA.getId());
     } else {
         System.out.println("ERROR: SubmitSpotsAndTranform failed to generate a spot MediaAsset!");
     }
