@@ -174,7 +174,7 @@ public class IndividualAddEncounter extends HttpServlet {
               // Notify adopters
 	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
 	            Query query = myShepherd.getPM().newQuery(encClass);
-              ArrayList<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, addToMe.getIndividualID());
+              ArrayList<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, ServletUtilities.handleNullString(addToMe.getIndividualID()));
               query.closeAll();
               cAdopters.removeAll(allAssociatedEmails);
               for (String emailTo : cAdopters) {

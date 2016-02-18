@@ -209,7 +209,7 @@ public class WriteOutScanTask extends HttpServlet {
           else{ enc.addAttribute("sex", "unknown");}
          
           
-          enc.addAttribute("assignedToShark", firstEnc.getIndividualID());
+          enc.addAttribute("assignedToShark", ServletUtilities.handleNullString(firstEnc.getIndividualID()));
           if(firstEnc.getSizeAsDouble()!=null){enc.addAttribute("size", (firstEnc.getSize() + " meters"));}
           enc.addAttribute("location", firstEnc.getLocation());
           enc.addAttribute("locationID", firstEnc.getLocationID());
@@ -233,7 +233,7 @@ public class WriteOutScanTask extends HttpServlet {
           else{ enc2.addAttribute("sex", "unknown");}
          
           
-          enc2.addAttribute("assignedToShark", secondEnc.getIndividualID());
+          enc2.addAttribute("assignedToShark", ServletUtilities.handleNullString(secondEnc.getIndividualID()));
           if(secondEnc.getSizeAsDouble()!=null){enc2.addAttribute("size", (secondEnc.getSize() + " meters"));}
           else{enc2.addAttribute("size", "unknown");}
           enc2.addAttribute("location", secondEnc.getLocation());
