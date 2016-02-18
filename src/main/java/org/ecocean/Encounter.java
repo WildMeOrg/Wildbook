@@ -1980,6 +1980,15 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         return m;
     }
 
+    //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (MediaAsset ma : getMedia()) {
+            if (ma.hasFeatures(featureIds)) mas.add(ma);
+        }
+        return mas;
+    }
+
     public ArrayList<MediaAsset> findAllMediaByLabel(Shepherd myShepherd, String label) {
         return MediaAsset.findAllByLabel(getMedia(), myShepherd, label);
     }
