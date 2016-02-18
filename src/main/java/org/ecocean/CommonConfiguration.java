@@ -499,7 +499,7 @@ public class CommonConfiguration {
   }
 
   public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
-    Map<String, String> map = new TreeMap<>();
+    Map<String, String> map = new LinkedHashMap<>();
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
