@@ -1,35 +1,32 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
 <%@ page import="org.ecocean.*" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
-
-
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="java.text.MessageFormat" %>
 <%
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
+	Locale locale = new Locale(langCode);
+	Properties props = ShepherdProperties.getProperties("users.properties", langCode, context);
+	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
-String context="context0";
-//context=ServletUtilities.getContext(request);
-  	
-  	
   Shepherd myShepherd = new Shepherd(context);
-  	//get the available user roles
-  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
-	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition",context);
-	int numRoles=roles.size();
-  	int numRoleDefinitions=roleDefinitions.size();
+	// Get the available user roles
+	Map<String, String> rolesMap = CommonConfiguration.getIndexedValuesMap("role", context);
+	Map<String, String> roleDefinitions = CommonConfiguration.getIndexedValuesMap("roleDefinition", context);
+	// Get i18n resources (to allow i18n if defined)
+	Map<String, String> roleDefinitionsI18n = Util.getIndexedValuesMap(cciProps, "roleDefinition");
 
-//handle some cache-related security
+  // Handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
 
-    <jsp:include page="../header.jsp" flush="true" />
+<jsp:include page="../header.jsp" flush="true" />
 
-   
-   
-   
- <div class="container maincontent">
+<div class="container maincontent">
  
      
      <%
@@ -40,19 +37,19 @@ String context="context0";
      
      %>
 
-      <h1 class="intro">User Management</h1>
-      <h4 class="intro">Existing Users (<%=numUsers %>)</h4>
+      <h1 class="intro"><%=props.getProperty("title")%></h1>
+      <h4 class="intro"><%=StringUtils.format(locale, props.getProperty("existingUsers"), numUsers)%></h4>
       <table class="tissueSample">
       	<tr>
       		<th>&nbsp;</th>
-      		<th><strong>Username</strong></th>
-      		<th><strong>Full Name</strong></th>
-      		<th><strong>Email</strong></th>
-      		<th><strong>Affiliation</strong></th>
-      		<th><strong>Roles</strong></th>
-      		<th width="40px"><strong>Edit?</strong></th>
-      		<th><strong>Delete?</strong></th>
-      		<th><strong>Last Login</strong></th>
+      		<th><strong><%=props.getProperty("column.username")%></strong></th>
+      		<th><strong><%=props.getProperty("column.fullName")%></strong></th>
+      		<th><strong><%=props.getProperty("column.email")%></strong></th>
+      		<th><strong><%=props.getProperty("column.affiliation")%></strong></th>
+      		<th><strong><%=props.getProperty("column.roles")%></strong></th>
+      		<th width="40px"><strong><%=props.getProperty("column.edit")%></strong></th>
+      		<th><strong><%=props.getProperty("column.delete")%></strong></th>
+      		<th><strong><%=props.getProperty("column.lastLogin")%></strong></th>
       	</tr>
       
       <%
@@ -82,8 +79,8 @@ String context="context0";
       		}
       		%>
       		</td>
-      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(user.getUsername())%></td>
-      		<td style="font-size:small"><%=StringEscapeUtils.escapeHtml4(fullName)%></td>
+      		<td style="font-size:small"><%=user.getUsername()%></td>
+      		<td style="font-size:small"><%=fullName%></td>
       		<td style="font-size:small"><a href="mailto:<%=emailAddress%>"><img height="20px" width="20px" src="../images/Crystal_Clear_app_email.png" /></a></td>
       		<td style="font-size:small"><%=affiliation%></td>
       		<td style="font-size:x-small"><em><%=myShepherd.getAllRolesForUserAsString(user.getUsername()).replaceAll("\r","<br />") %></em></td>
@@ -92,7 +89,7 @@ String context="context0";
       			<%
       			if(!user.getUsername().equals(request.getUserPrincipal().getName())){
       			%>
-      			<form onsubmit="return confirm('Are you sure you want to delete this user?');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
+      			<form onsubmit="return confirm('<%=props.getProperty("confirmDelete")%>');" action="../UserDelete?context=context0&username=<%=user.getUsername()%>" method="post"><input type="image"  width="20px" height="20px" src="../images/cancel.gif" /></form>
       			<%
       			}
       			else {
@@ -120,22 +117,26 @@ String context="context0";
  
 	</table>
     
-     <h4 class="intro">Existing Roles</h4>
+     <h4 class="intro"><%=props.getProperty("existingRoles")%></h4>
      <table width="100%" class="tissueSample">
-      <tr><th><strong>Role</strong></th><th><strong>Definition</strong></th></tr>
-		<%
-								for(int q=0;q<numRoles;q++){
-									String localRole=roles.get(q);
-									String localDefinition="";
-									if(numRoleDefinitions>=q){localDefinition=roleDefinitions.get(q);}
-								%>
-             					 <tr><td><%=localRole%></td><td><%=localDefinition%></td></tr>
-              					<%
-								}
-		%>
+      <tr>
+				<th><strong><%=props.getProperty("column.role")%></strong></th>
+				<th><strong><%=props.getProperty("column.definition")%></strong></th>
+			</tr>
+<%
+	for (Map.Entry<String, String> me : rolesMap.entrySet()) {
+		// Get i18n version of definition, with fallback to standard definition.
+		String roleDef = roleDefinitionsI18n.get(me.getKey().replace("role", "roleDefinition"));
+		if (roleDef == null)
+			roleDef = roleDefinitions.get(me.getKey().replace("role", "roleDefinition"));
+%>
+			 <tr><td><%=me.getValue()%></td><td><%=roleDef%></td></tr>
+<%
+	}
+%>
     </table>
     
-	<h4 class="intro"><a name="editUser" /></a>Create/Edit a User</h4>
+	<h4 class="intro"><a name="editUser" /></a><%=props.getProperty("createEditUser")%></h4>
 	<p>
 	<%
 	String isEditAddition="";
@@ -224,7 +225,7 @@ String context="context0";
 		        		    	</td>
 		        	<form action="../UserCreate?context=context0<%=isEditAddition %>" method="post" id="newUser">	    
     		    	<td><table width="100%" class="tissueSample">
-      				<tr><td colspan="3"><em>This function allows you to create a new user account and assign appropriate roles. Available roles are independently configured, listed in commonConfiguration.properties, and matched to the URL-based functions of the Shepherd Project in the Apache Shiro filter in web.xml.</em></td></tr>
+      				<tr><td colspan="3"><em><%=props.getProperty("createEdit.describe")%></em></td></tr>
       				<tr>
             			
                         <%
@@ -235,23 +236,23 @@ String context="context0";
                         	readonly="readonly=\"readonly\"";
                         }
                         %>
-                        <td>Username: <input name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" <%=readonly %>></input></td>
+                        <td><%=props.getProperty("createEdit.username")%>: <input name="username" type="text" size="15" maxlength="90" value="<%=localUsername %>" <%=readonly %>></input></td>
                         
-                        <td>Password: <input name="password" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
-                        <td>Confirm Password: <input name="password2" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
+                        <td><%=props.getProperty("createEdit.password")%>: <input name="password" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
+                        <td><%=MessageFormat.format(props.getProperty("createEdit.confirm"), props.getProperty("createEdit.password"))%>: <input name="password2" type="password" size="15" maxlength="90" <%=disabled %>></input></td>
                         
                         
 
             		</tr>
-                    <tr><td colspan="3">Full name: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="2">Email address: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
-                    <tr><td colspan="3">Affiliation: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-                     <tr><td colspan="3">Research Project: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.fullName")%>: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+                    <tr><td colspan="2"><%=props.getProperty("createEdit.email")%>: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1">Receive automated emails? <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.affiliation")%>: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+                     <tr><td colspan="3"><%=props.getProperty("createEdit.researchProject")%>: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                           
-                    <tr><td colspan="3">Project URL: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="3" valign="top">User Statement (255 char. max): <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.projectURL")%>: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+		     <tr><td colspan="3" valign="top"><%=props.getProperty("createEdit.researchStatement")%>: <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
                     
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="Create" /></td></tr>
+                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=request.getParameter("isEdit") != null ? props.getProperty("edit") : props.getProperty("create")%>" /></td></tr>
             </table>
             </td>
             <td>
@@ -266,25 +267,22 @@ String context="context0";
             <td>
             
             
-            Roles for <%=ContextConfiguration.getNameForContext(("context"+d)) %>(multi-select): 
+            <%=MessageFormat.format(props.getProperty("createEdit.roles4"), ContextConfiguration.getNameForContext(("context"+d)))%>:
                         	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5">
                         		<option value=""></option>
 								<%
-								for(int q=0;q<numRoles;q++){
-									String selected="";
-									if((request.getParameter("isEdit")!=null)&&(myShepherd.getUser(request.getParameter("username").trim())!=null)){
-										if(myShepherd.doesUserHaveRole(request.getParameter("username").trim(),roles.get(q),("context"+d))){
-											selected="selected=\"true\"";
-										}
+								boolean isEdit = request.getParameter("isEdit") != null;
+								User user = myShepherd.getUser(request.getParameter("username").trim());
+								for (String role : rolesMap.values()) {
+									String selected = "";
+									if (isEdit && user != null) {
+										selected = "selected=\"true\"";
 									}
-									
-					    		    	
-								%>
-             					 <option value="<%=roles.get(q)%>" <%=selected%>><%=roles.get(q)%></option>
-              					<%
+									%>
+														<option value="<%=role%>" <%=selected%>><%=role%></option>
+									<%
 								}
 								%>
-                                
             				</select>
             
             
@@ -311,12 +309,12 @@ String context="context0";
       <table class="tissueSample" style="border: 1px solid black;" width="100%" border="1">
         <tr>
           <td>
-            <p><font size="+1">Reset User Agreement Acceptance for All Users</font></p>
-            <p>This command resets all User accounts such that each user must reaccept the User Agreement upon the next login.</p>
+            <p><font size="+1"><%=props.getProperty("resetUserAgreement")%></font></p>
+            <p><%=props.getProperty("resetUserAgreement.describe")%></p>
 
             <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement?context=context0">
 
-              <input name="UserResetAcceptedUserAgreementButton" type="submit" id="UserResetAcceptedUserAgreementButton" value="Reset">
+              <input name="UserResetAcceptedUserAgreementButton" type="submit" id="UserResetAcceptedUserAgreementButton" value="<%=props.get("reset")%>">
               </p></form>
           </td>
         </tr>

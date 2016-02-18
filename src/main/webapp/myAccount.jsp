@@ -1,20 +1,17 @@
-
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat,
-javax.servlet.http.HttpSession,
-java.io.*" %>
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.io.*" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
-
-
-String context="context0";
-
-//get language
-String langCode = ServletUtilities.getLanguageCode(request);
-
-//load user props
-Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
+	Properties props = ShepherdProperties.getProperties("users.properties", langCode, context);
 
 if (session.getAttribute("error") != null) {
 	%><script>var errorMessage = '<%=session.getAttribute("error").toString().replaceAll("'", "\\'")%>';</script><%
@@ -113,17 +110,17 @@ if (session.getAttribute("message") != null) {
 		        		    		
 		        		    			<tr>
 		        		    					<td style="border: solid 0"><form action="MyAccountAddProfileImage?context=context0" method="post" enctype="multipart/form-data" name="UserAddProfileImage">
-        												<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto") %><br /> 
+        												<img src="images/upload_small.gif" align="absmiddle" />&nbsp;<%=props.getProperty("uploadPhoto")%><br />
 		        		    						 <input name="username" type="hidden" value="<%=localUsername%>" id="profileUploadUsernameField" />
         												<input name="file2add" type="file" size="20" />
-        												<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload") %>" />
+        												<input name="addtlFile" type="submit" id="addtlFile" value="<%=props.getProperty("upload")%>" />
         											</form>
 		        		    					</td>
 		        		    				</tr>
 		        		    				<%
 		        		    				if(hasProfilePhoto){
 		        		    				%>
-		        		    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfile") %>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
+		        		    					<tr><td style="border: solid 0"><%=props.getProperty("deleteProfilePhoto")%>&nbsp;<a href="MyAccountRemoveProfileImage"><img src="images/cancel.gif" width="16px" height="16px" align="absmiddle" /></a></td></tr>
 		        		    			
 		        		    				<%
 		        		    				}
@@ -137,22 +134,22 @@ if (session.getAttribute("message") != null) {
       				<tr>
             	
                         
-                        <td style="border-bottom: 0px white;"><%=props.getProperty("newPassword") %> <input name="password" type="password" size="15" maxlength="90" ></input></td>
-                        <td style="border-bottom: 0px white;" colspan="2"><%=props.getProperty("confirm") %> <%=props.getProperty("newPassword") %> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
+                        <td style="border-bottom: 0px white;"><%=props.getProperty("createEdit.newPassword")%>: <input name="password" type="password" size="15" maxlength="90" ></input></td>
+                        <td style="border-bottom: 0px white;" colspan="2"><%=MessageFormat.format(props.getProperty("createEdit.confirm"), props.getProperty("createEdit.newPassword"))%>: <input name="password2" type="password" size="15" maxlength="90" ></input></td>
                         
                         
 
             		</tr>
-            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("leaveBlankNoChangePassword") %></td></tr>
-                    <tr><td colspan="3"><%=props.getProperty("fullname") %> <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
-                    <tr><td colspan="2"><%=props.getProperty("emailAddress") %> <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("receiveEmails") %> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails %>/></td></tr>
-                    <tr><td colspan="3"><%=props.getProperty("affiliation") %> <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
-                     <tr><td colspan="3"><%=props.getProperty("researchProject") %> <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
+            		<tr><td colspan="3" style="border-top: 0px white;font-style:italic;"><%=props.getProperty("createEdit.leaveBlankNoChangePassword")%></td></tr>
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.fullName")%>: <input name="fullName" type="text" size="15" maxlength="90" value="<%=localFullName %>"></input></td></tr>
+                    <tr><td colspan="2"><%=props.getProperty("createEdit.email")%>: <input name="emailAddress" type="text" size="15" maxlength="90" value="<%=localEmail %>"></input></td><td colspan="1"><%=props.getProperty("createEdit.receiveAutoEmails")%> <input type="checkbox" name="receiveEmails" value="receiveEmails" <%=receiveEmails%>/></td></tr>
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.affiliation")%>: <input name="affiliation" type="text" size="15" maxlength="90" value="<%=localAffiliation %>"></input></td></tr>
+                     <tr><td colspan="3"><%=props.getProperty("createEdit.researchProject")%>: <input name="userProject" type="text" size="15" maxlength="90" value="<%=userProject %>"></input></td></tr>
                           
-                    <tr><td colspan="3"><%=props.getProperty("projectURL") %> <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
-		     <tr><td colspan="3" valign="top"><%=props.getProperty("researchStatement") %> <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>                  
+                    <tr><td colspan="3"><%=props.getProperty("createEdit.projectURL")%>: <input name="userURL" type="text" size="15" maxlength="90" value="<%=userURL %>"></input></td></tr>
+		     <tr><td colspan="3" valign="top"><%=props.getProperty("createEdit.researchStatement")%>: <textarea name="userStatement" size="100" maxlength="255"><%=userStatement%></textarea></td></tr>
                     
-                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update") %>" /></td></tr>
+                    <tr><td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update")%>" /></td></tr>
             </table>
             </td>
             <td>
@@ -168,7 +165,7 @@ if (session.getAttribute("message") != null) {
             <td>
             
             
-            <%=props.getProperty("roles4") %> <%=ContextConfiguration.getNameForContext(("context"+d)) %> 
+            <%=MessageFormat.format(props.getProperty("createEdit.roles4"), ContextConfiguration.getNameForContext(("context"+d)))%>:<br />
                         	<select multiple="multiple" name="context<%=d %>rolename" id="rolename" size="5" disabled="disabled">
                         		<%
 								for(int q=0;q<numRoles;q++){
@@ -205,7 +202,7 @@ if (session.getAttribute("message") != null) {
             </tr>
             </table>
 <br ></br>
-<h2><%=props.getProperty("socialMediaConnections") %></h2>
+<h2><%=props.getProperty("socialMediaConnections")%></h2>
 <div style="padding-bottom: 10px;">
 <%
 	String types[] = new String[] {"facebook", "flickr"};
@@ -214,18 +211,18 @@ if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(C
 
 		String socialType="facebook";
 		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+			out.println(String.format("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('%s');\" value=\"%s\" /></div>", socialType, MessageFormat.format(props.getProperty("connectTo"), socialType)));
 		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+			out.println(String.format("<div class=\"social-connected\">%s<input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('%s');\" value=\"disconnect\" /></div>", MessageFormat.format(props.getProperty("connectedTo"), socialType), socialType));
 		}
 }
 if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
 
 	String socialType="flickr";
 	if (thisUser.getSocial(socialType) == null) {
-		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+		out.println(String.format("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('%s');\" value=\"%s\" /></div>", socialType, MessageFormat.format(props.getProperty("connectTo"), socialType)));
 	} else {
-		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+		out.println(String.format("<div class=\"social-connected\">%s<input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('%s');\" value=\"disconnect\" /></div>", MessageFormat.format(props.getProperty("connectedTo"), socialType), socialType));
 	}
 }
 %>
@@ -297,7 +294,7 @@ if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(Com
     	
     </p>
     
-    <h2><%=props.getProperty("myData") %></h2>
+    <h2><%=props.getProperty("myData")%></h2>
     
 
 <%
@@ -307,10 +304,10 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
     	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
     </jsp:include>
     
-    <p><strong>Links to My Data</strong></p>
-        <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
+    <p><strong><%=props.getProperty("myData.links")%></strong></p>
+        <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated")%></a></p>
     
-    <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>
+    <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated")%></a></p>
     
 
 <%

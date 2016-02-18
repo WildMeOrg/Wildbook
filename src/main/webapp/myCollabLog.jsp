@@ -1,22 +1,14 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.io.*" %>
+<%@ page import="java.text.SimpleDateFormat" %>
+<%@ page import="java.util.Date" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
 
-
-String context="context0";
-
-//get language
-String langCode = ServletUtilities.getLanguageCode(request);
-
-//load user props
-Properties props=ShepherdProperties.getProperties("users.properties", langCode,context);
-
-
-
-  	
-  	
   Shepherd myShepherd = new Shepherd(context);
   	//get the available user roles
   	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
