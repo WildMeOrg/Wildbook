@@ -1,6 +1,8 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.*,org.ecocean.servlet.ServletUtilities" %>
-
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" %>
+<%@ page import="java.util.Locale" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); 
@@ -11,8 +13,11 @@
 //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); 
 //HTTP 1.0 backward compatibility
-String context="context0";
-context=ServletUtilities.getContext(request);
+
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Locale locale = new Locale(langCode);
+  Properties props = ShepherdProperties.getProperties("adoption.properties", langCode, context);
   Shepherd myShepherd = new Shepherd(context);
   int count = myShepherd.getNumAdoptions();
   Adoption tempAD = null;
@@ -123,23 +128,23 @@ context=ServletUtilities.getContext(request);
 
 
 
-<h1 class="intro"> Adoption Administration</h1>
+<h1 class="intro"><%=props.getProperty("title")%></h1>
 
-<p>There are currently <%=count%> adoptions stored in the database.</p>
+<p><%=StringUtils.format(locale, props.getProperty("count"), count)%></p>
 
 <p>&nbsp;</p>
 <table class="adoption" width="720px">
   <tr>
     <td>
-      <h3><a name="goto" id="goto"></a>View/edit adoption</h3>
+      <h3><a name="goto" id="goto"></a><%=props.getProperty("viewEdit")%></h3>
     </td>
   </tr>
   <tr>
     <td>
-      <form action="adoption.jsp#create" method="get">&nbsp;Adoption
-        number: <input name="number" type="text"/><br/>
-        <input name="View/edit adoption" type="submit"
-               value="View/edit adoption"/></form>
+      <form action="adoption.jsp#create" method="get">
+        <%=props.getProperty("number")%>:
+        <input name="number" type="text"/><br/>
+        <input name="<%=props.getProperty("viewEdit")%>" type="submit" value="<%=props.getProperty("viewEdit")%>"/></form>
       <br/>
     </td>
   </tr>
@@ -160,47 +165,40 @@ context=ServletUtilities.getContext(request);
 <%
   if (request.getParameter("number") != null) {
 %>
-<h3><a name="create" id="create"></a>Edit adoption <em><%=request.getParameter("number")%>
-</em></h3>
+<h3><a name="create" id="create"></a><%=props.getProperty("edit")%> <em><%=request.getParameter("number")%></em></h3>
 <%
 } else {
 %>
 
-<h3><a name="create" id="create"></a>Create adoption</h3>
+<h3><a name="create" id="create"></a><%=props.getProperty("create")%></h3>
 <%
-  }
+}
 
   if (isOwner) {
 %>
-<form action="<%=servletURL%>" method="post"
-      enctype="multipart/form-data" name="adoption_submission"
-      target="_self" dir="ltr" lang="en">
-  <%
-    }
-  %>
+<form action="<%=servletURL%>" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
+<%
+  }
+%>
 
   <table>
     <tr>
-      <td>Name:</td>
-      <td><input name="adopterName" type="text" size="30"
-                 value="<%=adopterName%>"></input></td>
+      <td><%=props.getProperty("name")%>:</td>
+      <td><input name="adopterName" type="text" size="30" value="<%=adopterName%>"></input></td>
     </tr>
     <tr valign="top">
-      <td>Email:</td>
-      <td><input name="adopterEmail" type="text" size="30"
-                 value="<%=adopterEmail%>"></input><br/>
-
-        <p><em>Note: Multiple email addresses can be entered for
-          adopters, using commas as separators</em>.</p>
+      <td><%=props.getProperty("email")%>:</td>
+      <td>
+        <input name="adopterEmail" type="text" size="30" value="<%=adopterEmail%>"></input><br/>
+        <p><em><%=props.getProperty("email.note")%></em></p>
       </td>
     </tr>
     <tr>
-      <td>Address:</td>
-      <td><input name="adopterAddress" type="text" size="30"
-                 value="<%=adopterAddress%>"></input></td>
+      <td><%=props.getProperty("address")%>:</td>
+      <td><input name="adopterAddress" type="text" size="30" value="<%=adopterAddress%>"></input></td>
     </tr>
     <tr>
-      <td>Image:</td>
+      <td><%=props.getProperty("image")%>:</td>
       <%
       String adopterImageString="";
       if(adopterImage!=null){
@@ -220,31 +218,28 @@ context=ServletUtilities.getContext(request);
 
 
     <tr>
-      <td valign="top">Adopter quote:</td>
-      <td>Why are research and conservation for this species important?<br><textarea
-        name="adopterQuote" cols="40" id="adopterQuote" rows="10"><%=adopterQuote%>
-      </textarea>
+      <td valign="top"><%=props.getProperty("quote")%>:</td>
+      <td><%=props.getProperty("quote.note")%><br><textarea name="adopterQuote" cols="40" id="adopterQuote" rows="10"><%=adopterQuote%></textarea>
       </td>
     </tr>
 
 
     <tr>
-      <td>Marked Individual:</td>
-      <td><input name="shark" type="text" size="30"
-                 value="<%=sharkForm%>"> </input> <%if (!sharkForm.equals("")) { %>
-        <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
+      <td><%=props.getProperty("individual")%>:</td>
+      <td><input name="shark" type="text" size="30" value="<%=sharkForm%>"> </input>
+        <%if (!sharkForm.equals("")) { %>
+        <a href="../individuals.jsp?number=<%=sharkForm%>"><%=props.getProperty("individual.link")%></a>
+        <%
           }
         %>
       </td>
     </tr>
 
     <tr>
-      <td>Encounter:</td>
-      <td><input name="encounter" type="text" size="30"
-                 value="<%=encounterForm%>"> </input> <%if (!encounterForm.equals("")) { %>
-
-        <a href="../encounters/encounter.jsp?number=<%=encounterForm%>">Link</a>
-
+      <td><%=props.getProperty("encounter")%>:</td>
+      <td><input name="encounter" type="text" size="30" value="<%=encounterForm%>"> </input>
+        <%if (!encounterForm.equals("")) { %>
+        <a href="../encounters/encounter.jsp?number=<%=encounterForm%>"><%=props.getProperty("encounter.link")%></a>
         <%
           }
         %>
@@ -253,54 +248,48 @@ context=ServletUtilities.getContext(request);
 
 
     <tr>
-      <td>Adoption type:</td>
+      <td><%=props.getProperty("type")%>:</td>
       <td><select name="adoptionType">
         <%
           if (adoptionType.equals("Promotional")) {
         %>
-        <option value="Promotional" selected="selected">Promotional</option>
+        <option value="Promotional" selected="selected"><%=props.getProperty("type.promotional")%></option>
         <%
         } else {
         %>
-        <option value="Promotional" selected="selected">Promotional</option>
+        <option value="Promotional" selected="selected"><%=props.getProperty("type.promotional")%></option>
         <%
           }
 
           if (adoptionType.equals("Individual adoption")) {
         %>
-        <option value="Individual adoption" selected="selected">Individual
-          adoption
-        </option>
+        <option value="Individual adoption" selected="selected"><%=props.getProperty("type.individual")%></option>
         <%
         } else {
         %>
-        <option value="Individual adoption">Individual adoption</option>
+        <option value="Individual adoption"><%=props.getProperty("type.individual")%></option>
         <%
           }
 
 
           if (adoptionType.equals("Group adoption")) {
         %>
-        <option value="Group adoption" selected="selected">Group
-          adoption
-        </option>
+        <option value="Group adoption" selected="selected"><%=props.getProperty("type.group")%></option>
         <%
         } else {
         %>
-        <option value="Group adoption">Group adoption</option>
+        <option value="Group adoption"><%=props.getProperty("type.group")%></option>
         <%
           }
 
 
           if (adoptionType.equals("Corporate adoption")) {
         %>
-        <option value="Corporate adoption" selected="selected">Corporate
-          adoption
-        </option>
+        <option value="Corporate adoption" selected="selected"><%=props.getProperty("type.corporate")%></option>
         <%
         } else {
         %>
-        <option value="Corporate adoption">Corporate adoption</option>
+        <option value="Corporate adoption"><%=props.getProperty("type.corporate")%></option>
         <%
           }
         %>
@@ -311,21 +300,18 @@ context=ServletUtilities.getContext(request);
 
 
     <tr>
-      <td>Adoption start date:</td>
-      <td><input id="adoptionStartDate" name="adoptionStartDate"
-                 type="text" size="30" value="<%=adoptionStartDate%>"> <em>(e.g.
-        2009-05-15) </input> </em></td>
+      <td><%=props.getProperty("startDate")%>:</td>
+      <td><input id="adoptionStartDate" name="adoptionStartDate" type="text" size="30" value="<%=adoptionStartDate%>"> <em>(e.g. 2009-05-15) </input> </em></td>
     </tr>
 
     <tr>
-      <td>Adoption end date:</td>
-      <td><input name="adoptionEndDate" type="text" size="30"
-                 value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
+      <td><%=props.getProperty("endDate")%>:</td>
+      <td><input name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
     </tr>
 
     <!--
 			 			 <tr>
-			 <td>Adoption end date:</td>
+			 <td><%=props.getProperty("endDate")%>:</td>
 			 <td><div id="calendar2"></div>
    				 <div id="date2">
 				  <input  class="dateField" id="adoptionEndDate" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"></input>
@@ -335,28 +321,24 @@ context=ServletUtilities.getContext(request);
 			 -->
 
     <tr>
-      <td>Adoption manager (user):</td>
+      <td><%=props.getProperty("manager")%>:</td>
       <td>
-        <%if (request.getRemoteUser() != null) {%> <input name="adoptionManager"
-                                                          type="text"
-                                                          value="<%=request.getRemoteUser()%>"
-                                                          value="<%=adoptionManager%>"></input> <%} else {%>
-        <input
-          name="adoptionManager" type="text" value="N/A"
-          value="<%=adoptionManager%>"></input> <%}%>
+        <%if (request.getRemoteUser() != null) {%>
+        <input name="adoptionManager" type="text" value="<%=request.getRemoteUser()%>" value="<%=adoptionManager%>"></input>
+        <%} else {%>
+        <input name="adoptionManager" type="text" value="N/A" value="<%=adoptionManager%>"></input>
+        <%}%>
       </td>
     </tr>
     <tr>
-      <td align="left" valign="top">Adoption notes:</td>
-      <td><textarea name="notes" cols="40" id="notes" rows="10"><%=notes%>
-      </textarea>
-
+      <td align="left" valign="top"><%=props.getProperty("notes")%>:</td>
+      <td><textarea name="notes" cols="40" id="notes" rows="10"><%=notes%></textarea>
         <%
           if (request.getParameter("number") != null) {
-        %> <br/>
-        <input type="hidden" name="number" value="<%=id%>"/> <%
+        %>
+        <br/><input type="hidden" name="number" value="<%=id%>"/>
+        <%
           }
-
         %>
       </td>
     </tr>
@@ -364,11 +346,9 @@ context=ServletUtilities.getContext(request);
     <%
       if (isOwner) {
     %>
-
     <tr>
-      <td><input type="submit" name="Submit" value="Submit"/></td>
+      <td><input type="submit" name="Submit" value="<%=props.getProperty("submit")%>"/></td>
     </tr>
-
     <%
       }
     %>
@@ -393,14 +373,15 @@ context=ServletUtilities.getContext(request);
 <table class="adoption" width="720px">
   <tr>
     <td>
-      <h3><a name="delete" id="delete"></a>Delete this adoption</h3>
+      <h3><a name="delete" id="delete"></a><%=props.getProperty("deleteAdoption")%></h3>
     </td>
   </tr>
   <tr>
     <td>
-      <form action="rejectAdoption.jsp" method="get"><input
-        type="hidden" name="number" value="<%=id%>"/> <input name="Delete"
-                                                             type="submit" value="Delete"/></form>
+      <form action="rejectAdoption.jsp" method="get">
+        <input type="hidden" name="number" value="<%=id%>"/>
+        <input name="Delete" type="submit" value="<%=props.getProperty("delete")%>"/>
+      </form>
       <br/>
     </td>
   </tr>
@@ -414,16 +395,16 @@ context=ServletUtilities.getContext(request);
 <table class="adoption" width="720px">
   <tr>
     <td>
-      <h3><a name="restore" id="restore"></a>Restore a deleted adoption</h3>
+      <h3><a name="restore" id="restore"></a><%=props.getProperty("restoreAdoption")%></h3>
     </td>
   </tr>
   <tr>
     <td>
-      <form action="../ResurrectDeletedAdoption" method="get"
-            name="restoreDeletedAdoption">Adoption #: <input name="number"
-                                                             type="text" size="25"/> <input
-        type="submit" name="Submit"
-        value="Submit"/></form>
+      <form action="../ResurrectDeletedAdoption" method="get" name="restoreDeletedAdoption">
+        <%=props.getProperty("number")%>:
+        <input name="number" type="text" size="25"/>
+        <input type="submit" name="Submit" value="<%=props.getProperty("submit")%>"/>
+      </form>
       <br/>
   </tr>
   </td>

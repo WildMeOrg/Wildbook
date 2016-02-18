@@ -1,16 +1,19 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.awt.*" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="java.text.MessageFormat" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("adoption.properties", langCode, context);
+  Properties propsAct = ShepherdProperties.getProperties("actionResults.properties", langCode, context);
   String number = request.getParameter("id");
   Shepherd myShepherd = new Shepherd(context);
 
-
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
 
   //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -109,20 +112,20 @@ context=ServletUtilities.getContext(request);
 		}
 		}
 		%>
-          <h1 class="intro">Success</h1>
+          <h1 class="intro"><%=propsAct.getProperty("page.title")%></h1>
 
-          <p><strong>The adoption was successfully added/edited. </strong></p>
+          <div id="actionResultMessage">
+            <p>
+              <span class="prefix"><%=propsAct.getProperty("action.title.messagePrefix.success")%></span>
+              <span class="content"><%=propsAct.getProperty("adoption.create.message.success")%></span>
+            </p>
+          </div>
+          <div id="actionResultComment">
+            <p class="prefix"><strong><%=propsAct.getProperty("action.title.commentPrefix.success")%></strong></p>
+            <div class="content"><%=MessageFormat.format(propsAct.getProperty("adoption.create.comment.success"), number)%></div>
+          </div>
 
-          <p>For future reference, this adoption is numbered <strong><%=number%>
-          </strong>.</p>
-
-          <p>If you have any questions, please reference this number when contacting
-            us.</p>
-
-          <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=number%>">View
-            adoption #<%=number%>
-          </a>.</p>
+          <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=number%>"><%=MessageFormat.format(propsAct.getProperty("adoption.create.link.success"), number)%></a></p>
 
 
         </div>
