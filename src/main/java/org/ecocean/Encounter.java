@@ -1000,8 +1000,18 @@ public class Encounter implements java.io.Serializable {
                 System.out.println("WARNING: Encounter.generateAnnotations() found a duplicate MediaAsset in the SinglePhotoVideo images; skipping -- " + ma);
                 continue;
             }
-            haveMedia.add(ma);
+
+            //note: we need at least minimal metadata (w,h) in order to make annotation, so if this fails, we are no-go
+            try {
+                ma.updateMetadata();
+            } catch (IOException ioe) {
+                System.out.println("WARNING: Encounter.generateAnnotations() failed to updateMetadata() on original MediaAsset " + ma + " (skipping): " + ioe.toString());
+                continue;
+            }
+
             ma.addLabel("_original");
+            haveMedia.add(ma);
+
             annotations.add(new Annotation(ma, getTaxonomyString()));
             //if (!media.contains(ma)) media.add(ma);
             //File idir = new File(this.dir(baseDir));
@@ -1042,9 +1052,17 @@ System.out.println("creating new MediaAsset for key=" + key);
             System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
             return null;
         }
+        if (parentMA != null) {
+            ma.setParentId(parentMA.getId());
+            ma.updateMinimalMetadata();  //for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
+        } else {
+            try {
+                ma.updateMetadata();  //root images get the whole deal (guess this sh/could key off label=_original ?)
+            } catch (IOException ioe) {
+                //we dont care (well sorta) ... since IOException usually means we couldnt open file or some nonsense that we cant recover from
+            }
+        }
         ma.addLabel(label);
-        ma.updateMinimalMetadata();
-        if (parentMA != null) ma.setParentId(parentMA.getId());
         MediaAssetFactory.save(ma, myShepherd);
         return ma;
     }
@@ -1075,11 +1093,11 @@ System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString
 System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
             try {
                 ma = astore.copyIn(fullPath, sp);
-                ma.addLabel("_spot");
-                ma.addLabel("_annotation");
                 ma.addDerivationMethod("historicSpotImageConversion", true);
                 ma.updateMinimalMetadata();
 //System.out.println("params? " + ma.getParameters());
+                ma.addLabel("_spot");
+                ma.addLabel("_annotation");
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
             } catch (java.io.IOException ex) {
@@ -1981,10 +1999,15 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
 
     //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
-    public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(Shepherd myShepherd, String[] featureIds) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (MediaAsset ma : getMedia()) {
             if (ma.hasFeatures(featureIds)) mas.add(ma);
+            ArrayList<MediaAsset> kids = ma.findChildren(myShepherd); //note: does not recurse, but... meh?
+            if ((kids == null) || (kids.size() < 1)) continue;
+            for (MediaAsset kma : kids) {
+                if (kma.hasFeatures(featureIds)) mas.add(kma);
+            }
         }
         return mas;
     }
