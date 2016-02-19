@@ -1,23 +1,10 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Properties" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
-  //setup our Properties object to hold all properties
-  Properties props = new Properties();
- // String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-
-  //set up the file input stream
-  //FileInputStream propsInputStream=new FileInputStream(new File((new File(".")).getCanonicalPath()+"/webapps/ROOT/WEB-INF/classes/bundles/"+langCode+"/submit.properties"));
-   //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-   props=ShepherdProperties.getProperties("submit.properties", langCode,context);
-
-
-
+  String context = "context0";
+  context = ServletUtilities.getContext(request);
+//  String langCode = ServletUtilities.getLanguageCode(request);
+//  Properties props = ShepherdProperties.getProperties("thirdparty.properties", langCode, context);
 %>
 
     <jsp:include page="../header.jsp" flush="true" />

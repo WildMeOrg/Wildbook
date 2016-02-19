@@ -1,9 +1,15 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,org.ecocean.grid.*, java.util.ArrayList,java.util.Iterator, java.util.Properties, java.util.concurrent.ThreadPoolExecutor" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.grid.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.concurrent.ThreadPoolExecutor" %>
 <%
+  String context=ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+//  Properties props = ShepherdProperties.getProperties("scanTaskAdmin.properties", langCode, context);
 
-//String context="context0";
-String context=ServletUtilities.getContext(request);
   //concurrency examination for creation and removal threads
   ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 
@@ -47,20 +53,6 @@ String context=ServletUtilities.getContext(request);
     } catch (NumberFormatException nfe) {
     }
   }
-
-
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-
-String langCode=ServletUtilities.getLanguageCode(request);
-    
-
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props=ShepherdProperties.getProperties("submit.properties", langCode, context);
-
-
-
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
