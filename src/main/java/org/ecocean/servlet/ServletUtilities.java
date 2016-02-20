@@ -647,4 +647,10 @@ String rootWebappPath = "xxxxxx";
     }
     return myText.toString();
   }
+  
+  public static String handleNullString(Object obj){
+    if(obj==null){return "";}
+    return obj.toString();
+  }
+  
 }

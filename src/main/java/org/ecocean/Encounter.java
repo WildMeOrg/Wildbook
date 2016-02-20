@@ -1358,6 +1358,10 @@ public class Encounter implements java.io.Serializable {
   }
 
   public void setIndividualID(String indy) {
+    if(indy==null){
+      individualID=null;
+      return;
+    }
     this.individualID = indy;
   }
 

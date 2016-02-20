@@ -122,10 +122,13 @@ public class CalendarXMLServer extends HttpServlet {
                     }
                   }
 
+                  String individualID="-";
+                  if(tempEnc.getIndividualID()!=null)individualID=tempEnc.getIndividualID();
+                  
                   String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                   outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
                   outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</end_date>";
-                  outputXML+="<text><![CDATA["+tempEnc.getIndividualID()+"("+sex+")]]></text>";
+                  outputXML+="<text><![CDATA["+individualID+"("+sex+")]]></text>";
                   outputXML+="<details></details></event>";
                   out.println(outputXML);
                 } 

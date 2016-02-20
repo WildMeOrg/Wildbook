@@ -130,7 +130,7 @@ public class IndividualAddEncounter extends HttpServlet {
 
             myShepherd.beginDBTransaction();
 
-      			List<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
+      			ArrayList<String> allAssociatedEmails = addToMe.getAllEmailsToUpdate();
 
             //inform all encounter submitters for this Marked Individual about the modification to their animal
 
@@ -174,7 +174,7 @@ public class IndividualAddEncounter extends HttpServlet {
               // Notify adopters
 	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
 	            Query query = myShepherd.getPM().newQuery(encClass);
-              List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, addToMe.getIndividualID());
+              ArrayList<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, ServletUtilities.handleNullString(addToMe.getIndividualID()));
               query.closeAll();
               cAdopters.removeAll(allAssociatedEmails);
               for (String emailTo : cAdopters) {
