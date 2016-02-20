@@ -262,7 +262,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context));
+            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context,""));
 
 
           } catch (Exception e) {
@@ -634,7 +634,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
+            //es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
 
 
           } catch (Exception e) {

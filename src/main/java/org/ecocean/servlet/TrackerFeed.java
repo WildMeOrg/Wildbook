@@ -79,7 +79,10 @@ public class TrackerFeed extends HttpServlet {
 
 
     String newEncDate = newEnc.getDate();
-    String newEncShark = newEnc.isAssignedToMarkedIndividual();
+    String newEncShark = "";
+    if(newEnc.getIndividualID()!=null){
+      newEncShark=newEnc.getIndividualID();
+    }
     String newEncSize = (new Double(newEnc.getSize())).toString() + " meters";
     String newEncLocation = newEnc.getVerbatimLocality();
     newEncShepherd.rollbackDBTransaction();
