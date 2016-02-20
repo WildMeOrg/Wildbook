@@ -137,7 +137,7 @@ public class EncounterResetDate extends HttpServlet {
         newDate = fixMe.getDate();
         fixMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Changed encounter date from " + oldDate + " to " + newDate + ".</p>");
 
-        if((fixMe.getIndividualID()!=null)&&(!fixMe.getIndividualID().equals("Unassigned"))){
+        if(fixMe.getIndividualID()!=null){
           String indieName=fixMe.getIndividualID();
           if(myShepherd.isMarkedIndividual(indieName)){
             MarkedIndividual indie=myShepherd.getMarkedIndividual(indieName);

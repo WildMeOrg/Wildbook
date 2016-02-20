@@ -96,7 +96,7 @@ public class IndividualCreate extends HttpServlet {
       Encounter enc2make = myShepherd.getEncounter(request.getParameter("number").trim());
       setDateLastModified(enc2make);
 
-      String belongsTo = enc2make.isAssignedToMarkedIndividual();
+      String belongsTo = enc2make.getIndividualID();
       String submitter = enc2make.getSubmitterEmail();
       String photographer = enc2make.getPhotographerEmail();
       String informers = enc2make.getInformOthers();
@@ -106,7 +106,7 @@ public class IndividualCreate extends HttpServlet {
       if (!(myShepherd.isMarkedIndividual(newIndividualID))) {
 
 
-        if ((belongsTo.equals("Unassigned")) && (newIndividualID != null)) {
+        if ((belongsTo == null) && (newIndividualID != null)) {
           MarkedIndividual newShark = null;
           try {
             newShark = new MarkedIndividual(newIndividualID, enc2make);

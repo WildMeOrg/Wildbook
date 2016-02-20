@@ -915,24 +915,24 @@ public class Shepherd {
    * @return an Iterator of shark encounters that have yet to be assigned shark status or assigned to an existing shark in the database
    * @see encounter, java.util.Iterator
    */
-  public Iterator<Encounter> getUnassignedEncounters() {
-    String filter = "this.individualID == \"Unassigned\"";
+  public Iterator getUnassignedEncounters() {
+    String filter = "this.individualID == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
 
-  public Iterator<Encounter> getUnassignedEncountersIncludingUnapproved() {
-    String filter = "this.individualID == \"Unassigned\"";
+  public Iterator getUnassignedEncountersIncludingUnapproved() {
+    String filter = "this.individualID == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query orphanedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
 
-  public Iterator<Encounter> getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
-    String filter = "this.individualID == \"Unassigned\" && this.state != \"unidentifiable\"";
+  public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
+    String filter = "this.individualID == null && this.state != \"unidentifiable\"";
     //Extent encClass=pm.getExtent(encounter.class, true);
     orphanedEncounters.setFilter(filter);
     Collection c = (Collection) (orphanedEncounters.execute());
@@ -1549,7 +1549,7 @@ public class Shepherd {
          int numEncounters=encounters.size();
          for(int i=0;i<numEncounters;i++){
            Encounter enc=encounters.get(i);
-           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!enc.getIndividualID().equals(indie))){
+           if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals(indie))){
              MarkedIndividual indieEnc=this.getMarkedIndividual(enc.getIndividualID());
              //check if we already have this Indie
              if(!hmap.containsKey(indieEnc.getIndividualID())){
