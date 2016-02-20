@@ -68,7 +68,7 @@ public class TissueSampleRemoveHaplotype extends HttpServlet {
         myShepherd.throwAwayGeneticAnalysis(mtDNA);  
         
       //check if this affects the MarkedIndividual.localHaplotypeReflection
-        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
+        if(enc.getIndividualID()!=null){
             MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
             indie.doNotSetLocalHaplotypeReflection(null);
             indie.getHaplotype();

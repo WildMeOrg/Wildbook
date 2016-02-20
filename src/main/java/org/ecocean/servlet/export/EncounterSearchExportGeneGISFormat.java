@@ -116,7 +116,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
           Encounter enc=(Encounter)rEncounters.get(i);
           String assembledString="";
           assembledString+=enc.getCatalogNumber();
-          if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){assembledString+=(","+enc.getIndividualID());}
+          if(enc.getIndividualID()!=null){assembledString+=(","+enc.getIndividualID());}
           //if(enc.getAlternateID()!=null){assembledString+=","+enc.getAlternateID();}
           else{assembledString+=",";}
         

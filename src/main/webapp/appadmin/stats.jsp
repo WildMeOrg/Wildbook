@@ -240,7 +240,7 @@ while(it.hasNext()) {
 		if(tempEnc.getEncounterNumber().substring(0,8).indexOf(yearString)!=-1){
 			encNumArray[r]++;
 			//calculate the utilization rates
-			if((tempEnc.getIndividualID()!=null)&&(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+			if(tempEnc.getIndividualID()!=null){
 				encNumUtilizedArray[r]++;
 			}	
 		}
@@ -253,7 +253,7 @@ while(it.hasNext()) {
 			if (dateTimeHere.getYear()==(2003+r)){
 				encNumArray[r]++;
 				//calculate the utilization rates
-				if((tempEnc.getIndividualID()!=null)&&(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+				if(tempEnc.getIndividualID()!=null){
 					encNumUtilizedArray[r]++;
 				}	
 				

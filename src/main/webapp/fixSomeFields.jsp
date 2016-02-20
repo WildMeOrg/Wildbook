@@ -67,10 +67,7 @@ while(allEncs.hasNext()){
 	Encounter sharky=(Encounter)allEncs.next();
 
 	if((sharky.getIndividualID()!=null)&&(sharky.getIndividualID().toLowerCase().trim().equals("unassigned"))){
-		%>
-		<%=sharky.getCatalogNumber() %>
-		
-		<%
+
 		sharky.setIndividualID(null);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
@@ -85,31 +82,6 @@ while(allEncs.hasNext()){
 
 
 
-//while(allSharks.hasNext()){
-
-	//MarkedIndividual sharky=(MarkedIndividual)allSharks.next();
-	//sharky.refreshDependentProperties(context);
-	//myShepherd.commitDBTransaction();
-	//myShepherd.beginDBTransaction();
-	
-/*
-	//populate max years between resightings
-	/*
-	if(sharky.totalLogEncounters()>0){
-		//int numLogEncounters=);
-		for(int i=0;i<sharky.totalLogEncounters();i++){
-			Encounter enc=sharky.getLogEncounter(i);
-			sharky.removeLogEncounter(enc);
-			sharky.addEncounter(enc);
-			i--;
-			//check if log encounters still exist
-			numLogEncounters++;
-			
-		}
-	}
-*/
-	
-//}
 
 
 myShepherd.commitDBTransaction();

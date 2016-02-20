@@ -182,7 +182,7 @@ public class ImportSRGD extends HttpServlet {
               
               //line[1] is the IndividualID
               String individualID=line[1].trim();
-              if((individualID!=null)&&(!individualID.equals(""))){
+              if(individualID!=null){
                 
                
                   enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Import SRGD process set marked individual to " + individualID + ".</p>");
@@ -194,9 +194,7 @@ public class ImportSRGD extends HttpServlet {
                 
                 
               }
-              else{
-                enc.setIndividualID("Unassigned");
-              }
+              
               
               //line[2] is the latitude
               String latitude=line[2].trim();

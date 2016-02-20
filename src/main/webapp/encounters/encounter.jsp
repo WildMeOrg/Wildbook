@@ -613,10 +613,10 @@ if(false){
       
 								
     							<%
-    							if (enc.isAssignedToMarkedIndividual() == null) {
+    							if (enc.getIndividualID() == null) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
+    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%> 
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
@@ -631,7 +631,7 @@ if(false){
     							%>
     							<p class="para">
     								
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
@@ -688,7 +688,7 @@ if(false){
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
   		
   									<%
-  									if(enc.isAssignedToMarkedIndividual()==null){
+  									if(enc.getIndividualID()==null){
   									%>		
   		
   									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
@@ -726,7 +726,7 @@ if(false){
 									<%
   									}
   		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  	  						if((enc.isAssignedToMarkedIndividual() != null) && CommonConfiguration.isCatalogEditable(context)) {
+		  	  						if((enc.getIndividualID() != null) && CommonConfiguration.isCatalogEditable(context)) {
 		  							%>
 									<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  										<tr>
@@ -760,7 +760,7 @@ if(false){
 									<br /> 
 									<%
    									}
-									if(enc.isAssignedToMarkedIndividual()==null){
+									if(enc.getIndividualID()==null){
 									%>	 
 	 
 									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
