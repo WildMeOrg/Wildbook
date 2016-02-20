@@ -127,7 +127,7 @@ public class SideFeed extends HttpServlet{
 
     while(it2.hasNext()) {
       String thisName=(String)it2.next();
-      if(!thisName.equals("Unassigned")){
+      //if(!thisName.equals("Unassigned")){
         MarkedIndividual s=myShepherd.getMarkedIndividual(thisName);
         double length=0;
 
@@ -201,7 +201,7 @@ public class SideFeed extends HttpServlet{
 
 
 
-      } //end if
+     // } //end if
     } //end while
 
 
@@ -215,7 +215,7 @@ public class SideFeed extends HttpServlet{
       Encounter thisEnc = (Encounter)it3.next();
       String thisName=ServletUtilities.handleNullString(thisEnc.getIndividualID());
       StringBuffer sb=new StringBuffer();
-      if((thisName.equals("Unassigned"))&&(thisEnc.getNumRightSpots()>0)){
+      if((thisEnc.getIndividualID()!=null)&&(thisEnc.getNumRightSpots()>0)){
 
         //APRIL
         GregorianCalendar gcApril1a=new GregorianCalendar(year1, 4, 1);

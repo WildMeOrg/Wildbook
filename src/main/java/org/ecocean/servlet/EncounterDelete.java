@@ -94,7 +94,7 @@ public class EncounterDelete extends HttpServlet {
         
         out.println(ServletUtilities.getFooter(context));
       }
-      else if ((enc2trash.getIndividualID()==null)||(enc2trash.isAssignedToMarkedIndividual().equals("Unassigned"))) {
+      else if (enc2trash.getIndividualID()==null) {
 
         try {
 

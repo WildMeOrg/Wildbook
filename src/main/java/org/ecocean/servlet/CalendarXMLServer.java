@@ -109,10 +109,10 @@ public class CalendarXMLServer extends HttpServlet {
               String thisEncounter=(String)matches.get(i);
               Encounter tempEnc=myShepherd.getEncounter(thisEncounter);
               if(tempEnc!=null){
-                if(!tempEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
+                if(tempEnc.getIndividualID()!=null){
                 
                   String sex="-";
-                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.isAssignedToMarkedIndividual());
+                  MarkedIndividual sharky=myShepherd.getMarkedIndividual(tempEnc.getIndividualID());
                   if((sharky.getSex()!=null)&&(!sharky.getSex().toLowerCase().equals("unknown"))) {
                     if(sharky.getSex().equals("male")){
                       sex="M";

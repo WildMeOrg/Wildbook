@@ -107,8 +107,7 @@ public class SonicPiFormat extends HttpServlet{
           
           //String assembledString="";
           //assembledString+=enc.getCatalogNumber();
-          //if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
-            
+           
            String assembledString=(enc.getIndividualID());
             
           //}

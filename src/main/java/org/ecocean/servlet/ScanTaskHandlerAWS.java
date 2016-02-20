@@ -689,7 +689,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 
 						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new FalseMatchCreationThread(maxNumWorkItems,taskIdentifier,context));
+						//es.execute(new FalseMatchCreationThread(maxNumWorkItems,taskIdentifier,context));
 
 
 					}

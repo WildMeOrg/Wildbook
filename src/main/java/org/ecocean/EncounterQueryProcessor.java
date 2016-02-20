@@ -87,9 +87,9 @@ public class EncounterQueryProcessor {
     if(request.getParameter("resightOnly")!=null) {
       //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID != \"Unassigned\")";
+        filter+="(individualID != null)";
       }
-      else{filter+=" && (individualID != \"Unassigned\")";}
+      else{filter+=" && (individualID != null)";}
       prettyPrint.append("Identified and resighted.<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
@@ -97,9 +97,9 @@ public class EncounterQueryProcessor {
     //filter for unassigned encounters------------------------------------------
     if(request.getParameter("unassigned")!=null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID == \"Unassigned\")";
+        filter+="(individualID == null)";
       }
-      else{filter+=" && (individualID == \"Unassigned\")";}
+      else{filter+=" && (individualID == null)";}
       prettyPrint.append("Unidentified.<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
@@ -1414,34 +1414,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 
-  //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
-  /* 
-    if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
-      int numResights=1;
-
-      try{
-        numResights=(new Integer(request.getParameter("numResights"))).intValue();
-        prettyPrint.append("numResights is > "+numResights+".<br />");
-        }
-      catch(NumberFormatException nfe) {nfe.printStackTrace();}
-
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        //if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-          //rEncounters.remove(q);
-          //q--;
-        //}
-        //else{
-          MarkedIndividual s=myShepherd.getMarkedIndividual(rEnc.isAssignedToMarkedIndividual());
-          if(s.totalEncounters()<numResights) {
-            rEncounters.remove(q);
-            q--;
-          }
-        //}
-      }
-    }
-    */
-  //end if resightOnly--------------------------------------------------------------------------------------
 
 
 

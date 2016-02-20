@@ -141,7 +141,7 @@ public class MozRobustByMonths extends HttpServlet{
 		
 		while(it2.hasNext()) {
 		  String thisName=(String)it2.next();
-		  if(!thisName.equals("Unassigned")){
+		  //if(!thisName.equals("Unassigned")){
 		    MarkedIndividual s=myShepherd.getMarkedIndividual(thisName);
 		    double length=0;
 			
@@ -246,7 +246,7 @@ public class MozRobustByMonths extends HttpServlet{
 					
 				
 				
-			} //end if
+			//} //end if
 		} //end while
 		out.println("/*");
 		out.println("</pre><br><br>Number of sharks identified during the study period: "+numSharks);

@@ -80,7 +80,7 @@ public class MitFeed extends HttpServlet{
 						StringBuffer xmlData=new StringBuffer();
 
 						//xml root
-						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" year=\""+dataEnc.getYear()+"\" assignedToShark=\""+dataEnc.isAssignedToMarkedIndividual()+"\">\n");
+						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" year=\""+dataEnc.getYear()+"\" assignedToShark=\""+dataEnc.getIndividualID()+"\">\n");
 
 						//left side
 						if((dataEnc.getSpots()!=null)&&(dataEnc.getSpots().size()>0)){
@@ -142,12 +142,12 @@ public class MitFeed extends HttpServlet{
 						StringBuffer xmlData=new StringBuffer();
 
 						//xml root
-						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" assignedToShark=\""+dataEnc.isAssignedToMarkedIndividual()+"\">\n");
+						xmlData.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<encounter number=\""+qualifier+"\" assignedToShark=\""+dataEnc.getIndividualID()+"\">\n");
 						xmlData.append("<matches>\n");
 
 						//logic
-						if(!dataEnc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-							MarkedIndividual tempShark=myShepherd.getMarkedIndividual(dataEnc.isAssignedToMarkedIndividual());
+						if(dataEnc.getIndividualID()!=null) {
+							MarkedIndividual tempShark=myShepherd.getMarkedIndividual(dataEnc.getIndividualID());
 							Vector encs=tempShark.getEncounters();
 							for(int s=0;s<encs.size();s++) {
 								Encounter matchEnc=(Encounter)encs.get(s);

@@ -108,15 +108,15 @@ if (myShepherd.isEncounter(num)) {
 
 
 <%
-  if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+  if (enc.getIndividualID()==null) {
 %>
-<p><font size="-1">Belongs to: <%=enc.isAssignedToMarkedIndividual()%>
+<p><font size="-1">Belongs to: 
 </font></p>
 <%
 } else {
 %>
 <p><font size="-1">Belongs to: <a
-  href="../individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%>"><%=enc.isAssignedToMarkedIndividual()%>
+  href="../individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%>
 </a></font></p>
 <%
   }

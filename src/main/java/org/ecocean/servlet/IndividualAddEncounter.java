@@ -79,8 +79,8 @@ public class IndividualAddEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
-      String tempName = enc2add.isAssignedToMarkedIndividual();
-      if ((tempName.equals("Unassigned")) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
+     
+      if ((enc2add.getIndividualID()==null) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
         try {
 
 

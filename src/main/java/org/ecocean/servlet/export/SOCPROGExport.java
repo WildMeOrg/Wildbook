@@ -253,7 +253,7 @@ public class SOCPROGExport extends HttpServlet{
                     
                     
                     //
-                    if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
+                    if(enc.getIndividualID()!=null){
                       Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
                       
