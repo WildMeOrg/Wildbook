@@ -123,7 +123,7 @@ public class EncounterVMData extends HttpServlet {
 					e.put("id", cand.getCatalogNumber());
 					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
 					e.put("locationID", cand.getLocationID());
-					e.put("individualID", cand.getIndividualID());
+					e.put("individualID", ServletUtilities.handleNullString(ServletUtilities.handleNullString(cand.getIndividualID())));
 					e.put("patterningCode", cand.getPatterningCode());
 					e.put("sex", cand.getSex());
 					e.put("mmaCompatible", cand.getMmaCompatible());
@@ -168,7 +168,7 @@ public class EncounterVMData extends HttpServlet {
 				rtn.put("patterningCode", enc.getPatterningCode());
 				rtn.put("sex", enc.getSex());
 				rtn.put("locationID", enc.getLocationID());
-				rtn.put("individualID", enc.getIndividualID());
+				rtn.put("individualID", ServletUtilities.handleNullString(enc.getIndividualID()));
 				rtn.put("dateInMilliseconds", enc.getDateInMilliseconds());
 				rtn.put("mmaCompatible", enc.getMmaCompatible());
 				if (!images.isEmpty()) rtn.put("images", images);
