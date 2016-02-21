@@ -336,9 +336,9 @@ console.log(imgEl);
 
 var spotTypes = [ 'ref1', 'ref2', 'ref3', 'spot' ];
 var spotTypeNames = {
-	ref1: '5th gill top',
-	ref2: 'posterior pectoral',
-	ref3: '5th gill bottom',
+	ref1: 'First dorsal',
+	ref2: 'Second dorsal',
+	ref3: 'Pelvic',
 	spot: 'spot',
 };
 var side = false;
