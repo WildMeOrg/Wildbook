@@ -25,8 +25,6 @@ import org.slf4j.LoggerFactory;
  * and XHTML output file for display.
  *
  * @author Giles Winstanley
- *
- * @see <a href="http://freemarker.org/">FreeMarker template engine</a>
  */
 public final class MMAResultsProcessor {
   /** SLF4J logger instance for writing log entries. */
