@@ -1,25 +1,19 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Collection, java.util.Vector,java.util.ArrayList, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
-
-
-
-  <%
-
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-  
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.datanucleus.api.jdo.JDOPersistenceManager" %>
+<%@ page import="org.datanucleus.api.rest.RESTUtils" %>
+<%@ page import="org.datanucleus.api.rest.orgjson.JSONArray" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%
+		String context = ServletUtilities.getContext(request);
     //let's load out properties
-    Properties props = new Properties();
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
-    props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-
+		String langCode = ServletUtilities.getLanguageCode(request);
+    Properties props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode, context);
+		Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
 
     int startNum = 1;
     int endNum = 10;
-
 
     try {
 
@@ -150,19 +144,19 @@
 <ul id="tabmenu">
 
 
-  <li><a class="active"><%=props.getProperty("table")%>
+  <li><a class="active"><%=propsShared.getProperty("table")%>
   </a></li>
   <%
   String queryString="";
   if(request.getQueryString()!=null){queryString=("?"+request.getQueryString());}
   %>
-  <li><a href="individualThumbnailSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
   </a></li>
-   <li><a href="individualMappedSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("mappedResults")%>
+   <li><a href="individualMappedSearchResults.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("mappedResults")%>
   </a></li>
-  <li><a href="individualSearchResultsAnalysis.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=props.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("export")%>
   </a></li>
 
 </ul>
@@ -247,13 +241,13 @@ var colDefn = [
 */
 	{
 		key: 'thumb',
-		label: 'Thumb',
+		label: '<%=props.getProperty("column_thumb")%>',
 		value: _colThumb,
 		nosort: true,
 	},
 	{
 		key: 'individual',
-		label: 'Individual',
+		label: '<%=props.getProperty("column_individual")%>',
 		value: _colIndividual,
 		sortValue: function(o) { return o.individualID.toLowerCase(); },
 		//sortFunction: function(a,b) {},
@@ -261,22 +255,23 @@ var colDefn = [
 
 	{
 		key: 'numberEncounters',
-		label: 'Encounters',
+		label: '<%=props.getProperty("column_numberEncounters")%>',
 		value: _colNumberEncounters,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'maxYearsBetweenResightings',
-		label: 'Max yrs between resights',
+		label: '<%=props.getProperty("column_maxYearsBetweenResightings")%>',
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'sex',
-		label: 'Sex',
+		label: '<%=props.getProperty("column_sex")%>',
+		value: _colSex,
 	},
 	{
 		key: 'numberLocations',
-		label: 'No. Locations sighted',
+		label: '<%=props.getProperty("column_numberLocations")%>',
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}
@@ -587,6 +582,15 @@ function _colYearsBetween(o) {
 }
 */
 
+function _colSex(o) {
+	if (o.sex == undefined) return '';
+	switch (o.sex) {
+		case 'male': return '<%=props.getProperty("column_sex.male")%>';
+		case 'female': return '<%=props.getProperty("column_sex.female")%>';
+		default: return '<%=props.getProperty("column_sex.unknown")%>';
+	}
+}
+
 function _colNumberLocations(o) {
 	if (o.numberLocations == undefined) return '';
 	return o.numberLocations;
@@ -641,14 +645,14 @@ console.log(t);
 </script>
 
 <p>
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=props.getProperty("filter_placeholder")%>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=props.getProperty("filter_submit")%>" />
+<input type="button" value="<%=props.getProperty("filter_clear")%>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 
 <div class="pageableTable-wrapper">
-	<div id="progress">loading...</div>
+	<div id="progress"><%=props.getProperty("loading_results")%></div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
@@ -703,15 +707,15 @@ console.log(t);
   <tr>
     <td align="left">
 
-      <p><strong><%=props.getProperty("queryDetails")%>
+      <p><strong><%=propsShared.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=result.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("Keywords", propsShared.getProperty("keywords")).replaceAll("alternateIDField", (propsShared.getProperty("alternateID"))).replaceAll("alternateIDField", (propsShared.getProperty("size")))%>
       </p>
 
-      <p class="caption"><strong><%=props.getProperty("jdoql")%>
+      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=result.getJDOQLRepresentation()%>
       </p>
