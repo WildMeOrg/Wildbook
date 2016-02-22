@@ -1,31 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
-
-
-
-  <%
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mappedSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
-
-    
-    
-
-    Properties haploprops = new Properties();
-    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Vector" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Properties map_props = ShepherdProperties.getProperties("mappedSearchResults.properties", langCode, context);
+    Properties encprops = ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
+    Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+    Properties haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
-
-
-
-
 
     //set up paging of results
     int startNum = 1;
@@ -146,7 +133,7 @@ margin-bottom: 8px !important;
   
   <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
  
 
 
@@ -280,7 +267,7 @@ myShepherd.rollbackDBTransaction();
     	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
     	  controlUI.style.cursor = 'pointer';
     	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
+    	  controlUI.title = '<%=encprops.getProperty("toggleFullscreen")%>';
     	  controlDiv.appendChild(controlUI);
 
     	  // Set CSS for the control interior
@@ -295,9 +282,9 @@ myShepherd.rollbackDBTransaction();
     	  controlUI.appendChild(controlText);
     	  //toggle the text of the button
     	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
+    	      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen")%>';
     	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
+    	      controlText.innerHTML = '<%=encprops.getProperty("fullscreen")%>';
     	    }
 
     	  // Setup the click event listeners: toggle the full screen
@@ -327,22 +314,12 @@ myShepherd.rollbackDBTransaction();
  
  <ul id="tabmenu">
  
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
-   </a></li>
-   <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
-   </a></li>
-   <li><a class="active"><%=map_props.getProperty("mappedResults") %>
-   </a></li>
-   <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
-   </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
-   </a></li>
-         <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("export")%>
-   </a></li>
+  <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("table")%></a></li>
+  <li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("matchingImages")%></a></li>
+  <li><a class="active"><%=propsShared.getProperty("mappedResults") %></a></li>
+  <li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("resultsCalendar")%></a></li>
+  <li><a href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%></a></li>
+  <li><a href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%></a></li>
  
  </ul>
 
@@ -418,15 +395,15 @@ myShepherd.rollbackDBTransaction();
   <tr>
     <td align="left">
 
-      <p><strong><%=map_props.getProperty("queryDetails")%>
+      <p><strong><%=propsShared.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("alternateIDField", propsShared.getProperty("alternateID")).replaceAll("behaviorField", propsShared.getProperty("behavior")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("nameField", propsShared.getProperty("nameField")).replaceAll("selectLength", propsShared.getProperty("selectLength")).replaceAll("numResights", propsShared.getProperty("numResights")).replaceAll("vesselField", propsShared.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
+      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=queryResult.getJDOQLRepresentation()%>
       </p>
