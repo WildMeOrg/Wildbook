@@ -79,8 +79,8 @@ public class IndividualAddEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
-      String tempName = enc2add.isAssignedToMarkedIndividual();
-      if ((tempName.equals("Unassigned")) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
+     
+      if ((enc2add.getIndividualID()==null) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
         try {
 
 
@@ -174,7 +174,7 @@ public class IndividualAddEncounter extends HttpServlet {
               // Notify adopters
 	            Extent encClass = myShepherd.getPM().getExtent(Adoption.class, true);
 	            Query query = myShepherd.getPM().newQuery(encClass);
-              List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, addToMe.getIndividualID());
+              List<String> cAdopters = myShepherd.getAdopterEmailsForMarkedIndividual(query, ServletUtilities.handleNullString(addToMe.getIndividualID()));
               query.closeAll();
               cAdopters.removeAll(allAssociatedEmails);
               for (String emailTo : cAdopters) {

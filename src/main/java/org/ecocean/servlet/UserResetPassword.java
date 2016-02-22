@@ -21,10 +21,10 @@ package org.ecocean.servlet;
 
 import org.ecocean.*;
 
-import com.oreilly.servlet.multipart.FilePart;
-import com.oreilly.servlet.multipart.MultipartParser;
-import com.oreilly.servlet.multipart.ParamPart;
-import com.oreilly.servlet.multipart.Part;
+//import com.oreilly.servlet.multipart.FilePart;
+//import com.oreilly.servlet.multipart.MultipartParser;
+//import com.oreilly.servlet.multipart.ParamPart;
+//import com.oreilly.servlet.multipart.Part;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -35,8 +35,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Properties;
+//import java.util.ArrayList;
+//import java.util.Properties;
 
 
 public class UserResetPassword extends HttpServlet {
@@ -62,96 +62,104 @@ public class UserResetPassword extends HttpServlet {
     File webappsDir = new File(rootWebappPath).getParentFile();
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-    File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
-    if(!usersDir.exists()){usersDir.mkdirs();}
+    //File usersDir=new File(shepherdDataDir.getAbsolutePath()+"/users");
+    //if(!usersDir.exists()){usersDir.mkdirs();}
     
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
-    boolean createThisUser = false;
+    //boolean createThisUser = false;
 
-    String addedRoles="";
+    //String addedRoles="";
 
 
     //create a new Role from an encounter
 
     if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))))) {
-      
-      String username=request.getParameter("username").trim();
-      
-      String password="";
-      password=request.getParameter("password").trim();
-      String password2="";
-      password2=request.getParameter("password2").trim();
-      
-      if((password.equals(password2))){
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.beginDBTransaction();
-        if(myShepherd.getUser(username)!=null){
-        
-          User myUser=myShepherd.getUser(username);
+      Shepherd myShepherd = new Shepherd(context);
+      try{
           
-          //OK, now check OTP, time, and username hash for validity
-          String OTP=request.getParameter("OTP");
-          String time=request.getParameter("time");
-        
-          String matchingOtpString=myUser.getPassword()+time+myUser.getSalt();
-          matchingOtpString=ServletUtilities.hashAndSaltPassword(matchingOtpString, myUser.getSalt());
-        
-          //log it
-          //about to compare
-          //System.out.println("OTP is: "+OTP);
-          //System.out.println("matchOTP is: "+matchingOtpString);
+          String username=request.getParameter("username").trim();
           
-          if(matchingOtpString.equals(OTP)){
+          String password="";
+          password=request.getParameter("password").trim();
+          String password2="";
+          password2=request.getParameter("password2").trim();
+          
+          if((password.equals(password2))){
             
-            //set the new password
-            myUser.setPassword(ServletUtilities.hashAndSaltPassword(password2, myUser.getSalt()));
-            myShepherd.commitDBTransaction();
+            myShepherd.beginDBTransaction();
+            if(myShepherd.getUser(username)!=null){
             
-          //output success statement
-            out.println(ServletUtilities.getHeader(request));
+              User myUser=myShepherd.getUser(username);
+              
+              //OK, now check OTP, time, and username hash for validity
+              String OTP=request.getParameter("OTP");
+              String time=request.getParameter("time");
             
-              out.println("<strong>Success:</strong> Password successfully reset.");
+              String matchingOtpString=myUser.getPassword()+time+myUser.getSalt();
+              matchingOtpString=ServletUtilities.hashAndSaltPassword(matchingOtpString, myUser.getSalt());
             
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-          }
+              //log it
+              //about to compare
+              //System.out.println("OTP is: "+OTP);
+              //System.out.println("matchOTP is: "+matchingOtpString);
+              
+              if(matchingOtpString.equals(OTP)){
+                
+                //set the new password
+                myUser.setPassword(ServletUtilities.hashAndSaltPassword(password2, myUser.getSalt()));
+                myShepherd.commitDBTransaction();
+                
+              //output success statement
+                out.println(ServletUtilities.getHeader(request));
+                
+                  out.println("<strong>Success:</strong> Password successfully reset.");
+                
+                out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
+                out.println(ServletUtilities.getFooter(context));
+              }
+              else{
+                //bad params
+              //output failure statement
+                out.println(ServletUtilities.getHeader(request));
+                out.println("<strong>Failure:</strong> Password was NOT successfully reset. URL parameters could not be validated.");
+                out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+                out.println(ServletUtilities.getFooter(context));
+                myShepherd.rollbackDBTransaction();
+              }
+          
+           
+    
+                
+            }
           else{
-            //bad params
+            //no user
           //output failure statement
             out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> Password was NOT successfully reset. URL parameters could not be validated.");
+            out.println("<strong>Failure:</strong> Password was NOT successfully reset. I could not find the specified user.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             myShepherd.rollbackDBTransaction();
           }
-      
-       
-
             
+            myShepherd.closeDBTransaction();
         }
-      else{
-        //no user
-      //output failure statement
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Password was NOT successfully reset. I could not find the specified user.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        myShepherd.rollbackDBTransaction();
-      }
-        
-        myShepherd.closeDBTransaction();
-    }
-    else{
-        //output failure statement
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Password was NOT successfully reset. Your passwords did not match.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        
-      }
+        else{
+            //output failure statement
+            out.println(ServletUtilities.getHeader(request));
+            out.println("<strong>Failure:</strong> Password was NOT successfully reset. Your passwords did not match.");
+            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+            out.println(ServletUtilities.getFooter(context));
+            
+          }
       
+    }
+    catch(Exception e){
+      e.printStackTrace();
+      myShepherd.rollbackDBTransaction();
+    }
+    finally{myShepherd.closeDBTransaction();}
       
 }
 else{

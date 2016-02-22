@@ -90,8 +90,8 @@ public class IndividualRemoveEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2remove = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2remove);
-      if (!enc2remove.isAssignedToMarkedIndividual().equals("Unassigned")) {
-        String old_name = enc2remove.isAssignedToMarkedIndividual();
+      if (enc2remove.getIndividualID()!=null) {
+        String old_name = enc2remove.getIndividualID();
         boolean wasRemoved = false;
         String name_s = "";
         try {
@@ -103,7 +103,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
           while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
             removeFromMe.removeEncounter(enc2remove, context);
           }
-          enc2remove.assignToMarkedIndividual("Unassigned");
+          enc2remove.setIndividualID(null);
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
           removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
 

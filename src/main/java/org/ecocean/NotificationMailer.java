@@ -633,7 +633,7 @@ public final class NotificationMailer implements Runnable {
       map.put("@ENCOUNTER_LINK@", String.format("%s/encounters/encounter.jsp?number=%s", map.get("@URL_LOCATION@"), enc.getCatalogNumber()));
       map.put("@ENCOUNTER_ID@", enc.getCatalogNumber());
       map.put("@ENCOUNTER_ALT_ID@", enc.getAlternateID());
-      map.put("@ENCOUNTER_INDIVIDUALID@", enc.getIndividualID());
+      map.put("@ENCOUNTER_INDIVIDUALID@", ServletUtilities.handleNullString(enc.getIndividualID()));
       map.put("@ENCOUNTER_DATE@", enc.getDate());
       map.put("@ENCOUNTER_LOCATION@", enc.getLocation());
       map.put("@ENCOUNTER_LOCATIONID@", enc.getLocationID());
