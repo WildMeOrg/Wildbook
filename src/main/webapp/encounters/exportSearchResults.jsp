@@ -1,21 +1,14 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*" %>
-
-
-  <%
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-
-    //let's load encounterSearch.properties
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
-
-		Properties collabProps = new Properties();
- 		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Vector" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Properties map_props = ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
+    Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+		Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
@@ -110,51 +103,41 @@
  
  <ul id="tabmenu">
  
-   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
-   </a></li>
-   <li><a
-     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
-   </a></li>
-  <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
-  </a></li>
-   <li><a
-     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
-   </a></li>
-      <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
-   </a></li>
-    <li><a class="active"><%=map_props.getProperty("export")%>
-   </a></li>
+  <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("table")%></a></li>
+  <li><a href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("matchingImages")%></a></li>
+  <li><a href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%></a></li>
+  <li><a href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("resultsCalendar")%></a></li>
+  <li><a href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%></a></li>
+  <li><a class="active"><%=propsShared.getProperty("export")%></a></li>
  
  </ul>
  
 <% if (blocked.size() < 1) { %>
  
  <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
-<p><%=map_props.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
-<%=map_props.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=map_props.getProperty("clickHere")%></a>
+<p><%=map_props.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=propsShared.getProperty("clickHere")%></a><br />
+<%=map_props.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=propsShared.getProperty("clickHere")%></a>
 </p>
 
 <p><%=map_props.getProperty("exportedEmail")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=propsShared.getProperty("clickHere")%>
 </a>
 </p>
 
 <p><%=map_props.getProperty("exportedGeneGIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportGeneGISFormat?<%=request.getQueryString()%>">
-<%=map_props.getProperty("clickHere")%></a>
+<%=propsShared.getProperty("clickHere")%></a>
 </p>
  
   <p><strong><%=map_props.getProperty("gisExportOptions")%></strong></p>
 
 <p><%=map_props.getProperty("exportedKML")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a><br />
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>"><%=propsShared.getProperty("clickHere")%></a><br />
   <%=map_props.getProperty("exportedKMLTimeline")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=map_props.getProperty("clickHere")%></a>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?<%=request.getQueryString() %>&addTimeStamp=true"><%=propsShared.getProperty("clickHere")%></a>
 </p>
 
 <p><%=map_props.getProperty("exportedShapefile")%>: <a
-  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=map_props.getProperty("clickHere")%></a>
+  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportShapefile?<%=request.getQueryString() %>"><%=propsShared.getProperty("clickHere")%></a>
 </p>
 
 <% } else { // dont have access to ALL records, so:  %>
@@ -167,15 +150,15 @@
   <tr>
     <td align="left">
 
-      <p><strong><%=map_props.getProperty("queryDetails")%>
+      <p><strong><%=propsShared.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=map_props.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", map_props.getProperty("location")).replaceAll("locationCodeField", map_props.getProperty("locationID")).replaceAll("verbatimEventDateField", map_props.getProperty("verbatimEventDate")).replaceAll("alternateIDField", map_props.getProperty("alternateID")).replaceAll("behaviorField", map_props.getProperty("behavior")).replaceAll("Sex", map_props.getProperty("sex")).replaceAll("nameField", map_props.getProperty("nameField")).replaceAll("selectLength", map_props.getProperty("selectLength")).replaceAll("numResights", map_props.getProperty("numResights")).replaceAll("vesselField", map_props.getProperty("vesselField"))%>
+        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("alternateIDField", propsShared.getProperty("alternateID")).replaceAll("behaviorField", propsShared.getProperty("behavior")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("nameField", propsShared.getProperty("nameField")).replaceAll("selectLength", propsShared.getProperty("selectLength")).replaceAll("numResights", propsShared.getProperty("numResights")).replaceAll("vesselField", propsShared.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=map_props.getProperty("jdoql")%>
+      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=queryResult.getJDOQLRepresentation()%>
       </p>

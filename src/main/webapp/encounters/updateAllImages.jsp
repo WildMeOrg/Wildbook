@@ -16,22 +16,16 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.Vector,java.util.Properties,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*, java.io.*" %>
-
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.io.*" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <html>
 <head>
-
-
-
-  <%
-  String context="context0";
-  context = ServletUtilities.getContext(request);
+<%
+  String context = ServletUtilities.getContext(request);
 	String rootWebappPath = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
 /*
@@ -44,10 +38,6 @@ File encounterDir = new File(encountersDir, num);
     //let's load encounterSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
-    Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
-    map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
 */
 
     
