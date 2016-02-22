@@ -92,6 +92,7 @@ public class EncounterRemoveSpots extends HttpServlet {
       Encounter despotMe = myShepherd.getEncounter(request.getParameter("number"));
       boolean assigned = false;
 
+/*  TODO no spots on Encounter ... FIXME
       try {
         if (despotMe.isAssignedToMarkedIndividual().equals("Unassigned")) {
 
@@ -148,8 +149,10 @@ public class EncounterRemoveSpots extends HttpServlet {
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
+*/
     }
 
+System.out.println(" REMOVAL OF SPOTS DISABLED DUE TO SPOTS NO LONGER BEING ON ENCOUNTERS NOW ");
     out.close();
     myShepherd.closeDBTransaction();
   }
