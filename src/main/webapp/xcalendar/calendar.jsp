@@ -1,11 +1,12 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-	import="org.ecocean.servlet.ServletUtilities,java.util.Calendar,java.util.GregorianCalendar,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, java.util.StringTokenizer, org.ecocean.*"%>
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.Calendar" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
+String context = ServletUtilities.getContext(request);
+String langCode = ServletUtilities.getLanguageCode(request);
+Properties calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
 
 //handle some cache-related security
 response.setHeader("Cache-Control","no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -19,36 +20,19 @@ String locCode="NONE";
 if((request.getParameter("locCode")!=null)&&(!request.getParameter("locCode").equals(""))) {
 				locCode=request.getParameter("locCode");
 }
-
-//let's load encounterSearch.properties
-//String langCode="en";
-String langCode=ServletUtilities.getLanguageCode(request);
-
-
-Properties calprops=new Properties();
-//calprops.load(getClass().getResourceAsStream("/bundles/"+langCode+"/calendar.properties"));
-calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
-
-
-
 %>
  <jsp:include page="../header.jsp" flush="true"/>
 
-<script src="codebase/dhtmlxscheduler.js?v=091201"
-	type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_agenda_view.js?v=091201"
-	type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_year_view.js?v=091201"
-	type="text/javascript" charset="utf-8"></script>
-<script src="codebase/ext/dhtmlxscheduler_readonly.js"
-	type="text/javascript" charset="utf-8"></script>
+<script src="codebase/dhtmlxscheduler.js?v=091201" type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_agenda_view.js?v=091201" type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_year_view.js?v=091201" type="text/javascript" charset="utf-8"></script>
+<script src="codebase/ext/dhtmlxscheduler_readonly.js" type="text/javascript" charset="utf-8"></script>
+<script src="sources/locale/locale_<%=langCode%>.js" type="text/javascript" charset="utf-8"></script>
 
 
-<link rel="stylesheet" href="codebase/dhtmlxscheduler.css"
-	type="text/css" media="screen" title="no title" charset="utf-8">
-<link rel="stylesheet" href="codebase/ext/dhtmlxscheduler_ext.css"
-	type="text/css" title="no title" charset="utf-8"><script
-	type="text/javascript" charset="utf-8">
+<link rel="stylesheet" href="codebase/dhtmlxscheduler.css" type="text/css" media="screen" title="no title" charset="utf-8">
+<link rel="stylesheet" href="codebase/ext/dhtmlxscheduler_ext.css" type="text/css" title="no title" charset="utf-8">
+<script type="text/javascript" charset="utf-8">
 	function init() {
 
 		  var format = scheduler.date.date_to_str("");

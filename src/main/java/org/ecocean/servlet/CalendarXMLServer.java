@@ -29,6 +29,8 @@ import javax.servlet.http.HttpServlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.MessageFormat;
+import java.util.Properties;
 import java.util.Vector;
 import java.util.Iterator;
 
@@ -60,12 +62,12 @@ public class CalendarXMLServer extends HttpServlet {
     response.setContentType("text/xml");
     PrintWriter out = response.getWriter(); 
     out.println("<data>");
-    
-        
+
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Properties calprops = ShepherdProperties.getProperties("calendar.properties", langCode, context);
         
     //establish a shepherd to manage DB interactions
-    String context="context0";
-    context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
     
     
@@ -146,7 +148,7 @@ public class CalendarXMLServer extends HttpServlet {
                   String outputXML="<event id=\""+tempEnc.getCatalogNumber()+"\">";
                   outputXML+="<start_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:00"+"</start_date>";
                   outputXML+="<end_date>"+tempEnc.getYear()+"-"+tempEnc.getMonth()+"-"+tempEnc.getDay()+" "+"01:01"+"</end_date>";
-                  outputXML+="<text><![CDATA[No ID ("+sex+")]]></text>";
+                  outputXML+=String.format("<text><![CDATA[%s]]></text>", MessageFormat.format(calprops.getProperty("noId"), sex));
                   outputXML+="<details></details></event>";
                   out.println(outputXML);
                 }
