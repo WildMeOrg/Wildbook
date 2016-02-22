@@ -576,9 +576,11 @@ System.out.println("enc ?= " + enc.toString());
             for (FileItem item : formFiles) {
                 JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + item.getName()));
                 sp.put("key", Util.hashDirectories(encID) + "/" + item.getName());
-                MediaAsset ma = astore.create(sp);
+                MediaAsset ma = new MediaAsset(astore, sp);
                 File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-System.out.println("attempting to write uploaded file to " + tmpFile);
+                File tmpDir = tmpFile.getParentFile();
+                if (!tmpDir.exists()) tmpDir.mkdirs();
+//System.out.println("attempting to write uploaded file to " + tmpFile);
                 try {
 		    item.write(tmpFile);
                 } catch (Exception ex) {
@@ -587,8 +589,8 @@ System.out.println("attempting to write uploaded file to " + tmpFile);
                 if (tmpFile.exists()) {
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
-                    newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
                     ma.updateMetadata();
+                    newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }

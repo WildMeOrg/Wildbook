@@ -167,17 +167,10 @@ System.out.println("create() has subpath = " + subpath);
         return true;  //easy!
     }
 
+    //note this does not check for existence; useful to know where to write such a file
     public Path localPath(MediaAsset ma) {
-        Path subpath = pathFromParameters(ma.getParameters(), true);
+        Path subpath = pathFromParameters(ma.getParameters(), false);
         return root().resolve(subpath);
-/*
-System.out.println(ma.getParameters());
-System.out.println(">>>> localPath path=" + path);
-        if (path == null) return null;
-        Path root = root();
-        Path subpath = ensurePath(root, path);
-        return root.resolve(subpath);
-*/
     }
 
 
