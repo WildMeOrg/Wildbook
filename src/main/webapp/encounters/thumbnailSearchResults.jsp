@@ -1,12 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" 
-		language="java"
- 		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
-
-
-  <%
-  
-  String context="context0";
-  context=ServletUtilities.getContext(request);
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="com.drew.imaging.jpeg.JpegMetadataReader" %>
+<%@ page import="com.drew.metadata.Metadata" %>
+<%@ page import="com.drew.metadata.Tag" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.io.FileInputStream" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.mmutil.MediaUtilities" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%
+  String context = ServletUtilities.getContext(request);
   
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
@@ -34,15 +40,10 @@
       endNum = 45;
     }
 
-
-//let's load thumbnailSearch.properties
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-
-    Properties encprops = new Properties();
-    //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/thumbnailSearchResults.properties"));
-    encprops = ShepherdProperties.getProperties("thumbnailSearchResults.properties", langCode, context);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Properties encprops = ShepherdProperties.getProperties("thumbnailSearchResults.properties", langCode, context);
+    Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
 
     Shepherd myShepherd = new Shepherd(context);
 
@@ -241,31 +242,18 @@
 
 <ul id="tabmenu">
 
-  <li><a
-    href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("table")%>
-  </a></li>
-  <li><a class="active"><%=encprops.getProperty("matchingImages")%>
-  </a></li>
-  <li><a
-    href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
-  </a></li>
-  <li><a
-    href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
-  </a></li>
-        <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
-   </a></li>
- <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
-   </a></li>
+  <li><a href="searchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("table")%></a></li>
+  <li><a class="active"><%=propsShared.getProperty("matchingImages")%></a></li>
+  <li><a href="mappedSearchResults.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("mappedResults")%></a></li>
+  <li><a href="../xcalendar/calendar2.jsp?<%=rq.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("resultsCalendar")%></a></li>
+  <li><a href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%></a></li>
+ <li><a href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%></a></li>
 </ul>
 <%
   }
 %>
 
-<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
-        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
-      </p>
+<p><%=StringUtils.format(locale, encprops.getProperty("thatMatched"), startNum, endNum)%></p>
 
 <%
   String qString = rq;
@@ -283,7 +271,7 @@
       <p><a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
+        title="<%=propsShared.getProperty("seePreviousResults")%>"/></a> <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum - 45)%>
         - <%=(startNum - 1)%>
       </a></p>
@@ -298,7 +286,7 @@
       </a> <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img
         src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
+        title="<%=propsShared.getProperty("seeNextResults")%>"/></a></p>
     </td>
   </tr>
 </table>
@@ -358,7 +346,7 @@
             
             >
 <% } else { %><a><% } %>
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
+            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? propsShared.getProperty("clickToEnlarge") : "") %>" /></a>
 
             <div 
             <%
@@ -437,7 +425,7 @@
                       </tr>
                       <tr>
                         <td>
-                        	<span class="caption"><%=encprops.getProperty("location") %>: 
+                        	<span class="caption"><%=propsShared.getProperty("location") %>:
                           			<%
   			try{
   				if(thisEnc.getLocation()!=null){
@@ -453,7 +441,7 @@
                       </tr>
                       <tr>
                         <td><span
-                          class="caption"><%=encprops.getProperty("locationID") %>: 
+                          class="caption"><%=propsShared.getProperty("locationID") %>:
                           <%
   			try{
   				if(thisEnc.getLocationID()!=null){
@@ -469,7 +457,7 @@
                       </tr>
                       <tr>
                         <td><span class="caption">
-                        	<%=encprops.getProperty("date") %>: 
+                        	<%=propsShared.getProperty("date") %>:
                         	<%
                         	try{
                         		if(thisEnc.getDate()!=null){
@@ -484,7 +472,7 @@
                         </td>
                       </tr>
                       <tr>
-                        <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
+                        <td><span class="caption"><%=propsShared.getProperty("individualID") %>:
                         	<%
                         	try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
@@ -508,7 +496,7 @@
 		                            <tr>
 		                            <td>
 		                              <span class="caption">
-		                            		<em><%=encprops.getProperty("taxonomy") %>: 
+		                            		<%=propsShared.getProperty("taxonomy") %>:<em>
 		                            		<%
 		                            		try{
 		                            		if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
@@ -529,7 +517,7 @@
 		      		     }
                       %>
                       <tr>
-                        <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
+                        <td><span class="caption"><%=propsShared.getProperty("catalogNumber") %>:
                         <%
                         try{
                         if(thisEnc.getCatalogNumber()!=null){
@@ -551,7 +539,7 @@
                       <tr>
 
                         <td><span
-                          class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
+                          class="caption"><%=propsShared.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
                         </td>
                       </tr>
                       <%
@@ -566,7 +554,7 @@
 
                       <tr>
                         <td><span class="caption">
-											<%=encprops.getProperty("matchingKeywords") %>
+											<%=propsShared.getProperty("matchingKeywords") %>
 											<%
                         //Iterator allKeywords2 = myShepherd.getAllKeywords();
                         //while (allKeywords2.hasNext()) {
@@ -680,7 +668,7 @@
 <%
 	if (!visible) out.println("<div class=\"lock-right\">" + thisEnc.collaborationLockHtml(collabs) + "</div>");
 %>
-  			<%=encprops.getProperty("location") %>: 
+  			<%=propsShared.getProperty("location") %>:
   			<%
   			try{
   				if(thisEnc.getLocation()!=null){
@@ -696,7 +684,7 @@
 </tr>
 <tr>
   <td><span
-    class="caption"><%=encprops.getProperty("locationID") %>: 
+    class="caption"><%=propsShared.getProperty("locationID") %>:
     <%
   			try{
   				if(thisEnc.getLocationID()!=null){
@@ -712,7 +700,7 @@
 </tr>
 <tr>
   <td>
-  	<span class="caption"><%=encprops.getProperty("date") %>: 
+  	<span class="caption"><%=propsShared.getProperty("date") %>:
   		<%
         try{
   			if(thisEnc.getDate()!=null){
@@ -727,7 +715,7 @@
   </td>
 </tr>
 <tr>
-  <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
+  <td><span class="caption"><%=propsShared.getProperty("individualID") %>:
       						<%
       						try{
                         	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
@@ -752,7 +740,7 @@
 		                            <tr>
 		                            <td>
 		                              <span class="caption">
-		                            		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
+		                            		<%=propsShared.getProperty("taxonomy") %>: <em><%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
 		                            	</span>
 		                            </td>
 		                            </tr>
@@ -763,7 +751,7 @@
 		      		     }
                       %>
 <tr>
-  <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
+  <td><span class="caption"><%=propsShared.getProperty("catalogNumber") %>:
   <%
   try{
   if(thisEnc.getCatalogNumber()!=null){
@@ -779,7 +767,7 @@
 </tr>
 <tr>
   <td><span class="caption">
-											<%=encprops.getProperty("matchingKeywords") %>
+											<%=propsShared.getProperty("matchingKeywords") %>
 											<%
                         //int numKeywords=myShepherd.getNumKeywords();
 									          //Iterator allKeywords2 = myShepherd.getAllKeywords();
@@ -856,7 +844,7 @@
       <p><a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
+        title="<%=propsShared.getProperty("seePreviousResults")%>"/></a> <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum - 90)%>
         - <%=(startNum - 46)%>
       </a></p>
@@ -871,7 +859,7 @@
       </a> <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
         src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
+        title="<%=propsShared.getProperty("seeNextResults")%>"/></a></p>
     </td>
   </tr>
 </table>
