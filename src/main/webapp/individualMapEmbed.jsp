@@ -1,5 +1,3 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.ArrayList,java.util.*" %>
-
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -18,31 +16,16 @@
   ~ along with this program; if not, write to the Free Software
   ~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
   --%>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
+	String context = ServletUtilities.getContext(request);
+	String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
+  Properties localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
 
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-
-  //load our variables for the submit page
-
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-  props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
-
-
-		  
-  Properties localesProps = new Properties();
-  localesProps = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-	  
-		  
-		  
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
@@ -113,7 +96,7 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 
 <p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>

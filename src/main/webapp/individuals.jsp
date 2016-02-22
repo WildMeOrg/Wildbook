@@ -1,12 +1,22 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata,com.drew.metadata.Tag,org.ecocean.mmutil.MediaUtilities,
-javax.jdo.datastore.DataStoreCache, org.datanucleus.jdo.*,javax.jdo.Query,
-		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson, org.json.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="com.drew.imaging.jpeg.JpegMetadataReader" %>
+<%@ page import="com.drew.metadata.Metadata" %>
+<%@ page import="com.drew.metadata.Tag" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.genetics.*" %>
+<%@ page import="org.ecocean.mmutil.MediaUtilities" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.ecocean.social.*" %>
+<%@ page import="org.joda.time.DateTime" %>
+<%@ page import="java.text.MessageFormat" %>
 <%
-String blocker = "";
-String context="context0";
-context=ServletUtilities.getContext(request);
+	String blocker = "";
+	String context = ServletUtilities.getContext(request);
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
   response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -22,22 +32,12 @@ context=ServletUtilities.getContext(request);
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
 
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+	Locale locale = new Locale(langCode);
+	Properties props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
+	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-
-
-  //load our variables for the submit page
-
- // props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individuals.properties"));
-  props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-  
-	
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
@@ -326,13 +326,13 @@ table.tissueSample td {
 
 var testColumns = {
 	//rowNum: { label: '#', val: _colRowNum },
-	date: { label: 'Date', val: _colEncDate },
-	location: { label: 'Location' },
-	dataTypes: { label: 'Data types', val: _colDataTypes },
-	alternateID: { label: 'Alt ID', val: cleanValue },
-	sex: { label: 'Sex' },
-	occ: { label: 'Occurring with', val: _colOcc },
-	behavior: { label: 'Behavior' },
+	date: { label: '<%=props.getProperty("date")%>', val: _colEncDate },
+	location: { label: '<%=props.getProperty("location")%>' },
+	dataTypes: { label: '<%=props.getProperty("dataTypes")%>', val: _colDataTypes },
+	alternateID: { label: '<%=props.getProperty("alternateID")%>', val: cleanValue },
+	sex: { label: '<%=props.getProperty("sex")%>', val: _colSex },
+	occ: { label: '<%=props.getProperty("sightedWith")%>', val: _colOcc },
+	behavior: { label: '<%=props.getProperty("behavior")%>' },
 };
 
 
@@ -349,38 +349,39 @@ $(document).keydown(function(k) {
 var colDefn = [
 	{
 		key: 'date',
-		label: 'Date',
+		label: '<%=props.getProperty("date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'location',
-		label: 'Location',
+		label: '<%=props.getProperty("location")%>',
 	},
 	{
 		key: 'dataTypes',
-		label: 'Data types',
+		label: '<%=props.getProperty("dataTypes")%>',
 		value: _colDataTypes,
 		sortValue: _colDataTypesSort,
 	},
 	{
 		key: 'alternateID',
-		label: 'Alt ID',
+		label: '<%=props.getProperty("alternateID")%>',
 		value: cleanValue,
 	},
 	{
 		key: 'sex',
-		label: 'Sex',
+		label: '<%=props.getProperty("sex")%>',
+		value: _colSex,
 	},
 	{
 		key: 'occ',
-		label: 'Occurring with',
+		label: '<%=props.getProperty("sightedWith")%>',
 		value: _colOcc,
 	},
 	{
 		key: 'behavior',
-		label: 'Behavior',
+		label: '<%=props.getProperty("behavior")%>',
 	}
 	
 ];
@@ -673,6 +674,15 @@ function _colDataTypesSort(o) {
 	return dt;
 }
 
+function _colSex(o) {
+	if (o.sex == undefined) return '';
+	switch (o.sex) {
+		case 'male': return '<%=props.getProperty("column_sex.male")%>';
+		case 'female': return '<%=props.getProperty("column_sex.female")%>';
+		default: return '<%=props.getProperty("column_sex.unknown")%>';
+	}
+}
+
 
 function _colEncDate(o) {
 	return wildbook.flexibleDate(o.get('date'));
@@ -800,6 +810,8 @@ if(CommonConfiguration.isIntegratedWithWildMe(context)){
 String altID="";
 if(sharky.getAlternateID()!=null){
 	altID=sharky.getAlternateID();
+	if ("None".equals(altID))
+		altID = props.getProperty("none");
 }
 
 %>
@@ -862,10 +874,14 @@ $("a#alternateID").click(function() {
       String myNickname = "";
       if (sharky.getNickName() != null) {
         myNickname = sharky.getNickName();
+        if ("Unassigned".equals(myNickname))
+        	myNickname = props.getProperty("unassigned");
       }
       String myNicknamer = "";
       if (sharky.getNickNamer() != null) {
         myNicknamer = sharky.getNickNamer();
+        if ("Unknown".equals(myNicknamer))
+        	myNicknamer = "Unassigned".equals(myNickname) ? "" : props.getProperty("unknown");
       }
 
   %>
@@ -920,7 +936,10 @@ $("a#nickname").click(function() {
 </p>
 <%
 String sexValue="";
-if(sharky.getSex()!=null){sexValue=sharky.getSex();}
+if(sharky.getSex()!=null){
+	Map<String, String> mapI18n = Util.getIndexedValuesMap(cciProps, "sex");
+	sexValue = mapI18n.get("sex" + CommonConfiguration.getIndexNumberForValue("sex", sharky.getSex(), context));
+}
 %>
 <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
   <%
@@ -994,12 +1013,9 @@ String displayTimeOfBirth=timeOfBirth;
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
 <tr><td align="left" valign="top">
-	<strong>
-      		<font color="#990000"> <%=props.getProperty("clickDate")%>
-      		</font>
-      	</strong>
-      	  	<br /><%=props.getProperty("dateFormat")%>
-      	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+	<%--<strong><font color="#990000"> <%=props.getProperty("clickDate")%></font></strong><br />--%>
+	<%=props.getProperty("dateFormat")%><br />
+	<font size="-1"><%=props.getProperty("leaveBlank")%></font>
     
 </td></tr>
 
@@ -1060,12 +1076,9 @@ String displayTimeOfDeath=timeOfDeath;
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
 <tr><td align="left" valign="top">
-	<strong>
-      		<font color="#990000"> <%=props.getProperty("clickDate")%>
-      		</font>
-      	</strong>
-      	<br /><%=props.getProperty("dateFormat")%>
-      	<br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
+	<%--<strong><font color="#990000"> <%=props.getProperty("clickDate")%></font></strong><br />--%>
+	<%=props.getProperty("dateFormat")%><br />
+	<font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
     
 </td></tr>
 
@@ -1130,10 +1143,7 @@ $("a#deathdate").click(function() {
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.totalEncounters()%>
-</strong>
-  <%=numencounters %>
-</p>
+<p><%=StringUtils.format(locale, numencounters, sharky.totalEncounters())%></p>
 
 
   <%
@@ -2512,7 +2522,7 @@ if(isOwner){
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
 
 <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
-	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
+	<p><%=sharky.getComments().equals("None") ? props.getProperty("none") : sharky.getComments().replaceAll("\n", "<br>")%></p>
 </div>
 <%
   if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
