@@ -1,32 +1,18 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,java.util.Random" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="java.util.Random" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%
+  String context = ServletUtilities.getContext(request);
 
+	String langCode = ServletUtilities.getLanguageCode(request);
+	Properties map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode, context);
+	Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+	Properties haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "", context);
 
-  <%
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-
-    //let's load encounterSearch.properties
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualMappedSearchResults.properties"));
-    map_props = ShepherdProperties.getProperties("individualMappedSearchResults.properties", langCode,context);
-	  
-
-    
-    Properties haploprops = new Properties();
-    //haploprops.load(getClass().getResourceAsStream("/bundles/haplotypeColorCodes.properties"));
-	//haploprops=ShepherdProperties.getProperties("haplotypeColorCodes.properties", "");
-	haploprops = ShepherdProperties.getProperties("haplotypeColorCodes.properties", "",context);
-		
-
-    Properties localeprops = new Properties();
-    localeprops = ShepherdProperties.getProperties("locationIDGPS.properties", "",context);
-	
-    
-    //get our Shepherd
-    Shepherd myShepherd = new Shepherd(context);
+	//get our Shepherd
+	Shepherd myShepherd = new Shepherd(context);
 
 	Random ran= new Random();
 
@@ -147,7 +133,7 @@ margin-bottom: 8px !important;
   <jsp:include page="header.jsp" flush="true"/>
   
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode %>"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode%>"></script>
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
 
@@ -550,16 +536,16 @@ if (request.getQueryString() != null) {
 }
 %>
 
-  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("table")%>
+  <li><a href="individualSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("table")%>
   </a></li>
-  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("matchingImages")%>
+  <li><a href="individualThumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
   </a></li>
-  <li><a class="active"><%=map_props.getProperty("mappedResults")%>
+  <li><a class="active"><%=propsShared.getProperty("mappedResults")%>
   </a></li>
      
-  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("analysis")%>
+  <li><a href="individualSearchResultsAnalysis.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("analysis")%>
   </a></li>
-    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("export")%>
+    <li><a href="individualSearchResultsExport.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("export")%>
   </a></li>
 </ul>
 
