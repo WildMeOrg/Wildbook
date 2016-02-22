@@ -113,11 +113,26 @@ public class SuperSpot implements java.io.Serializable {
     }
 
     public static JSONArray listToJSONArray(ArrayList<SuperSpot> spots) {
+        if (spots == null) return null;
         JSONArray arr = new JSONArray();
         for (SuperSpot s : spots) {
             arr.put(s.toJSONObject());
         }
         return arr;
     }
+
+    public static ArrayList<SuperSpot> listFromJSONArray(JSONArray arr) {
+        if (arr == null) return null;
+        ArrayList<SuperSpot> s = new ArrayList<SuperSpot>();
+        for (int i = 0 ; i < arr.length() ; i++) {
+            //not a lot of graceful recovery from incorrect values here....
+            double x = arr.getJSONArray(i).getDouble(0);
+            double y = arr.getJSONArray(i).getDouble(1);
+            double t = arr.getJSONArray(i).getDouble(2);
+            s.add(new SuperSpot(x, y, t));
+        }
+        return s;
+    }
+
 
 }
