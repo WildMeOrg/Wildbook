@@ -89,7 +89,7 @@
 				  /interconnectSubmitSpots= authc, roles[researcher]
 				   /ImportSRGD = authc, roles[admin]
            /ImportExcel = authc, roles[admin]
-				   /appadmin/scanTaskAdmin.jsp = authc, roles[admin]
+				   /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
 				   /encounters/encounterSpotVisualizer.jsp = authc, roles[researcher]
 				   /interconnect/mac/Interconnect.jar = authc, roles[researcher]
 				   /UpdateEmailAddress = authc, roles[researcher]

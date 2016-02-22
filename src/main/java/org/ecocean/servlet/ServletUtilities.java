@@ -364,7 +364,7 @@ public class ServletUtilities {
 
   public static boolean isUserAuthorizedForEncounter(Encounter enc, HttpServletRequest request) {
     boolean isOwner = false;
-    if (request.isUserInRole("admin")) {
+    //if (request.isUserInRole("admin")) {
       if (request.getUserPrincipal()!=null) {
         isOwner = true;
       } 
@@ -375,12 +375,12 @@ public class ServletUtilities {
         isOwner = true;
       }
       return isOwner;
-  }
-    return isOwner;
+  //}
+    //return isOwner;
 }
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
-    if (request.isUserInRole("admin")) {
+    //if (request.isUserInRole("admin")) {
       if (request.getUserPrincipal()!=null) {
         return true;
       }
@@ -393,13 +393,13 @@ public class ServletUtilities {
           return true;
         }
       }
-    } 
+   // } 
     return false;
   }
   
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
-    if (request.isUserInRole("admin")) {
+    //if (request.isUserInRole("admin")) {
       if (request.getUserPrincipal()!=null) {
         return true;
       }
@@ -412,7 +412,7 @@ public class ServletUtilities {
           return true;
         }
       }
-    } 
+    //} 
     return false;
   }
   //occurrence
