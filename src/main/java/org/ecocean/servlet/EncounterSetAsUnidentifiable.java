@@ -73,7 +73,8 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2reject = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2reject);
-      boolean isOK = enc2reject.isAssignedToMarkedIndividual().equals("Unassigned");
+      boolean isOK = true;
+      if(enc2reject.getIdentificationRemarks()!=null){isOK=false;}
       myShepherd.rollbackDBTransaction();
       if (isOK) {
 

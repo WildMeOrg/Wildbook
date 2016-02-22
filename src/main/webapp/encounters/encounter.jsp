@@ -608,10 +608,10 @@ $(function() {
       
 								
     							<%
-    							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+    							if (enc.getIndividualID() == null) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
+    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%> 
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
@@ -626,7 +626,7 @@ $(function() {
     							%>
     							<p class="para">
     								
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
@@ -683,7 +683,7 @@ $(function() {
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>	
   		
   									<%
-  									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+  									if(enc.getIndividualID()==null){
   									%>		
   		
   									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
@@ -721,7 +721,7 @@ $(function() {
 									<%
   									}
   		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  	  						if((!enc.isAssignedToMarkedIndividual().equals("Unassigned")) && CommonConfiguration.isCatalogEditable(context)) {
+		  	  						if((enc.getIndividualID() != null) && CommonConfiguration.isCatalogEditable(context)) {
 		  							%>
 									<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  										<tr>
@@ -755,7 +755,7 @@ $(function() {
 									<br /> 
 									<%
    									}
-									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+									if(enc.getIndividualID()==null){
 									%>	 
 	 
 									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -4158,7 +4158,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 				<td style="border-style: none;">
 					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
 					<%
-					if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))&&(request.getUserPrincipal()!=null)){
+					if((enc.getIndividualID()!=null)&&(request.getUserPrincipal()!=null)){
 					%>
 					<a href="../individualSearch.jsp?individualDistanceSearch=<%=enc.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="../images/Crystal_Clear_app_xmag.png"></img></a>
 					<%
