@@ -1,25 +1,14 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.io.File, java.io.FileOutputStream, java.io.OutputStreamWriter, java.util.*, org.datanucleus.api.rest.orgjson.JSONArray, org.json.JSONObject, org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager " %>
-
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-  //let's load encounterSearch.properties
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-  Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
-  encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-  
+	String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties encprops = ShepherdProperties.getProperties("searchResults.properties", langCode, context);
+	Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
 
   Shepherd myShepherd = new Shepherd(context);
-
-
 
   int startNum = 1;
   int endNum = 10;
@@ -208,22 +197,22 @@ td.tdw:hover div {
 
 <ul id="tabmenu">
 
-  <li><a class="active"><%=encprops.getProperty("table")%>
+  <li><a class="active"><%=propsShared.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=propsShared.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=propsShared.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -308,51 +297,52 @@ $(document).keydown(function(k) {
 var colDefn = [
 	{
 		key: 'thumb',
-		label: 'Thumb',
+		label: '<%=encprops.getProperty("column_thumb")%>',
 		value: _colThumb,
-		nosort: true,
+		nosort: true
 	},
 	{
 		key: 'individualID',
-		label: 'ID',
-		value: _colIndLink,
+		label: '<%=encprops.getProperty("column_individualID")%>',
+		value: _colIndLink
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
 	{
 		key: 'date',
-		label: 'Date',
+		label: '<%=encprops.getProperty("column_date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'verbatimLocality',
-		label: 'Location',
+		label: '<%=encprops.getProperty("column_location")%>'
 	},
 	{
 		key: 'locationID',
-		label: 'Location ID',
+		label: '<%=encprops.getProperty("column_locationID")%>',
+		value: _colLocationId
 	},
 	{
 		key: 'taxonomy',
-		label: 'Taxonomy',
-		value: _colTaxonomy,
+		label: '<%=encprops.getProperty("column_taxonomy")%>',
+		value: _colTaxonomy
 	},
 	{
 		key: 'submitterID',
-		label: 'User',
+		label: '<%=encprops.getProperty("column_submitterID")%>'
 	},
 	{
 		key: 'creationDate',
-		label: 'Created',
+		label: '<%=encprops.getProperty("column_dateCreated")%>',
 		value: _colCreationDate,
-		sortValue: _colCreationDateSort,
+		sortValue: _colCreationDateSort
 	},
 	{
 		key: 'modified',
-		label: 'Edit Date',
+		label: '<%=encprops.getProperty("column_dateModified")%>',
 		value: _colModified,
-		sortValue: _colModifiedSort,
+		sortValue: _colModifiedSort
 	}
 	
 ];
@@ -469,7 +459,7 @@ function show() {
 	$('#results-table td').html('');
 	$('#results-table tbody tr').show();
 	for (var i = 0 ; i < results.length ; i++) {
-		$('#results-table tbody tr')[i].title = 'Encounter ' + searchResults[results[i]].id;
+		$('#results-table tbody tr')[i].title = '<%=encprops.getProperty("rowSelect.encounter")%> ' + searchResults[results[i]].id;
 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].id);
 		for (var c = 0 ; c < colDefn.length ; c++) {
 			$('#results-table tbody tr')[i].children[c].innerHTML = '<div>' + sTable.values[results[i]][c] + '</div>';
@@ -626,6 +616,19 @@ function _colNumberLocations(o) {
 	return n;
 }
 
+// Function to map LocationIDs to i18n versions.
+function i18nLocationID(id) {
+	var enID = wildbookGlobals.properties.lang.commonCoreInternational.locationID_en;
+	var locID = wildbookGlobals.properties.lang.commonCoreInternational.locationID;
+	return locID[enID.indexOf(id)];
+}
+
+function _colLocationId(o) {
+	var id = o.get('locationID');
+	if (!id) return '';
+	return i18nLocationID(id);
+}
+
 
 function _colTaxonomy(o) {
 	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
@@ -722,11 +725,15 @@ $('#progress').html(percentage);
 
 function _colIndLink(o) {
 	var iid = o.get('individualID');
-	if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return 'Unassigned';
-	//if (!iid || (iid == 'Unknown') || (iid == 'Unassigned')) return '<a onClick="return justA(event);" class="pt-vm-button" target="_blank" href="encounterVM.jsp?number=' + o.id + '">Visual Matcher</a><span class="unassigned">Unassigned</span>';
-//
-//
-	return '<a target="_blank" onClick="return justA(event);" title="Individual ID: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	switch (iid) {
+		case 'Unknown':
+		case 'Unassigned':
+			return '<%=encprops.getProperty("column_individualID.unassigned")%>';
+		case 'Unidentifiable':
+			return '<%=encprops.getProperty("column_individualID.unidentifiable")%>';
+		default:
+			return '<a target="_blank" onClick="return justA(event);" title="<%=encprops.getProperty("column_individualID")%>: ' + iid + '" href="../individuals.jsp?number=' + iid + '">' + iid + '</a>';
+	}
 }
 
 
@@ -837,13 +844,13 @@ console.log(t);
 </script>
 
 <p>
-<input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
-<input type="button" value="filter" />
-<input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
+<input placeholder="<%=encprops.getProperty("filter_placeholder")%>" id="filter-text" onChange="return applyFilter()" />
+<input type="button" value="<%=encprops.getProperty("filter_submit")%>" />
+<input type="button" value="<%=encprops.getProperty("filter_clear")%>" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
 <span style="margin-left: 40px; color: #888; font-size: 0.8em;" id="table-info"></span>
 </p>
 <div class="pageableTable-wrapper">
-	<div id="progress">Loading results table...</div>
+	<div id="progress"><%=encprops.getProperty("loading_results")%></div>
 	<table id="results-table"></table>
 	<div id="results-slider"></div>
 </div>
@@ -883,15 +890,15 @@ console.log(t);
   <tr>
     <td align="left">
 
-      <p><strong><%=encprops.getProperty("queryDetails")%>
+      <p><strong><%=propsShared.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
       </strong><br/>
         <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
-      <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
+      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=queryResult.getJDOQLRepresentation()%>
       </p>
