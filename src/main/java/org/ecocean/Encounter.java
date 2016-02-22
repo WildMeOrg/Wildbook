@@ -44,6 +44,7 @@ import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.ecocean.media.*;
+import org.ecocean.identity.Feature;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -274,11 +275,13 @@ public class Encounter implements java.io.Serializable {
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
   public ArrayList<SuperSpot> getSpots() {
-    return spots;
+    return HACKgetSpots();
+    //return spots;
   }
 
   public ArrayList<SuperSpot> getRightSpots() {
-    return rightSpots;
+    return HACKgetRightSpots();
+    //return rightSpots;
   }
 
   /**
@@ -286,6 +289,7 @@ public class Encounter implements java.io.Serializable {
    *
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
+/*   these have gone away!  dont be setting spots on Encounter any more
   public void setSpots(ArrayList<SuperSpot> newSpots) {
     spots = newSpots;
   }
@@ -293,10 +297,12 @@ public class Encounter implements java.io.Serializable {
   public void setRightSpots(ArrayList<SuperSpot> newSpots) {
     rightSpots = newSpots;
   }
+*/
 
   /**
    * Removes any spot data
    */
+/*
   public void removeSpots() {
     spots = null;
   }
@@ -311,31 +317,37 @@ public class Encounter implements java.io.Serializable {
     spots = null;
     rightSpots = null;
   }
+*/
 
   /**
    * Returns the number of spots in the cropped image stored for this encounter.
    *
    * @return the number of superSpots that make up the digital fingerprint for this encounter
    */
+
+
+//TODO these are for backwards-compatibility but SHOULD GO AWAY
   public int getNumSpots() {
-    if(spots!=null){return spots.size();}
+    ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
+    if(fakeSpots!=null){return fakeSpots.size();}
     else{return 0;}
     
   }
 
   public int getNumRightSpots() {
-    if(rightSpots!=null){return rightSpots.size();}
+    ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
+    if(fakeRightSpots!=null){return fakeRightSpots.size();}
     else{return 0;}
   }
 
   public boolean hasLeftSpotImage() {
-    if(spotImageFileName!=null){return true;}
-    return false;
+    ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
+    return (fakeSpots != null);
   }
 
   public boolean hasRightSpotImage() {
-    if(rightSpotImageFileName!=null){return true;}
-    return false;
+    ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
+    return (fakeRightSpots != null);
   }
 
 
@@ -1133,6 +1145,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getRightmostSpot() {
     double rightest = 0;
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidX() > rightest) {
         rightest = spots.get(iter).getTheSpot().getCentroidX();
@@ -1143,6 +1156,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getLeftmostSpot() {
     double leftest = getRightmostSpot();
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidX() < leftest) {
         leftest = spots.get(iter).getTheSpot().getCentroidX();
@@ -1153,6 +1167,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getHighestSpot() {
     double highest = getLowestSpot();
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidY() < highest) {
         highest = spots.get(iter).getTheSpot().getCentroidY();
@@ -1163,6 +1178,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getLowestSpot() {
     double lowest = 0;
+    ArrayList<SuperSpot> spots = getSpots();
     for (int iter = 0; iter < spots.size(); iter++) {
       if (spots.get(iter).getTheSpot().getCentroidY() > lowest) {
         lowest = spots.get(iter).getTheSpot().getCentroidY();
@@ -1217,6 +1233,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getRightmostRightSpot() {
     double rightest = 0;
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidX() > rightest) {
         rightest = rightSpots.get(iter).getTheSpot().getCentroidX();
@@ -1228,6 +1245,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getLeftmostRightSpot() {
     double leftest = getRightmostRightSpot();
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidX() < leftest) {
         leftest = rightSpots.get(iter).getTheSpot().getCentroidX();
@@ -1238,6 +1256,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getHighestRightSpot() {
     double highest = getLowestRightSpot();
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidY() < highest) {
         highest = rightSpots.get(iter).getTheSpot().getCentroidY();
@@ -1248,6 +1267,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
   public double getLowestRightSpot() {
     double lowest = 0;
+    ArrayList<SuperSpot> rightSpots = getRightSpots();
     for (int iter = 0; iter < rightSpots.size(); iter++) {
       if (rightSpots.get(iter).getTheSpot().getCentroidY() > lowest) {
         lowest = rightSpots.get(iter).getTheSpot().getCentroidY();
@@ -1258,13 +1278,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
 
   public ArrayList<SuperSpot> getLeftReferenceSpots() {
-    return leftReferenceSpots;
+    return HACKgetAnyReferenceSpots();
   }
 
   public ArrayList<SuperSpot> getRightReferenceSpots() {
-    return rightReferenceSpots;
+    return HACKgetAnyReferenceSpots();
   }
 
+/*  gone! no more setting spots on encounters!
   public void setLeftReferenceSpots(ArrayList<SuperSpot> leftReferenceSpots) {
     this.leftReferenceSpots = leftReferenceSpots;
   }
@@ -1272,6 +1293,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
     this.rightReferenceSpots = rightReferenceSpots;
   }
+*/
 
 
   /**
@@ -1304,6 +1326,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
 
+/*  GONE!  no more spots on encounters
   public void setNumLeftSpots(int numspots) {
     numSpotsLeft = numspots;
   }
@@ -1311,6 +1334,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setNumRightSpots(int numspots) {
     numSpotsRight = numspots;
   }
+*/
 
   
   public void setDWCGlobalUniqueIdentifier(String guid) {
@@ -1981,10 +2005,17 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
 
     //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
+//NOTE only traverses one level down
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
+        Shepherd myShepherd = new Shepherd("context0"); ///super-hacky, but thats how i am feeling
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (MediaAsset ma : getMedia()) {
             if (ma.hasFeatures(featureIds)) mas.add(ma);
+            ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+            if ((kids == null) || (kids.size() < 1)) continue;
+            for (MediaAsset k : kids) {
+                if (k.hasFeatures(featureIds)) mas.add(k);
+            }
         }
         return mas;
     }
@@ -2318,6 +2349,40 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
         return encs;
     }
 
+
+/*
+    this section are intentionally hacky backwards-compatible ways to get spots on an encounter in the new world of Features/Annotations/MediaAssets ... do not use
+    these, of course... and SOON we must weed out all the encounter-based-spot calls from everywhere and clean all this mess up!
+*/
+
+    public ArrayList<SuperSpot> HACKgetSpots() {
+        return HACKgetAnySpots("spotsLeft");
+    }
+    public ArrayList<SuperSpot> HACKgetRightSpots() {
+        return HACKgetAnySpots("spotsRight");
+    }
+    public ArrayList<SuperSpot> HACKgetAnySpots(String which) {
+        ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
+        if ((mas == null) || (mas.size() < 1)) return null;
+        for (Feature f : mas.get(0).getFeatures()) {
+            if (f.isType("org.ecocean.flukeEdge.edgeSpots") || f.isType("org.ecocean.dorsalEdge.edgeSpots")) {
+                if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray(which));
+            }
+        }
+        return null;
+    }
+
+    //err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
+    public ArrayList<SuperSpot> HACKgetAnyReferenceSpots() {
+        ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.referenceSpots", "org.ecocean.referenceEdge.edgeSpots"});
+        if ((mas == null) || (mas.size() < 1)) return null;
+        for (Feature f : mas.get(0).getFeatures()) {
+            if (f.isType("org.ecocean.flukeEdge.referenceSpots") || f.isType("org.ecocean.dorsalEdge.referenceSpots")) {
+                if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray("spots"));
+            }
+        }
+        return null;
+    }
 
 }
 
