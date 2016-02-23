@@ -213,7 +213,7 @@ public class ScanWorkItem implements java.io.Serializable {
         //create a Vector of Points
         Vector points = new Vector();
         
-        
+        /*
         //TBD_CRAP WE NEED
         TreeMap map = newDScore.getMap();
         
@@ -223,6 +223,7 @@ public class ScanWorkItem implements java.io.Serializable {
         while (map_iter.hasNext()) {
           points.add((Pair) map_iter.next());
         }
+        */
   
         //add the I3S results to the matchObject sent back
         result.setI3SValues(points, newScore);
