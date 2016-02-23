@@ -268,7 +268,11 @@ public class ScanWorkItem implements java.io.Serializable {
         result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       }
       //set MSM value
-      Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      Double msmValue=new Double(weka.core.Utils.missingValue());
+      Double potentialMMSMValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      if(potentialMMSMValue!=null){
+        msmValue=potentialMMSMValue;
+      }
       System.out.println("     MSM result is: "+msmValue.doubleValue());
       result.setMSMSValue(msmValue);
       
