@@ -1,22 +1,15 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,java.util.Map,java.util.Iterator,java.util.Set,java.util.TreeMap,java.util.StringTokenizer,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.text.DecimalFormat" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.genetics.distance.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-
-
-  <%
-
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-    //let's load out properties
-    Properties props = new Properties();
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualDistanceSearchResults.properties"));
-    props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode,context);
-
-
-
+<%
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("individualDistanceSearchResults.properties", langCode, context);
+  Properties propsShared = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
 
 
     int day1 = 1, day2 = 31, month1 = 1, month2 = 12, year1 = 0, year2 = 3000;
@@ -313,15 +306,15 @@ myShepherd=null;
   <tr>
     <td align="left">
 
-      <p><strong><%=props.getProperty("queryDetails")%>
+      <p><strong><%=propsShared.getProperty("queryDetails")%>
       </strong></p>
 
-      <p class="caption"><strong><%=props.getProperty("prettyPrintResults") %>
+      <p class="caption"><strong><%=propsShared.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=result.getQueryPrettyPrint().replaceAll("locationField", props.getProperty("location")).replaceAll("locationCodeField", props.getProperty("locationID")).replaceAll("verbatimEventDateField", props.getProperty("verbatimEventDate")).replaceAll("Sex", props.getProperty("sex")).replaceAll("Keywords", props.getProperty("keywords")).replaceAll("alternateIDField", (props.getProperty("alternateID"))).replaceAll("alternateIDField", (props.getProperty("size")))%>
+        <%=result.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("Keywords", propsShared.getProperty("keywords")).replaceAll("alternateIDField", (propsShared.getProperty("alternateID"))).replaceAll("alternateIDField", (propsShared.getProperty("size")))%>
       </p>
 
-      <p class="caption"><strong><%=props.getProperty("jdoql")%>
+      <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=result.getJDOQLRepresentation()%>
       </p>
