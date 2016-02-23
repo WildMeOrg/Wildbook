@@ -202,7 +202,8 @@ public class ScanWorkItem implements java.io.Serializable {
     System.out.println("Finished I3S method and I think the score is: "+newDScore.getI3SMatchValue());  
     //newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
-      double newScore=Utils.missingValue();
+      double newScore=weka.core.Utils.missingValue();
+      System.out.println("I think newScore before setting is: "+newScore);
       //if(newDScore.getI3SMatchValue()>=0){
        if(newDScore.getI3SMatchValue()>=0){ newScore=newDScore.getI3SMatchValue();}
         System.out.println("I REALLY think my I3S score is: "+newScore);
