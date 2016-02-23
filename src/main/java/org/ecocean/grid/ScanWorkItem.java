@@ -286,7 +286,9 @@ public class ScanWorkItem implements java.io.Serializable {
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
-      Double eucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
+      Double eucValue=new Double(weka.core.Utils.missingValue());
+      Double potentialEucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
+      if(potentialEucValue!=null){eucValue=potentialEucValue;}
       System.out.println("     Euc. result is: "+swaleValue.doubleValue());
       result.setEuclideanDistanceValue(eucValue);
       
