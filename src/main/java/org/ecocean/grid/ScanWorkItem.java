@@ -202,7 +202,7 @@ public class ScanWorkItem implements java.io.Serializable {
     System.out.println("Finished I3S method and I think the score is: "+newDScore.getI3SMatchValue());  
     //newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
-      double newScore=10000;
+      double newScore=weka.core.Utils.missingValue();
       System.out.println("I think newScore before setting is: "+newScore);
       //if(newDScore.getI3SMatchValue()>=0){
        if(newDScore.getI3SMatchValue()>=0){ newScore=newDScore.getI3SMatchValue();}
@@ -268,7 +268,11 @@ public class ScanWorkItem implements java.io.Serializable {
         result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       }
       //set MSM value
-      Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      Double msmValue=new Double(weka.core.Utils.missingValue());
+      Double potentialMMSMValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      if(potentialMMSMValue!=null){
+        msmValue=potentialMMSMValue;
+      }
       System.out.println("     MSM result is: "+msmValue.doubleValue());
       result.setMSMSValue(msmValue);
       
