@@ -2075,7 +2075,7 @@ private double amplifyY(double origValue, double s){
     try{
     //superSpot objects are my equivalent in my DB of Point2D
     
-    //System.out.println("     Starting I3S scan...");
+    System.out.println("     Starting I3S scan...");
     
     //these spots are for the unknown encounter
     //SuperSpot[] newspotsTemp = new SuperSpot[0];
@@ -2088,6 +2088,7 @@ private double amplifyY(double origValue, double s){
     if(newEnc.getRightSpots()!=null){
       spots2.addAll(newEnc.getRightSpots());
     }
+    System.out.println("     I3S trying to sort first spot array of size: "+spots2.size());
     Collections.sort(spots2, new XComparator());
     //newspotsTemp=(SuperSpot[])spots2.toArray();
     
@@ -2095,6 +2096,8 @@ private double amplifyY(double origValue, double s){
     if(oldEnc.getRightSpots()!=null){
       spots.addAll(oldEnc.getRightSpots());
     }
+    System.out.println("     I3S trying to sort second spot array of size: "+spots.size());
+    
     Collections.sort(spots, new XComparator());
     //oldspotsTemp=(SuperSpot[])spots.toArray();
     
