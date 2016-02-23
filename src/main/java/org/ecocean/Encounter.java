@@ -2384,25 +2384,25 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
     }
     public ArrayList<SuperSpot> HACKgetAnySpots(String which) {
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
-        if ((mas == null) || (mas.size() < 1)) return null;
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
         for (Feature f : mas.get(0).getFeatures()) {
             if (f.isType("org.ecocean.flukeEdge.edgeSpots") || f.isType("org.ecocean.dorsalEdge.edgeSpots")) {
                 if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray(which));
             }
         }
-        return null;
+        return new ArrayList<SuperSpot>();
     }
 
     //err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
     public ArrayList<SuperSpot> HACKgetAnyReferenceSpots() {
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.referenceSpots", "org.ecocean.referenceEdge.edgeSpots"});
-        if ((mas == null) || (mas.size() < 1)) return null;
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
         for (Feature f : mas.get(0).getFeatures()) {
             if (f.isType("org.ecocean.flukeEdge.referenceSpots") || f.isType("org.ecocean.dorsalEdge.referenceSpots")) {
                 if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray("spots"));
             }
         }
-        return null;
+        return new ArrayList<SuperSpot>();
     }
 
 }
