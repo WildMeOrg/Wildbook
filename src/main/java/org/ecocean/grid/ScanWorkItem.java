@@ -277,8 +277,12 @@ public class ScanWorkItem implements java.io.Serializable {
       result.setMSMSValue(msmValue);
       
 
-
-      Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
+      Double swaleValue=new Double(weka.core.Utils.missingValue());
+      
+      Double potentialSwaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
+      if(potentialSwaleValue!=null){
+        swaleValue=potentialSwaleValue;
+      }
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
