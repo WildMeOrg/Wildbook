@@ -135,10 +135,13 @@ public class EncounterLite implements java.io.Serializable {
     if (enc.getSpots() != null) {
 
       processLeftSpots(enc.getSpots());
+      System.out.println("EncounterLite sees "+enc.getSpots().size()+" left-side spots.");
 
       if (enc.getLeftReferenceSpots() != null) {
 
         processLeftReferenceSpots(enc.getLeftReferenceSpots());
+        System.out.println("EncounterLite sees "+enc.getSpots().size()+" left-side REFERENCE spots.");
+
       }
 
 
@@ -148,9 +151,13 @@ public class EncounterLite implements java.io.Serializable {
     if (enc.getRightSpots() != null) {
 
       processRightSpots(enc.getRightSpots());
+      System.out.println("EncounterLite sees "+enc.getSpots().size()+" right-side spots.");
+
       if (enc.getRightReferenceSpots() != null) {
 
         processRightReferenceSpots(enc.getRightReferenceSpots());
+        System.out.println("EncounterLite sees "+enc.getSpots().size()+" right-side REFERENCE spots.");
+
       }
 
 
@@ -3928,7 +3935,7 @@ System.out.println("hit top at i=" + i);
               
             }
         catch(Exception e){
-            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+           System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
           double[] myDub={0,0,i};
           theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
           
@@ -4097,7 +4104,7 @@ System.out.println("hit top at i=" + i);
             newerSpots.add(m_spot);
           }
           catch(Exception e){
-            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+            System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
             SuperSpot m_spot=new SuperSpot(formerSpots.get(i).getCentroidX(),0);
             newerSpots.add(m_spot);
           }
@@ -4421,7 +4428,7 @@ System.out.println("hit top at i=" + i);
               
             }
         catch(Exception e){
-            //System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
+            System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
           double[] myDub={0,0,i};
           theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
           
