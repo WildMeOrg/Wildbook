@@ -2206,6 +2206,7 @@ private double amplifyY(double origValue, double s){
     //boolean successfulCompare=wsCompare.compareTwo(newPrint, thisPrint, hm,true);
 
     //fpBest[0].getScore();
+    System.out.println("About to report out an I3S score of: "+fpBest[0].getScore());
     
   //now return an I3S match object
     I3SMatchObject i3smo=new I3SMatchObject(fpBest[0].getScore(),hm);

@@ -199,13 +199,13 @@ public class ScanWorkItem implements java.io.Serializable {
     com.reijns.I3S.Point2D[] comapare2mePoints = new com.reijns.I3S.Point2D[0];
     com.reijns.I3S.Point2D[] lookForThisEncounterPoints = new com.reijns.I3S.Point2D[0];
     I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
-    System.out.println("Finished I3S method!");  
-    newDScore.setEncounterNumber(getNewEncNumber());
+    System.out.println("Finished I3S method and I think the score is: "+newDScore.getI3SMatchValue());  
+    //newDScore.setEncounterNumber(getNewEncNumber());
       //newDScore.setIndividualID(id);
       double newScore=Utils.missingValue();
       //if(newDScore.getI3SMatchValue()>=0){
        if(newDScore.getI3SMatchValue()>=0){ newScore=newDScore.getI3SMatchValue();}
-        
+        System.out.println("I REALLY think my I3S score is: "+newScore);
         
         //
         //if(newScore<0.0000001){newScore=2.0;}
