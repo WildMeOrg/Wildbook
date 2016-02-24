@@ -2362,6 +2362,9 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
         return HACKgetAnySpots("spotsRight");
     }
     public ArrayList<SuperSpot> HACKgetAnySpots(String which) {
+        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
+        System.out.println(ex.toString());
+        ex.printStackTrace();
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
         if ((mas == null) || (mas.size() < 1)) return null;
         for (Feature f : mas.get(0).getFeatures()) {
@@ -2374,6 +2377,9 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
 
     //err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
     public ArrayList<SuperSpot> HACKgetAnyReferenceSpots() {
+        RuntimeException ex = new RuntimeException(" ===== DEPRECATED ENCOUNTER SPOT BEHAVIOR! PLEASE FIX =====");
+        System.out.println(ex.toString());
+        ex.printStackTrace();
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.referenceSpots", "org.ecocean.referenceEdge.edgeSpots"});
         if ((mas == null) || (mas.size() < 1)) return null;
         for (Feature f : mas.get(0).getFeatures()) {
