@@ -1,9 +1,16 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, java.util.List, java.util.GregorianCalendar, java.util.Iterator, java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("individualSearch.properties", langCode, context);
+  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+
   Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
@@ -19,15 +26,6 @@ context=ServletUtilities.getContext(request);
   } catch (Exception e) {
     e.printStackTrace();
   }
-
-//let's load out properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearch.properties"));
-  props = ShepherdProperties.getProperties("individualSearch.properties", langCode,context);
-	
 %>
 
 
@@ -57,7 +55,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
@@ -257,8 +255,8 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
-            off: "Turn on",
-            on: "Turn off"
+            off: "<%=props.getProperty("turnOn")%>",
+            on: "<%=props.getProperty("turnOn")%>"
           }
         });
 
@@ -361,7 +359,7 @@ function FSControl(controlDiv, map) {
   controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Toggle the fullscreen mode';
+  controlUI.title = '<%=props.getProperty("toggleFullscreen")%>';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior
@@ -452,22 +450,19 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
+        Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
         ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
-
-
         if (totalLocIDs >= 1) {
       %>
 
       <select multiple="multiple" size="10" name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
         <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (!word.equals("")) {
+          for (Map.Entry<String, String> me : locMap.entrySet()) {
+            if (locIDs.contains(me.getValue()) && !"".equals(me.getValue())) {
         %>
-        <option value="<%=word%>"><%=word%>
-        </option>
+        <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
         <%
             }
           }
@@ -567,7 +562,7 @@ function FSControl(controlDiv, map) {
             </option>
 
             <% } %>
-          </select> &nbsp;to <em>&nbsp;<%=props.getProperty("day")%>
+          </select> &nbsp;<%=props.getProperty("to")%> <em>&nbsp;<%=props.getProperty("day")%>
           </em> <em> <select name="day2"
                              id="day2">
             <option value="1">1</option>
@@ -637,7 +632,7 @@ function FSControl(controlDiv, map) {
         </tr>
       </table>
 
-      <p><strong><%=props.getProperty("verbatimEventDate")%>:</strong> <span class="para"><a
+      <p><strong><%=props.getProperty("verbatimEventDate")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
@@ -685,7 +680,7 @@ function FSControl(controlDiv, map) {
       </c:if>
 
 <!--  date of birth and death -->      
-      <p><strong><%=props.getProperty("timeOfBirth")%>:</strong> <span class="para"><a
+      <p><strong><%=props.getProperty("timeOfBirth")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfBirth"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
@@ -696,7 +691,7 @@ function FSControl(controlDiv, map) {
 		<td><%=props.getProperty("end") %> <input type="text" id="DOBend" name="DOBend" /></td>
 	</tr>
 </table>
-	      <p><strong><%=props.getProperty("timeOfDeath")%>:</strong> <span class="para"><a
+	      <p><strong><%=props.getProperty("timeOfDeath")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>timeOfDeath"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
@@ -741,36 +736,31 @@ function FSControl(controlDiv, map) {
       <table align="left">
         <tr>
           <td>
-          <table width="357" align="left">
+          <table align="left">
 					<tr>
-						<td width="62"><strong><%=props.getProperty("sex") %> </strong></td>
-						<td width="76"><label> <input name="male"
-							type="checkbox" id="male" value="male" checked> <%=props.getProperty("male") %></label></td>
-
-						<td width="79"><label> <input name="female"
-							type="checkbox" id="female" value="female" checked>
-						<%=props.getProperty("female") %></label></td>
-						<td width="112"><label> <input name="unknown"
-							type="checkbox" id="unknown" value="unknown" checked>
-						<%=props.getProperty("unknown") %></label></td>
+						<td><strong><%=props.getProperty("sex")%> </strong></td>
+						<td><label><input name="male" type="checkbox" id="male" value="male" checked> <%=props.getProperty("male") %></label></td>
+						<td><label><input name="female" type="checkbox" id="female" value="female" checked> <%=props.getProperty("female") %></label></td>
+						<td><label><input name="unknown" type="checkbox" id="unknown" value="unknown" checked> <%=props.getProperty("unknown") %></label></td>
 					</tr>
-				</table>
-          </td>
+				  </table>
+        </td>
         </tr>
         
         <tr>
-          <td><strong><%=props.getProperty("status")%>: </strong><label>
-            <input name="alive" type="checkbox" id="alive" value="alive"
-                   checked> <%=props.getProperty("alive")%>
-          </label><label>
-            <input name="dead" type="checkbox" id="dead" value="dead"
-                   checked> <%=props.getProperty("dead")%>
-          </label>
+          <td>
+            <table align="left">
+              <tr>
+                <td><strong><%=props.getProperty("status")%> </strong></td>
+                <td><label><input name="alive" type="checkbox" id="alive" value="alive" checked> <%=props.getProperty("alive")%></label></td>
+                <td><label><input name="dead" type="checkbox" id="dead" value="dead"checked> <%=props.getProperty("dead")%></label></td>
+              </tr>
+            </table>
           </td>
         </tr>
         
          <tr>
-          <td valign="top"><strong><%=props.getProperty("behavior")%>:</strong>
+          <td valign="top"><strong><%=props.getProperty("behavior")%></strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
                   <img src="images/information_icon_svg.gif" alt="Help" border="0"
@@ -820,33 +810,25 @@ function FSControl(controlDiv, map) {
         <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
-
+  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("lifeStage", context);
 %>
 <tr>
   <td><strong><%=props.getProperty("lifeStage")%></strong>
   <select name="lifeStageField" id="lifeStageField">
   	<option value="" selected="selected"></option>
-  <%
-  			       boolean hasMoreStages=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreStages){
-  			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreStages=false;
-  			          }
-  			          
-			       }
-  			     if(stageNum==0){%>
-		    	   <p><em><%=props.getProperty("noStages")%></em></p>
-		       <% }
+<%
+  if (map.size() == 0) {
+%>
+    <p><em><%=props.getProperty("noStages")%></em></p>
+<%
+  }
+  else {
+    for (Map.Entry<String, String> me : map.entrySet()) {
+%>
+    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+<%
+    }
+  }
  %>
   </select></td>
 </tr>
@@ -855,6 +837,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         
         
         if(CommonConfiguration.showProperty("showPatterningCode",context)){
+          Map<String, String> map = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
 
         	%>
         	<tr valign="top">
@@ -862,29 +845,20 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         	  
         	  <select name="patterningCodeField" id="patterningCodeField">
         	  	<option value="None" selected="selected"></option>
-        	  <%
-        	  			       boolean hasMorePatterningCodes=true;
-        	  			       int stageNum=0;
-        	  			       
-        	  			       while(hasMorePatterningCodes){
-        	  			       	  String currentLifeStage = "patterningCode"+stageNum;
-        	  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-        	  			       	  	%>
-        	  			       	  	 
-        	  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-        	  			       	  	<%
-        	  			       		stageNum++;
-        	  			          }
-        	  			          else{
-        	  			        	hasMorePatterningCodes=false;
-        	  			          }
-        	  			          
-        				       }
-        				       if(stageNum==0){%>
-        				    	   <p><em><%=props.getProperty("noPatterningCodes")%></em></p>
-        				       <% }
-        				       
-        	 %>
+        <%
+          if (map.size() == 0) {
+        %>
+            <p><em><%=props.getProperty("noPatterningCodes")%></em></p>
+        <%
+          }
+          else {
+            for (Map.Entry<String, String> me : map.entrySet()) {
+        %>
+            <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+        <%
+            }
+          }
+         %>
         	  </select></td>
         	</tr>
         	<%
@@ -908,7 +882,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
 </select>
-<input name="measurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+<input name="measurement${item.type}(value)"/> <c:out value="${item.unitsLabel}"/>
 </td>
 </tr>
 </c:forEach>
@@ -930,7 +904,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 	        %>
 	        <tr>
 	        <td>
-	         <strong><%=props.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
+	         <strong><%=props.getProperty("genusSpecies")%></strong> <select name="genusField" id="genusField">
 			<option value=""></option>
 					       
 					       <%
@@ -1017,7 +991,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
        
         <tr>
-	  <td><br /><strong><%=props.getProperty("submitterName")%>:</strong>
+	  <td><br /><strong><%=props.getProperty("submitterName")%></strong>
 	    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%>
 	    </em>
 	  </td>
@@ -1195,7 +1169,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       %>
 
 
-  <p><strong><%=props.getProperty("geneticSex")%>:</strong> <span class="para">
+  <p><strong><%=props.getProperty("geneticSex")%></strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
         target="_blank"><img src="images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
@@ -1247,14 +1221,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
 </select>
-<input name="biomeasurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+<input name="biomeasurement${item.type}(value)"/> <c:out value="${item.unitsLabel}"/>
 </td>
 </tr>
 </c:forEach>
 <tr><td></td></tr>
 </table>
    
-      <p><strong><%=props.getProperty("msmarker")%>:</strong> 
+      <p><strong><%=props.getProperty("msmarker")%></strong>
       <span class="para">
       	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
       		<img src="images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
@@ -1285,7 +1259,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <tr><td colspan="3">
 
-<%=props.getProperty("alleleRelaxValue")%>: +/- 
+<%=props.getProperty("alleleRelaxValue")%> +/-
 <%
 int alleleRelaxMaxValue=0;
 try{
@@ -1388,7 +1362,7 @@ else {
         </tr>
         <tr>
           <td>
-            <p><strong><%=props.getProperty("alternateID")%>:</strong> <em> <input
+            <p><strong><%=props.getProperty("alternateID")%></strong> <em> <input
               name="alternateIDField" type="text" id="alternateIDField" size="25"
               maxlength="100"> <span class="para"><a
               href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
@@ -1399,7 +1373,7 @@ else {
         </tr>
         <tr>
           <td>
-            <p><strong><%=props.getProperty("nickName")%>:</strong> <em> <input
+            <p><strong><%=props.getProperty("nickName")%></strong> <em> <input
               name="nickNameField" type="text" id="nickNameField" size="25"
               maxlength="100"> <span class="para"><a
               href="<%=CommonConfiguration.getWikiLocation(context)%>nickName"
@@ -1411,7 +1385,7 @@ else {
 
         <tr>
           <td>
-            <p><strong><%=props.getProperty("firstSightedInYear")%>:</strong> 
+            <p><strong><%=props.getProperty("firstSightedInYear")%></strong>
             <em> 
             <%
             if(firstYear>-1){ 
@@ -1509,44 +1483,31 @@ else {
     		<td style="vertical-align: top"> 
 			<%
         //ArrayList<String> roles = myShepherd.getAllRoleNames();
-        
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
-			
-		//System.out.println(haplos.toString());
 
-        if ((roles!=null)&&(roles.size()>0)) {
-        	int totalNames = roles.size();
-        
+    Map<String, String> roleMap = CommonConfiguration.getIndexedValuesMap("relationshipRole", context);
+		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+    if (!roleMap.isEmpty()) {
       %>
 
       <select multiple="multiple" size="10" name="role" id="role">
         <option value="None"></option>
         <%
-          for (int n = 0; n < totalNames; n++) {
-            String word = roles.get(n);
-            if ((word!=null)&&(!word.equals(""))) {
-        	%>
-        		<option value="<%=word%>"><%=word%></option>
-        	<%
-            }
+          for (Map.Entry<String, String> me : roleMap.entrySet()) {
+        %>
+        <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+        <%
           }
         %>
-      </select></td>
-      </tr>
-      </table>
+      </select>
       <%
       } else {
       %>
-      <em><%=props.getProperty("noRoles")%>
-      </em>
-      </td>
-      </tr>
-      </table>
+      <em><%=props.getProperty("noRoles")%></em>
       <%
         }
       %>
-      
-      
+      </td></tr></table>
+
       
     </div>
   </td>
@@ -1619,8 +1580,7 @@ inShepherd.closeDBTransaction();
 </tr>
 </table>
 <br />
-<input name="submitSearch" type="submit" id="submitSearch"
-                   value="<%=props.getProperty("goSearch")%>" />
+<input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>" />
 </form>
 </td>
 </tr>

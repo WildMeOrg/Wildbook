@@ -1,13 +1,17 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.springframework.mock.web.MockHttpServletRequest,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
-<%@ page import="java.util.GregorianCalendar, java.util.List" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.springframework.mock.web.MockHttpServletRequest" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("individualSearch.properties", langCode, context);
+  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -37,7 +41,7 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
@@ -95,16 +99,6 @@ margin-bottom: 8px !important;
     e.printStackTrace();
   }
 
-//let's load encounterSearch.properties
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-  Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchComparison.properties"));
-  encprops=ShepherdProperties.getProperties("individualSearch.properties", langCode, context);
-
-  
   //let's determine if this is location 1 or 2
   
   String part="1";
@@ -117,7 +111,8 @@ margin-bottom: 8px !important;
 	  //mrew.setRequestURI(request.getRequestURI());
 	  mrew.setQueryString(request.getQueryString());
 	  mrew.setParameters(request.getParameterMap());
-	  
+	  mrew.setCookies(request.getCookies());
+
 	  //we also need to store the part 1 parameter
 	  session.setAttribute("locationSearch1", mrew);
   
@@ -132,13 +127,13 @@ margin-bottom: 8px !important;
 <td>
 <p>
 
-<h1 class="intro"><%=encprops.getProperty("title")%> (<%=encprops.getProperty("part") %> <%=part %>)
+<h1 class="intro"><%=props.getProperty("title")%> (<%=MessageFormat.format(props.getProperty("part"), part)%>)
   <a href="<%=CommonConfiguration.getWikiLocation(context)%>searching#encounter_search" target="_blank">
     <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
   </a>
 </h1>
 </p>
-<p><em><%=encprops.getProperty("instructions")%>
+<p><em><%=props.getProperty("instructions")%>
 </em></p>
 <%
 String gotoPage="searchComparisonResults.jsp";
@@ -146,7 +141,7 @@ if(request.getParameter("day1")==null){gotoPage="searchComparison.jsp";}
 %>
 <form action="<%=gotoPage %>" method="get" name="search" id="search">
 
-<p><%=encprops.getProperty("nameSearch") %> <input name="searchNameField" type="text" size="60" /></p>
+<p><%=props.getProperty("nameSearch") %> <input name="searchNameField" type="text" size="60" /></p>
 
 <table>
 
@@ -157,7 +152,7 @@ if(request.getParameter("day1")==null){gotoPage="searchComparison.jsp";}
       href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/></a>
       <a href="javascript:animatedcollapse.toggle('map')" style="text-decoration:none"><font
-        color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
+        color="#000000"><%=props.getProperty("locationFilter") %></font></a></h4>
 
 
     
@@ -216,8 +211,8 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
-            off: "Turn on",
-            on: "Turn off"
+            off: "<%=props.getProperty("turnOn")%>",
+            on: "<%=props.getProperty("turnOff")%>"
           }
         });
 
@@ -294,7 +289,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
         geoXml.parse(filename);
         
     	var iw = new google.maps.InfoWindow({
-    		content:'<%=encprops.getProperty("loadingMapData") %>',
+    		content:'<%=props.getProperty("loadingMapData") %>',
     		position:center});
          
     	iw.open(map);
@@ -359,7 +354,7 @@ function FSControl(controlDiv, map) {
   controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Toggle the fullscreen mode';
+  controlUI.title = '<%=props.getProperty("toggleFullscreen")%>';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior
@@ -374,9 +369,9 @@ function FSControl(controlDiv, map) {
   controlUI.appendChild(controlText);
   //toggle the text of the button
    if($("#map_canvas").hasClass("full_screen_map")){
-      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen") %>';
+      controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
     } else {
-      controlText.innerHTML = '<%=encprops.getProperty("fullscreen") %>';
+      controlText.innerHTML = '<%=props.getProperty("fullscreen") %>';
     }
 
   // Setup the click event listeners: toggle the full screen
@@ -399,11 +394,11 @@ function FSControl(controlDiv, map) {
     </script>
 
     <div id="map">
-      <p><%=encprops.getProperty("useTheArrow") %></p>
+      <p><%=props.getProperty("useTheArrow") %></p>
         <%
         if(request.getParameter("year1")!=null){
         %>
-        <p><%=encprops.getProperty("redBox") %></p>
+        <p><%=props.getProperty("redBox") %></p>
 		<%
         }
 		%>
@@ -411,13 +406,13 @@ function FSControl(controlDiv, map) {
       
       <div id="map_overlay_buttons">
  
-          <input type="button" value="<%=encprops.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
+          <input type="button" value="<%=props.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
  
 
       </div>
-      <p><%=encprops.getProperty("northeastCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=encprops.getProperty("longitude") %>
+      <p><%=props.getProperty("northeastCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="ne_long" name="ne_long"></input><br/><br/>
-        <%=encprops.getProperty("southwestCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=encprops.getProperty("longitude") %>
+        <%=props.getProperty("southwestCorner") %> <%=props.getProperty("latitude") %> <input type="text" id="sw_lat" name="sw_lat"></input> <%=props.getProperty("longitude") %>
         <input type="text" id="sw_long" name="sw_long"></input></p>
     </div>
 
@@ -428,44 +423,43 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('location')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("locationFilterText") %></font></a></h4>
+      <font color="#000000"><%=props.getProperty("locationFilterText") %></font></a></h4>
 
     <div id="location" style="display:none; ">
-      <p><%=encprops.getProperty("locationInstructions") %></p>
+      <p><%=props.getProperty("locationInstructions") %></p>
 
-      <p><strong><%=encprops.getProperty("locationNameContains")%></strong>
+      <p><strong><%=props.getProperty("locationNameContains")%></strong>
         <input name="locationField" type="text" size="60"> <br />
-        <em><%=encprops.getProperty("leaveBlank")%>
+        <em><%=props.getProperty("leaveBlank")%>
         </em>
       </p>
 
-      <p><strong><%=encprops.getProperty("locationID")%>:</strong> <span class="para"><a
+      <p><strong><%=props.getProperty("locationID")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>locationID"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
                              
-                              <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=encprops.getProperty("andLocationID")%>
+                              <input name="andLocationIDs" type="checkbox" id="andLocationIDs" value="andLocationIDs" /> <%=props.getProperty("andLocationID")%>
                              
                              <br />
                              
-        (<em><%=encprops.getProperty("locationIDExample")%>
+        (<em><%=props.getProperty("locationIDExample")%>
         </em>)</p>
 
       <%
+        Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
         ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
-
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple="multiple" size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+      <select multiple="multiple" size="10" name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
         <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (!word.equals("")&&(!word.equals("None"))) {
+          for (Map.Entry<String, String> me : locMap.entrySet()) {
+            if (locIDs.contains(me.getValue()) && !"".equals(me.getValue())) {
         %>
-        <option value="<%=word%>"><%=word%></option>
+        <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
         <%
             }
           }
@@ -474,7 +468,7 @@ function FSControl(controlDiv, map) {
       <%
       } else {
       %>
-      <p><em><%=encprops.getProperty("noLocationIDs")%>
+      <p><em><%=props.getProperty("noLocationIDs")%>
       </em></p>
       <%
         }
@@ -490,7 +484,7 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('date')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("dateFilters") %></font></a></h4>
+      <font color="#000000"><%=props.getProperty("dateFilters") %></font></a></h4>
   </td>
 </tr>
 
@@ -498,12 +492,12 @@ function FSControl(controlDiv, map) {
 <tr>
   <td>
     <div id="date" style="display:none;">
-      <p><%=encprops.getProperty("dateInstructions") %></p>
-      <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
+      <p><%=props.getProperty("dateInstructions") %></p>
+      <strong><%=props.getProperty("sightingDates")%></strong><br/>
       <table width="720">
         <tr>
           <td width="670"><label><em>
-            &nbsp;<%=encprops.getProperty("day")%>
+            &nbsp;<%=props.getProperty("day")%>
           </em> <em> <select name="day1" id="day1">
             <option value="1" selected>1</option>
             <option value="2">2</option>
@@ -536,7 +530,7 @@ function FSControl(controlDiv, map) {
             <option value="29">29</option>
             <option value="30">30</option>
             <option value="31">31</option>
-          </select> <%=encprops.getProperty("month")%>
+          </select> <%=props.getProperty("month")%>
           </em> <em> <select name="month1" id="month1">
             <option value="1" selected>1</option>
             <option value="2">2</option>
@@ -550,7 +544,7 @@ function FSControl(controlDiv, map) {
             <option value="10">10</option>
             <option value="11">11</option>
             <option value="12">12</option>
-          </select> <%=encprops.getProperty("year")%>
+          </select> <%=props.getProperty("year")%>
           </em> <select name="year1" id="year1">
             <% for (int q = firstYear; q <= nowYear; q++) { %>
             <option value="<%=q%>"
@@ -566,7 +560,7 @@ function FSControl(controlDiv, map) {
             </option>
 
             <% } %>
-          </select> &nbsp;<%=encprops.getProperty("to") %> <em>&nbsp;<%=encprops.getProperty("day")%>
+          </select> &nbsp;<%=props.getProperty("to") %> <em>&nbsp;<%=props.getProperty("day")%>
           </em> <em> <select name="day2"
                              id="day2">
             <option value="1">1</option>
@@ -600,7 +594,7 @@ function FSControl(controlDiv, map) {
             <option value="29">29</option>
             <option value="30">30</option>
             <option value="31" selected>31</option>
-          </select> <%=encprops.getProperty("month")%>
+          </select> <%=props.getProperty("month")%>
           </em> <em> <select name="month2" id="month2">
             <option value="1">1</option>
             <option value="2">2</option>
@@ -614,7 +608,7 @@ function FSControl(controlDiv, map) {
             <option value="10">10</option>
             <option value="11">11</option>
             <option value="12" selected>12</option>
-          </select> <%=encprops.getProperty("year")%>
+          </select> <%=props.getProperty("year")%>
           </em>
             <select name="year2" id="year2">
               <% for (int q = nowYear; q >= firstYear; q--) { %>
@@ -636,7 +630,7 @@ function FSControl(controlDiv, map) {
         </tr>
       </table>
 
-      <p><strong><%=encprops.getProperty("verbatimEventDate")%></strong> <span class="para"><a
+      <p><strong><%=props.getProperty("verbatimEventDate")%></strong> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>verbatimEventDate"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
@@ -670,7 +664,7 @@ function FSControl(controlDiv, map) {
 
       } else {
       %>
-      <p><em><%=encprops.getProperty("noVBDs")%>
+      <p><em><%=props.getProperty("noVBDs")%>
       </em></p>
       <%
         }
@@ -679,8 +673,8 @@ function FSControl(controlDiv, map) {
         pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
       %>
       <c:if test="${showReleaseDate}">
-        <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
-        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=encprops.getProperty("releaseDateFormat") %></p>
+        <p><strong><%= props.getProperty("releaseDate") %></strong></p>
+        <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=props.getProperty("releaseDateFormat") %></p>
       </c:if>
     </div>
   </td>
@@ -691,39 +685,29 @@ function FSControl(controlDiv, map) {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('observation')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("observationFilters") %></font></a></h4>
+      <font color="#000000"><%=props.getProperty("observationFilters") %></font></a></h4>
   </td>
 </tr>
 
 <tr>
   <td>
     <div id="observation" style="display:none; ">
-      <p><%=encprops.getProperty("observationInstructions") %></p>
+      <p><%=props.getProperty("observationInstructions") %></p>
 
       <p>
       <table align="left">
         <tr>
-          <td><strong><%=encprops.getProperty("sex")%> </strong>
-            <label> <input name="male"
-                           type="checkbox" id="male" value="male"
-                           checked> <%=encprops.getProperty("male")%>
-            </label>
-
-            <label> <input name="female"
-                           type="checkbox" id="female" value="female" checked>
-              <%=encprops.getProperty("female")%>
-            </label>
-            <label> <input name="unknown"
-                           type="checkbox" id="unknown" value="unknown" checked>
-              <%=encprops.getProperty("unknown")%>
-            </label></td>
+          <td><strong><%=props.getProperty("sex")%> </strong>
+            <label><input name="male" type="checkbox" id="male" value="male" checked> <%=props.getProperty("male")%></label>
+            <label><input name="female" type="checkbox" id="female" value="female" checked> <%=props.getProperty("female")%></label>
+            <label><input name="unknown" type="checkbox" id="unknown" value="unknown" checked> <%=props.getProperty("unknown")%></label></td>
         </tr>
         <%
         if(CommonConfiguration.showProperty("showTaxonomy",context)){
         %>
         <tr>
         <td>
-         <strong><%=encprops.getProperty("genusSpecies")%></strong> <select name="genusField" id="genusField">
+         <strong><%=props.getProperty("genusSpecies")%></strong> <select name="genusField" id="genusField">
 		<option value=""></option>
 				       
 				       <%
@@ -754,20 +738,16 @@ function FSControl(controlDiv, map) {
 	%>
 
         <tr>
-          <td><strong><%=encprops.getProperty("status")%> </strong><label>
-            <input name="alive" type="checkbox" id="alive" value="alive"
-                   checked> <%=encprops.getProperty("alive")%>
-          </label><label>
-            <input name="dead" type="checkbox" id="dead" value="dead"
-                   checked> <%=encprops.getProperty("dead")%>
-          </label>
+          <td><strong><%=props.getProperty("status")%> </strong>
+            <label><input name="alive" type="checkbox" id="alive" value="alive" checked> <%=props.getProperty("alive")%></label>
+            <label><input name="dead" type="checkbox" id="dead" value="dead" checked> <%=props.getProperty("dead")%></label>
           </td>
         </tr>
         
 
 
         <tr>
-          <td valign="top"><strong><%=encprops.getProperty("behavior")%></strong>
+          <td valign="top"><strong><%=props.getProperty("behavior")%></strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
                   <img src="../images/information_icon_svg.gif" alt="Help" border="0"
@@ -804,7 +784,7 @@ function FSControl(controlDiv, map) {
 				}
 				else{
 					%>
-            <p><em><%=encprops.getProperty("noBehaviors")%>
+            <p><em><%=props.getProperty("noBehaviors")%>
             </em></p>
               <%
 				}
@@ -816,50 +796,40 @@ function FSControl(controlDiv, map) {
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
-
+  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("lifeStage", context);
 %>
 <tr valign="top">
-  <td><strong><%=encprops.getProperty("lifeStage")%></strong>
+  <td><strong><%=props.getProperty("lifeStage")%></strong>
   
   <select name="lifeStageField" id="lifeStageField">
   	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMoreStages=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreStages){
-  			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreStages=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
-			       <% }
-			       
- %>
+    <%
+      if (map.size() == 0) {
+    %>
+    <p><em><%=props.getProperty("noStages")%></em></p>
+    <%
+    }
+    else {
+      for (Map.Entry<String, String> me : map.entrySet()) {
+    %>
+    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+    <%
+        }
+      }
+    %>
   </select></td>
 </tr>
-<%
-}
-%>
+  <%
+    }
 
-<%
+
   pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurement}">
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
 %>
-<tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>
+<tr><td><strong><%=props.getProperty("measurements") %></strong></td></tr>
 <c:forEach items="${items}" var="item">
 <tr valign="top">
 <td>${item.label}
@@ -868,12 +838,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <option value="lt">&lt;</option>
   <option value="eq">=</option>
 </select>
-<input name="measurement${item.type}(value)"/>(<c:out value="${item.unitsLabel})"/>
+<input name="measurement${item.type}(value)"/> (<c:out value="${item.unitsLabel})"/>
 </td>
 </tr>
 </c:forEach>
 </c:if>
-      <p><strong><%=encprops.getProperty("hasPhoto")%>: </strong>
+      <p><strong><%=props.getProperty("hasPhoto")%> </strong>
             <label> 
             	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
             </label>
@@ -882,7 +852,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   int totalKeywords = myShepherd.getNumKeywords();
 %>
 <tr>
-  <td valign="top"><%=encprops.getProperty("hasKeywordPhotos")%><br/>
+  <td valign="top"><%=props.getProperty("hasKeywordPhotos")%><br/>
     <%
 
       if (totalKeywords > 0) {
@@ -909,7 +879,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     } else {
     %>
 
-    <p><em><%=encprops.getProperty("noKeywords")%>
+    <p><em><%=props.getProperty("noKeywords")%>
     </em>
 
         <%
@@ -919,15 +889,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   </td>
 </tr>
 <tr>
-  <td><strong><%=encprops.getProperty("submitterName")%></strong>
-    <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
-    </em>
+  <td><strong><%=props.getProperty("submitterName")%></strong>
+    <input name="nameField" type="text" size="60"> <br> <em><%=props.getProperty("namesBlank")%></em>
   </td>
 </tr>
 
 <tr>
-  <td><strong><%=encprops.getProperty("filenameField")%></strong>
-    <input name="filenameField" type="text" size="60"> <br> <em><%=encprops.getProperty("filenamesBlank")%>
+  <td><strong><%=props.getProperty("filenameField")%></strong>
+    <input name="filenameField" type="text" size="60"> <br> <em><%=props.getProperty("filenamesBlank")%>
     </em>
   </td>
 </tr>
@@ -943,15 +912,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('identity')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("identityFilters") %></font></a></h4>
+      <font color="#000000"><%=props.getProperty("identityFilters") %></font></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="identity" style="display:none; ">
-      <p><%=encprops.getProperty("identityInstructions") %></p>
+      <p><%=props.getProperty("identityInstructions") %></p>
       <input name="resightOnly" type="checkbox" id="resightOnly"
-             value="true"> <%=encprops.getProperty("include")%> <select
+             value="true"> <%=props.getProperty("include")%> <select
       name="numResights" id="numResights">
       <option value="1" selected>1</option>
       <option value="2">2</option>
@@ -968,9 +937,9 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <option value="13">13</option>
       <option value="14">14</option>
       <option value="15">15</option>
-    </select> <%=encprops.getProperty("times")%>
+    </select> <%=props.getProperty("times")%>
 
-      <p><strong><%=encprops.getProperty("alternateID")%></strong> <em> <input
+      <p><strong><%=props.getProperty("alternateID")%></strong> <em> <input
         name="alternateIDField" type="text" id="alternateIDField" size="10"
         maxlength="35"> <span class="para"><a
         href="<%=CommonConfiguration.getWikiLocation(context)%>alternateID"
@@ -993,18 +962,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
      <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
        href="javascript:animatedcollapse.toggle('tags')" style="text-decoration:none"><img
        src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-       <font color="#000000"><%=encprops.getProperty("tagsTitle") %></font></a></h4>
+       <font color="#000000"><%=props.getProperty("tagsTitle") %></font></a></h4>
      </td>
  </tr>
  <tr>
     <td>
         <div id="tags" style="display:none;">
-        <p><%=encprops.getProperty("tagsInstructions") %>.</p>
+        <p><%=props.getProperty("tagsInstructions") %>.</p>
         <c:if test="${showMetalTags}">
             <% 
               pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
             %>
-            <h5><%=encprops.getProperty("metalTags") %></h5>
+            <h5><%=props.getProperty("metalTags") %></h5>
             <table>
             <c:forEach items="${metalTagDescs}" var="metalTagDesc">
                 <tr>
@@ -1014,28 +983,28 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             </table>
         </c:if>
         <c:if test="${showAcousticTag}">
-          <h5><%=encprops.getProperty("acousticTags") %></h5>
+          <h5><%=props.getProperty("acousticTags") %></h5>
           <table>
-          <tr><td><%=encprops.getProperty("serialNumber") %></td><td><input name="acousticTagSerial"/></td></tr>
-          <tr><td><%=encprops.getProperty("id") %></td><td><input name="acousticTagId"/></td></tr>
+          <tr><td><%=props.getProperty("serialNumber") %></td><td><input name="acousticTagSerial"/></td></tr>
+          <tr><td><%=props.getProperty("id") %></td><td><input name="acousticTagId"/></td></tr>
           </table>
         </c:if>
         <c:if test="${showSatelliteTag}">
           <%
             pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
            %>
-          <h5><%=encprops.getProperty("satelliteTag") %></h5>
+          <h5><%=props.getProperty("satelliteTag") %></h5>
           <table>
-          <tr><td><%=encprops.getProperty("name") %></td><td>
+          <tr><td><%=props.getProperty("name") %></td><td>
             <select name="satelliteTagName">
-                <option value="None"><%=encprops.getProperty("none") %></option>
+                <option value="None"><%=props.getProperty("none") %></option>
                 <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
                     <option value="${satelliteTagName}">${satelliteTagName}</option>
                 </c:forEach>
             </select>
           </td></tr>
-          <tr><td><%=encprops.getProperty("serialNumber") %></td><td><input name="satelliteTagSerial"/></td></tr>
-          <tr><td><%=encprops.getProperty("argosPTT") %></td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
+          <tr><td><%=props.getProperty("serialNumber") %></td><td><input name="satelliteTagSerial"/></td></tr>
+          <tr><td><%=props.getProperty("argosPTT") %></td><td><input name="satelliteTagArgosPttNumber"/></td></tr>
           </table>
         </c:if>
         </div>
@@ -1048,36 +1017,36 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('genetics')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("biologicalSamples") %></font></a></h4>
+      <font color="#000000"><%=props.getProperty("biologicalSamples") %></font></a></h4>
   </td>
 </tr>
 <tr>
   <td>
     <div id="genetics" style="display:none; ">
-      <p><%=encprops.getProperty("biologicalInstructions") %></p>
-      <br /><p><em><%=encprops.getProperty("fastOptions") %></em></p>
-      <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
+      <p><%=props.getProperty("biologicalInstructions") %></p>
+      <br /><p><em><%=props.getProperty("fastOptions") %></em></p>
+      <p><strong><%=props.getProperty("hasTissueSample")%> </strong>
             <label> 
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
-            <p><strong><%=encprops.getProperty("hasHaplotype")%> </strong>
+            <p><strong><%=props.getProperty("hasHaplotype")%> </strong>
             <label> 
             	<input name="hasHaplotype" type="checkbox" id="hasHaplotype" value="hasHaplotype" />
             </label>
       </p>
             </p>
-            <p><strong><%=encprops.getProperty("hasMSMarkers")%>: </strong>
+            <p><strong><%=props.getProperty("hasMSMarkers")%> </strong>
             <label> 
             	<input name="hasMSMarkers" type="checkbox" id="hasMSMarkers" value="hasMSMarkers" />
             </label>
       </p>
-<br /><p><em><%=encprops.getProperty("slowOptions") %></em></p>
-      <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
+<br /><p><em><%=props.getProperty("slowOptions") %></em></p>
+      <p><strong><%=props.getProperty("haplotype")%></strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
-                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+                             (<em><%=props.getProperty("locationIDExample")%></em>)
    </p>
 
       <%
@@ -1104,18 +1073,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <%
       } else {
       %>
-      <p><em><%=encprops.getProperty("noHaplotypes")%>
+      <p><em><%=props.getProperty("noHaplotypes")%>
       </em></p>
       <%
         }
       %>
       
       
-    <p><strong><%=encprops.getProperty("geneticSex")%></strong> <span class="para">
+    <p><strong><%=props.getProperty("geneticSex")%></strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
         target="_blank"><img src="../images/information_icon_svg.gif"
                              alt="Help" border="0" align="absmiddle"/></a></span> <br />
-                             (<em><%=encprops.getProperty("locationIDExample")%></em>)
+                             (<em><%=props.getProperty("locationIDExample")%></em>)
    </p>
 
       <%
@@ -1142,14 +1111,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <%
       } else {
       %>
-      <p><em><%=encprops.getProperty("noGeneticSexes")%>
+      <p><em><%=props.getProperty("noGeneticSexes")%>
       </em></p>
       <%
         }
       %>
       
       
-      <p><strong><%=encprops.getProperty("msmarker")%></strong> 
+      <p><strong><%=props.getProperty("msmarker")%></strong>
       <span class="para">
       	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
       		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
@@ -1172,7 +1141,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             if (!word.equals("")) {
         	%>
         	
-        	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=encprops.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=encprops.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
+        	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=props.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=props.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
         		
         	<%
             }
@@ -1180,7 +1149,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <tr><td colspan="3">
 
-<%=encprops.getProperty("alleleRelaxValue")%> +/- 
+<%=props.getProperty("alleleRelaxValue")%> +/-
 <%
 int alleleRelaxMaxValue=0;
 try{
@@ -1203,7 +1172,7 @@ for(int k=0;k<alleleRelaxMaxValue;k++){
       } 
 else {
       %>
-      <p><em><%=encprops.getProperty("noLoci")%>
+      <p><em><%=props.getProperty("noLoci")%>
       </em></p>
       <%
         }
@@ -1224,7 +1193,7 @@ else {
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('social')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/> <font
-      color="#000000"><%=encprops.getProperty("socialFilters") %></font></a></h4>
+      color="#000000"><%=props.getProperty("socialFilters") %></font></a></h4>
   </td>
 </tr>
 <tr>
@@ -1234,7 +1203,7 @@ else {
     <table>
     	<tr>
     		<td style="vertical-align: top">
-    			<strong><%=encprops.getProperty("belongsToCommunity")%></strong>
+    			<strong><%=props.getProperty("belongsToCommunity")%></strong>
     		</td>
     		</tr>
     		<tr>
@@ -1266,7 +1235,7 @@ else {
       <%
       } else {
       %>
-      <em><%=encprops.getProperty("noCommunities")%>
+      <em><%=props.getProperty("noCommunities")%>
       </em>
       </td>
       </tr>
@@ -1279,50 +1248,38 @@ else {
           <table>
     	<tr>
     		<td style="vertical-align: top">
-    			<strong><%=encprops.getProperty("socialRoleIs")%></strong><br />
-    			<input type="checkbox" name="andRoles"/>&nbsp;<em><%=encprops.getProperty("andRoles")%></em>
+    			<strong><%=props.getProperty("socialRoleIs")%></strong><br />
+    			<input type="checkbox" name="andRoles"/>&nbsp;<em><%=props.getProperty("andRoles")%></em>
     		</td>
     		</tr>
     		<tr>
     		<td style="vertical-align: top"> 
 			<%
         //ArrayList<String> roles = myShepherd.getAllRoleNames();
-        
-		List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
-			
-		//System.out.println(haplos.toString());
 
-        if ((roles!=null)&&(roles.size()>0)) {
-        	int totalNames = roles.size();
-        
+    Map<String, String> roleMap = CommonConfiguration.getIndexedValuesMap("relationshipRole", context);
+		List<String> roles = CommonConfiguration.getIndexedValues("relationshipRole", context);
+        if (!roleMap.isEmpty()) {
       %>
 
-      <select multiple="multiple" size="10" name="role" id="role">
-        <option value="None"></option>
-        <%
-          for (int n = 0; n < totalNames; n++) {
-            String word = roles.get(n);
-            if ((word!=null)&&(!word.equals(""))) {
-        	%>
-        		<option value="<%=word%>"><%=word%></option>
-        	<%
+          <select multiple="multiple" size="10" name="role" id="role">
+            <option value="None"></option>
+            <%
+              for (Map.Entry<String, String> me : roleMap.entrySet()) {
+            %>
+            <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+            <%
+              }
+            %>
+          </select>
+          <%
+          } else {
+          %>
+          <em><%=props.getProperty("noRoles")%></em>
+          <%
             }
-          }
-        %>
-      </select></td>
-      </tr>
-      </table>
-      <%
-      } else {
-      %>
-      <em><%=encprops.getProperty("noRoles")%>
-      </em>
-      </td>
-      </tr>
-      </table>
-      <%
-        }
-      %>
+          %>
+        </td></tr></table>
       
       
       
@@ -1341,11 +1298,11 @@ else {
     <p>
     <em> 
     <%
-    String submitText=encprops.getProperty("submitText1");
-    if(request.getParameter("year1")!=null){submitText=encprops.getProperty("submitText2");}
+    String submitText= props.getProperty("submitText1");
+    if(request.getParameter("year1")!=null){submitText= props.getProperty("submitText2");}
     
     %>
-    <input name="submitSearch" type="submit" id="submitSearch" value="<%=encprops.getProperty("goSearch")%>">
+    <input name="submitSearch" type="submit" id="submitSearch" value="<%=props.getProperty("goSearch")%>">
     </em>
     </p>
 
