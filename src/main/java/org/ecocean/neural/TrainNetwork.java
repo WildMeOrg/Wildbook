@@ -907,7 +907,7 @@ int nonMatchMultiplier=3;
           iExample.setValue(6, mo.getDateDiff().doubleValue());
           iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
           iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
-          iExample.setValue(9, mo.getIBEISColor().doubleValue());
+          iExample.setValue(9, mo.getIBEISColorValue().doubleValue());
       }
       else if(genusSpecies.equals("Tursiopstruncatus")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -919,7 +919,7 @@ int nonMatchMultiplier=3;
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
         iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
-        iExample.setValue(9, mo.getIBEISColor().doubleValue());
+        iExample.setValue(9, mo.getIBEISColorValue().doubleValue());
     }
     else if(genusSpecies.equals("Megapteranovaeangliae")){
         iExample.setValue(0, mo.getIntersectionCount().doubleValue());
@@ -931,7 +931,7 @@ int nonMatchMultiplier=3;
         iExample.setValue(6, mo.getDateDiff().doubleValue());
         iExample.setValue(7, mo.getEuclideanDistanceValue().doubleValue());
         iExample.setValue(8, mo.getPatterningCodeDiff().doubleValue());
-        iExample.setValue(9, mo.getIBEISColor());
+        iExample.setValue(9, mo.getIBEISColorValue());
 
         
     }
@@ -1088,7 +1088,7 @@ int nonMatchMultiplier=3;
             System.out.println("[" + taskPrefix + taskID + "] IBEIS COLOR results object was null or got non-success.");
         }
 
-        if(mo.getIBEISColor()==null){mo.setIBEISColorValue(weka.core.Utils.missingValue());}
+        if(mo.getIBEISColorValue()==null){mo.setIBEISColorValue(weka.core.Utils.missingValue());}
         
         
         mo.setIntersectionCount(numIntersections.doubleValue());

@@ -329,7 +329,10 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>
+      <version>1.10.53</version>
+<!--
       <version>1.9.13</version>
+-->
     </dependency>
 
     <dependency>

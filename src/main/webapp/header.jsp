@@ -77,7 +77,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
       
      <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
-  	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
+  	<script src="<%=urlLoc %>/cust/mantamatcher/js/___behaviour.js"></script>
  
  	<!-- Start Open Graph Tags -->
  	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>

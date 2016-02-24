@@ -135,12 +135,12 @@ public class EncounterLite implements java.io.Serializable {
     if (enc.getSpots() != null) {
 
       processLeftSpots(enc.getSpots());
-      System.out.println("EncounterLite sees "+enc.getSpots().size()+" left-side spots.");
+      //System.out.println("EncounterLite sees "+enc.getSpots().size()+" left-side spots.");
 
       if (enc.getLeftReferenceSpots() != null) {
 
         processLeftReferenceSpots(enc.getLeftReferenceSpots());
-        System.out.println("EncounterLite sees "+enc.getLeftReferenceSpots().size()+" left-side REFERENCE spots.");
+        //System.out.println("EncounterLite sees "+enc.getLeftReferenceSpots().size()+" left-side REFERENCE spots.");
 
       }
 
@@ -151,12 +151,12 @@ public class EncounterLite implements java.io.Serializable {
     if (enc.getRightSpots() != null) {
 
       processRightSpots(enc.getRightSpots());
-      System.out.println("EncounterLite sees "+enc.getRightSpots().size()+" right-side spots.");
+      //System.out.println("EncounterLite sees "+enc.getRightSpots().size()+" right-side spots.");
 
       if (enc.getRightReferenceSpots() != null) {
 
         processRightReferenceSpots(enc.getRightReferenceSpots());
-        System.out.println("EncounterLite sees "+enc.getRightReferenceSpots().size()+" right-side REFERENCE spots.");
+        //System.out.println("EncounterLite sees "+enc.getRightReferenceSpots().size()+" right-side REFERENCE spots.");
 
       }
 
