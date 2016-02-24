@@ -268,17 +268,27 @@ public class ScanWorkItem implements java.io.Serializable {
         result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
       }
       //set MSM value
-      Double msmValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      Double msmValue=new Double(weka.core.Utils.missingValue());
+      Double potentialMMSMValue=MSM.getMSMDistance(existingEncounter, newEncounter);
+      if(potentialMMSMValue!=null){
+        msmValue=potentialMMSMValue;
+      }
       System.out.println("     MSM result is: "+msmValue.doubleValue());
       result.setMSMSValue(msmValue);
       
 
-
-      Double swaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
+      Double swaleValue=new Double(weka.core.Utils.missingValue());
+      
+      Double potentialSwaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
+      if(potentialSwaleValue!=null){
+        swaleValue=potentialSwaleValue;
+      }
       System.out.println("     Swale result is: "+swaleValue.doubleValue());
       result.setSwaleValue(swaleValue);
       
-      Double eucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
+      Double eucValue=new Double(weka.core.Utils.missingValue());
+      Double potentialEucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
+      if(potentialEucValue!=null){eucValue=potentialEucValue;}
       System.out.println("     Euc. result is: "+swaleValue.doubleValue());
       result.setEuclideanDistanceValue(eucValue);
       

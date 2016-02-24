@@ -206,7 +206,7 @@ try {
   	<p>
     <%
 	///MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_annotation");
-    	ArrayList<MediaAsset> fmas = enc.findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
+	ArrayList<MediaAsset> fmas = enc.findAllMediaByFeatureId(myShepherd, new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
 	MediaAsset spotMA = null;
 	if (fmas.size() > 0) spotMA = fmas.get(0);
 

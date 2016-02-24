@@ -320,7 +320,7 @@ public class MatchObject implements java.io.Serializable {
   public Double getPatterningCodeDiff(){return patterningCodeDiff;}
   
   public void setIBEISColorValue(Double value){ibeisColor=value;}
-  public Double getIBEISColor(){return ibeisColor;}
+  public Double getIBEISColorValue(){return ibeisColor;}
 
   
 }

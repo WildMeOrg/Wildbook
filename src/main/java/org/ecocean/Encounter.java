@@ -1012,8 +1012,18 @@ public class Encounter implements java.io.Serializable {
                 System.out.println("WARNING: Encounter.generateAnnotations() found a duplicate MediaAsset in the SinglePhotoVideo images; skipping -- " + ma);
                 continue;
             }
-            haveMedia.add(ma);
+
+            //note: we need at least minimal metadata (w,h) in order to make annotation, so if this fails, we are no-go
+            try {
+                ma.updateMetadata();
+            } catch (IOException ioe) {
+                System.out.println("WARNING: Encounter.generateAnnotations() failed to updateMetadata() on original MediaAsset " + ma + " (skipping): " + ioe.toString());
+                continue;
+            }
+
             ma.addLabel("_original");
+            haveMedia.add(ma);
+
             annotations.add(new Annotation(ma, getTaxonomyString()));
             //if (!media.contains(ma)) media.add(ma);
             //File idir = new File(this.dir(baseDir));
@@ -1054,9 +1064,17 @@ System.out.println("creating new MediaAsset for key=" + key);
             System.out.println("Could not create MediaAsset for key=" + key + ": " + ioe.toString());
             return null;
         }
+        if (parentMA != null) {
+            ma.setParentId(parentMA.getId());
+            ma.updateMinimalMetadata();  //for children (ostensibly derived?) MediaAssets, really only need minimal metadata or so i claim
+        } else {
+            try {
+                ma.updateMetadata();  //root images get the whole deal (guess this sh/could key off label=_original ?)
+            } catch (IOException ioe) {
+                //we dont care (well sorta) ... since IOException usually means we couldnt open file or some nonsense that we cant recover from
+            }
+        }
         ma.addLabel(label);
-        ma.updateMinimalMetadata();
-        if (parentMA != null) ma.setParentId(parentMA.getId());
         MediaAssetFactory.save(ma, myShepherd);
         return ma;
     }
@@ -1087,11 +1105,11 @@ System.out.println("trying spotImageAsMediaAsset with file=" + fullPath.toString
 System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
             try {
                 ma = astore.copyIn(fullPath, sp);
-                ma.addLabel("_spot");
-                ma.addLabel("_annotation");
                 ma.addDerivationMethod("historicSpotImageConversion", true);
                 ma.updateMinimalMetadata();
 //System.out.println("params? " + ma.getParameters());
+                ma.addLabel("_spot");
+                ma.addLabel("_annotation");
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
             } catch (java.io.IOException ex) {
@@ -2005,19 +2023,26 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
 
     //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
-//NOTE only traverses one level down
-    public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
-        Shepherd myShepherd = new Shepherd("context0"); ///super-hacky, but thats how i am feeling
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(Shepherd myShepherd, String[] featureIds) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         for (MediaAsset ma : getMedia()) {
             if (ma.hasFeatures(featureIds)) mas.add(ma);
-            ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
+            ArrayList<MediaAsset> kids = ma.findChildren(myShepherd); //note: does not recurse, but... meh?
             if ((kids == null) || (kids.size() < 1)) continue;
-            for (MediaAsset k : kids) {
-                if (k.hasFeatures(featureIds)) mas.add(k);
+            for (MediaAsset kma : kids) {
+                if (kma.hasFeatures(featureIds)) mas.add(kma);
             }
         }
         return mas;
+    }
+
+    //down-n-dirty with no myShepherd passed!  :/
+    public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.beginDBTransaction();
+        ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
+        myShepherd.rollbackDBTransaction();
+        return all;
     }
 
     public ArrayList<MediaAsset> findAllMediaByLabel(Shepherd myShepherd, String label) {
@@ -2174,6 +2199,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
             if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
 */
 
+            jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
+/*
             if ((this.getImages() != null) && (this.getImages().size() > 0)) {
                 jobj.put("hasImages", true);
                 JSONArray jarr = new JSONArray();
@@ -2182,6 +2209,16 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
                 }
                 jobj.put("images", jarr);
             }
+*/
+            if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+                jobj.put("hasAnnotations", true);
+                JSONArray jarr = new JSONArray();
+                for (Annotation ann : this.getAnnotations()) {
+                    jarr.put(ann.sanitizeJson(request, fullAccess));
+                }
+                jobj.put("annotations", jarr);
+            }
+
             if (fullAccess) return jobj;
 
             jobj.remove("gpsLatitude");
@@ -2366,13 +2403,13 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
         System.out.println(ex.toString());
         ex.printStackTrace();
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.edgeSpots", "org.ecocean.dorsalEdge.edgeSpots"});
-        if ((mas == null) || (mas.size() < 1)) return null;
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
         for (Feature f : mas.get(0).getFeatures()) {
             if (f.isType("org.ecocean.flukeEdge.edgeSpots") || f.isType("org.ecocean.dorsalEdge.edgeSpots")) {
                 if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray(which));
             }
         }
-        return null;
+        return new ArrayList<SuperSpot>();
     }
 
     //err, i think ref spots are the same right or left.... at least for flukes/dorsals.  :/  good luck with mantas and whalesharks!
@@ -2381,13 +2418,13 @@ if (enc == null) System.out.println("could not find enc for ma " + ma);
         System.out.println(ex.toString());
         ex.printStackTrace();
         ArrayList<MediaAsset> mas = findAllMediaByFeatureId(new String[]{"org.ecocean.flukeEdge.referenceSpots", "org.ecocean.referenceEdge.edgeSpots"});
-        if ((mas == null) || (mas.size() < 1)) return null;
+        if ((mas == null) || (mas.size() < 1)) return new ArrayList<SuperSpot>();
         for (Feature f : mas.get(0).getFeatures()) {
             if (f.isType("org.ecocean.flukeEdge.referenceSpots") || f.isType("org.ecocean.dorsalEdge.referenceSpots")) {
                 if (f.getParameters() != null) return SuperSpot.listFromJSONArray(f.getParameters().optJSONArray("spots"));
             }
         }
-        return null;
+        return new ArrayList<SuperSpot>();
     }
 
 }

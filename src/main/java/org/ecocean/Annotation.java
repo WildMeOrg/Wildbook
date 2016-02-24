@@ -156,7 +156,7 @@ public class Annotation implements java.io.Serializable {
         mediaAsset = ma;
     }
 
-    // get the MediaAsset created using this Annotation
+    // get the MediaAsset created using this Annotation  TODO make this happen
     public MediaAsset getDerivedMediaAsset() {
         return null;
     }
@@ -233,6 +233,22 @@ public class Annotation implements java.io.Serializable {
         return MediaAsset.findByAnnotation(this, myShepherd);
     }
 */
+
+        //*for now* this will only(?) be called from an Encounter, which means that Encounter must be sanitized
+        //  so we assume this *must* be sanitized too.
+	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+                                                                        boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+            org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
+            jobj.put("id", id);
+            //really we only "care" about MediaAsset -- for now?
+            if (this.getMediaAsset() != null) jobj.put("mediaAsset", this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(this), fullAccess));  //"should never" be null anyway
+            return jobj;
+        }
+
+        //default behavior is limited access
+	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+            return this.sanitizeJson(request, false);
+        }
 
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
         if (mediaAsset == null) return "<!-- Annotation.toHtmlElement(): " + this + " has no MediaAsset -->";
