@@ -224,6 +224,7 @@ if (count > 20) {
                   gm.addWorkItem(swi);
                   count++;
                   
+                  /*
                   //scan the reverse as well
                   System.out.println("     I am creating an inverse ScanWorkItem!");
                   ScanWorkItem swi2 = new ScanWorkItem(enc,myShepherd.getEncounter(encounterNumber), (wiIdentifier+"Revere"), taskID, props2, algorithms);
@@ -235,6 +236,7 @@ if (count > 20) {
       
                   //System.out.println("Added a new right-side scan task!");
                   count++;
+                  */
                 
               //} 
           //}     
