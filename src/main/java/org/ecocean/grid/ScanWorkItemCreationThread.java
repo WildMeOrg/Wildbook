@@ -143,6 +143,7 @@ System.out.println("baseUrl --> " + baseUrl);
     Collection c=null;
     try {
       
+/*  NOTE: our new way to find suitable encounters is below -- TODO this needs to account for empty genus & species!!!
       if(genus.equals("")){
         query=myShepherd.getPM().newQuery(jdoql);
         c = (Collection) (query.execute());
@@ -153,23 +154,38 @@ System.out.println("baseUrl --> " + baseUrl);
         query=myShepherd.getPM().newQuery(keywordQueryString);
         c = (Collection) (query.execute());
       }
-      
       //System.out.println("Num scans to do: "+c.size());
       Iterator encounters = c.iterator();
+*/
       
+        ArrayList<Encounter> encounters = Encounter.getEncountersForMatching(Util.taxonomyString(genus, species), myShepherd);
 
-        ArrayList<Encounter> tencs = new ArrayList<Encounter>();  //this is to pass to IBEISIA
+        //we kick of IBEIS first, so it has (plenty of!) time to finish
+        ArrayList<Encounter> qencs = new ArrayList<Encounter>();
+        qencs.add(myShepherd.getEncounter(encounterNumber));
+        ArrayList<Encounter> tencs = new ArrayList<Encounter>();  //all the other encounters
+        for (Encounter enc : encounters) {
+            if (!enc.getEncounterNumber().equals(encounterNumber)) tencs.add(enc);
+        }
+//System.out.println("qencs = " + qencs);
+//System.out.println("tencs = " + tencs);
+        IBEISIA.beginIdentify(qencs, tencs, myShepherd, Util.taxonomyString(genus, species), taskID, baseUrl, context);
+
       
+    //iterate thru again now for the other matching algorithms
       int count = 0;
-
-      while (encounters.hasNext()) {
-        System.out.println("     Iterating encounters to create scanWorkItems...");
-        Encounter enc = (Encounter) encounters.next();
+    for (Encounter enc : encounters) {
+        System.out.println("     Iterating encounters to create scanWorkItems [" + enc.getEncounterNumber() + "  " + count + "/" + encounters.size() + "] ...");
+/*
+if (count > 20) {
+    count++;
+    continue;
+}
+*/
         
         //TBD- ok, for now we're going to hardcode the check for species here
         
         if (!enc.getEncounterNumber().equals(encounterNumber)) {
-            tencs.add(enc);
           //if((enc.getSpots()!=null)&&(enc.getSpots().size()>0)&&(enc.getRightSpots()!=null)&&(enc.getRightSpots().size()>0)){
           
             /*  
@@ -234,12 +250,6 @@ System.out.println("baseUrl --> " + baseUrl);
         String rootDir = sctx.getRealPath("/");
         String baseDir = ServletUtilities.dataDir(context, rootDir);
 */
-        ArrayList<Encounter> qencs = new ArrayList<Encounter>();
-        qencs.add(myShepherd.getEncounter(encounterNumber));
-//System.out.println("qencs = " + qencs);
-//System.out.println("tencs = " + tencs);
-        IBEISIA.beginIdentify(qencs, tencs, myShepherd, Util.taxonomyString(genus, species), taskID, baseUrl, context);
-
 
       //System.out.println("Trying to commit the add of the scanWorkItems after leaving loop");
       myShepherd.commitDBTransaction();

@@ -24,6 +24,7 @@ import java.util.Collections;
 import org.ecocean.*;
 import org.ecocean.grid.*;
 import org.ecocean.neural.*;
+import org.ecocean.identity.*;
 import java.util.Comparator;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import com.google.gson.*;
 
@@ -107,6 +109,35 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         //MatchObject[] res = new MatchObject[0];
 
         ArrayList<MatchObject> res = gm.getMatchObjectsForTask(taskID);
+
+
+        //this will wait for the results from IBEISIA -- but usually(?) should never have to since all the other algorithms take longer
+        ArrayList<String> tid = new ArrayList<String>();
+        tid.add(taskID);
+        IBEISIA.waitForTrainingJobs(tid, myShepherd);
+
+        HashMap<String,Object> ires = IBEISIA.getTaskResultsAsHashMap(taskID, myShepherd);
+        if ((ires.get("success") != null) && (Boolean)ires.get("success") && (ires.get("results") != null)) {
+            System.out.println("got legit results from IBEIS-IA" + ires.toString());
+            HashMap<String,Object> r = (HashMap<String,Object>)ires.get("results");
+            if (r.get(encNumber) == null) {
+                System.out.println(" .... curiously, we have no result for our encNumber=" + encNumber + "; skipping IBEIS results");
+            } else {
+                HashMap<String,Double> iscores = (HashMap<String,Double>)r.get(encNumber);  //the thing we are really after, encNum=>score
+                //now we iterate through the existing MatchObjects and set IBEISColor accordingly
+                for (MatchObject mo : res) {
+                    Object s = iscores.get(mo.getEncounterNumber());
+                    if (s == null) {
+                        mo.setIBEISColorValue(0.0);
+                    } else {
+                        mo.setIBEISColorValue((Double)s);
+System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + " -> " + mo.getIBEISColorValue());
+                    }
+                }
+            }
+        } else {
+            System.out.println("*** apparently did not get successful results from IBEIS-IA  :(");
+        }
 
 
         boolean righty = false;
@@ -361,7 +392,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               a1Example.setValue(6, (new Double(a1.getMatchObject().getDateDiff()).doubleValue()));
               a1Example.setValue(7, (new Double(a1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
               a1Example.setValue(8, (new Double(a1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
-              a1Example.setValue(9, (new Double(a1.getMatchObject().getIBEISColor()).doubleValue()));
+              a1Example.setValue(9, ((a1.getMatchObject().getIBEISColorValue() == null) ? 0.0 : new Double(a1.getMatchObject().getIBEISColorValue()).doubleValue()));
               
               
               b1Example.setDataset(instances);
@@ -374,7 +405,7 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
               b1Example.setValue(6, (new Double(b1.getMatchObject().getDateDiff()).doubleValue()));
               b1Example.setValue(7, (new Double(b1.getMatchObject().getEuclideanDistanceValue()).doubleValue()));
               b1Example.setValue(8, (new Double(b1.getMatchObject().getPatterningCodeDiff()).doubleValue()));
-              b1Example.setValue(9, (new Double(a1.getMatchObject().getIBEISColor()).doubleValue()));
+              b1Example.setValue(9, ((b1.getMatchObject().getIBEISColorValue() == null) ? 0.0 : new Double(b1.getMatchObject().getIBEISColorValue()).doubleValue()));
               
               Double aClass=0.0;
               Double bClass=0.0;
@@ -535,8 +566,8 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
         result.add(new JsonPrimitive(""));
       }
 
-        if (mo.getIBEISColor() != null) {
-            result.add(new JsonPrimitive(TrainNetwork.round(mo.getIBEISColor().doubleValue(),3)));
+        if (mo.getIBEISColorValue() != null) {
+            result.add(new JsonPrimitive(TrainNetwork.round(mo.getIBEISColorValue().doubleValue(),3)));
         } else {
             result.add(new JsonPrimitive(""));
         }

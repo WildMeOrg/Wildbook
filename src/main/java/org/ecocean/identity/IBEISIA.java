@@ -142,7 +142,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         map.put("dannot_uuid_list", tlist);
 
 System.out.println("===================================== qlist & tlist =========================");
-System.out.println(qlist);
+System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
         return RestClient.post(url, new JSONObject(map));
     }
