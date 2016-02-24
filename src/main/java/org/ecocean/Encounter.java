@@ -2038,7 +2038,11 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
-        return findAllMediaByFeatureId(new Shepherd("context0"), featureIds);
+        Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.beginDBTransaction();
+        ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
+        myShepherd.rollbackDBTransaction();
+        return all;
     }
 
     public ArrayList<MediaAsset> findAllMediaByLabel(Shepherd myShepherd, String label) {
@@ -2195,6 +2199,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
             if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
 */
 
+            jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
+/*
             if ((this.getImages() != null) && (this.getImages().size() > 0)) {
                 jobj.put("hasImages", true);
                 JSONArray jarr = new JSONArray();
@@ -2203,6 +2209,16 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
                 }
                 jobj.put("images", jarr);
             }
+*/
+            if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+                jobj.put("hasAnnotations", true);
+                JSONArray jarr = new JSONArray();
+                for (Annotation ann : this.getAnnotations()) {
+                    jarr.put(ann.sanitizeJson(request, fullAccess));
+                }
+                jobj.put("annotations", jarr);
+            }
+
             if (fullAccess) return jobj;
 
             jobj.remove("gpsLatitude");

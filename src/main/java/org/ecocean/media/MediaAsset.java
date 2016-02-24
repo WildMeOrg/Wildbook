@@ -525,9 +525,19 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if (store == null) throw new IOException("copyAssetTo(): store is null on " + this);
         store.copyAssetAny(this, targetMA);
     }
+/*
+	public JSONObject sanitizeJson(HttpServletRequest request, boolean fullAccess) throws JSONException {
+            JSONObject jobj = new JSONObject();
+            jobj.put("id", id);
+            //really we only "care" about MediaAsset -- for now?
+            if (this.getMediaAsset() != null) jobj.put("mediaAsset", this.getMediaAsset().sanitizeJson(request, fullAccess));  //"should never" be null anyway
+            return jobj;
+        }
+*/
 
+        //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+                org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
             //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.get("parametersAsString")));
             //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new JSONObject(jobj.getString("parametersAsString")));
             if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
@@ -545,6 +555,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             }
             return jobj;
         }
+
 
     public String toString() {
         return new ToStringBuilder(this)
