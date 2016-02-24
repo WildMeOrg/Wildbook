@@ -1,10 +1,12 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory,org.apache.commons.lang3.StringEscapeUtils" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ page import="org.slf4j.Logger" %>
+<%@ page import="org.slf4j.LoggerFactory" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
-
+  String context = ServletUtilities.getContext(request);
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -12,18 +14,8 @@ context=ServletUtilities.getContext(request);
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
-
-  //setup our Properties object to hold all properties
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-
-  //set up the file input stream
-  Properties props = new Properties();
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/welcome.properties"));
-  props = ShepherdProperties.getProperties("welcome.properties", langCode,context);
-
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("welcome.properties", langCode, context);
 
   session = request.getSession(true);
   session.putValue("logged", "true");
@@ -40,7 +32,7 @@ context=ServletUtilities.getContext(request);
           </h1>
 
 
-          <p><%=props.getProperty("loggedInAs")%> <strong><%=StringEscapeUtils.escapeHtml4(request.getRemoteUser())%>
+          <p><%=props.getProperty("loggedInAs")%> <strong><%=request.getRemoteUser()%>
           </strong>.
           </p>
 
