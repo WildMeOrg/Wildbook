@@ -4,6 +4,7 @@ var wildbook = {
         'Encounter',
         'MarkedIndividual',
         'SinglePhotoVideo',
+        'MediaAsset',
         'Measurement',
     ],
 

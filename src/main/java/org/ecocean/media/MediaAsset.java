@@ -23,6 +23,7 @@ import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
 import org.ecocean.Shepherd;
+import org.ecocean.servlet.ServletUtilities;
 //import org.ecocean.Encounter;
 import org.ecocean.identity.Feature;
 import java.net.URL;
@@ -525,15 +526,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if (store == null) throw new IOException("copyAssetTo(): store is null on " + this);
         store.copyAssetAny(this, targetMA);
     }
-/*
-	public JSONObject sanitizeJson(HttpServletRequest request, boolean fullAccess) throws JSONException {
-            JSONObject jobj = new JSONObject();
-            jobj.put("id", id);
-            //really we only "care" about MediaAsset -- for now?
-            if (this.getMediaAsset() != null) jobj.put("mediaAsset", this.getMediaAsset().sanitizeJson(request, fullAccess));  //"should never" be null anyway
-            return jobj;
+
+
+	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+            return sanitizeJson(request, jobj, false);
         }
-*/
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
@@ -553,6 +551,21 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 //hactacular, but if it works....
                 jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
             }
+
+            //note? warning? i guess this will traverse... gulp?
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
+            myShepherd.rollbackDBTransaction();
+            if ((kids != null) && (kids.size() > 0)) {
+                org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
+                for (MediaAsset kid : kids) {
+                    k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(kid), fullAccess));
+                }
+                jobj.put("children", k);
+            }
+
             return jobj;
         }
 

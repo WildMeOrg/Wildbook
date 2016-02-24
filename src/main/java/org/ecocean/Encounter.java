@@ -2200,6 +2200,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 */
 
             jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
+            //jobj.remove("images");  //TODO uncomment after debugging
 /*
             if ((this.getImages() != null) && (this.getImages().size() > 0)) {
                 jobj.put("hasImages", true);
