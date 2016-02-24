@@ -1,16 +1,15 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
-<%@ page import="java.util.GregorianCalendar" %>
-<%@ page import="java.util.Iterator" %>
-<%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Extent" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-String langCode=ServletUtilities.getLanguageCode(request);
-
-
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties encprops = ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
+  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 %>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -39,7 +38,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
@@ -97,15 +96,6 @@ margin-bottom: 8px !important;
   } catch (Exception e) {
     e.printStackTrace();
   }
-
-//let's load encounterSearch.properties
-  //String langCode = "en";
-
-  Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
-  encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
-
-  
 %>
 
 <div class="container maincontent">
@@ -268,8 +258,8 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
-            off: "Turn on",
-            on: "Turn off"
+            off: "<%=encprops.getProperty("turnOn")%>",
+            on: "<%=encprops.getProperty("turnOff")%>"
           }
         });
 
@@ -373,7 +363,7 @@ function FSControl(controlDiv, map) {
   controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
   controlUI.style.cursor = 'pointer';
   controlUI.style.textAlign = 'center';
-  controlUI.title = 'Toggle the fullscreen mode';
+  controlUI.title = '<%=encprops.getProperty("toggleFullscreen")%>';
   controlDiv.appendChild(controlUI);
 
   // Set CSS for the control interior
@@ -455,24 +445,23 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
+        Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
         ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
-
         if (totalLocIDs >= 1) {
       %>
 
       <select multiple="multiple" name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
-        <%
-          for (int n = 0; n < totalLocIDs; n++) {
-            String word = locIDs.get(n);
-            if (!word.equals("")&&(!word.equals("None"))) {
-        %>
-        <option value="<%=word%>"><%=word%></option>
-        <%
-            }
+      <%
+        for (Map.Entry<String, String> me : locMap.entrySet()) {
+          if (locIDs.contains(me.getValue()) && !"".equals(me.getValue())) {
+      %>
+        <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+      <%
           }
-        %>
+        }
+      %>
       </select>
       <%
       } else {
@@ -902,19 +891,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <table align="left">
         <tr>
           <td><strong><%=encprops.getProperty("sex")%>: </strong>
-            <label> <input name="male"
-                           type="checkbox" id="male" value="male"
-                           checked> <%=encprops.getProperty("male")%>
-            </label>
-
-            <label> <input name="female"
-                           type="checkbox" id="female" value="female" checked>
-              <%=encprops.getProperty("female")%>
-            </label>
-            <label> <input name="unknown"
-                           type="checkbox" id="unknown" value="unknown" checked>
-              <%=encprops.getProperty("unknown")%>
-            </label></td>
+            <label> <input name="male" type="checkbox" id="male" value="male" checked> <%=encprops.getProperty("male")%></label>
+            <label> <input name="female" type="checkbox" id="female" value="female" checked> <%=encprops.getProperty("female")%></label>
+            <label> <input name="unknown" type="checkbox" id="unknown" value="unknown" checked> <%=encprops.getProperty("unknown")%></label></td>
         </tr>
         <%
         if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -952,13 +931,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 	%>
 
         <tr>
-          <td><strong><%=encprops.getProperty("status")%>: </strong><label>
-            <input name="alive" type="checkbox" id="alive" value="alive"
-                   checked> <%=encprops.getProperty("alive")%>
-          </label><label>
-            <input name="dead" type="checkbox" id="dead" value="dead"
-                   checked> <%=encprops.getProperty("dead")%>
-          </label>
+          <td>
+            <strong><%=encprops.getProperty("status")%>: </strong>
+            <label><input name="alive" type="checkbox" id="alive" value="alive" checked> <%=encprops.getProperty("alive")%></label>
+            <label><input name="dead" type="checkbox" id="dead" value="dead" checked> <%=encprops.getProperty("dead")%></label>
           </td>
         </tr>
         
@@ -968,8 +944,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           <td valign="top"><strong><%=encprops.getProperty("behavior")%>:</strong>
             <em> <span class="para">
 								<a href="<%=CommonConfiguration.getWikiLocation(context)%>behavior" target="_blank">
-                  <img src="../images/information_icon_svg.gif" alt="Help" border="0"
-                       align="absmiddle"/>
+                  <img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
                 </a>
 							</span>
             </em><br/>
@@ -1014,6 +989,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
+  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("lifeStage", context);
 
 %>
 <tr valign="top">
@@ -1021,29 +997,20 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   
   <select name="lifeStageField" id="lifeStageField">
   	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMoreStages=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMoreStages){
-  			       	  String currentLifeStage = "lifeStage"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMoreStages=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
-			       <% }
-			       
- %>
+<%
+  if (map.size() == 0) {
+%>
+    <p><em><%=encprops.getProperty("noStages")%></em></p>
+<%
+}
+else {
+  for (Map.Entry<String, String> me : map.entrySet()) {
+%>
+    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+<%
+    }
+  }
+%>
   </select></td>
 </tr>
 <%
@@ -1051,6 +1018,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 if(CommonConfiguration.showProperty("showPatterningCode",context)){
+  Map<String, String> map = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
 
 %>
 <tr valign="top">
@@ -1058,29 +1026,20 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   
   <select name="patterningCodeField" id="patterningCodeField">
   	<option value="None" selected="selected"></option>
-  <%
-  			       boolean hasMorePatterningCodes=true;
-  			       int stageNum=0;
-  			       
-  			       while(hasMorePatterningCodes){
-  			       	  String currentLifeStage = "patterningCode"+stageNum;
-  			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-  			       	  	%>
-  			       	  	 
-  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-  			       	  	<%
-  			       		stageNum++;
-  			          }
-  			          else{
-  			        	hasMorePatterningCodes=false;
-  			          }
-  			          
-			       }
-			       if(stageNum==0){%>
-			    	   <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
-			       <% }
-			       
- %>
+<%
+  if (map.size() == 0) {
+%>
+    <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
+<%
+}
+else {
+  for (Map.Entry<String, String> me : map.entrySet()) {
+%>
+    <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+<%
+    }
+  }
+%>
   </select></td>
 </tr>
 <%
@@ -1505,19 +1464,17 @@ else {
         <tr>
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong></p>
+        <%
+          Map<String, String> map = CommonConfiguration.getIndexedValuesMap("encounterState", context);
+        %>
+            <p><select size="<%=(map.size()+1) %>" multiple="multiple" name="state" id="state">
+              <option value="None"></option>
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-     		int numProps=values.size();
-     		%>
-     		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
-     		<option value="None"></option>
-     		<%
-     		
-     		for(int y=0;y<numProps;y++){
-     		%>
-     			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
-     		<%
-     		}
+        for (Map.Entry<String, String> me : map.entrySet()) {
+        %>
+              <option value="<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></option>
+        <%
+        }
      		%>
      		</select>
 			</p>
