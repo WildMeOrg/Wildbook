@@ -50,34 +50,34 @@ public class RankComparator implements Comparator {
         double b1_adjustedValue = 0;
         
         if(algorithm.equals("euclidean")){
-          a1_adjustedValue=a1.getEuclideanDistanceValue();
-          b1_adjustedValue=b1.getEuclideanDistanceValue();
+          a1_adjustedValue=a1.getEuclideanDistanceValue().doubleValue();
+          b1_adjustedValue=b1.getEuclideanDistanceValue().doubleValue();
         }
         else if(algorithm.equals("i3s")){
           a1_adjustedValue=a1.getI3SMatchValue();
           b1_adjustedValue=b1.getI3SMatchValue();
         }
         else if(algorithm.equals("MSM")){
-          a1_adjustedValue=a1.getMSMValue();
-          b1_adjustedValue=b1.getMSMValue();
+          a1_adjustedValue=a1.getMSMValue().doubleValue();
+          b1_adjustedValue=b1.getMSMValue().doubleValue();
         }
         else if(algorithm.equals("fastDTW")){
-          a1_adjustedValue=a1.getLeftFastDTWResult();
-          b1_adjustedValue=b1.getLeftFastDTWResult();
+          a1_adjustedValue=a1.getLeftFastDTWResult().doubleValue();
+          b1_adjustedValue=b1.getLeftFastDTWResult().doubleValue();
         }
         else if(algorithm.equals("proportion")){
-          a1_adjustedValue=a1.getProportionValue();
-          b1_adjustedValue=b1.getProportionValue();
+          a1_adjustedValue=a1.getProportionValue().doubleValue();
+          b1_adjustedValue=b1.getProportionValue().doubleValue();
         }
         
         if (a1_adjustedValue > b1_adjustedValue) {
           return 1;
         } 
-        else if (a1_adjustedValue == b1_adjustedValue) {
-          return 0;
+        else if (a1_adjustedValue < b1_adjustedValue) {
+          return -1;
         } 
         else {
-          return -1;
+          return 0;
         }
       }
       
