@@ -456,7 +456,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
       
       
           
-       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "msm","swale","euclidean","patterningCode","dateDiff", "IBEISColor"};
+       String[] header= {"individualID", "encounterID", "rank","adaboost_match","overall_score", "IBEISColor", "score_holmbergIntersection", "score_fastDTW", "score_I3S", "msm","swale","euclidean","patterningCode","dateDiff"};
        jsonOut.append(gson.toJson(header)+",\n");
        
        
@@ -500,6 +500,12 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
       //result.add(new JsonPrimitive(""));
         result.add(new JsonPrimitive(0));
         
+        if (mo.getIBEISColorValue() != null) {
+            result.add(new JsonPrimitive(TrainNetwork.round(mo.getIBEISColorValue().doubleValue(),3)));
+        } else {
+            result.add(new JsonPrimitive(""));
+        }
+
         if(mo.getIntersectionCount()!=null){
           result.add(new JsonPrimitive(mo.getIntersectionCount()));
         }
@@ -566,11 +572,6 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
         result.add(new JsonPrimitive(""));
       }
 
-        if (mo.getIBEISColorValue() != null) {
-            result.add(new JsonPrimitive(TrainNetwork.round(mo.getIBEISColorValue().doubleValue(),3)));
-        } else {
-            result.add(new JsonPrimitive(""));
-        }
         
         //result.add(new JsonPrimitive(fDistribution[1]));
         
