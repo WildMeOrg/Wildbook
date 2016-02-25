@@ -536,9 +536,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.get("parametersAsString")));
-            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new JSONObject(jobj.getString("parametersAsString")));
-            if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
+            jobj.put("id", this.getId());
+            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
             jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
@@ -561,11 +560,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             if ((kids != null) && (kids.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray k = new org.datanucleus.api.rest.orgjson.JSONArray();
                 for (MediaAsset kid : kids) {
-                    k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(kid), fullAccess));
+                    k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess));
                 }
                 jobj.put("children", k);
             }
 
+            if (this.getLabels() != null) jobj.put("labels", this.getLabels());
             return jobj;
         }
 

@@ -401,24 +401,15 @@ console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
 //will append to el
 function addImage(enc, el) {
 console.info('addImage(%o, %o)', enc, el);
-/*
-    if (!enc.get('spotImageFileName')) {
-        $(el).find('.note').html('No spotImageFileName on encounter<br />' + enc.id);
-        console.warn(enc.attributes);
-        return;
-    }
-*/
     //var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/' + enc.get('spotImageFileName');
-    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/extract' + enc.id + '.jpg';
-/*
-    var imgs = enc.get('images');
-    if (!imgs || imgs.length < 0) {
-        $(el).find('.note').html('No images on encounter<br />' + enc.id);
+    if (!enc.get('annotations') || (enc.get('annotations').length < 1) || !enc.get('annotations')[0].mediaAsset) {
+        console.warn('addImage(%o) failed because of bad Annotations/MediaAsset');
         return;
     }
-    var spv = new wildbook.Model.SinglePhotoVideo(imgs[0]);
-    var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + spv.get('spotImageFileName');
-*/
+    var ma = new wildbook.Model.MediaAsset(enc.get('annotations')[0].mediaAsset);
+    //var imgSrc = wildbookGlobals.dataUrl + '/encounters/' + enc.subdir() + '/extract' + enc.id + '.jpg';
+    var imgSrc = ma.labelUrl('_spot', ma.labelUrl());
+
     el.find('.note').remove();
     el.append('<img src="' + imgSrc + '"/>');
     var inf = {
