@@ -419,14 +419,6 @@
   %>
 
     <style type="text/css">
-      body {
-        margin: 0;
-        padding: 10px 20px 20px;
-        font-family: Arial;
-        font-size: 16px;
-      }
-
-
 
       #map {
         width: 600px;
