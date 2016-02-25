@@ -1,15 +1,12 @@
-<%@page contentType="text/html; charset=utf-8" language="java"
-        import="org.ecocean.CommonConfiguration"
-        import="org.ecocean.ShepherdProperties"
-        import="org.ecocean.servlet.ServletUtilities"
-        import="java.util.*"
-%>
+<%@page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
-  String context = "context0";
-  context = ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
   String langCode = ServletUtilities.getLanguageCode(request);
-  Properties props = new Properties();
-  props = ShepherdProperties.getProperties("footer.properties", langCode, context);
+  Properties props = ShepherdProperties.getProperties("footer.properties", langCode, context);
 
   String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 %>
