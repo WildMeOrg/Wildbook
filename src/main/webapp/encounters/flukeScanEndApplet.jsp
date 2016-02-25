@@ -49,6 +49,10 @@ td.ptcol-score_proportion {
 	text-align: right;
 }
 
+.ptcol-adaboost_match { 
+        display: none !important;
+}
+
 /*
 td.ptcol-encounterID:hover, td.ptcol-individualID:hover {
 	background-color: #FF0 !important;
