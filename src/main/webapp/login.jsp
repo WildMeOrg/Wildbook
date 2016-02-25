@@ -1,7 +1,8 @@
-
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties" %>
+
+<jsp:include page="header.jsp" flush="true"/>
 
 
 <%
@@ -36,7 +37,6 @@ context=ServletUtilities.getContext(request);
     // -->
 
   </script>
-<jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
 
