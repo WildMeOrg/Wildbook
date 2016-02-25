@@ -141,6 +141,7 @@ function init() {
         return;
     }
     var headerRow = flukeMatchingData.shift();
+    headerRow.splice(3,1);  //hack to get rid fo metascore
     for (var i = 0 ; i < headerRow.length ; i++) {
         if (columnInfo[headerRow[i]]) {
             columnInfo[headerRow[i]].i = i;
