@@ -410,22 +410,36 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
               Double aClass=0.0;
               Double bClass=0.0;
               
-              try{
-                aClass=booster.classifyInstance(a1Example);
-                System.out.println("Predicted Aclass: "+aClass);
-                
-                //int ArrayResultPosition=0;
-                //if(aClass==1.0)ArrayResultPosition=1;
-                a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
-               
-                //int BrrayResultPosition=0;
-                //if(bClass==1.0)BrrayResultPosition=1;
-                bClass=booster.classifyInstance(b1Example);
-                //System.out.println("Predicted Bclass: "+bClass);
-                b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
+              if(a1.getMatchObject().getIBEISColorValue()>b1.getMatchObject().getIBEISColorValue()){
+                a1_adjustedValue=1;
+                b1_adjustedValue=0;
               }
-              catch(Exception e){e.printStackTrace();}
+              else if(a1.getMatchObject().getIBEISColorValue()<b1.getMatchObject().getIBEISColorValue()){
+                a1_adjustedValue=0;
+                b1_adjustedValue=1;
+              }
+              else{
+              
+                try{
+                  aClass=booster.classifyInstance(a1Example);
+                  System.out.println("Predicted Aclass: "+aClass);
+                  
+                  //int ArrayResultPosition=0;
+                  //if(aClass==1.0)ArrayResultPosition=1;
+                  a1_adjustedValue=booster.distributionForInstance(a1Example)[0];
+                 
+                  //int BrrayResultPosition=0;
+                  //if(bClass==1.0)BrrayResultPosition=1;
+                  bClass=booster.classifyInstance(b1Example);
+                  //System.out.println("Predicted Bclass: "+bClass);
+                  b1_adjustedValue=booster.distributionForInstance(b1Example)[0];
+                }
+                catch(Exception e){e.printStackTrace();}
             
+              }
+              //first check IBEIS
+              
+              
               if(a1_adjustedValue > b1_adjustedValue){return -1;}
               else if(a1_adjustedValue < b1_adjustedValue){return 1;}
               else{return 0;}
