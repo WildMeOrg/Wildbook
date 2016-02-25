@@ -171,33 +171,34 @@
  		//measurement
 		for(int b=0;b<numMeasurementTypes;b++){
 			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
-				
-					measurementValues[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+
+					double val = thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue();
+					measurementValues[b].addValue(val);
 					
 					//smallest vs largest analysis
-					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
+					if(val<=measurementValues[b].getMin()){
 						smallestIndies[b]=thisEnc.getIndividualID();
 					}
-					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
+					else if(val>=measurementValues[b].getMax()){
 						largestIndies[b]=thisEnc.getIndividualID();
 					}
 					
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
-						measurementValuesMales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						measurementValuesMales[b].addValue(val);
 					}
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
-						measurementValuesFemales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						measurementValuesFemales[b].addValue(val);
 					}
 					
 					//first sights vs resights analysis
 					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
-						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						 measurementValuesResights[b].addValue(val);
 							
 				 		   
 					 }
 					 else{
-						 measurementValuesNew[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						 measurementValuesNew[b].addValue(val);
 							
 					 }
 					
