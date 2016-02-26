@@ -285,7 +285,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
         //System.out.println("Euc. score: "+wi.getMatchObject().getEuclideanDistanceValue()+" and rank: "+(i+1));
         
       }
-      /
+      */
       
       
       
