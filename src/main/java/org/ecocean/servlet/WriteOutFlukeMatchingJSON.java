@@ -227,6 +227,8 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
         list.add(wi);
       }
       int listSize=list.size();
+      
+      /*
       //now we have to populate instance rank attributes so we can boost those
       Collections.sort(list,new RankComparator("intersection"));
       for(int i=0;i<listSize;i++){
@@ -283,7 +285,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
         //System.out.println("Euc. score: "+wi.getMatchObject().getEuclideanDistanceValue()+" and rank: "+(i+1));
         
       }
-      
+      /
       
       
       
