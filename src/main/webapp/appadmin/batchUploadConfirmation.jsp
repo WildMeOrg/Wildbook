@@ -18,38 +18,24 @@
 --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@page contentType="text/html; charset=iso-8859-1" language="java"
-        import="org.ecocean.CommonConfiguration"
-        import="org.ecocean.Shepherd"
-        import="org.ecocean.batch.BatchData"
-        import="org.ecocean.batch.BatchProcessor"
-        import="org.ecocean.servlet.BatchUpload"
-        import="org.ecocean.servlet.ServletUtilities"
-        import="java.io.File"
-        import="java.text.MessageFormat"
-        import="java.util.*"
-%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.batch.BatchData" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.servlet.BatchUpload" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties bundle = new Properties();
+  bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
 
 	response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-
-  // Page internationalization.
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String)session.getAttribute("langCode");
-  } else {
-    Locale loc = request.getLocale();
-    langCode = loc.getLanguage();
-  }
-  Properties bundle = new Properties();
-  bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
 
   List<String> warnings = (List<String>)session.getAttribute(BatchUpload.SESSION_KEY_WARNINGS);
   boolean hasWarnings = warnings != null && !warnings.isEmpty();

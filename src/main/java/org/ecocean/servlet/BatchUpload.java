@@ -21,25 +21,6 @@ package org.ecocean.servlet;
 import com.oreilly.servlet.multipart.FilePart;
 import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.Part;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
 import org.ecocean.*;
 import org.ecocean.batch.BatchData;
 import org.ecocean.batch.BatchMedia;
@@ -51,7 +32,21 @@ import org.ecocean.mmutil.MediaUtilities;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Servlet to manage batch data uploads for Wild Book.
@@ -114,14 +109,6 @@ public final class BatchUpload extends DispatchServlet {
   public static final String JSP_PROGRESS = "/appadmin/batchUploadProgress.jsp";
   /** Path for referencing JSP page for error display. */
   public static final String JSP_ERROR = "/error_generic.jsp";
-  /** Name of batch template files. */
-  private static final String[] BTF = {
-    "batchIndividuals.csv",
-    "batchEncounters.csv",
-    "batchMeasurements.csv",
-    "batchMedia.csv",
-    "batchSamples.csv"
-  };
   /** DateFormat instance for generating unique filenames for batch upload data. */
   private static final DateFormat DF = new SimpleDateFormat("yyyyMMddHHmmssSSS");
   /** DateFormat instance for creating encounters' verbatim dates. */
@@ -163,7 +150,7 @@ public final class BatchUpload extends DispatchServlet {
       taskExecutor.shutdownNow();
   }
 
-  private ResourceBundle getResources(Locale loc) {
+  private static ResourceBundle getResources(Locale loc) {
     return ResourceBundle.getBundle("bundles/batchUpload", loc);
   }
 
@@ -208,12 +195,34 @@ public final class BatchUpload extends DispatchServlet {
    */
   private void templateGen(HttpServletRequest req, HttpServletResponse res, int index) throws ServletException, IOException {
     try {
-      BatchParser bp = new BatchParser(req.getLocale());
+      String context = ServletUtilities.getContext(req);
+      String langCode = ServletUtilities.getLanguageCode(req);
+      Locale loc = new Locale(langCode);
+      BatchParser bp = new BatchParser(loc);
       String template = bp.generateTemplates()[index];
       int len = template.getBytes("UTF-8").length;
       res.setCharacterEncoding("UTF-8");
       res.setContentType("text/csv; charset=UTF-8");
-      res.setHeader("Content-Disposition", "attachment; filename=\"" + BTF[index] + "\"");
+      String filename = "template";
+      switch (index) {
+        case 0:
+          filename = bp.getTemplateFilename_Individuals();
+          break;
+        case 1:
+          filename = bp.getTemplateFilename_Encounters();
+          break;
+        case 2:
+          filename = bp.getTemplateFilename_Measurements();
+          break;
+        case 3:
+          filename = bp.getTemplateFilename_Media();
+          break;
+        case 4:
+          filename = bp.getTemplateFilename_Samples();
+          break;
+        default:
+      }
+      res.setHeader("Content-Disposition", "attachment; filename=\"" + filename + ".csv\"");
       res.setContentLength(len);
 //      log.debug(String.format("Sending template '%s' to client (%d bytes)", BTF[index], len));
       PrintWriter pw = res.getWriter();
@@ -321,10 +330,9 @@ public final class BatchUpload extends DispatchServlet {
     try {
       HttpSession session = req.getSession();
       
-      String context="context0";
-      context=ServletUtilities.getContext(req);
-
-      Locale loc = req.getLocale();
+      String context = ServletUtilities.getContext(req);
+      String langCode = ServletUtilities.getLanguageCode(req);
+      Locale loc = new Locale(langCode);
       ResourceBundle bundle = getResources(loc);
       List<String> errors = new ArrayList<String>();
       session.setAttribute(SESSION_KEY_ERRORS, errors);
@@ -417,11 +425,11 @@ public final class BatchUpload extends DispatchServlet {
 
           // Convert data into object instances, then process to assign relationships,
           // getting back a map of media relationships for later processing.
-          listInd = parseInd(dataInd, errors, bundle);
-          listEnc = parseEnc(dataEnc, errors, bundle);
-          listMea = parseMea(dataMea, errors, bundle);
-          listMed = parseMed(dataMed, errors, bundle);
-          listSam = parseSam(dataSam, errors, bundle);
+          listInd = parseInd(dataInd, errors, bundle, context);
+          listEnc = parseEnc(dataEnc, errors, bundle, context);
+          listMea = parseMea(dataMea, errors, bundle, context);
+          listMed = parseMed(dataMed, errors, bundle, context);
+          listSam = parseSam(dataSam, errors, bundle, context);
           mapMedia = assignDataRelationshipsAndValidate(req, res, listInd, listEnc, listMea, listMed, listSam, errors, bundle);
 
           // OUTPUT RESULT.
@@ -487,10 +495,9 @@ public final class BatchUpload extends DispatchServlet {
     try {
       HttpSession session = req.getSession(false);
       
-      String context="context0";
-      context=ServletUtilities.getContext(req);
-
-      Locale loc = req.getLocale();
+      String context = ServletUtilities.getContext(req);
+      String langCode = ServletUtilities.getLanguageCode(req);
+      Locale loc = new Locale(langCode);
       ResourceBundle bundle = getResources(loc);
       List<String> errors = (List<String>)session.getAttribute(SESSION_KEY_ERRORS);
       List<String> warnings = (List<String>)session.getAttribute(SESSION_KEY_WARNINGS);
@@ -526,7 +533,7 @@ public final class BatchUpload extends DispatchServlet {
       if (errors.isEmpty()) {
 
         // NOTE: This might be updated to use Servlet 3.0 API asynchronous task mechanism in future.
-        proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc,context);
+        proc = new BatchProcessor(data.listInd, data.listEnc, errors, warnings, loc, context);
         proc.setMapMedia(data.mapMedia);
         proc.setListSam(data.listSam);
         proc.setServletContext(getServletContext(),context);
@@ -587,6 +594,7 @@ public final class BatchUpload extends DispatchServlet {
   /**
    * Processes raw object lists to assign relationships between them,
    * validate the parsed data, and flags errors as appropriate.
+   * It also transforms i18n versions of some values into standard default language versions.
    * NOTE: This method is currently ludicrously long as it requires a lot of
    * cross-referencing; ideally it should be broken up a bit, but that would
    * require a lot of reference passing between methods.
@@ -610,8 +618,8 @@ public final class BatchUpload extends DispatchServlet {
           List<String> errors, ResourceBundle bundle) throws IOException {
 
     // Get reference to persistent store.
-    String context="context0";
-    context=ServletUtilities.getContext(req);
+    String context = ServletUtilities.getContext(req);
+    String langCode = ServletUtilities.getLanguageCode(req);
     Shepherd shepherd = new Shepherd(context);
 
     // Validate individuals.
@@ -631,12 +639,13 @@ public final class BatchUpload extends DispatchServlet {
     }
 
     // Get valid values of certain data.
-    List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex",context);
-    List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies",context);
-    List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage",context);
-    List<String> listPC = CommonConfiguration.getSequentialPropertyValues("patterningCode",context);
-    List<String> listLoc = CommonConfiguration.getSequentialPropertyValues("locationID",context);
-    List<String> listSP = CommonConfiguration.getSequentialPropertyValues("samplingProtocol",context);
+    Map<String, String> mapSex = CommonConfiguration.getI18nPropertiesMap("sex", langCode, context, false);
+    List<String> listTax = CommonConfiguration.getIndexedValues("genusSpecies", context);
+    Map<String, String> mapLS = CommonConfiguration.getI18nPropertiesMap("lifeStage", langCode, context, false);
+    Map<String, String> mapPC = CommonConfiguration.getI18nPropertiesMap("patterningCode", langCode, context, false);
+    Map<String, String> mapLoc = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, false);
+    Map<String, String> invLoc = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, true);
+    Map<String, String> mapSP = CommonConfiguration.getI18nPropertiesMap("samplingProtocol", langCode, context, false);
 
     // Validate encounters.
     Map<String, Encounter> mapEnc = new HashMap<String, Encounter>();
@@ -673,9 +682,9 @@ public final class BatchUpload extends DispatchServlet {
 
       // Check sex.
       String sex = x.getSex();
-      if (!listSex.isEmpty() && !listSex.contains(sex)) {
+      if (!mapSex.isEmpty() && !mapSex.containsKey(sex)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidSex");
-        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), sex));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), mapSex.get(sex)));
       }
 
       // Check genus/species.
@@ -689,22 +698,22 @@ public final class BatchUpload extends DispatchServlet {
 
       // Check life stage.
       String lifeStage = x.getLifeStage();
-      if (lifeStage != null && !listLS.isEmpty() && !listLS.contains(lifeStage)) {
+      if (lifeStage != null && !mapLS.isEmpty() && !mapLS.containsKey(lifeStage)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLifeStage");
-        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), lifeStage));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), mapLS.get(lifeStage)));
       }
 
       // Check patterning code.
       String patterningCode = x.getPatterningCode();
-      if (patterningCode != null && !listPC.isEmpty() && !listPC.contains(patterningCode)) {
+      if (patterningCode != null && !mapPC.isEmpty() && !mapPC.containsKey(patterningCode)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidPatterningCode");
-        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), patterningCode));
+        errors.add(MessageFormat.format(msg, x.getEncounterNumber(), mapPC.get(patterningCode)));
       }
 
       // Check location.
       String locID = x.getLocationID();
-      if (locID == null && listLoc.size() == 1) {
-        locID = listLoc.get(0);
+      if (locID == null && mapLoc.size() == 1) {
+        locID = mapLoc.values().iterator().next();
         x.setLocationID(locID);
       }
       if (locID == null) {
@@ -712,9 +721,9 @@ public final class BatchUpload extends DispatchServlet {
         errors.add(MessageFormat.format(msg, x.getEncounterNumber()));
       }
       else {
-        if (!listLoc.contains(locID)) {
+        if (!mapLoc.containsKey(locID)) {
           String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocation");
-          errors.add(MessageFormat.format(msg, x.getEncounterNumber(), locID));
+          errors.add(MessageFormat.format(msg, x.getEncounterNumber(), mapLoc.get(locID)));
         }
         else
           locIDs.add(locID);
@@ -722,12 +731,12 @@ public final class BatchUpload extends DispatchServlet {
 
       // Check measurement sampling protocol. TODO: Check against measurements
       String protocol = x.getMeasureUnits();
-      if (protocol == null && listSP.size() == 1) {
-        x.setMeasureUnits(listSP.get(0));
+      if (protocol == null && mapSP.size() == 1) {
+        x.setMeasureUnits(mapSP.values().iterator().next());
       }
-      if (protocol != null && !listSP.isEmpty() && !listSP.contains(protocol)) {
+      if (protocol != null && !mapSP.isEmpty() && !mapSP.containsKey(protocol)) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidSamplingProtocol");
-        errors.add(MessageFormat.format(msg, protocol));
+        errors.add(MessageFormat.format(msg, mapSP.get(protocol)));
       }
     }
     // Check user has permission to import for specified regions.
@@ -742,7 +751,7 @@ public final class BatchUpload extends DispatchServlet {
       }
       if (!hasLocationPermission) {
         String msg = bundle.getString("batchUpload.verifyError.encounterInvalidLocationPermission");
-        errors.add(MessageFormat.format(msg, locID));
+        errors.add(MessageFormat.format(msg, mapLoc.get(locID)));
       }
     }
 
@@ -756,8 +765,8 @@ public final class BatchUpload extends DispatchServlet {
 
 
     // Get valid values of certain data.
-    List<String> listMT = CommonConfiguration.getSequentialPropertyValues("measurement",context);
-    List<String> listMU = CommonConfiguration.getSequentialPropertyValues("measurementUnits",context);
+    Collection<String> listMT = CommonConfiguration.getI18nPropertiesMap("measurement", langCode, context, false).values();
+    Collection<String> listMU = CommonConfiguration.getI18nPropertiesMap("measurementUnits", langCode, context, false).values();
 
     // Check/assign measurements.
     Set<Measurement> badMeaNoEnc = new LinkedHashSet<Measurement>();
@@ -793,7 +802,7 @@ public final class BatchUpload extends DispatchServlet {
 
         // Check measurement protocol.
         String protocol = x.getSamplingProtocol();
-        if (!listSP.isEmpty() && !listSP.contains(protocol))
+        if (!mapSP.isEmpty() && !mapSP.containsKey(protocol))
           badMeaInvalidProtocol.add(protocol);
       }
       if (!badMeaNoEnc.isEmpty())
@@ -987,11 +996,73 @@ public final class BatchUpload extends DispatchServlet {
   }
 
   /**
+   * Converts an i18n resource value into the English version (as used for database storage).
+   * @param value i18n value
+   * @param baseKey key base for i18n resource lookup
+   * @param locale i18n locale
+   * @param context context for which to translate resource
+   * @return English version of original value
+   */
+  private static String parse_i18nResource(String value, String baseKey, Locale locale, String context) {
+    if (value == null || "".equals(value))
+      return value;
+    Objects.requireNonNull(locale);
+    Map<String, String> map = CommonConfiguration.getI18nPropertiesMap(baseKey, locale.getLanguage(), context, true);
+    if (map.containsKey(value))
+      return map.get(value);
+    throw new IllegalArgumentException("Failed to find i18n mapping for: " + value);
+  }
+
+  private static String parseI18n_locationId(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "locationID", locale, context);
+  }
+
+  private static String parse_i18n_country(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "country", locale, context);
+  }
+
+  private static String parse_i18n_sex(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "sex", locale, context);
+  }
+
+  private static String parse_i18n_livingStatus(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "livingStatus", locale, context);
+  }
+
+  private static String parse_i18n_lifeStage(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "lifeStage", locale, context);
+  }
+
+  private static String parse_i18n_patterningCode(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "patterningCode", locale, context);
+  }
+
+  private static String parse_i18n_measurement(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "measurement", locale, context);
+  }
+
+  private static String parse_i18n_measurementUnits(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "measurementUnits", locale, context);
+  }
+
+  private static String parse_i18n_samplingProtocol(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "samplingProtocol", locale, context);
+  }
+
+  private static String parse_i18n_tissueType(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "tissueType", locale, context);
+  }
+
+  private static String parse_i18n_preservationMethod(String value, Locale locale, String context) {
+    return parse_i18nResource(value, "preservationMethod", locale, context);
+  }
+
+  /**
    * Parses data from parsed CSV files into individuals.
    * @param dataInd map of parsed CSV data
    * @return a list of {@code MarkedIndividual}
    */
-  private static List<MarkedIndividual> parseInd(List<Map<String, Object>> dataInd, List<String> errors, ResourceBundle bundle) {
+  private static List<MarkedIndividual> parseInd(List<Map<String, Object>> dataInd, List<String> errors, ResourceBundle bundle, String context) {
     List<MarkedIndividual> list = new ArrayList<MarkedIndividual>();
     String pre = "individual.";
 
@@ -1000,11 +1071,11 @@ public final class BatchUpload extends DispatchServlet {
       x.setDateTimeCreated(ServletUtilities.getDate());
       x.setIndividualID((String)map.get(pre + "individualID"));
       x.setAlternateID((String)map.get(pre + "alternateID"));
-      x.setSex((String)map.get(pre + "sex"));
+      x.setSex(parse_i18n_sex((String)map.get(pre + "sex"), bundle.getLocale(), context));
       x.setNickName((String)map.get(pre + "nickName"));
       x.setNickNamer((String)map.get(pre + "nickNamer"));
       x.setSeriesCode((String)map.get(pre + "seriesCode"));
-      x.setPatterningCode((String)map.get(pre + "patterningCode"));
+      x.setPatterningCode(parse_i18n_patterningCode((String)map.get(pre + "patterningCode"), bundle.getLocale(), context));
       list.add(x);
 
       Object listDP = map.get(pre + "dynamicProperties");
@@ -1047,7 +1118,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataEnc map of parsed CSV data
    * @return a list of {@code Encounter}
    */
-  private static List<Encounter> parseEnc(List<Map<String, Object>> dataEnc, List<String> errors, ResourceBundle bundle) {
+  private static List<Encounter> parseEnc(List<Map<String, Object>> dataEnc, List<String> errors, ResourceBundle bundle, String context) {
     List<Encounter> list = new ArrayList<Encounter>();
     String pre = "encounter.";
 
@@ -1090,11 +1161,11 @@ public final class BatchUpload extends DispatchServlet {
         }
       }
 
-      x.setSex((String)map.get(pre + "sex"));
+      x.setSex(parse_i18n_sex((String)map.get(pre + "sex"), bundle.getLocale(), context));
       x.setGenus((String)map.get(pre + "genus"));
       x.setSpecificEpithet((String)map.get(pre + "specificEpithet"));
-      x.setLocationID((String)map.get(pre + "locationID"));
-      x.setCountry((String)map.get(pre + "country"));
+      x.setLocationID(parseI18n_locationId((String)map.get(pre + "locationID"), bundle.getLocale(), context));
+      x.setCountry(parse_i18n_country((String)map.get(pre + "country"), bundle.getLocale(), context));
       x.setVerbatimLocality((String)map.get(pre + "verbatimLocality"));
       if (x.getVerbatimLocality() == null && x.getLocationID() != null)
         x.setVerbatimLocality(x.getLocationID());
@@ -1102,14 +1173,14 @@ public final class BatchUpload extends DispatchServlet {
       x.setDecimalLongitude((Double)map.get(pre + "decimalLongitude"));
       x.setMaximumDepthInMeters((Double)map.get(pre + "maximumDepthInMeters"));
       x.setMaximumElevationInMeters((Double)map.get(pre + "maximumElevationInMeters"));
-      x.setLivingStatus((String)map.get(pre + "livingStatus"));
-      x.setLifeStage((String)map.get(pre + "lifeStage"));
+      x.setLivingStatus(parse_i18n_livingStatus((String)map.get(pre + "livingStatus"), bundle.getLocale(), context));
+      x.setLifeStage(parse_i18n_lifeStage((String)map.get(pre + "lifeStage"), bundle.getLocale(), context));
       Date tempDate = (Date)map.get(pre + "releaseDate");
       if (tempDate != null)
         x.setReleaseDate(tempDate.getTime());
       x.setSize((Double)map.get(pre + "size"));
       x.setSizeGuess((String)map.get(pre + "sizeGuess"));
-      x.setPatterningCode((String)map.get(pre + "patterningCode"));
+      x.setPatterningCode(parse_i18n_patterningCode((String)map.get(pre + "patterningCode"), bundle.getLocale(), context));
       x.setDistinguishingScar((String)map.get(pre + "distinguishingScar"));
       x.setOtherCatalogNumbers((String)map.get(pre + "otherCatalogNumbers"));
       x.setDWCGlobalUniqueIdentifier((String)map.get(pre + "occurrenceID"));
@@ -1181,7 +1252,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataMea map of parsed CSV data
    * @return a list of {@code Measurement}
    */
-  private static List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
+  private static List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle, String context) {
     List<Measurement> list = new ArrayList<Measurement>();
     if (dataMea == null)
       return list;
@@ -1189,10 +1260,10 @@ public final class BatchUpload extends DispatchServlet {
 
     for (Map<String, Object> map : dataMea) {
       String encNum = map.get(pre + "encounterNumber").toString();
-      String type = (String)map.get(pre + "type");
-      String units = (String)map.get(pre + "units");
+      String type = parse_i18n_measurement((String)map.get(pre + "type"), bundle.getLocale(), context);
+      String units = parse_i18n_measurementUnits((String)map.get(pre + "units"), bundle.getLocale(), context);
       Double val = (Double)map.get(pre + "value");
-      String protocol = (String)map.get(pre + "protocol");
+      String protocol = parse_i18n_samplingProtocol((String)map.get(pre + "protocol"), bundle.getLocale(), context);
       Measurement x = new Measurement(encNum, type, val, units, protocol);
       list.add(x);
     }
@@ -1205,7 +1276,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataMed map of parsed CSV data
    * @return a list of {@code BatchMedia}
    */
-  private static List<BatchMedia> parseMed(List<Map<String, Object>> dataMed, List<String> errors, ResourceBundle bundle) {
+  private static List<BatchMedia> parseMed(List<Map<String, Object>> dataMed, List<String> errors, ResourceBundle bundle, String context) {
     List<BatchMedia> list = new ArrayList<BatchMedia>();
     if (dataMed == null)
       return list;
@@ -1238,7 +1309,7 @@ public final class BatchUpload extends DispatchServlet {
    * @param dataSam map of parsed CSV data
    * @return a list of {@code TissueSample}
    */
-  private static List<TissueSample> parseSam(List<Map<String, Object>> dataSam, List<String> errors, ResourceBundle bundle) {
+  private static List<TissueSample> parseSam(List<Map<String, Object>> dataSam, List<String> errors, ResourceBundle bundle, String context) {
     List<TissueSample> list = new ArrayList<TissueSample>();
     if (dataSam == null)
       return list;
@@ -1248,7 +1319,7 @@ public final class BatchUpload extends DispatchServlet {
       String encNum = map.get(pre + "encounterNumber").toString();
       String sampleID = (String)map.get(pre + "sampleID");
       TissueSample x = new TissueSample(encNum, sampleID);
-      x.setTissueType((String)map.get(pre + "tissueType"));
+      x.setTissueType(parse_i18n_tissueType((String)map.get(pre + "tissueType"), bundle.getLocale(), context));
       x.setAlternateSampleID((String)map.get(pre + "alternateID"));
       x.setStorageLabID((String)map.get(pre + "storageLab"));
       x.setSamplingProtocol((String)map.get(pre + "samplingProtocol"));

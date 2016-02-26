@@ -19,7 +19,21 @@
 
 package org.ecocean.batch;
 
-import java.awt.RenderingHints;
+import org.apache.sanselan.ImageReadException;
+import org.ecocean.*;
+import org.ecocean.genetics.TissueSample;
+import org.ecocean.mmutil.FileUtilities;
+import org.ecocean.mmutil.MediaUtilities;
+import org.ecocean.servlet.BatchUpload;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import javax.jdo.JDOObjectNotFoundException;
+import javax.jdo.PersistenceManager;
+import javax.servlet.ServletContext;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -27,30 +41,9 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.ResourceBundle;
 import java.util.concurrent.ThreadPoolExecutor;
-import javax.jdo.JDOObjectNotFoundException;
-import javax.jdo.PersistenceManager;
-import javax.servlet.ServletContext;
-import org.apache.sanselan.ImageReadException;
-import org.ecocean.*;
-import org.ecocean.genetics.TissueSample;
-import org.ecocean.servlet.BatchUpload;
-import org.ecocean.mmutil.DataUtilities;
-import org.ecocean.mmutil.FileUtilities;
-import org.ecocean.mmutil.MediaUtilities;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Task to process uploaded batch data and persist it to the database.
@@ -117,8 +110,8 @@ public final class BatchProcessor implements Runnable {
   private Phase phase = Phase.NONE;
   /** Throwable instance produced by the batch processor (if any). */
   private Throwable thrown;
-  
-  private String context="context0";
+  /** Web-application context. */
+  private String context = "context0";
 
   public BatchProcessor(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale locale, String context) {
     this.listInd = listInd;
@@ -130,7 +123,7 @@ public final class BatchProcessor implements Runnable {
     counter = 0;
     maxCount = 1;
     log.debug(this.toString());
-    this.context=context;
+    this.context = context;
   }
 
   public void setListMea(List<Measurement> listMea) {
@@ -256,7 +249,7 @@ public final class BatchProcessor implements Runnable {
 
   /**
    * Initializes the {@code BatchProcessorPlugin}, if specified, using reflection.
-   * The plugin is specified via {@link CommonConfiguration#getBatchUploadPlugin()}.
+   * The plugin is specified via {@link CommonConfiguration#getBatchUploadPlugin(String)}.
    * @throws Exception 
    */
   private void setupPlugin(String context) throws Exception {
@@ -603,7 +596,8 @@ public final class BatchProcessor implements Runnable {
         // Should be using the standard ResourceBundle lookup mechanism to find
         // the appropriate language file.
         Properties props = new Properties();
-        props.load(getClass().getResourceAsStream("/" + RESOURCES + "/" + locale.getLanguage() + "/encounter.properties"));
+        String defLang = CommonConfiguration.getProperty("defaultLanguage", context);
+        props.load(getClass().getResourceAsStream("/" + RESOURCES + "/" + defLang + "/encounter.properties"));
         String copyText = props.getProperty("nocopying");
 
         // Generate thumbnails for encounter's media.
@@ -728,7 +722,7 @@ public final class BatchProcessor implements Runnable {
       sb.append("</ul>\n");
       tagMap.put("@BATCH_WARNINGS_CONTENT@", sb.toString());
     }
-    NotificationMailer mailer = new NotificationMailer(context, null, userEmail, "batchUploadFinished", tagMap);
+    NotificationMailer mailer = new NotificationMailer(context, locale.getLanguage(), userEmail, "batchUploadFinished", tagMap);
     mailer.replaceRegexInPlainText("<[^>]+?>", "");
     es.execute(mailer);
   }

@@ -18,34 +18,19 @@
 --%>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@page contentType="text/html; charset=iso-8859-1" language="java"
-        import="org.ecocean.CommonConfiguration"
-        import="org.ecocean.Shepherd"
-        import="org.ecocean.batch.BatchProcessor"
-        import="org.ecocean.servlet.BatchUpload"
-        import="org.ecocean.servlet.ServletUtilities"
-        import="java.io.File"
-        import="java.io.PrintWriter"
-        import="java.text.MessageFormat"
-        import="java.util.*"
-%>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-<%@taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" %>
+<%@ page import="java.io.PrintWriter" %>
+<%@ page import="java.text.MessageFormat" %>
+<%@ page import="java.util.*" %>
+<%@ page import="org.ecocean.batch.BatchProcessor" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.servlet.BatchUpload" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
 <%
-
-String context="context0";
-context=ServletUtilities.getContext(request);
-
-  // Page internationalization.
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String)session.getAttribute("langCode");
-  } else {
-    Locale loc = request.getLocale();
-    langCode = loc.getLanguage();
-  }
-//  Locale locale = new Locale(langCode);
-//  ResourceBundle bundle = ResourceBundle.getBundle("/bundles/batchUpload", locale);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
   Properties bundle = new Properties();
   bundle.load(getClass().getResourceAsStream("/bundles/batchUpload_" + langCode + ".properties"));
 

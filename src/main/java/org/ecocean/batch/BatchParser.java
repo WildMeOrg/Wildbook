@@ -2,32 +2,17 @@ package org.ecocean.batch;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.MissingResourceException;
-import java.util.ResourceBundle;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Parser of CSV data fields for batch upload to Wildbook.
@@ -57,17 +42,22 @@ public class BatchParser {
   /** SLF4J logger instance for writing log entries. */
   private static Logger log = LoggerFactory.getLogger(BatchParser.class);
   /** Enumeration of template types. */
-  public static enum Type { INDIVIDUAL, ENCOUNTER, MEASUREMENT, MEDIA, SAMPLE }
+  public static enum Type {
+    INDIVIDUAL, ENCOUNTER, MEASUREMENT, MEDIA, SAMPLE;
+    String getTypeString(ResourceBundle res) {
+      return res.getString("type." + name().toLowerCase());
+    }
+  }
   /** Locale for internationalization. */
   private Locale locale;
   /** Resources for internationalization. */
   private ResourceBundle res;
   /** List of DateFormat instances for parsing dates. */
-  private final List<DateFormat> dateFormat = new ArrayList<DateFormat>();
+  private final List<DateFormat> dateFormat = new ArrayList<>();
   /** List of DateFormat instances for parsing times. */
-  private final List<DateFormat> timeFormat = new ArrayList<DateFormat>();
+  private final List<DateFormat> timeFormat = new ArrayList<>();
   /** List of DateFormat instances for parsing date/times. */
-  private final List<DateFormat> dateTimeFormat = new ArrayList<DateFormat>();
+  private final List<DateFormat> dateTimeFormat = new ArrayList<>();
   /** CSV file containing individuals to be parsed. */
   private File csvInd;
   /** CSV file containing encounters to be parsed. */
@@ -79,45 +69,45 @@ public class BatchParser {
   /** CSV file containing samples to be parsed. */
   private File csvSam;
   /** CSV file to be parsed. */
-  private final List<String> errors = new ArrayList<String>();
+  private final List<String> errors = new ArrayList<>();
   /** Ordered list of field key (for encounters). */
-  private final List<String> encPosList = new ArrayList<String>();
+  private final List<String> encPosList = new ArrayList<>();
   /** Ordered list of field key (for individuals). */
-  private final List<String> indPosList = new ArrayList<String>();
+  private final List<String> indPosList = new ArrayList<>();
   /** Ordered list of field key (for measurements). */
-  private final List<String> meaPosList = new ArrayList<String>();
+  private final List<String> meaPosList = new ArrayList<>();
   /** Ordered list of field key (for media). */
-  private final List<String> medPosList = new ArrayList<String>();
+  private final List<String> medPosList = new ArrayList<>();
   /** Ordered list of field key (for samples). */
-  private final List<String> samPosList = new ArrayList<String>();
+  private final List<String> samPosList = new ArrayList<>();
   /** Map of field key to CSV column header/title. */
-  private final Map<String, String> headerMap = new HashMap<String, String>();
+  private final Map<String, String> headerMap = new HashMap<>();
   /** Map of CSV column header/title to field key (for individuals). */
-  private final Map<String, String> headerPamInd = new HashMap<String, String>();
+  private final Map<String, String> headerPamInd = new HashMap<>();
   /** Map of CSV column header/title to field key (for encounters). */
-  private final Map<String, String> headerPamEnc = new HashMap<String, String>();
+  private final Map<String, String> headerPamEnc = new HashMap<>();
   /** Map of CSV column header/title to field key (for measurements). */
-  private final Map<String, String> headerPamMea = new HashMap<String, String>();
+  private final Map<String, String> headerPamMea = new HashMap<>();
   /** Map of CSV column header/title to field key (for media). */
-  private final Map<String, String> headerPamMed = new HashMap<String, String>();
+  private final Map<String, String> headerPamMed = new HashMap<>();
   /** Map of CSV column header/title to field key (for samples). */
-  private final Map<String, String> headerPamSam = new HashMap<String, String>();
+  private final Map<String, String> headerPamSam = new HashMap<>();
   /** Map of field key to required flag. */
-  private final Map<String, Boolean> requiredMap = new HashMap<String, Boolean>();
+  private final Map<String, Boolean> requiredMap = new HashMap<>();
   /** Map of field key to field format string. */
-  private final Map<String, String> formatMap = new HashMap<String, String>();
+  private final Map<String, String> formatMap = new HashMap<>();
   /** Map of field key to format type. */
-  private final Map<String, FormatType> typeMap = new HashMap<String, FormatType>();
+  private final Map<String, FormatType> typeMap = new HashMap<>();
   /** Map of field values for individuals. */
-  private List<Map<String, Object>> indValueMap = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> indValueMap = new ArrayList<>();
   /** Map of field values for encounters. */
-  private List<Map<String, Object>> encValueMap = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> encValueMap = new ArrayList<>();
   /** Map of field values for measurements. */
-  private List<Map<String, Object>> meaValueMap = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> meaValueMap = new ArrayList<>();
   /** Map of field values for media. */
-  private List<Map<String, Object>> medValueMap = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> medValueMap = new ArrayList<>();
   /** Map of field values for samples. */
-  private List<Map<String, Object>> samValueMap = new ArrayList<Map<String, Object>>();
+  private List<Map<String, Object>> samValueMap = new ArrayList<>();
 
   public BatchParser(Locale locale, File csvInd, File csvEnc) throws IOException {
     this.csvInd = csvInd;
@@ -228,6 +218,41 @@ public class BatchParser {
   }
 
   /**
+   * @return the filename of the template file for individuals
+   */
+  public String getTemplateFilename_Individuals() {
+    return res.getString("csvInd");
+  }
+
+  /**
+   * @return the filename of the template file for encounters
+   */
+  public String getTemplateFilename_Encounters() {
+    return res.getString("csvEnc");
+  }
+
+  /**
+   * @return the filename of the template file for measurements
+   */
+  public String getTemplateFilename_Measurements() {
+    return res.getString("csvMea");
+  }
+
+  /**
+   * @return the filename of the template file for media items
+   */
+  public String getTemplateFilename_Media() {
+    return res.getString("csvMed");
+  }
+
+  /**
+   * @return the filename of the template file for samples
+   */
+  public String getTemplateFilename_Samples() {
+    return res.getString("csvSam");
+  }
+
+  /**
    * Reads resources describing order of CSV fields.
    * Due to an inherent Java restriction on handling ResourceBundles,
    * this file has to be read again to determine field order.
@@ -328,7 +353,7 @@ public class BatchParser {
    * and class fields.
    */
   private void crossCheckFieldResources() throws IOException {
-    List<String> list = new ArrayList<String>();
+    List<String> list = new ArrayList<>();
     for (Map.Entry<String, String> me : headerMap.entrySet()) {
       if (!formatMap.containsKey(me.getKey())) {
         list.add(me.getKey());
@@ -425,7 +450,7 @@ public class BatchParser {
       }
     }
 
-    List<Map<String, Object>> valueData = new ArrayList<Map<String, Object>>();
+    List<Map<String, Object>> valueData = new ArrayList<>();
     CSVReader csvr = null;
     try {
       csvr = new CSVReader(new InputStreamReader(new FileInputStream(csvFile), Charset.forName("UTF-8")));
@@ -433,13 +458,13 @@ public class BatchParser {
 
       // Parse column headers.
       // Headers are mapped to field keys to add tolerance for misordered columns.
-      List<String> cols = new ArrayList<String>();
+      List<String> cols = new ArrayList<>();
       line = csvr.readNext();
       for (String s : line)
       {
         // Check if column header is a known field.
         if (!headerMap.containsValue(s))
-          errors.add(MessageFormat.format(res.getString("err.InvalidTitle"), type.toString(), s));
+          errors.add(MessageFormat.format(res.getString("err.InvalidTitle"), type.getTypeString(res), s));
         else
           cols.add(headerPam.get(s));
       }
@@ -462,7 +487,7 @@ public class BatchParser {
           errors.add(MessageFormat.format(res.getString("err.InvalidFieldCount"), type.toString(), lineNum, line.length, colCount));
           continue;
         }
-        Map<String, Object> valueMap = new HashMap<String, Object>();
+        Map<String, Object> valueMap = new LinkedHashMap<>();
         for (int i = 0; i < line.length; i++) {
           // Read column value, and find field key for this column.
           String s = line[i];
@@ -474,13 +499,13 @@ public class BatchParser {
 
           // Check for value length too long for database field.
           if (s != null && s.length() > 254) {
-            errors.add(MessageFormat.format(res.getString("err.ValueTooLong"), toTitleCase(type.toString()), fieldHeader, lineNum));
+            errors.add(MessageFormat.format(res.getString("err.ValueTooLong"), type.getTypeString(res), fieldHeader, lineNum));
             continue;
           }
 
           // Check for unspecified required field.
           if (req && (s == null || "".equals(s))) {
-            errors.add(MessageFormat.format(res.getString("err.RequiredValue"), toTitleCase(type.toString()), fieldHeader, lineNum));
+            errors.add(MessageFormat.format(res.getString("err.RequiredValue"), type.getTypeString(res), fieldHeader, lineNum));
             continue;
           }
 
@@ -488,11 +513,11 @@ public class BatchParser {
           FormatType formatType = typeMap.get(fieldKey);
           Object val = parseValue(s, formatType, formatMap.get(fieldKey));
 //          log.trace(String.format("fieldKey=%s, formatType=%s, s=%s, val=%s", fieldKey, formatType, s, val));
-          if (val == null || (val instanceof List && ((List)val).isEmpty())) {
-            if (req)
-              errors.add(MessageFormat.format(res.getString("err.InvalidValue"), toTitleCase(type.toString()), fieldHeader, lineNum, s));
-          } else
-            valueMap.put(fieldKey, val);
+            if (val == null || (val instanceof List && ((List)val).isEmpty())) {
+              if (req)
+                errors.add(MessageFormat.format(res.getString("err.InvalidValue"), type.getTypeString(res), fieldHeader, lineNum, s));
+            } else
+              valueMap.put(fieldKey, val);
         }
         valueData.add(valueMap);
       }
@@ -538,7 +563,7 @@ public class BatchParser {
       return null;
 
     String group1 = fm.group(1);
-    List<String> list = new ArrayList<String>();
+    List<String> list = new ArrayList<>();
     switch (formatType) {
       case SIMPLE:  // Returns an object (Integer/Long/Float/Double/Boolean/Date).
         // Parse simple type value from value string.
@@ -631,10 +656,10 @@ public class BatchParser {
     return null;
   }
 
-  private String toTitleCase(String s) {
+  private static String toTitleCase(String s) {
     StringBuilder sb = new StringBuilder(s.length());
-    sb.append(s.substring(0, 1).toUpperCase(locale));
-    sb.append(s.substring(1).toLowerCase(locale));
+    sb.append(s.substring(0, 1).toUpperCase());
+    sb.append(s.substring(1).toLowerCase());
     return sb.toString();
   }
 
@@ -676,7 +701,7 @@ public class BatchParser {
       default:
         throw new IllegalArgumentException("Invalid type specified: " + type);
     }
-    List<String> dstList = new ArrayList<String>();
+    List<String> dstList = new ArrayList<>();
 
     for (String s : srcList) {
       String key = "column." + s;
@@ -684,10 +709,10 @@ public class BatchParser {
     }
     StringWriter sw = new StringWriter();
     try {
-      CSVWriter csvw = new CSVWriter(sw);
-      csvw.writeNext(dstList.toArray(new String[dstList.size()]));
-      csvw.flush();
-      csvw.close();
+      try (CSVWriter csvw = new CSVWriter(sw)) {
+        csvw.writeNext(dstList.toArray(new String[dstList.size()]));
+        csvw.flush();
+      }
     } catch (IOException iox) {
       log.warn(iox.getMessage(), iox);
     }
