@@ -1,2 +1,2 @@
-SUBJECT: Removed encounter @ENCOUNTER_ID@
+SUBJECT: Removed encounter: @ENCOUNTER_ID@
 Encounter @ENCOUNTER_ID@ has been removed from the database by user @USER@.

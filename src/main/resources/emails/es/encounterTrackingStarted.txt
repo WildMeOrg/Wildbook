@@ -1,0 +1,3 @@
+SUBJECT: Seguimiento de datos de encuentro comenzaron: @ENCOUNTER_ID@
+Esta es una confirmación de que el seguimiento por email de los cambios de datos a encuentro
+@ENCOUNTER_ID@ ahora se ha comenzado. Debes recibir alertas en cualquier momento se realizan cambios a este encuentro.

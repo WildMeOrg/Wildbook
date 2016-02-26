@@ -1,0 +1,17 @@
+SUBJECT: Actualización de encuentro: @INDIVIDUAL_ID@
+¡Hola!
+
+Sólo un breve email para hacerle saber que el encuentro que has enviado
+se ha añadido una nueva manta, previamente no identificado.
+
+¡Tu descubriste una nueva manta para la ciencia!
+
+Nuevamente marcado: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+Encuentro: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+¡Gracias nuevamente por su ayuda crítica! Si estás interesado en apoyar nuestra
+investigaciones para comprender y proteger a los animales como la tuya, por favor adoptar y
+apodo de tu animal.

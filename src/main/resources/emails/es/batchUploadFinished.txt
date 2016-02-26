@@ -1,0 +1,11 @@
+SUBJECT: Procesamiento de datos por lotes para MantaMatcher haya finalizado
+Su sesión de procesamiento de datos por lotes para MantaMatcher haya finalizado el proceso.
+
+Ahora debería ser capaz de ver los datos cargados con éxito:
+@URL_LOCATION@
+
+@BATCH_ERRORS_MESSAGE@
+@BATCH_ERRORS_CONTENT@
+
+@BATCH_WARNINGS_MESSAGE@
+@BATCH_WARNINGS_CONTENT@

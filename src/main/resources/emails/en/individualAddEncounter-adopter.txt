@@ -1,4 +1,4 @@
-SUBJECT: Sighting update: @INDIVIDUAL_ID@
+SUBJECT: Encounter update: @INDIVIDUAL_ID@
 Hello!
 
 Just a quick email to let you know that a manta that you adopted has been

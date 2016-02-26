@@ -1,0 +1,5 @@
+SUBJECT: Solicitud de colaboración (@CONTEXT_NAME@)
+Tienes una petición para colaborar en @CONTEXT_NAME@ de @USER@.
+Por favor mira: @LINK@
+
+@TEXT_CONTENT@

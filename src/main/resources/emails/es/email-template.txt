@@ -1,0 +1,22 @@
+SUBJECT: Email de MantaMatcher
+
+@EMAIL_CONTENT@
+
+Atentamente,
+
+Equipo MantaMatcher
+
+
+DECLARACION LEGAL
+
+MantaMatcher es propiedad registrada 2009-2016 por Wild Me.
+
+Contribuyentes individuales a MantaMatcher conservan los derechos de autor de
+las imágenes presentadas. Queda prohibida la reproducción o el uso del material
+en esta librería está permitido sin el permiso expreso de los titulares de
+derechos de autor.
+
+@REMOVEME_START@
+¿Quieres quitar tu correo de este base de datos? Haga clic abajo para quitarlo.
+@REMOVEME_LINK@
+@REMOVEME_END@

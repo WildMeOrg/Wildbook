@@ -1,0 +1,3 @@
+SUBJECT: Seguimiento de datos para el encuentro se terminó: @ENCOUNTER_ID@
+Esta es una confirmación de que el seguimiento por email de los cambios de datos a encuentro
+@ENCOUNTER_ID@ ahora se ha terminado.

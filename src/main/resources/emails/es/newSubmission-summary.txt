@@ -1,0 +1,13 @@
+SUBJECT: Nueva presentación encuentro: @ENCOUNTER_ID@
+La biblioteca MantaMatcher ha recibido una nueva presentación encuentro.
+También se puede ver en:
+@ENCOUNTER_LINK@
+
+Localidad:  @ENCOUNTER_LOCATION@
+Fecha:  @ENCOUNTER_DATE@
+Sexo:  @ENCOUNTER_SEX@
+Remitente:  @ENCOUNTER_SUBMITTER_NAME@
+Email de Remitente:  @ENCOUNTER_SUBMITTER_EMAIL@
+Fotógrafo:  @ENCOUNTER_PHOTOGRAPHER_NAME@
+Email de Fotógrafo:  @ENCOUNTER_PHOTOGRAPHER_EMAIL@
+Comentarios:  @ENCOUNTER_COMMENTS@

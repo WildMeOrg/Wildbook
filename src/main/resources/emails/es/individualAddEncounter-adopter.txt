@@ -1,0 +1,11 @@
+SUBJECT: Actualización de encuentro: @INDIVIDUAL_ID@
+¡Hola!
+
+Solamente un breve email para hacerte saber que una manta que has adoptado
+ha estado visto de nuevo y identificado positivamente en la biblioteca
+foto-identificación MantaMatcher.
+Sigue el siguiente enlace para obtener más información.
+
+@TEXT_CONTENT@
+
+¡Gracias de nuevo por tu ayuda crítica y apoyo!

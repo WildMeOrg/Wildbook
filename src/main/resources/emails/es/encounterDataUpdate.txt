@@ -1,0 +1,13 @@
+SUBJECT: Actualización de encuentro: @ENCOUNTER_ID@
+¡Hola!
+
+Solamente un breve email para hacerte saber de un cambio en los datos para
+un encuentro de manta que has marcado para el seguimiento.
+Ver el texto a continuación para obtener más información.
+
+Cambio:
+
+Encuentro: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+@TEXT_CONTENT@

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<style type="text/css">
+html, body {
+	background-image: none;
+	background-color: white;
+}
+body {
+  margin: 0px;
+  padding: 0px;
+  text-align: left;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  height: auto;
+}
+img.masthead {
+	margin: none;
+	padding: none;
+	width: 100%;
+}
+div#mailContent {
+	margin: none;
+	padding: 10px 10px;
+	width: auto;
+	text-align: left;
+}
+div#mailContent p span.bold {
+	text-transform: uppercase;
+}
+div#textContent {
+}
+p.wow {
+	font-weight: bold;
+	font-style: italic;
+}
+.caption {
+	margin-top: 0px;
+	padding-top: 0px;
+	font-size: 0.8em;
+}
+.legal {
+	font-style: italic;
+}
+.legal .title {
+	font-weight: bold;
+}
+li.batchError {
+	font-size: 0.8em;
+	color: #c00;
+}
+li.batchWarning {
+	font-size: 0.8em;
+	color: #600;
+}
+</style>
+</head>
+<body>
+
+<div id="mailHeader">
+	<a href="http://www.mantamatcher.org/" title="MantaMatcher: registro de datos mundial para las manta rayas">
+		<div id="masthead">
+			<img class="masthead" src="http://www.mantamatcher.org/images/masthead.jpg" alt="MantaMatcher: &iexcl;t&uacute; puedes ayudar a fotografiar, a identificar, y a proteger mantarrayas!">
+		</div>
+	</a>
+</div>
+
+<div id="mailContent">
+
+@EMAIL_CONTENT@
+
+	<p>Atentamente,</p>
+	<p>Equipo MantaMatcher</p>
+	<div class="mailLogoFB">
+		<a href="https://www.facebook.com/mantamatcher"><img src="http://www.whaleshark.org/images/facebookicon_small.png"></a>
+	</div>
+
+	<div class="legal caption">
+	<p class="title">DECLARACI&Oacute;N LEGAL</p>
+	<p>Derechos de autor para MantaMatcher, 2009-2016, Wild Me. Contribuyentes individuales a MantaMatcher conservan los derechos de autor de las im&aacute;genes presentadas. Queda prohibida la reproducci&oacute;n o el uso del material en esta librer&iacute;a est&aacute; permitido sin el permiso expreso de los titulares de derechos de autor.</p>
+	</div>
+
+<!--@REMOVEME_START@-->
+	<div id="removeMe" class="caption">
+		<p>&iquest;Quieres quitar tu correo de este registro de datos? Hagas clic <a href="@REMOVEME_LINK@">aqu&iacute;</a> para quitarlo.</p>
+	</div>
+<!--@REMOVEME_END@-->
+
+</div>
+
+</body>
+</html>

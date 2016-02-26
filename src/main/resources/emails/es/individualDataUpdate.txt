@@ -1,0 +1,13 @@
+SUBJECT: Actualización de individuo: @INDIVIDUAL_ID@
+¡Hola!
+
+Sólo un breve email para hacerte saber de un cambio en los datos para una manta
+que se has marcado para el seguimiento. Ver el texto a continuación para
+obtener más información.
+
+Cambio:
+
+Individuo: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+@TEXT_CONTENT@

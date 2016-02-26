@@ -1,0 +1,20 @@
+SUBJECT: Nueva presentación encuentro: @ENCOUNTER_ID@
+¡Gracias por ayudarnos a la investigación de manta rayas!
+
+Gracias por informarnos de tu encuentro. Nosotros usaremos tu información
+para ayudar la investigación científica y las iniciativas de conservación
+a nivel mundial para las manta rayas.
+
+Tu enlace al encuentro:
+@ENCOUNTER_LINK@
+
+La información que has presentado representa un “encuentro” que rastreamos.
+Cada encuentro se le asigna un número único, y se puede ver ese encuentro
+en cualquier momento utilizando el enlace de arriba o yendo a:
+
+        http://www.mantamatcher.org/
+
+Vamos a mantenerte informado de cualquier cambio en tu encuentro presentado,
+y te mandemos un email si la manta se corresponde a otro dentro de la base de
+datos. También haremos saber si/cuando y donde tu manta es revisto por otros
+miembros de la comunidad.

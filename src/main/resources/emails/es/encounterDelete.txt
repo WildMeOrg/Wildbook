@@ -1,0 +1,2 @@
+SUBJECT: Encuentro eliminado: @ENCOUNTER_ID@
+Encuentro @ENCOUNTER_ID@ se ha eliminado de la base de datos por el usuario @USER@.

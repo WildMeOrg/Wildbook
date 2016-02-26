@@ -1,0 +1,2 @@
+SUBJECT: Encuentro de actualización: @ENCOUNTER_ID@
+@TEXT_CONTENT@

@@ -1,0 +1,19 @@
+SUBJECT: Actualización de encuentro: @ENCOUNTER_ID@
+¡Holá!
+
+Solamente un breve email para informarte que el encuentro lo que sometiste
+ha estado apareado a una manta identificada en la librería foto-identificación
+MantaMatcher.
+Sígue estes enlances para informarte mas:
+
+Registro identificado antes: @INDIVIDUAL_ID@ (Identidad alternativa: @INDIVIDUAL_ALT_ID@)
+@INDIVIDUAL_LINK@
+
+Encuentro nuevo: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+¡Gracias de nuevo por tu ayuda crítica! Sí estas interesado por apoyar nuestra
+investigiación para comprender y proteger manta rayas la como tuya, for favor
+adoptes y apodes tu manta:
+
+        http://www.mantamatcher.org/adoptamanta.jsp
