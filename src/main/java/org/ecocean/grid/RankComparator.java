@@ -18,6 +18,10 @@ public class RankComparator implements Comparator {
       MatchObject a1=((WildbookInstance)e1).getMatchObject();
       MatchObject b1=((WildbookInstance)e2).getMatchObject();
       
+      if (a1 == b1) {
+        return 0;
+      }
+      
       double a1_adjustedValue = 0;
       double b1_adjustedValue = 0;
       
@@ -55,16 +59,14 @@ public class RankComparator implements Comparator {
           b1_adjustedValue=a1.getProportionValue().doubleValue();
         }
         
-
-        if (a1_adjustedValue > b1_adjustedValue) {
+        if(a1_adjustedValue==b1_adjustedValue){return 0;}
+        else if (a1_adjustedValue > b1_adjustedValue) {
           return -1;
         } 
-        else if (a1_adjustedValue < b1_adjustedValue) {
+        else {
           return 1;
         } 
-        else {
-          return 0;
-        }
+        
       
       
     }
