@@ -127,7 +127,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
             put("@RESET_LINK@", npLink);
           }};
           String mailTo = myUser.getEmailAddress();
-          NotificationMailer mailer = new NotificationMailer(context, null, mailTo, "passwordReset", tagMap);
+          NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, "passwordReset", tagMap);
           es.execute(mailer);
           es.shutdown();
 
