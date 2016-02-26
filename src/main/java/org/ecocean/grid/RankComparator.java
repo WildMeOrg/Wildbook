@@ -59,13 +59,7 @@ public class RankComparator implements Comparator {
           b1_adjustedValue=a1.getProportionValue().doubleValue();
         }
         
-        if(a1_adjustedValue==b1_adjustedValue){return 0;}
-        else if (a1_adjustedValue > b1_adjustedValue) {
-          return -1;
-        } 
-        else {
-          return 1;
-        } 
+        return Double.compare(a1_adjustedValue, b1_adjustedValue);
         
       
       
