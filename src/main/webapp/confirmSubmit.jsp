@@ -1,12 +1,20 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor, javax.servlet.http.HttpSession" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.awt.Dimension" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.util.*" %>
+<%@ page import="java.util.concurrent.ThreadPoolExecutor" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 <jsp:include page="header.jsp" flush="true"/>
 
 <%
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("submit.properties", langCode, context);
+
   String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
 	//HttpSession session = request.getSession(false);
@@ -16,18 +24,6 @@ context=ServletUtilities.getContext(request);
 	if (session.getAttribute("filesOKMessage") != null) { filesOKMessage = session.getAttribute("filesOKMessage").toString(); }
 	String filesBadMessage = "";
 	if (session.getAttribute("filesBadMessage") != null) { filesBadMessage = session.getAttribute("filesBadMessage").toString(); }
-
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-  //set up the file input stream
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
-  props = ShepherdProperties.getProperties("submit.properties", langCode,context);
-
-
 
   //email_props.load(getClass().getResourceAsStream("/bundles/confirmSubmitEmails.properties"));
 
