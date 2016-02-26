@@ -46,14 +46,6 @@
 
 <div class="container maincontent">
 <%
-  StringBuffer new_message = new StringBuffer();
-new_message.append("<html><body>");
-
-  new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
-    "view it at:<br>http://" + CommonConfiguration.getURLLocation(request) +
-    "/encounters/encounter" +
-    ".jsp?number="+ number);
-  new_message.append("<br><br>Quick stats:<br>");
   String photographer = "None";
   boolean emailPhoto = false;
   //get all needed DB reads out of the way in case Dynamic Image fails
@@ -98,17 +90,6 @@ new_message.append("<html><body>");
       } else {
         hasImages = false;
       }
-      new_message.append("Location: " + enc.getLocation() + "<br>");
-      new_message.append("Date: " + enc.getDate() + "<br>");
-      if(enc.getSex()!=null){
-      	new_message.append("Sex: " + enc.getSex() + "<br>");
-      }
-      new_message.append("Submitter: " + enc.getSubmitterName() + "<br>");
-      new_message.append("Email: " + enc.getSubmitterEmail() + "<br>");
-      new_message.append("Photographer: " + enc.getPhotographerName() + "<br>");
-      new_message.append("Email: " + enc.getPhotographerEmail() + "<br>");
-      new_message.append("Comments: " + enc.getComments() + "<br>");
-      new_message.append("</body></html>");
       submitter = enc.getSubmitterEmail();
       if ((enc.getPhotographerEmail() != null) && (!enc.getPhotographerEmail().equals("None")) && (!enc.getPhotographerEmail().equals(""))) {
         photographer = enc.getPhotographerEmail();
