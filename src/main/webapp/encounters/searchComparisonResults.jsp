@@ -1264,7 +1264,7 @@ else{
      catch (Exception e) {
        e.printStackTrace();
        %>
-       <script type="text\jvascript">
+       <script type="text\javascript">
        		alert("I hit an exception!");
        </script>
        <%
