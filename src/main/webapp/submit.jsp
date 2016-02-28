@@ -16,7 +16,7 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <!-- add recaptcha -->
-<script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -404,34 +404,7 @@ function submitForm() {
 }
 
 
-//we need to first check here if we need to do the background social image send... in which case,
-// we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
-function sendButtonClicked() {
-	console.log('sendButtonClicked()');
-	if (sendSocialPhotosBackground()) return false;
-	console.log('fell through -- must be no social!');
 
-    <%
-    if(request.getUserPrincipal()!=null){
-    %>
-    	$("#encounterForm").attr("action", "EncounterForm");
-    	submitForm();
-    <%
-    }
-    else{
-    %>
-		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-		if(!isEmpty(recaptachaResponse)) {		
-			$("#encounterForm").attr("action", "EncounterForm");
-			submitForm();
-		}
-	//alert(recaptachaResponse);
-	<%
-    }
-	%>
-	return true;
-}
 
 
 
@@ -1104,18 +1077,57 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
          %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
            <script>
-	           var captchaWidgetId = grecaptcha.render( 
-	        	'myCaptcha', {
-		  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
-		  			'theme' : 'light'
-				});
-	           
+		         //we need to first check here if we need to do the background social image send... in which case,
+		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+		        
+		       var captchaWidgetId;
+		        function onloadCallback() {
+		        	captchaWidgetId = grecaptcha.render( 
+		        	
+			        	'myCaptcha', {
+				  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
+				  			'theme' : 'light'
+						});
+		        }
+		        
+
+			     
+
+			           
            </script>
         
         <%
          }
         %>
+<script>
 
+function sendButtonClicked() {
+	console.log('sendButtonClicked()');
+	if (sendSocialPhotosBackground()) return false;
+	console.log('fell through -- must be no social!');
+
+    <%
+    if(request.getUserPrincipal()!=null){
+    %>
+    	$("#encounterForm").attr("action", "EncounterForm");
+    	submitForm();
+    <%
+    }
+    else{
+    %>
+		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+   		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+		if(!isEmpty(recaptachaResponse)) {		
+			$("#encounterForm").attr("action", "EncounterForm");
+			submitForm();
+		}
+	//alert(recaptachaResponse);
+	<%
+    }
+	%>
+	return true;
+}
+</script>
       
 
       <p class="text-center">
