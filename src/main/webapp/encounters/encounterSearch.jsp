@@ -461,7 +461,7 @@ function FSControl(controlDiv, map) {
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple name="locationCodeField" id="locationCodeField" size="10">
+      <select multiple="multiple" name="locationCodeField" id="locationCodeField" size="10">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalLocIDs; n++) {
@@ -702,7 +702,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         if (totalVBDs > 1) {
       %>
 
-      <select multiple name="verbatimEventDateField" id="verbatimEventDateField" size="5">
+      <select multiple="multiple" name="verbatimEventDateField" id="verbatimEventDateField" size="5">
         <option value="None"></option>
         <%
           for (int f = 0; f < totalVBDs; f++) {
@@ -981,7 +981,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				if(totalBehavs>1){
 				%>
 
-            <select multiple name="behaviorField" id="behaviorField" style="width: 500px">
+            <select multiple="multiple" name="behaviorField" id="behaviorField" style="width: 500px">
               <option value="None"></option>
               <%
                 for (int f = 0; f < totalBehavs; f++) {
@@ -1127,7 +1127,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       if (totalKeywords > 0) {
     %>
 
-    <select multiple size="10" name="keyword" id="keyword" >
+    <select multiple="multiple" size="10" name="keyword" id="keyword" >
       <option value="None"></option>
       <%
 
@@ -1332,7 +1332,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         if (totalHaplos >= 1) {
       %>
 
-      <select multiple size="10" name="haplotypeField" id="haplotypeField">
+      <select multiple="multiple" size="10" name="haplotypeField" id="haplotypeField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
@@ -1370,7 +1370,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         if (totalSexes >= 1) {
       %>
 
-      <select multiple size="10" name="geneticSexField" id="geneticSexField">
+      <select multiple="multiple" size="10" name="geneticSexField" id="geneticSexField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalSexes; n++) {
@@ -1555,7 +1555,7 @@ else {
 
       %>
 	<br /><strong><%=encprops.getProperty("username")%></strong><br />
-      <select multiple size="5" name="username" id="username">
+      <select multiple="multiple" size="5" name="username" id="username">
         <option value="None"></option>
         <%
           for (int n = 0; n < numUsers; n++) {

@@ -458,7 +458,7 @@ function FSControl(controlDiv, map) {
         if (totalLocIDs >= 1) {
       %>
 
-      <select multiple size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
+      <select multiple="multiple" size="<%=(totalLocIDs+1) %>" name="locationCodeField" id="locationCodeField">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalLocIDs; n++) {
@@ -649,7 +649,7 @@ function FSControl(controlDiv, map) {
         if (totalVBDs > 1) {
       %>
 
-      <select multiple size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
+      <select multiple="multiple" size="<%=(totalVBDs+1) %>" name="verbatimEventDateField"
               id="verbatimEventDateField">
         <option value="None"></option>
         <%
@@ -783,7 +783,7 @@ function FSControl(controlDiv, map) {
 				if(totalBehavs>1){
 				%>
 
-            <select multiple name="behaviorField" id="behaviorField">
+            <select multiple="multiple" name="behaviorField" id="behaviorField">
               <option value="None"></option>
               <%
                 for (int f = 0; f < totalBehavs; f++) {
@@ -888,7 +888,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       if (totalKeywords > 0) {
     %>
 
-    <select multiple size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
+    <select multiple="multiple" size="<%=(totalKeywords+1) %>" name="keyword" id="keyword">
       <option value="None"></option>
       <%
 
@@ -1088,7 +1088,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         if (totalHaplos >= 1) {
       %>
 
-      <select multiple size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
+      <select multiple="multiple" size="<%=(totalHaplos+1) %>" name="haplotypeField" id="haplotypeField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalHaplos; n++) {
@@ -1126,7 +1126,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         if (totalSexes >= 1) {
       %>
 
-      <select multiple size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
+      <select multiple="multiple" size="<%=(totalSexes+1) %>" name="geneticSexField" id="geneticSexField">
         <option value="None" ></option>
         <%
           for (int n = 0; n < totalSexes; n++) {
@@ -1248,7 +1248,7 @@ else {
  			        	int totalNames = communities.size();
  			%>
 
-      <select multiple size="10" name="community" id="community">
+      <select multiple="multiple" size="10" name="community" id="community">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalNames; n++) {
@@ -1297,7 +1297,7 @@ else {
         
       %>
 
-      <select multiple size="10" name="role" id="role">
+      <select multiple="multiple" size="10" name="role" id="role">
         <option value="None"></option>
         <%
           for (int n = 0; n < totalNames; n++) {
