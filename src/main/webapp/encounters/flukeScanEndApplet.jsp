@@ -186,7 +186,7 @@ var encounterNumber = '<%=num%>';
 
 
 
-<h1>Edge Scan Results <a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
+<h1>Matching Results <a href="<%=CommonConfiguration.getWikiLocation(context)%>scan_results"
   target="_blank"><img src="../images/information_icon_svg.gif"
                        alt="Help" border="0" align="absmiddle">
    </a>
@@ -215,9 +215,7 @@ var encounterNumber = '<%=num%>';
   
       <a name="resultstable"></a>
 
-<div id="image-meta">
-	<div id="score"></div>
-</div>
+
 <div id="result-images"></div>
 
 <!--  

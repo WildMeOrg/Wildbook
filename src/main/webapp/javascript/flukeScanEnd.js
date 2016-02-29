@@ -87,7 +87,7 @@ var columnInfo = {
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     },
     IBEISColor: {
-        label: 'IBEISColor',
+        label: 'IBEIS',
         value: _getValue,
 	sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
     }
@@ -358,7 +358,7 @@ console.log(ev); return;
 }
 
 function setImageMeta(adaboostMatch) {
-    $('#image-meta #score').html('Metascore: <b>' + _cleanFloat(adaboostMatch) + '</b>');
+   // $('#image-meta #score').html('Metascore: <b>' + _cleanFloat(adaboostMatch) + '</b>');
 }
 
 function rowClick(el) {
