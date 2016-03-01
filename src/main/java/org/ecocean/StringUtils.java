@@ -110,6 +110,7 @@ public final class StringUtils {
 
   /**
    * Collates the specified strings into a single string using the specified extra string data.
+   * @param c collection of strings to collate
    * @param prefix prefix for each string item
    * @param suffix suffix for each string item
    * @param delimiter delimiter between string items
@@ -121,6 +122,17 @@ public final class StringUtils {
 
   /**
    * Collates the specified strings into a single string using the specified extra string data.
+   * @param c collection of strings to collate
+   * @param delimiter delimiter between string items
+   * @return string representing collated for of string collection
+   */
+  public static String collateStrings(Collection<String> c, String delimiter) {
+    return collateStrings(c, (ResourceBundle)null, null, null ,null, delimiter);
+  }
+
+  /**
+   * Collates the specified strings into a single string using the specified extra string data.
+   * @param c strings to collate
    * @param prefix prefix for each string item
    * @param suffix suffix for each string item
    * @param delimiter delimiter between string items
@@ -128,6 +140,16 @@ public final class StringUtils {
    */
   public static String collateStrings(String[] c, String prefix, String suffix, String delimiter) {
     return collateStrings(Arrays.asList(c), (ResourceBundle)null, null, prefix, suffix, delimiter);
+  }
+
+  /**
+   * Collates the specified strings into a single string using the specified extra string data.
+   * @param c strings to collate
+   * @param delimiter delimiter between string items
+   * @return string representing collated for of string collection
+   */
+  public static String collateStrings(String[] c, String delimiter) {
+    return collateStrings(Arrays.asList(c), (ResourceBundle)null, null, null, null, delimiter);
   }
 
   /**
