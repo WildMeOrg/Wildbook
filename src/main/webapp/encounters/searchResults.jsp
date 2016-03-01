@@ -26,7 +26,7 @@ context=ServletUtilities.getContext(request);
 
   //Vector rEncounters = new Vector();
 
-  myShepherd.beginDBTransaction();
+  //myShepherd.beginDBTransaction();
   
   try{
 
@@ -852,9 +852,7 @@ console.log(t);
       </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-    %>
+
   </tr>
 </table>
 
