@@ -83,6 +83,13 @@ console.info('complete? err=%o data=%o', err, data);
 			testChunks: false,
 		});
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
+			var files = flow.files;
+//console.log('files --> %o', files);
+                        pendingUpload = files.length;
+                        for (var i = 0 ; i < files.length ; i++) {
+//console.log('%d %o', i, files[i]);
+                            filenameToKey(files[i].name);
+                        }
                         document.getElementById('upcontrols').style.display = 'none';
                         pendingUpload = document.getElementById('file-chooser').length;
 			flow.upload();
@@ -142,7 +149,8 @@ function requestMediaAssetSet(callback) {
 
 
 function filenameToKey(fname) {
-    var key = (mediaAssetSetId || randomPrefix) + '/' + fname;
+    var key = fname;
+    if (useS3Direct()) key = (mediaAssetSetId || randomPrefix) + '/' + fname;
     keyToFilename[key] = fname;
 console.info('key = %s', key);
     return key;
