@@ -23,11 +23,12 @@ var forceLocal = (document.location.search == '?forceLocal');
 var mediaAssetSetId = false;
 var randomPrefix = Math.floor(Math.random() * 100000);  //this is only used for filenames when we dont get a mediaAssetSetId -- which is hopefully never
 var keyToFilename = {};
+var pendingUpload = -1;
 
 //TODO we should make this more generic wrt elements and events
-function uploaderInit() {
+function uploaderInit(completionCallback) {
 
-    if (!forceLocal && wildbookGlobals && wildbookGlobals.uploader && (wildbookGlobals.uploader.type == 's3direct')) {
+    if (useS3Direct()) {
         $('#uptype').html('S3-direct');
         console.info("uploader is using direct-to-s3 uploading to bucket %s", wildbookGlobals.uploader.s3_bucket);
 		AWS.config.credentials = {
@@ -38,7 +39,9 @@ function uploaderInit() {
 		uploaderS3Bucket = new AWS.S3({params: {Bucket: wildbookGlobals.uploader.s3_bucket}});
 
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
+                        document.getElementById('upcontrols').style.display = 'none';
 			var files = document.getElementById('file-chooser').files;
+                        pendingUpload = files.length;
 			for (var i = 0 ; i < files.length ; i++) {
 				var params = {
 					Key: filenameToKey(files[i].name),
@@ -51,8 +54,12 @@ function uploaderInit() {
 console.info('complete? err=%o data=%o', err, data);
 					if (err) {
 						updateProgress(el, -1, err, 'rgba(250,120,100,0.3)');
+                                                pendingUpload--;
+                                                if (pendingUpload == 0) completionCallback();
 					} else {
 						updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
+                                                pendingUpload--;
+                                                if (pendingUpload == 0) completionCallback();
 					}
 				});
 				mgr.on('httpUploadProgress', function(data) {
@@ -76,6 +83,8 @@ console.info('complete? err=%o data=%o', err, data);
 			testChunks: false,
 		});
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
+                        document.getElementById('upcontrols').style.display = 'none';
+                        pendingUpload = document.getElementById('file-chooser').length;
 			flow.upload();
 		}, false);
 
@@ -95,22 +104,32 @@ console.info('complete? err=%o data=%o', err, data);
 			var el = findElement(file.name, file.size);
 			updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
     			console.log('success %o %o', file, message);
+                        pendingUpload--;
+                        if (pendingUpload == 0) completionCallback();
 		});
 		flow.on('fileError', function(file, message){
     			console.log('error %o %o', file, message);
+                        pendingUpload--;
+                        if (pendingUpload == 0) completionCallback();
 		});
 
 	}
 }
 
 
+function useS3Direct() {
+    return (!forceLocal && wildbookGlobals && wildbookGlobals.uploader && (wildbookGlobals.uploader.type == 's3direct'));
+}
+
 
 function requestMediaAssetSet(callback) {
     $.ajax({
         url: 'MediaAssetCreate?requestMediaAssetSet',
         type: 'GET',
+        dataType: 'json',
         success: function(d) {
-            console.info('success getting MediaAssetSet: %o', d);
+            console.info('success got MediaAssetSet: %o -> %s', d, d.mediaAssetSetId);
+            mediaAssetSetId = d.mediaAssetSetId;
             callback(d);
         },
         error: function(a,b,c) {

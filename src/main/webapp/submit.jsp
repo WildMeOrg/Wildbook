@@ -66,7 +66,44 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 %>
 
 <style type="text/css">
-    .full_screen_map {
+
+div#file-activity {
+	font-family: sans;
+	border: solid 2px black;
+	padding: 8px;
+	margin: 20px;
+	min-height: 200px;
+}
+div.file-item {
+	position: relative;
+	background-color: #DDD;
+	border-radius: 3px;
+	margin: 2px;
+}
+
+div.file-item div {
+	display: inline-block;
+	padding: 3px 7px;
+}
+.file-name {
+	width: 30%;
+}
+.file-size {
+	width: 8%;
+}
+
+.file-bar {
+	position: absolute;
+	width: 0;
+	height: 100%;
+	padding: 0 !important;
+	left: 0;
+	border-radius: 3px;
+	background-color: rgba(100,100,100,0.3);
+}
+
+
+.full_screen_map {
     position: absolute !important;
     top: 0px !important;
     left: 0px !important;
@@ -75,6 +112,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+}
     
     
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
@@ -107,6 +145,8 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
     /*customizations*/
     .ui_tpicker_hour_label {margin-bottom:5px !important;}
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
+
+
 </style>
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
@@ -196,6 +236,9 @@ function isEmpty(str) {
     return (!str || 0 === str.length);
 }
 </script>
+
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
+<script src="javascript/uploader.js"></script>
 
 <script>
 
@@ -460,6 +503,43 @@ function showUploadBox() {
 <fieldset>
 <h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
+<%
+if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) {  //lets us s3 uploader, i guess!
+%>
+
+<div id="file-activity"></div>
+
+<div id="upcontrols" style="display: none;">
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
+	<button style="display: none;" id="upload-button">begin upload</button>
+</div>
+<script>
+
+function submitFilesChanged(el) {
+	if (mediaAssetSetId) {
+		filesChanged(el);  //the one in uploader.js
+	} else {
+		filesChanged(el);
+		requestMediaAssetSet(function() {
+			$('#upload-button').show();
+		});
+	}
+}
+
+var uploadComplete = false;
+function uploadCompleted() {
+	console.info('upload completed!');
+	uploadComplete = true;
+}
+
+
+$(document).ready(function() {
+	uploaderInit(uploadCompleted);
+	document.getElementById('upcontrols').style.display = 'block';
+});
+</script>
+
+<% } else {  //not direct-to-S3 %>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
@@ -488,6 +568,7 @@ function showUploadBox() {
             </div>
         </div>
     </div>
+<% } %>
 
 </fieldset>
 
