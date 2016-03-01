@@ -1,10 +1,11 @@
 
 /*
+NOTE: some of this makes the assumption jquery is loaded too... meh.  was trying to avoid that.
+
 be sure to include:
   <script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
   <script src="tools/flow.min.js"></script>
 
-/////Object {s3_secretAccessKey: "MWaPEpplIlHNeZspL6krTKh/muAa3l6rru5fIiMn", s3_region: "us-west-2", s3_accessKeyId: "AKIAJFVBLOTSKZ5554EA", type: "s3direct", s3_bucket: "us-west-2"}
 
 https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/browser-examples.html#Amazon_S3
 "Uploading a local file using the File API"
@@ -19,6 +20,9 @@ also - https://code.flickr.net/2012/06/01/parsing-exif-client-side-using-javascr
 var uploaderFlow;
 var uploaderS3Bucket;
 var forceLocal = (document.location.search == '?forceLocal');
+var mediaAssetSetId = false;
+var randomPrefix = Math.floor(Math.random() * 100000);  //this is only used for filenames when we dont get a mediaAssetSetId -- which is hopefully never
+var keyToFilename = {};
 
 //TODO we should make this more generic wrt elements and events
 function uploaderInit() {
@@ -37,12 +41,13 @@ function uploaderInit() {
 			var files = document.getElementById('file-chooser').files;
 			for (var i = 0 ; i < files.length ; i++) {
 				var params = {
-					Key: files[i].name,
+					Key: filenameToKey(files[i].name),
 					ContentType: files[i].type,
 					Body: files[i]
 				};
 				var mgr = uploaderS3Bucket.upload(params, function(err, data) {
-					var el = findElement(data.key, -1);
+                                        var dkey = data.key || data.Key;  //weirdly the case changes on the K for multipart! grrr
+					var el = findElement(dkey, -1);
 console.info('complete? err=%o data=%o', err, data);
 					if (err) {
 						updateProgress(el, -1, err, 'rgba(250,120,100,0.3)');
@@ -67,7 +72,7 @@ console.info('complete? err=%o data=%o', err, data);
 		flow = new Flow({
   			target:'ResumableUpload',
 			forceChunkSize: true,
-  			//query:{upload_token:'my_token'}
+  			query: { mediaAssetSetId: mediaAssetSetId },
 			testChunks: false,
 		});
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
@@ -99,7 +104,37 @@ console.info('complete? err=%o data=%o', err, data);
 }
 
 
-function findElement(name, size) {
+
+function requestMediaAssetSet(callback) {
+    $.ajax({
+        url: 'MediaAssetCreate?requestMediaAssetSet',
+        type: 'GET',
+        success: function(d) {
+            console.info('success getting MediaAssetSet: %o', d);
+            callback(d);
+        },
+        error: function(a,b,c) {
+            console.log('error getting MediaAssetSet: %o %o %o', a,b,c);
+            alert('error getting Set ID');
+        },
+    });
+}
+
+
+
+function filenameToKey(fname) {
+    var key = (mediaAssetSetId || randomPrefix) + '/' + fname;
+    keyToFilename[key] = fname;
+console.info('key = %s', key);
+    return key;
+}
+
+function findElement(key, size) {
+        var name = keyToFilename[key];
+        if (!name) {
+            console.warn('could not find filename for key %o; bailing!', key);
+            return false;
+        }
 	var items = document.getElementsByClassName('file-item');
 	for (var i = 0 ; i < items.length ; i++) {
 		if ((name == items[i].getAttribute('data-name')) && ((size < 0) || (size == items[i].getAttribute('data-size')))) return items[i];
