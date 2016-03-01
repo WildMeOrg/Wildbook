@@ -65,14 +65,22 @@ div.file-item div {
 
 </style>
 
+<script>
+function uploadFinished() {
+	document.getElementById('updone').innerHTML = '<i>upload finished</i>';
+}
+</script>
+
 </head>
-<body onLoad="uploaderInit()">
+<body onLoad="uploaderInit(uploadFinished)">
 
 <div style="margin-top: 100px; padding: 5px;" >upload method being used: <b><span id="uptype"></span></b></div>
 
 <div id="file-activity"></div>
 
-<div style="padding: 20px;">
+<div id="updone"></div>
+
+<div id="upcontrols" style="padding: 20px;">
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 	<button id="upload-button">begin upload</button>
 </div>
