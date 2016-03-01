@@ -1,16 +1,8 @@
 package org.ecocean;
 
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
 
 import java.io.*;
 
@@ -37,10 +29,11 @@ public class EncounterQueryProcessor {
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
     String parameterDeclaration = "";
-    
-    
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Properties props = ShepherdProperties.getProperties("searchResults_shared.properties", langCode, context);
+    Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
     
     Shepherd myShepherd=new Shepherd(context);
 
@@ -51,7 +44,8 @@ public class EncounterQueryProcessor {
         filter+="(verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";
       }
       else{filter+=" && (verbatimLocality.toLowerCase().indexOf('"+locString+"') != -1)";}
-      prettyPrint.append("locationField contains \""+locString+"\".<br />");
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterLocation"), locString));
+      prettyPrint.append("<br />");
     }
     //end location filter--------------------------------------------------------------------------------------
 
@@ -59,7 +53,7 @@ public class EncounterQueryProcessor {
     //username filters-------------------------------------------------
     String[] usernames=request.getParameterValues("username");
     if((usernames!=null)&&(!usernames[0].equals("None"))){
-          prettyPrint.append("Assigned to one of the following usernames: ");
+          List<String> list = new ArrayList<>();
           int kwLength=usernames.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -71,12 +65,13 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || submitterID == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                list.add(kwParam);
               }
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterUsername"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end username filters-----------------------------------------------
@@ -90,7 +85,8 @@ public class EncounterQueryProcessor {
         filter+="(individualID != \"Unassigned\")";
       }
       else{filter+=" && (individualID != \"Unassigned\")";}
-      prettyPrint.append("Identified and resighted.<br />");
+      prettyPrint.append(props.getProperty("filterResighted"));
+      prettyPrint.append("<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
 
@@ -101,6 +97,8 @@ public class EncounterQueryProcessor {
       }
       else{filter+=" && (individualID == \"Unassigned\")";}
       prettyPrint.append("Unidentified.<br />");
+      prettyPrint.append(props.getProperty("filterUnassigned"));
+      prettyPrint.append("<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
 
@@ -145,9 +143,10 @@ public class EncounterQueryProcessor {
 
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
+    Map<String, String> mapI18n = Util.getIndexedValuesMap(cciProps, "locationID");
     String[] locCodes=request.getParameterValues("locationCodeField");
     if((locCodes!=null)&&(!locCodes[0].equals("None"))){
-          prettyPrint.append("locationCodeField is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=locCodes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -159,12 +158,14 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || locationID == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                String kwI18n = mapI18n.get("locationID" + CommonConfiguration.getIndexNumberForValue("locationID", kwParam, context));
+                list.add(kwI18n);
               }
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterLocationCode_or"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end locationID filters-----------------------------------------------
@@ -172,9 +173,10 @@ public class EncounterQueryProcessor {
 
     //------------------------------------------------------------------
     //state filters-------------------------------------------------
+    mapI18n = Util.getIndexedValuesMap(cciProps, "encounterState");
     String[] states=request.getParameterValues("state");
     if((states!=null)&&(!states[0].equals("None"))){
-          prettyPrint.append("State is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=states.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -186,12 +188,14 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || state == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                String kwI18n = mapI18n.get("encounterState" + CommonConfiguration.getIndexNumberForValue("encounterState", kwParam, context));
+                list.add(kwI18n);
               }
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterEncounterState"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end state filters-----------------------------------------------
@@ -202,7 +206,7 @@ public class EncounterQueryProcessor {
     //supports multiple individualID parameters as well as comma-separated lists of individualIDs within them
     String[] individualID=request.getParameterValues("individualID");
     if((individualID!=null)&&(!individualID[0].equals(""))&&(!individualID[0].equals("None"))){
-          prettyPrint.append("Individual ID is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=individualID.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -219,7 +223,7 @@ public class EncounterQueryProcessor {
                   else{
                     locIDFilter+=" || individualID == \""+kwParam+"\"";
                   }
-                  prettyPrint.append(kwParam+" ");
+                  list.add(kwParam);
                 }
               
               }
@@ -228,6 +232,7 @@ public class EncounterQueryProcessor {
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterIndividualId"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
@@ -238,9 +243,10 @@ public class EncounterQueryProcessor {
 
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
+    mapI18n = Util.getIndexedValuesMap(cciProps, "patterningCode");
     String[] patterningCodes=request.getParameterValues("patterningCodeField");
     if((patterningCodes!=null)&&(!patterningCodes[0].equals("None"))){
-          prettyPrint.append("Patterning code is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=patterningCodes.length;
             String patterningCodeFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -254,7 +260,8 @@ public class EncounterQueryProcessor {
 
                   patterningCodeFilter+=" || patterningCode == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                String kwI18n = mapI18n.get("patterningCode" + CommonConfiguration.getIndexNumberForValue("patterningCode", kwParam, context));
+                list.add(kwI18n);
               }
             }
             patterningCodeFilter+=" )";
@@ -263,6 +270,7 @@ public class EncounterQueryProcessor {
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=patterningCodeFilter;}
             else{filter+=(" && "+patterningCodeFilter);}
 
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterPatterningCode"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end patterningCode filters-----------------------------------------------
@@ -271,7 +279,7 @@ public class EncounterQueryProcessor {
     //behavior filters-------------------------------------------------
     String[] behaviors=request.getParameterValues("behaviorField");
     if((behaviors!=null)&&(!behaviors[0].equals("None"))){
-          prettyPrint.append("behaviorField is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=behaviors.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -283,12 +291,13 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || behavior == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                list.add(kwParam);
               }
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterBehavior"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end behavior filters-----------------------------------------------
@@ -306,10 +315,7 @@ public class EncounterQueryProcessor {
         String metalTagLocation = parameterName.substring(metalTagPrefix.length(), parameterName.lastIndexOf(')'));
         String value = request.getParameter(parameterName);
         if (value != null && value.trim().length() > 0) {
-          prettyPrint.append("metal tag ");
-          prettyPrint.append(metalTagLocation);
-          prettyPrint.append(" is ");
-          prettyPrint.append(value);
+          prettyPrint.append(MessageFormat.format(props.getProperty("filterMetalTag"), metalTagLocation, value));
           prettyPrint.append("<br/>");
           String metalTagVar = "metalTag" + metalTagsInQuery++;
           metalTagFilter.append("(metalTags.contains(" + metalTagVar + ") && ");
@@ -332,7 +338,7 @@ public class EncounterQueryProcessor {
     }
 
     // We don't do metal tags (above) in processTagFilters because of the dependency on jdoqlVariableDeclaration
-    String tagFilters = processTagFilters(request, prettyPrint);
+    String tagFilters = processTagFilters(request, prettyPrint, props);
     if (tagFilters.length() > 0) {
       if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)) {
         filter += " && ";
@@ -342,9 +348,10 @@ public class EncounterQueryProcessor {
     //end tag filters----------------------------------------------------
 
     //lifeStage filters-------------------------------------------------
+    mapI18n = Util.getIndexedValuesMap(cciProps, "lifeStage");
     String[] stages=request.getParameterValues("lifeStageField");
     if((stages!=null)&&(!stages[0].equals("None"))&&(!stages[0].equals(""))){
-          prettyPrint.append("lifeStage is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=stages.length;
             String stageFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -356,20 +363,23 @@ public class EncounterQueryProcessor {
                 else{
                   stageFilter+=" || lifeStage == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                String kwI18n = mapI18n.get("lifeStage" + CommonConfiguration.getIndexNumberForValue("lifeStage", kwParam, context));
+                list.add(kwI18n);
               }
             }
             stageFilter+=" ) ";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=stageFilter;}
             else{filter+=(" && "+stageFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterLifeStage"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end lifeStage filters
 
     //country filters-------------------------------------------------
+    mapI18n = Util.getIndexedValuesMap(cciProps, "country");
     String[] countries=request.getParameterValues("country");
     if((countries!=null)&&(!countries[0].equals("None"))&&(!countries[0].equals(""))){
-          prettyPrint.append("Country is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=countries.length;
             String stageFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -381,19 +391,21 @@ public class EncounterQueryProcessor {
                 else{
                   stageFilter+=" || country == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                String kwI18n = mapI18n.get("country" + CommonConfiguration.getIndexNumberForValue("country", kwParam, context));
+                list.add(kwI18n);
               }
             }
             stageFilter+=" ) ";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=stageFilter;}
             else{filter+=(" && "+stageFilter);}
-            prettyPrint.append("<br />");
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterCountry"), StringUtils.collateStrings(list, ", ")));
+      prettyPrint.append("<br />");
     }
     //end country filters
 
 
     // Measurement filters-----------------------------------------------
-    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("en",context);
+    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs(langCode, context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
     boolean atLeastOneMeasurement = false;
@@ -426,10 +438,7 @@ public class EncounterQueryProcessor {
             operator = "<=";
           }
           if (operator != null) {
-            prettyPrint.append(measurementDesc.getUnitsLabel());
-            prettyPrint.append(" is ");
-            prettyPrint.append(operator);
-            prettyPrint.append(value);
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterMeasurement"), measurementDesc.getUnitsLabel(), operator, value));
             prettyPrint.append("<br/>");
             if (atLeastOneMeasurement) {
               measurementFilter.append("&&");
@@ -468,7 +477,7 @@ public class EncounterQueryProcessor {
 
 
     // BiologicalMeasurement filters-----------------------------------------------
-    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("en",context);
+    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs(langCode, context);
     String bioMeasurementPrefix = "biomeasurement";
     StringBuilder bioMeasurementFilter = new StringBuilder();
     bioMeasurementFilter.append("tissueSamples.contains(dce322) ");
@@ -504,10 +513,7 @@ public class EncounterQueryProcessor {
             operator = "<=";
           }
           if (operator != null) {
-            prettyPrint.append("Biological/chemical measurement "+measurementDesc.getType());
-            prettyPrint.append(" is ");
-            prettyPrint.append(operator);
-            prettyPrint.append(value);
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterBioMeasurement"), measurementDesc.getLabel(), operator, value));
             prettyPrint.append("<br/>");
             if (bioAtLeastOneMeasurement) {
               bioMeasurementFilter.append("&&");
@@ -556,7 +562,7 @@ public class EncounterQueryProcessor {
     //verbatimEventDate filters-------------------------------------------------
     String[] verbatimEventDates=request.getParameterValues("verbatimEventDateField");
     if((verbatimEventDates!=null)&&(!verbatimEventDates[0].equals("None"))){
-          prettyPrint.append("verbatimEventDateField is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=verbatimEventDates.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -569,12 +575,13 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || verbatimEventDate == \""+kwParam+"\"";
                 }
-                prettyPrint.append(kwParam+" ");
+                list.add(kwParam);
               }
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=locIDFilter;}
             else{filter+=(" && "+locIDFilter);}
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterVerbatimEventDate"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
     }
     //end verbatimEventDate filters-----------------------------------------------
@@ -584,7 +591,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //hasTissueSample filters-------------------------------------------------
     if(request.getParameter("hasTissueSample")!=null){
-          prettyPrint.append("Has tissue sample.");
+          prettyPrint.append(props.getProperty("filterHasTissueSample"));
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce)";}
             else if (filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=(" && tissueSamples.contains(dce) ");}
             prettyPrint.append("<br />");
@@ -596,7 +603,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //TissueSample sampleID filters-------------------------------------------------
     if((request.getParameter("tissueSampleID")!=null)&&(!request.getParameter("tissueSampleID").trim().equals(""))){
-          prettyPrint.append("Has biological sample with ID: "+request.getParameter("tissueSampleID"));
+          prettyPrint.append(MessageFormat.format(props.getProperty("filterTissueSample"), request.getParameter("tissueSampleID")));
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="tissueSamples.contains(dce123) && (dce123.sampleID.toLowerCase().indexOf('"+request.getParameter("tissueSampleID").trim().toLowerCase()+"') != -1)";}
             else if (filter.indexOf("tissueSamples.contains(dce)")==-1){filter+=(" && tissueSamples.contains(dce123) && (dce123.sampleID.toLowerCase().indexOf('"+request.getParameter("tissueSampleID").trim().toLowerCase()+"') != -1) ");}
             prettyPrint.append("<br />");
@@ -611,7 +618,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //hasPhoto filters-------------------------------------------------
     if(request.getParameter("hasPhoto")!=null){
-          prettyPrint.append("Has at least one photo.");
+          prettyPrint.append(props.getProperty("filterHasPhoto"));
 
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(dce15)";}
             else if (filter.indexOf("images.contains(dce15)")==-1){filter+=(" && images.contains(dce15) ");}
@@ -629,7 +636,8 @@ public class EncounterQueryProcessor {
 
       try{
         numResights=(new Integer(request.getParameter("numResights"))).intValue();
-        prettyPrint.append("numResights for related Marked Individual is >= "+numResights+".<br />");
+        prettyPrint.append(MessageFormat.format(props.getProperty("filterNumberResights_gte"), numResights));
+        prettyPrint.append("<br />");
         }
       catch(NumberFormatException nfe) {nfe.printStackTrace();}
       String localFilter="markedindy.encounters.contains(this) && markedindy.encounters.size() >= "+numResights+" ";
@@ -658,12 +666,11 @@ public class EncounterQueryProcessor {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="(";}
       else{filter+=" && (";}
 
+      String ppKey = "filterKeyword_and";
       if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){
-          prettyPrint.append("Photo/video keyword is any one of the following: ");
+        ppKey = "filterKeyword_or";
       }
-      else{
-        prettyPrint.append("All of these photo/video keywords are applied: ");
-      }
+          List<String> list = new ArrayList<>();
           int kwLength=keywords.length;
 
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -677,7 +684,7 @@ public class EncounterQueryProcessor {
                   locIDFilter+=" "+photoKeywordOperator+" word"+kwIter+".indexname == \""+kwParam+"\" ";
                 }
                 Keyword kw=myShepherd.getKeyword(kwParam.trim());
-                prettyPrint.append("\""+kw.getReadableName()+"\" ");
+                list.add(kw.getReadableName());
               }
               locIDFilter+=" )";
 
@@ -703,6 +710,7 @@ public class EncounterQueryProcessor {
             }
             filter+=" ) ";
 
+            prettyPrint.append(MessageFormat.format(props.getProperty(ppKey), StringUtils.collateStrings(list, "\"", "\"", ", ")));
             prettyPrint.append("<br />");
       }
     myShepherd.rollbackDBTransaction();
@@ -776,9 +784,8 @@ public class EncounterQueryProcessor {
             }
         }
         if(hasMarkers){
-          prettyPrint.append("Microsatellite marker is one of the following: ");
-          theseMarkers+="<br />";
-          prettyPrint.append(theseMarkers);
+          prettyPrint.append(MessageFormat.format(props.getProperty("filterMarker"), theseMarkers));
+          prettyPrint.append("<br />");
         }
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -791,14 +798,16 @@ public class EncounterQueryProcessor {
       String altID=request.getParameter("alternateIDField").replaceAll("%20", " ").trim().toLowerCase();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1";}
       else{filter+=" && otherCatalogNumbers.toLowerCase().indexOf('"+altID+"') != -1";}
-      prettyPrint.append("alternateID field contains \""+altID+"\".<br />");
+
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterAlternateId"), altID));
+      prettyPrint.append("<br />");
     }
 
     //------------------------------------------------------------------
     //haplotype filters-------------------------------------------------
     String[] haplotypes=request.getParameterValues("haplotypeField");
     if((haplotypes!=null)&&(!haplotypes[0].equals("None"))){
-          prettyPrint.append("Haplotype is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=haplotypes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -811,7 +820,7 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || analysis.haplotype == \""+kwParam+"\" ";
                 }
-                prettyPrint.append(kwParam+" ");
+                list.add(kwParam);
               }
             }
             locIDFilter+=" )";
@@ -823,6 +832,7 @@ public class EncounterQueryProcessor {
               filter+=(" && "+locIDFilter);
             }
 
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterHaplotype"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce;org.ecocean.genetics.MitochondrialDNAAnalysis analysis";}
             else{
@@ -842,7 +852,7 @@ public class EncounterQueryProcessor {
     //genetic sex filters-------------------------------------------------
     String[] genSexes=request.getParameterValues("geneticSexField");
     if((genSexes!=null)&&(!genSexes[0].equals("None"))){
-          prettyPrint.append("Genetic determination of sex is one of the following: ");
+          List<String> list = new ArrayList<>();
           int kwLength=genSexes.length;
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
@@ -855,7 +865,7 @@ public class EncounterQueryProcessor {
                 else{
                   locIDFilter+=" || sexanalysis.sex == \""+kwParam+"\" ";
                 }
-                prettyPrint.append(kwParam+" ");
+                list.add(kwParam);
               }
             }
             locIDFilter+=" )";
@@ -867,6 +877,7 @@ public class EncounterQueryProcessor {
               filter+=(" && "+locIDFilter);
             }
 
+            prettyPrint.append(MessageFormat.format(props.getProperty("filterGeneticSex"), StringUtils.collateStrings(list, ", ")));
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.genetics.TissueSample dce9;org.ecocean.genetics.SexAnalysis sexanalysis";}
             else{
@@ -894,7 +905,7 @@ public class EncounterQueryProcessor {
             filter+=" && images.contains(photo) && "+locIDFilter;
           }
 
-	      prettyPrint.append("SinglePhotoVideo filename is: \""+nameString+"\"<br />");
+          prettyPrint.append(MessageFormat.format(props.getProperty("filterPhotoFilename"), nameString));
           prettyPrint.append("<br />");
           if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo photo;";}
           else{
@@ -925,7 +936,8 @@ public class EncounterQueryProcessor {
 
 					filter+=" && specificEpithet == '"+specificEpithet+"' ";
 
-	      			prettyPrint.append("genus and species are \""+genusSpecies+"\".<br />");
+          prettyPrint.append(MessageFormat.format(props.getProperty("filterGenusSpecies"), genusSpecies));
+          prettyPrint.append("<br />");
 
 		        }
 
@@ -938,7 +950,9 @@ public class EncounterQueryProcessor {
       String idRemarks=request.getParameter("identificationRemarksField").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="identificationRemarks.startsWith('"+idRemarks+"')";}
       else{filter+=" && identificationRemarks.startsWith('"+idRemarks+"')";}
-      prettyPrint.append("identificationRemarks starts with \""+idRemarks+"\".<br />");
+
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterIdRemarks"), idRemarks));
+      prettyPrint.append("<br />");
 
     }
     //end identification remarks filter
@@ -949,7 +963,8 @@ public class EncounterQueryProcessor {
 
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
       else{filter+=" && decimalLatitude >= -90 && decimalLatitude <= 90 && decimalLongitude <= 180 && decimalLongitude >= -180";}
-      prettyPrint.append("Has GPS coordinates.<br />");
+      prettyPrint.append(props.getProperty("filterHasGps"));
+      prettyPrint.append("<br />");
 
     }
     //end filter gpsOnly
@@ -970,12 +985,14 @@ public class EncounterQueryProcessor {
       if(request.getParameter("alive")==null) {
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('alive')";}
         else{filter+=" && !livingStatus.startsWith('alive')";}
-        prettyPrint.append("Not alive.<br />");
+        prettyPrint.append(props.getProperty("filterStatus_notAlive"));
+        prettyPrint.append("<br />");
       }
       if(request.getParameter("dead")==null) {
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="!livingStatus.startsWith('dead')";}
         else{filter+=" && !livingStatus.startsWith('dead')";}
-        prettyPrint.append("Not dead.<br />");
+        prettyPrint.append(props.getProperty("filterStatus_notDead"));
+        prettyPrint.append("<br />");
       }
     }
     //filter by alive/dead status--------------------------------------------------------------------------------------
@@ -986,7 +1003,8 @@ public class EncounterQueryProcessor {
       String filterString="((recordedBy.toLowerCase().indexOf('"+nameString+"') != -1)||(submitterEmail.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerName.toLowerCase().indexOf('"+nameString+"') != -1)||(photographerEmail.toLowerCase().indexOf('"+nameString+"') != -1))";
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
-      prettyPrint.append("nameField contains: \""+nameString+"\"<br />");
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterName"), nameString));
+      prettyPrint.append("<br />");
     }
     //end name and email filter--------------------------------------------------------------------------------------
 
@@ -998,6 +1016,8 @@ public class EncounterQueryProcessor {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+=filterString;}
       else{filter+=(" && "+filterString);}
       prettyPrint.append("Remarks contains: \""+nameString+"\"<br />");
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterAdditionalComments"), nameString));
+      prettyPrint.append("<br />");
     }
     //end additional comments filter--------------------------------------------------------------------------------------
 
@@ -1033,6 +1053,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
 */
 
+    String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
     //start date filter----------------------------
     if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
@@ -1045,8 +1067,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     int month2=(new Integer(request.getParameter("month2"))).intValue();
     int year1=(new Integer(request.getParameter("year1"))).intValue();
     int year2=(new Integer(request.getParameter("year2"))).intValue();
-
-    prettyPrint.append("Dates between: "+year1+"-"+month1+"-"+day1+" and "+year2+"-"+month2+"-"+day2+"<br />");
 
     //order our values
     int minYear=year1;
@@ -1096,8 +1116,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     
     org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
     org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-    
-    
+
+    prettyPrint.append(MessageFormat.format(props.getProperty("filterDates"), simpleDateFormat.format(gcMin.toDate()), simpleDateFormat.format(gcMax.toDate())));
+    prettyPrint.append("<br />");
+
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
       filter+="((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
@@ -1118,8 +1140,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         int addedmonth2=(new Integer(request.getParameter("addedmonth2"))).intValue();
         int addedyear1=(new Integer(request.getParameter("addedyear1"))).intValue();
         int addedyear2=(new Integer(request.getParameter("addedyear2"))).intValue();
-
-        prettyPrint.append("Encounter creation dates between: "+addedyear1+"-"+addedmonth1+"-"+addedday1+" and "+addedyear2+"-"+addedmonth2+"-"+addedday2+"<br />");
 
         //order our values
         int addedminYear=addedyear1;
@@ -1169,8 +1189,9 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     
         org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
         org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
-    
-    
+
+        prettyPrint.append(MessageFormat.format(props.getProperty("filterEncounterCreationDates"), simpleDateFormat.format(addedgcMin.toDate()), simpleDateFormat.format(addedgcMax.toDate())));
+        prettyPrint.append("<br />");
         
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
           filter+="((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
@@ -1193,15 +1214,15 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     if(request.getParameter("male")==null) {
       filter+=" && !sex.startsWith('male')";
-      prettyPrint.append("Sex is not male.<br />");
+      prettyPrint.append(props.getProperty("filterSex_notMale")).append("<br />");
     }
     if(request.getParameter("female")==null) {
       filter+=" && !sex.startsWith('female')";
-      prettyPrint.append("Sex is not female.<br />");
+      prettyPrint.append(props.getProperty("filterSex_notFemale")).append("<br />");
     }
     if(request.getParameter("unknown")==null) {
       filter+=" && !sex.startsWith('unknown') && sex != null";
-      prettyPrint.append("Sex is not unknown.<br />");
+      prettyPrint.append(props.getProperty("filterSex_notUnknown")).append("<br />");
     }
 
     //filter by sex--------------------------------------------------------------------------------------
@@ -1215,8 +1236,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
-    String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     if (releaseDateFromStr != null && releaseDateFromStr.trim().length() > 0) {
       try {
         Date releaseDateFrom = simpleDateFormat.parse(releaseDateFromStr);
@@ -1226,7 +1245,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         filter += "(releaseDate >= releaseDateFrom)";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
         paramMap.put("releaseDateFrom", releaseDateFrom);
-        prettyPrint.append("release date >= " + simpleDateFormat.format(releaseDateFrom));
+        prettyPrint.append(MessageFormat.format(props.getProperty("filterReleaseDate_gte"), simpleDateFormat.format(releaseDateFrom)));
+        prettyPrint.append("<br />");
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -1240,7 +1260,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
         filter += "(releaseDate <= releaseDateTo)";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateTo");
         paramMap.put("releaseDateTo", releaseDateTo);
-        prettyPrint.append("releaseDate <= " + simpleDateFormat.format(releaseDateTo));
+        prettyPrint.append(MessageFormat.format(props.getProperty("filterReleaseDate_lte"), simpleDateFormat.format(releaseDateTo)));
+        prettyPrint.append("<br />");
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -1302,8 +1323,8 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
                   if(filter.equals("")){filter=thisLocalFilter;}
                   else{filter+=" && "+thisLocalFilter;}
 
-                  prettyPrint.append("GPS Boundary NE: \""+request.getParameter("ne_lat")+", "+request.getParameter("ne_long")+"\".<br />");
-                  prettyPrint.append("GPS Boundary SW: \""+request.getParameter("sw_lat")+", "+request.getParameter("sw_long")+"\".<br />");
+                  prettyPrint.append(MessageFormat.format(props.getProperty("filterGpsBoundaryNE"), request.getParameter("ne_lat"), request.getParameter("ne_long"))).append("<br />");
+                  prettyPrint.append(MessageFormat.format(props.getProperty("filterGpsBoundarySW"), request.getParameter("sw_lat"), request.getParameter("sw_long"))).append("<br />");
 
 
 
@@ -1516,10 +1537,10 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
   }
 
 
-  private static String processTagFilters(HttpServletRequest request, StringBuffer prettyPrint) {
+  private static String processTagFilters(HttpServletRequest request, StringBuffer prettyPrint, Properties props) {
     StringBuilder sb = new StringBuilder();
-    sb.append(processAcousticTagFilter(request, prettyPrint));
-    String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint);
+    sb.append(processAcousticTagFilter(request, prettyPrint, props));
+    String satelliteTagFilter = processSatelliteTagFilter(request, prettyPrint, props);
     if (satelliteTagFilter.length() > 0) {
       if (sb.length() > 0) {
         sb.append(" && ");
@@ -1531,12 +1552,11 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
   private static String processSatelliteTagFilter(HttpServletRequest request,
-      StringBuffer prettyPrint) {
+      StringBuffer prettyPrint, Properties props) {
     StringBuilder sb = new StringBuilder();
     String name = request.getParameter("satelliteTagName");
     if (name != null && name.length() > 0 && !"None".equals(name)) {
-      prettyPrint.append("satellite tag name is: ");
-      prettyPrint.append(name);
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterSatelliteTagName"), name));
       prettyPrint.append("<br/>");
       sb.append('(');
       sb.append("satelliteTag.name == ");
@@ -1545,8 +1565,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     String serialNumber = request.getParameter("satelliteTagSerial");
     if (serialNumber != null && serialNumber.length() > 0) {
-      prettyPrint.append("satellite tag serial is: ");
-      prettyPrint.append(serialNumber);
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterSatelliteTagSerial"), serialNumber));
       prettyPrint.append("<br/>");
       if (sb.length() > 0) {
         sb.append(" && ");
@@ -1558,8 +1577,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     String argosPttNumber = request.getParameter("satelliteTagArgosPttNumber");
     if (argosPttNumber != null && argosPttNumber.length() > 0) {
-      prettyPrint.append("satellite tag Argos PTT Number is: ");
-      prettyPrint.append(argosPttNumber);
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterSatelliteTagArgos"), argosPttNumber));
       prettyPrint.append("<br/>");
       if (sb.length() > 0) {
         sb.append(" && ");
@@ -1573,12 +1591,11 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
   }
 
   private static String processAcousticTagFilter(HttpServletRequest request,
-      StringBuffer prettyPrint) {
+      StringBuffer prettyPrint, Properties props) {
     StringBuilder tagFilter = new StringBuilder();
     String acousticTagSerial = request.getParameter("acousticTagSerial");
     if (acousticTagSerial != null && acousticTagSerial.length() > 0) {
-      prettyPrint.append("acoustic tag serial number is: ");
-      prettyPrint.append(acousticTagSerial);
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterAcousticTagSerial"), acousticTagSerial));
       prettyPrint.append("<br/>");
       tagFilter.append('(');
       tagFilter.append("acousticTag.serialNumber == ");
@@ -1587,8 +1604,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     }
     String acousticTagId = request.getParameter("acousticTagId");
     if (acousticTagId != null && acousticTagId.length() > 0) {
-      prettyPrint.append("acoustic tag id is: ");
-      prettyPrint.append(acousticTagId);
+      prettyPrint.append(MessageFormat.format(props.getProperty("filterAcousticTagId"), acousticTagId));
       prettyPrint.append("<br/>");
       if (tagFilter.length() > 0) {
         tagFilter.append(" && ");
