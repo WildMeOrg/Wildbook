@@ -41,11 +41,30 @@ public class MediaAssetCreate extends HttpServlet {
   }
 
 
-/*
-  public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
-  }
-*/
+
+    //this is a little hacky, but it is a way for the browser/client to request a MediaAssetSet with which to associate MediaAssets
+    //  i guess we should *enforce* (require) this to have some sort of sanity around preventing backdoors to overwriting MediaAssets or whatever
+    public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        if (request.getParameter("requestMediaAssetSet") == null) throw new IOException("invalid GET parameters");
+
+        String context = "context0";
+        context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+
+        //note: a null status will be considered throw-away, cuz we no doubt will get aborted uploads etc.  TODO cleanup of these with cronjob?
+        MediaAssetSet maSet = new MediaAssetSet();
+        myShepherd.beginDBTransaction();
+        myShepherd.getPM().makePersistent(maSet);
+        myShepherd.commitDBTransaction();
+
+        response.setContentType("text/plain");
+        JSONObject res = new JSONObject();
+        res.put("mediaAssetSetId", maSet.getId());
+
+        PrintWriter out = response.getWriter();
+        out.println(res.toString());
+    }
+
 
 /*
 
@@ -64,31 +83,31 @@ public class MediaAssetCreate extends HttpServlet {
 
 }
 */
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    //context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
-    //set up for response
-    response.setContentType("text/plain");
-    PrintWriter out = response.getWriter();
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String context="context0";
+        //context=ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        //set up for response
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
 
-    JSONObject j = jsonFromRequest(request);
+        JSONObject j = jsonFromRequest(request);
 
-    String batchId = Util.generateUUID();
+        String batchId = Util.generateUUID();
 
-    ArrayList<MediaAsset> mas = createMediaAssets(j.optJSONArray("MediaAssetCreate"), batchId, myShepherd);
+        ArrayList<MediaAsset> mas = createMediaAssets(j.optJSONArray("MediaAssetCreate"), batchId, myShepherd);
 
-    JSONArray res = new JSONArray();
-    for (MediaAsset ma : mas) {
-        res.put(ma.toString());
-        res.put(ma.getParameters().toString());
-        res.put(ma.webURL());
+        JSONArray res = new JSONArray();
+        for (MediaAsset ma : mas) {
+            res.put(ma.toString());
+            res.put(ma.getParameters().toString());
+            res.put(ma.webURL());
+        }
+        j.put("results", res);
+
+        out.println(j.toString());
+        out.close();
     }
-    j.put("results", res);
-
-    out.println(j.toString());
-    out.close();
-  }
 
 
     //TODO could also return failures? errors?
