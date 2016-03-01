@@ -352,7 +352,7 @@ public class RestServlet extends HttpServlet
                             tryCompress(req, resp, jsonobj, useCompression);
                             resp.setHeader("Content-Type", "application/json");
                             resp.setStatus(200);
-                            pm.currentTransaction().commit();
+                            //pm.currentTransaction().commit();
                         }
                         finally
                         {
@@ -410,7 +410,7 @@ public class RestServlet extends HttpServlet
                     tryCompress(req, resp, jsonobj, useCompression);
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
-                    pm.currentTransaction().commit();
+                    //pm.currentTransaction().commit();
                     return;
                 }
                 catch (NucleusObjectNotFoundException ex)
@@ -450,7 +450,7 @@ public class RestServlet extends HttpServlet
             }
             catch (JSONException e1)
             {
-                // ignore
+                e1.printStackTrace();
             }
         }
     }
