@@ -1,39 +1,17 @@
 package org.ecocean;
 
-//import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-//import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
-import java.util.MissingResourceException;
-import java.util.Properties;
-import java.util.ResourceBundle;
-import java.util.UUID;
-
-//EXIF-related imports
-import java.io.File;
-import java.io.InputStream;
-import java.io.FileInputStream;
 import com.drew.imaging.jpeg.JpegMetadataReader;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
-import java.util.Iterator;
-import org.apache.commons.io.IOUtils;
-
-//import javax.jdo.JDOException;
-//import javax.jdo.JDOHelper;
-import javax.jdo.Query;
-//import javax.jdo.PersistenceManagerFactory;
-
-
-import org.ecocean.tag.MetalTag;
-import org.ecocean.*;
-
-
-//use Point2D to represent cached GPS coordinates
 import com.reijns.I3S.Point2D;
+import org.apache.commons.io.IOUtils;
+import org.ecocean.tag.MetalTag;
+import javax.jdo.Query;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.*;
 
 public class Util {
   
@@ -47,7 +25,47 @@ public class Util {
   
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
-  
+
+  /**
+   * Gets a map of all indexed values from the specified Properties instance.
+   * @param bundle ResourceBundle instance from which to load properties
+   * @param keyPrefix prefix of indexed keys
+   * @return ordered map of indexed keys/values
+   */
+  public static Map<String, String> getIndexedValuesMap(ResourceBundle bundle, String keyPrefix) {
+    Map<String, String> map = new LinkedHashMap<>();
+    int i = 0;
+    String k = keyPrefix + i;
+    String s = bundle.getString(k);
+    while (s != null) {
+      if (!"".equals(s))
+        map.put(k, s);
+      k = keyPrefix + (++i);
+      s = bundle.getString(k);
+    }
+    return map;
+  }
+
+  /**
+   * Gets a map of all indexed values from the specified Properties instance.
+   * @param props Properties instance from which to load properties
+   * @param keyPrefix prefix of indexed keys
+   * @return ordered map of indexed keys/values
+   */
+  public static Map<String, String> getIndexedValuesMap(Properties props, String keyPrefix) {
+    Map<String, String> map = new LinkedHashMap<>();
+    int i = 0;
+    String k = keyPrefix + i;
+    String s = props.getProperty(k);
+    while (s != null) {
+      if (!"".equals(s))
+        map.put(k, s);
+      k = keyPrefix + (++i);
+      s = props.getProperty(k);
+    }
+    return map;
+  }
+
   public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT,context);
