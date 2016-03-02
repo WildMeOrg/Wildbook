@@ -301,10 +301,18 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
                 Shepherd myShepherd = new Shepherd("context0");
-                for (int i = 0 ; i < list.length() ; i++) {
-                    String uuid = fromFancyUUID(list.getJSONObject(i));
-                    Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
-                    anns.add(ann);
+                myShepherd.beginDBTransaction();
+                try{
+                  for (int i = 0 ; i < list.length() ; i++) {
+                      String uuid = fromFancyUUID(list.getJSONObject(i));
+                      Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
+                      anns.add(ann);
+                  }
+                }
+                catch(Exception e){e.printStackTrace();}
+                finally{
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
                 }
                 //would this ever recurse? seems like a 600 would only happen inside sendAnnotations for missing MediaAssets. is this true? TODO
 System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
@@ -442,8 +450,15 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
-        log.save(myShepherd);
-        myShepherd.commitDBTransaction();
+        try{
+          log.save(myShepherd);
+        }
+        catch(Exception e){e.printStackTrace();}
+        finally{
+          myShepherd.commitDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+
         return log;
     }
 
