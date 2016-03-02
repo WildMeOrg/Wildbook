@@ -513,6 +513,7 @@ if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) { 
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
 	<button style="display: none;" id="upload-button">begin upload</button>
 </div>
+<input type="hidden" id="s3-upload-data" name="s3-upload-data" value="" />
 <script>
 
 function submitFilesChanged(el) {
@@ -527,9 +528,17 @@ function submitFilesChanged(el) {
 }
 
 var uploadComplete = false;
+var uploadCompleteCallback = false;
 function uploadCompleted() {
 	console.info('upload completed!');
 	uploadComplete = true;
+	var upd = { mediaAssetSetId: mediaAssetSetId, keys: [] };
+	for (var k in keyToFilename) {
+		upd.keys.push(k);
+	}
+	document.getElementById('file-chooser').value = ''; //clear out <input file> so stuff wont get uploaded with form
+	$('#s3-upload-data').val(JSON.stringify(upd));
+	if (uploadCompleteCallback) uploadCompleteCallback();
 }
 
 
