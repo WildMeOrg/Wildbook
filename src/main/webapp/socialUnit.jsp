@@ -1,21 +1,14 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*, java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="java.util.Vector" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
-
-  <%
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-
-    //let's load out properties
-    Properties props = new Properties();
-    //String langCode = "en";
-    String langCode=ServletUtilities.getLanguageCode(request);
-    
-    //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/socialunit.properties"));
-    props = ShepherdProperties.getProperties("socialunit.properties", langCode,context);
-
-
-
+<%
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("socialunit.properties", langCode, context);
 
     Shepherd myShepherd = new Shepherd(context);
 
