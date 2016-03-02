@@ -522,6 +522,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 */
 
     //this takes contents of this MediaAsset and copies it to the target (note MediaAssets must exist with sufficient params already)
+    //please note this uses *source* AssetStore for copying, which can/will affect how, for example, credentials in aws s3 are chosen.
+    // for tighter control of this, you can call copyAsset() (or copyAssetAny()?) directly on desired store
     public void copyAssetTo(MediaAsset targetMA) throws IOException {
         if (store == null) throw new IOException("copyAssetTo(): store is null on " + this);
         store.copyAssetAny(this, targetMA);

@@ -401,7 +401,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
     }
 
     //this is within the same flavor of AssetStore, so is handled by the subclass
-    protected abstract void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException;
+    public abstract void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException;
 
     //to copy across flavors of AssetStore
     private void copyAssetAcross(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
