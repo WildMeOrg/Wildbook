@@ -44,7 +44,6 @@
 
   String langCode = ServletUtilities.getLanguageCode(request);
   Properties props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
-	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");

@@ -54,7 +54,6 @@
 	// Handle translation
 	String langCode = ServletUtilities.getLanguageCode(request);
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   //pageContext.setAttribute("num", num);
   //pageContext.setAttribute("set", encprops.getProperty("set"));
