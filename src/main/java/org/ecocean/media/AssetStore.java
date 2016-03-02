@@ -456,7 +456,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
         if (usage == null) return null;
         init(AssetStoreFactory.getStores(myShepherd));
         if ((stores == null) || (stores.size() < 1)) return null;
-        for (AssetStore st : (AssetStore)stores.values()) {
+        for (AssetStore st : stores.values()) {
             if (usage.equals(st.getUsage())) return st;
         }
         return null;
