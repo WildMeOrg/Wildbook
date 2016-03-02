@@ -171,7 +171,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
         statusText = "failure";
       }
       finally{
-        myShepherd.rollbackDBTransaction();
+        myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         response.setContentType("text/plain");
         out = response.getWriter();
