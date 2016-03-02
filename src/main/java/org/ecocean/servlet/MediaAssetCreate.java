@@ -204,14 +204,14 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
         for (MediaAssetSet s : sets.values()) {
             JSONArray jmas = new JSONArray();
             if ((s.getMediaAssets() != null) && (s.getMediaAssets().size() > 0)) {
-                JSONObject jma = new JSONObject();
                 for (MediaAsset ma : s.getMediaAssets()) {
+                    JSONObject jma = new JSONObject();
                     jma.put("id", ma.getId());
                     jma.put("_debug", ma.toString());
                     jma.put("_params", ma.getParameters().toString());
                     jma.put("_url", ma.webURL());
+                    jmas.put(jma);
                 }
-                jmas.put(jma);
             }
             if (jmas.length() > 0) js.put(s.getId(), jmas);
         }

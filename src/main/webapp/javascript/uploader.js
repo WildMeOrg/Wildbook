@@ -146,6 +146,49 @@ function requestMediaAssetSet(callback) {
     });
 }
 
+/*
+{
+"MediaAssetCreate": [
+	{
+    	"setId":"567d00b5-b44e-485a-9d77-10987f6dd3e6",
+      "assets": [
+        {"bucket": "flukebook-dev-upload-tmp", "key": "567d00b5-b44e-485a-9d77-10987f6dd3e6/11854-r043-4f25.jpg"},
+        {"bucket": "abc", "key": "xyz"}
+        ]
+    }
+]
+}*/
+
+function createMediaAssets(setId, bucket, keys, callback) {
+    var assetData = [];
+    for (var i = 0 ; i < keys.length ; i++) {
+        assetData.push({bucket: bucket, key: keys[i]});
+    }
+    $.ajax({
+        url: 'MediaAssetCreate',
+        type: 'POST',
+        data: JSON.stringify({
+            MediaAssetCreate: [{
+                setId: setId,
+                assets: assetData
+            }]
+        }),
+        dataType: 'json',
+        success: function(d) {
+            if (d.success && d.sets) {
+                console.info('successfully created MediaAssets: %o', d.sets);
+                callback(d.sets);
+            } else {
+                console.log('error creating MediaAssets: %o', d);
+                alert('error saving on server');
+            }
+        },
+        error: function(a,b,c) {
+            console.log('error creating MediaAssets: %o %o %o', a,b,c);
+            alert('error saving on server');
+        },
+    });
+}
 
 
 function filenameToKey(fname) {
