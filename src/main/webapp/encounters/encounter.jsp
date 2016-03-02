@@ -75,6 +75,7 @@
 	Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+	Properties vmProps = ShepherdProperties.getProperties("visualMatcher.properties", langCode, context);
 
 	//get encounter number
 	String num = request.getParameter("number").replaceAll("\\+", "").trim();
@@ -595,7 +596,7 @@ $(function() {
       
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 <div class="encounter-vm-button">
-	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
+	<a href="encounterVM.jsp?number=<%=num%>">[<%=vmProps.getProperty("vmTitle")%>]</a>
 </div>
 <% } %>
       
