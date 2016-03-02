@@ -51,14 +51,11 @@ public class JavascriptGlobals extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context = ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+
     Shepherd myShepherd = new Shepherd(context);
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
-
-		String langCode = ServletUtilities.getLanguageCode(request);
-		//Properties props = new Properties();
-		//props = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
 		HashMap rtn = new HashMap();
 
@@ -72,12 +69,13 @@ public class JavascriptGlobals extends HttpServlet {
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
 
+    HashMap cci = new LinkedHashMap();
+    cci.put("locationID_en", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonCoreInternational.properties", "en", context), "locationID").values().toArray());
+    cci.put("locationID", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context), "locationID").values().toArray());
+    lang.put("commonCoreInternational", cci);
 
-		//lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
 		lang.put("visualMatcher", ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
-
 		lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
-
 
 		props.put("lang", lang);
 		rtn.put("properties", props);
