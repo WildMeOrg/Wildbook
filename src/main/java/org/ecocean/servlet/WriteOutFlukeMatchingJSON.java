@@ -151,7 +151,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
 
         
 
-        myShepherd.commitDBTransaction();
+        //myShepherd.commitDBTransaction();
         
 
         //let's cleanup after a successful commit
@@ -165,17 +165,19 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
 
       } 
       catch (Exception e) {
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
         System.out.println("scanResultsServlet registered the following error...");
         e.printStackTrace();
         statusText = "failure";
       }
       finally{
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         response.setContentType("text/plain");
         out = response.getWriter();
         out.println(statusText);
         out.close();
-        myShepherd.closeDBTransaction();
+        
       }
 
   }
@@ -208,7 +210,7 @@ System.out.println("* got an ibeis value for enc=" + mo.getEncounterNumber() + "
       
       
       //get the Encounter and genus and species
-      myShepherd.beginDBTransaction();
+      //myShepherd.beginDBTransaction();
       Encounter gsEnc=myShepherd.getEncounter(num);
       String tempGenusSpecies="undefined";
       if((gsEnc.getGenus()!=null)&&(!gsEnc.getGenus().trim().equals(""))&&(gsEnc.getSpecificEpithet()!=null)&&(!gsEnc.getSpecificEpithet().trim().equals(""))){
