@@ -83,6 +83,8 @@ div.file-item {
 
 div.file-item div {
 	display: inline-block;
+	white-space: nowrap;
+	overflow: hidden;
 	padding: 3px 7px;
 }
 .file-name {
@@ -527,18 +529,23 @@ function submitFilesChanged(el) {
 	}
 }
 
+
 var uploadComplete = false;
+var mediaAssetsCreated = false;
 var uploadCompleteCallback = false;
 function uploadCompleted() {
-	console.info('upload completed!');
-	uploadComplete = true;
-	var upd = { mediaAssetSetId: mediaAssetSetId, keys: [] };
-	for (var k in keyToFilename) {
-		upd.keys.push(k);
-	}
+	console.info('upload completed! ... attempting to create MediaAssets....');
 	document.getElementById('file-chooser').value = ''; //clear out <input file> so stuff wont get uploaded with form
-	$('#s3-upload-data').val(JSON.stringify(upd));
-	if (uploadCompleteCallback) uploadCompleteCallback();
+	uploadComplete = true;
+	var keys = [];
+	for (var k in keyToFilename) {
+		keys.push(k);
+	}
+	createMediaAssets(mediaAssetSetId, wildbookGlobals.uploader.s3_bucket, keys, function(d) {
+		console.log('finished creating MediaAssets: %o', d);
+		mediaAssetsCreated = d;
+		if (uploadCompleteCallback) uploadCompleteCallback();
+	});
 }
 
 
