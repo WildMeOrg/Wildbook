@@ -1,11 +1,21 @@
-<%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
-
+<%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="com.google.gson.Gson" %>
+<%@ page import="java.io.File" %>
+<%@ page import="java.util.*" %>
+<%@ page import="javax.jdo.Query" %>
+<%@ page import="org.ecocean.*" %>
+<%@ page import="org.ecocean.genetics.*" %>
+<%@ page import="org.ecocean.security.Collaboration" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Locale locale = new Locale(langCode);
+  Properties props = ShepherdProperties.getProperties("occurrence.properties", langCode, context);
+  Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+  Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 
-String blocker = "";
-String context="context0";
-context=ServletUtilities.getContext(request);
+  String blocker = "";
 
   //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -21,21 +31,6 @@ context=ServletUtilities.getContext(request);
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
   //File thisEncounterDir = new File(encountersDir, number);
-
-//setup our Properties object to hold all properties
-  Properties props = new Properties();
-  //String langCode = "en";
-  String langCode=ServletUtilities.getLanguageCode(request);
-  
-
-
-  //load our variables for the submit page
-
-  //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/occurrence.properties"));
-  props = ShepherdProperties.getProperties("occurrence.properties", langCode,context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
@@ -349,7 +344,7 @@ $("a#indies").click(function() {
 <%
 if(sharky.getLocationID()!=null){
 %>
-	<%=sharky.getLocationID() %>
+	<%=cciProps.getProperty("locationID" + CommonConfiguration.getIndexNumberForValue("locationID", sharky.getLocationID(), context))%>
 <%
 }
 %>
@@ -359,10 +354,7 @@ if(sharky.getLocationID()!=null){
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.getNumberEncounters()%>
-</strong>
-  <%=props.getProperty("numencounters") %>
-</p> 
+<p><strong><%=StringUtils.format(locale, props.getProperty("numencounters"), sharky.getNumberEncounters())%></strong></p>
 
 <table id="results" width="100%">
   <tr class="lineitem">
@@ -478,7 +470,7 @@ if(sharky.getLocationID()!=null){
 String sexValue="&nbsp;";
 if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
-    <td class="lineitem"><%=sexValue %></td>
+    <td class="lineitem"><%=props.getProperty("sex." + sexValue)%></td>
 
     <%
       if (CommonConfiguration.useSpotPatternRecognition(context)) {
