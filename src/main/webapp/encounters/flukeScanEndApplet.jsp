@@ -17,10 +17,10 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   session.setMaxInactiveInterval(6000);
   String num = request.getParameter("number");
 	String encSubdir = Encounter.subdir(num);
-  Shepherd myShepherd = new Shepherd(context);
-  if (request.getParameter("writeThis") == null) {
-    myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  }
+  //Shepherd myShepherd = new Shepherd(context);
+  //if (request.getParameter("writeThis") == null) {
+  //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
+  //}
   //Shepherd altShepherd = new Shepherd(context);
   String sessionId = session.getId();
   boolean xmlOK = false;
