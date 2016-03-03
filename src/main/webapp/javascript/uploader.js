@@ -177,15 +177,17 @@ function createMediaAssets(setId, bucket, keys, callback) {
         success: function(d) {
             if (d.success && d.sets) {
                 console.info('successfully created MediaAssets: %o', d.sets);
-                callback(d.sets);
+                callback(d);
             } else {
                 console.log('error creating MediaAssets: %o', d);
                 alert('error saving on server');
+                callback(d);
             }
         },
         error: function(a,b,c) {
             console.log('error creating MediaAssets: %o %o %o', a,b,c);
             alert('error saving on server');
+            callback({error: a});
         },
     });
 }

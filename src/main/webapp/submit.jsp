@@ -67,6 +67,12 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 
 <style type="text/css">
 
+#submit-message {
+	text-align: center;
+	font-size: 1.8em;
+	background-color: lightblue;
+}
+
 div#file-activity {
 	font-family: sans;
 	border: solid 2px black;
@@ -181,6 +187,34 @@ div.file-item div {
  %>
 
 <script type="text/javascript">
+var needS3Upload = false;
+var formAlreadySubmitted = false;
+var userHitSubmitButton = false;
+
+// this is only useful when s3 upload is used, as it waits for all things to be good, and *then* submits form.
+function readyForSubmit() {
+	if (formAlreadySubmitted) return false;
+
+	if (!userHitSubmitButton) return false;  //always need user to initiate
+
+	if (!needS3Upload) {
+		formAlreadySubmitted = true;
+		return true;
+	}
+
+	if (uploadError) {
+		console.warn('cannot submit due to s3 upload error ' + uploadError);
+		return false;
+	}
+
+	if (!mediaAssetsCreated) {
+		console.warn('cannot submit cuz no mediaAssetCreated');
+		return false;
+	}
+
+	formAlreadySubmitted = true;
+	return true;
+}
 
 function validate() {
     var requiredfields = "";
@@ -511,7 +545,7 @@ if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) { 
 
 <div id="file-activity"></div>
 
-<div id="upcontrols" style="display: none;">
+<div id="upcontrols" >
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
 	<button style="display: none;" id="upload-button">begin upload</button>
 </div>
@@ -524,15 +558,17 @@ function submitFilesChanged(el) {
 	} else {
 		filesChanged(el);
 		requestMediaAssetSet(function() {
-			$('#upload-button').show();
+			//TODO what would block on this? it "should" return by time upload is done (when it is needed), but what if not?????
 		});
 	}
+	$('#upcontrols').hide();
 }
 
 
 var uploadComplete = false;
 var mediaAssetsCreated = false;
-var uploadCompleteCallback = false;
+var uploadError = false;
+
 function uploadCompleted() {
 	console.info('upload completed! ... attempting to create MediaAssets....');
 	document.getElementById('file-chooser').value = ''; //clear out <input file> so stuff wont get uploaded with form
@@ -543,15 +579,33 @@ function uploadCompleted() {
 	}
 	createMediaAssets(mediaAssetSetId, wildbookGlobals.uploader.s3_bucket, keys, function(d) {
 		console.log('finished creating MediaAssets: %o', d);
-		mediaAssetsCreated = d;
-		if (uploadCompleteCallback) uploadCompleteCallback();
+		if (d.success) {
+			mediaAssetsCreated = d;
+			$('#submit-message').remove();
+			//$('#submit-button-wrapper').show();
+		} else {
+			uploadError = d.error || 'unknown error';
+			$('#submit-message').html('problem sending files: <b>' + uploadError + '</b>');
+		}
+		sendButtonClicked();  //this submits form, if needed
 	});
 }
 
 
+
 $(document).ready(function() {
+	needS3Upload = true;
+	//dont let user submit til files are done
+	//$('#submit-button-wrapper').hide().after('<div id="submit-message">Form cannot be sent until files are done uploading</div>');
+	$('#submit-button-wrapper').after('<div id="submit-message"></div>');
 	uploaderInit(uploadCompleted);
-	document.getElementById('upcontrols').style.display = 'block';
+	$('#encounterForm input[id!="file-chooser"]').on('change', function() {
+		if ((document.getElementById('file-chooser').files.length > 0) && (pendingUpload < 0)) {
+console.warn('auto-kickstarting upload of files!!!');
+			$('#upload-button').click();
+		}
+	});
+	//document.getElementById('upcontrols').style.display = 'block';
 });
 </script>
 
@@ -1207,6 +1261,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+	if (!readyForSubmit()) return;
+
 	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
@@ -1232,14 +1288,24 @@ function sendButtonClicked() {
 	%>
 	return true;
 }
+
+function actualSubmitClick() {
+	userHitSubmitButton = true;
+	$('#submit-button-wrapper').hide();
+	$('#submit-message').html('Waiting for files to be sent...');
+	return sendButtonClicked();
+}
+
 </script>
       
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
-          Send encounter report 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
+	<div id="submit-button-wrapper">
+        	<button class="large" type="submit" onclick="return actualSubmitClick();">
+          	Send encounter report 
+          	<span class="button-icon" aria-hidden="true" />
+        	</button>
+	</div>
       </p>
 
 
