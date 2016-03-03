@@ -549,7 +549,7 @@ if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) { 
 	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
 	<button style="display: none;" id="upload-button">begin upload</button>
 </div>
-<input type="hidden" id="s3-upload-data" name="s3-upload-data" value="" />
+<input type="hidden" id="mediaAssetSetId" name="mediaAssetSetId" value="" />
 <script>
 
 function submitFilesChanged(el) {
@@ -581,6 +581,7 @@ function uploadCompleted() {
 		console.log('finished creating MediaAssets: %o', d);
 		if (d.success) {
 			mediaAssetsCreated = d;
+			$('#mediaAssetSetId').val(mediaAssetSetId);
 			$('#submit-message').remove();
 			//$('#submit-button-wrapper').show();
 		} else {

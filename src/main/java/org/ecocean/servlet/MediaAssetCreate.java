@@ -192,6 +192,12 @@ System.out.println(i + ") params -> " + params.toString());
                     success = false;
                 }
                 if (success) {
+/*
+   TODO  when annotation-building no longer needs dimensions, technically this Metadata building will not be required. however, we likely will need to
+         eat the cost of s3 cacheLocal() anyway for the children creation.  however[2], we can likely just do it in the background.
+         at least doing this now will avoid collision of it happening twice during form submission... ug yeah what about that?  ug, locking!
+*/
+                    targetMA.updateMinimalMetadata();
                     MediaAssetFactory.save(targetMA, myShepherd);
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                     sets.get(setId).addMediaAsset(targetMA);
