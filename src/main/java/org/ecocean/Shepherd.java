@@ -1585,8 +1585,9 @@ public class Shepherd {
     Extent encClass = pm.getExtent(TissueSample.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
+    ArrayList al=new ArrayList<TissueSample>(c);
     samples.closeAll();
-    return (new ArrayList<TissueSample>(c));
+    return (al);
   }
   
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
