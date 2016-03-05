@@ -38,8 +38,8 @@ imageShepherd.beginDBTransaction();
 
 try{
 
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+//Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+//Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 /*
 boolean haveRendered = false;
 

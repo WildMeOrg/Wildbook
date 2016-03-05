@@ -261,11 +261,12 @@ if (count > 20) {
     catch (Exception e) {
       System.out.println("I failed while constructing the workItems for a new scanTask.");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      
     }
     finally{
       if(query!=null){query.closeAll();}
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
 
   }
