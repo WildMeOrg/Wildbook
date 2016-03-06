@@ -10,7 +10,7 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
   
   private String units;
   
-  private String samplingProtocol;
+  private String samplingProtocol="";
   
   private String measurementType;
   
@@ -24,7 +24,9 @@ public class BiologicalMeasurement extends GeneticAnalysis implements java.io.Se
     super(analysisID, type, correspondingEncounterNumber, sampleID);
     this.value = value;
     this.units = units;
-    this.samplingProtocol=samplingProtocol;
+    if(samplingProtocol!=null){
+      this.samplingProtocol=samplingProtocol;
+    }
     this.measurementType=measurementType;
   }
 
