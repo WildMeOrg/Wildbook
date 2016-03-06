@@ -2339,18 +2339,25 @@ throw new Exception();
 
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+            Encounter returnEnc=null;
             Query query = myShepherd.getPM().newQuery(queryString);
             List results = (List)query.execute();
-            if (results.size() < 1) return null;
-            return (Encounter)results.get(0);
+            if ((results!=null)&&(results.size() >=1)){
+              returnEnc=(Encounter)results.get(0);
+            }
+            return returnEnc;
         }
 
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" + annot.getId() + "'";
+            Encounter returnEnc=null;
             Query query = myShepherd.getPM().newQuery(queryString);
             List results = (List)query.execute();
-            if (results.size() < 1) return null;
-            return (Encounter)results.get(0);
+            if ((results!=null)&&(results.size() >= 1)) {
+              returnEnc=(Encounter)results.get(0);
+            }
+            query.closeAll();
+            return returnEnc;
         }
 
         public static Encounter findByAnnotationId(String annid, Shepherd myShepherd) {
@@ -2379,11 +2386,12 @@ throw new Exception();
             MediaAsset top = ma.getParentRoot(myShepherd);
             if (top == null) continue;
             Encounter enc = Encounter.findByMediaAsset(top, myShepherd);
-if (enc == null) System.out.println("could not find enc for ma " + ma);
+            if (enc == null) System.out.println("could not find enc for ma " + ma);
             if (enc == null) continue;
             if (!enc.getTaxonomyString().equals(taxonomyString)) continue;
             encs.add(enc);
         }
+        query.closeAll();
         return encs;
     }
 
