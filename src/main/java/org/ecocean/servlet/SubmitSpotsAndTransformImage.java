@@ -82,6 +82,8 @@ System.out.println("GOT " + jb.toString());
     } catch (Exception ex) {}
 
     myShepherd.beginDBTransaction();
+    
+    
     MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
     if (ma == null) {
         out.print("{\"error\": \"invalid MediaAsset id " + id + "\"}");
@@ -248,19 +250,26 @@ System.out.println("NEW (transformed) spotMA created -> " + spotMA);
     if (spotMAisNew) MediaAssetFactory.save(spotMA, myShepherd);
 
     myShepherd.commitDBTransaction();
-    myShepherd.closeDBTransaction();
+    
+    myShepherd.beginDBTransaction();
+    
 
     HashMap m = new HashMap();
     m.put("success", !(spotMA == null));
     if (spotMA != null) {
         m.put("spotMAId", spotMA.getId());
-System.out.println("SubmitSpotsAndTranform " + (spotMAisNew ? "generated a new" : "put spots on existing") + " spotMA id=" + spotMA.getId());
-    } else {
+        System.out.println("SubmitSpotsAndTranform " + (spotMAisNew ? "generated a new" : "put spots on existing") + " spotMA id=" + spotMA.getId());
+    } 
+    else {
         System.out.println("ERROR: SubmitSpotsAndTranform failed to generate a spot MediaAsset!");
     }
     /////m.put("name", name);  TODO return url to MA!!
     Gson gson = new Gson();
     out.println(gson.toJson(m));
+    
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
+    
     out.flush();
     out.close();
   }

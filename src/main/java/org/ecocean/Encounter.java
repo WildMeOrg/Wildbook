@@ -2345,6 +2345,7 @@ throw new Exception();
             if ((results!=null)&&(results.size() >=1)){
               returnEnc=(Encounter)results.get(0);
             }
+            query.closeAll();
             return returnEnc;
         }
 
