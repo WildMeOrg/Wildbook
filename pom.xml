@@ -227,7 +227,7 @@
 <dependency>
 <groupId>org.datanucleus</groupId>
 <artifactId>datanucleus-rdbms</artifactId>
-<version>4.1.9</version>
+<version>4.1.11</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
@@ -237,7 +237,7 @@
 <dependency>
 	<groupId>org.datanucleus</groupId>
 	<artifactId>datanucleus-api-rest</artifactId>
-	<version>4.2.1</version>
+	<version>4.2.2</version>
 </dependency>
 <dependency>
 	<groupId>org.datanucleus</groupId>
