@@ -38,7 +38,29 @@ import javax.servlet.http.HttpServletRequest;
 public class CommonConfiguration {
   
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
-  
+  /**
+   * List of properties keys for which lookup is i18nized, and are looked up from the default-language version of
+   * <em>commonCoreInternational.properties</em>.
+   */
+  private static final List<String> I18N = Arrays.asList(
+          "locationID",
+          "country",
+          "sex",
+          "livingStatus",
+          "lifeStage",
+          "patterningCode",
+          "measurement",
+          "measurementUnits",
+          "samplingProtocol",
+          "metalTagLocation",
+          "encounterState",
+          "tissueType",
+          "biologicalMeasurementUnits",
+          "biologicalMeasurementSamplingProtocols",
+          "relationshipType",
+          "relationshipRole",
+          "preservationMethod"
+  );
   //class setup
   //private static Properties props = new Properties();
   
@@ -280,6 +302,10 @@ public class CommonConfiguration {
     return initialize(context).propertyNames();
   }
 
+  /**
+   * @deprecated replaced by {@link #getIndexedValues(String, String)}
+   */
+  @Deprecated
   public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix, String context){
     Properties myProps=initialize(context);
     //System.out.println(myProps.toString());
@@ -498,13 +524,31 @@ public class CommonConfiguration {
     return originalString;
   }
 
+  /**
+   * Create/returns a map of sequential indexed [key => value] pairs for the specified base key.
+   * This is useful for referencing multi-value resources.
+   * <p>For example, if the following resources are defined:
+   * <pre>
+   * livingStatus0=alive
+   * livingStatus1=dead
+   * </pre>
+   * then a call to {@code getIndexedValuesMap("livingStatus", "context0")} would return a map containing:
+   * <ul>
+   * <li>livingStatus0 => alive</li>
+   * <li>livingStatus1 => dead</li>
+   * </ul>
+   * @param baseKey prefix (without index) of key for lookup
+   * @param context webapp context
+   * @return map of key/value pairs
+   */
   public static Map<String, String> getIndexedValuesMap(String baseKey, String context) {
+    Properties props = initialize(context);
     Map<String, String> map = new LinkedHashMap<>();
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
       String key = baseKey + index++;
-      String value = CommonConfiguration.getProperty(key, context);
+      String value = props.getProperty(key);
       if (value != null) {
         value = value.trim();
         if (value.length() > 0) {
@@ -518,26 +562,65 @@ public class CommonConfiguration {
     return map;
   }
 
+  /**
+   * Returns a list of sequential indexed values for the specified base key.
+   * This is useful for referencing multi-value resources.
+   * <p>For example, if the following resources are defined:
+   * <pre>
+   * livingStatus0=alive
+   * livingStatus1=dead
+   * </pre>
+   * then a call to {@code getIndexedValues("livingStatus", "context0")} would return a list containing:
+   * <ul>
+   * <li>alive</li>
+   * <li>dead</li>
+   * </ul>
+   * @param baseKey prefix (without index) of key for lookup
+   * @param context webapp context
+   * @return map of key/value pairs
+   */
   public static List<String> getIndexedValues(String baseKey, String context) {
-    List<String> list = new ArrayList<String>();
-    boolean hasMore = true;
-    int index = 0;
-    while (hasMore) {
-      String key = baseKey + index++;
-      String value = CommonConfiguration.getProperty(key, context);
-      if (value != null) {
-        value = value.trim();
-        if (value.length() > 0) {
-          list.add(value.trim());
-        }
-      }
-      else {
-        hasMore = false;
+    return new ArrayList<>(getIndexedValuesMap(baseKey, context).values());
+  }
+
+  /**
+   * Gets a map of all default-language to i18nized resources known by the specified key prefix.
+   * For example, calling: {@code getI18nPropertiesMap("livingStatus", "es", false)} might return a map containing:
+   * <ul>
+   * <li>alive => vivo</li>
+   * <li>dead => muerto</li>
+   * </ul>
+   * and calling: {@code getI18nPropertiesMap("livingStatus", "es", true)} would return:
+   * <ul>
+   * <li>vivo => alive</li>
+   * <li>muerto => dead</li>
+   * </ul>
+   * @param baseKey prefix of indexed keys
+   * @param langCode language code
+   * @param context webapp context
+   * @param inverse whether to generate reverse map (i18n-to-default; otherwise default-to-i18n)
+   * @return map of default-to-i18n resources
+   */
+  public static Map<String, String> getI18nPropertiesMap(String baseKey, String langCode, String context, boolean inverse) {
+    // Check for i18n properties, and delegate out if needed.
+    if (!I18N.contains(baseKey)) {
+      throw new IllegalArgumentException(String.format("%s is not a i18n resource key prefix", baseKey));
+    }
+    String defLang = getProperty("defaultLanguage", context);
+    Properties propsDef = ShepherdProperties.getProperties("commonCoreInternational.properties", defLang);
+    Properties props = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+    Map<String, String> map = new LinkedHashMap<>();
+    for (String k : propsDef.stringPropertyNames()) {
+      if (k.matches(baseKey + "\\d+")) {
+        if (inverse)
+          map.put(props.getProperty(k), propsDef.getProperty(k));
+        else
+          map.put(propsDef.getProperty(k), props.getProperty(k));
       }
     }
-    return list;
+    return map;
   }
-  
+
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
