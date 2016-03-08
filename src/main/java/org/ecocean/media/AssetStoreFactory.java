@@ -28,6 +28,7 @@ public class AssetStoreFactory {
             c = (Collection) (all.execute());
         } catch (Exception npe) {
             npe.printStackTrace();
+            all.closeAll();
             return null;
         }
 
@@ -35,6 +36,7 @@ public class AssetStoreFactory {
         for (Object obj : c) {
             s.add((AssetStore)obj);
         }
+        all.closeAll();
         return s;
     }
 

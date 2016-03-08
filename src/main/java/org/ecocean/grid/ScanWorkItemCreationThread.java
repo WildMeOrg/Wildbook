@@ -139,7 +139,7 @@ System.out.println("baseUrl --> " + baseUrl);
     System.out.println("Successfully created the scanTask shell!");
     //now, add the workItems
     myShepherd.beginDBTransaction();
-    Query query=null;
+    //Query query=null;
     Collection c=null;
     try {
       
@@ -264,7 +264,7 @@ if (count > 20) {
       
     }
     finally{
-      if(query!=null){query.closeAll();}
+      //if(query!=null){query.closeAll();}
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
