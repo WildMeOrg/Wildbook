@@ -18,26 +18,17 @@
   --%>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<%@page contentType="text/html; charset=utf-8" language="java"
-        import="org.ecocean.CommonConfiguration,java.util.Properties, org.ecocean.servlet.ServletUtilities"
-        isErrorPage="true" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" isErrorPage="true" %>
+<%@ page import="java.util.Properties" %>
+<%@ page import="org.ecocean.CommonConfiguration" %>
+<%@ page import="org.ecocean.ShepherdProperties" %>
+<%@ page import="org.ecocean.servlet.ServletUtilities" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%
-
-  //setup our Properties object to hold all properties
-  String langCode = "en";
-  if (session.getAttribute("langCode") != null) {
-    langCode = (String) session.getAttribute("langCode");
-  }
-
-  //set up the file input stream
-  Properties props = new Properties();
-  props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/error.properties"));
-
-  String context="context0";
-  context=ServletUtilities.getContext(request);
-  
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties props = ShepherdProperties.getProperties("error.properties", langCode,context);
 %>
-<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <html>
 
@@ -76,9 +67,9 @@
         <div id="maintext">
 
 
-          <h1 class="intro">Error</h1>
+          <h1 class="intro"><%=props.getProperty("title")%></h1>
 
-          <p>The following error occurred; please inform the system administrator:</p>
+          <p><%=props.getProperty("error.prefix")%></p>
 
           <c:set var="exception" value="${requestScope['javax.servlet.error.exception']}"/>
           <pre><% exception.printStackTrace(new java.io.PrintWriter(out)); %></pre>
