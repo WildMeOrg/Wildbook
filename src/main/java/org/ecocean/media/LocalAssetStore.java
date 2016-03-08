@@ -169,6 +169,7 @@ System.out.println("create() has subpath = " + subpath);
 
     //note this does not check for existence; useful to know where to write such a file
     public Path localPath(MediaAsset ma) {
+        if(ma==null) throw new IllegalArgumentException("MediaAsset is null");
         Path subpath = pathFromParameters(ma.getParameters(), false);
         return root().resolve(subpath);
     }
@@ -180,6 +181,7 @@ System.out.println("create() has subpath = " + subpath);
     }
 
     public Path pathFromParameters(JSONObject params, boolean checkExists) {
+        if(params==null) throw new IllegalArgumentException("null path");
         Object p = getParameter(params, "path");
         if (p == null) {
         //if ((params == null) || !params.has("path") || (params.get("path") == null)) {
@@ -292,6 +294,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
      */
     @Override
     public URL webURL(final MediaAsset ma) {
+        if(ma==null) System.out.println("MediaAsset is null in LocalAssetStore.webURL");
         if ((webRoot() == null) || (ma == null)) return null;
         Path path = pathFromParameters(ma.getParameters());
         if (path == null) return null;
