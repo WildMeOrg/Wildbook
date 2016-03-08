@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java"
+<%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.CommonConfiguration,org.ecocean.servlet.ServletUtilities" %>
 <%@ page import="org.ecocean.Shepherd" %>
 
