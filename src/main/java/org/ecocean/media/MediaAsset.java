@@ -419,7 +419,11 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
      * asset is not web-accessible.
      */
     public URL webURL() {
-        if (store == null) return null;
+      
+        if (store == null) {
+          System.out.println("MediaAsset "+this.getUUID()+" has no store!");
+          return null;
+        }
         return store.webURL(this);
     }
 
@@ -537,10 +541,10 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
-                org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
-            jobj.put("id", this.getId());
-            //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
-            jobj.remove("parametersAsString");
+              org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+              jobj.put("id", this.getId());
+              //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
+              jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
             //TODO something better with store?  fix .put("store", store) ???
