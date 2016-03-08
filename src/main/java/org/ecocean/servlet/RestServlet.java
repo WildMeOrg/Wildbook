@@ -244,6 +244,7 @@ public class RestServlet extends HttpServlet
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
+                    query.closeAll();
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
@@ -286,6 +287,7 @@ public class RestServlet extends HttpServlet
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
+                    query.closeAll();
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
@@ -350,6 +352,7 @@ public class RestServlet extends HttpServlet
                             //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result,
                                 //((JDOPersistenceManager)pm).getExecutionContext());
                             tryCompress(req, resp, jsonobj, useCompression);
+                            query.closeAll();
                             resp.setHeader("Content-Type", "application/json");
                             resp.setStatus(200);
                             //pm.currentTransaction().commit();
@@ -671,6 +674,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
                 Query q = pm.newQuery("SELECT FROM " + cmd.getFullClassName());
                 q.deletePersistentAll();
                 pm.currentTransaction().commit();
+                q.closeAll();
             }
             else
             {
@@ -785,6 +789,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
                     query.execute();
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
+                    query.closeAll();
                 }
                 finally
                 {
