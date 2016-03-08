@@ -72,6 +72,15 @@
 	</class>
 
 
+	<class name="MediaAssetSet">
+		<field name="id" primary-key="true">
+			<column length="36" />
+		</field>
+            	<field name="assets" persistence-modifier="persistent" default-fetch-group="false">
+                	<collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+                	<join />
+            	</field>
+	</class>
 
 <!--
     //protected AssetStoreType type = AssetStoreType.LOCAL;

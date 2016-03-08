@@ -70,6 +70,10 @@ public abstract class AssetStore implements java.io.Serializable {
     protected AssetStoreConfig config;
     protected boolean writable = true;
 
+    //right now this is open for interpretation.  for starters, it can be "default" to designate default (duh) to use.
+    //  probably also will be used to denote S3 temporary upload asset
+    protected String usage;
+
 
     /**
      * Create a new AssetStore.
@@ -235,6 +239,13 @@ ex.printStackTrace();
         return String.format("%064x", new java.math.BigInteger(1, md.digest()));
     }
 
+    public void setUsage(String u) {
+        usage = u;
+    }
+    public String getUsage() {
+        return usage;
+    }
+
     public abstract AssetStoreType getType();
 
 
@@ -390,7 +401,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
     }
 
     //this is within the same flavor of AssetStore, so is handled by the subclass
-    protected abstract void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException;
+    public abstract void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException;
 
     //to copy across flavors of AssetStore
     private void copyAssetAcross(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
@@ -420,17 +431,17 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
 
     public abstract void deleteFrom(final MediaAsset ma);
 
-    //TODO how do we deterimine this?  speaking of, how do we determine when to use one store vs another!?
-    //  for now, we will let order determine default.... thus burden is on list passed into init()
-/* fail. TODO fix whole init() debacle eventually?
-    public static AssetStore getDefault() {
-        if ((stores == null) || (stores.size() < 1)) return null;
-        return (AssetStore)stores.values().toArray()[0];
-    }
-*/
+
+    //right now default is determined by (a) a .usage value of "default"; or (b) if that does not exist, the first AssetStore by order
     public static AssetStore getDefault(Shepherd myShepherd) {
         init(AssetStoreFactory.getStores(myShepherd));
-        if ((stores == null) || (stores.size() < 1)) return null;
+        if ((stores == null) || (stores.size() < 1)) {
+            System.out.println("WARNING: AssetStore.getDefault() can find no AssetStores. This is likely bad! Please create one.");
+            return null;  //i have a good mind to throw an exception here...
+        }
+        for (AssetStore st : stores.values()) {
+            if ("default".equals(st.getUsage())) return st;
+        }
         return (AssetStore)stores.values().toArray()[0];
     }
 
@@ -438,6 +449,20 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
         init(AssetStoreFactory.getStores(myShepherd));
         return get(id);
     }
+
+
+/*
+    public static AssetStore getByUsage(Shepherd myShepherd, String usage) {
+        if (usage == null) return null;
+        init(AssetStoreFactory.getStores(myShepherd));
+        if ((stores == null) || (stores.size() < 1)) return null;
+        for (AssetStore st : stores.values()) {
+            if (usage.equals(st.getUsage())) return st;
+        }
+        return null;
+    }
+*/
+
 
 /*
     {

@@ -87,6 +87,9 @@ public class Shepherd {
     }
   }
 
+    public String getContext() {
+        return localContext;
+    }
 
   public PersistenceManager getPM() {
     return pm;
