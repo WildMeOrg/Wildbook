@@ -34,8 +34,12 @@ String imageEncNum = request.getParameter("encounterNumber");
 	
 //set up the JDO pieces and Shepherd
 Shepherd imageShepherd = new Shepherd(context);
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+imageShepherd.beginDBTransaction();
+
+try{
+
+//Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+//Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 /*
 boolean haveRendered = false;
 
@@ -107,6 +111,12 @@ no media
 
 }
 
+}
+catch(Exception e){e.printStackTrace();}
+finally{
+	imageShepherd.rollbackDBTransaction();
+	imageShepherd.commitDBTransaction();
+}
 
 %>
 </div>

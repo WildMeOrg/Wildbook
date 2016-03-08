@@ -244,6 +244,7 @@ public class RestServlet extends HttpServlet
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
+                    query.closeAll();
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
@@ -286,6 +287,7 @@ public class RestServlet extends HttpServlet
                             //((JDOPersistenceManager)pm).getExecutionContext());
                         tryCompress(req, resp, jsonobj, useCompression);
                     }
+                    query.closeAll();
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
@@ -350,9 +352,10 @@ public class RestServlet extends HttpServlet
                             //JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection(result,
                                 //((JDOPersistenceManager)pm).getExecutionContext());
                             tryCompress(req, resp, jsonobj, useCompression);
+                            query.closeAll();
                             resp.setHeader("Content-Type", "application/json");
                             resp.setStatus(200);
-                            pm.currentTransaction().commit();
+                            //pm.currentTransaction().commit();
                         }
                         finally
                         {
@@ -410,7 +413,7 @@ public class RestServlet extends HttpServlet
                     tryCompress(req, resp, jsonobj, useCompression);
                     //resp.getWriter().write(jsonobj.toString());
                     resp.setHeader("Content-Type","application/json");
-                    pm.currentTransaction().commit();
+                    //pm.currentTransaction().commit();
                     return;
                 }
                 catch (NucleusObjectNotFoundException ex)
@@ -450,7 +453,7 @@ public class RestServlet extends HttpServlet
             }
             catch (JSONException e1)
             {
-                // ignore
+                e1.printStackTrace();
             }
         }
     }
@@ -671,6 +674,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
                 Query q = pm.newQuery("SELECT FROM " + cmd.getFullClassName());
                 q.deletePersistentAll();
                 pm.currentTransaction().commit();
+                q.closeAll();
             }
             else
             {
@@ -785,6 +789,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
                     query.execute();
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
+                    query.closeAll();
                 }
                 finally
                 {
@@ -838,28 +843,29 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
     }
 
         boolean restAccessCheck(Object obj, HttpServletRequest req, JSONObject jsonobj) {
-System.out.println(jsonobj.toString());
-System.out.println(obj);
-System.out.println(obj.getClass());
-            boolean ok = true;
-            Method restAccess = null;
-            try {
-                restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class, JSONObject.class });
-            } catch (NoSuchMethodException nsm) {
-System.out.println("no such method??????????");
-                //nothing to do
-            }
-            if (restAccess == null) return true;  //if method doesnt exist, counts as good
-
-System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
-            //when .restAccess() is called, it should throw an exception to signal not allowed
-            try {
-                restAccess.invoke(obj, req, jsonobj);
-            } catch (Exception ex) {
-                ok = false;
-System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
-            }
-            return ok;
+          System.out.println(jsonobj.toString());
+          System.out.println(obj);
+          System.out.println(obj.getClass());
+                      boolean ok = true;
+                      Method restAccess = null;
+                      try {
+                          restAccess = obj.getClass().getMethod("restAccess", new Class[] { HttpServletRequest.class, JSONObject.class });
+                      } catch (NoSuchMethodException nsm) {
+          System.out.println("no such method??????????");
+                          //nothing to do
+                      }
+                      if (restAccess == null) return true;  //if method doesnt exist, counts as good
+          
+          System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
+                      //when .restAccess() is called, it should throw an exception to signal not allowed
+                      try {
+                          restAccess.invoke(obj, req, jsonobj);
+                      } catch (Exception ex) {
+                          ok = false;
+                          ex.printStackTrace();
+                          System.out.println("got Exception trying to invoke restAccess: " + ex.toString());
+                      }
+                      return ok;
         }
 
 
@@ -895,7 +901,8 @@ System.out.println(thisRequest);
                 try {
                     jobj = (JSONObject)sj.invoke(obj, req, jobj);
                 } catch (Exception ex) {
-System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
+                  ex.printStackTrace();
+                  System.out.println("got Exception trying to invoke sanitizeJson: " + ex.toString());
                 }
             }
             return jobj;

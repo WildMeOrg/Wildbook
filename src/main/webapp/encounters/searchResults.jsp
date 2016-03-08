@@ -21,33 +21,17 @@ context=ServletUtilities.getContext(request);
 
 
 
-  int startNum = 1;
-  int endNum = 10;
-
-
-  try {
-
-    if (request.getParameter("startNum") != null) {
-      startNum = (new Integer(request.getParameter("startNum"))).intValue();
-    }
-    if (request.getParameter("endNum") != null) {
-      endNum = (new Integer(request.getParameter("endNum"))).intValue();
-    }
-
-  } catch (NumberFormatException nfe) {
-    startNum = 1;
-    endNum = 10;
-  }
-
   int numResults = 0;
 
 
-  Vector rEncounters = new Vector();
+  //Vector rEncounters = new Vector();
 
-  myShepherd.beginDBTransaction();
+  //myShepherd.beginDBTransaction();
+  
+  try{
 
-  EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-  rEncounters = queryResult.getResult();
+  	//EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+ 	 //rEncounters = queryResult.getResult();
 
 
 //--let's estimate the number of results that might be unique
@@ -55,26 +39,6 @@ context=ServletUtilities.getContext(request);
   int numUniqueEncounters = 0;
   int numUnidentifiedEncounters = 0;
   int numDuplicateEncounters = 0;
-/*
-  ArrayList uniqueEncounters = new ArrayList();
-  for (int q = 0; q < rEncounters.size(); q++) {
-    Encounter rEnc = (Encounter) rEncounters.get(q);
-    if ((rEnc.getIndividualID()!=null)&&(!rEnc.getIndividualID().equals("Unassigned"))) {
-      String assemblage = rEnc.getIndividualID() + ":" + rEnc.getYear() + ":" + rEnc.getMonth() + ":" + rEnc.getDay();
-      if (!uniqueEncounters.contains(assemblage)) {
-        numUniqueEncounters++;
-        uniqueEncounters.add(assemblage);
-      } else {
-        numDuplicateEncounters++;
-      }
-    } else {
-      numUnidentifiedEncounters++;
-    }
-
-  }
-*/
-
-//--end unique counting------------------------------------------
 
 %>
 
@@ -293,11 +257,19 @@ td.tdw:hover div {
 	}
 */
 
+StringBuffer prettyPrint=new StringBuffer("");
+
+Map<String,Object> paramMap = new HashMap<String, Object>();
+
+String filter=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+
 %>
+
+
 
 var searchResults = <%=encsJson%>;
 
-var jdoql = '<%= queryResult.getJDOQLRepresentation().replaceAll("'", "\\\\'") %>';
+var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
 var testColumns = {
 	thumb: { label: 'Thumb', val: _colThumb },
@@ -902,9 +874,7 @@ console.log(t);
       </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
       </p>
     </td>
-    <%
-      myShepherd.rollbackDBTransaction();
-    %>
+
   </tr>
 </table>
 
@@ -917,12 +887,12 @@ console.log(t);
 
       <p class="caption"><strong><%=encprops.getProperty("prettyPrintResults") %>
       </strong><br/>
-        <%=queryResult.getQueryPrettyPrint().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
+        <%=prettyPrint.toString().replaceAll("locationField", encprops.getProperty("location")).replaceAll("locationCodeField", encprops.getProperty("locationID")).replaceAll("verbatimEventDateField", encprops.getProperty("verbatimEventDate")).replaceAll("alternateIDField", encprops.getProperty("alternateID")).replaceAll("behaviorField", encprops.getProperty("behavior")).replaceAll("Sex", encprops.getProperty("sex")).replaceAll("nameField", encprops.getProperty("nameField")).replaceAll("selectLength", encprops.getProperty("selectLength")).replaceAll("numResights", encprops.getProperty("numResights")).replaceAll("vesselField", encprops.getProperty("vesselField"))%>
       </p>
 
       <p class="caption"><strong><%=encprops.getProperty("jdoql")%>
       </strong><br/>
-        <%=queryResult.getJDOQLRepresentation()%>
+        <%=filter %>
       </p>
 
     </td>
@@ -934,9 +904,13 @@ console.log(t);
 
 
 <%
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-  rEncounters = null;
+  }
+  catch(Exception e){e.printStackTrace();}
+  finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+  }
+  //rEncounters = null;
 
 %>
 </div>
