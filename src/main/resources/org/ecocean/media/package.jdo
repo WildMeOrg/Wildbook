@@ -15,10 +15,10 @@
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
 		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" />
-		<property name="parametersAsString" persistence-modifier="persistent">
+		<property name="parametersAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</property>
-		<property name="derivationMethodAsString" persistence-modifier="persistent">
+		<property name="derivationMethodAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
 

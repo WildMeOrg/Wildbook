@@ -139,7 +139,7 @@ System.out.println("baseUrl --> " + baseUrl);
     System.out.println("Successfully created the scanTask shell!");
     //now, add the workItems
     myShepherd.beginDBTransaction();
-    Query query=null;
+    //Query query=null;
     Collection c=null;
     try {
       
@@ -261,11 +261,12 @@ if (count > 20) {
     catch (Exception e) {
       System.out.println("I failed while constructing the workItems for a new scanTask.");
       e.printStackTrace();
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
+      
     }
     finally{
-      if(query!=null){query.closeAll();}
+      //if(query!=null){query.closeAll();}
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
     }
 
   }

@@ -181,19 +181,22 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public ArrayList<MediaAsset> findAll(String hashCode, Shepherd myShepherd) {
         if (hashCode == null) return null;
+        ArrayList<MediaAsset> all=new ArrayList<MediaAsset>();
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
         Query matches = myShepherd.getPM().newQuery(mac, "hashCode == \"" + hashCode + "\" && this.store.id == " + this.id);
         try {
             Collection c = (Collection) (matches.execute());
-            ArrayList<MediaAsset> all = new ArrayList<MediaAsset>(c);
-            matches.closeAll();
-            return all;
+            all = new ArrayList<MediaAsset>(c);
+            //matches.closeAll();
+            //return all;
 
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAll(" + hashCode + ") threw exception " + ex.toString());
-ex.printStackTrace();
-            return null;
+            ex.printStackTrace();
+            //return null;
         }
+        matches.closeAll();
+        return all;
     }
 
 
@@ -206,22 +209,26 @@ ex.printStackTrace();
 
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
         if ((parent == null) || (parent.getId() < 1)) return null;
-//System.out.println("pid = " + parent.getId());
+        
+        ArrayList<MediaAsset> all=new ArrayList<MediaAsset>();
+        //System.out.println("pid = " + parent.getId());
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
-//System.out.println("parentId == " + parent.getId() + " && this.store.id == " + this.id);
+        //System.out.println("parentId == " + parent.getId() + " && this.store.id == " + this.id);
         Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
         //Query matches = myShepherd.getPM().newQuery(mac, "parentId == 30 && this.store.id == " + this.id);
         try {
             Collection c = (Collection) (matches.execute());
-            ArrayList<MediaAsset> all = new ArrayList<MediaAsset>(c);
-            matches.closeAll();
-            return all;
+            all = new ArrayList<MediaAsset>(c);
+            //matches.closeAll();
+            //return all;
 
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAllChildren(" + parent.toString() + ") threw exception " + ex.toString());
-ex.printStackTrace();
-            return null;
+            ex.printStackTrace();
+            //return null;
         }
+        matches.closeAll();
+        return all;
     }
 
 

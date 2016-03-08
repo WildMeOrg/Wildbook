@@ -96,24 +96,34 @@ public class IdentityServiceLog implements java.io.Serializable {
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.taskID == \"" + taskID + "\" && this.serviceName == \"" + serviceName + "\" && this.serviceJobID == \"" + serviceJobID + "\"");
         qry.setOrdering("timestamp");
+        ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
             Collection coll = (Collection) (qry.execute());
-            return new ArrayList<IdentityServiceLog>(coll);
-        } catch (Exception ex) {
-            return new ArrayList<IdentityServiceLog>();
+            log= new ArrayList<IdentityServiceLog>(coll);
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
         }
+        qry.closeAll();
+        return log;
     }
 
     public static ArrayList<IdentityServiceLog> loadByTaskID(String taskID, String serviceName, Shepherd myShepherd) {
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.taskID == \"" + taskID + "\" && this.serviceName == \"" + serviceName + "\"");
         qry.setOrdering("timestamp");
+        ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
             Collection coll = (Collection) (qry.execute());
-            return new ArrayList<IdentityServiceLog>(coll);
-        } catch (Exception ex) {
-            return new ArrayList<IdentityServiceLog>();
+            log=new ArrayList<IdentityServiceLog>(coll);
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
         }
+        qry.closeAll();
+        return log;
     }
 
     public static ArrayList<IdentityServiceLog> loadByServiceJobID(String serviceName, String serviceJobID, Shepherd myShepherd) {
@@ -121,12 +131,17 @@ public class IdentityServiceLog implements java.io.Serializable {
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\" && this.serviceJobID == \"" + serviceJobID + "\"");
         qry.setOrdering("timestamp");
+        ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
             Collection coll = (Collection) (qry.execute());
-            return new ArrayList<IdentityServiceLog>(coll);
-        } catch (Exception ex) {
-            return new ArrayList<IdentityServiceLog>();
+            log=new ArrayList<IdentityServiceLog>(coll);
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
         }
+        qry.closeAll();
+        return log;
     }
 
 
