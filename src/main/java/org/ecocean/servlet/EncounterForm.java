@@ -598,6 +598,17 @@ System.out.println("enc ?= " + enc.toString());
 
             ///////////////////TODO social files also!!!
 
+            if (fv.get("mediaAssetSetId") != null) {
+                MediaAssetSet maSet = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, fv.get("mediaAssetSetId")), true)));
+                if ((maSet != null) && (maSet.getMediaAssets() != null) && (maSet.getMediaAssets().size() > 0)) {
+                    int num = maSet.getMediaAssets().size();
+                    for (MediaAsset ma : maSet.getMediaAssets()) {
+                        newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                    }
+                    session.setAttribute("filesOKMessage", num + " " + ((num == 1) ? "file" : "files"));
+                }
+            }
+
             enc.setAnnotations(newAnnotations);
 
 

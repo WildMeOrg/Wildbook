@@ -183,6 +183,7 @@ public class S3AssetStore extends AssetStore {
     }
 
     @Override
+    //NOTE the aws credentials will be pulled from the current instance ("this") S3AssetStore, so must have access to both buckets
     //NOTE: *** s3 might give an "invalid key" if you try to copyObject a file immediately after it was created.  ymmv.
     public void copyAsset(final MediaAsset fromMA, final MediaAsset toMA) throws IOException {
         //i guess we could pass this case along to AssetStore.copyAssetAny() ??
@@ -197,6 +198,7 @@ public class S3AssetStore extends AssetStore {
         Object toK = getParameter(toMA.getParameters(), "key");
         if ((toB == null) || (toK == null)) throw new IOException("Invalid bucket and/or key value for target MA " + toMA);
 System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK.toString() + " --> " + toB.toString() + "|" + toK.toString());
+        //getS3Client() gets aws credentials from this instance S3AssetStore
         getS3Client().copyObject(new CopyObjectRequest(fromB.toString(), fromK.toString(), toB.toString(), toK.toString()));
     }
 

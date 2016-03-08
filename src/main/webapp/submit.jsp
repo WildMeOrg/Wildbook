@@ -66,7 +66,52 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 %>
 
 <style type="text/css">
-    .full_screen_map {
+
+#submit-message {
+	text-align: center;
+	font-size: 1.8em;
+	background-color: lightblue;
+}
+
+div#file-activity {
+	font-family: sans;
+	border: solid 2px black;
+	padding: 8px;
+	margin: 20px;
+	min-height: 200px;
+}
+div.file-item {
+	position: relative;
+	background-color: #DDD;
+	border-radius: 3px;
+	margin: 2px;
+}
+
+div.file-item div {
+	display: inline-block;
+	white-space: nowrap;
+	overflow: hidden;
+	padding: 3px 7px;
+}
+.file-name {
+	width: 30%;
+}
+.file-size {
+	width: 8%;
+}
+
+.file-bar {
+	position: absolute;
+	width: 0;
+	height: 100%;
+	padding: 0 !important;
+	left: 0;
+	border-radius: 3px;
+	background-color: rgba(100,100,100,0.3);
+}
+
+
+.full_screen_map {
     position: absolute !important;
     top: 0px !important;
     left: 0px !important;
@@ -75,6 +120,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+}
     
     
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
@@ -107,6 +153,8 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
     /*customizations*/
     .ui_tpicker_hour_label {margin-bottom:5px !important;}
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
+
+
 </style>
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
@@ -139,6 +187,34 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
  %>
 
 <script type="text/javascript">
+var needS3Upload = false;
+var formAlreadySubmitted = false;
+var userHitSubmitButton = false;
+
+// this is only useful when s3 upload is used, as it waits for all things to be good, and *then* submits form.
+function readyForSubmit() {
+	if (formAlreadySubmitted) return false;
+
+	if (!userHitSubmitButton) return false;  //always need user to initiate
+
+	if (!needS3Upload) {
+		formAlreadySubmitted = true;
+		return true;
+	}
+
+	if (uploadError) {
+		console.warn('cannot submit due to s3 upload error ' + uploadError);
+		return false;
+	}
+
+	if (!mediaAssetsCreated) {
+		console.warn('cannot submit cuz no mediaAssetCreated');
+		return false;
+	}
+
+	formAlreadySubmitted = true;
+	return true;
+}
 
 function validate() {
     var requiredfields = "";
@@ -196,6 +272,9 @@ function isEmpty(str) {
     return (!str || 0 === str.length);
 }
 </script>
+
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
+<script src="javascript/uploader.js"></script>
 
 <script>
 
@@ -460,6 +539,78 @@ function showUploadBox() {
 <fieldset>
 <h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
+<%
+if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) {  //lets us s3 uploader, i guess!
+%>
+
+<div id="file-activity"></div>
+
+<div id="upcontrols" >
+	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
+	<button style="display: none;" id="upload-button">begin upload</button>
+</div>
+<input type="hidden" id="mediaAssetSetId" name="mediaAssetSetId" value="" />
+<script>
+
+function submitFilesChanged(el) {
+	if (mediaAssetSetId) {
+		filesChanged(el);  //the one in uploader.js
+	} else {
+		filesChanged(el);
+		requestMediaAssetSet(function() {
+			//TODO what would block on this? it "should" return by time upload is done (when it is needed), but what if not?????
+		});
+	}
+	$('#upcontrols').hide();
+}
+
+
+var uploadComplete = false;
+var mediaAssetsCreated = false;
+var uploadError = false;
+
+function uploadCompleted() {
+	console.info('upload completed! ... attempting to create MediaAssets....');
+	document.getElementById('file-chooser').value = ''; //clear out <input file> so stuff wont get uploaded with form
+	uploadComplete = true;
+	var keys = [];
+	for (var k in keyToFilename) {
+		keys.push(k);
+	}
+	createMediaAssets(mediaAssetSetId, wildbookGlobals.uploader.s3_bucket, keys, function(d) {
+		console.log('finished creating MediaAssets: %o', d);
+		if (d.success) {
+			mediaAssetsCreated = d;
+			$('#mediaAssetSetId').val(mediaAssetSetId);
+			$('#submit-message').remove();
+			//$('#submit-button-wrapper').show();
+		} else {
+			uploadError = d.error || 'unknown error';
+			$('#submit-message').html('problem sending files: <b>' + uploadError + '</b>');
+		}
+		sendButtonClicked();  //this submits form, if needed
+	});
+}
+
+
+
+$(document).ready(function() {
+	needS3Upload = true;
+	//dont let user submit til files are done
+	//$('#submit-button-wrapper').hide().after('<div id="submit-message">Form cannot be sent until files are done uploading</div>');
+	$('#submit-button-wrapper').after('<div id="submit-message"></div>');
+	uploaderInit(uploadCompleted);
+	$('#encounterForm input[id!="file-chooser"]').on('change', function() {
+		if ((document.getElementById('file-chooser').files.length > 0) && (pendingUpload < 0)) {
+console.warn('auto-kickstarting upload of files!!!');
+			$('#upload-button').click();
+		}
+	});
+	//document.getElementById('upcontrols').style.display = 'block';
+});
+</script>
+
+<% } else {  //not direct-to-S3 %>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
@@ -488,6 +639,7 @@ function showUploadBox() {
             </div>
         </div>
     </div>
+<% } %>
 
 </fieldset>
 
@@ -1110,6 +1262,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
+	if (!readyForSubmit()) return;
+
 	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
@@ -1135,14 +1289,24 @@ function sendButtonClicked() {
 	%>
 	return true;
 }
+
+function actualSubmitClick() {
+	userHitSubmitButton = true;
+	$('#submit-button-wrapper').hide();
+	$('#submit-message').html('Waiting for files to be sent...');
+	return sendButtonClicked();
+}
+
 </script>
       
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
-          Send encounter report 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
+	<div id="submit-button-wrapper">
+        	<button class="large" type="submit" onclick="return actualSubmitClick();">
+          	Send encounter report 
+          	<span class="button-icon" aria-hidden="true" />
+        	</button>
+	</div>
       </p>
 
 
