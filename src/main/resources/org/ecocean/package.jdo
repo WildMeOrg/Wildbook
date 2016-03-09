@@ -345,7 +345,7 @@
 			<column length="36" />
 		</field>
 
-		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" default-fetch-group="true" />
+		<field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3" />
 <!--
 		<field name="annot_xtl" />
 		<field name="annot_ytl" />
