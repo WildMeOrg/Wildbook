@@ -15,7 +15,7 @@
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
 		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
-		<property name="parametersAsString" persistence-modifier="persistent" default-fetch-group="true">
+		<property name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</property>
 		<property name="derivationMethodAsString" persistence-modifier="persistent" default-fetch-group="true">
@@ -35,7 +35,7 @@
 
 		<field name="labels" serialized="true" column="LABELS" default-fetch-group="true" />
 
-            	<field name="features" persistence-modifier="persistent" default-fetch-group="true">
+            	<field name="features" persistence-modifier="persistent" >
                 	<collection element-type="org.ecocean.identity.Feature" dependent-element="true" />
                 	<join />
             	</field>
