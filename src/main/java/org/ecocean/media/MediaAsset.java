@@ -71,6 +71,7 @@ public class MediaAsset implements java.io.Serializable {
     protected int id = MediaAssetFactory.NOT_SAVED;
 
     protected AssetStore store;
+    protected String parametersAsString;
     protected JSONObject parameters;
 
     protected Integer parentId;
@@ -127,6 +128,7 @@ public class MediaAsset implements java.io.Serializable {
         this.id = id;
         this.store = store;
         this.parameters = params;
+        if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
         this.setHashCode();
     }
@@ -196,36 +198,53 @@ public class MediaAsset implements java.io.Serializable {
     }
 
     public JSONObject getParameters() {
-//System.out.println("getParameters() called -> " + parameters);
-        return parameters;
+        if (parameters != null) return parameters;
+        System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
+        JSONObject j = _toJSONObject(parametersAsString);
+        parameters = j;
+        return j;
     }
 
     public void setParameters(JSONObject p) {
-//System.out.println("setParameters(" + p + ") called");
+        if (p == null) {
+            System.out.println("WARNING: attempted to set null parameters on " + this + "; ignoring");
+            return;
+        }
         parameters = p;
+        parametersAsString = p.toString();
     }
 
+
+    ///note: really the only place that should call getParametersAsString or setParametersAsString is datanucleus...
+    ///  always use getParameters() and setParameters() instead!
     public String getParametersAsString() {
-//System.out.println("getParametersAsString() called -> " + parameters);
+        if (parametersAsString != null) return parametersAsString;
         if (parameters == null) return null;
-        return parameters.toString();
+        parametersAsString = parameters.toString();
+        return parametersAsString;
     }
 
     public void setParametersAsString(String p) {
-//System.out.println("setParametersAsString(" + p + ") called");
-        if (p == null) return;
-/*  skipping this for now, cuz weirdness going on  TODO
         if (p == null) {
-            parameters = null;
+            System.out.println("WARNING: attempted to set null parametersAsString on " + this + "; ignoring");
             return;
         }
-*/
+        parametersAsString = p;
+        //now we also set parameters as the JSONObject (or try)
+        JSONObject j = _toJSONObject(p);
+        if (j != null) parameters = j;
+    }
+
+    //utility: swallows json exception and will return null if fails
+    private static JSONObject _toJSONObject(String s) {
+        JSONObject j = null;
+        if (s == null) return j;
         try {
-            parameters = new JSONObject(p);
+            j = new JSONObject(s);
         } catch (JSONException je) {
-            System.out.println(this + " -- error parsing parameters json string (" + p + "): " + je.toString());
-            parameters = null;
+            System.out.println("error parsing json string (" + s + "): " + je.toString());
         }
+        return j;
     }
 
     public JSONObject getDerivationMethod() {
@@ -251,7 +270,7 @@ public class MediaAsset implements java.io.Serializable {
         try {
             derivationMethod = new JSONObject(d);
         } catch (JSONException je) {
-            System.out.println(this + " -- error parsing parameters json string (" + d + "): " + je.toString());
+            System.out.println(this + " -- error parsing derivation json string (" + d + "): " + je.toString());
             derivationMethod = null;
         }
     }
@@ -263,7 +282,7 @@ public class MediaAsset implements java.io.Serializable {
 
     public String setHashCode() {
         if (store == null) return null;
-        this.hashCode = store.hashCode(parameters);
+        this.hashCode = store.hashCode(getParameters());
 System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
     }
@@ -588,7 +607,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
     public void copyIn(File file) throws IOException {
         if (store == null) throw new IOException("copyIn(): store is null on " + this);
-        store.copyIn(file, parameters, false);
+        store.copyIn(file, getParameters(), false);
     }
 
     public MediaAsset updateChild(String type, HashMap<String, Object> opts) throws IOException {
