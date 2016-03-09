@@ -8,7 +8,7 @@
 	<class name="MediaAsset" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
-            	<field name="parentId" persistence-modifier="persistent">
+            	<field name="parentId" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="INT" allows-null="true"/>
             	</field>
             	<field name="revision" persistence-modifier="persistent" default-fetch-group="true">
@@ -33,9 +33,9 @@
 			<column length="75" />
 		</field>
 
-		<field name="labels" serialized="true" column="LABELS" />
+		<field name="labels" serialized="true" column="LABELS" default-fetch-group="true" />
 
-            	<field name="features" persistence-modifier="persistent" default-fetch-group="false">
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="true">
                 	<collection element-type="org.ecocean.identity.Feature" dependent-element="true" />
                 	<join />
             	</field>
