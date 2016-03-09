@@ -198,6 +198,7 @@ System.out.println(i + ") params -> " + params.toString());
          at least doing this now will avoid collision of it happening twice during form submission... ug yeah what about that?  ug, locking!
 */
                     targetMA.updateMinimalMetadata();
+                    targetMA.addLabel("_original");
                     MediaAssetFactory.save(targetMA, myShepherd);
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                     sets.get(setId).addMediaAsset(targetMA);
