@@ -11,10 +11,10 @@
             	<field name="parentId" persistence-modifier="persistent">
                 	<column jdbc-type="INT" allows-null="true"/>
             	</field>
-            	<field name="revision" persistence-modifier="persistent">
+            	<field name="revision" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
-		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" />
+		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
 		<property name="parametersAsString" persistence-modifier="persistent" default-fetch-group="true">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</property>
@@ -29,7 +29,7 @@
 		</field>
 -->
 
-		<field name="hashCode">
+		<field name="hashCode" default-fetch-group="true">
 			<column length="75" />
 		</field>
 
