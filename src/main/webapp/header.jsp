@@ -38,15 +38,12 @@
     <head>
       <title><%=CommonConfiguration.getHTMLTitle(context)%></title>
       <meta name="language" content="<%=langCode%>" />
-      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+      <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-      <meta name="Description"
-            content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-      <meta name="Keywords"
-            content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
+      <meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
+      <meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-      <link rel="shortcut icon"
-            href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
+      <link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
       <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
