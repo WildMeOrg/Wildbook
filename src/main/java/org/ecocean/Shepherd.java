@@ -2044,7 +2044,7 @@ public class Shepherd {
 
   public Vector getUnidentifiableEncountersForMarkedIndividual(String individual) {
     Extent encClass = pm.getExtent(Encounter.class, true);
-    String filter = "this.state == \"unidentifiable\" && this.individualID == " + individual;
+    String filter = "this.state == \"unidentifiable\" && this.individualID == \"" + individual+"\"";
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     try {
       Collection c = (Collection) (acceptedEncounters.execute());
