@@ -199,7 +199,7 @@ public class MediaAsset implements java.io.Serializable {
 
     public JSONObject getParameters() {
         if (parameters != null) return parameters;
-        System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
+        //System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
         JSONObject j = _toJSONObject(parametersAsString);
         parameters = j;
         return j;
@@ -571,7 +571,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             s.put("type", store.getType().toString());
             jobj.put("store", s);
             jobj.put("url", webURLString());
-            if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().get("attributes") != null)) {
+            if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
                 //hactacular, but if it works....
                 jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
             }
