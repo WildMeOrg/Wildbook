@@ -328,11 +328,25 @@
                         
                         <!-- list sites by locationID -->
                           <%
-                            Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
-                            for (Map.Entry<String, String> me : locMap.entrySet()) {
+                            Shepherd myShepherd = new Shepherd(context);
+                            try {
+                              ArrayList<String> locUsed = myShepherd.getAllLocationIDs();
+                              Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
+                              for (Map.Entry<String, String> me : locMap.entrySet()) {
+                                if (!locUsed.contains(me.getValue()))
+                                  continue;
                           %>
                           <li><a href="<%=urlLoc %>/encounters/searchResultsAnalysis.jsp?locationCodeField=<%=me.getValue()%>"><%=cciProps.getProperty(me.getKey())%></a></li>
                           <%
+                              }
+                            }
+                            catch (Exception ex) {
+                              ex.printStackTrace();
+                            }
+                            finally {
+                                myShepherd.rollbackDBTransaction();
+                                myShepherd.closeDBTransaction();
+                                myShepherd = null;
                             }
                           %>
                         </ul>
