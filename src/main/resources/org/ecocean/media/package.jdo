@@ -15,9 +15,9 @@
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
 		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" />
-		<property name="parametersAsString" persistence-modifier="persistent">
+		<field name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
-		</property>
+		</field>
 		<property name="derivationMethodAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
