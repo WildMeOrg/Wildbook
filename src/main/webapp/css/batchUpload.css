@@ -3,17 +3,6 @@ table.tableSessionInfo { border: 2px solid #C00; }
 table.tableSessionInfo th, table.tableSessionInfo td { font-size: 0.70em; vertical-align: top; }
 table.tableSessionInfo th { font-weight: bold; }
 
-h1 {
-  font-size: 2em;
-  text-align: center;
-}
-h2 {
-  font-size: 1.5em;
-}
-h3 {
-  font-size: 1.2em;
-  font-style: italic;
-}
 ul#errorList > li {
   color: #C00;
   font-size: 0.8em;

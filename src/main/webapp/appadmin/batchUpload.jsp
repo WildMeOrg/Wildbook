@@ -16,7 +16,6 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
 <%@ page import="java.io.IOException" %>
 <%@ page import="java.text.MessageFormat" %>
@@ -25,6 +24,10 @@
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ page import="org.ecocean.*" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<jsp:include page="../header.jsp" flush="true">
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+</jsp:include>
+<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 <%
   String context = ServletUtilities.getContext(request);
   String langCode = ServletUtilities.getLanguageCode(request);
@@ -140,26 +143,9 @@
     return sb.toString();
   }
 %>
-<html lang="<%=langCode%>" xml:lang="<%=langCode%>" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta name="language" content="<%=langCode%>" />
-	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
-	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
-</head>
 
-<body>
-<div id="wrapper">
-	<div id="page">
-		<jsp:include page="../header.jsp" flush="true">
-			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-		</jsp:include>
-		<div id="main">
+  <div class="container maincontent">
+
 
       <h1><%=bundle.getProperty("gui.title")%></h1>
 			<p><%=bundle.getProperty("gui.overview")%></p>
@@ -255,12 +241,6 @@
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 %>
-			<jsp:include page="../footer.jsp" flush="true"/>
-		</div>
-	</div>
-	<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
 
-
+  </div>
+<jsp:include page="../footer.jsp" flush="true"/>

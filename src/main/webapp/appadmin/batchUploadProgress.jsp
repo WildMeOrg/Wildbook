@@ -16,8 +16,6 @@
 	~ along with this program; if not, write to the Free Software
 	~ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	02110-1301, USA.
 --%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
 <%@ page import="java.io.PrintWriter" %>
 <%@ page import="java.text.MessageFormat" %>
@@ -28,6 +26,10 @@
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jstl/fmt" prefix="fmt" %>
+<jsp:include page="../header.jsp" flush="true">
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+</jsp:include>
+<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
 <%
   String context = ServletUtilities.getContext(request);
   String langCode = ServletUtilities.getLanguageCode(request);
@@ -52,35 +54,7 @@
 	response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
 	response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 %>
-<html>
-<head>
-	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
-	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-	<link href="<%=request.getContextPath()%>/css/batchUpload.css" rel="stylesheet" type="text/css"/>
-
-  <%-- NOTE: This page needs both JQuery & JQueryUI. --%>
-  <%-- JQuery in included by header.jsp, and JQueryUI script must be added after that. --%>
-  <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/start/jquery-ui.css"/>
-  <!--<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>-->
-
-</head>
-
-<body>
-<div id="wrapper">
-	<div id="page">
-		<jsp:include page="../header.jsp" flush="true">
-			<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-		</jsp:include>
-    <%-- NOTE: JQueryUI script placed here due to JQuery inclusion in header.jsp --%>
-    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script>
-		<div id="main">
-
-  <%  if (!proc.isTerminated() && !hasErrors) { %>
+<%  if (!proc.isTerminated() && !hasErrors) { %>
   <script language="javascript" type="text/javascript">
     var INTERVAL = 1000 * <%=CommonConfiguration.getBatchUploadProgressRefresh(context)%>;
     var PHASE_NONE = "<%=bundle.getProperty("gui.progress.status.phase.NONE")%>";
@@ -140,7 +114,10 @@
   </script>
 <%  } %>
 
-      <h1><%=bundle.getProperty("gui.progress.title")%></h1>
+<div class="container maincontent">
+
+
+<h1><%=bundle.getProperty("gui.progress.title")%></h1>
 
 <%  if (hasErrors) { %>
       <p><%=bundle.getProperty("gui.progress.text.error")%></p>
@@ -211,10 +188,5 @@
       </div>
 <%  } %>
 
-      <jsp:include page="../footer.jsp" flush="true"/>
-		</div>
-	</div>
-	<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+</div>
+<jsp:include page="../footer.jsp" flush="true"/>
