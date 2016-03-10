@@ -715,10 +715,12 @@ console.log(t);
         <%=result.getQueryPrettyPrint().replaceAll("locationField", propsShared.getProperty("location")).replaceAll("locationCodeField", propsShared.getProperty("locationID")).replaceAll("verbatimEventDateField", propsShared.getProperty("verbatimEventDate")).replaceAll("Sex", propsShared.getProperty("sex")).replaceAll("Keywords", propsShared.getProperty("keywords")).replaceAll("alternateIDField", (propsShared.getProperty("alternateID"))).replaceAll("alternateIDField", (propsShared.getProperty("size")))%>
       </p>
 
+<% if (request.getParameter("debug") != null) { %>
       <p class="caption"><strong><%=propsShared.getProperty("jdoql")%>
       </strong><br/>
         <%=result.getJDOQLRepresentation()%>
       </p>
+<% } %>
 
     </td>
   </tr>
