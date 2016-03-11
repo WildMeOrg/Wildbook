@@ -24,6 +24,7 @@ import org.ecocean.Keyword;
 import org.ecocean.Annotation;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.Util;
 //import org.ecocean.Encounter;
 import org.ecocean.identity.Feature;
 import java.net.URL;
@@ -32,11 +33,12 @@ import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
 import java.util.Date;
+import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONException;
 import java.util.Set;
-import java.util.HashMap;
 import java.util.List;
+import java.util.HashMap;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.UUID;
@@ -364,10 +366,26 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     /**
      this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
+     FOR NOW: we rely first on (a) metadata.attributes.dateTime (as iso8601 string),
+              then (b) crawl metadata.exif for something date-y
     */
     public DateTime getDateTime() {
-        DateTime t = null;
-        return t;
+        if (getMetadata() == null) return null;
+        String adt = getMetadata().getAttributes().optString("dateTime", null);
+        if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
+        //meh, gotta find it the hard way then...
+        HashMap<String,String> matches = getMetadata().findRecurse(".*date.*");
+        if ((matches == null) || (matches.size() < 1)) return null;
+        String dateString = (String)matches.values().toArray()[0];
+        if (dateString == null) return null;
+        SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
+        Date dt = null;
+        try {
+            dt = dateParser.parse(dateString);
+        } catch (java.text.ParseException ex) {
+            return null;
+        }
+        return new DateTime(dt);
     }
 
     /**
