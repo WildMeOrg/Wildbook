@@ -18,34 +18,8 @@
 
 package org.ecocean.media;
 
-/*
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ImageAttributes;
-import org.ecocean.Keyword;
-import org.ecocean.Annotation;
-import org.ecocean.Shepherd;
-import org.ecocean.Encounter;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Files;
-//import java.time.LocalDateTime;
-import org.joda.time.DateTime;
-import java.util.Date;
-import org.json.JSONObject;
-import org.json.JSONException;
-import java.util.Set;
 import java.util.HashMap;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.ecocean.Util;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-//import java.io.FileInputStream;
-//import javax.jdo.Query;
-*/
-
+import java.util.Iterator;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -87,6 +61,40 @@ public class MediaAssetMetadata implements java.io.Serializable {
             System.out.println(this + " -- error parsing data json string (" + d + "): " + je.toString());
             data = null;
         }
+    }
+
+    //a convenience method which accesses the data.attributes JSONObject
+    // even if it doesnt exist, this will return an empty one for convenience of calling .optFOO(key) easily on it
+    public JSONObject getAttributes() {
+        if ((getData() == null) || (getData().optJSONObject("attributes") == null)) return new JSONObject();
+        return getData().getJSONObject("attributes");
+    }
+
+
+    //for now(?) this just searches down into exif structure, returns HashMap of key:values whose keys match regex
+    //  deeper values with same keys will overwrite earlier
+    //  note also that keys will be squashed to lowercase (hence squashing regex)
+    public HashMap<String,String> findRecurse(String regex) {
+        if ((getData() == null) || (getData().optJSONObject("exif") == null)) return null;
+        return _find(getData().getJSONObject("exif"), regex.toLowerCase());
+    }
+
+    private static HashMap<String,String> _find(JSONObject jobj, String regex) {
+        HashMap<String,String> found = new HashMap<String,String>();
+        Iterator<String> it = jobj.keys();
+        while (it.hasNext()) {
+            String k = it.next();
+            JSONObject sub = jobj.optJSONObject(k);
+            if (sub != null) {  //recurse down...
+                HashMap<String,String> fsub = _find(sub, regex);
+                if (fsub != null) found.putAll(fsub);
+                continue;
+            }
+            //here on out, we assume we have key:value pairs
+            if (!k.toLowerCase().matches(regex)) continue;
+            found.put(k, jobj.optString(k, null));
+        }
+        return found;
     }
 
 
