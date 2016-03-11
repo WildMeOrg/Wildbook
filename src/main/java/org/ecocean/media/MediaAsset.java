@@ -593,6 +593,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 //hactacular, but if it works....
                 jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
             }
+            DateTime dt = getDateTime();
+            if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
 
             //note? warning? i guess this will traverse... gulp?
             String context = ServletUtilities.getContext(request);
