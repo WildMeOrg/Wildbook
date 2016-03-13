@@ -343,6 +343,14 @@ public final class NotificationMailer implements Runnable {
           return loadEmailTemplate(langCode, type);
       }
     }
+    // Default to webapp default language if none found yet.
+    String langCodeDef = CommonConfiguration.getProperty("defaultLanguage", context);
+    if (langCodeDef != null && !"".equals(langCodeDef)) {
+      for (String type : types) {
+        if (existsEmailTemplate(langCodeDef, type))
+          return loadEmailTemplate(langCodeDef, type);
+      }
+    }
     // Default to "en" if none found yet.
     for (String type : types) {
       if (existsEmailTemplate("en", type))
