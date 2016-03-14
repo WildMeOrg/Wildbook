@@ -2,7 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.*,
-org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
+org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, org.datanucleus.api.rest.orgjson.JSONObject, org.datanucleus.api.rest.orgjson.JSONArray, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
@@ -31,15 +31,15 @@ context=ServletUtilities.getContext(request);
 
 //get the encounter number
 String imageEncNum = request.getParameter("encounterNumber");
-	
+
 //set up the JDO pieces and Shepherd
 Shepherd imageShepherd = new Shepherd(context);
 imageShepherd.beginDBTransaction();
 
 try{
 
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+//Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+//Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 /*
 boolean haveRendered = false;
 
@@ -83,6 +83,11 @@ no media
 
 } else {
 
+  %>
+  <p>Here is the beginning of encounterMediaEmbed!</p>
+  <%
+
+
 
 
 	for (Annotation ann : anns) {
@@ -100,10 +105,24 @@ no media
 			else if(genusSpecies.equals("Tursiopstruncatus")){
 				isDorsalFin="&isDorsalFin=true";
 			}
-%>
-	<p><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+      MediaAsset me = ann.getMediaAsset();
+      int meId = me.getId();
+      JSONObject j = me.sanitizeJson(request, new JSONObject());
+      System.out.println("JSON string: "+j.toString());
 
-<%
+      %>
+    	<p>< Media Asset Property Dump:
+        <ul>
+          <li> ID: <%=me.getId()%> </li>
+          <li> UUID: <%=me.getUUID()%></li>
+          <li> parametersAsString: <%=me.getParametersAsString()%></li>
+          <li> localPath: <%=me.localPath()%></li>
+          <li> width: <%=me.getWidth()%></li>
+          <li> height: <%=me.getHeight()%></li>
+          <li> JSON: <%=j%></li>
+        </ul>
+       <a href="encounterSpotTool.jsp?imageID=<%=me.getId()%><%=isDorsalFin %>"></br><%=encprops.getProperty("matchPattern") %></a></p></br></br></br>
+      <%
 		}
 
 		out.println(ann.toHtmlElement(request, imageShepherd));
