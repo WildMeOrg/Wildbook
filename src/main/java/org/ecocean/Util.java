@@ -10,6 +10,8 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import org.json.JSONObject;
+import org.json.JSONException;
 
 //EXIF-related imports
 import java.io.File;
@@ -351,5 +353,19 @@ public class Util {
     public static String hashDirectories(String in) {
         return hashDirectories(in, File.separator);
     }
+
+
+    //this basically just swallows exceptions in parsing and returns a null if failure
+    public static JSONObject stringToJSONObject(String s) {
+        JSONObject j = null;
+        if (s == null) return j;
+        try {
+            j = new JSONObject(s);
+        } catch (JSONException je) {
+            System.out.println("error parsing json string (" + s + "): " + je.toString());
+        }
+        return j;
+    }
+
 
 }
