@@ -16,7 +16,7 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <!-- add recaptcha -->
-<script src="https://www.google.com/recaptcha/api.js?render=explicit"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackrender=explicit"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -174,6 +174,7 @@ function isEmpty(str) {
     return (!str || 0 === str.length);
 }
 </script>
+
 
 <script>
 
@@ -1192,47 +1193,88 @@ if(request.getRemoteUser()!=null){
 		</div>
       
    
-         
          <%
          if(request.getRemoteUser()==null){
          %>
          <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
-           <script>
-	           var captchaWidgetId = grecaptcha.render( 
-	        	'myCaptcha', {
-		  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
-		  			'theme' : 'light'
-				});
-	           
+           <script async defer>
+		         //we need to first check here if we need to do the background social image send... in which case,
+		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+		        console.log("Entered the function...");
+		       var captchaWidgetId;
+		       function onloadCallback() {
+		        	console.log('firing onloadCallback');
+		        	
+		        	captchaWidgetId = grecaptcha.render( 
+		        	
+			        	'myCaptcha', {
+				  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
+				  			'theme' : 'light'
+						});
+		        }
+		        
+
+			     
+
+			           
            </script>
         
         <%
          }
         %>
-        
-        
+<script>
 
+function sendButtonClicked() {
+	console.log('sendButtonClicked()');
+	if (sendSocialPhotosBackground()) return false;
+	console.log('fell through -- must be no social!');
+
+    <%
+    if(request.getUserPrincipal()!=null){
+    %>
+    console.log('trying to submit while logged in');
+    	$("#encounterForm").attr("action", "EncounterForm");
+    	submitForm();
+    <%
+    }
+    else{
+    %>
+    console.log('trying to submit');
+    console.log(captchaWidgetId);
+		var recaptchaResponse = grecaptcha.getResponse( captchaWidgetId );
+
+   		 console.log( 'g-recaptcha-response: ' + recaptchaResponse );
+		if(!isEmpty(recaptchaResponse)) {		
+			$("#encounterForm").attr("action", "EncounterForm");
+			submitForm();
+		}
+	//alert(recaptachaResponse);
+	<%
+    }
+	%>
+	return true;
+}
+</script>
       
 
-		<p class="text-center">
-			<button class="large" type="submit" onclick="return sendButtonClicked();">
-				Send encounter report
-				<span class="button-icon" aria-hidden="true" />
-			</button>
-		</p>
+      <p class="text-center">
+        <button class="large" type="submit" onclick="return sendButtonClicked();">
+          Send encounter report 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+      </p>
 
 
-		<p>&nbsp;</p>
-		<%if (request.getRemoteUser() != null) {
-			%>
-			<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/>
-			<%
-		}
-		else {%>
-			<input name="submitterID" type="hidden" value="N/A"/>
-		<%
-		}
-		%>
+<p>&nbsp;</p>
+<%if (request.getRemoteUser() != null) {%> 
+	<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/> 
+<%} 
+else {%>
+	<input name="submitterID" type="hidden" value="N/A"/> 
+<%
+}
+%>
+
 		<p>&nbsp;</p>
 	</form>
 </div>
