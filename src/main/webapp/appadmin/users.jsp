@@ -272,7 +272,7 @@
                         		<option value=""></option>
 								<%
 								boolean isEdit = request.getParameter("isEdit") != null;
-								User user = myShepherd.getUser(request.getParameter("username").trim());
+								User user = request.getParameter("username") != null ? myShepherd.getUser(request.getParameter("username").trim()) : null;
 								for (String role : rolesMap.values()) {
 									String selected = "";
 									if (isEdit && user != null) {
