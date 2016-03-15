@@ -26,6 +26,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
     return;
   }
   var wxh = w+'x'+h;
+  var watermarkUrl = maLib.getChildUrl('_watermark');
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
@@ -33,10 +34,28 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
       )
     )
   );
-  console.log('\nMediaAsset '+maJson.id+' has children: '+maJson.children);
-  console.log('\nMediaAsset '+maJson.id+' has child url: '+maLib.getChildUrl(maJson, '_watermark'));
+  maLib.testExtraction(maJson);
   return;
 }
+
+maLib.testExtraction = function(maJson) {
+  var children = "[";
+  for (child in maJson.children) {children += JSON.stringify(child)}
+  //console.log('\nMediaAsset '+maJson.id+' stringified: '+JSON.stringify(maJson));
+  var nChildren;
+  try {
+    nChildren = maJson.children.length
+  }
+  catch (e) {
+    nChildren = 'undefined';
+  }
+  console.log('\t'+maJson.id+' has nChildren = '+nChildren);
+
+  console.log('\t'+maJson.id+' has child watermark url: '+maLib.getChildUrl(maJson, '_watermark'));
+
+}
+
+
 
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
@@ -67,11 +86,12 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
  * @return {boolean}
  */
 maLib.hasLabel = function (maJson, _label) {
-  try {
-    return ('labels' in maJson && _label in maJson.labels);
-  } catch (e) {
-    return false
+  if (maJson.labels != undefined) {
+    for (index in maJson.labels) {
+      if (maJson.labels[index] == _label) {return true;}
+    }
   }
+  return false
 }
 
 /**
@@ -81,8 +101,8 @@ maLib.hasLabel = function (maJson, _label) {
  * @return {JSON} the mediaAsset (or empty object) containing that child
  */
 maLib.getChildWithLabel = function (maJson, _label) {
-  for (child in maJson.children) {
-    console.log('\nchild: '+JSON.stringify(child)); // this line does not work as expected
+  for (index in maJson.children) { // remember that maJson is JSON! that's why the iterator is an index and not the child itself
+    var child = maJson.children[index]
     if (maLib.hasLabel(child, _label)) return child;
   }
   return null;
@@ -103,8 +123,6 @@ maLib.hasChildWithLabel = function (maJson, _label) {
  * @return string - the url of the picture depicting the labeled child
  */
 maLib.getChildUrl = function (maJson, _label) {
-  console.log('getChildUrl');
-  console.log('\tchildren: '+maJson.children)
   var child = maLib.getChildWithLabel(maJson,_label);
   if (child != null && 'url' in child) {
     return (child.url);
