@@ -106,6 +106,44 @@ private final String UPLOAD_DIRECTORY = "/tmp";
         return fv.get(key).toString();
     }
 
+  private boolean isBadDateString(String dateString) {
+    if (dateString.length() < 7) {return true;}
+    String[] months = new String[] {"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"};
+    String oldMonth = dateString.substring(4,7).toLowerCase();
+    boolean result = false;
+    for (String mon : months) {
+      if (oldMonth.equals(mon)) {
+        result = true;
+        break;
+      }
+    }
+    return result;
+  }
+
+  private String cleanSpotasharkDate(String oldDate) {
+    if (oldDate.length() < 7) {return oldDate;}
+
+    String[] months = new String[] {"jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"};
+    String oldMonth = oldDate.substring(4,7).toLowerCase();
+    int monthNo = -1;
+    for (int i=0; i<12; i++) {
+      if (oldMonth.equals(months[i])) {
+        monthNo=i+1;
+      }
+    }
+
+    String newMonth = monthNo+"";
+    if (newMonth.length()==1) {
+      newMonth = "0"+newMonth;
+    }
+
+    String newDate = oldDate.substring(0,4)+"-"+newMonth;
+    if (oldDate.length()>7) {
+      newDate += "-"+oldDate.substring(7,oldDate.length());
+    }
+    return newDate;
+  }
+
   private SatelliteTag getSatelliteTag(HashMap fv) {
     String argosPttNumber =  getVal(fv, "satelliteTagArgosPttNumber");
     String satelliteTagName = getVal(fv, "satelliteTagName");
@@ -444,24 +482,32 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
             if((getVal(fv, "datepicker")!=null)&&(!getVal(fv, "datepicker").trim().equals(""))){
               //System.out.println("Trying to read date: "+getVal(fv, "datepicker").replaceAll(" ", "T"));
               //boolean badDate=false;
-              try{
-                DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
 
-                LocalDateTime reportedDateTime=new LocalDateTime(parser1.parseMillis(getVal(fv, "datepicker").replaceAll(" ", "T")));
-                StringTokenizer str=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"-");
+
+
+      try{
+
+          DateTimeFormatter parser1 = ISODateTimeFormat.dateOptionalTimeParser();
+          String dateString = getVal(fv, "datepicker").replaceAll(" ", "T");
+          LocalDateTime reportedDateTime;
+
+          if (isBadDateString(dateString)) {
+            dateString = cleanSpotasharkDate(dateString);
+          }
+
+          reportedDateTime = new LocalDateTime(parser1.parseMillis(dateString));
+          StringTokenizer str=new StringTokenizer(dateString,"-");
 
           int numTokens=str.countTokens();
-
 
           if(numTokens>=1){
             //try {
             year=reportedDateTime.getYear();
-              if(year>(dt.getYear()+1)){
-                //badDate=true;
-                year=0;
-                throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
-              }
-
+            if(year>(dt.getYear()+1)){
+              //badDate=true;
+              year=0;
+              throw new Exception("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format: "+year+" > "+dt.getYear());
+            }
            //} catch (Exception e) { year=-1;}
           }
           if(numTokens>=2){
@@ -474,24 +520,19 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
           }
           else{day=0;}
 
-
-
           //see if we can get a time and hour, because we do want to support only yyy-MM too
-          StringTokenizer strTime=new StringTokenizer(getVal(fv, "datepicker").replaceAll(" ", "T"),"T");
+          StringTokenizer strTime=new StringTokenizer(dateString,"T");
           if(strTime.countTokens()>1){
             try { hour=reportedDateTime.getHourOfDay(); } catch (Exception e) { hour=-1; }
             try {minutes=(new Integer(reportedDateTime.getMinuteOfHour()).toString()); } catch (Exception e) {}
           }
           else{hour=-1;}
-
-
                   //System.out.println("At the end of time processing I see: "+year+"-"+month+"-"+day+" "+hour+":"+minutes);
-
               }
               catch(Exception e){
                 System.out.println("    An unknown exception occurred during date processing in EncounterForm. The user may have input an improper format.");
                 e.printStackTrace();
-                processingNotes.append("<p>Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
+                processingNotes.append("<p>Hey! Error encountered processing this date submitted by user: "+getVal(fv, "datepicker")+"</p>");
 
               }
          }
