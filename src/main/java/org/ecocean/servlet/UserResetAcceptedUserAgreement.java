@@ -2,7 +2,7 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 import javax.jdo.Extent;
 import javax.jdo.Query;
@@ -46,7 +46,7 @@ public class UserResetAcceptedUserAgreement extends HttpServlet {
 
     myShepherd.beginDBTransaction();
       try {
-        ArrayList<User> it=myShepherd.getAllUsers();
+        List<User> it=myShepherd.getAllUsers();
         int numUsers=it.size();
         for(int i=0;i<numUsers;i++){
           User tempUser= it.get(i);

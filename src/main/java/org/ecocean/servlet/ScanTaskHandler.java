@@ -538,7 +538,10 @@ public class ScanTaskHandler extends HttpServlet {
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
         }
-      } else if (action.equals("addFalseMatchTask")) {
+      } 
+      
+      /*
+      else if (action.equals("addFalseMatchTask")) {
 
         boolean locked = false;
         boolean successfulStore = false;
@@ -705,7 +708,7 @@ public class ScanTaskHandler extends HttpServlet {
           out.println(ServletUtilities.getFooter(context));
         }
       }
-
+      */
 
       //delete all scan-related items
       else if (action.equals("removeAllWorkItems")) {

@@ -11,7 +11,7 @@ import org.apache.shiro.SecurityUtils;
 
 import java.util.TreeSet;
 import java.util.Set;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
 import org.ecocean.servlet.ServletUtilities;
@@ -97,7 +97,7 @@ public class ShepherdRealm extends AuthorizingRealm {
         if(myShepherd.getUser(username)!=null){
           
             User user=myShepherd.getUser(username);
-            ArrayList<Role> roles=myShepherd.getAllRolesForUserInContext(username,actualContext);
+            List<Role> roles=myShepherd.getAllRolesForUserInContext(username,actualContext);
             int numRoles=roles.size();
             for(int i=0;i<numRoles;i++){
               roleNames.add(roles.get(i).getRolename());

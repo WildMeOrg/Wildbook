@@ -134,7 +134,7 @@ context=ServletUtilities.getContext(request);
             </tr>
             <%
 
-              Iterator allAdoptions;
+              Iterator<Adoption> allAdoptions;
 
               int total = totalCount;
               int iterTotal = totalCount;
@@ -145,7 +145,7 @@ context=ServletUtilities.getContext(request);
               int countMe = 0;
               while (allAdoptions.hasNext()) {
                 countMe++;
-                Adoption enc = (Adoption) allAdoptions.next();
+                Adoption enc = allAdoptions.next();
 
 
             %>
