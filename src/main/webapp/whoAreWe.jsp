@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.util.ArrayList,java.util.List,java.util.ListIterator,java.util.Properties, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*, org.apache.commons.lang3.StringEscapeUtils" %>
 <%
 
 //setup our Properties object to hold all properties
@@ -39,7 +39,7 @@
 
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
-    ArrayList<User> allUsers=myShepherd.getAllUsers();
+    List<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {
       User u = it.next();
       if (u.getFullName() != null && u.getFullName().matches("(?i).*\\b(test|demo|rest)\\b.*")

@@ -105,23 +105,23 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	//fetch all collabs for the user
-	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request) {
+	public static List collaborationsForCurrentUser(HttpServletRequest request) {
 		return collaborationsForCurrentUser(request, null);
 	}
 
 	//like above, but can specify a state
-	public static ArrayList collaborationsForCurrentUser(HttpServletRequest request, String state) {
+	public static List collaborationsForCurrentUser(HttpServletRequest request, String state) {
 		String context = ServletUtilities.getContext(request);
 		if (request.getUserPrincipal() == null) return null;  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
 		return collaborationsForUser(context, username, state);
 	}
 
-	public static ArrayList collaborationsForUser(String context, String username) {
+	public static List collaborationsForUser(String context, String username) {
 		return collaborationsForUser(context, username, null);
 	}
 
-	public static ArrayList collaborationsForUser(String context, String username, String state) {
+	public static List collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!  (may be hit a lot)
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
 		if (state != null) {
@@ -131,7 +131,7 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = new Shepherd(context);
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-		ArrayList occurs=myShepherd.getAllOccurrences(query);
+		List occurs=myShepherd.getAllOccurrences(query);
 		query.closeAll();
 		return occurs;
 	}
@@ -156,9 +156,9 @@ public class Collaboration implements java.io.Serializable {
 		return false;
 	}
 
-	public static Collaboration findCollaborationWithUser(String username, ArrayList all) {
+	public static Collaboration findCollaborationWithUser(String username, List all) {
 		if (all == null) return null;
-		ArrayList<Collaboration> collabs = all;
+		List<Collaboration> collabs = all;
 		for (Collaboration c : collabs) {
 			if (c.username1.equals(username) || c.username2.equals(username)) return c;
 		}
@@ -177,7 +177,7 @@ public class Collaboration implements java.io.Serializable {
 		if (request.getUserPrincipal() == null) return notif;
 		String username = request.getUserPrincipal().getName();
 
-		ArrayList<Collaboration> collabs = collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = collaborationsForCurrentUser(request);
 		int n = 0;
 		for (Collaboration c : collabs) {
 			if (c.username2.equals(username) && c.getState().equals(STATE_INITIALIZED)) n++;

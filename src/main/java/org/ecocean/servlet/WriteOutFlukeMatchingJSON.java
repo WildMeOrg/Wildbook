@@ -103,7 +103,9 @@ public class WriteOutFlukeMatchingJSON extends HttpServlet {
 
         Encounter newEnc = myShepherd.getEncounter(encNumber);
         //newEncDate = newEnc.getDate();
-        newEncShark = newEnc.isAssignedToMarkedIndividual();
+        if(newEnc.getIndividualID()!=null){
+          newEncShark = newEnc.getIndividualID();
+        }
         //if(newEnc.getSizeAsDouble()!=null){newEncSize = newEnc.getSize() + " meters";}
 
         //MatchObject[] res = new MatchObject[0];

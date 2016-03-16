@@ -31,7 +31,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 
 
 //Set alternateID for this encounter/sighting
@@ -118,7 +118,7 @@ public class EncounterSetLocation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter location has been updated from <i>" + oldLocation + "</i> to <i>" + location + "</i>.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -134,7 +134,7 @@ public class EncounterSetLocation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter location was NOT updated because another user is currently modifying this reconrd. Please try to reset the location again in a few seconds.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
           for(int i=0;i<allStatesSize;i++){
@@ -150,7 +150,7 @@ public class EncounterSetLocation extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
       int allStatesSize=allStates.size();
       if(allStatesSize>0){
         for(int i=0;i<allStatesSize;i++){

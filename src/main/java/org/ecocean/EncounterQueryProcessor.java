@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 
 public class EncounterQueryProcessor {
 
-  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
+  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -87,9 +87,9 @@ public class EncounterQueryProcessor {
     if(request.getParameter("resightOnly")!=null) {
       //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID != \"Unassigned\")";
+        filter+="(individualID != null)";
       }
-      else{filter+=" && (individualID != \"Unassigned\")";}
+      else{filter+=" && (individualID != null)";}
       prettyPrint.append("Identified and resighted.<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
@@ -97,9 +97,9 @@ public class EncounterQueryProcessor {
     //filter for unassigned encounters------------------------------------------
     if(request.getParameter("unassigned")!=null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID == \"Unassigned\")";
+        filter+="(individualID == null)";
       }
-      else{filter+=" && (individualID == \"Unassigned\")";}
+      else{filter+=" && (individualID == null)";}
       prettyPrint.append("Unidentified.<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
@@ -742,7 +742,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //ms markers filters-------------------------------------------------
       myShepherd.beginDBTransaction();
-      ArrayList<String> markers=myShepherd.getAllLoci();
+      List<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
         String theseMarkers="";
         boolean hasMarkers=false;
@@ -1357,11 +1357,15 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //end GPS filters-----------------------------------------------
+    
+    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";}
+
 
     filter+=jdoqlVariableDeclaration;
 
     filter += parameterDeclaration;
-
+    System.out.println("EncounterQueryProcessor filter: "+filter);
+    
     return filter;
 
   }
@@ -1406,7 +1410,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     if(allEncounters!=null){
       while (allEncounters.hasNext()) {
-        Encounter temp_enc=(Encounter)allEncounters.next();
+        Encounter temp_enc=allEncounters.next();
         rEncounters.add(temp_enc);
       }
     }
@@ -1414,34 +1418,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 
-  //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
-  /* 
-    if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
-      int numResights=1;
-
-      try{
-        numResights=(new Integer(request.getParameter("numResights"))).intValue();
-        prettyPrint.append("numResights is > "+numResights+".<br />");
-        }
-      catch(NumberFormatException nfe) {nfe.printStackTrace();}
-
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        //if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-          //rEncounters.remove(q);
-          //q--;
-        //}
-        //else{
-          MarkedIndividual s=myShepherd.getMarkedIndividual(rEnc.isAssignedToMarkedIndividual());
-          if(s.totalEncounters()<numResights) {
-            rEncounters.remove(q);
-            q--;
-          }
-        //}
-      }
-    }
-    */
-  //end if resightOnly--------------------------------------------------------------------------------------
 
 
 
@@ -1506,7 +1482,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 		//silo security logging
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String url = request.getRequestURL().toString() + "?" + request.getQueryString();
 		Date now = new Date();
 
@@ -1537,7 +1513,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 				}
 			}
 		}
-
+		//System.out.println("rEncounters size is: "+rEncounters.size());
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }

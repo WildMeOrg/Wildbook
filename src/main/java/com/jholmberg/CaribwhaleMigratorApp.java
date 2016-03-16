@@ -1122,7 +1122,7 @@ public class CaribwhaleMigratorApp {
 		                  MarkedIndividual motherIndie=new MarkedIndividual();
 		                  if(myShepherd.isMarkedIndividual(mother)){motherIndie=myShepherd.getMarkedIndividual(mother);}
 		                  else if(myShepherd.getMarkedIndividualsByNickname(mother)!=null){
-		                    ArrayList moms=myShepherd.getMarkedIndividualsByNickname(mother);
+		                    List moms=myShepherd.getMarkedIndividualsByNickname(mother);
 		                    if(moms.size()>0){
 		                      motherIndie=(MarkedIndividual)moms.get(0);
 		                    }

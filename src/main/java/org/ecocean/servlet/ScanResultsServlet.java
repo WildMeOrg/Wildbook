@@ -192,7 +192,9 @@ public class ScanResultsServlet extends HttpServlet {
       num = request.getParameter("number");
       Encounter newEnc = myShepherd.getEncounter(num);
       newEncDate = newEnc.getDate();
-      newEncShark = newEnc.isAssignedToMarkedIndividual();
+      if(newEnc.getIndividualID()!=null){
+        newEncShark = newEnc.getIndividualID();
+      }
       newEncSize = newEnc.getSize() + " meters";
 
     } catch (Exception jdoe) {

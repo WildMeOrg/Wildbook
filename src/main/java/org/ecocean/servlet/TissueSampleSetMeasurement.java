@@ -57,7 +57,7 @@ public class TissueSampleSetMeasurement extends HttpServlet {
        try {
     
           BiologicalMeasurement measurement=new BiologicalMeasurement();
-          if((request.getParameter("measurementType")!=null)&&(request.getParameter("value")!=null)&&(request.getParameter("samplingProtocol")!=null)){
+          if((request.getParameter("measurementType")!=null)&&(request.getParameter("value")!=null)){
             
             if ((!myShepherd.isGeneticAnalysis(sampleID, encNum, analysisID, "BiologicalMeasurement"))) {
             
@@ -79,7 +79,8 @@ public class TissueSampleSetMeasurement extends HttpServlet {
               if(request.getParameter("processingLabName")!=null){measurement.setProcessingLabName(request.getParameter("processingLabName"));}
               if(request.getParameter("processingLabContactName")!=null){measurement.setProcessingLabContactName(request.getParameter("processingLabContactName"));}
               if(request.getParameter("processingLabContactDetails")!=null){measurement.setProcessingLabContactDetails(request.getParameter("processingLabContactDetails"));}
-
+              if(request.getParameter("samplingProtocol")!=null){measurement.setSamplingProtocol(request.getParameter("samplingProtocol"));}
+              
               enc.addGeneticAnalysis(measurement);
               //log the new measurement addition
               myEnc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added tissue sample "+sampleID+" biological\\chemical measurement:<br><i>" + request.getParameter("measurementType") + " "+request.getParameter("value")+" "+units+" ("+request.getParameter("samplingProtocol")+")</i></p>");

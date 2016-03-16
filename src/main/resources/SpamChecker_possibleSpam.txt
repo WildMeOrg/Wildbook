@@ -1,0 +1,4 @@
+# Definitions for spam filtering.
+# Each line specifies a filter for items which are considered "possible spam".
+
+/(?i).*https?://.*/

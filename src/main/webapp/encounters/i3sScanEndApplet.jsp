@@ -21,7 +21,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element, org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.I3SMatchComparator, org.ecocean.grid.I3SMatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
-<html>
+
 <%
 
 String context="context0";
@@ -53,18 +53,7 @@ context=ServletUtilities.getContext(request);
  
 %>
 
-<head>
-  <title>Best matches for Encounter <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-  <meta http-equiv="expires" content="0">
-  <link
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/css/ecocean.css"
-    rel="stylesheet" type="text/css"/>
-      <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
-<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-      
-</head>
+<jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
   
@@ -116,13 +105,16 @@ context=ServletUtilities.getContext(request);
   
 </style>
 
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="main">
+<style>
+td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+
+</style>
+
+
+<div class="container maincontent">
 
 <ul id="tabmenu">
   <li><a
@@ -296,6 +288,8 @@ context=ServletUtilities.getContext(request);
 		  </OBJECT>
 		</p>
 <a name="resultstable" /><table class="tablesorter">
+
+<table width="800px">
   <thead>
   
         <tr align="left" valign="top">
@@ -439,10 +433,7 @@ context=ServletUtilities.getContext(request);
 
 
 %>
+<br />
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+
