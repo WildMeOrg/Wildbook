@@ -19,6 +19,7 @@
 package org.ecocean.media;
 
 import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
 import org.ecocean.Util;
 
 /**
@@ -68,6 +69,19 @@ public class MediaAssetSet implements java.io.Serializable {
     }
     public void setStatus(String s) {
         status = s;
+    }
+
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+           org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+        //TODO security check, duh
+        if ((getMediaAssets() != null) && (getMediaAssets().size() > 0)) {
+            org.datanucleus.api.rest.orgjson.JSONArray assets = new org.datanucleus.api.rest.orgjson.JSONArray();
+            for (MediaAsset ma : getMediaAssets()) {
+                assets.put(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true));
+            }
+            jobj.put("assets", assets);
+        }
+        return jobj;
     }
 }
 
