@@ -94,7 +94,7 @@ public class EncounterRemoveSpots extends HttpServlet {
 
 /*  TODO no spots on Encounter ... FIXME
       try {
-        if (despotMe.isAssignedToMarkedIndividual().equals("Unassigned")) {
+        if (despotMe.getIndividualID()==null) {
 
           if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
             despotMe.removeRightSpots();

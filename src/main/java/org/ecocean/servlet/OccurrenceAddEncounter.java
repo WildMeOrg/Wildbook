@@ -73,7 +73,6 @@ public class OccurrenceAddEncounter extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(enc2add);
-      //String tempName = enc2add.isAssignedToMarkedIndividual();
       if ((myShepherd.isOccurrence(request.getParameter("occurrence")))&&(myShepherd.getOccurrenceForEncounter(request.getParameter("number"))==null)) {
         try {
 

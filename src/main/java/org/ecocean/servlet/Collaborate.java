@@ -74,7 +74,7 @@ public class Collaborate extends HttpServlet {
 			rtn.put("success", "true");
 
 		} else if (request.getParameter("getNotifications") != null) {
-			ArrayList<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
+			List<Collaboration> collabs = Collaboration.collaborationsForUser(context, currentUsername, Collaboration.STATE_INITIALIZED);
 System.out.println(collabs);
 			String html = "";
 			for (Collaboration c : collabs) {

@@ -3,36 +3,13 @@
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties,
-                 java.util.Locale" %>
-
+                 java.util.Properties" %>
 
 
 <!-- Add reCAPTCHA -->
 
 
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
-<%
-String context="context0";
-context=ServletUtilities.getContext(request);
-if(request.getUserPrincipal()!=null){
-	String username=request.getUserPrincipal().toString();
-	Shepherd userShepherd=new Shepherd(context);
-	userShepherd.beginDBTransaction();
-	if(userShepherd.getUser(username)!=null){
-		User user=userShepherd.getUser(username);
-		if((user.getAffiliation()!=null)&&(user.getAffiliation().toLowerCase().equals("georgia aquarium field station"))){
-			%>
-			<META http-equiv="refresh" content="0;URL=submitGAQ.jsp">
-			<%
-		}
-	}
-	userShepherd.rollbackDBTransaction();
-	userShepherd.closeDBTransaction();
-}
-%>
-
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
 
@@ -43,7 +20,8 @@ if(request.getUserPrincipal()!=null){
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
-
+String context="context0";
+context=ServletUtilities.getContext(request);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -66,52 +44,7 @@ boolean isIE = request.getHeader("user-agent").contains("MSIE ");
 %>
 
 <style type="text/css">
-
-#submit-message {
-	text-align: center;
-	font-size: 1.8em;
-	background-color: lightblue;
-}
-
-div#file-activity {
-	font-family: sans;
-	border: solid 2px black;
-	padding: 8px;
-	margin: 20px;
-	min-height: 200px;
-}
-div.file-item {
-	position: relative;
-	background-color: #DDD;
-	border-radius: 3px;
-	margin: 2px;
-}
-
-div.file-item div {
-	display: inline-block;
-	white-space: nowrap;
-	overflow: hidden;
-	padding: 3px 7px;
-}
-.file-name {
-	width: 30%;
-}
-.file-size {
-	width: 8%;
-}
-
-.file-bar {
-	position: absolute;
-	width: 0;
-	height: 100%;
-	padding: 0 !important;
-	left: 0;
-	border-radius: 3px;
-	background-color: rgba(100,100,100,0.3);
-}
-
-
-.full_screen_map {
+    .full_screen_map {
     position: absolute !important;
     top: 0px !important;
     left: 0px !important;
@@ -120,7 +53,6 @@ div.file-item div {
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
-}
     
     
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
@@ -153,8 +85,6 @@ div.file-item div {
     /*customizations*/
     .ui_tpicker_hour_label {margin-bottom:5px !important;}
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
-
-
 </style>
 
 <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
@@ -187,34 +117,6 @@ div.file-item div {
  %>
 
 <script type="text/javascript">
-var needS3Upload = false;
-var formAlreadySubmitted = false;
-var userHitSubmitButton = false;
-
-// this is only useful when s3 upload is used, as it waits for all things to be good, and *then* submits form.
-function readyForSubmit() {
-	if (formAlreadySubmitted) return false;
-
-	if (!userHitSubmitButton) return false;  //always need user to initiate
-
-	if (!needS3Upload) {
-		formAlreadySubmitted = true;
-		return true;
-	}
-
-	if (uploadError) {
-		console.warn('cannot submit due to s3 upload error ' + uploadError);
-		return false;
-	}
-
-	if (!mediaAssetsCreated) {
-		console.warn('cannot submit cuz no mediaAssetCreated');
-		return false;
-	}
-
-	formAlreadySubmitted = true;
-	return true;
-}
 
 function validate() {
     var requiredfields = "";
@@ -272,9 +174,6 @@ function isEmpty(str) {
     return (!str || 0 === str.length);
 }
 </script>
-
-<script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
-<script src="javascript/uploader.js"></script>
 
 <script>
 
@@ -539,78 +438,6 @@ function showUploadBox() {
 <fieldset>
 <h3><%=props.getProperty("submit_image")%></h3>
 <p><%=props.getProperty("submit_pleaseadd")%></p>
-<%
-if (CommonConfiguration.getProperty("s3upload_accessKeyId", context) != null) {  //lets us s3 uploader, i guess!
-%>
-
-<div id="file-activity"></div>
-
-<div id="upcontrols" >
-	<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return submitFilesChanged(this)" /> 
-	<button style="display: none;" id="upload-button">begin upload</button>
-</div>
-<input type="hidden" id="mediaAssetSetId" name="mediaAssetSetId" value="" />
-<script>
-
-function submitFilesChanged(el) {
-	if (mediaAssetSetId) {
-		filesChanged(el);  //the one in uploader.js
-	} else {
-		filesChanged(el);
-		requestMediaAssetSet(function() {
-			//TODO what would block on this? it "should" return by time upload is done (when it is needed), but what if not?????
-		});
-	}
-	$('#upcontrols').hide();
-}
-
-
-var uploadComplete = false;
-var mediaAssetsCreated = false;
-var uploadError = false;
-
-function uploadCompleted() {
-	console.info('upload completed! ... attempting to create MediaAssets....');
-	document.getElementById('file-chooser').value = ''; //clear out <input file> so stuff wont get uploaded with form
-	uploadComplete = true;
-	var keys = [];
-	for (var k in keyToFilename) {
-		keys.push(k);
-	}
-	createMediaAssets(mediaAssetSetId, wildbookGlobals.uploader.s3_bucket, keys, function(d) {
-		console.log('finished creating MediaAssets: %o', d);
-		if (d.success) {
-			mediaAssetsCreated = d;
-			$('#mediaAssetSetId').val(mediaAssetSetId);
-			$('#submit-message').remove();
-			//$('#submit-button-wrapper').show();
-		} else {
-			uploadError = d.error || 'unknown error';
-			$('#submit-message').html('problem sending files: <b>' + uploadError + '</b>');
-		}
-		sendButtonClicked();  //this submits form, if needed
-	});
-}
-
-
-
-$(document).ready(function() {
-	needS3Upload = true;
-	//dont let user submit til files are done
-	//$('#submit-button-wrapper').hide().after('<div id="submit-message">Form cannot be sent until files are done uploading</div>');
-	$('#submit-button-wrapper').after('<div id="submit-message"></div>');
-	uploaderInit(uploadCompleted);
-	$('#encounterForm input[id!="file-chooser"]').on('change', function() {
-		if ((document.getElementById('file-chooser').files.length > 0) && (pendingUpload < 0)) {
-console.warn('auto-kickstarting upload of files!!!');
-			$('#upload-button').click();
-		}
-	});
-	//document.getElementById('upcontrols').style.display = 'block';
-});
-</script>
-
-<% } else {  //not direct-to-S3 %>
 	<div class="center-block">
         <ul id="social_image_buttons" class="list-inline text-center">
           <li class="active">
@@ -639,7 +466,6 @@ console.warn('auto-kickstarting upload of files!!!');
             </div>
         </div>
     </div>
-<% } %>
 
 </fieldset>
 
@@ -705,7 +531,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 //add locationID to fields selectable
 
 
-if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()>0){
+if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0){
 %>
     <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
@@ -741,6 +567,7 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
 <%
 }
 
+if(CommonConfiguration.showProperty("showCountry",context)){
 
 %>
           <div class="form-group required">
@@ -749,26 +576,34 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
       </div>
       
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="country" id="country" class="form-control">
+        <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
                   <%
+                         boolean hasMoreCountries=true;
+                         int taxNum=0;
                          
-                  
-                  String[] locales = Locale.getISOCountries();
-  				  for (String countryCode : locales) {
-  					Locale obj = new Locale("", countryCode);
-  				    %>
-                      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-                        
-				 <%
-              	 }
-				 %>
+                         while(hasMoreCountries){
+                               String currentCountry = "country"+taxNum;
+                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
+                                   %>
+                                    
+                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
+                                   <%
+                                 taxNum++;
+                            }
+                            else{
+                               hasMoreCountries=false;
+                            }
+                            
+                       }
+                       
+     %>
    </select>
       </div>
     </div>
 
 <%
-
+}  //end if showCountry
 
 %>
 
@@ -837,6 +672,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
         Shepherd myShepherd=new Shepherd(context);
+        myShepherd.beginDBTransaction();
         if(myShepherd.getUser(submitterName)!=null){
             User user=myShepherd.getUser(submitterName);
             if(user.getFullName()!=null){submitterName=user.getFullName();}
@@ -844,6 +680,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             if(user.getAffiliation()!=null){affiliation=user.getAffiliation();}
             if(user.getUserProject()!=null){project=user.getUserProject();}
         }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
     }
     %>
  
@@ -939,7 +777,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
-      <img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
+      <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
   </h4>
@@ -968,12 +806,14 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
           </div>
         </div>
         </fieldset>
+        <hr>
+        <fieldset>
 <%
 
 if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
-<fieldset>
+
       <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Species</label>
@@ -1262,8 +1102,6 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <script>
 
 function sendButtonClicked() {
-	if (!readyForSubmit()) return;
-
 	console.log('sendButtonClicked()');
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
@@ -1289,24 +1127,14 @@ function sendButtonClicked() {
 	%>
 	return true;
 }
-
-function actualSubmitClick() {
-	userHitSubmitButton = true;
-	$('#submit-button-wrapper').hide();
-	$('#submit-message').html('Waiting for files to be sent...');
-	return sendButtonClicked();
-}
-
 </script>
       
 
       <p class="text-center">
-	<div id="submit-button-wrapper">
-        	<button class="large" type="submit" onclick="return actualSubmitClick();">
-          	Send encounter report 
-          	<span class="button-icon" aria-hidden="true" />
-        	</button>
-	</div>
+        <button class="large" type="submit" onclick="return sendButtonClicked();">
+          Send encounter report 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
       </p>
 
 

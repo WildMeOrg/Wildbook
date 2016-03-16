@@ -156,7 +156,7 @@ private final String UPLOAD_DIRECTORY = "/tmp";
         //List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
     //dynamically adapt to project-specific measurements
-        List<String> keys=CommonConfiguration.getSequentialPropertyValues("measurement", context);
+        List<String> keys=CommonConfiguration.getIndexedPropertyValues("measurement", context);
 
     for (String key : keys) {
       String value = getVal(fv, "measurement(" + key + ")");
