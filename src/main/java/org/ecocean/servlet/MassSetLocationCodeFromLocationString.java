@@ -77,10 +77,10 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
     if ((locCode != null) && (matchString != null) && (!matchString.equals("")) && (!locCode.equals(""))) {
       myShepherd.beginDBTransaction();
       try {
-        Iterator it = myShepherd.getAllEncounters(query);
+        Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
         while (it.hasNext()) {
-          Encounter tempEnc = (Encounter) it.next();
+          Encounter tempEnc = it.next();
           if (tempEnc.getLocation().toLowerCase().indexOf(matchString) != -1) {
             tempEnc.setLocationCode(locCode);
 

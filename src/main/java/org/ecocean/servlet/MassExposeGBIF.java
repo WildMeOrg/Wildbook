@@ -71,10 +71,10 @@ public class MassExposeGBIF extends HttpServlet {
 
     myShepherd.beginDBTransaction();
     try {
-      Iterator it = myShepherd.getAllEncounters(query);
+      Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
       while (it.hasNext()) {
-        Encounter tempEnc = (Encounter) it.next();
+        Encounter tempEnc = it.next();
         if (!tempEnc.getOKExposeViaTapirLink()) {
           tempEnc.setOKExposeViaTapirLink(true);
           madeChanges = true;

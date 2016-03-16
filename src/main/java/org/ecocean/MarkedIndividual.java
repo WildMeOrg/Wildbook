@@ -1191,9 +1191,9 @@ public class MarkedIndividual implements java.io.Serializable {
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
-      Iterator it = myShepherd.getAllKeywords();
+      Iterator<Keyword> it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
-        Keyword word = (Keyword) it.next();
+        Keyword word = it.next();
         if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
@@ -1480,7 +1480,7 @@ public boolean hasGeneticSex(){
 *Obtains the email addresses of all submitters, photographs, and others to notify.
 *@return ArrayList of all emails to inform
 */
-public ArrayList getAllEmailsToUpdate(){
+public List<String> getAllEmailsToUpdate(){
 	ArrayList notifyUs=new ArrayList();
 
 	int numEncounters=encounters.size();
@@ -1657,7 +1657,7 @@ public long getTimeofDeath(){return timeOfDeath;}
 public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
 
-public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
+public List<Relationship> getAllRelationships(Shepherd myShepherd){
   return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
 }
 
@@ -1733,7 +1733,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		context = ServletUtilities.getContext(request);
 		Shepherd myShepherd = new Shepherd(context);
 
-		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   	ArrayList<String> uids = this.getAllAssignedUsers();
   	ArrayList<String> open = new ArrayList<String>();
 		String collabClass = "pending";

@@ -28,8 +28,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -94,7 +94,7 @@ public class EncounterDelete extends HttpServlet {
         
         out.println(ServletUtilities.getFooter(context));
       }
-      else if ((enc2trash.getIndividualID()==null)||(enc2trash.isAssignedToMarkedIndividual().equals("Unassigned"))) {
+      else if (enc2trash.getIndividualID()==null) {
 
         try {
 
@@ -142,7 +142,7 @@ public class EncounterDelete extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have removed encounter " + request.getParameter("number") + " from the database. If you have deleted this encounter in error, please contact the webmaster and reference encounter " + request.getParameter("number") + " to have it restored.");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -168,7 +168,7 @@ public class EncounterDelete extends HttpServlet {
           out.println("<strong>Failure:</strong> I have NOT removed encounter " + request.getParameter("number") + " from the database. An exception occurred in the deletion process.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
           
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){

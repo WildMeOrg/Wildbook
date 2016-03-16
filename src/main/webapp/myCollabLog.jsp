@@ -1,5 +1,5 @@
-<%@ page contentType="text/html; charset=iso-8859-1" language="java" import="java.util.ArrayList" %>
-<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.text.SimpleDateFormat, java.io.*" %>
+<%@ page contentType="text/html; charset=iso-8859-1" language="java" %>
+<%@ page import="org.ecocean.*,org.ecocean.servlet.ServletUtilities, org.ecocean.security.Collaboration, java.util.Properties, java.util.Date, java.util.List, java.text.SimpleDateFormat, java.io.*" %>
 
 
 <%
@@ -19,8 +19,8 @@ Properties props=ShepherdProperties.getProperties("users.properties", langCode,c
   	
   Shepherd myShepherd = new Shepherd(context);
   	//get the available user roles
-  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
-	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition",context);
+  	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
 
