@@ -2390,7 +2390,7 @@ throw new Exception();
             if (enc == null) System.out.println("could not find enc for ma " + ma);
             if (enc == null) continue;
             if (!enc.getTaxonomyString().equals(taxonomyString)) continue;
-            encs.add(enc);
+            if (!encs.contains(enc)) encs.add(enc);
         }
         query.closeAll();
         return encs;
