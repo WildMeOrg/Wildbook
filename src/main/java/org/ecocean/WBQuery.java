@@ -1,8 +1,11 @@
 package org.ecocean;
 
 import org.ecocean.Util;
+import org.ecocean.media.MediaAsset;
 import org.json.JSONObject;
 
+import java.util.List;
+import javax.jdo.Query;
 
 public class WBQuery implements java.io.Serializable {
 
@@ -51,6 +54,45 @@ public class WBQuery implements java.io.Serializable {
         parametersAsString = p.toString();
     }
 
+    //this *should* magically return a List of the proper classed object. good luck with that!
+    public List<Object> doQuery(Shepherd myShepherd) {
+        Query query = toQuery(myShepherd);
+        return (List<Object>) query.execute();
+    }
+
+
+/* something like this?
+    WBQuery qry = new WBQuery(new JSONObject("{ \"foo\" : \"bar\" }"));
+    List<Object> res = qry.doQuery(myShepherd);
+*/
+    public Query toQuery(Shepherd myShepherd) {
+        Query query = myShepherd.getPM().newQuery(toJDOQL());
+        query.setClass(getCandidateClass());
+        querySetRange(query);
+        querySetOrdering(query);
+        return query;
+    }
+
+    //TODO
+    public String toJDOQL() {
+        /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
+        return "SELECT FROM org.ecocean.media.MediaAsset";
+    }
+
+    //TODO
+    public Class getCandidateClass() {
+        return MediaAsset.class;
+    }
+
+    //TODO
+    public void querySetRange(Query query) {
+        query.setRange(0,10);
+    }
+
+    //TODO
+    public void querySetOrdering(Query query) {
+        query.setOrdering("id DESC");
+    }
 
     public long setRevision() {
         this.revision = System.currentTimeMillis();
