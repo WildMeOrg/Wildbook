@@ -23,6 +23,7 @@ context=ServletUtilities.getContext(request);
 <html>
 <head>
 <title>Test JSON conversion</title>
+<script type="text/javascript" src="tools/jquery/js/jquery.min.js"></script>
 <script type="text/javascript" src="javascript/jsonToSql.js"></script>
 
 
@@ -34,9 +35,9 @@ context=ServletUtilities.getContext(request);
 myShepherd.beginDBTransaction();
 
 try {
-
-
-
+  %>
+  <script></script>
+  <%
 }
 catch (Exception ex) {
 
