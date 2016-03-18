@@ -77,8 +77,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
       
-     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
-  	<script src="<%=urlLoc %>/cust/mantamatcher/js/behaviour.js"></script>
+
  
   
     </head>
