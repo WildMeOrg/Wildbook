@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
 
 
-	ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
 <%
@@ -1254,12 +1254,12 @@ System.out.println(henc);
 			
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
@@ -1683,7 +1683,7 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          <%
                          //myShepherd.beginDBTransaction();
                          
-                         ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
+                         List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
                          for(int userNum=0;userNum<numUsers;userNum++){	
@@ -2011,7 +2011,7 @@ String communityName="";
         <td>
         	<select name="type">
 			<%
-				List<String> types=CommonConfiguration.getIndexedValues("relationshipType",context);
+				List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
 				int numTypes=types.size();
 				for(int g=0;g<numTypes;g++){
 					
@@ -2064,7 +2064,7 @@ String communityName="";
          	
          <select name="markedIndividualRole1">
 			<%
-				List<String> roles=CommonConfiguration.getIndexedValues("relationshipRole",context);
+				List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 				int numRoles=roles.size();
 				for(int g=0;g<numRoles;g++){
 					
@@ -2235,7 +2235,7 @@ dlgRel.dialog("open");
 
   //end relationship code
 
-  ArrayList<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
+  List<Relationship> relationships=myShepherd.getAllRelationshipsForMarkedIndividual(sharky.getIndividualID());
 
   if(relationships.size()>0){
   %>
@@ -2358,7 +2358,7 @@ else {
 <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
 <%
-ArrayList<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
 if(otherIndies.size()>0){
 	
@@ -2550,9 +2550,9 @@ if(isOwner){
 else {
 
   //let's check if the entered name is actually an alternate ID
-  ArrayList al = myShepherd.getMarkedIndividualsByAlternateID(name);
-  ArrayList al2 = myShepherd.getMarkedIndividualsByNickname(name);
-  ArrayList al3 = myShepherd.getEncountersByAlternateID(name);
+  List<MarkedIndividual> al = myShepherd.getMarkedIndividualsByAlternateID(name);
+  List<MarkedIndividual> al2 = myShepherd.getMarkedIndividualsByNickname(name);
+  List<Encounter> al3 = myShepherd.getEncountersByAlternateID(name);
 
   if (myShepherd.isEncounter(name)) {
 	  %>
@@ -2571,7 +2571,7 @@ else {
   
 	  else if (al.size() > 0) {
     //just grab the first one
-    MarkedIndividual shr = (MarkedIndividual) al.get(0);
+    MarkedIndividual shr = al.get(0);
     String realName = shr.getName();
 %>
 
@@ -2581,7 +2581,7 @@ else {
 <%
 } else if (al2.size() > 0) {
   //just grab the first one
-  MarkedIndividual shr = (MarkedIndividual) al2.get(0);
+  MarkedIndividual shr = al2.get(0);
   String realName = shr.getName();
 %>
 
@@ -2591,7 +2591,7 @@ else {
 <%
 } else if (al3.size() > 0) {
   //just grab the first one
-  Encounter shr = (Encounter) al3.get(0);
+  Encounter shr = al3.get(0);
   String realName = shr.getEncounterNumber();
 %>
 

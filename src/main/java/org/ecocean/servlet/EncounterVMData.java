@@ -116,9 +116,9 @@ public class EncounterVMData extends HttpServlet {
 				}
 //System.out.println("candidate filter => " + filter);
 
-				Iterator all = myShepherd.getAllEncounters("catalogNumber", filter);
+				Iterator<Encounter> all = myShepherd.getAllEncounters("catalogNumber", filter);
 				while (all.hasNext()) {
-					Encounter cand = (Encounter)all.next();
+					Encounter cand = all.next();
 					HashMap e = new HashMap();
 					e.put("id", cand.getCatalogNumber());
 					e.put("dateInMilliseconds", cand.getDateInMilliseconds());
@@ -128,7 +128,7 @@ public class EncounterVMData extends HttpServlet {
 					e.put("sex", cand.getSex());
 					e.put("mmaCompatible", cand.getMmaCompatible());
 
-					ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
+					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
 					String dataDir = CommonConfiguration.getDataDirectoryName(context);
 					for (SinglePhotoVideo s : spvs) {
@@ -148,7 +148,7 @@ public class EncounterVMData extends HttpServlet {
 				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
 
 			} else {
-				ArrayList<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
+				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
 				ArrayList images = new ArrayList();

@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
 <%@ page import="org.ecocean.*" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="java.util.List" %>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils" %>
 
 
@@ -12,8 +13,8 @@ String context="context0";
   	
   Shepherd myShepherd = new Shepherd(context);
   	//get the available user roles
-  	ArrayList<String> roles=CommonConfiguration.getSequentialPropertyValues("role",context);
-	ArrayList<String> roleDefinitions=CommonConfiguration.getSequentialPropertyValues("roleDefinition",context);
+  	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
+	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
 	int numRoles=roles.size();
   	int numRoleDefinitions=roleDefinitions.size();
 
@@ -35,7 +36,7 @@ String context="context0";
      <%
      
      myShepherd.beginDBTransaction();
-     ArrayList<User> allUsers=myShepherd.getAllUsers();
+     List<User> allUsers=myShepherd.getAllUsers();
      int numUsers=allUsers.size();
      
      %>
@@ -258,7 +259,7 @@ String context="context0";
             <table>
            
             <%
-            ArrayList<String> contexts=ContextConfiguration.getContextNames();
+            List<String> contexts=ContextConfiguration.getContextNames();
             int numContexts=contexts.size();
             for(int d=0;d<numContexts;d++){
             	%>

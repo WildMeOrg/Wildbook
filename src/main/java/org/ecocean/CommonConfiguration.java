@@ -279,23 +279,6 @@ public class CommonConfiguration {
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
-
-  public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix, String context){
-    Properties myProps=initialize(context);
-    //System.out.println(myProps.toString());
-    ArrayList<String> returnThese=new ArrayList<String>();
-    
-    //System.out.println("Looking for: "+propertyPrefix);
-    
-    int iter=0;
-    while(myProps.getProperty(propertyPrefix+iter)!=null){
-      //System.out.println("Found: "+propertyPrefix+iter);
-      returnThese.add(myProps.getProperty((propertyPrefix+iter)));
-      iter++;
-    }
-    
-    return returnThese;
-  }
   
 
   /*
@@ -518,7 +501,7 @@ public class CommonConfiguration {
     return map;
   }
 
-  public static List<String> getIndexedValues(String baseKey, String context) {
+  public static List<String> getIndexedPropertyValues(String baseKey, String context) {
     List<String> list = new ArrayList<String>();
     boolean hasMore = true;
     int index = 0;

@@ -712,7 +712,7 @@ public class IndividualQueryProcessor {
     //ms markers filters-------------------------------------------------
 
     myShepherd.beginDBTransaction();
-      ArrayList<String> markers=myShepherd.getAllLoci();
+      List<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
         String theseMarkers="";
         boolean hasMarkers=false;
@@ -1296,7 +1296,7 @@ public class IndividualQueryProcessor {
   }
 
   public static MarkedIndividualQueryResult processQuery(Shepherd myShepherd, HttpServletRequest request, String order){
-      Iterator allSharks;
+      Iterator<MarkedIndividual> allSharks;
       Vector<MarkedIndividual> rIndividuals=new Vector<MarkedIndividual>();
       StringBuffer prettyPrint=new StringBuffer();
       Map<String,Object> paramMap = new HashMap<String, Object>();
@@ -1321,7 +1321,7 @@ public class IndividualQueryProcessor {
         //process over to Vector
         if(allSharks!=null){
           while (allSharks.hasNext()) {
-            MarkedIndividual temp_shark=(MarkedIndividual)allSharks.next();
+            MarkedIndividual temp_shark=allSharks.next();
             rIndividuals.add(temp_shark);
           }
         }
@@ -1367,7 +1367,7 @@ public class IndividualQueryProcessor {
           //logical OR the roles
             for (int q = 0; q<rIndividuals.size(); q++) {
               MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
-              ArrayList<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
+              List<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
               
               if(orRoles){
                 

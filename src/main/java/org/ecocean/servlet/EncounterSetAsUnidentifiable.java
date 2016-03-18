@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -99,7 +99,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have set encounter " + request.getParameter("number") + " as unidentifiable in the database.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){
@@ -123,7 +123,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT modified encounter " + request.getParameter("number") + " in the database because another user is currently modifying its entry. Please try this operation again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){

@@ -128,7 +128,7 @@ else{
   </thead>
   <tbody>
   <%
-  Iterator it = null;
+  Iterator<ScanTask> it = null;
   if(request.getParameter("showAll")!=null){it=myShepherd.getAllScanTasksNoQuery();}
   else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}
   	
@@ -137,7 +137,7 @@ else{
     
     int scanNum = 0;
     while ((it!=null)&&(it.hasNext())) {
-      ScanTask st = (ScanTask) it.next();
+      ScanTask st = it.next();
       if (!st.hasFinished()) {
         scanNum++;
         int numTotal = st.getNumComparisons();
