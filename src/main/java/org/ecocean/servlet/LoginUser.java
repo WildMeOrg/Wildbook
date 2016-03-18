@@ -210,7 +210,7 @@ import org.ecocean.*;
 		  RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
     
 		  dispatcher.forward(request, response);   
-		  
+		  return;
 		}
 
 WebUtils.redirectToSavedRequest(request, response, url);

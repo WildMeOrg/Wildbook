@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
@@ -250,7 +251,7 @@ public class WriteOutScanTask extends HttpServlet {
           }
 
           //let's find the keywords in common
-          ArrayList keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
+          List<String> keywords = myShepherd.getKeywordsInCommon(mo.getEncounterNumber(), num);
           int keywordsSize = keywords.size();
           if (keywordsSize > 0) {
             Element kws = match.addElement("keywords");

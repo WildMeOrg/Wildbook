@@ -120,7 +120,7 @@ String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + ima
 %>
 <table>
 <%
-ArrayList<SinglePhotoVideo> images=imageShepherd.getAllSinglePhotoVideosForEncounter(imageEnc.getCatalogNumber());
+List<SinglePhotoVideo> images=imageShepherd.getAllSinglePhotoVideosForEncounter(imageEnc.getCatalogNumber());
 int numImagesHere=images.size();
 int imageCount = 0;
   for(int myImage=0;myImage<numImagesHere;myImage++ ) {
@@ -189,11 +189,11 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
   
     
     <%
-      Iterator indexes = imageShepherd.getAllKeywords();
+      Iterator<Keyword> indexes = imageShepherd.getAllKeywords();
       if (totalKeywords > 0) {
         boolean haveAddedKeyword = false;
         for (int m = 0; m < totalKeywords; m++) {
-          Keyword word = (Keyword) indexes.next();
+          Keyword word = indexes.next();
           if (images.get(myImage).getKeywords().contains(word)) {
             haveAddedKeyword = true;
 %>
@@ -258,9 +258,9 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
             <select multiple="multiple" name="keyword" id="keyword" size="5" required="required">
               <option value=" " selected>&nbsp;</option>
               <%
-                Iterator keys = imageShepherd.getAllKeywords(kwImagesQuery);
+                Iterator<Keyword> keys = imageShepherd.getAllKeywords(kwImagesQuery);
                 for (int n = 0; n < totalKeywords; n++) {
-                  Keyword word = (Keyword) keys.next();
+                  Keyword word = keys.next();
                   String indexname = word.getIndexname();
                   String readableName = word.getReadableName();
               %>
@@ -506,9 +506,9 @@ System.out.println("trying to fork/create " + thumbPath);
                 <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        Iterator it = imageShepherd.getAllKeywords();
+                        Iterator<Keyword> it = imageShepherd.getAllKeywords();
                         while (it.hasNext()) {
-                          Keyword word = (Keyword) it.next();
+                          Keyword word = it.next();
 							
 
                          if (images.get(myImage).getKeywords().contains(word)) {

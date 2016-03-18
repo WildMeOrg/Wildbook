@@ -175,8 +175,8 @@ public final class MantaMatcher extends DispatchServlet {
       // Perform MMA-compatible flag updates.
       int ok = 0, changed = 0, failed = 0;
       shepherd.beginDBTransaction();
-      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
-        Encounter enc = (Encounter)iter.next();
+      for (Iterator<Encounter> iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = iter.next();
         boolean hasCR = MantaMatcherUtilities.checkEncounterHasMatcherFiles(enc, dataDir);
         boolean encCR = enc.getMmaCompatible();
         if ((hasCR && encCR) || (!hasCR && !encCR)) {
@@ -237,8 +237,8 @@ public final class MantaMatcher extends DispatchServlet {
     try {
       // Perform MMA-compatible flag updates.
       shepherd.beginDBTransaction();
-      for (Iterator iter = shepherd.getAllEncounters(); iter.hasNext();) {
-        Encounter enc = (Encounter)iter.next();
+      for (Iterator<Encounter> iter = shepherd.getAllEncounters(); iter.hasNext();) {
+        Encounter enc = iter.next();
         File dir = new File(enc.dir(dataDir.getAbsolutePath()));
         if (dir == null || !dir.exists())
           continue;

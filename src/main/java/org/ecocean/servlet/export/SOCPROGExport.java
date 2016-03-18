@@ -270,7 +270,7 @@ public class SOCPROGExport extends HttpServlet{
                       
                     }
                     
-                    ArrayList<String> mySocialUnits=myShepherd.getAllSocialUnitsForMarkedIndividual(indy.getIndividualID());
+                    List<String> mySocialUnits=myShepherd.getAllSocialUnitsForMarkedIndividual(indy.getIndividualID());
                     if(mySocialUnits.size()>0){
                       Label popLabel7c = new Label(2, count, mySocialUnits.get(0));
                       sheet2.addCell(popLabel7c);

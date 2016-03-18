@@ -149,10 +149,10 @@ public class CalendarXMLServer2 extends HttpServlet {
 		
 		try{
 
-			Iterator allEncounters=myShepherd.getAllEncounters(queryEnc);
+			Iterator<Encounter> allEncounters=myShepherd.getAllEncounters(queryEnc);
 
 			while(allEncounters.hasNext()) {
-				Encounter tempE=(Encounter)allEncounters.next();
+				Encounter tempE=allEncounters.next();
       			matches.add(tempE.getEncounterNumber());
 			}
 

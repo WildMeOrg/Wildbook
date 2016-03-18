@@ -555,7 +555,7 @@ public static String getContext(HttpServletRequest request){
   String currentURL=request.getServerName();
   for(int q=0;q<numContexts;q++){
     String thisContext="context"+q;
-    ArrayList<String> domainNames=ContextConfiguration.getContextDomainNames(thisContext);
+    List<String> domainNames=ContextConfiguration.getContextDomainNames(thisContext);
     int numDomainNames=domainNames.size();
     for(int p=0;p<numDomainNames;p++){
       
@@ -582,9 +582,9 @@ public static String getLanguageCode(HttpServletRequest request){
   }
 
   
-  ArrayList<String> supportedLanguages=new ArrayList<String>();
-  if(CommonConfiguration.getSequentialPropertyValues("language", context)!=null){
-    supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+  List<String> supportedLanguages=new ArrayList<String>();
+  if(CommonConfiguration.getIndexedPropertyValues("language", context)!=null){
+    supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
   }    
       
   //if specified directly, always accept the override
