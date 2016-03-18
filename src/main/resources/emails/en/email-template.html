@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<style type="text/css">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <style type="text/css">
 html, body {
 	background-image: none;
 	background-color: white;
@@ -55,39 +55,34 @@ li.batchWarning {
 	color: #600;
 }
 </style>
-</head>
-<body>
+  </head>
+  <body>
+    <div id="mailHeader"> <a href="http://www.wildbook.org/" title="Wildbook">
+        <div id="masthead"> <img class="masthead" src="../../../webapp/images/masthead.jpg"
 
-<div id="mailHeader">
-	<a href="http://www.mantamatcher.org/" title="MantaMatcher: global online database for manta rays">
-		<div id="masthead">
-			<img class="masthead" src="http://www.mantamatcher.org/images/masthead.jpg" alt="MantaMatcher: you can help photograph, identify, and protect mantas!">
-		</div>
-	</a>
-</div>
+            alt="Wildbook">
+        </div>
+      </a>
+    </div>
+    <div id="mailContent">
+      @EMAIL_CONTENT@
+      <p>Sincerely,</p>
+      <p>Our Project Team</p>
+      <div class="mailLogoFB"> <a href="https://www.facebook.com/wildmeorg"><img
 
-<div id="mailContent">
+            src="http://www.whaleshark.org/images/facebookicon_small.png"></a> </div>
+      <div class="legal caption">
+        <p class="title">LEGAL STATEMENT</p>
+        <p>This is our legal statement.</p>
+      </div>
+      <!--@REMOVEME_START@-->
+      <div id="removeMe" class="caption">
+        <p>Do you want to REMOVE your email address from this database? Click <a
 
-@EMAIL_CONTENT@
-
-	<p>Sincerely,</p>
-	<p>The MantaMatcher Team</p>
-	<div class="mailLogoFB">
-		<a href="https://www.facebook.com/mantamatcher"><img src="http://www.whaleshark.org/images/facebookicon_small.png"></a>
-	</div>
-
-	<div class="legal caption">
-	<p class="title">LEGAL STATEMENT</p>
-	<p>MantaMatcher is copyrighted 2009-2015 by Wild Me. Individual contributors to MantaMatcher retain copyrights for submitted images. No reproduction or usage of material in this library is permitted without the express permission of the copyright holders.</p>
-	</div>
-
-<!--@REMOVEME_START@-->
-	<div id="removeMe" class="caption">
-		<p>Do you want to REMOVE your email address from this database? Click <a href="@REMOVEME_LINK@">here</a> to remove it. You will no longer receive updates on your encounters.</p>
-	</div>
-<!--@REMOVEME_END@-->
-
-</div>
-
-</body>
+            href="@REMOVEME_LINK@">here</a> to remove it. You will no longer
+          receive updates on your encounters.</p>
+      </div>
+      <!--@REMOVEME_END@-->
+    </div>
+  </body>
 </html>
