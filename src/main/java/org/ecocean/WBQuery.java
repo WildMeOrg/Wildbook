@@ -102,8 +102,6 @@ public class WBQuery implements java.io.Serializable {
     }
 
     public Class getCandidateClass() throws java.lang.ClassNotFoundException {
-        String className = null;
-        if (getParameters() != null) className = getParameters().optString("class");
         if (className == null) throw new ClassNotFoundException("missing class name in query");
         return Class.forName(className);  //this also will throw Exception if no good
     }
