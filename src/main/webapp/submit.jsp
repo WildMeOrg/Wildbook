@@ -16,7 +16,7 @@
 <jsp:include page="header.jsp" flush="true"/>
 
 <!-- add recaptcha -->
-<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallbackrender=explicit"></script>
+<script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
