@@ -57,19 +57,21 @@ public class EncounterSetTissueSample extends HttpServlet {
 
     sharky = request.getParameter("encounter");
     myShepherd.beginDBTransaction();
+    
     if ((myShepherd.isEncounter(sharky)) && (request.getParameter("sampleID") != null) && (!request.getParameter("sampleID").equals(""))) {
+      String sampleID=request.getParameter("sampleID").trim();
       Encounter enc = myShepherd.getEncounter(sharky);
       try {
         
         
         
         TissueSample genSample=new TissueSample();
-        if(myShepherd.isTissueSample(request.getParameter("sampleID"), sharky)){
-          genSample=myShepherd.getTissueSample(request.getParameter("sampleID"), sharky);
+        if(myShepherd.isTissueSample(sampleID, sharky)){
+          genSample=myShepherd.getTissueSample(sampleID, sharky);
           genSample.resetAbstractClassParameters(request);
         }
         else{
-          genSample=new TissueSample(enc.getCatalogNumber(), request.getParameter("sampleID"), request);
+          genSample=new TissueSample(enc.getCatalogNumber(), sampleID, request);
           enc.addTissueSample(genSample);
         }
         
@@ -86,12 +88,11 @@ public class EncounterSetTissueSample extends HttpServlet {
       catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        
       }
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully set the biological sample for encounter " + sharky + ".</p>");
 
