@@ -34,6 +34,10 @@ jsonToSql.utils = {
   }
 }
 
+var op = '$eq';
+jsonToSql.operators.comparison[op].fn(field,value);
+
+
 jsonToSql.operators = {
   comparison : {
     '$eq': {
@@ -94,8 +98,8 @@ jsonToSql.convert = function(jsonQuery) {
 };
 
 jsonToSql.sample = {sex:"male",
-livingStatus:"dead",
-occurenceID:"test"
+ livingStatus:"dead",
+ occurenceID:"test"
 };
 
 jsonToSql.test = function() {
