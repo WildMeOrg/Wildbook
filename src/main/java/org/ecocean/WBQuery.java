@@ -47,7 +47,7 @@ public class WBQuery implements java.io.Serializable {
 
     public void setParameters(JSONObject p) {
         if (p == null) {
-            System.out.println("WARNING: attempted to set null parameters on " + this + "; ignoring");
+            //System.out.println("WARNING: attempted to set null parameters on " + this + "; ignoring");
             return;
         }
         parameters = p;
@@ -55,7 +55,7 @@ public class WBQuery implements java.io.Serializable {
     }
 
     //this *should* magically return a List of the proper classed object. good luck with that!
-    public List<Object> doQuery(Shepherd myShepherd) {
+    public List<Object> doQuery(Shepherd myShepherd) throws RuntimeException {
         Query query = toQuery(myShepherd);
         return (List<Object>) query.execute();
     }
@@ -65,11 +65,16 @@ public class WBQuery implements java.io.Serializable {
     WBQuery qry = new WBQuery(new JSONObject("{ \"foo\" : \"bar\" }"));
     List<Object> res = qry.doQuery(myShepherd);
 */
-    public Query toQuery(Shepherd myShepherd) {
-        Query query = myShepherd.getPM().newQuery(toJDOQL());
-        query.setClass(getCandidateClass());
-        querySetRange(query);
-        querySetOrdering(query);
+    public Query toQuery(Shepherd myShepherd) throws RuntimeException {
+        Query query = null;
+        try {  //lets catch any shenanigans that happens here, and throw our own RuntimeException
+            query = myShepherd.getPM().newQuery(toJDOQL());
+            query.setClass(getCandidateClass());
+            querySetRange(query);
+            querySetOrdering(query);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.toString());
+        }
         return query;
     }
 
@@ -79,9 +84,11 @@ public class WBQuery implements java.io.Serializable {
         return "SELECT FROM org.ecocean.media.MediaAsset";
     }
 
-    //TODO
-    public Class getCandidateClass() {
-        return MediaAsset.class;
+    public Class getCandidateClass() throws java.lang.ClassNotFoundException {
+        String className = null;
+        if (getParameters() != null) className = getParameters().optString("class");
+        if (className == null) throw new ClassNotFoundException("missing class name in query");
+        return Class.forName(className);  //this also will throw Exception if no good
     }
 
     //TODO
