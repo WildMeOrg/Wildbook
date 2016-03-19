@@ -130,30 +130,50 @@ public class WBQuery implements java.io.Serializable {
 
       String output = "(";
       try {
-      String valueClass = parameters.opt(field).getClass().getName();
-      System.out.println("it has valueClass "+valueClass);
-      switch(valueClass) {
-        case "java.lang.String": {
-          output += field+" == "+parameters.getString(field);
-          // atomic case
-          break;
-        }
-        case "org.json.JSONObject": {
-          JSONObject value = parameters.getJSONObject(field);
-          output += field + ": ( (not parsable)" + value.toString() + ")";
-          break;
-        }
-        default: {
-          output += field+": ERROR PARSING VALUE CLASS "+valueClass;
+        String valueClass = parameters.opt(field).getClass().getName();
+        System.out.println("it has valueClass "+valueClass);
+        switch(valueClass) {
+          case "java.lang.String": {
+            // This is the simple case of field: value
+            output += field+" == "+parameters.getString(field);
+            break;
+          }
+          case "org.json.JSONObject": {
+            // This case deals with operators such as $ne and $and
+            JSONObject value = parameters.getJSONObject(field);
+            output += parseOperatorField(field);
+            break;
+          }
+          default: {
+            output += field+": ERROR PARSING VALUE CLASS "+valueClass;
+          }
         }
       }
-    }
-    catch (Exception e) {
-      System.out.println("Exception found parsing field "+field+".");
-      e.printStackTrace();
-    }
+      catch (Exception e) {
+        System.out.println("Exception found parsing field "+field+".");
+        e.printStackTrace();
+      }
       output+=")";
       return output;
+    }
+
+    // TODO:
+    private String parseOperatorField(String field) throws NullPointerException {
+
+      String output = "";
+      JSONObject fieldQuery = parameters.optJSONObject(field);
+      String[] operators = JSONObject.getNames(fieldQuery);
+      String[] values = new String[operators.length];
+      for (int i=0; i<operators.length; i++) {
+        String operator = operators[i];
+        String value = fieldQuery.optString(operator, "PARSE-ERROR");
+        if (comparisonOperator.containsKey(operator)) {
+
+          output += comparisonOperator.get(operator).execute(field, value);
+
+        }
+      }
+      return output;//" operators = ("+output+"): ( (not parsable)" + fieldQuery.toString() + ")";
     }
 
     private static String parseOperator(String field, String operator, String value) {
@@ -201,8 +221,8 @@ public class WBQuery implements java.io.Serializable {
 
 
 
-    // the below stuff is essentially in the WBQuery instance initializer
-    HashMap<String, CompOperator> comparisonOperator = new HashMap<String, CompOperator>();
+    // the below stuff is literally in the WBQuery instance initializer
+    private static HashMap<String, CompOperator> comparisonOperator = new HashMap<String, CompOperator>();
     {
       comparisonOperator.put("$eq", new CompOperator() {
         public String inverseOp() {return "$ne";}
