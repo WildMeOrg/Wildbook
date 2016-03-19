@@ -36,8 +36,10 @@ String toJDOQL2 = wbq2.toJDOQL();
 //List<Object> q1 = wbq.doQuery(myShepherd);
 
 //List<Object> all = wbq.doQuery(myShepherd);
-out.println("<p>toJDOQL 1:</br>");
-out.println(toJDOQL);
-out.println("</p><p>toJDOQL 2:</br>");
-out.println(toJDOQL2+"</p>");
+out.println("<p>Test 1:<ul>");
+out.println("<li>Original JSON: "+exJSON.toString()+"</li>");
+out.println("<li>Translated: "+toJDOQL+"</li></ul></p>");
+out.println("<p>Test 2:<ul>");
+out.println("<li>Original JSON: "+exJSON2.toString()+"</li>");
+out.println("<li>Translated: "+toJDOQL2+"</li></ul></p>");
 %>
