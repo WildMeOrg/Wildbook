@@ -27,13 +27,9 @@ public class WBQuery implements java.io.Serializable {
 
     public WBQuery(final int id, final JSONObject params, final AccessControl owner) {
         this.id = id;
-        System.out.println("initializing QBQuery with id = "+this.id);
-        System.out.println("init params = "+params.toString());
         this.owner = owner;
         this.className = params.optString("class");
-        System.out.println("className = "+this.className);
         this.parameters = params.optJSONObject("query");
-        System.out.println("parameters = "+this.parameters.toString());
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
     }
@@ -87,7 +83,10 @@ public class WBQuery implements java.io.Serializable {
         return query;
     }
 
-    //TODO
+    /**
+     * Translates this.parameters into JDOQL by calling
+     * parseField on each top-level key in parameters
+     */
     public String toJDOQL() {
         /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
         String output = "SELECT FROM "+className+" WHERE ";
@@ -122,11 +121,9 @@ public class WBQuery implements java.io.Serializable {
     }
 
     /**
-     *  parses a single field from this query's own params -- returns JDOQL. This corresponds to a single class field.
+     *  parses a single field from this.parameters, returning a condition of a JDOQL "WHERE" clause.
      */
     private String parseField(String field) {
-
-      System.out.println("parsing field "+field);
 
       String output = "(";
       try {
@@ -135,7 +132,7 @@ public class WBQuery implements java.io.Serializable {
         switch(valueClass) {
           case "java.lang.String": {
             // This is the simple case of field: value
-            output += field+" == "+parameters.getString(field);
+            output += parseEqualityField(field);
             break;
           }
           case "org.json.JSONObject": {
@@ -157,7 +154,28 @@ public class WBQuery implements java.io.Serializable {
       return output;
     }
 
-    // TODO:
+    /**
+     * @param field the name of field with a basic fieldName : value entry in this.parameters
+     * @returns a simple JDOQL field-equality check such as
+     * sex == "female"
+     */
+    private String parseEqualityField(String field, boolean escapeValueInQuotes) {
+      if (escapeValueInQuotes) {
+        return field +" == \""+parameters.optString(field, "VALUE NOT FOUND")+"\"";
+      }
+      return field +" == "+parameters.optString(field, "VALUE NOT FOUND");
+    }
+
+    private String parseEqualityField(String field) {
+      return parseEqualityField(field, true);
+    }
+
+
+    /**
+     * @param field the name of field whose entry in this.parameters looks like "fieldName : {$operator: value}"
+     * @returns a JDOQL WHERE-clause entry such as
+     * (length > 7)
+     */
     private String parseOperatorField(String field) throws NullPointerException {
 
       String output = "";
@@ -166,11 +184,12 @@ public class WBQuery implements java.io.Serializable {
       String[] values = new String[operators.length];
       for (int i=0; i<operators.length; i++) {
         String operator = operators[i];
-        String value = fieldQuery.optString(operator, "PARSE-ERROR");
         if (comparisonOperator.containsKey(operator)) {
-
+          String value = fieldQuery.optString(operator, "PARSE-ERROR");
           output += comparisonOperator.get(operator).execute(field, value);
-
+        }
+        else if (logicalOperator.containsKey(operator)) {
+          output += ("LOGICAL OPERATORS NOT SUPPORTED YET: Error parsing "+operator);
         }
       }
       return output;//" operators = ("+output+"): ( (not parsable)" + fieldQuery.toString() + ")";
@@ -181,13 +200,8 @@ public class WBQuery implements java.io.Serializable {
     }
 
     /**
-     *  parses a single field -- returns JDOQL
+     * Really a utility function, this is like glue.join(strings) in JavaScript
      */
-    private static String parseField(String field, String value) {
-      return ("("+field+"==\""+value+"\")");
-    }
-
-
     private static String joinString (String[] strings, String glue) {
       if (strings.length==0) return "";
       String res = strings[0];
@@ -197,8 +211,25 @@ public class WBQuery implements java.io.Serializable {
       return res;
     }
 
-    private static String buildComparisonOperator(String field, String operator, String value) {
+
+
+    /**
+     * This is the function that stitches together a comparison such as
+     * field < value.
+     * @param field the name of the class field being searched on
+     * @param operator the comparison being made, e.g. "<="
+     * @param value
+     * @param quoteValue whether value should be escaped in quotes
+     */
+    private static String buildComparisonOperator(String field, String operator, String value, boolean quoteValue) {
+      if (quoteValue) {
+        return field+' '+operator+" \""+value+"\"";
+      }
       return field+' '+operator+' '+value;
+    }
+
+    private static String buildComparisonOperator(String field, String operator, String value) {
+      return buildComparisonOperator(field, operator, value, true);
     }
 
     private static String buildBooleanOperator(String field, String operator, String value) {
@@ -207,21 +238,39 @@ public class WBQuery implements java.io.Serializable {
       return buildComparisonOperator(field, "is"+isNot, value);
     }
 
-
+    /**
+     * Stitches together an argument such as an AND over a list of values.
+     * @param operator the comparison being made, such as && or ||
+     * @param values
+     */
     private static String buildLogicalOperator(String operator, String[] values) {
       String result = joinString(values, ' ' + operator + ' ');
       if (values.length > 1) result = '(' + result + ')';
       return result;
     }
 
+    /**
+     * A CompOperator handles comparison operations such as <, >, and !=.
+     * All CompOperators will be stored in the HashMap comparisonOperator,
+     * whose keys are the mongo-query-syntax comparison operations
+     * themselves, e.g. $eq, $lte, etc.
+     */
     interface CompOperator {
+      /**
+       * returns the inverse operation (so we know e.g. that the negation of < is =>)
+       */
       String inverseOp();
+      /**
+       * The execute function is where each unit of translation
+       * actually happens.
+       * returns a JDOQL WHERE-clause statement such as (field <= value)
+       */
       String execute(String field, String value);
     }
 
 
 
-    // the below stuff is literally in the WBQuery instance initializer
+    // the below is a class static literal defined in the WBQuery instance initializer
     private static HashMap<String, CompOperator> comparisonOperator = new HashMap<String, CompOperator>();
     {
       comparisonOperator.put("$eq", new CompOperator() {
@@ -278,32 +327,4 @@ public class WBQuery implements java.io.Serializable {
         }
       });
     }
-
-
-
-
-    /*
-    public <E> void modList(List<? extends E> list, Operation<E> op) {
-      for (E elem : list)
-        op.execute(elem);
-    }
-
-    modList(pList, new Operation<Person>() {
-        public void execute(Person p) { p.setAge(p.getAge() + 1); }
-    });
-
-
-    // this section contains helper functinos for toJDOQL
-    private static HashMap operators() {
-
-      String buildComparisonOperator(String field, String operator, String value) {
-
-      }
-
-      HashMap<String,HashMap> operators = new HashMap<String,HashMap>();
-
-      HashMap eq = new HashMap();
-      eq.put("inversedOperator","$ne");
-    }
-    */
 }
