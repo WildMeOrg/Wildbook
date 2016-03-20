@@ -161,7 +161,7 @@ margin-bottom: 8px !important;
  		
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
@@ -508,7 +508,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
                        
                        fourthShepherd.beginDBTransaction();
                        try{
-                    	   ArrayList<Encounter> latestIndividuals=fourthShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                    	   List<Encounter> latestIndividuals=fourthShepherd.getMostRecentIdentifiedEncountersByDate(3);
                            int numResults=latestIndividuals.size();
                        
 	                       for(int i=0;i<numResults;i++){
