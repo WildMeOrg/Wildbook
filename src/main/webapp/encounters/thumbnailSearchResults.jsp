@@ -94,6 +94,7 @@
     	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
     	allQuery.setRange(startNum, endNum);
     	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
+    	allQuery.closeAll();
    }
 
   %>
