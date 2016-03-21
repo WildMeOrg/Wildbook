@@ -73,13 +73,16 @@ public class WBQuery implements java.io.Serializable {
     public Query toQuery(Shepherd myShepherd) throws RuntimeException {
         Query query = null;
         try {  //lets catch any shenanigans that happens here, and throw our own RuntimeException
-            query = myShepherd.getPM().newQuery(toJDOQL());
+            String qString = toJDOQL();
+            System.out.println("starting toQuery with query string = "+qString);
+            query = myShepherd.getPM().newQuery(qString);
             query.setClass(getCandidateClass());
             querySetRange(query);
             querySetOrdering(query);
         } catch (Exception ex) {
             throw new RuntimeException(ex.toString());
         }
+        System.out.println("Query parsed. Returning...");
         return query;
     }
 
@@ -128,7 +131,6 @@ public class WBQuery implements java.io.Serializable {
       String output = "(";
       try {
         String valueClass = parameters.opt(field).getClass().getName();
-        System.out.println("it has valueClass "+valueClass);
         switch(valueClass) {
           case "java.lang.String": {
             // This is the simple case of field: value
