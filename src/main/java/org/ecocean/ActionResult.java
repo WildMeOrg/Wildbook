@@ -2,10 +2,7 @@ package org.ecocean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Properties;
+import java.util.*;
 
 /**
  * Utility class for displaying results of a webapp action.
@@ -147,12 +144,40 @@ public class ActionResult {
     this(actionKey, succeeded, null);
   }
 
-  public void setSucceeded(boolean succeeded) {
+  public ActionResult setSucceeded(boolean succeeded) {
     this.succeeded = succeeded;
+    return this;
+  }
+
+  public ActionResult setActionKey(String actionKey) {
+    this.actionKey = actionKey;
+    return this;
   }
 
   public ActionResult setLink(String link) {
     this.link = link;
+    return this;
+  }
+
+  /**
+   * Sets the parameters for all displayed fields.
+   * This is a convenience method to set parameters for all displayed fields to the same values.
+   * @param o object array for use in formatted text fields
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult setParams(Object... o) {
+    setMessageParams(o);
+    setCommentParams(o);
+    setDetailParams(o);
+    setLinkParams(o);
+    return this;
+  }
+
+  public ActionResult addParams(Object... o) {
+    addMessageParams(o);
+    addCommentParams(o);
+    addDetailParams(o);
+    addLinkParams(o);
     return this;
   }
 
@@ -167,11 +192,25 @@ public class ActionResult {
   }
 
   /**
+   * Adds additional parameters for displayed message text.
+   * @param o object array for use in formatted message
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult addMessageParams(Object... o) {
+    Object[] x = new Object[messageParams.length + o.length];
+    System.arraycopy(messageParams, 0, x, 0, messageParams.length);
+    System.arraycopy(o, 0, x, messageParams.length, o.length);
+    this.messageParams = x;
+    return this;
+  }
+
+  /**
    * Sets the property key for overriding the message defaults.
    * @param key property key for lookup
    */
-  public void setMessageOverrideKey(String key) {
+  public ActionResult setMessageOverrideKey(String key) {
     this.messageOverrideKey = key;
+    return this;
   }
 
   /**
@@ -181,6 +220,28 @@ public class ActionResult {
    */
   public ActionResult setLinkParams(Object... o) {
     this.linkParams = o;
+    return this;
+  }
+
+  /**
+   * Adds additional parameters for displayed link text.
+   * @param o object array for use in formatted message
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult addLinkParams(Object... o) {
+    Object[] x = new Object[linkParams.length + o.length];
+    System.arraycopy(linkParams, 0, x, 0, linkParams.length);
+    System.arraycopy(o, 0, x, linkParams.length, o.length);
+    this.linkParams = x;
+    return this;
+  }
+
+  /**
+   * Sets the property key for overriding the link defaults.
+   * @param key property key for lookup
+   */
+  public ActionResult setLinkOverrideKey(String key) {
+    this.linkTextOverrideKey = key;
     return this;
   }
 
@@ -195,12 +256,56 @@ public class ActionResult {
   }
 
   /**
+   * Adds additional parameters for displayed comment text.
+   * @param o object array for use in formatted message
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult addCommentParams(Object... o) {
+    Object[] x = new Object[commentParams.length + o.length];
+    System.arraycopy(commentParams, 0, x, 0, commentParams.length);
+    System.arraycopy(o, 0, x, commentParams.length, o.length);
+    this.commentParams = x;
+    return this;
+  }
+
+  /**
+   * Sets the property key for overriding the comment defaults.
+   * @param key property key for lookup
+   */
+  public ActionResult setCommentOverrideKey(String key) {
+    this.commentOverrideKey = key;
+    return this;
+  }
+
+  /**
    * Sets the parameters for displayed detail text.
    * @param o object array for use in formatted message
    * @return this ActionResult instance (for method chaining support)
    */
   public ActionResult setDetailParams(Object... o) {
     this.detailParams = o;
+    return this;
+  }
+
+  /**
+   * Adds additional parameters for displayed detail text.
+   * @param o object array for use in formatted message
+   * @return this ActionResult instance (for method chaining support)
+   */
+  public ActionResult addDetailParams(Object... o) {
+    Object[] x = new Object[detailParams.length + o.length];
+    System.arraycopy(detailParams, 0, x, 0, detailParams.length);
+    System.arraycopy(o, 0, x, detailParams.length, o.length);
+    this.detailParams = x;
+    return this;
+  }
+
+  /**
+   * Sets the property key for overriding the detail text defaults.
+   * @param key property key for lookup
+   */
+  public ActionResult setDetailTextOverrideKey(String key) {
+    this.detailTextOverrideKey = key;
     return this;
   }
 
@@ -250,13 +355,12 @@ public class ActionResult {
    * @param ok whether action succeeded or not
    * @return list of keys to attempt for resource lookup
    */
-  protected static List<String> createKeys(String type, String actionKey, boolean ok) {
-    List<String> keys = Arrays.asList(
-            String.format("%s.%s.%s", actionKey, type, ok ? "success" : "failure"),
-            String.format("%s.%s.common", actionKey, type),
-            String.format("action.generic.%s.%s", type, ok ? "success" : "failure"),
-            String.format("action.generic.%s.common", type)
-    );
+  protected static ArrayList<String> createKeys(String type, String actionKey, boolean ok) {
+    ArrayList<String> keys = new ArrayList<>();
+    keys.add(String.format("%s.%s.%s", actionKey, type, ok ? "success" : "failure"));
+    keys.add(String.format("%s.%s.common", actionKey, type));
+    keys.add(String.format("action.generic.%s.%s", type, ok ? "success" : "failure"));
+    keys.add(String.format("action.generic.%s.common", type));
     return keys;
   }
 
@@ -281,13 +385,16 @@ public class ActionResult {
    * @return String representing message text
    */
   public String getMessage(Properties bundle) {
-    List<String> keys = Arrays.asList(
-            String.format("%s.message.%s", actionKey, succeeded ? "success" : "failure")
-    );
+    ArrayList<String> keys = createKeys("message", actionKey, succeeded);
     if (messageOverrideKey != null) {
       keys.add(0, String.format("%s.message.%s.%s", actionKey, succeeded ? "success" : "failure", messageOverrideKey));
+      keys.add(1, String.format("%s.message.common.%s", actionKey, messageOverrideKey));
     }
     String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    if (text == null) {
+      log.debug(String.format("Failed to find valid key for ActionResult %s; check the following keys:\n%s", "message", StringUtils.collateStrings(keys, "\n")));
+      return null;
+    }
     return messageParams == null ? text : StringUtils.format(locale, text, messageParams);
   }
 
@@ -297,11 +404,16 @@ public class ActionResult {
    * @return String representing link text
    */
   public String getLinkText(Properties bundle) {
-    List<String> keys = createKeys("link", actionKey, succeeded);
+    ArrayList<String> keys = createKeys("link", actionKey, succeeded);
     if (linkTextOverrideKey != null) {
-      keys.add(keys.get(0) + "." + linkTextOverrideKey);
+      keys.add(0, String.format("%s.link.%s.%s", actionKey, succeeded ? "success" : "failure", linkTextOverrideKey));
+      keys.add(1, String.format("%s.link.common.%s", actionKey, linkTextOverrideKey));
     }
     String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    if (text == null) {
+      log.debug(String.format("Failed to find valid key for ActionResult %s; check the following keys:\n%s", "link", StringUtils.collateStrings(keys, "\n")));
+      return null;
+    }
     return linkParams == null ? text : StringUtils.format(locale, text, linkParams);
   }
 
@@ -311,11 +423,16 @@ public class ActionResult {
    * @return String representing comment text
    */
   public String getComment(Properties bundle) {
-    List<String> keys = createKeys("comment", actionKey, succeeded);
+    ArrayList<String> keys = createKeys("comment", actionKey, succeeded);
     if (commentOverrideKey != null) {
-      keys.add(keys.get(0) + "." + commentOverrideKey);
+      keys.add(0, String.format("%s.comment.%s.%s", actionKey, succeeded ? "success" : "failure", commentOverrideKey));
+      keys.add(1, String.format("%s.comment.common.%s", actionKey, commentOverrideKey));
     }
     String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    if (text == null) {
+      log.debug(String.format("Failed to find valid key for ActionResult %s; check the following keys:\n%s", "comment", StringUtils.collateStrings(keys, "\n")));
+      return null;
+    }
     // If resource text is just a placeholder for parameter, return null if param doesn't exist,
     // otherwise return resource text.
     return commentParams == null ? ("{0}".equals(text) ? null : text) : StringUtils.format(locale, text, commentParams);
@@ -327,11 +444,16 @@ public class ActionResult {
    * @return String representing detail text
    */
   public String getDetailText(Properties bundle) {
-    List<String> keys = createKeys("detail", actionKey, succeeded);
+    ArrayList<String> keys = createKeys("detail", actionKey, succeeded);
     if (detailTextOverrideKey != null) {
-      keys.add(keys.get(0) + "." + detailTextOverrideKey);
+      keys.add(0, String.format("%s.detail.%s.%s", actionKey, succeeded ? "success" : "failure", detailTextOverrideKey));
+      keys.add(1, String.format("%s.detail.common.%s", actionKey, detailTextOverrideKey));
     }
     String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
+    if (text == null) {
+      log.debug(String.format("Failed to find valid key for ActionResult %s; check the following keys:\n%s", "detailText", StringUtils.collateStrings(keys, "\n")));
+      return null;
+    }
     return detailParams == null ? ("{0}".equals(text) ? null : text) : StringUtils.format(locale, text, detailParams);
   }
 }

@@ -162,11 +162,20 @@
 
 <%
   if (actRes.getLink() != null) {
+    // If link if just #, make it simple text (e.g. for links embedded in i18n properties).
+    if (actRes.getLink().equals("#")) {
+%>
+  <div id="actionResultLink">
+    <p><%=actRes.getLinkText(bundle)%></p>
+  </div>
+<%
+    } else {
 %>
   <div id="actionResultLink">
     <p><a href="<%=actRes.getLink()%>"><%=actRes.getLinkText(bundle)%></a></p>
   </div>
 <%
+    }
   }
 %>
 

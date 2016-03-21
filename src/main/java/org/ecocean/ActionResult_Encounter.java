@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -35,12 +36,12 @@ public class ActionResult_Encounter extends ActionResult {
    * @return String representing link text
    */
   public String getLinkText(Properties bundle) {
-    String[] keys = {
-            String.format("%s.link.%s", actionKey, succeeded ? "success" : "failure"),
-            String.format("%s.link.common", actionKey),
-            String.format("encounter.link.common", actionKey)
-    };
-    String text = findFirstMatchingNonNull(bundle, keys);
+    List<String> keys = createKeys("link", actionKey, succeeded);
+    keys.add(2, "encounter.link.common");
+    if (linkTextOverrideKey != null) {
+      keys.add(keys.get(0) + "." + linkTextOverrideKey);
+    }
+    String text = findFirstMatchingNonNull(bundle, keys.toArray(new String[0]));
     return linkParams == null ? text : StringUtils.format(locale, text, linkParams);
   }
 }
