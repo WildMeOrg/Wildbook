@@ -33,6 +33,7 @@ WBQuery wbq2 = new WBQuery(exJSON2);
 
 String toJDOQL = wbq.toJDOQL();
 String toJDOQL2 = wbq2.toJDOQL();
+
 //List<Object> q1 = wbq.doQuery(myShepherd);
 
 //List<Object> all = wbq.doQuery(myShepherd);
@@ -42,4 +43,16 @@ out.println("<li>Translated: "+toJDOQL+"</li></ul></p>");
 out.println("<p>Test 2:<ul>");
 out.println("<li>Original JSON: "+exJSON2.toString()+"</li>");
 out.println("<li>Translated: "+toJDOQL2+"</li></ul></p>");
+
+Query q1 = wbq.toQuery(myShepherd);
+out.println("</br><p> Query info: <ul>");
+out.println("<li>JDOQL: "+q1.JDOQL+"</li>");
+out.println("<li>SQL: "+q1.SQL+"</li>");
+out.println("</ul></p>");
+
+// the following line checks that the query is valid
+q1.compile();
+
+
+
 %>
