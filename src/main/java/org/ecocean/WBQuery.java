@@ -61,8 +61,11 @@ public class WBQuery implements java.io.Serializable {
 
     //this *should* magically return a List of the proper classed object. good luck with that!
     public List<Object> doQuery(Shepherd myShepherd) throws RuntimeException {
-        Query query = toQuery(myShepherd);
-        return (List<Object>) query.execute();
+      List<Object> out;
+      Query query = toQuery(myShepherd);
+      out = (List<Object>) query.execute();
+      query.closeAll();
+      return out;
     }
 
 
@@ -115,7 +118,7 @@ public class WBQuery implements java.io.Serializable {
 
     //TODO
     public void querySetOrdering(Query query) {
-        query.setOrdering("id DESC");
+        //query.setOrdering("id DESC");
     }
 
     public long setRevision() {
