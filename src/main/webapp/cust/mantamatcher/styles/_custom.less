@@ -333,17 +333,27 @@ form table td, form table th {
 				}
 		}
 
-		#wild-me-badge { display: none; }
+		#wild-me-badge,ibeis-badge { display: none; }
 
 		@media (min-width: @screen-md) { 
 			#wild-me-badge {
 				display: block;
 				width: 130px;
-				height: 130px;
+				height: 100px;
 				background: url(../img/logo_wildemeproject.svg) center no-repeat;
 				position: absolute;
-				bottom: -88px;
-		  		right: -28px;
+				bottom: -80px;
+		  		right: 12px;
+		  		text-indent: -999em;
+				}
+			#ibeis-badge {
+				display: block;
+				width: 130px;
+				height: 100px;
+				background: url(../img/logo_ibeisproject.svg) center no-repeat;
+				position: absolute;
+				bottom: -80px;
+		  		right: -75px;
 		  		text-indent: -999em;
 				}
 		}
