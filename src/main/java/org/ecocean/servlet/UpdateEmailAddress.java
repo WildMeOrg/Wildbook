@@ -83,11 +83,11 @@ public class UpdateEmailAddress extends HttpServlet {
 
     }
 
-
+    myShepherd.beginDBTransaction();
     try {
 
 
-      myShepherd.beginDBTransaction();
+      
       Iterator<Encounter> it = myShepherd.getAllEncounters();
       while (it.hasNext()) {
 
@@ -110,19 +110,22 @@ public class UpdateEmailAddress extends HttpServlet {
           madeChanges = true;
           numChanges++;
         }
+        if (madeChanges) {
+          myShepherd.commitDBTransaction();
+          myShepherd.beginDBTransaction();
+        }
+      }
 
-      }
-      if (madeChanges) {
-        myShepherd.commitDBTransaction();
-      } else {
         myShepherd.rollbackDBTransaction();
-      }
+
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Success!</strong> I successfully replaced " + numChanges + " instance(s) of email address " + findEmail + " with " + replaceEmail + ".");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
 
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
+      myShepherd.rollbackDBTransaction();
       //System.out.println("You really screwed this one up!");
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I encountered an exception trying to replace this email address. The exception is listed below.");
@@ -130,6 +133,9 @@ public class UpdateEmailAddress extends HttpServlet {
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
       e.printStackTrace();
+    }
+    finally{
+      myShepherd.closeDBTransaction();
     }
 
     out.close();
