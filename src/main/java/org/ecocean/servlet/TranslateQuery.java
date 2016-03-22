@@ -43,54 +43,74 @@ public class TranslateQuery extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
 
     // set up response type: should this be JSON?
-    response.setContentType("text/html");
+    response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
-
-    // test request format:
-    if (!(request.getParameter("class")==null) || !(request.getParameter("query")==null)) {
-      throw new IOException("TranslateQuery argument requires a \"class\" and \"query\" field.");
-    }
+    //out.println("Servlet wrote this!");
 
     try {
 
-      String jsonString = convertStreamToString(request.getInputStream());
+      if (request.getParameter("fullQuery")==null) {
+        out.println("NO FULLQUERY ERROR");
+        throw new IOException("NO FULLQUERY ERROR");
+      }
+
+      String jsonString = request.getParameter("fullQuery");
+
+      //out.println("inputStreamToString = "+jsonString);
+
       JSONObject json = new JSONObject(jsonString);
+
+      // test request format:
+      if (json.optString("class")==null || json.optJSONObject("query")==null) {
+        throw new IOException("TranslateQuery argument requires a \"class\" and \"query\" field.");
+      }
+
+
+
       WBQuery wbq = new WBQuery(json);
       List<Object> queryResult = wbq.doQuery(myShepherd);
+      int nResults = queryResult.size();
+      String[] queryResultStrings = new String[nResults];
 
 
-
-      String queryClass = wbq.getCandidateClass().toString();
+      String queryClass = wbq.getCandidateClass().getName();
+      //out.println("</br>queryClass = "+queryClass);
 
       // Need to switch on queryClass, because we need to know the class of each object in queryResult in order to call .sanitizeJson
+
+      out.println("[");
       switch (queryClass) {
         case "org.ecocean.Encounter":
-          for (Object obj : queryResult) {
-            Encounter enc = (Encounter) obj;
+          for (int i=0;i<nResults;i++) {
+            if (i!=0) {out.println(",");}
+            Encounter enc = (Encounter) queryResult.get(i);
             JSONObject encJSON = enc.sanitizeJson(request, new JSONObject());
             out.println(encJSON.toString());
           }
           break;
         case "org.ecocean.MediaAsset":
-          for (Object obj: queryResult) {
-            MediaAsset ma = (MediaAsset) obj;
+        for (int i=0;i<nResults;i++) {
+            if (i!=0) {out.println(",");}
+            MediaAsset ma = (MediaAsset) queryResult.get(i);
             JSONObject maJSON = ma.sanitizeJson(request, new JSONObject());
             out.println(maJSON.toString());
           }
           break;
         case "org.ecocean.MarkedIndividual":
-          for (Object obj: queryResult) {
-            MarkedIndividual mi = (MarkedIndividual) obj;
+        for (int i=0;i<nResults;i++) {
+            if (i!=0) {out.println(",");}
+            MarkedIndividual mi = (MarkedIndividual) queryResult.get(i);
             JSONObject miJSON = mi.sanitizeJson(request, new JSONObject());
             out.println(miJSON.toString());
           }
           break;
       } // end switch(queryClass)
-
+      out.println("]");
 
     }
     catch (Exception e) {
-      e.printStackTrace();
+      out.println("There was an exception!");
+      e.printStackTrace(out);
       myShepherd.rollbackDBTransaction();
     }
 
@@ -100,7 +120,8 @@ public class TranslateQuery extends HttpServlet {
 
   } // end doPost
 
-  public String convertStreamToString(InputStream is) throws IOException {
+  public String convertStreamToString(InputStream is, PrintWriter out) throws IOException {
+    out.println("Beginning conversion</br>");
     // Handy method taken from https://kodejava.org/how-do-i-convert-inputstream-to-string/
     // To convert the InputStream to String we use the
     // Reader.read(char[] buffer) method. We iterate until the
@@ -116,12 +137,14 @@ public class TranslateQuery extends HttpServlet {
             int n;
             while ((n = reader.read(buffer)) != -1) {
                 writer.write(buffer, 0, n);
+                out.println("look: "+n);
             }
         } finally {
             is.close();
         }
         return writer.toString();
     }
+    out.println("returning");
     return "";
   }
 }
