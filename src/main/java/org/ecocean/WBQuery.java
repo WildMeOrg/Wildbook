@@ -2,7 +2,7 @@ package org.ecocean;
 
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
-import org.json.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import java.util.List;
 import javax.jdo.Query;
@@ -45,7 +45,7 @@ public class WBQuery implements java.io.Serializable {
     public JSONObject getParameters() {
         if (parameters != null) return parameters;
         //System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
-        JSONObject j = Util.stringToJSONObject(parametersAsString);
+        JSONObject j = Util.stringToDatanucleusJSONObject(parametersAsString);
         parameters = j;
         return j;
     }

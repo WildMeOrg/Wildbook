@@ -38,7 +38,7 @@ import org.ecocean.*;
 import com.reijns.I3S.Point2D;
 
 public class Util {
-  
+
   //Measurement static values
   private static final String MEASUREMENT = "measurement";
   private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementType";
@@ -46,10 +46,10 @@ public class Util {
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
   private static final String SATELLITE_TAG_NAME = "satelliteTagName";
-  
+
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
-  
+
   public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedValues(MEASUREMENT,context);
@@ -65,7 +65,7 @@ public class Util {
     }
     return list;
   }
-  
+
   public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
     List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedValues(BIOLOGICALMEASUREMENT,context);
@@ -81,7 +81,7 @@ public class Util {
     }
     return list;
   }
-  
+
 	//a hook to UUID generator
 	public static String generateUUID() {
 		return UUID.randomUUID().toString();
@@ -106,7 +106,7 @@ public class Util {
   public static List<OptionDesc> findSamplingProtocols(String langCode,String context) {
     List<String> values = CommonConfiguration.getIndexedValues("samplingProtocol",context);
     List<OptionDesc> list = new ArrayList<OptionDesc>();
-    
+
     /*
     for (String key : values) {
       String label = findLabel(key, langCode,context);
@@ -118,11 +118,11 @@ public class Util {
       String key="samplingProtocol"+i;
       String label = findLabel(key, langCode,context);
       list.add(new OptionDesc(key, label));
-      
+
     }
     return list;
   }
-  
+
   public static String getLocalizedSamplingProtocol(String samplingProtocol, String langCode, String context) {
     if (samplingProtocol != null) {
       List<OptionDesc> samplingProtocols = findSamplingProtocols(langCode,context);
@@ -134,7 +134,7 @@ public class Util {
     }
     return null;
   }
-  
+
   public static List<MetalTagDesc> findMetalTagDescs(String langCode,String context) {
     List<String> metalTagLocations = CommonConfiguration.getIndexedValues(METAL_TAG_LOCATION,context);
     List<MetalTagDesc> list = new ArrayList<MetalTagDesc>();
@@ -144,7 +144,7 @@ public class Util {
     }
     return list;
   }
-  
+
   /**
    * Find the MetalTag instance belonging to an Encounter that is described by the MetalTagDesc.
    * @param metalTagDesc
@@ -163,15 +163,15 @@ public class Util {
     }
     return null;
   }
-  
+
   public static List<String> findSatelliteTagNames(String context) {
     return CommonConfiguration.getIndexedValues(SATELLITE_TAG_NAME,context);
   }
-  
+
   private static String findLabel(String key, String langCode, String context) {
-    
+
     //System.out.println("Trying to find key: "+key+" with langCode "+langCode);
-    
+
     /*
     Locale locale = Locale.US;
     if (langCode != null) {
@@ -185,13 +185,13 @@ public class Util {
       System.out.println("Error finding bundle or key for key: " + key);
     }
     return key;*/
-    
+
     Properties myProps = ShepherdProperties.getProperties("commonConfigurationLabels.properties", langCode, context);
     return myProps.getProperty(key+".label");
-    
-    
+
+
   }
-  
+
   public static String quote(String arg) {
     StringBuilder sb = new StringBuilder(arg.length() + 2);
     sb.append('"');
@@ -199,20 +199,20 @@ public class Util {
     sb.append('"');
     return sb.toString();
   }
-  
+
   public static class MeasurementDesc {
     private String type;
     private String label;
     private String units;
     private String unitsLabel;
-    
+
     private MeasurementDesc(String type, String label, String units, String unitsLabel) {
       this.type = type;
       this.label = label;
       this.units = units;
       this.unitsLabel = unitsLabel;
     }
-    
+
     public String getType() {
       return type;
     }
@@ -226,7 +226,7 @@ public class Util {
       return unitsLabel;
     }
   }
-  
+
   public static class OptionDesc {
     private String name;
     private String display;
@@ -240,13 +240,13 @@ public class Util {
     public String getDisplay() {
       return display;
     }
-    
+
   }
-  
+
   public static class MetalTagDesc {
     private String location;
     private String locationLabel;
-    
+
     private MetalTagDesc(String location, String locationLabel) {
       this.location = location;
       this.locationLabel = locationLabel;
@@ -261,7 +261,7 @@ public class Util {
     }
 
   }
-  
+
   public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh,String context) {
     try {
       if ((coords == null)||(refresh)) {
@@ -272,7 +272,7 @@ public class Util {
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
         int encsSize=encs.size();
-        
+
         //populate coords
         coords=new ArrayList<Point2D>(encsSize);
         for(int i=0;i<encsSize;i++){
@@ -287,22 +287,22 @@ public class Util {
 
         query.closeAll();
       }
-      
+
       return coords;
-    } 
+    }
     catch (Exception jdo) {
       jdo.printStackTrace();
       System.out.println("I hit an error trying to populate the cached GPS coordinates in Util.java.");
       return new ArrayList<Point2D>();
     }
   }
-  
+
   public static String getEXIFDataFromJPEGAsHTML(File exifImage){
     StringBuffer results=new StringBuffer("<p>File not found on file system. No EXIF data available.</p><p>Looking in: "+exifImage.getAbsolutePath()+"</p>");
     if(exifImage.exists()){
       results=new StringBuffer();
       InputStream inp=null;
-    
+
       try{
           inp = new FileInputStream(exifImage);
           Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
@@ -327,10 +327,10 @@ public class Util {
         IOUtils.closeQuietly(inp);
       }
 
-        
+
     } //end if
     return results.toString();
-    
+
   }
 
 
@@ -367,5 +367,14 @@ public class Util {
         return j;
     }
 
-
+    public static org.datanucleus.api.rest.orgjson.JSONObject stringToDatanucleusJSONObject(String s) {
+      org.datanucleus.api.rest.orgjson.JSONObject j = null;
+      if (s == null) return j;
+      try {
+          j = new org.datanucleus.api.rest.orgjson.JSONObject(s);
+      } catch (org.datanucleus.api.rest.orgjson.JSONException je) {
+          System.out.println("error parsing json string (" + s + "): " + je.toString());
+      }
+      return j;
+    }
 }
