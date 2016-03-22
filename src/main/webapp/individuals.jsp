@@ -36,6 +36,9 @@
 	Locale locale = new Locale(langCode);
 	Properties props = ShepherdProperties.getProperties("individuals.properties", langCode, context);
 	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
+	Map<String, String> mapI18nSex = CommonConfiguration.getI18nPropertiesMap("sex", langCode, context, false);
+	Map<String, String> mapI18nRoles = CommonConfiguration.getI18nPropertiesMap("relationshipRole", langCode, context, false);
+	Map<String, String> mapI18nRelType = CommonConfiguration.getI18nPropertiesMap("relationshipType", langCode, context, false);
 	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
@@ -938,8 +941,7 @@ $("a#nickname").click(function() {
 <%
 String sexValue="";
 if(sharky.getSex()!=null){
-	Map<String, String> mapI18n = Util.getIndexedValuesMap(cciProps, "sex");
-	sexValue = mapI18n.get("sex" + CommonConfiguration.getIndexNumberForValue("sex", sharky.getSex(), context));
+	sexValue = mapI18nSex.get(sharky.getSex());
 }
 %>
 <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
@@ -2029,7 +2031,7 @@ String communityName="";
 					String selectedText="";
 					if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
 			%>      
-          		<option <%=selectedText%>><%=types.get(g)%></option>
+          		<option value="<%=types.get(g)%>" <%=selectedText%>><%=mapI18nRelType.get(types.get(g))%></option>
           	<%
           		}
           	%>
@@ -2082,7 +2084,7 @@ String communityName="";
 					String selectedText="";
 					if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
 			%>      
-          		<option <%=selectedText%>><%=roles.get(g)%></option>
+          		<option value="<%=roles.get(g)%>" <%=selectedText%>><%=mapI18nRoles.get(roles.get(g))%></option>
           	<%
           		}
           	%>
@@ -2128,8 +2130,8 @@ String communityName="";
 					
 					String selectedText="";
 					if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-			%>      
-          		<option <%=selectedText%>><%=roles.get(g)%></option>
+			%>
+							<option value="<%=roles.get(g)%>" <%=selectedText%>><%=mapI18nRoles.get(roles.get(g))%></option>
           	<%
           		}
           	%>
@@ -2172,23 +2174,9 @@ String communityName="";
        </td>
        <td>
           	<select name="bidirectional">
-          	
-          	
           		<option value=""></option>
-          		<%
-          			String selected="";
-          		          	if(bidirectional.equals("true")){
-          		          		selected="selected=\"selected\"";
-          		          	}
-          		%>
-          		<option value="true" <%=selected%>>true</option>
-          		<%
-          			selected="";
-          		          	if(bidirectional.equals("false")){
-          		          		selected="selected=\"selected\"";
-          		          	}
-          		%>
-          		<option value="false" <%=selected%>>false</option>
+          		<option value="true"<%=bidirectional.equals("true") ? "selected=\"selected\"" : ""%>><%=props.getProperty("yes")%></option>
+							<option value="false"<%=bidirectional.equals("false") ? "selected=\"selected\"" : ""%>><%=props.getProperty("no")%></option>
           	</select>
           	 
        </td>
@@ -2288,23 +2276,23 @@ for(int f=0;f<numRels;f++){
 	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
 %>
 	<tr>
-	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
+	<td><em><%=mapI18nRoles.get(thisIndyRole)%></em>-<%=mapI18nRoles.get(otherIndyRole)%></td>
 	<td>
 	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
 		<%
 		if(otherIndy.getNickName()!=null){
 		%>
-		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
-		<%	
+		<br /><%=props.getProperty("nickname") %>: <%="Unassigned".equals(otherIndy.getNickName()) ? props.getProperty("unassigned") : otherIndy.getNickName()%>
+		<%
 		}
 		if(otherIndy.getAlternateID()!=null){
 		%>
-		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
+		<br /><%=props.getProperty("alternateID") %>: <%="None".equals(otherIndy.getAlternateID()) ? props.getProperty("none") : otherIndy.getAlternateID()%>
 		<%
 		}
 		if(otherIndy.getSex()!=null){
 		%>
-			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
+			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=mapI18nSex.get(otherIndy.getSex())%></span>
 		<%
 		}
 		
@@ -2315,7 +2303,7 @@ for(int f=0;f<numRels;f++){
 		}
 		%>
 	</td>
-	<td><%=type %></td>
+	<td><%=mapI18nRelType.get(type)%></td>
 	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
 	
 	<%
