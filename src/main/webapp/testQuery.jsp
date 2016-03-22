@@ -25,6 +25,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 //WBQuery wbq = ((WBQuery) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(WBQuery.class, 1), true)));
 
+/*
 JSONObject exJSON = new JSONObject("{\"class\":\"org.ecocean.Encounter\",\"query\": {\"sex\":\"male\"}}");
 
 JSONObject exJSON2 = new JSONObject("{\"class\": \"org.ecocean.Encounter\",\"query\": {\"location\": \"The Big Lagoon\",\"sex\": {\"$ne\": \"female\"},\"maxDate\": {\"$gte\": \"2013-05-01T00:00:00\"},\"minDate\": {\"$lt\": \"2013-06-01T00:00:00\"}}}");
@@ -55,7 +56,7 @@ out.println("</ul></p>");
 out.println("<p>Test 2:<ul>");
 out.println("<li>Original JSON: "+exJSON2.toString()+"</li>");
 out.println("<li>Translated: "+toJDOQL2+"</li></ul></p>");
-/*
+
 Query q2 = wbq2.toQuery(myShepherd);
 out.println("</br><p> Query info: <ul>");
 // the following line checks that the query is valid
@@ -75,8 +76,10 @@ out.println("</ul></p>");
 
 <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
 <script>
-    var testString = '{"class":"org.ecocean.Encounter", "query": {"sex":"male"}}';
-    var args = {fullQuery: testString};
+
+    var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
+    var testString = JSON.stringify(testQuery);
+    var args = {stringifiedJSONQuery: testString};
     $.post( "TranslateQuery", args, function( data ) {
       $(".results").append( "Data Loaded: " + data );
     });
