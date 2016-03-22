@@ -77,6 +77,7 @@ public class WBQuery implements java.io.Serializable {
     public Query toQuery(Shepherd myShepherd) throws RuntimeException {
         Query query = null;
         try {  //lets catch any shenanigans that happens here, and throw our own RuntimeException
+            System.out.println("starting toQuery");
             String qString = toJDOQL();
             System.out.println("starting toQuery with query string = "+qString);
             query = myShepherd.getPM().newQuery(qString);
@@ -96,8 +97,9 @@ public class WBQuery implements java.io.Serializable {
      */
     public String toJDOQL() {
         /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
-        String output = "SELECT FROM "+className+" WHERE ";
+        String output = "SELECT FROM "+className;
         String[] names = JSONObject.getNames(parameters);
+        if (names.length>0) {output += " WHERE ";}
         String[] parsedFields = new String[names.length];
         for (int i=0; i<names.length; i++) {
           parsedFields[i]=parseField(names[i]);
@@ -141,7 +143,7 @@ public class WBQuery implements java.io.Serializable {
             output += parseEqualityField(field);
             break;
           }
-          case "org.json.JSONObject": {
+          case "org.datanucleus.api.rest.orgjson.JSONObject": {
             // This case deals with operators such as $ne and $and
             JSONObject value = parameters.getJSONObject(field);
             output += parseOperatorField(field);

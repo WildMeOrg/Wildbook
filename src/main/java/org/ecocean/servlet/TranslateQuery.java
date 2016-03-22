@@ -49,12 +49,12 @@ public class TranslateQuery extends HttpServlet {
 
     try {
 
-      if (request.getParameter("fullQuery")==null) {
-        out.println("NO FULLQUERY ERROR");
-        throw new IOException("NO FULLQUERY ERROR");
+      if (request.getParameter("stringifiedJSONQuery")==null) {
+        out.println("NO stringifiedJSONQuery ERROR");
+        throw new IOException("NO stringifiedJSONQuery ERROR");
       }
 
-      String jsonString = request.getParameter("fullQuery");
+      String jsonString = request.getParameter("stringifiedJSONQuery");
 
       //out.println("inputStreamToString = "+jsonString);
 
@@ -85,15 +85,15 @@ public class TranslateQuery extends HttpServlet {
             if (i!=0) {out.println(",");}
             Encounter enc = (Encounter) queryResult.get(i);
             JSONObject encJSON = enc.sanitizeJson(request, new JSONObject());
-            out.println(encJSON.toString());
+            out.print(encJSON.toString());
           }
           break;
-        case "org.ecocean.MediaAsset":
+        case "org.ecocean.Media.MediaAsset":
         for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MediaAsset ma = (MediaAsset) queryResult.get(i);
             JSONObject maJSON = ma.sanitizeJson(request, new JSONObject());
-            out.println(maJSON.toString());
+            out.print(maJSON.toString());
           }
           break;
         case "org.ecocean.MarkedIndividual":
@@ -101,7 +101,7 @@ public class TranslateQuery extends HttpServlet {
             if (i!=0) {out.println(",");}
             MarkedIndividual mi = (MarkedIndividual) queryResult.get(i);
             JSONObject miJSON = mi.sanitizeJson(request, new JSONObject());
-            out.println(miJSON.toString());
+            out.print(miJSON.toString());
           }
           break;
       } // end switch(queryClass)
