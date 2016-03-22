@@ -64,7 +64,8 @@ public class WBQuery implements java.io.Serializable {
       List<Object> out;
       Query query = toQuery(myShepherd);
       out = (List<Object>) query.execute();
-      query.closeAll();
+      // closing the query for some reason makes out inaccessible
+      //query.closeAll();
       return out;
     }
 
@@ -207,7 +208,7 @@ public class WBQuery implements java.io.Serializable {
     /**
      * Really a utility function, this is like glue.join(strings) in JavaScript
      */
-    private static String joinString (String[] strings, String glue) {
+    public static String joinString (String[] strings, String glue) {
       if (strings.length==0) return "";
       String res = strings[0];
       for (int i=1; i<strings.length; i++) {

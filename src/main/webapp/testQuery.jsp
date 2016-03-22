@@ -21,6 +21,7 @@ javax.jdo.Query
 
 Shepherd myShepherd=null;
 myShepherd = new Shepherd("context0");
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 //WBQuery wbq = ((WBQuery) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(WBQuery.class, 1), true)));
 
@@ -68,3 +69,27 @@ out.println("</ul></p>");
 
 
 %>
+<div class="results">
+
+</div>
+
+<script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
+<script>
+    var testString = '{"class":"org.ecocean.Encounter", "query": {"sex":"male"}}';
+    var args = {fullQuery: testString};
+    $.post( "TranslateQuery", args, function( data ) {
+      $(".results").append( "Data Loaded: " + data );
+    });
+
+/*
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+            var data = xhr.responseText;
+            $(".results").append("here's the data: "+data);
+        }
+    }
+    xhr.open('GET', 'TranslateQuery', true);
+    xhr.send(testString);
+    */
+</script>
