@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -31,6 +32,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Map;
 
 
 //Set alternateID for this encounter/sighting
@@ -48,17 +52,27 @@ public class EncounterSetLivingStatus extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("livingStatus", langCode, context, false);
+
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
+
     String sharky = "None";
-
-
     sharky = request.getParameter("encounter");
     String livingStatus = "";
     myShepherd.beginDBTransaction();
@@ -76,33 +90,20 @@ public class EncounterSetLivingStatus extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the living status for encounter " + sharky + " to " + livingStatus + ".</p>");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        String message = "The living status (allive/dead) for encounter " + sharky + " was set to " + livingStatus + ".";
+        actionResult.setMessageOverrideKey("livingStatus").setMessageParams(request.getParameter("encounter"), mapI18n.get(livingStatus));
       } else {
-
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user or is inaccessible. Please wait a few seconds before trying to modify this encounter again.");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the living status. I cannot find the encounter that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter(context));
-
+      actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
     out.close();
     myShepherd.closeDBTransaction();
   }
-
-
 }
-	
-	

@@ -2,12 +2,9 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,10 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Measurement;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 public class EncounterSetMeasurements extends HttpServlet {
 
@@ -34,16 +28,27 @@ public class EncounterSetMeasurements extends HttpServlet {
   @Override
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("measurement", langCode, context, false);
+
     Shepherd myShepherd=new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
 
-    String encNum="None";
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
 
+    String encNum="None";
     encNum=request.getParameter("encounter");
     myShepherd.beginDBTransaction();
     if (myShepherd.isEncounter(encNum)) {
@@ -95,31 +100,32 @@ public class EncounterSetMeasurements extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<p><strong>Success!</strong> I have successfully set the following measurement values:");
+        StringBuilder sb = new StringBuilder().append("<ul>");
         for (RequestEventValues requestEventValue : list) {
-          out.println(MessageFormat.format("<br/>{0} set to {1}", requestEventValue.type, requestEventValue.value));
+          sb.append("<li>");
+          sb.append(String.format("%s = %s", mapI18n.get(requestEventValue.type), requestEventValue.value));
+          sb.append("</li>");
         }
+        sb.append("</ul>");
+        actionResult.setMessageOverrideKey("measurements").setMessageParams(request.getParameter("encounter"), sb.toString());
 
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       else {
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
       
     }
     else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the measurement(s). I cannot find the encounter that you intended in the database.");
-      out.println(ServletUtilities.getFooter(context));
-
+      actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
     out.close();
     myShepherd.closeDBTransaction();
   } 

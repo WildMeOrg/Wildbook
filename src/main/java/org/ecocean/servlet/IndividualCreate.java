@@ -32,11 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.URISyntaxException;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 
@@ -60,9 +57,9 @@ public class IndividualCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -88,6 +85,15 @@ public class IndividualCreate extends HttpServlet {
       
     }
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
+    actionResult.setMessageParams(request.getParameter("number"), request.getParameter("individual"));
 
     //create a new MarkedIndividual from an encounter
 
@@ -183,27 +189,23 @@ public class IndividualCreate extends HttpServlet {
             ;
 
             //output success statement
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create <strong>" + newIndividualID + "</strong>.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\">View <strong>" + newIndividualID + "</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
+            actionResult.setMessageOverrideKey("createIndividual").setMessageParams(request.getParameter("number"), newIndividualID);
+            String linkEnc = String.format("http://%s/encounters/encounter.jsp?number=%s", CommonConfiguration.getURLLocation(request), request.getParameter("number"));
+            String linkInd = String.format("http://%s/individuals.jsp?number=%s", CommonConfiguration.getURLLocation(request), newIndividualID);
+            actionResult.setLinkOverrideKey("createIndividual").setLinkParams(request.getParameter("number"), linkEnc, newIndividualID, linkInd);
+
             String message = "Encounter #" + request.getParameter("number") + " was identified as a new individual. The new individual has been named " + newIndividualID + ".";
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
             }
           } else {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT used to create a new individual. This encounter is currently being modified by another user. Please go back and try to create the new individual again in a few seconds.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + newIndividualID + "\">View <strong>" + newIndividualID + "</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-
+            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
           }
 
 
         } else {
 
+          actionResult.setSucceeded(false);
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
 
@@ -212,32 +214,24 @@ public class IndividualCreate extends HttpServlet {
       } else if ((myShepherd.isMarkedIndividual(newIndividualID))) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> A marked individual by this name already exists in the database. Select a different name and try again.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setSucceeded(false).setMessageOverrideKey("createIndividual-exists");
 
       } else {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> You cannot make a new marked individual from this encounter because it is already assigned to another marked individual. Remove it from its previous individual if you want to re-assign it elsewhere.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setSucceeded(false).setMessageOverrideKey("createIndividual-assigned");
       }
 
 
     } 
     else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I didn't receive enough data to create a marked individual from this encounter.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
-    
   }
 }
-
-

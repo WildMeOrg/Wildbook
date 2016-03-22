@@ -20,9 +20,7 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,7 +30,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Properties;
 
 
 public class EncounterSetScarring extends HttpServlet {
@@ -54,14 +55,25 @@ public class EncounterSetScarring extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
     boolean isOwner = true;
+
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     /**
      if(request.getParameter("number")!=null){
@@ -91,11 +103,8 @@ public class EncounterSetScarring extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
-      String scar = "None";
-      scar = request.getParameter("scars");
-
-      String oldScar = "None";
-
+      String scar = request.getParameter("scars");
+      String oldScar = encprops.getProperty("noValue");
 
       try {
 
@@ -111,58 +120,26 @@ public class EncounterSetScarring extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter scarring has been updated from " + oldScar + " to " + scar + ".");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
+        if (oldScar == null)
+          oldScar = encprops.getProperty("noValue");
+        if (scar == null)
+          scar = encprops.getProperty("noValue");
+        actionResult.setMessageOverrideKey("scarring").setMessageParams(request.getParameter("number"), scar, oldScar);
+
         String message = "Encounter #" + request.getParameter("number") + " scarring has been updated from " + oldScar + " to " + scar + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Encounter scarring was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
     } else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-      int allStatesSize=allStates.size();
-      if(allStatesSize>0){
-        for(int i=0;i<allStatesSize;i++){
-          String stateName=allStates.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-        }
-      }
-      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-      out.println(ServletUtilities.getFooter(context));
-
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
-	
-	

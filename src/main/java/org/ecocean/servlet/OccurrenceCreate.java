@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -54,8 +56,9 @@ public class OccurrenceCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -70,6 +73,16 @@ public class OccurrenceCreate extends HttpServlet {
       myOccurrenceID=ServletUtilities.cleanFileName(myOccurrenceID);
       
     }
+
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
+    actionResult.setMessageParams(request.getParameter("number"), request.getParameter("occurrence"));
 
     //Create a new Occurrence from an encounter
 
@@ -105,21 +118,14 @@ public class OccurrenceCreate extends HttpServlet {
             myShepherd.commitDBTransaction();
             myShepherd.closeDBTransaction();
 
-
             //output success statement
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create occurrence <strong>" + myOccurrenceID + "</strong>.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + ".</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-          } 
+            actionResult.setMessageOverrideKey("createOccurrence");
+            String linkEnc = String.format("http://%s/encounters/encounter.jsp?number=%s", CommonConfiguration.getURLLocation(request), request.getParameter("number"));
+            String linkOcc = String.format("http://%s/occurrence.jsp?number=%s", CommonConfiguration.getURLLocation(request), myOccurrenceID);
+            actionResult.setLinkOverrideKey("createOccurrence").setLinkParams(request.getParameter("number"), linkEnc, request.getParameter("occurrence"), linkOcc);
+          }
           else {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT used to create a new occurrence. This encounter is currently being modified by another user. Please go back and try to create the new occurrence again in a few seconds.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + "</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-
+            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
           }
 
 
@@ -127,6 +133,7 @@ public class OccurrenceCreate extends HttpServlet {
 
           myShepherd.rollbackDBTransaction();
           myShepherd.closeDBTransaction();
+          actionResult.setSucceeded(false);
 
         }
 
@@ -134,33 +141,24 @@ public class OccurrenceCreate extends HttpServlet {
       else if ((myShepherd.isOccurrence(myOccurrenceID))) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> An occurrence with this identifier already exists in the database. Select a different identifier and try again.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
-      } 
+        actionResult.setSucceeded(false).setMessageOverrideKey("createOccurrence-exists");
+      }
       else {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> You cannot make a new occurrence from this encounter because it is already assigned to another occurrence. Remove it from its previous occurrence if you want to re-assign it elsewhere.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setSucceeded(false).setMessageOverrideKey("createOccurrence-assigned");
       }
 
 
     } 
     else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I didn't receive enough data to create a new occurrence from this encounter.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
-    
   }
 }
-
-

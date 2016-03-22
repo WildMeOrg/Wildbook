@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
@@ -31,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
 
 
 public class IndividualAddComment extends HttpServlet {
@@ -46,19 +49,31 @@ public class IndividualAddComment extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
+            .setParams(request.getParameter("individual"));
 
     myShepherd.beginDBTransaction();
+
     if ((request.getParameter("individual") != null) && (request.getParameter("user") != null) && (request.getParameter("comments") != null) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
 
       MarkedIndividual commentMe = myShepherd.getMarkedIndividual(request.getParameter("individual"));
+      actionResult.setParams(request.getParameter("individual"), request.getParameter("comments"), commentMe.getComments());
       if (ServletUtilities.isUserAuthorizedForIndividual(commentMe, request)) {
 
         try {
@@ -71,39 +86,27 @@ public class IndividualAddComment extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Success:</strong> I have successfully added your comments.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
+          actionResult.setMessageOverrideKey("addComment");
           String message = "A new comment has been added to " + request.getParameter("individual") + ". The new comment is: \n" + request.getParameter("comments");
           ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
         } else {
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying this record. Please try to add your comments again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("shark") + "\">Return to individual " + request.getParameter("individual") + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
-
+          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
         }
 
       } else {
         myShepherd.rollbackDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> You are not authorized to modify this database record.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false);
       }
     } else {
-
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Failure:</strong> I do not have enough information to add your comments.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
-
 }

@@ -36,7 +36,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 import org.joda.time.DateTime;
 
@@ -54,7 +56,9 @@ public class RelationshipCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
 
     //set up for response
     response.setContentType("text/html");
@@ -63,12 +67,21 @@ public class RelationshipCreate extends HttpServlet {
 
     System.out.println("RelationshipCreate: "+request.getQueryString());
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
+            .setLinkParams(request.getParameter("individual"))
+            .setMessageParams(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
+
     if ((request.getParameter("markedIndividualName1") != null) && (request.getParameter("markedIndividualName2") != null) && (request.getParameter("type") != null)) {
       
 
       //boolean isEdit=false;
-      String context="context0";
-      context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         
         Relationship rel=new Relationship();
@@ -191,29 +204,19 @@ public class RelationshipCreate extends HttpServlet {
         myShepherd=null;
        
 
-            //output success statement
-            out.println(ServletUtilities.getHeader(request));
-            if(createThisRelationship){
-              out.println("<strong>Success:</strong> A relationship of type " + request.getParameter("type") + " was created between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+".");
-            }
-            else{
-              out.println("<strong>Failure:</strong>  I could not create the relationship. Have your administrator check the log files for you to understand the problem.");
-              
-            }
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
-            
-            out.println(ServletUtilities.getFooter(context));
-            
- 
-      
-      
-}
+        //output success statement
+        if(createThisRelationship){
+          actionResult.setMessageOverrideKey("relationship");
+        }
+        else{
+          actionResult.setSucceeded(false).setMessageOverrideKey("relationship");
+        }
+    }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
-    
   }
 }
-
-

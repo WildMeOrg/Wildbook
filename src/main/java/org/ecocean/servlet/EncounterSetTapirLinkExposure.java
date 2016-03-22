@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
@@ -31,7 +32,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 public class EncounterSetTapirLinkExposure extends HttpServlet {
@@ -47,14 +50,25 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
+
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
+            .setParams(request.getParameter("number"));
 
     /**
      if(request.getParameter("number")!=null){
@@ -88,7 +102,6 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
           myShepherd.beginDBTransaction();
           Encounter newenc = myShepherd.getEncounter(request.getParameter("number"));
 
-
           try {
 
             if (newenc.getOKExposeViaTapirLink()) {
@@ -96,6 +109,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             } else {
               newenc.setOKExposeViaTapirLink(true);
             }
+            actionResult.addParams(newenc.getOKExposeViaTapirLink(), !newenc.getOKExposeViaTapirLink());
 
             //newenc.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>"+"Approved this encounter for TapirLink exposure.");
           } catch (Exception le) {
@@ -109,61 +123,28 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
 
           if (!locked) {
             myShepherd.commitDBTransaction(action);
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> I have changed encounter " + request.getParameter("number") + " TapirLink exposure status.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
-            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-
-            out.println(ServletUtilities.getFooter(context));
+            actionResult.setMessageOverrideKey("tapirLinkExpose");
           } else {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> I have NOT changed encounter " + request.getParameter("number") + " TapirLink status. This encounter is currently being modified by another user, or an unknown error occurred.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
-            out.println("<p><a href=\"individualSearchResults.jsp\">View all individual</a></font></p>");
-            out.println(ServletUtilities.getFooter(context));
-
-
+            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
           }
 
         } else {
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Error:</strong> I don't know which new encounter you're trying to approve.");
-          out.println(ServletUtilities.getFooter(context));
-
+          actionResult.setSucceeded(false);
         }
 
       } else {
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
-        out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setSucceeded(false);
       }
 
     } else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
-      out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
-
 }

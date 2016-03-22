@@ -19,6 +19,7 @@
 
 package org.ecocean.servlet;
 
+import org.ecocean.ActionResult;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
@@ -31,6 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
 
 //import javax.jdo.*;
 //import com.poet.jdo.*;
@@ -52,23 +55,36 @@ public class IndividualSetNickName extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/individuals.jsp?number=%s", request.getParameter("individual"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
+            .setParams(request.getParameter("individual"));
+
     String sharky = "None", nickname = "", namer = "";
-
-
     sharky = request.getParameter("individual");
     nickname = request.getParameter("nickname");
     namer = request.getParameter("namer");
     myShepherd.beginDBTransaction();
+
     if ((myShepherd.isMarkedIndividual(sharky)) && (request.getParameter("nickname") != null) && (request.getParameter("namer") != null)) {
       MarkedIndividual myShark = myShepherd.getMarkedIndividual(sharky);
+      actionResult.setParams(sharky,
+              nickname, myShark.getNickName() == null ? "" : myShark.getNickName(),
+              namer, myShark.getNickNamer() == null ? "" : myShark.getNickNamer());
       try {
 
 
@@ -85,32 +101,20 @@ public class IndividualSetNickName extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the nickname for " + sharky + " to " + nickname + ".</p>");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        String message = "The nickname for " + sharky + " was set as " + nickname + ".";
-
+        actionResult.setMessageOverrideKey("nickName");
       } else {
-
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> This record is currently being modified by another user. Please wait a few seconds before trying to nickname this individual again.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the nickname. I cannot find the shark that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
     out.close();
     myShepherd.closeDBTransaction();
   }
-
-
 }
-	
-	

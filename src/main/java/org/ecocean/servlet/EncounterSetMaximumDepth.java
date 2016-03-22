@@ -20,9 +20,7 @@
 package org.ecocean.servlet;
 
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
+import org.ecocean.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,7 +30,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Properties;
 
 
 public class EncounterSetMaximumDepth extends HttpServlet {
@@ -54,8 +55,10 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
@@ -63,8 +66,16 @@ public class EncounterSetMaximumDepth extends HttpServlet {
     boolean locked = false;
     boolean isOwner = true;
 
-    String newDep="null";
+    String newDep = encprops.getProperty("unknown");
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //reset encounter depth in meters
 
@@ -72,7 +83,7 @@ public class EncounterSetMaximumDepth extends HttpServlet {
       myShepherd.beginDBTransaction();
       Encounter changeMe = myShepherd.getEncounter(request.getParameter("number"));
       setDateLastModified(changeMe);
-      String oldDepth = "null";
+      String oldDepth = encprops.getProperty("unknown");
 
 
       try {
@@ -84,7 +95,7 @@ public class EncounterSetMaximumDepth extends HttpServlet {
         if((request.getParameter("depth") != null)&&(!request.getParameter("depth").equals(""))){
           Double theDepth = new Double(request.getParameter("depth"));
         	changeMe.setDepth(theDepth);
-        	newDep = request.getParameter("depth")+ " meters";
+        	newDep = request.getParameter("depth");
         }
         else{
           changeMe.setDepth(null);
@@ -108,61 +119,23 @@ public class EncounterSetMaximumDepth extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success:</strong> Encounter depth has been updated from " + oldDepth + " meters to " + newDep+".");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
+        actionResult.setMessageOverrideKey("maximumDepth").setMessageParams(request.getParameter("number"), newDep, oldDepth);
         String message = "The size of encounter#" + request.getParameter("number") + " has been updated from " + oldDepth + " meters to " + request.getParameter("depth") + " meters.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       }
       else {
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure:</strong> Encounter depth was NOT updated because another user is currently modifying the record for this encounter or the value input does not translate to a valid depth number.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
-
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
     }
     else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-      int allStatesSize=allStates.size();
-      if(allStatesSize>0){
-        for(int i=0;i<allStatesSize;i++){
-          String stateName=allStates.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-        }
-      }
-      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-      out.println(ServletUtilities.getFooter(context));
-
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
-
-

@@ -3,6 +3,9 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Map;
 
 import org.ecocean.*;
 
@@ -20,18 +23,27 @@ public class EncounterSetCountry extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Map<String, String> mapI18n = CommonConfiguration.getI18nPropertiesMap("country", langCode, context, false);
+
     Shepherd myShepherd=new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("encounter"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("encounter"));
+
     String encNum="None";
-
-
-
     encNum=request.getParameter("encounter");
     String country="";
     myShepherd.beginDBTransaction();
@@ -58,38 +70,22 @@ public class EncounterSetCountry extends HttpServlet {
       if(!locked){
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully changed the reported country for encounter "+encNum+" to "+country+".</p>");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-        String message="The country for encounter "+encNum+" was set to "+country+".";
+        actionResult.setMessageOverrideKey("country").setMessageParams(request.getParameter("encounter"), mapI18n.get(country));
       }
       else{
-
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
-                  }
-                else {
-                  myShepherd.rollbackDBTransaction();
-                out.println(ServletUtilities.getHeader(request));
-                out.println("<strong>Error:</strong> I was unable to set the country. I cannot find the encounter that you intended in the database.");
-                out.println(ServletUtilities.getFooter(context));
-
-                  }
-                out.close();
-                myShepherd.closeDBTransaction();
-                }
-
-
-
-
-
+    }
+    else {
+      myShepherd.rollbackDBTransaction();
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
+    out.close();
+    myShepherd.closeDBTransaction();
+  }
+}

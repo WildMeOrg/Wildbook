@@ -32,6 +32,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Properties;
 import java.util.StringTokenizer;
 
 
@@ -54,17 +57,27 @@ public class EncounterResetDate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
-
     boolean isOwner = true;
 
-   
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link)
+            .setLinkParams(request.getParameter("number"));
+
     if ((request.getParameter("number") != null) ) {
       myShepherd.beginDBTransaction();
       Encounter fixMe = myShepherd.getEncounter(request.getParameter("number"));
@@ -155,32 +168,30 @@ public class EncounterResetDate extends HttpServlet {
 
       out.println(ServletUtilities.getHeader(request));
       if (!locked) {
-
         myShepherd.commitDBTransaction();
-        out.println("<strong>Success:</strong> I have changed the encounter date from " + oldDate + " to " + newDate + ".");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+
+        String nd = newDate, od = oldDate;
+        if (nd == null || "".equals(nd) || "Unknown".equals(nd))
+          nd = encprops.getProperty("unknown");
+        if (od == null || "".equals(od) || "Unknown".equals(od))
+          od = encprops.getProperty("unknown");
+        actionResult.setMessageOverrideKey("resetDate").addParams(nd, od);
+
         String message = "The date of encounter " + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
-
-        out.println("<strong>Failure:</strong> I have NOT changed the encounter date because another user is currently modifying this encounter. Please try this operation again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
-
-
+        actionResult.setSucceeded(false).setMessageOverrideKey("locked");
       }
-      out.println(ServletUtilities.getFooter(context));
 
     } else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
 }
-	
-	

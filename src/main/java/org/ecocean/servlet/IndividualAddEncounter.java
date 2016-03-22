@@ -20,6 +20,8 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -30,12 +32,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.URISyntaxException;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import javax.jdo.*;
@@ -59,15 +57,26 @@ public class IndividualAddEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
     Shepherd myShepherd = new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
     boolean isAssigned = false;
+
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "individual.editField", true, link)
+            .setParams(request.getParameter("individual"), request.getParameter("number"))
+            .setLinkOverrideKey("addEncounter");
 
     String action = request.getParameter("action");
 
@@ -209,16 +218,15 @@ public class IndividualAddEncounter extends HttpServlet {
 
 
             //print successful result notice
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to " + request.getParameter("individual") + ".");
+            actionResult.setMessageOverrideKey("addEncounter").setLink("#");
             if (sexMismatch) {
-              out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
+              actionResult.setCommentOverrideKey("addEncounter-sexMismatch");
             }
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View individual " + request.getParameter("individual") + "</a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-            String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
+            String linkEnc = String.format("http://%s/encounters/encounter.jsp?number=%s", CommonConfiguration.getURLLocation(request), request.getParameter("number"));
+            String linkInd = String.format("http://%s/individuals.jsp?number=%s", CommonConfiguration.getURLLocation(request), request.getParameter("individual"));
+            actionResult.setLinkOverrideKey("addEncounter").setLinkParams(request.getParameter("individual"), linkInd, request.getParameter("number"), linkEnc);
 
+            String message = "Encounter #" + request.getParameter("number") + " was added to " + request.getParameter("individual") + ".";
             if (request.getParameter("noemail") == null) {
               ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
               ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
@@ -228,42 +236,33 @@ public class IndividualAddEncounter extends HttpServlet {
 
           //if lock exception thrown
           else {
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Another user is currently modifying this record in the database. Please try to add the encounter again after a few seconds.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-
+            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
           }
 
 
         } catch (Exception e) {
-
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Error:</strong> No such record exists in the database.");
-          out.println(ServletUtilities.getFooter(context));
+          actionResult.setSucceeded(false);
           myShepherd.rollbackDBTransaction();
           e.printStackTrace();
           //myShepherd.closeDBTransaction();
         }
       } else {
-        out.println(ServletUtilities.getHeader(request));
+        actionResult.setSucceeded(false).setMessageOverrideKey("addEncounter-assigned").setLinkOverrideKey("addEncounter-assigned");
         out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent individual.");
-        out.println(ServletUtilities.getFooter(context));
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();
       }
 
 
     } else {
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I didn't receive enough data to add this encounter to a marked individual.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
 
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
 
     out.close();
     myShepherd.closeDBTransaction();
   }
-
 }

@@ -24,7 +24,10 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.Properties;
 
 import org.ecocean.*;
 
@@ -49,16 +52,25 @@ public class EncounterSetGPS extends HttpServlet {
     
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
-    String context="context0";
-    context=ServletUtilities.getContext(request);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
+    Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
     Shepherd myShepherd=new Shepherd(context);
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
     boolean isOwner=true;
-   
 
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     //reset GPS coordinates
 
@@ -73,13 +85,12 @@ public class EncounterSetGPS extends HttpServlet {
           String oldGPS="";
           
           if((changeMe.getDecimalLatitude()==null)||(changeMe.getDecimalLongitude()==null)){
-            oldGPS="NO VALUE";
+            oldGPS = encprops.getProperty("noValue");
           }
           else{
-            oldGPS="("+changeMe.getDecimalLatitude()+" latitude, "+changeMe.getDecimalLongitude()+" longitude)";
-            
+            oldGPS = String.format("(%s\\u00b0 %s, %s\\u00b0 %s)", changeMe.getDecimalLatitude(), encprops.getProperty("latitude"), changeMe.getDecimalLongitude(), encprops.getProperty("longitude"));
           }
-          String newGPS="("+lat+" latitude, "+longitude+" longitude)";
+          String newGPS = String.format("(%s\\u00b0 %s, %s\\u00b0 %s)", lat, encprops.getProperty("latitude"), longitude, encprops.getProperty("longitude"));
           
           try{
           
@@ -113,7 +124,7 @@ public class EncounterSetGPS extends HttpServlet {
 
               //changeMe.setDWCDecimalLatitude(-9999.0);
               //changeMe.setDWCDecimalLongitude(-9999.0);
-              newGPS="NO VALUE";
+              newGPS = encprops.getProperty("noValue");
               
             }
             changeMe.addComments("<p><em>"+request.getRemoteUser()+" on "+(new java.util.Date()).toString()+"</em><br>Changed encounter GPS coordinates from "+oldGPS+" to "+newGPS+".</p>");
@@ -129,63 +140,27 @@ public class EncounterSetGPS extends HttpServlet {
           if(!locked){
           
             myShepherd.commitDBTransaction();
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Success:</strong> The encounter's recorded GPS location has been updated from "+oldGPS+" to "+newGPS+".");
-            out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
-            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-                out.println(ServletUtilities.getFooter(context));
+            actionResult.setMessageOverrideKey("gps").setMessageParams(request.getParameter("number"), newGPS, oldGPS);
+
             String message="The recorded GPS location for encounter #"+request.getParameter("number")+" has been updated from "+oldGPS+" to "+newGPS+".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-            }
-          else{
-            
-            out.println(ServletUtilities.getHeader(request));
-            out.println("<strong>Failure:</strong> Encounter GPS location was NOT updated. An error was encountered. Please try this operation again in a few seconds. If this condition persists, contact the webmaster.");
-            out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
-            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-                out.println(ServletUtilities.getFooter(context));
-            
-            }
-          
-        }   
+          }
+          else {
+            actionResult.setSucceeded(false).setMessageOverrideKey("locked");
+          }
+
+        }
           
         else {
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-          out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
-          int allStatesSize=allStates.size();
-          if(allStatesSize>0){
-            for(int i=0;i<allStatesSize;i++){
-              String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-            }
-          }
-          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-              out.println(ServletUtilities.getFooter(context));  
-            
-          }
-        
-        
-//end GPS reset
-      out.close();
-      myShepherd.closeDBTransaction();
-      }
+          actionResult.setSucceeded(false);
+        }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
+    out.close();
+    myShepherd.closeDBTransaction();
+  }
 }
 	
