@@ -1018,7 +1018,7 @@
   <!-- TranslateQuery -->
   <servlet>
     <servlet-name>TranslateQuery</servlet-name>
-    <servlet-class>org.ecocean.servlet.TranslateQuery.</servlet-class>
+    <servlet-class>org.ecocean.servlet.TranslateQuery</servlet-class>
   </servlet>
 
 
