@@ -2,7 +2,7 @@ package org.ecocean;
 
 import org.ecocean.Util;
 import org.ecocean.media.MediaAsset;
-import org.json.JSONObject;
+import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import java.util.List;
 import javax.jdo.Query;
@@ -45,7 +45,7 @@ public class WBQuery implements java.io.Serializable {
     public JSONObject getParameters() {
         if (parameters != null) return parameters;
         //System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
-        JSONObject j = Util.stringToJSONObject(parametersAsString);
+        JSONObject j = Util.stringToDatanucleusJSONObject(parametersAsString);
         parameters = j;
         return j;
     }
@@ -64,7 +64,8 @@ public class WBQuery implements java.io.Serializable {
       List<Object> out;
       Query query = toQuery(myShepherd);
       out = (List<Object>) query.execute();
-      query.closeAll();
+      // closing the query for some reason makes out inaccessible
+      //query.closeAll();
       return out;
     }
 
@@ -76,6 +77,7 @@ public class WBQuery implements java.io.Serializable {
     public Query toQuery(Shepherd myShepherd) throws RuntimeException {
         Query query = null;
         try {  //lets catch any shenanigans that happens here, and throw our own RuntimeException
+            System.out.println("starting toQuery");
             String qString = toJDOQL();
             System.out.println("starting toQuery with query string = "+qString);
             query = myShepherd.getPM().newQuery(qString);
@@ -95,8 +97,9 @@ public class WBQuery implements java.io.Serializable {
      */
     public String toJDOQL() {
         /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
-        String output = "SELECT FROM "+className+" WHERE ";
+        String output = "SELECT FROM "+className;
         String[] names = JSONObject.getNames(parameters);
+        if (names.length>0) {output += " WHERE ";}
         String[] parsedFields = new String[names.length];
         for (int i=0; i<names.length; i++) {
           parsedFields[i]=parseField(names[i]);
@@ -140,7 +143,7 @@ public class WBQuery implements java.io.Serializable {
             output += parseEqualityField(field);
             break;
           }
-          case "org.json.JSONObject": {
+          case "org.datanucleus.api.rest.orgjson.JSONObject": {
             // This case deals with operators such as $ne and $and
             JSONObject value = parameters.getJSONObject(field);
             output += parseOperatorField(field);
@@ -207,7 +210,7 @@ public class WBQuery implements java.io.Serializable {
     /**
      * Really a utility function, this is like glue.join(strings) in JavaScript
      */
-    private static String joinString (String[] strings, String glue) {
+    public static String joinString (String[] strings, String glue) {
       if (strings.length==0) return "";
       String res = strings[0];
       for (int i=1; i<strings.length; i++) {

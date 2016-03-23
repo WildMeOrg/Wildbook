@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
+   import="org.ecocean.*,
 java.util.Map,
 java.util.List,
 java.io.BufferedReader,
@@ -7,11 +7,11 @@ java.io.IOException,
 java.io.InputStream,
 java.io.InputStreamReader,
 java.io.File,
-org.json.JSONObject,
+org.datanucleus.api.rest.orgjson.JSONObject,
 
 org.ecocean.media.*,
 javax.jdo.Query
-              "
+            "
 %>
 
 
@@ -21,8 +21,12 @@ javax.jdo.Query
 
 Shepherd myShepherd=null;
 myShepherd = new Shepherd("context0");
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 //WBQuery wbq = ((WBQuery) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(WBQuery.class, 1), true)));
+
+/*
+I've left this big comment block in because it shows a large query that can be translated: exJSON2
 
 JSONObject exJSON = new JSONObject("{\"class\":\"org.ecocean.Encounter\",\"query\": {\"sex\":\"male\"}}");
 
@@ -54,7 +58,7 @@ out.println("</ul></p>");
 out.println("<p>Test 2:<ul>");
 out.println("<li>Original JSON: "+exJSON2.toString()+"</li>");
 out.println("<li>Translated: "+toJDOQL2+"</li></ul></p>");
-/*
+
 Query q2 = wbq2.toQuery(myShepherd);
 out.println("</br><p> Query info: <ul>");
 // the following line checks that the query is valid
@@ -68,3 +72,33 @@ out.println("</ul></p>");
 
 
 %>
+<div class="results">
+
+</div>
+
+<script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
+<script>
+
+  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
+  // Stringify the query so it can be passed to java
+  var testString = JSON.stringify(testQuery);
+  $(".results").append("<p>Query = "+testString+"</p>");
+  // ... but attach that string as a named variable because HTTP posts have named variables
+  var args = {stringifiedJSONQuery: testString};
+  // now just use $.post("TranslateQuery", args, callbackFunctionOnReturned(data))
+  $.post( "TranslateQuery", args, function( data ) {
+    $(".results").append( "Data Loaded: " + data );
+  });
+
+/*
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+          var data = xhr.responseText;
+          $(".results").append("here's the data: "+data);
+      }
+  }
+  xhr.open('GET', 'TranslateQuery', true);
+  xhr.send(testString);
+  */
+</script>
