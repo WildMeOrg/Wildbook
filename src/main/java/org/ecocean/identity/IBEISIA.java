@@ -148,6 +148,24 @@ System.out.println("tlist.size()=" + tlist.size());
     }
 
 
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectAnnotations is not set");
+        URL url = new URL(u);
+
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+        ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
+
+        for (MediaAsset ma : mas) {
+            malist.add(toFancyUUID(ma.getUUID()));
+        }
+        map.put("image_uuid_list", malist);
+
+        return RestClient.post(url, new JSONObject(map));
+    }
+
+
     public static JSONObject getJobStatus(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
@@ -577,18 +595,20 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
 
     public static void waitForTrainingJobs(ArrayList<String> taskIds, Shepherd myShepherd) {
         boolean stillWaiting = true;
-        while (stillWaiting) {  //TODO we could have some way to bail i guess!
+        int countdown = 100;
+        while (stillWaiting && (countdown > 0)) {
+            countdown--;
             stillWaiting = false; //optimism; prove us wrong
             int idLen = taskIds.size();
             for (int i = 0 ; i < idLen ; i++) {
                 if (waitingOnTask(taskIds.get(i), myShepherd)) {
-System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(i) + " so will sleep a while (passed " + i + " of " + idLen +")");
+System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(i) + " so will sleep a while (countdown=" + countdown + "; passed " + i + " of " + idLen +")");
                     stillWaiting = true;
                     break; //this is cause enough to sleep for a bit -- we dont need to check any more!
                 }
             }
             if (stillWaiting) {
-                try { Thread.sleep(2000); } catch (java.lang.InterruptedException ex) {}
+                try { Thread.sleep(3000); } catch (java.lang.InterruptedException ex) {}
             }
         }
 System.out.println("!!!! waitForTrainingJobs() has finished.");
