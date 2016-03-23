@@ -25,7 +25,11 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
-
+/**
+ * request looks like this
+ *
+ *
+ */
 public class TranslateQuery extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {

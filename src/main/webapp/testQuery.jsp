@@ -1,5 +1,5 @@
-  <%@ page contentType="text/html; charset=utf-8" language="java"
-     import="org.ecocean.*,
+<%@ page contentType="text/html; charset=utf-8" language="java"
+   import="org.ecocean.*,
 java.util.Map,
 java.util.List,
 java.io.BufferedReader,
@@ -11,7 +11,7 @@ org.datanucleus.api.rest.orgjson.JSONObject,
 
 org.ecocean.media.*,
 javax.jdo.Query
-              "
+            "
 %>
 
 
@@ -26,6 +26,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 //WBQuery wbq = ((WBQuery) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(WBQuery.class, 1), true)));
 
 /*
+I've left this big comment block in because it shows a large query that can be translated: exJSON2
+
 JSONObject exJSON = new JSONObject("{\"class\":\"org.ecocean.Encounter\",\"query\": {\"sex\":\"male\"}}");
 
 JSONObject exJSON2 = new JSONObject("{\"class\": \"org.ecocean.Encounter\",\"query\": {\"location\": \"The Big Lagoon\",\"sex\": {\"$ne\": \"female\"},\"maxDate\": {\"$gte\": \"2013-05-01T00:00:00\"},\"minDate\": {\"$lt\": \"2013-06-01T00:00:00\"}}}");
@@ -77,22 +79,26 @@ out.println("</ul></p>");
 <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
 <script>
 
-    var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
-    var testString = JSON.stringify(testQuery);
-    var args = {stringifiedJSONQuery: testString};
-    $.post( "TranslateQuery", args, function( data ) {
-      $(".results").append( "Data Loaded: " + data );
-    });
+  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
+  // Stringify the query so it can be passed to java
+  var testString = JSON.stringify(testQuery);
+  $(".results").append("<p>Query = "+testString+"</p>");
+  // ... but attach that string as a named variable because HTTP posts have named variables
+  var args = {stringifiedJSONQuery: testString};
+  // now just use $.post("TranslateQuery", args, callbackFunctionOnReturned(data))
+  $.post( "TranslateQuery", args, function( data ) {
+    $(".results").append( "Data Loaded: " + data );
+  });
 
 /*
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4) {
-            var data = xhr.responseText;
-            $(".results").append("here's the data: "+data);
-        }
-    }
-    xhr.open('GET', 'TranslateQuery', true);
-    xhr.send(testString);
-    */
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4) {
+          var data = xhr.responseText;
+          $(".results").append("here's the data: "+data);
+      }
+  }
+  xhr.open('GET', 'TranslateQuery', true);
+  xhr.send(testString);
+  */
 </script>
