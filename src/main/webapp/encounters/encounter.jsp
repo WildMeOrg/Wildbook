@@ -606,7 +606,7 @@ $(function() {
     							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%> 
+    								 <%=encprops.getProperty("identified_as") %> <%=encprops.getProperty("unassigned")%>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
