@@ -96,7 +96,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
 
-        JSONObject j = jsonFromRequest(request);
+        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd);
         myShepherd.commitDBTransaction();
         out.println(res.toString());
@@ -228,21 +228,6 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
         rtn.put("sets", js);
         rtn.put("success", true);
         return rtn;
-    }
-
-    private JSONObject jsonFromRequest(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = request.getReader();
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-        } finally {
-            reader.close();
-        }
-//ParseException
-        return new JSONObject(sb.toString());
     }
 
 }

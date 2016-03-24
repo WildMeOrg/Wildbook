@@ -39,6 +39,7 @@ import javax.jdo.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
+import org.json.JSONObject;
 
 
 import java.io.*;
@@ -647,4 +648,21 @@ String rootWebappPath = "xxxxxx";
     }
     return myText.toString();
   }
+
+
+    public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = request.getReader();
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } finally {
+            reader.close();
+        }
+//ParseException
+        return new JSONObject(sb.toString());
+    }
+
 }
