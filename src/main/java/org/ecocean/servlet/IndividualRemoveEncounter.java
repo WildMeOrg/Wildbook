@@ -96,9 +96,17 @@ public class IndividualRemoveEncounter extends HttpServlet {
         String name_s = "";
         try {
           MarkedIndividual removeFromMe = myShepherd.getMarkedIndividual(old_name);
-          name_s = removeFromMe.getName();
-          while (removeFromMe.getEncounters().contains(enc2remove)) {
-            removeFromMe.removeEncounter(enc2remove, context);
+          
+          if(removeFromMe!=null){
+            name_s = removeFromMe.getName();
+            while (removeFromMe.getEncounters().contains(enc2remove)) {
+              removeFromMe.removeEncounter(enc2remove, context);
+            }
+            removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
+            if (removeFromMe.totalEncounters() == 0) {
+              myShepherd.throwAwayMarkedIndividual(removeFromMe);
+              wasRemoved = true;
+            }
           }
 
           //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
@@ -107,12 +115,8 @@ public class IndividualRemoveEncounter extends HttpServlet {
           enc2remove.setIndividualID(null);
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
-          removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
+          
 
-          if (removeFromMe.totalEncounters() == 0) {
-            myShepherd.throwAwayMarkedIndividual(removeFromMe);
-            wasRemoved = true;
-          }
 
         } catch (java.lang.NullPointerException npe) {
           npe.printStackTrace();
