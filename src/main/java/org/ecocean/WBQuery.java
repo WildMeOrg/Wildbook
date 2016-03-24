@@ -7,6 +7,10 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import java.util.List;
 import javax.jdo.Query;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 
 public class WBQuery implements java.io.Serializable {
@@ -114,6 +118,7 @@ public class WBQuery implements java.io.Serializable {
         return Class.forName(className);  //this also will throw Exception if no good
     }
 
+
     //TODO
     public void querySetRange(Query query) {
         query.setRange(0,10);
@@ -178,6 +183,32 @@ public class WBQuery implements java.io.Serializable {
       return parseEqualityField(field, true);
     }
 
+    /**
+     * This does type-checking, and should correspond to our global classDefinitions.json.
+     * @param className is a wildbook class name e.g. org.ecocean.Encounter
+     * @param field is a field name e.g. maxYearsBetweenResightings
+     * @returns whether the described class field has values that should be escaped in quotes in a JDOQL call, e.g. if the type of class.field is String or dateTime (returns true) vs numeric (returns false)
+     */
+    public static boolean classFieldIsEscapedInQuotes(String className, String field) {
+      switch (className) {
+        case "org.ecocean.Encounter": {
+          return (!encounterNonStringFields.contains(field));
+        }
+        case "org.ecocean.MarkedIndividual": {
+          return (!markedIndividualNonStringFields.contains(field));
+        }
+        case "org.ecocean.Annotation": {
+          return (!annotationNonStringFields.contains(field));
+        }
+        case "org.ecocean.media.MediaAsset": {
+          return (!mediaAssetNonStringFields.contains(field));
+        }
+      }
+      return true;
+    }
+
+
+
 
     /**
      * @param field the name of field whose entry in this.parameters looks like "fieldName : {$operator: value}"
@@ -194,7 +225,10 @@ public class WBQuery implements java.io.Serializable {
         String operator = operators[i];
         if (comparisonOperator.containsKey(operator)) {
           String value = fieldQuery.optString(operator, "PARSE-ERROR");
-          output += comparisonOperator.get(operator).execute(field, value);
+          // here is where type inference happens
+          boolean escapeValueInQuotes = classFieldIsEscapedInQuotes(className, field);
+
+          output += comparisonOperator.get(operator).execute(field, value, escapeValueInQuotes);
         }
         else if (logicalOperator.containsKey(operator)) {
           output += ("LOGICAL OPERATORS NOT SUPPORTED YET: Error parsing "+operator);
@@ -273,66 +307,96 @@ public class WBQuery implements java.io.Serializable {
        * actually happens.
        * returns a JDOQL WHERE-clause statement such as (field <= value)
        */
-      String execute(String field, String value);
+      String execute(String field, String value, boolean escapeValueInQuotes);
+      /**
+       *
+       */
     }
 
-
-
     // the below is a class static literal defined in the WBQuery instance initializer
-    private static HashMap<String, CompOperator> comparisonOperator = new HashMap<String, CompOperator>();
-    {
-      comparisonOperator.put("$eq", new CompOperator() {
+    private static final Map<String, CompOperator> comparisonOperator;
+    static {
+      HashMap<String, CompOperator> compOperator = new HashMap<String, CompOperator>();
+      compOperator.put("$eq", new CompOperator() {
         public String inverseOp() {return "$ne";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, "=", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, "=", value, escapeValueInQuotes));
         }
       });
-      comparisonOperator.put("$ne", new CompOperator() {
+      compOperator.put("$ne", new CompOperator() {
         public String inverseOp() {return "$eq";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, "!=", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, "!=", value, escapeValueInQuotes));
         }
       });
-      comparisonOperator.put("$lt", new CompOperator() {
+      compOperator.put("$lt", new CompOperator() {
         public String inverseOp() {return "$gte";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, "<", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, "<", value, escapeValueInQuotes));
         }
       });
-      comparisonOperator.put("$gt", new CompOperator() {
+      compOperator.put("$gt", new CompOperator() {
         public String inverseOp() {return "$lte";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, ">", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, ">", value, escapeValueInQuotes));
         }
       });
-      comparisonOperator.put("$lte", new CompOperator() {
+      compOperator.put("$lte", new CompOperator() {
         public String inverseOp() {return "$gt";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, "<=", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, "<=", value, escapeValueInQuotes));
         }
       });
-      comparisonOperator.put("$gte", new CompOperator() {
+      compOperator.put("$gte", new CompOperator() {
         public String inverseOp() {return "$lt";}
-        public String execute(String field, String value) {
-          return (buildComparisonOperator(field, ">=", value));
+        public String execute(String field, String value, boolean escapeValueInQuotes) {
+          return (buildComparisonOperator(field, ">=", value, escapeValueInQuotes));
         }
       });
+      comparisonOperator = Collections.unmodifiableMap(compOperator);
     }
 
     interface LogicOperator {
       String execute(String[] values);
     }
-    HashMap<String, LogicOperator> logicalOperator = new HashMap<String, LogicOperator>();
-    {
-      logicalOperator.put("$and", new LogicOperator() {
+    private static final Map<String, LogicOperator> logicalOperator;
+    static {
+      HashMap<String, LogicOperator> logicOperator = new HashMap<String, LogicOperator>();
+      logicOperator.put("$and", new LogicOperator() {
         public String execute(String[] values) {
           return buildLogicalOperator("and", values);
         }
       });
-      logicalOperator.put("$or", new LogicOperator() {
+      logicOperator.put("$or", new LogicOperator() {
         public String execute(String[] values) {
           return buildLogicalOperator("or", values);
         }
       });
+      logicalOperator = Collections.unmodifiableMap(logicOperator);
+    }
+
+    // Here are literal sets for looking up which class fields are _not_ string-like (for use with classFieldIsEscapedInQuotes)
+    // TODO: perhaps generate these dynamically? These MUST correspond with classDefinitions.json
+    private static final Set<String> encounterNonStringFields;
+    private static final Set<String> mediaAssetNonStringFields;
+    private static final Set<String> markedIndividualNonStringFields;
+    private static final Set<String> annotationNonStringFields;
+    static {
+
+      HashSet<String> encNSFields = new HashSet<String>();
+      encNSFields.add("decimalLatitude");
+      encNSFields.add("decimalLongitude");
+      encounterNonStringFields = Collections.unmodifiableSet(encNSFields);
+
+      HashSet<String> maNSFields = new HashSet<String>();
+      maNSFields.add("id");
+      mediaAssetNonStringFields = Collections.unmodifiableSet(maNSFields);
+
+      HashSet<String> miNSFields = new HashSet<String>();
+      markedIndividualNonStringFields = Collections.unmodifiableSet(miNSFields);
+
+      HashSet<String> anNSFields = new HashSet<String>();
+      annotationNonStringFields = Collections.unmodifiableSet(anNSFields);
+
     }
 }
