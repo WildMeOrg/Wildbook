@@ -50,11 +50,21 @@ public class IAGateway extends HttpServlet {
   }
 
 
-/*
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    doPost(request, response);
+    JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+    if (request.getParameter("getJobResult") != null) {
+        try {
+            res = IBEISIA.getJobResult(request.getParameter("getJobResult"));
+        } catch (Exception ex) {
+            throw new IOException(ex.toString());
+        }
+    }
+    response.setContentType("text/plain");
+    PrintWriter out = response.getWriter();
+    out.println(res.toString());
+    out.close();
   }
-*/
+
 
 
 
