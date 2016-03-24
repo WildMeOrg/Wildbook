@@ -1,5 +1,6 @@
 package org.ecocean.media;
 
+/*
 import java.time.LocalDateTime;
 
 public class ImageMeta {
@@ -26,3 +27,5 @@ public class ImageMeta {
         this.longitude = longitude;
     }
 }
+
+*/
