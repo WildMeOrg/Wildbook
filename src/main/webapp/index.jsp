@@ -352,8 +352,8 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Flukebook</h1>
-            <h2>Flukebook helps you study, <br/> identify and protect marine mammal populations!</h2>
+            <h1 class="hidden">Wildbook</h1>
+            <h2>Wildbook helps you study, <br/> identify and protect marine mammal populations!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie 
@@ -436,7 +436,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching Results</h3>
 					<p class="lead">
-						Flukebook uses multiple algorithms to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile. 
+						Wildbook uses multiple algorithms to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile. 
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -625,7 +625,7 @@ finally{
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">
-                            <i>&ldquo;Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily.&rdquo;</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                            <i>This is a quote from our organization.</i></p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
