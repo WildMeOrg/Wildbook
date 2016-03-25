@@ -83,6 +83,12 @@ public class TranslateQuery extends HttpServlet {
       // Need to switch on queryClass, because we need to know the class of each object in queryResult in order to call .sanitizeJson
 
       out.println("[");
+
+      // hackey debug mode
+      if (request.getParameter("debug")!=null) {
+        String translatedQuery = wbq.toJDOQL();
+        out.println("{metadata: {JDOQL: "+translatedQuery+"}}, ");
+      }
       switch (queryClass) {
         case "org.ecocean.Encounter":
           for (int i=0;i<nResults;i++) {
