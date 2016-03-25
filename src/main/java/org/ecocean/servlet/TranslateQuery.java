@@ -98,7 +98,7 @@ public class TranslateQuery extends HttpServlet {
             out.print(encJSON.toString());
           }
           break;
-        case "org.ecocean.Media.MediaAsset":
+        case "org.ecocean.media.MediaAsset":
         for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MediaAsset ma = (MediaAsset) queryResult.get(i);

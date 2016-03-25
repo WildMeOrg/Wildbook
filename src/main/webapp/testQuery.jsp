@@ -80,7 +80,7 @@ out.println("</ul></p>");
 <script>
 
   // returns the 15th-through-25th non-male encounters in the db
-  var testQuery = {class: 'org.ecocean.Encounter', query: {}};
+  var testQuery = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
 
