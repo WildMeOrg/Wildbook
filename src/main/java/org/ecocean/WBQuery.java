@@ -29,6 +29,8 @@ public class WBQuery implements java.io.Serializable {
     protected int range;
     protected int minRange;
 
+    protected String jdoQuery;
+
     public WBQuery() {
     }
 
@@ -91,11 +93,19 @@ public class WBQuery implements java.io.Serializable {
         try {  //lets catch any shenanigans that happens here, and throw our own RuntimeException
             System.out.println("starting toQuery");
             String qString = toJDOQL();
+            jdoQuery = qString;
             System.out.println("starting toQuery with query string = "+qString);
             query = myShepherd.getPM().newQuery(qString);
             query.setClass(getCandidateClass());
+
+            // TODO: double-check that this is the best way to do datestuff
+            queryDeclareImports(query);
+
             querySetRange(query);
             querySetOrdering(query);
+
+
+
         } catch (Exception ex) {
             throw new RuntimeException(ex.toString());
         }
@@ -126,6 +136,25 @@ public class WBQuery implements java.io.Serializable {
         return Class.forName(className);  //this also will throw Exception if no good
     }
 
+
+    /**
+     * this is run on each query, and is necessary to enable
+     * e.g. datetime comparisons in the query
+     * TODO: double-check that this is necessary; I haven't seen
+     * this kind of thing elsewhere in wildbook -DB
+     **/
+    private void queryDeclareImports(Query query) {
+      if (containsDateTime()) {
+        query.declareImports("import java.util.Date");
+      }
+    }
+    /**
+     * TODO: make this not constant
+     * @returns whether or not this WBQuery contains a datetime within it, which has implications for how to handle the jdoql query
+     **/
+    private boolean containsDateTime() {
+      return parameters.has("dateTime");
+    }
 
     //TODO: parse parameters for an optional range entry
     // note: mongoDB's 'find' command (which is our syntactic model for json queries) just adds this as a callback function 'limit' e.g. db.collection.find({queryargs}).limit(10);

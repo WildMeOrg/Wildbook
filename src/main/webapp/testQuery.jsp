@@ -88,6 +88,8 @@ out.println("</ul></p>");
   var testString = JSON.stringify(testQuery);
   $(".results").append("<p>Query = "+testString+"</p>");
   // ... but attach that string as a named variable because HTTP posts have named variables
+  // debug arg is purely for debugging the query thing
+  //var args = {stringifiedJSONQuery: testString, debug:true};
   var args = {stringifiedJSONQuery: testString};
   // now just use $.post("TranslateQuery", args, callbackFunctionOnReturned(data))
   $.post( "TranslateQuery", args, function( data ) {
