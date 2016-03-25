@@ -25,6 +25,9 @@ public class WBQuery implements java.io.Serializable {
     protected AccessControl owner;
     protected long revision;
 
+    // TODO: ? find a more elegant solution to range queries
+    protected int range;
+    protected int minRange;
 
     public WBQuery() {
     }
@@ -34,6 +37,11 @@ public class WBQuery implements java.io.Serializable {
         this.owner = owner;
         this.className = params.optString("class");
         this.parameters = params.optJSONObject("query");
+        // TODO: ? find a more elegant solution to range queries
+        this.minRange = params.optInt("minRange", 0);
+        this.range = params.optInt("range", 10);
+
+        this.range = params.optInt("range", 10);
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
     }
@@ -119,9 +127,12 @@ public class WBQuery implements java.io.Serializable {
     }
 
 
-    //TODO
+    //TODO: parse parameters for an optional range entry
+    // note: mongoDB's 'find' command (which is our syntactic model for json queries) just adds this as a callback function 'limit' e.g. db.collection.find({queryargs}).limit(10);
+    // this parses the range, which is passed as an optional third argument of the original query TODO:
     public void querySetRange(Query query) {
-        query.setRange(0,10);
+      // TODO: ? find a more elegant solution to range queries
+      query.setRange(minRange,range);
     }
 
     //TODO

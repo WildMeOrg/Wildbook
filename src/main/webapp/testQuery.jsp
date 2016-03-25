@@ -79,7 +79,11 @@ out.println("</ul></p>");
 <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
 <script>
 
-  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
+  // returns the 15th-through-25th non-male encounters in the db
+  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 25, minRange: 15};
+  // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
+  // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
+
   // Stringify the query so it can be passed to java
   var testString = JSON.stringify(testQuery);
   $(".results").append("<p>Query = "+testString+"</p>");
