@@ -87,7 +87,7 @@ public class TranslateQuery extends HttpServlet {
       // hackey debug mode
       if (request.getParameter("debug")!=null) {
         String translatedQuery = wbq.toJDOQL();
-        out.println("{metadata: {JDOQL: \""+translatedQuery+"\" }}, ");
+        out.println("{debug: {JDOQL: \""+translatedQuery+"\" }}, ");
       }
       switch (queryClass) {
         case "org.ecocean.Encounter":
