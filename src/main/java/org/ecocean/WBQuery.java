@@ -119,9 +119,12 @@ public class WBQuery implements java.io.Serializable {
      */
     public String toJDOQL() {
         /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
+        System.out.println("starting toJDOQL");
         String output = "SELECT FROM "+className;
         String[] names = JSONObject.getNames(parameters);
-        if (names.length>0) {output += " WHERE ";}
+        System.out.println("continuing toJDOQL...");
+        if (names==null || names.length==0) {return output;}
+        output += " WHERE ";
         String[] parsedFields = new String[names.length];
         for (int i=0; i<names.length; i++) {
           parsedFields[i]=parseField(names[i]);
