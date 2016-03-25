@@ -80,7 +80,7 @@ out.println("</ul></p>");
 <script>
 
   // returns the 15th-through-25th non-male encounters in the db
-  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 25, minRange: 15};
+  var testQuery = {class: 'org.ecocean.Encounter', query: {}};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
 
@@ -89,8 +89,8 @@ out.println("</ul></p>");
   $(".results").append("<p>Query = "+testString+"</p>");
   // ... but attach that string as a named variable because HTTP posts have named variables
   // debug arg is purely for debugging the query thing
-  //var args = {stringifiedJSONQuery: testString, debug:true};
-  var args = {stringifiedJSONQuery: testString};
+  var args = {stringifiedJSONQuery: testString, debug:true};
+  //var args = {stringifiedJSONQuery: testString};
   // now just use $.post("TranslateQuery", args, callbackFunctionOnReturned(data))
   $.post( "TranslateQuery", args, function( data ) {
     $(".results").append( "Data Loaded: " + data );
