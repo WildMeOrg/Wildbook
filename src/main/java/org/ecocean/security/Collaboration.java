@@ -105,23 +105,24 @@ public class Collaboration implements java.io.Serializable {
 	}
 
 	//fetch all collabs for the user
-	public static List collaborationsForCurrentUser(HttpServletRequest request) {
+	public static List<Collaboration> collaborationsForCurrentUser(HttpServletRequest request) {
 		return collaborationsForCurrentUser(request, null);
 	}
 
 	//like above, but can specify a state
-	public static List collaborationsForCurrentUser(HttpServletRequest request, String state) {
+	public static List<Collaboration> collaborationsForCurrentUser(HttpServletRequest request, String state) {
 		String context = ServletUtilities.getContext(request);
 		if (request.getUserPrincipal() == null) return null;  //TODO is this cool?
 		String username = request.getUserPrincipal().getName();
 		return collaborationsForUser(context, username, state);
 	}
 
-	public static List collaborationsForUser(String context, String username) {
+	public static List<Collaboration> collaborationsForUser(String context, String username) {
 		return collaborationsForUser(context, username, null);
 	}
 
-	public static List collaborationsForUser(String context, String username, String state) {
+  @SuppressWarnings("unchecked")
+	public static List<Collaboration> collaborationsForUser(String context, String username, String state) {
 //TODO cache!!!  (may be hit a lot)
 		String queryString = "SELECT FROM org.ecocean.security.Collaboration WHERE ((username1 == '" + username + "') || (username2 == '" + username + "'))";
 		if (state != null) {
@@ -131,15 +132,15 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = new Shepherd(context);
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-		List occurs=myShepherd.getAllOccurrences(query);
+		ArrayList returnMe=myShepherd.getAllOccurrences(query);
 		query.closeAll();
-		return occurs;
+    return returnMe;
 	}
 
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {
 		return findCollaborationWithUser(u2, collaborationsForUser(context, u1));
 /*
-		ArrayList<Collaboration> all = collaborationsForUser(context, u1);
+		List<Collaboration> all = collaborationsForUser(context, u1);
 		for (Collaboration c : all) {
 			if (c.username1.equals(u2) || c.username2.equals(u2)) return c;
 		}
@@ -156,7 +157,7 @@ public class Collaboration implements java.io.Serializable {
 		return false;
 	}
 
-	public static Collaboration findCollaborationWithUser(String username, List all) {
+	public static Collaboration findCollaborationWithUser(String username, List<Collaboration> all) {
 		if (all == null) return null;
 		List<Collaboration> collabs = all;
 		for (Collaboration c : collabs) {
@@ -204,13 +205,14 @@ public class Collaboration implements java.io.Serializable {
 
 		if (request.getUserPrincipal() == null) return false;
 		String username = request.getUserPrincipal().getName();
-//System.out.println("canUserAccessEncounter loggedin username->"+username);
+//System.out.println("username->"+username);
 		String owner = enc.getAssignedUsername();
-//System.out.println("owner->" + owner);
 		if (User.isUsernameAnonymous(owner)) return true;  //anon-owned is "fair game" to anyone
+//System.out.println("owner->" + owner);
 //System.out.println("canCollaborate? " + canCollaborate(context, owner, username));
 		return canCollaborate(context, owner, username);
 	}
+
 
 	public static boolean canUserAccessOccurrence(Occurrence occ, HttpServletRequest request) {
   	ArrayList<Encounter> all = occ.getEncounters();
