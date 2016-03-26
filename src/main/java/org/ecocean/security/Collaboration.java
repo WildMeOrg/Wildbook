@@ -132,7 +132,7 @@ public class Collaboration implements java.io.Serializable {
 		Shepherd myShepherd = new Shepherd(context);
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
-		ArrayList returnMe=myShepherd.getAllOccurrences(query);
+		List returnMe=myShepherd.getAllOccurrences(query);
 		query.closeAll();
     return returnMe;
 	}
