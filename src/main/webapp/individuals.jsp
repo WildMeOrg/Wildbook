@@ -1843,8 +1843,7 @@ for(int j=0;j<numTissueSamples;j++){
 	<tr>
 		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
 		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
-		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
-		</td>
+		<td><span class="caption"><%=thisSample.getHTMLString(langCode, context)%></span></td>
 	
 	<td><table>
 		<%

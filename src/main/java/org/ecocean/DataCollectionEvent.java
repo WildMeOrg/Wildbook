@@ -20,6 +20,8 @@
 package org.ecocean;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.MessageFormat;
+import java.util.Properties;
 
 /**
  *
@@ -164,22 +166,27 @@ public void resetAbstractClassParameters(HttpServletRequest request){
 
 }
 
-public String getHTMLString(){
-  String paramValues="";
-  if((this.getCollectionCode()!=null)&&(!this.getCollectionCode().equals(""))){paramValues+="     Collection code: "+this.getCollectionCode()+"<br />";}
-  if((this.getCollectionID()!=null)&&(!this.getCollectionID().equals(""))){paramValues+="     Collection ID: "+this.getCollectionID()+"<br />";}
-  if((this.getDatasetID()!=null)&&(!this.getDatasetID().equals(""))){paramValues+="     Dataset ID: "+this.getDatasetID()+"<br />";}
-  if((this.getDatasetName()!=null)&&(!this.getDatasetName().equals(""))){paramValues+="     Dataset name: "+this.getDatasetName()+"<br />";}
-  if((this.getEventStartDate()!=null)&&(!this.getEventStartDate().equals(""))){paramValues+="     Event start date: "+this.getEventStartDate()+"<br />";}
-  if((this.getEventEndDate()!=null)&&(!this.getEventEndDate().equals(""))){paramValues+="     Event end date: "+this.getEventEndDate()+"<br />";}
-  if((this.getEventRemarks()!=null)&&(!this.getEventRemarks().equals(""))){paramValues+="     Event remarks: "+this.getEventRemarks()+"<br />";}
-  if((this.getFieldNotes()!=null)&&(!this.getFieldNotes().equals(""))){paramValues+="     Field notes: "+this.getFieldNotes()+"<br />";}
-  if((this.getFieldNumber()!=null)&&(!this.getFieldNumber().equals(""))){paramValues+="     Field number: "+this.getFieldNumber()+"<br />";}
-  if((this.getInstitutionCode()!=null)&&(!this.getInstitutionCode().equals(""))){paramValues+="     Institution code: "+this.getInstitutionCode()+"<br />";}
-  if((this.getInstitutionID()!=null)&&(!this.getInstitutionID().equals(""))){paramValues+="     Institution ID: "+this.getInstitutionID()+"<br />";}
-  if((this.getSamplingEffort()!=null)&&(!this.getSamplingEffort().equals(""))){paramValues+="     Sampli]/ng effort: "+this.getSamplingEffort()+"<br />";}
-  if((this.getSamplingProtocol()!=null)&&(!this.getSamplingProtocol().equals(""))){paramValues+="     Sampling protocol: "+this.getSamplingProtocol()+"<br />";}
-  return paramValues;
-}
+  public String getHTMLString(String langCode, String context) {
+    Properties props = ShepherdProperties.getProperties("dataCollectionEvent.properties", langCode, context);
+    StringBuilder sb = new StringBuilder();
+    if (!StringUtils.isNullOrEmpty(this.getCollectionCode())) sb.append(MessageFormat.format(props.getProperty("collectionCode"), this.getCollectionCode())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getCollectionID())) sb.append(MessageFormat.format(props.getProperty("collectionId"), this.getCollectionID())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getDatasetID())) sb.append(MessageFormat.format(props.getProperty("datasetId"), this.getDatasetID())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getDatasetName())) sb.append(MessageFormat.format(props.getProperty("datasetName"), this.getDatasetName())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getEventStartDate())) sb.append(MessageFormat.format(props.getProperty("eventStartDate"), this.getEventStartDate())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getEventEndDate())) sb.append(MessageFormat.format(props.getProperty("eventEndDate"), this.getEventEndDate())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getEventRemarks())) sb.append(MessageFormat.format(props.getProperty("eventRemarks"), this.getEventRemarks())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getFieldNotes())) sb.append(MessageFormat.format(props.getProperty("fieldNotes"), this.getFieldNotes())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getFieldNumber())) sb.append(MessageFormat.format(props.getProperty("fieldNumber"), this.getFieldNumber())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getInstitutionCode())) sb.append(MessageFormat.format(props.getProperty("institutionCode"), this.getInstitutionCode())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getInstitutionID())) sb.append(MessageFormat.format(props.getProperty("institutionId"), this.getInstitutionID())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getSamplingEffort())) sb.append(MessageFormat.format(props.getProperty("samplingEffort"), this.getSamplingEffort())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getSamplingProtocol())) sb.append(MessageFormat.format(props.getProperty("samplingProtocol"), this.getSamplingProtocol())).append("<br />");
+    return sb.toString();
+  }
+
+  public String getHTMLString() {
+    return getHTMLString("en", "context0");
+  }
 
 }

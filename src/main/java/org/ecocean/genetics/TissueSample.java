@@ -1,12 +1,16 @@
 package org.ecocean.genetics;
 
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 
 import org.ecocean.DataCollectionEvent;
 import org.ecocean.Measurement;
+import org.ecocean.ShepherdProperties;
+import org.ecocean.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -77,13 +81,19 @@ public class TissueSample extends DataCollectionEvent {
 
   public int getNumAnalyses(){return analyses.size();}
 
-  public String getHTMLString(){
-    String paramValues=super.getHTMLString();
-    if((this.getAlternateSampleID()!=null)&&(!this.getAlternateSampleID().equals(""))){paramValues+="     Alternate Sample ID: "+this.getAlternateSampleID()+"<br />";}
-    if((this.getPreservationMethod()!=null)&&(!this.getPreservationMethod().equals(""))){paramValues+="     Preservation method: "+this.getPreservationMethod()+"<br />";}
-    if((this.getStorageLabID()!=null)&&(!this.getStorageLabID().equals(""))){paramValues+="     Storage lab ID: "+this.getStorageLabID()+"<br />";}
-    if((this.getTissueType()!=null)&&(!this.getTissueType().equals(""))){paramValues+="     Tissue type: "+this.getTissueType()+"<br />";}
-    return paramValues;
+  public String getHTMLString(String langCode, String context) {
+    Properties props = ShepherdProperties.getProperties("dataCollectionEvent.properties", langCode, context);
+    StringBuilder sb = new StringBuilder();
+    sb.append(super.getHTMLString(langCode, context));
+    if (!StringUtils.isNullOrEmpty(this.getAlternateSampleID())) sb.append(MessageFormat.format(props.getProperty("alternateSampleId"), this.getAlternateSampleID())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getTissueType())) sb.append(MessageFormat.format(props.getProperty("tissueType"), this.getTissueType())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getPreservationMethod())) sb.append(MessageFormat.format(props.getProperty("preservationMethod"), this.getPreservationMethod())).append("<br />");
+    if (!StringUtils.isNullOrEmpty(this.getStorageLabID())) sb.append(MessageFormat.format(props.getProperty("storageLabId"), this.getStorageLabID())).append("<br />");
+    return sb.toString();
+  }
+
+  public String getHTMLString() {
+    return getHTMLString("en", "context0");
   }
 
   public boolean hasMeasurements(){

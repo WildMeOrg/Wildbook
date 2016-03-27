@@ -3917,7 +3917,7 @@ if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
 	%>
-	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString() %></span></td>
+	<tr><td><span class="caption"><%=thisSample.getSampleID()%></span></td><td><span class="caption"><%=thisSample.getHTMLString(langCode, context) %></span></td>
 	
 	<td><table>
 		<%

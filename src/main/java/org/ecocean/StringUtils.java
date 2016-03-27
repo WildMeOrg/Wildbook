@@ -8,6 +8,15 @@ public final class StringUtils {
   private StringUtils() {}
 
   /**
+   * Checks if the specified string is null or empty.
+   * @param s string to check
+   * @return true if null or empty, false otherwise
+   */
+  public static boolean isNullOrEmpty(String s) {
+    return s == null || "".equals(s);
+  }
+
+  /**
    * Parses a comma-separated string into a list of strings.
    * @param s string containing comma-separated items
    * @return list of strings
