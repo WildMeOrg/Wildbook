@@ -3739,38 +3739,21 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
               <%
               }
               else{
-            	  //iterate and find the locationID options
+            	  //iterate and find the tissueType options
             	  %>
             	  <select name="tissueType" id="tissueType">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "tissueType"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-						       		  
-						       		  String selected="";
-						       		  if(tissueType.equals(CommonConfiguration.getProperty(currentLoc,context))){selected="selected=\"selected\"";}
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select>  
-            	  
-            	  
-            <% 	  
+									<option value=""></option>
+									<%
+										Map<String, String> mapI18nTissueType = CommonConfiguration.getI18nPropertiesMap("tissueType", langCode, context, false);
+										for (Map.Entry<String, String> me : mapI18nTissueType.entrySet()) {
+											String sel = me.getKey().equals(tissueType) ? "selected=\"selected\"" : "";
+									%>
+									<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+									<%
+									 	}
+									%>
+						      </select>
+            <%
               }
               %>
            </td></tr>
