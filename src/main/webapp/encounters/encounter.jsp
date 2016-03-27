@@ -72,7 +72,11 @@
 <%
 	String context = ServletUtilities.getContext(request);
 	String langCode = ServletUtilities.getLanguageCode(request);
+	String langCodeDef = CommonConfiguration.getProperty("defaultLanguage", context);
+	if (langCodeDef == null || "".equals(langCodeDef))
+		langCodeDef = "en";
 	Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+	Properties encpropsDef = ShepherdProperties.getProperties("encounter.properties", langCodeDef, context);
 	Properties cciProps = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
 	Properties collabProps = ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 	Properties vmProps = ShepherdProperties.getProperties("visualMatcher.properties", langCode, context);
@@ -630,8 +634,21 @@ $(function() {
         							}
       								%>
       								<br /> 
-      								<br /> 
-      								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
+      								<br />
+<%
+	String matchedBy = null;
+	if ("Unknown".equals(enc.getMatchedBy()))
+		matchedBy = encprops.getProperty("unknown");
+	else {
+		for (String k : encpropsDef.stringPropertyNames()) {
+			if (encpropsDef.getProperty(k).equals(enc.getMatchedBy())) {
+				matchedBy = encprops.getProperty(k);
+				break;
+			}
+		}
+	}
+%>
+      								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=matchedBy%>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
