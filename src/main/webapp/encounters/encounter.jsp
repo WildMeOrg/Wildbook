@@ -2758,22 +2758,14 @@ $("a#comments").click(function() {
 						      						<form name="countryForm" action="../EncounterSetState" method="post">
 						            					<select name="state" id="state">
 															<%
-						       								boolean hasMoreStates=true;
-						       								int taxNum=0;
-						       								while(hasMoreStates){
-						       	  								String currentLifeState = "encounterState"+taxNum;
-						       	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
-						       	  									%>
-						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
-						       	  									<%
-						       										taxNum++;
-						          								}
-						          								else{
-						             								hasMoreStates=false;
-						          								}
-						          
-						       								} //end while
-						       								%>
+																	Map<String, String> mapI18nState = CommonConfiguration.getI18nPropertiesMap("encounterState", langCode, context, false);
+																	for (Map.Entry<String, String> me : mapI18nState.entrySet()) {
+																		String sel = me.getKey().equals(enc.getState()) ? "selected=\"selected\"" : "";
+%>
+																		<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+<%
+																	}
+															%>
 						      						</select> 
 						      						<input name="number" type="hidden" value="<%=num%>" id="number" />
 						        					<input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
