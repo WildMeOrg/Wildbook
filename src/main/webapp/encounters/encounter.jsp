@@ -625,7 +625,7 @@ $(function() {
     							%>
     							<p class="para">
     								
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>

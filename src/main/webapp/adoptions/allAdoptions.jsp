@@ -84,12 +84,12 @@
                   String userLink = "";
 
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 1) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
               <td colspan="6" align="right">
@@ -162,12 +162,12 @@
               <td align="left">
                 <%
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 0) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
               <td colspan="6" align="right"><%=StringUtils.format(locale, props.getProperty("viewing"), lowCount, highCount, displaySort)%>
