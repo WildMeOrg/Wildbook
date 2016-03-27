@@ -607,15 +607,25 @@ public class CommonConfiguration {
       throw new IllegalArgumentException(String.format("%s is not a i18n resource key prefix", baseKey));
     }
     String defLang = getProperty("defaultLanguage", context);
-    Properties propsDef = ShepherdProperties.getProperties("commonCoreInternational.properties", defLang);
+    if (defLang == null || "".equals(defLang))
+      defLang = "en";
+    Properties propsDef = ShepherdProperties.getProperties("commonCoreInternational.properties", defLang, context);
     Properties props = ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context);
     Map<String, String> map = new LinkedHashMap<>();
-    for (String k : propsDef.stringPropertyNames()) {
-      if (k.matches(baseKey + "\\d+")) {
+    boolean hasMore = true;
+    int index = 0;
+    while (hasMore) {
+      String key = baseKey + index++;
+      String valueDef = propsDef.getProperty(key);
+      String value = props.getProperty(key);
+      if (valueDef != null && value != null) {
         if (inverse)
-          map.put(props.getProperty(k), propsDef.getProperty(k));
+          map.put(value, valueDef);
         else
-          map.put(propsDef.getProperty(k), props.getProperty(k));
+          map.put(valueDef, value);
+      }
+      else {
+        hasMore = false;
       }
     }
     return map;
