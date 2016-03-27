@@ -3346,10 +3346,10 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </c:if>
 <table>
 <tr>
-    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+    <td><%=encprops.getProperty("acousticTag_serial") %>: </td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
 </tr>
 <tr>
-    <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
+    <td><%=encprops.getProperty("acousticTag_id") %>:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
 </tr>
 </table>
 </p>
@@ -3376,9 +3376,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <input type="hidden" name="tagType" value="acousticTag"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
         <table>
-          <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
+          <tr><td class="formLabel"><%=encprops.getProperty("acousticTag_serial") %>:</td></tr>
           <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
-          <tr><td class="formLabel">ID:</td></tr>
+          <tr><td class="formLabel"><%=encprops.getProperty("acousticTag_id") %>:</td></tr>
           <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
           <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
         </table>
@@ -3425,13 +3425,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <table>
 <tr>
-    <td><%=encprops.getProperty("name") %></td><td><c:out value="${satelliteTag.name}"/></td>
+    <td><%=encprops.getProperty("satelliteTag_name") %>: </td><td><c:out value="${satelliteTag.name}"/></td>
 </tr>
 <tr>
-    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
+    <td><%=encprops.getProperty("satelliteTag_serial") %>: </td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
 </tr>
 <tr>
-    <td>Argos PTT:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
+    <td><%=encprops.getProperty("satelliteTag_argos") %>:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
 </tr>
 </table>
 </p>
