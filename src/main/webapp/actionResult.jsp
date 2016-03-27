@@ -53,6 +53,9 @@
   #actionResultDetail .content {
     font-size: 0.75em;
   }
+  #actionResultLink {
+    margin-top: 1em;
+  }
   #actionResultLink p {
     font-weight: bold;
   }
