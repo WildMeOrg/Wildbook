@@ -471,7 +471,48 @@ single scan are allowed to exceed the total.</span>
 %>
 
 
-<h2>Build Weka Instances</h2>
+<h2>IBEIS</h2>
+
+<p>Send annotations and media assets for a single species to the Image Analysis ID server to train it for matching individuals from the current catalog.</p>
+<form id="arffForm" 
+	  action="../PrimeIBEISImageAnalysisForSpecies" 
+	  method="post" 
+	  
+      target="_self" dir="ltr" 
+      lang="en"
+      
+      
+>
+
+  <select class="form-control" name="genusSpecies" id="genusSpecies">
+             	
+  <%
+                     boolean hasMoreTax=true;
+                     int taxNum=0;
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+                     while(hasMoreTax){
+                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+                             taxNum++;
+                        }
+                        else{
+                           hasMoreTax=false;
+                        }
+                        
+                   }
+                   }
+ %>
+  </select>
+<button class="large" type="submit">
+          Send Training Data to IBEIS 
+          <span class="button-icon" aria-hidden="true" />
+        </button>
+</form>
+
+<!--
 <p><em>(resource intensive: use only in offline Wildbooks)</em></p>
 
 <form id="arffForm" 
@@ -556,6 +597,9 @@ single scan are allowed to exceed the total.</span>
           <span class="button-icon" aria-hidden="true" />
         </button>
 </form>
+-->
+
+
 <%
 }
 %>
