@@ -2330,8 +2330,7 @@ if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
     <tr>
       <td align="left" valign="top">
         <form name="setencsize" action="../EncounterSetScarring" method="post">
-          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
-          </textarea>
+          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%></textarea>
           <input name="number" type="hidden" value="<%=num%>" id="number" />
           <input name="action" type="hidden" value="setScarring" /> 
           <br />
@@ -2400,15 +2399,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr>
       <td align="left" valign="top">
         <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
-        <textarea name="behaviorComment" cols="50"><%
-        
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-<%=enc.getBehavior().trim()%>
-        <%
-        }
-        %>
-        </textarea>
+          <textarea name="behaviorComment" cols="50"><%=enc.getBehavior() == null ? "" : enc.getBehavior()%></textarea>
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="editBehavior" /> <br />
           <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("set")%>" />
@@ -2632,8 +2623,8 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  
       <td align="left" valign="top" cols="50">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-</textarea>
+        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post">
+					<textarea name="fixComment" size="15"><%=enc.getComments() == null ? "" : enc.getComments()%></textarea>
           <input name="number" type="hidden" value="<%=num%>" /> 
           <input name="action" type="hidden" value="editComments" /> 
            <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
