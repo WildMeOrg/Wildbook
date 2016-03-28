@@ -528,8 +528,8 @@ single scan are allowed to exceed the total.</span>
   <select class="form-control" name="genusSpecies" id="genusSpecies">
              	
   <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
+                     hasMoreTax=true;
+                     //int taxNum=0;
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
                      while(hasMoreTax){
                            String currentGenuSpecies = "genusSpecies"+taxNum;
