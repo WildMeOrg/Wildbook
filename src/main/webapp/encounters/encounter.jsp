@@ -1593,32 +1593,18 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
             	  //iterate and find the locationID options
             	  %>
             	  <select name="code" id="code">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "locationID"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select>  
-            	  
-            	  
-            <% 	  
+									<option value=""></option>
+									<%
+										Map<String, String> mapI18nLocationID = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, false);
+										for (Map.Entry<String, String> me : mapI18nLocationID.entrySet()) {
+											String sel = me.getKey().equals(enc.getLocationID()) ? "selected=\"selected\"" : "";
+									%>
+									<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+									<%
+										}
+									%>
+						      </select>
+              <%
               }
               %>
               
@@ -1698,28 +1684,16 @@ $("a#location").click(function() {
 						      <form name="countryForm" action="../EncounterSetCountry" method="post">
 						            <select name="country" id="country">
 						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "country"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select> 
+									<%
+										Map<String, String> mapI18nCountry = CommonConfiguration.getI18nPropertiesMap("country", langCode, context, false);
+										for (Map.Entry<String, String> me : mapI18nCountry.entrySet()) {
+											String sel = me.getKey().equals(enc.getCountry()) ? "selected=\"selected\"" : "";
+									%>
+									<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+									<%
+										}
+									%>
+						      </select>
 						      <input name="encounter" type="hidden" value="<%=num%>" id="number" />
 						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
 						      </form>
@@ -2512,32 +2486,20 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
               <%
               }
               else{
-            	  //iterate and find the locationID options
+            	  //iterate and find the patterninCode options
             	  %>
             	  <select name="patterningCode" id="colorCode">
-						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "patterningCode"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select>  
+									<option value=""></option>
+									<%
+										Map<String, String> mapI18nPatterningCode = CommonConfiguration.getI18nPropertiesMap("patterningCode", langCode, context, false);
+										for (Map.Entry<String, String> me : mapI18nPatterningCode.entrySet()) {
+											String sel = me.getKey().equals(enc.getPatterningCode()) ? "selected=\"selected\"" : "";
+									%>
+									<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+									<%
+										}
+									%>
+						      </select>
             	  
             	  
             <% 	  
@@ -2607,28 +2569,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
 						            <select name="lifeStage" id="lifeStage">
 						            	<option value=""></option>
-						       
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "lifeStage"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-						       	  	%>
-						       	  	 
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-						          
-						       }
-						       %>
-						       
-						       
-						      </select> 
+									<%
+										Map<String, String> mapI18nLifeStage = CommonConfiguration.getI18nPropertiesMap("lifeStage", langCode, context, false);
+										for (Map.Entry<String, String> me : mapI18nLifeStage.entrySet()) {
+											String sel = me.getKey().equals(enc.getLifeStage()) ? "selected=\"selected\"" : "";
+									%>
+									<option value="<%=me.getKey()%>"<%=sel%>><%=me.getValue()%></option>
+									<%
+										}
+									%>
+						      </select>
 						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
 						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
 						      </form>
@@ -2949,27 +2899,19 @@ $("a#username").click(function() {
         <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
           
           <select name="submitter" id="submitter">
-        	<option value=""></option>
+	        	<option value=""></option>
         	<%
-        	
-        	Shepherd userShepherd=new Shepherd("context0");
-        	userShepherd.beginDBTransaction();
-        	ArrayList<String> usernames=userShepherd.getAllUsernames();
-        	
-        	
-        	
-        	int numUsers=usernames.size();
-        	for(int i=0;i<numUsers;i++){
-        		String thisUsername=usernames.get(i);
-        		User thisUser2=userShepherd.getUser(thisUsername);
-        		String thisUserFullname=thisUsername;
-        		if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
-        	%>
-        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-        	<%
-			}
-        	userShepherd.rollbackDBTransaction();
-        	userShepherd.closeDBTransaction();
+            Shepherd userShepherd = new Shepherd(context);
+            userShepherd.beginDBTransaction();
+            for (String username : userShepherd.getAllUsernames()) {
+              User user = userShepherd.getUser(username);
+							String sel = username.equals(enc.getAssignedUsername()) ? "selected=\"selected\"" : "";
+					%>
+						<option value="<%=username%>"<%=sel%>><%=user.getFullName() != null ? user.getFullName() : username%></option>
+					<%
+            }
+						userShepherd.rollbackDBTransaction();
+						userShepherd.closeDBTransaction();
         	%>
       	</select> 
               
