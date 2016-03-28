@@ -604,7 +604,6 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
-        //ArrayList<Annotation> qanns = new ArrayList<Annotation>();
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
 
@@ -662,7 +661,10 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
             }
             */
 
-        } catch (Exception ex) {  //most likely from sendFoo()
+        results.put("success", true);    
+            
+        } 
+        catch (Exception ex) {  //most likely from sendFoo()
             System.out.println("WARN: IBEISIA.primeImageAnalysisForSpecies() failed due to an exception: " + ex.toString());
             ex.printStackTrace();
             results.put("success", false);
