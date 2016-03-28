@@ -959,9 +959,9 @@ if(sharky.getSex()!=null){
           <form name="setxsexshark" action="IndividualSetSex" method="post">
 
             <select name="selectSex" size="1" id="selectSex">
-              <option value="unknown"><%=props.getProperty("unknown") %></option>
-              <option value="male"><%=props.getProperty("male") %></option>
-              <option value="female"><%=props.getProperty("female") %></option>
+              <option value="unknown"<%="unknown".equals(sharky.getSex()) ? "selected=\"selected\"" : ""%>><%=props.getProperty("unknown") %></option>
+              <option value="male"<%="male".equals(sharky.getSex()) ? "selected=\"selected\"" : ""%>><%=props.getProperty("male") %></option>
+              <option value="female"<%="female".equals(sharky.getSex()) ? "selected=\"selected\"" : ""%>><%=props.getProperty("female") %></option>
             </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" /> 
             <input name="Add" type="submit" id="Add" value="<%=update %>" />
           </form>
