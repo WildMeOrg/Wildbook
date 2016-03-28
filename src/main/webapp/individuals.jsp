@@ -152,6 +152,10 @@ if (request.getParameter("number")!=null) {
 }
 %>
 
+
+<jsp:include page="header.jsp" flush="true"/>
+
+
   <style type="text/css">
     <!--
     .style1 {
@@ -223,10 +227,6 @@ table.tissueSample td {
 }
     -->
   </style>
-
-
-    <jsp:include page="header.jsp" flush="true"/>
-
 
   <!--
     1 ) Reference to the files containing the JavaScript and CSS.
