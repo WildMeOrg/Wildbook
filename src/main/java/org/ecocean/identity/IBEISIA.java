@@ -594,5 +594,88 @@ System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(
 System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
 
+    
+    /*
+     * This static method sends all annotations and media assets for a species in Wildbook to Image Analysis in preparation for future matching.
+     * It basically primes the system.
+     */
+    public static JSONObject primeImageAnalysisForSpecies(ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String baseUrl, String context) {
+        String jobID = "-1";
+        JSONObject results = new JSONObject();
+        results.put("success", false);  //pessimism!
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
+        //ArrayList<Annotation> qanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        
+        if (targetEncs.size() < 1) {
+            results.put("error", "targetEncs is empty");
+            return results;
+        }
+
+        log("Prime image analysis for "+species, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
+
+        try {
+            
+            for (Encounter enc : targetEncs) {
+                ArrayList<Annotation> annotations = enc.getAnnotations();
+                for (Annotation ann : annotations) {
+                    allAnns.add(ann);
+                    tanns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
+            }
+
+/*
+System.out.println("======= beginIdentify (qanns, tanns, allAnns) =====");
+System.out.println(qanns);
+System.out.println(tanns);
+System.out.println(allAnns);
+*/
+            results.put("sendMediaAssets", sendMediaAssets(mas));
+            results.put("sendAnnotations", sendAnnotations(allAnns));
+
+            //this should attempt to repair missing Annotations
+            
+            /*
+            boolean tryAgain = true;
+            JSONObject identRtn = null;
+            while (tryAgain) {
+                identRtn = sendIdentify(qanns, tanns, baseUrl);
+                tryAgain = iaCheckMissing(identRtn);
+            }
+            results.put("sendIdentify", identRtn);
+            
+
+            //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
+//########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
+            if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
+                jobID = identRtn.get("response").toString();
+                results.put("success", true);
+            } else {
+System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn);
+                results.put("error", identRtn.get("status"));
+                results.put("success", false);
+            }
+            */
+
+        } catch (Exception ex) {  //most likely from sendFoo()
+            System.out.println("WARN: IBEISIA.primeImageAnalysisForSpecies() failed due to an exception: " + ex.toString());
+            ex.printStackTrace();
+            results.put("success", false);
+            results.put("error", ex.toString());
+        }
+
+        JSONObject jlog = new JSONObject();
+        jlog.put("_action", "primeImageAnalysisForSpecies: "+species);
+        jlog.put("_response", results);
+        log("Prime image analysis for "+species, jobID, jlog, context);
+
+        return results;
+    }
+    
 }
 
