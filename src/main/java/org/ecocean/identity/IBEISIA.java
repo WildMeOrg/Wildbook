@@ -6,6 +6,8 @@ import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -445,9 +447,89 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     }
 
 
+    //a slightly different flavor -- we can explicitely pass the query annotation
+    public static JSONObject beginIdentify(Annotation qann, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        //TODO possibly could exclude qencs from tencs?
+        String jobID = "-1";
+        JSONObject results = new JSONObject();
+        results.put("success", false);  //pessimism!
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
+
+        if (targetEncs.size() < 1) {
+            results.put("error", "targetEncs is empty");
+            return results;
+        }
+
+        log(taskID, qann.getId(), jobID, new JSONObject("{\"_action\": \"init\"}"), context);
+
+        try {
+            allAnns.add(qann);
+            MediaAsset qma = qann.getDerivedMediaAsset();
+            if (qma == null) qma = qann.getMediaAsset();
+            if (qma != null) mas.add(qma);
+
+            for (Encounter enc : targetEncs) {
+                ArrayList<Annotation> annotations = enc.getAnnotations();
+                for (Annotation ann : annotations) {
+                    if (qann.getId().equals(ann.getId())) continue;  //skip the query annotation
+                    allAnns.add(ann);
+                    tanns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
+            }
+
+            results.put("sendMediaAssets", sendMediaAssets(mas));
+            results.put("sendAnnotations", sendAnnotations(allAnns));
+
+            //this should attempt to repair missing Annotations
+            boolean tryAgain = true;
+            JSONObject identRtn = null;
+            while (tryAgain) {
+                ArrayList<Annotation> qanns = new ArrayList<Annotation>();
+                qanns.add(qann);
+                identRtn = sendIdentify(qanns, tanns, baseUrl);
+                tryAgain = iaCheckMissing(identRtn);
+            }
+            results.put("sendIdentify", identRtn);
+
+            //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
+//########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
+            if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
+                jobID = identRtn.get("response").toString();
+                results.put("success", true);
+            } else {
+System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn);
+                results.put("error", identRtn.get("status"));
+                results.put("success", false);
+            }
+
+        } catch (Exception ex) {  //most likely from sendFoo()
+            System.out.println("WARN: IBEISIA.beginIdentity() failed due to an exception: " + ex.toString());
+            ex.printStackTrace();
+            results.put("success", false);
+            results.put("error", ex.toString());
+        }
+
+        JSONObject jlog = new JSONObject();
+        jlog.put("_action", "sendIdentify");
+        jlog.put("_response", results);
+        log(taskID, jobID, jlog, context);
+
+        return results;
+    }
+
+
+
     public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
+        return log(taskID, null, jobID, jlog, context);
+    }
+    public static IdentityServiceLog log(String taskID, String objectID, String jobID, JSONObject jlog, String context) {
 //System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
-        IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
+        IdentityServiceLog log = new IdentityServiceLog(taskID, objectID, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
         try{
@@ -467,10 +549,36 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     public static String findTaskIDFromJobID(String jobID, Shepherd myShepherd) {
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
         if (logs == null) return null;
-        for (IdentityServiceLog l : logs) {
-            if (l.getTaskID() != null) return l.getTaskID();  //get first one we find. too bad!
+        Collections.reverse(logs);
+        for (IdentityServiceLog l : logs) {  //reverse it, so we get most recent first
+            if (l.getTaskID() != null) return l.getTaskID();
         }
         return null;
+    }
+
+    public static String[] findTaskIDsFromObjectID(String objectID, Shepherd myShepherd) {
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByObjectID(SERVICE_NAME, objectID, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) return null;
+        
+        String[] ids = new String[logs.size()];
+        int ct = 0;
+        for (IdentityServiceLog l : logs) {
+            if (l.getTaskID() == null) continue;
+            if (Arrays.asList(ids).contains(l.getTaskID())) continue;
+            ids[ct] = l.getTaskID();
+            ct++;
+        }
+        return ids;
+    }
+
+    public static String findJobIDFromTaskID(String taskID, Shepherd myShepherd) {
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) return null;
+System.out.println(logs);
+        
+        String jobID = logs.get(logs.size() - 1).getServiceJobID();
+        if ("-1".equals(jobID)) return null;
+        return jobID;
     }
 
 
