@@ -837,16 +837,26 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
-<h2>Here's where I make my mark:</h2>
+<h2>Under Construction:</h2>
 <p>
 
 </p>
+
+<div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
+// TODO: implement a photoswipe gallery here
 
+boolean loggedIn = false;
+try{
+  if(request.getUserPrincipal()!=null){loggedIn=true;}
+}
+catch(NullPointerException nullLogged){}
 
+Encounter[] galleryEncs = sharky.getDateSortedEncounters();
 
 %>
+</div>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
