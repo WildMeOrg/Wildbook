@@ -19,7 +19,7 @@ myShepherd=new Shepherd(context);
 
 	//check usernames and passwords
 	myShepherd.beginDBTransaction();
-	List<User> users=myShepherd.getAllUsers();
+	ArrayList<User> users=myShepherd.getAllUsers();
 	if(users.size()==0){
 		String salt=ServletUtilities.getSalt().toHex();
 		String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
