@@ -300,6 +300,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>IAGateway</servlet-name>
+    <servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
   </servlet>
@@ -452,6 +457,11 @@
     <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
   
+    <servlet-mapping>
+    <servlet-name>IAGateway</servlet-name>
+    <url-pattern>/ia</url-pattern>
+  </servlet-mapping>
+
     <servlet>
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>

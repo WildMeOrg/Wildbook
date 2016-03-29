@@ -33,6 +33,7 @@ import org.dom4j.io.XMLWriter;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
 
 import javax.jdo.Query;
 //import javax.servlet.http.HttpServlet;
@@ -653,4 +654,19 @@ String rootWebappPath = "xxxxxx";
     return obj.toString();
   }
   
+    public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader reader = request.getReader();
+        try {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+        } finally {
+            reader.close();
+        }
+//ParseException
+        return new JSONObject(sb.toString());
+    }
+
 }
