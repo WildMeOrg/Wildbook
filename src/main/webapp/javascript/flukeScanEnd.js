@@ -95,7 +95,7 @@ var columnInfo = {
 
 
 var colDefn = [];
-$(document).ready(function() { wildbook.init(function() { init(); }); });
+$(document).ready(function() { wildbook.init(function() { init2(); }); });
 
 
 function displayChart(enc1, enc2) {
