@@ -291,7 +291,7 @@ console.info('waiting to try again...');
 		return;
 	}
 	if (res.matchAnnotations.length == 1) {
-		$('#results').html('One match found (<a target="_new" href="' +
+		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
 			'</a>) - score ' + res.matchAnnotations[0].score);
@@ -306,7 +306,7 @@ console.info('waiting to try again...');
 	updateMatch(res.matchAnnotations[0]);
 	var h = '<p><b>' + res.matchAnnotations.length + ' matches</b></p><ul>';
 	for (var i = 0 ; i < res.matchAnnotations.length ; i++) {
-		h += '<li data-i="' + i + '"><a target="_new" href="' +
+		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + '</a> (' +
 			res.matchAnnotations[i].encounter.individualID + '), score = ' +
