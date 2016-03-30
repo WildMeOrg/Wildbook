@@ -574,8 +574,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     public static String findJobIDFromTaskID(String taskID, Shepherd myShepherd) {
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
         if ((logs == null) || (logs.size() < 1)) return null;
-System.out.println(logs);
-        
+
         String jobID = logs.get(logs.size() - 1).getServiceJobID();
         if ("-1".equals(jobID)) return null;
         return jobID;
@@ -584,7 +583,8 @@ System.out.println(logs);
 
     // IBEIS-IA wants a uuid as a single-key json object like: {"__UUID__": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx"} so we use these to go back and forth
     public static String fromFancyUUID(JSONObject u) {
-        return u.getString("__UUID__");
+        if (u == null) return null;
+        return u.optString("__UUID__", null);
     }
     public static JSONObject toFancyUUID(String u) {
         JSONObject j = new JSONObject();

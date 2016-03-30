@@ -88,6 +88,9 @@ public class IdentityServiceLog implements java.io.Serializable {
     public String getStatus() {
         return status;
     }
+    public String getObjectID() {
+        return objectID;
+    }
 
     public JSONObject getStatusJson() {
         try {
