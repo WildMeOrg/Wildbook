@@ -65,6 +65,15 @@ public class IAGateway extends HttpServlet {
         Shepherd myShepherd = new Shepherd(context);
         String taskID = request.getParameter("getJobResultFromTaskID");
         String jobID = IBEISIA.findJobIDFromTaskID(taskID, myShepherd);
+        //String jobID = null;
+        //String qannID = null;
+/*
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        for (IdentityServiceLog l : logs) {
+            if (l.getServiceJobID() != null) jobID = l.getServiceJobID();
+            if (l.getObjectID() != null) qannID = l.getObjectID();
+        }
+*/
         if (jobID == null) {
             res.put("error", "could not find jobID for taskID=" + taskID);
         } else {
@@ -72,6 +81,27 @@ public class IAGateway extends HttpServlet {
                 res = IBEISIA.getJobResult(jobID);
             } catch (Exception ex) {
                 throw new IOException(ex.toString());
+            }
+
+            if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
+                JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
+                if (firstResult != null) {
+System.out.println("firstResult -> " + firstResult.toString());
+                    res.put("queryAnnotation", expandAnnotation(IBEISIA.fromFancyUUID(firstResult.optJSONObject("qauuid")), myShepherd, request));
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    JSONArray mout = new JSONArray();
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            JSONObject aj = expandAnnotation(IBEISIA.fromFancyUUID(matches.optJSONObject(i)), myShepherd, request);
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+                    res.put("matchAnnotations", mout);
+                }
             }
         }
     }
@@ -154,6 +184,30 @@ System.out.println(id);
     out.close();
     //myShepherd.closeDBTransaction();
   }
+
+
+    public static JSONObject expandAnnotation(String annID, Shepherd myShepherd, HttpServletRequest request) {
+        if (annID == null) return null;
+        JSONObject rtn = new JSONObject();
+        Annotation ann = null;
+        try {
+            ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annID), true)));
+        } catch (Exception ex) {}
+        if (ann != null) {
+            rtn.put("annotationID", annID);
+            Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
+            if (enc != null) {
+                rtn.put("encounterID", enc.getCatalogNumber());
+            }
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma != null) {
+                try {
+                    rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
+                } catch (Exception ex) {}
+            }
+        }
+        return rtn;
+    }
 
 }
   
