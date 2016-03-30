@@ -197,7 +197,14 @@ System.out.println(id);
             rtn.put("annotationID", annID);
             Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
             if (enc != null) {
-                rtn.put("encounterID", enc.getCatalogNumber());
+                JSONObject jenc = new JSONObject();
+                jenc.put("catalogNumber", enc.getCatalogNumber());
+                jenc.put("date", enc.getDate());
+                jenc.put("sex", enc.getSex());
+                jenc.put("verbatimLocality", enc.getVerbatimLocality());
+                jenc.put("locationID", enc.getLocationID());
+                jenc.put("individualID", enc.getIndividualID());
+                rtn.put("encounter", jenc);
             }
             MediaAsset ma = ann.getMediaAsset();
             if (ma != null) {

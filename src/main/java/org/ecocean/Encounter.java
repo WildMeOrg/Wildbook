@@ -112,6 +112,7 @@ public class Encounter implements java.io.Serializable {
   public String lifeStage;
   public String country;
 
+    private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -2378,6 +2379,7 @@ throw new Exception();
 */
 
     public static ArrayList<Encounter> getEncountersForMatching(String taxonomyString, Shepherd myShepherd) {
+        if (_matchEncounterCache.get(taxonomyString) != null) return _matchEncounterCache.get(taxonomyString);
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
         Query query = myShepherd.getPM().newQuery(queryString);
@@ -2393,6 +2395,7 @@ throw new Exception();
             encs.add(enc);
         }
         query.closeAll();
+        _matchEncounterCache.put(taxonomyString, encs);
         return encs;
     }
 

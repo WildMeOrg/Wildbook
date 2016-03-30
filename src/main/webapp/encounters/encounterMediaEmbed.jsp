@@ -2,6 +2,7 @@
          import="org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.*,
+org.ecocean.identity.IBEISIA,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
@@ -69,6 +70,38 @@ Encounter imageEnc = imageShepherd.getEncounter(imageEncNum);
 
 
 %>
+
+<script>
+function startIdentify(el) {
+	var aid = el.getAttribute('data-id');
+	el.parentElement.innerHTML = '<i>starting identification</i>';
+	jQuery.ajax({
+		url: '/ia',
+		type: 'POST',
+		dataType: 'json',
+		contentType: 'application/javascript',
+		success: function(d) {
+			console.info('identify returned %o', d);
+			if (d.taskID) {
+				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+			} else {
+				alert('error starting identification');
+			}
+		},
+		error: function(x,y,z) {
+			alert('error starting identification');
+			console.warn('%o %o %o', x, y, z);
+		},
+		data: JSON.stringify({
+			identify: aid,
+			genus: '<%=imageEnc.getGenus()%>',
+			species: '<%=imageEnc.getSpecificEpithet()%>'
+		})
+	});
+}
+
+</script>
+
 <div id="media-div">
 <%
 
@@ -101,8 +134,32 @@ no media
 				isDorsalFin="&isDorsalFin=true";
 			}
 %>
-	<p><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+	<p style="display: none"><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
 
+<style>
+	#match-tools {
+		padding: 5px 15px;
+		display: inline-block;
+		background-color: #DDD;
+		margin: 4px;
+		border-radius: 4px;
+	}
+	#match-tools a {
+		cursor: pointer;
+		display: block;
+	}
+</style>
+	<div id="match-tools">
+		<div><a data-id="<%=ann.getId()%>" onClick="startIdentify(this)">Match this image</a></div>
+<%
+	String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+	if ((tasks != null) && (tasks.length > 0)) {
+		for (int i = 0 ; i < tasks.length ; i++) {
+			out.println("<a target=\"_new\" href=\"matchResults.jsp?taskId=" + tasks[i] + "\">" + (i+1) + ") previous match results</a>");
+		}
+	}
+%>
+	</div>
 <%
 		}
 

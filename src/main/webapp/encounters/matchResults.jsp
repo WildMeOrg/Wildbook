@@ -41,6 +41,14 @@ String num="xxx";
 
 
 <style type="text/css">
+
+#results {
+	display: inline-block;
+}
+
+#result-images {
+	margin-bottom: 100px;
+}
  
 td.ptcol-overall_score,
 td.ptcol-score_holmbergIntersection,
@@ -188,10 +196,6 @@ var taskId = '<%=taskId%>';
    </a>
 </h1>
 
-<p>The following encounter(s) received the highest
-  match values against encounter <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
-
 
 <%
   if (xmlOK) {%>
@@ -245,9 +249,11 @@ var taskId = '<%=taskId%>';
 
 
 <script>
-jQuery(document).ready(function() {
+function init2() {   //called from wildbook.init() when finished
 	checkForResults();
-});
+    	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
+    	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
+}
 
 function checkForResults() {
 	jQuery.ajax({
@@ -263,11 +269,68 @@ function checkForResults() {
 	});
 }
 
+var countdown = 100;
 function processResults(res) {
-	if (!res.response || !res.response.json_result) {
+	if (!res || !res.queryAnnotation) {
+console.info('waiting to try again...');
+		$('#results').html('waiting for results, countdown=' + countdown);
+		countdown--;
+		if (countdown < 0) {
+			$('#results').html('gave up waiting for results, sorry.  reload to wait longer.');
+			return;
+		}
+		setTimeout(function() { checkForResults(); }, 3000);
 		return;
 	}
+	if (res.queryAnnotation.encounter && res.queryAnnotation.mediaAsset) {
+		addImage(fakeEncounter(res.queryAnnotation.encounter, res.queryAnnotation.mediaAsset),
+			 jQuery('#image-main'));
+	}
+	if (!res.matchAnnotations || (res.matchAnnotations.length < 1)) {
+		$('#results').html('No matches found.');
+		return;
+	}
+	if (res.matchAnnotations.length == 1) {
+		$('#results').html('One match found (<a target="_new" href="' +
+			res.matchAnnotations[0].encounter.catalogNumber +
+			'">' + res.matchAnnotations[0].encounter.catalogNumber +
+			'</a>) - score ' + res.matchAnnotations[0].score);
+		updateMatch(res.matchAnnotations[0]);
+		return;
+	}
+	// more than one match
+	res.matchAnnotations.sort(function(a,b) {
+		if (!a.score || !b.score) return 0;
+		return b.score - a.score;
+	});
+	updateMatch(res.matchAnnotations[0]);
+	var h = '<p><b>' + res.matchAnnotations.length + ' matches</b></p><ul>';
+	for (var i = 0 ; i < res.matchAnnotations.length ; i++) {
+		h += '<li data-i="' + i + '"><a target="_new" href="' +
+			res.matchAnnotations[i].encounter.catalogNumber + '">' +
+			res.matchAnnotations[i].encounter.catalogNumber + '</a> (' +
+			res.matchAnnotations[i].encounter.individualID + '), score = ' +
+			res.matchAnnotations[i].score + '</li>';
+	}
+	h += '</ul>';
+	$('#results').html(h);
+	$('#results li').on('mouseover', function(ev) {
+		var i = ev.currentTarget.getAttribute('data-i');
+		updateMatch(res.matchAnnotations[i]);
+	});
 }
+
+function updateMatch(m) {
+		jQuery('#image-compare').html('');
+		addImage(fakeEncounter(m.encounter, m.mediaAsset),jQuery('#image-compare'));
+}
+
+function fakeEncounter(e, ma) {
+	var enc = new wildbook.Model.Encounter(e);
+	enc.set('annotations', [{mediaAsset: ma}]);
+	return enc;
+}
+
 
 </script>
 
