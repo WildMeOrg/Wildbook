@@ -81,7 +81,7 @@ public class IAGateway extends HttpServlet {
         }
 System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
-            getOut = "<div>invalid job ID " + jobID + "</div>";
+            getOut = "<div class=\"response-error\">invalid job ID " + jobID + "</div>";
             System.out.println("ERROR: invalid jobid for res(" + jobID + "[" + offset + "]) -> " + res);
         } else {
             JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
@@ -99,7 +99,7 @@ System.out.println("url --> " + url);
                 JSONObject rtn = RestClient.get(u);
                 if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                     !rtn.getJSONObject("status").optBoolean("success", false)) {
-                    getOut = "<div>invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                    getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
                 } else {
                     getOut = rtn.getString("response");
                     if (request.getParameter("test") != null) {
@@ -107,7 +107,7 @@ System.out.println("url --> " + url);
                     }
                 }
             } catch (Exception ex) {
-                getOut = "<div>Error: " + ex.toString() + "</div>";
+                getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
             }
 
 /*
