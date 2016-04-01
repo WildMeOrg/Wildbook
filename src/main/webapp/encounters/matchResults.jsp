@@ -1,10 +1,14 @@
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
+         import="org.ecocean.servlet.ServletUtilities,
+org.ecocean.identity.IdentityServiceLog,
+java.util.ArrayList,org.ecocean.Annotation, org.ecocean.Encounter,
+org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector, java.nio.file.Files, java.nio.file.Paths, java.nio.file.Path" %>
 
 <%
 
 String context="context0";
 context=ServletUtilities.getContext(request);
+Shepherd myShepherd = new Shepherd(context);
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -12,13 +16,50 @@ File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
+//quick hack to set id & approve
+if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+	myShepherd.beginDBTransaction();
+	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
+	if (enc == null) {
+		out.println("{\"success\": false, \"error\": \"no such encounter\"}");
+		myShepherd.rollbackDBTransaction();
+	} else {
+		enc.setIndividualID(request.getParameter("individualID"));
+		enc.setState("approved");
+		myShepherd.commitDBTransaction();
+		out.println("{\"success\": true}");
+	}
+	return;
+}
 
 
   session.setMaxInactiveInterval(6000);
   String taskId = request.getParameter("taskId");
-String num="xxx";
+
+	String jobId = null;
+	String qannId = null;
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
+        for (IdentityServiceLog l : logs) {
+            if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
+            if (l.getObjectID() != null) qannId = l.getObjectID();
+        }
+
+	String qMediaAssetJson = null;
+       	Annotation qann = null;
+	String num = null;
+	Encounter enc = null;
+	try {
+        	qann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, qannId), true)));
+	} catch (Exception ex) {}
+	if ((qann != null) && (qann.getMediaAsset() != null)) {
+		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
+        	enc = Encounter.findByAnnotation(qann, myShepherd);
+		num = enc.getCatalogNumber();
+	}
+
+
+
 	//String encSubdir = Encounter.subdir(num);
-  //Shepherd myShepherd = new Shepherd(context);
   //if (request.getParameter("writeThis") == null) {
   //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   //}
@@ -41,6 +82,10 @@ String num="xxx";
 
 
 <style type="text/css">
+
+#approval-buttons {
+	height: 5em;
+}
 
 #results {
 	display: inline-block;
@@ -179,6 +224,9 @@ tr.clickable:hover .link-button {
 
 <script>
 var taskId = '<%=taskId%>';
+var jobId = <%=((jobId == null) ? "undefined" : "'" + jobId + "'")%>;
+var qannId = <%=((qannId == null) ? "undefined" : "'" + qannId + "'")%>;
+var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)%>;
 </script>
 
 
@@ -218,6 +266,9 @@ var taskId = '<%=taskId%>';
 
 
 <div id="results">Waiting for results....</div>
+<div id="link"><%
+	if (num != null) out.println("<a href=\"encounter.jsp?number=" + num + "\">Return to encounter</a>");
+%></div>
 
 
 
@@ -250,9 +301,12 @@ var taskId = '<%=taskId%>';
 
 <script>
 function init2() {   //called from wildbook.init() when finished
-	checkForResults();
     	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
     	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
+	//if (qMediaAsset) addImage(fakeEncounter({}, qMediaAsset),jQuery('#image-main'));
+	if (qMediaAsset) jQuery('#image-main').append('<img src="' + qMediaAsset.url + '" />');
+	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="../images/image-processing.gif" />');
+	checkForResults();
 }
 
 function checkForResults() {
@@ -273,20 +327,22 @@ var countdown = 100;
 function processResults(res) {
 	if (!res || !res.queryAnnotation) {
 console.info('waiting to try again...');
-		$('#results').html('waiting for results, countdown=' + countdown);
+		$('#results').html('Waiting for results. You may leave this page.  [countdown=' + countdown + ']');
 		countdown--;
 		if (countdown < 0) {
-			$('#results').html('gave up waiting for results, sorry.  reload to wait longer.');
+			$('#results').html('Gave up waiting for results, sorry.  Reload to wait longer.');
 			return;
 		}
 		setTimeout(function() { checkForResults(); }, 3000);
 		return;
 	}
 	if (res.queryAnnotation.encounter && res.queryAnnotation.mediaAsset) {
+		jQuery('#image-main').html('');
 		addImage(fakeEncounter(res.queryAnnotation.encounter, res.queryAnnotation.mediaAsset),
 			 jQuery('#image-main'));
 	}
 	if (!res.matchAnnotations || (res.matchAnnotations.length < 1)) {
+		jQuery('#image-compare').html('<img style="width: 225px; margin: 20px 30%;" src="../images/image-not-found.jpg" />');
 		$('#results').html('No matches found.');
 		return;
 	}
@@ -294,7 +350,8 @@ console.info('waiting to try again...');
 		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
-			'</a>) - score ' + res.matchAnnotations[0].score);
+			'</a> id ' + res.matchAnnotations[0].encounter.individualID +
+			') - score ' + res.matchAnnotations[0].score + approvalButtons(res.queryAnnotation, res.matchAnnotations));
 		updateMatch(res.matchAnnotations[0]);
 		return;
 	}
@@ -312,7 +369,8 @@ console.info('waiting to try again...');
 			res.matchAnnotations[i].encounter.individualID + '), score = ' +
 			res.matchAnnotations[i].score + '</li>';
 	}
-	h += '</ul>';
+	h += '</ul><div>' + approvalButtons(res.queryAnnotation, res.matchAnnotations) + '</div>';
+		
 	$('#results').html(h);
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
@@ -331,6 +389,52 @@ function fakeEncounter(e, ma) {
 	return enc;
 }
 
+
+function approvalButtons(qann, manns) {
+	if (!manns || (manns.length < 1) || !qann || !qann.encounter) return '';
+console.info(qann);
+	var inds = [];
+	for (var i = 0 ; i < manns.length ; i++) {
+		if (!manns[i].encounter || !manns[i].encounter.individualID) continue;
+		if (inds.indexOf(manns[i].encounter.individualID) > -1) continue;
+		if (manns[i].encounter.individualID == qann.encounter.individualID) continue;
+		inds.push(manns[i].encounter.individualID);
+	}
+console.warn(inds);
+	if (inds.length < 1) return '';
+	var h = ' <div id="approval-buttons">';
+	for (var i = 0 ; i < inds.length ; i++) {
+		h += '<input type="button" onClick="approvalButtonClick(\'' + qann.encounter.catalogNumber + '\', \'' +
+		     inds[i] + '\');" value="Approve as assigned to ' + inds[i] + '" />';
+	}
+	return h + '</div>';
+}
+
+
+function approvalButtonClick(encID, indivID) {
+	console.info('approvalButtonClick(%s, %s)', encID, indivID);
+	jQuery('#approval-buttons').html('<i>sending request...</i>');
+	jQuery.ajax({
+		url: 'matchResults.jsp?number=' + encID + '&individualID=' + indivID,
+		type: 'GET',
+		dataType: 'json',
+		success: function(d) {
+			if (d.success) {
+				window.location.href = 'encounter.jsp?number=' + encID;
+			} else {
+				console.warn(d);
+				jQuery('#approval-buttons').html('error');
+				alert('Error updating encounter: ' + d.error);
+			}
+		},
+		error: function(x,y,z) {
+			console.warn('%o %o %o', x, y, z);
+			jQuery('#approval-buttons').html('error');
+			alert('Error updating encounter');
+		}
+	});
+	return true;
+}
 
 </script>
 
