@@ -24,6 +24,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
+import org.ecocean.RestClient;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -35,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
 
+import java.net.URL;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -51,17 +53,75 @@ public class IAGateway extends HttpServlet {
 
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+    String getOut = "";
+
     if (request.getParameter("getJobResult") != null) {
+        JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         try {
             res = IBEISIA.getJobResult(request.getParameter("getJobResult"));
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
+        response.setContentType("text/plain");
+        getOut = res.toString();
+
+    } else if (request.getParameter("getDetectReviewHtml") != null) {
+        String jobID = request.getParameter("getDetectReviewHtml");
+        int offset = 0;
+        if (request.getParameter("offset") != null) {
+            try {
+                offset = Integer.parseInt(request.getParameter("offset"));
+            } catch (NumberFormatException ex) {}
+        }
+        JSONObject res = null;
+        try {
+            res = IBEISIA.getJobResult(jobID);
+        } catch (Exception ex) {
+            throw new IOException(ex.toString());
+        }
+System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
+        if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
+            getOut = "<div>invalid job ID " + jobID + "</div>";
+            System.out.println("ERROR: invalid jobid for res(" + jobID + "[" + offset + "]) -> " + res);
+        } else {
+            JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
+            JSONArray ilist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("image_uuid_list");
+            if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
+            if (offset > ilist.length() - 1) offset = 0;
+            String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
+            if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
+            url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
+            url += "result_list=" + rlist.getJSONArray(offset).toString() + "&";
+            url += "callback_url=" + "http://example.com/" + "&callback_method=POST";
+            try {
+System.out.println("url --> " + url);
+                URL u = new URL(url);
+                JSONObject rtn = RestClient.get(u);
+                if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
+                    !rtn.getJSONObject("status").optBoolean("success", false)) {
+                    getOut = "<div>invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                } else {
+                    getOut = rtn.getString("response");
+                    if (request.getParameter("test") != null) {
+                        getOut = "<html><head><script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js\"></script></head><body>" + getOut + "</body></html>";
+                    }
+                }
+            } catch (Exception ex) {
+                getOut = "<div>Error: " + ex.toString() + "</div>";
+            }
+
+/*
+    public static JSONObject getJobResult(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", "context0");
+            getOut = "(url -> " + url + ")";
+        }
+*/
+
+        }
     }
-    response.setContentType("text/plain");
+
     PrintWriter out = response.getWriter();
-    out.println(res.toString());
+    out.println(getOut);
     out.close();
   }
 
