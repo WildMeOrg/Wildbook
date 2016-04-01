@@ -5148,6 +5148,7 @@ catch(Exception e){
 String pswipedir = "http://"+CommonConfiguration.getURLLocation(request)+"/photoswipe";
 %>
 <p>Looking for photoswipe in <%=pswipedir%></p>
+<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
