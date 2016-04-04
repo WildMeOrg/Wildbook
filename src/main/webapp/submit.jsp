@@ -3,7 +3,8 @@
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
-                 java.util.Properties" %>
+                 java.util.Properties,
+                 java.util.List" %>
 
 
 <!-- Add reCAPTCHA -->
@@ -823,20 +824,23 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <select class="form-control" name="genusSpecies" id="genusSpecies">
              	<option value="" selected="selected">unknown</option>
   <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
+                     
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
+                     
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
                                %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
                                <%
-                             taxNum++;
+                           
                         }
-                        else{
-                           hasMoreTax=false;
-                        }
+
                         
                    }
                    }
