@@ -191,7 +191,6 @@ System.out.println(id);
     }
 
     res.put("_in", j);
-    }
 
     out.println(res.toString());
     out.close();
