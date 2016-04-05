@@ -1384,7 +1384,7 @@ public class Shepherd {
    * Retrieve the distinct User objects for all Encounters related to this MarkedIndividual
    *
    */
-  public List<User> getAllUsersForMarkedIndividual(MarkedIndividual indie){
+  public ArrayList<User> getAllUsersForMarkedIndividual(MarkedIndividual indie){
     ArrayList<User> relatedUsers=new ArrayList<User>();
     ArrayList<String> usernames=indie.getAllAssignedUsers();
     int size=usernames.size();
@@ -2882,7 +2882,7 @@ public class Shepherd {
     return al;
   }
 
-  public List<String> getAllUsernames() {
+  public ArrayList<String> getAllUsernames() {
     Query q = pm.newQuery(User.class);
     q.setResult("distinct username");
     q.setOrdering("username ascending");
