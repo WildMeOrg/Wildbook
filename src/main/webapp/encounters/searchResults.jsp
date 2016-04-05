@@ -62,6 +62,10 @@ context=ServletUtilities.getContext(request);
 	cursor: pointer;
 }
 
+.ptcol-otherCatalogNumbers {
+  width: 75px !important;
+}
+
 tr.clickable:hover td {
 	background-color: #EFA !important;
 }
@@ -311,6 +315,10 @@ var colDefn = [
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+  {
+    key: 'otherCatalogNumbers',
+    label: 'Alternate ID',
+  },
   {
     key: 'filename',
     label: 'Filename(s)',
@@ -788,6 +796,9 @@ function _colFileName(o) {
     console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
   }
   return outStrings.join(',\n');
+}
+function _colAlternateID(o) {
+  if (!o.get('otherCatalogNumbers')) return '';
 }
 
 function _colRowNum(o) {
