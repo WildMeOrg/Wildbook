@@ -96,7 +96,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
 
-        JSONObject j = jsonFromRequest(request);
+        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
         JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd);
         myShepherd.commitDBTransaction();
         out.println(res.toString());
@@ -196,8 +196,11 @@ System.out.println(i + ") params -> " + params.toString());
    TODO  when annotation-building no longer needs dimensions, technically this Metadata building will not be required. however, we likely will need to
          eat the cost of s3 cacheLocal() anyway for the children creation.  however[2], we can likely just do it in the background.
          at least doing this now will avoid collision of it happening twice during form submission... ug yeah what about that?  ug, locking!
+
+         update:  errrr, maybe not.  i think we *must* grab "real" (exif) metadata so we can get (primarily) date/time for image. :/
+         but probably still could be done in the background....
 */
-                    targetMA.updateMinimalMetadata();
+                    targetMA.updateMetadata();
                     targetMA.addLabel("_original");
                     MediaAssetFactory.save(targetMA, myShepherd);
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
@@ -225,21 +228,6 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
         rtn.put("sets", js);
         rtn.put("success", true);
         return rtn;
-    }
-
-    private JSONObject jsonFromRequest(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = request.getReader();
-        try {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line).append('\n');
-            }
-        } finally {
-            reader.close();
-        }
-//ParseException
-        return new JSONObject(sb.toString());
     }
 
 }
