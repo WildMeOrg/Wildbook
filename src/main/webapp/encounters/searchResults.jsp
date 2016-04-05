@@ -10,12 +10,12 @@ context=ServletUtilities.getContext(request);
   //let's load encounterSearch.properties
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
   Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/searchResults.properties"));
   encprops=ShepherdProperties.getProperties("searchResults.properties", langCode, context);
-  
+
 
   Shepherd myShepherd = new Shepherd(context);
 
@@ -27,7 +27,7 @@ context=ServletUtilities.getContext(request);
   //Vector rEncounters = new Vector();
 
   //myShepherd.beginDBTransaction();
-  
+
   try{
 
   	//EncounterQueryResult queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
@@ -140,7 +140,7 @@ td.tdw:hover div {
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
@@ -165,7 +165,7 @@ td.tdw:hover div {
 		height: 13px;
 		background: url(../images/lock-icon-tiny.png) no-repeat;
 	}
-  
+
 </style>
 
 <jsp:include page="../header.jsp" flush="true"/>
@@ -189,33 +189,26 @@ td.tdw:hover div {
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
- 
+
 
 <ul id="tabmenu">
-
-<%
-String queryString="";
-if(request.getQueryString()!=null){
-	queryString=request.getQueryString();
-}
-%>
 
   <li><a class="active"><%=encprops.getProperty("table")%>
   </a></li>
   <li><a
-    href="thumbnailSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
+    href="thumbnailSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("matchingImages")%>
   </a></li>
   <li><a
-    href="mappedSearchResults.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
+    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("mappedResults")%>
   </a></li>
   <li><a
-    href="../xcalendar/calendar2.jsp?<%=queryString.replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
+    href="../xcalendar/calendar2.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=encprops.getProperty("resultsCalendar")%>
   </a></li>
         <li><a
-     href="searchResultsAnalysis.jsp?<%=queryString %>"><%=encprops.getProperty("analysis")%>
+     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("analysis")%>
    </a></li>
       <li><a
-     href="exportSearchResults.jsp?<%=queryString %>"><%=encprops.getProperty("export")%>
+     href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=encprops.getProperty("export")%>
    </a></li>
 
 </ul>
@@ -318,6 +311,11 @@ var colDefn = [
 		value: _colIndLink,
 		//sortValue: function(o) { return o.individualID.toLowerCase(); },
 	},
+  {
+    key: 'filename',
+    label: 'Filename(s)',
+    value: _colFileName,
+  },
 	{
 		key: 'date',
 		label: 'Date',
@@ -354,7 +352,7 @@ var colDefn = [
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
-	
+
 ];
 
 
@@ -775,6 +773,22 @@ function _colTaxonomy(o) {
 	return o.get('genus') + ' ' + o.get('specificEpithet');
 }
 
+function _colFileName(o) {
+  if (!o.get('annotations')) return 'none';
+  var outStrings = [];
+  for (id in o.get('annotations')) {
+    var ann = o.get('annotations')[id];
+    if (ann.mediaAsset != undefined) {
+      var urlString = ann.mediaAsset.url;
+      var pieces = urlString.split('/');
+      var betweenLastSlashAndJpg = pieces[pieces.length-1].split('.')[0];
+      outStrings[outStrings.length] = betweenLastSlashAndJpg;
+      //console.log('\t added url string: '+ann.mediaAsset.url);
+    }
+    console.log('\t no mediaAsset found in annotation '+JSON.stringify(ann));
+  }
+  return outStrings.join(',\n');
+}
 
 function _colRowNum(o) {
 	return o._rowNum;
@@ -922,8 +936,3 @@ console.log(t);
 %>
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-
-
-
