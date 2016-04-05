@@ -621,6 +621,23 @@
 
 
 
+	<class name="WBQuery" identity-type="application">
+		<field name="id" jdbc-type="BIGINT" primary-key="true" value-strategy="identity"/>
+            	<field name="revision" persistence-modifier="persistent">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+            	</field>
+		<field name="name" />
+		<field name="parametersAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="parameters" />
+		</field>
+		<field name="owner" persistence-modifier="persistent" element-type="org.ecocean.AccessControl" />
+	</class>
+
+	<class name="AccessControl" identity-type="application">
+		<field name="id" jbc-type="BIGINT" primary-key="true" value-strategy="identity"/>
+		<field name="username" />
+	</class>
+
         
 		
 		

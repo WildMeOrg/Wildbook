@@ -38,12 +38,14 @@ context=ServletUtilities.getContext(request);
 
 int numFixes=0;
 
+String nameWithMostPictures="";
+int maxPictures=0;
 
-try{
-
+try {
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
+<<<<<<< HEAD
 	
 	
 	
@@ -126,11 +128,60 @@ catch(Exception e){e.printStackTrace();}
 myShepherd.closeDBTransaction();
 
 %>
+=======
+
+  Iterator allIndividuals=myShepherd.getAllMarkedIndividuals();
+
+  boolean committing=false;
+
+
+  while(allIndividuals.hasNext()){
+
+  	MarkedIndividual mark=(MarkedIndividual)allIndividuals.next();
+    Encounter[] encounters = mark.getDateSortedEncounters();
+    int numEncs = encounters.length;
+    int numPics = 0;
+
+    for (Encounter enc : encounters) {
+      numPics += enc.getMedia().size();
+    }
+
+    if (numPics>maxPictures && numPics<20) {
+      maxPictures=numPics;
+      nameWithMostPictures=mark.getName();
+    }
+
+    %><p>Individual <%=mark.getName()%> has <%=numEncs%> encounters and <%=numPics%> pictures</p><%
+
+  	numFixes++;
+
+    if (committing) {
+  		myShepherd.commitDBTransaction();
+  		myShepherd.beginDBTransaction();
+    }
+  }
+}
+catch (Exception ex) {
+>>>>>>> feature/spring-break
 
 
 
+<<<<<<< HEAD
 
 </ul>
 <p>Done successfully: <%=numFixes %> encounters deleted</p>
+=======
+}
+finally{
+
+	myShepherd.closeDBTransaction();
+	myShepherd=null;
+}
+%>
+
+</ul>
+<p>Done successfully: <%=numFixes %></p>
+<p>Most photographed individual <%=nameWithMostPictures %> had <%=maxPictures%> pictures.</p>
+>>>>>>> feature/spring-break
 </body>
 </html>
