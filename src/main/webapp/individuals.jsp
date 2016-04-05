@@ -1336,7 +1336,7 @@ System.out.println("name -> "+thisName);
 
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 
 			int  numColumns=3;
 			int numThumbs=0;
@@ -1765,7 +1765,7 @@ if(CommonConfiguration.showUsersToPublic(context)){
 
                          <%
                          //myShepherd.beginDBTransaction();
-                         
+
                          ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
