@@ -36,6 +36,15 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+		
+		<p>Norman B, Reynolds S and Morgan D. (2016) Does the whale shark aggregate along the Western Australian coastline beyond Ningaloo Reef? Pacific Conservation Biology 22(1) 72-80
+Submitted. 1 April 2016<br />
+		<a href="http://www.publish.csiro.au/?paper=PC15045">Web link</a>
+		</p>
+		
+		
+
+		
 			<p>Araujo G, Lucey A, Labaja J, So CL, Snow S, Ponzo A. (2014) Population structure and residency patterns of whale sharks, Rhincodon typus, at a provisioning site in Cebu, Philippines. PeerJ 2:e543
 		<br />
 		<a href="https://peerj.com/articles/543/">Web link</a>
