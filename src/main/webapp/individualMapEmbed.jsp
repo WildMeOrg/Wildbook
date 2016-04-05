@@ -134,7 +134,11 @@ margin-bottom: 8px !important;
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
+          mapTypeId: google.maps.MapTypeId.HYBRID,
+          zoomControl: true,
+          scaleControl: false,
+          scrollwheel: false,
+          disableDoubleClickZoom: true
         });
 
     	  //adding the fullscreen control to exit fullscreen
