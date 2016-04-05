@@ -1774,12 +1774,6 @@
     <url-pattern>/gridHeartbeatReceiver</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-    <servlet-name>IAGateway</servlet-name>
-    <url-pattern>/ia</url-pattern>
-  </servlet-mapping>
-
-
 
     <servlet>
     <servlet-name>WriteOutFlukeMatchingJSON</servlet-name>
