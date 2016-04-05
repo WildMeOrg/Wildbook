@@ -433,13 +433,8 @@ public class Shepherd {
     acceptedEncounters.closeAll();
     return roles;
   }
-<<<<<<< HEAD
-  
-  public List<Role> getAllRolesForUser(String username) {
-=======
 
   public ArrayList<Role> getAllRolesForUser(String username) {
->>>>>>> feature/spring-break
     String filter = "this.username == '" + username + "'";
     Extent encClass = pm.getExtent(Role.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
@@ -993,9 +988,6 @@ public class Shepherd {
     }
   }
 
-<<<<<<< HEAD
-  public Iterator<SinglePhotoVideo> getAllSinglePhotoVideosNoQuery() {
-=======
   public Iterator getAllMediaAssets() {
     try {
       Extent maClass = pm.getExtent(MediaAsset.class, true);
@@ -1010,7 +1002,6 @@ public class Shepherd {
 
 
   public Iterator getAllSinglePhotoVideosNoQuery() {
->>>>>>> feature/spring-break
     try {
       Extent spvClass = pm.getExtent(SinglePhotoVideo.class, true);
       Iterator it = spvClass.iterator();
@@ -1617,13 +1608,8 @@ public class Shepherd {
     samples.closeAll();
     return (al);
   }
-<<<<<<< HEAD
-  
-  public List<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
-=======
 
   public ArrayList<TissueSample> getAllTissueSamplesForMarkedIndividual(MarkedIndividual indy) {
->>>>>>> feature/spring-break
     ArrayList<TissueSample> al = new ArrayList<TissueSample>();
     if(indy.getEncounters()!=null){
       int numEncounters = indy.getEncounters().size();
@@ -1651,13 +1637,8 @@ public class Shepherd {
     samples.closeAll();
     return myArray;
   }
-<<<<<<< HEAD
-  
-  public List<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
-=======
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
->>>>>>> feature/spring-break
 	  String keywordQueryString="SELECT FROM org.ecocean.SinglePhotoVideo WHERE keywords.contains(word0) && ( word0.indexname == \""+word.getIndexname()+"\" ) VARIABLES org.ecocean.Keyword word0";
       Query samples = pm.newQuery(keywordQueryString);
 	  Collection c = (Collection) (samples.execute());
@@ -2930,13 +2911,8 @@ public class Shepherd {
     q.closeAll();
     return al;
   }
-<<<<<<< HEAD
-  
-  public List<String> getAllSocialUnitNames() {
-=======
 
   public ArrayList<String> getAllSocialUnitNames() {
->>>>>>> feature/spring-break
     ArrayList<String> comNames=new ArrayList<String>();
     Query q = pm.newQuery(Relationship.class);
     try{
@@ -3079,13 +3055,8 @@ public class Shepherd {
     acceptedEncounters.closeAll();
     return indies;
   }
-<<<<<<< HEAD
-  
-  public List<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
-=======
 
   public ArrayList<Relationship> getAllRelationshipsForMarkedIndividual(String indieName){
->>>>>>> feature/spring-break
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
     Query query = pm.newQuery(encClass, filter2use);
@@ -3095,13 +3066,8 @@ public class Shepherd {
     query.closeAll();
     return listy;
   }
-<<<<<<< HEAD
-  
-  public List<String> getAllSocialUnitsForMarkedIndividual(String indieName){
-=======
 
   public ArrayList<String> getAllSocialUnitsForMarkedIndividual(String indieName){
->>>>>>> feature/spring-break
     Extent encClass = pm.getExtent(Relationship.class, true);
 
     String filter2use = "this.markedIndividualName1 == \""+indieName+"\" || this.markedIndividualName2 == \""+indieName+"\"";
@@ -3114,19 +3080,11 @@ public class Shepherd {
     query.closeAll();
     return listy;
   }
-<<<<<<< HEAD
-  
-  public List<String> getAllRoleNamesForMarkedIndividual(String indieName){
-    ArrayList<String> roles=new ArrayList<String>();
-    
-    List<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
-=======
 
   public ArrayList<String> getAllRoleNamesForMarkedIndividual(String indieName){
     ArrayList<String> roles=new ArrayList<String>();
 
     ArrayList<Relationship> rels=getAllRelationshipsForMarkedIndividual(indieName);
->>>>>>> feature/spring-break
     int numRels=rels.size();
     for(int i=0;i<numRels;i++){
 
@@ -3142,13 +3100,8 @@ public class Shepherd {
 
     return roles;
   }
-<<<<<<< HEAD
   
-  public List<Relationship> getAllRelationshipsForCommunity(String commName){
-=======
-
   public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
->>>>>>> feature/spring-break
     //ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
     String filter2use = "this.communityName == \""+commName+"\"";
@@ -3161,13 +3114,8 @@ public class Shepherd {
 
   public int getNumCooccurrencesBetweenTwoMarkedIndividual(String individualID1,String individualID2){
     int numCooccur=0;
-<<<<<<< HEAD
-    
-    List<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
-=======
 
     ArrayList<String> occurenceIDs1=getOccurrenceIDsForMarkedIndividual(individualID1);
->>>>>>> feature/spring-break
     //System.out.println("zzzOccurrences for indie "+individualID1+": "+occurenceIDs1.toString());
     List<String> occurenceIDs2=getOccurrenceIDsForMarkedIndividual(individualID2);
     //System.out.println("zzzOccurrences for indie "+individualID2+": "+occurenceIDs2.toString());
@@ -3185,13 +3133,8 @@ public class Shepherd {
     }
     return numCooccur;
   }
-<<<<<<< HEAD
-  
-  public List<String> getOccurrenceIDsForMarkedIndividual(String individualID){
-=======
 
   public ArrayList<String> getOccurrenceIDsForMarkedIndividual(String individualID){
->>>>>>> feature/spring-break
     ArrayList<String> occurrenceIDs=new ArrayList<String>();
 
    String filter="SELECT distinct occurrenceID FROM org.ecocean.Occurrence WHERE encounters.contains(enc) && enc.individualID == \""+individualID+"\"  VARIABLES org.ecocean.Encounter enc";
@@ -3217,13 +3160,8 @@ public class Shepherd {
     if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c)).get(0);}
     else{return null;}
   }
-<<<<<<< HEAD
-  
-  public List<Measurement> getMeasurementsForEncounter(String encNum) {
-=======
 
   public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
->>>>>>> feature/spring-break
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
     Extent encClass = pm.getExtent(Measurement.class, true);
     Query samples = pm.newQuery(encClass, filter);
@@ -3258,13 +3196,8 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
-<<<<<<< HEAD
-  
-  public List<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
-=======
 
   public ArrayList<Encounter> getMostRecentIdentifiedEncountersByDate(int numToReturn){
->>>>>>> feature/spring-break
     ArrayList<Encounter> matchingEncounters = new ArrayList<Encounter>();
     String filter = "individualID != null";
     Extent encClass = pm.getExtent(Encounter.class, true);
