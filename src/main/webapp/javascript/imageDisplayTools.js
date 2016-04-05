@@ -31,7 +31,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+        mkImg(maJson)
       )
     )
   );
@@ -80,7 +80,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) 
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-      '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      mkImg(maJson)
     )
   );
   var caption = maCaptionFunction(maJson);
@@ -147,7 +147,7 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+        mkImg(maJson)
       )
     )
   );
@@ -403,6 +403,12 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
     openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
   }
 };
+
+
+function mkImg(maJson) {
+    var url = maJson.url;
+    return '<img id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+}
 
 // execute above function
 
