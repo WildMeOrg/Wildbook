@@ -40,9 +40,17 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
 }
 
 maLib.defaultCaptionFunction = function(maJson) {
-
   if ('url' in maJson) {return maJson.url;}
   else {return "Test caption, do not read"}
+}
+
+maLib.cascadiaCaptionFunction = function(maJson) {
+  if ('url' in maJson) {
+    var partArray = maJson.url.split('/');
+    partArray = partArray[partArray.length-1].split('.')
+    return partArray[0];
+  }
+  return "Test caption, do not read";
 }
 
 /**
@@ -53,7 +61,7 @@ maLib.defaultCaptionFunction = function(maJson) {
  */
 maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
-  maCaptionFunction = maCaptionFunction || maLib.defaultCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
