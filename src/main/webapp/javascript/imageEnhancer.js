@@ -99,11 +99,11 @@ console.warn('menu -> %o', el);
     },
 
     clickMenuItem: function(ev) {
-        var i = ev.target.getAttribute('data-i');
-        var enh = ev.target.parentElement.parentElement.enhancer;
+        var i = ev.currentTarget.getAttribute('data-i');
+        var enh = ev.currentTarget.parentElement.parentElement.enhancer;
 console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         ev.stopPropagation();
-        imageEnhancer.closeMenu(ev.target.parentElement.parentElement);
+        imageEnhancer.closeMenu(ev.currentTarget.parentElement.parentElement);
         if (i < 0) return imageEnhancer.debugMenuItem(enh);
         //ev.target.parentElement.parentElement.enhancer.opt.menu[i][1](ev.target.parentElement.parentElement.enhancer);
         enh.opt.menu[i][1](enh);
