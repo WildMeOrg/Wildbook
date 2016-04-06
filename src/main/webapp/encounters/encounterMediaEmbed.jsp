@@ -127,6 +127,34 @@ no media
 ///SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW!   TODO
 		if (!ann.isTrivial()) continue;
 
+%>
+	<p style="display: none"><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+
+<style>
+	#match-tools {
+		padding: 5px 15px;
+		display: inline-block;
+		background-color: #DDD;
+		margin: 4px;
+		border-radius: 4px;
+	}
+	#match-tools a {
+		cursor: pointer;
+		display: block;
+	}
+</style>
+	<div id="match-tools">
+		<div><a data-id="<%=ann.getId()%>" onClick="startIdentify(this)">Match this image</a></div>
+<%
+	String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+	if ((tasks != null) && (tasks.length > 0)) {
+		for (int i = 0 ; i < tasks.length ; i++) {
+			out.println("<a target=\"_new\" href=\"matchResults.jsp?taskId=" + tasks[i] + "\">" + (i+1) + ") previous match results</a>");
+		}
+	}
+%>
+	</div>
+<%
 //hacky menu, for now.  TODO break this out as part of toHtmlElement so it is part of image suite
 		if (CommonConfiguration.useSpotPatternRecognition(context)) {
 			String isDorsalFin="";
