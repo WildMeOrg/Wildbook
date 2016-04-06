@@ -66,6 +66,57 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = res.toString();
 
+///////////////
+    } else if (request.getParameter("getJobResultFromTaskID") != null) {
+        JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskID = request.getParameter("getJobResultFromTaskID");
+        String jobID = IBEISIA.findJobIDFromTaskID(taskID, myShepherd);
+        //String jobID = null;
+        //String qannID = null;
+/*
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        for (IdentityServiceLog l : logs) {
+            if (l.getServiceJobID() != null) jobID = l.getServiceJobID();
+            if (l.getObjectID() != null) qannID = l.getObjectID();
+        }
+*/
+        if (jobID == null) {
+            res.put("error", "could not find jobID for taskID=" + taskID);
+        } else {
+            try {
+                res = IBEISIA.getJobResult(jobID);
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+
+            if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
+                JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
+                if (firstResult != null) {
+System.out.println("firstResult -> " + firstResult.toString());
+                    res.put("queryAnnotation", expandAnnotation(IBEISIA.fromFancyUUID(firstResult.optJSONObject("qauuid")), myShepherd, request));
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    JSONArray mout = new JSONArray();
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            JSONObject aj = expandAnnotation(IBEISIA.fromFancyUUID(matches.optJSONObject(i)), myShepherd, request);
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+                    res.put("matchAnnotations", mout);
+                }
+            }
+        }
+
+        response.setContentType("text/plain");
+        getOut = res.toString();
+/////////////
+
     } else if (request.getParameter("getDetectReviewHtml") != null) {
         String jobID = request.getParameter("getDetectReviewHtml");
         int offset = 0;
