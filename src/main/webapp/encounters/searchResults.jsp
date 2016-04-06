@@ -232,6 +232,7 @@ td.tdw:hover div {
 
 <script type="text/javascript">
 
+	var needIAStatus = <%=("unapproved".equals(request.getParameter("state")) ? "true" : "false")%>;
 /*
 
 
@@ -380,7 +381,22 @@ var counts = {
 
 var sTable = false;
 
+
+var iaResults;
 function doTable() {
+	iaResults = {};
+	if (needIAStatus) {
+		for (var i = 0 ; i < searchResults.length ; i++) {
+			if (searchResults[i].get('individualID') && (searchResults[i].get('individualID') != 'Unassigned')) continue;
+			var anns = searchResults[i].get('annotations');
+			if (!anns || (anns.length < 1)) continue;
+			searchResults[i].set('_iaCandidate', true);
+			iaResults[i] = {};
+			for (var a = 0 ; a < anns.length ; a++) {
+				iaResults[i][anns[a].id] = [];
+			}
+		}
+	}
 /*
 	for (var i = 0 ; i < searchResults.length ; i++) {
 		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
