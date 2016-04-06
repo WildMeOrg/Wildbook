@@ -202,7 +202,7 @@ public class MediaAsset implements java.io.Serializable {
     public JSONObject getParameters() {
         if (parameters != null) return parameters;
         //System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
-        JSONObject j = _toJSONObject(parametersAsString);
+        JSONObject j = Util.stringToJSONObject(parametersAsString);
         parameters = j;
         return j;
     }
@@ -233,21 +233,10 @@ public class MediaAsset implements java.io.Serializable {
         }
         parametersAsString = p;
         //now we also set parameters as the JSONObject (or try)
-        JSONObject j = _toJSONObject(p);
+        JSONObject j = Util.stringToJSONObject(p);
         if (j != null) parameters = j;
     }
 
-    //utility: swallows json exception and will return null if fails
-    private static JSONObject _toJSONObject(String s) {
-        JSONObject j = null;
-        if (s == null) return j;
-        try {
-            j = new JSONObject(s);
-        } catch (JSONException je) {
-            System.out.println("error parsing json string (" + s + "): " + je.toString());
-        }
-        return j;
-    }
 
     public JSONObject getDerivationMethod() {
         return derivationMethod;

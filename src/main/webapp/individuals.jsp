@@ -39,8 +39,8 @@ context=ServletUtilities.getContext(request);
 
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-  
-	
+
+
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
@@ -133,7 +133,7 @@ if (request.getParameter("number")!=null) {
 				}
 			}
 
-			
+
 
 }
 		myShepherd.rollbackDBTransaction();
@@ -254,7 +254,7 @@ table.tissueSample td {
 
   <script type="text/javascript">
     hs.graphicsDir = 'highslide/highslide/graphics/';
-    
+
     hs.transitions = ['expand', 'crossfade'];
     hs.outlineType = 'rounded-white';
     hs.fadeInOut = true;
@@ -262,7 +262,7 @@ table.tissueSample td {
 
     hs.align = 'auto';
   	hs.anchor = 'top';
-    
+
     //define the restraining box
     hs.useBox = true;
     hs.width = 810;
@@ -396,7 +396,7 @@ var colDefn = [
 		key: 'behavior',
 		label: 'Behavior',
 	}
-	
+
 ];
 
 
@@ -788,7 +788,7 @@ function dataTypes(obj, fieldName) {
 
 
 <div class="container maincontent">
-    
+
 <%=blocker%>
 
 <%
@@ -804,8 +804,8 @@ function dataTypes(obj, fieldName) {
 
 <h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps %> <%=sharky.getIndividualID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
- 
- <p> <table><tr valign="middle">  
+
+ <p> <table><tr valign="middle">
   <td>
     <!-- Google PLUS-ONE button -->
 <g:plusone size="small" annotation="none"></g:plusone>
@@ -837,10 +837,30 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
+<h2>Under Construction:</h2>
+<p>
+
+</p>
+
+<div id="just-a-big-temp-photoswipe-containing-workarea">
+<%
+
+// TODO: implement a photoswipe gallery here
+
+boolean loggedIn = false;
+try{
+  if(request.getUserPrincipal()!=null){loggedIn=true;}
+}
+catch(NullPointerException nullLogged){}
+
+Encounter[] galleryEncs = sharky.getDateSortedEncounters();
+
+%>
+</div>
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
-  
+
 </p>
 
 
@@ -876,11 +896,11 @@ $("a#alternateID").click(function() {
 </p>
 <%
     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-    
+
     String genusSpeciesFound=props.getProperty("notAvailable");
     if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
     %>
-    
+
         <p><img align="absmiddle" src="images/taxontree.gif">
           <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
        </p>
@@ -960,10 +980,10 @@ if(sharky.getSex()!=null){sexValue=sharky.getSex();}
   <%
     //edit sex
     if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
-  
+
     <!-- Now prep the popup dialog -->
 <div id="dialogSex" title="<%=setsex %>" style="display:none">
-  
+
     <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
       <tr>
@@ -974,13 +994,13 @@ if(sharky.getSex()!=null){sexValue=sharky.getSex();}
               <option value="unknown"><%=props.getProperty("unknown") %></option>
               <option value="male"><%=props.getProperty("male") %></option>
               <option value="female"><%=props.getProperty("female") %></option>
-            </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" /> 
+            </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
             <input name="Add" type="submit" id="Add" value="<%=update %>" />
           </form>
         </td>
       </tr>
     </table>
-    
+
         </div>
                          		<!-- popup dialog script -->
 <script>
@@ -995,7 +1015,7 @@ $("a#sex").click(function() {
   dlgSex.dialog("open");
 });
 </script>
-    
+
    <%}%>
 
 </p>
@@ -1011,7 +1031,7 @@ if(sharky.getTimeOfBirth()>0){
 		timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
 	}
 	timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
-	
+
 }
 
 String displayTimeOfBirth=timeOfBirth;
@@ -1034,18 +1054,18 @@ String displayTimeOfBirth=timeOfBirth;
       	</strong>
       	  	<br /><%=props.getProperty("dateFormat")%>
       	<br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
-    
+
 </td></tr>
 
   <tr>
     <td align="left" valign="top">
       <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
-      
-    
-      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> 
+
+
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
       	<%=props.getProperty("birthdate")  %>:
         <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
-        
+
         <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
     </td>
   </tr>
@@ -1100,13 +1120,13 @@ String displayTimeOfDeath=timeOfDeath;
       	</strong>
       	<br /><%=props.getProperty("dateFormat")%>
       	<br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
-    
+
 </td></tr>
 
   <tr>
     <td align="left" valign="top">
       <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
-      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> 
+      	<input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
       	<%=props.getProperty("deathdate")  %>:
         <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
     </td>
@@ -1179,11 +1199,11 @@ $("a#deathdate").click(function() {
     for (int i = 0; i < total; i++) {
 	HashMap henc = new HashMap();
       Encounter enc = dateSortedEncs[i];
-      
+
 				boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
         Vector encImages = enc.getAdditionalImageNames();
         String imgName = "";
-        
+
 							//String encSubdir = thisEnc.subdir();
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
 
@@ -1193,10 +1213,10 @@ $("a#deathdate").click(function() {
     	henc.put("location", enc.getLocation());
 	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
    	if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
-   	
+
    	//if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
    	if ((myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasMeasurements", true);
-	
+
    	henc.put("catalogNumber", enc.getEncounterNumber());
  	henc.put("alternateID", enc.getAlternateID());
 	henc.put("sex", enc.getSex());
@@ -1240,7 +1260,7 @@ $("a#deathdate").click(function() {
     	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
    		 %>
     	<br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
-    	<%	
+    	<%
     	}
     }
 */
@@ -1307,17 +1327,17 @@ System.out.println("name -> "+thisName);
     <%
     String[] keywords=keywords=new String[0];
 		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-		if(numThumbnails>0){	
+		if(numThumbnails>0){
 		%>
 
 <table id="results" border="0" width="100%">
     <%
 
-			
+
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
 			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-			
+
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
@@ -1329,15 +1349,15 @@ System.out.println("name -> "+thisName);
 			  }
 
 			try {
-				
+
 			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE individualID == \""+sharky.getIndividualID()+"\"");
 		        //query.setFilter("SELECT "+jdoqlQueryString);
 		        query.setResult("catalogNumber");
 		        Collection c = (Collection) (query.execute());
 		        ArrayList<String> enclist = new ArrayList<String>(c);
 		        query.closeAll();
-				
-			
+
+
 				thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
 				numThumbs=thumbLocs.size();
 			%>
@@ -1357,7 +1377,7 @@ System.out.println("name -> "+thisName);
 									//}
 									//else{
 									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-							              
+
 									//}
 
 									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
@@ -1378,19 +1398,19 @@ System.out.println("name -> "+thisName);
 									}
 									else{
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-										
+
 									}
 									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
-						
+
 	boolean thisEncounterVisible = thisEnc.canUserAccess(request);
 							%>
 
-   
-    
+
+
       <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%">
         <tr>
           <td valign="top">
-			
+
               <%
 			if(isOwner && thisEncounterVisible){
 												%>
@@ -1413,10 +1433,10 @@ System.out.println("name -> "+thisName);
             </a>
               <%
 			}
-            
+
 			%>
 
-            <div 
+            <div
             <%
             if(!thumbLink.endsWith("video.jpg")){
             %>
@@ -1436,14 +1456,14 @@ System.out.println("name -> "+thisName);
                         int kwLength = keywords.length;
                         //Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
                       %>
-                      
-                      
+
+
 
                       <tr>
                         <td>
 
 	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-                        	<span class="caption"><%=props.getProperty("location") %>: 
+                        	<span class="caption"><%=props.getProperty("location") %>:
                         		<%
                         		if(thisEnc.getLocation()!=null){
                         		%>
@@ -1461,7 +1481,7 @@ System.out.println("name -> "+thisName);
                       </tr>
                       <tr>
                         <td>
-                        	<span class="caption"><%=props.getProperty("locationID") %>: 
+                        	<span class="caption"><%=props.getProperty("locationID") %>:
 				                        		<%
 				                        		if(thisEnc.getLocationID()!=null){
 				                        		%>
@@ -1505,11 +1525,11 @@ System.out.println("name -> "+thisName);
 											<%
 											 //while (allKeywords2.hasNext()) {
 					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
+
+
 					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
 											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
+
 					                            //String renderMe = word.getReadableName();
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												int myWordsSize=myWords.size();
@@ -1527,7 +1547,7 @@ System.out.println("name -> "+thisName);
 
 
 					                          //    }
-					                       // } 
+					                       // }
 
                           %>
 										</span></td>
@@ -1537,17 +1557,17 @@ System.out.println("name -> "+thisName);
 
                     <%
                       if (CommonConfiguration.showEXIFData(context)) {
-                   
+
             	if(!thumbLink.endsWith("video.jpg")){
-           		 %>							
+           		 %>
 					<span class="caption">
-						<div class="scroll">	
+						<div class="scroll">
 						<span class="caption">
 					<%
             if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
               try{
               File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              if(exifImage.exists()){              
+              if(exifImage.exists()){
               	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
               	// iterate through metadata directories
                 for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
@@ -1559,7 +1579,7 @@ System.out.println("name -> "+thisName);
               else{
             	  %>
 		            <p>File not found on file system. No EXIF data available.</p>
-          		<%  
+          		<%
               }
             } //end try
             catch(Exception e){
@@ -1572,8 +1592,8 @@ System.out.println("name -> "+thisName);
 
                   }
                 %>
-   									
-   								
+
+
    								</span>
             </div>
    								</span>
@@ -1589,7 +1609,7 @@ System.out.println("name -> "+thisName);
                 </tr>
               </table>
             </div>
-            
+
 
 </td>
 </tr>
@@ -1600,7 +1620,7 @@ System.out.println("name -> "+thisName);
 <tr>
   <td class="lock-td">
 <% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-  	<span class="caption"><%=props.getProperty("location") %>: 
+  	<span class="caption"><%=props.getProperty("location") %>:
 	                        		<%
 	                        		if(thisEnc.getLocation()!=null){
 	                        		%>
@@ -1618,7 +1638,7 @@ System.out.println("name -> "+thisName);
 </tr>
 <tr>
   <td>
- 	<span class="caption"><%=props.getProperty("locationID") %>: 
+ 	<span class="caption"><%=props.getProperty("locationID") %>:
                         		<%
                         		if(thisEnc.getLocationID()!=null){
                         		%>
@@ -1631,7 +1651,7 @@ System.out.println("name -> "+thisName);
                         		<%
                         		}
                         		%>
-                        	</span> 
+                        	</span>
    </td>
 </tr>
 <tr>
@@ -1649,11 +1669,11 @@ System.out.println("name -> "+thisName);
                         //int numKeywords=myShepherd.getNumKeywords();
 											 //while (allKeywords2.hasNext()) {
 					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
+
+
 					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
 											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
+
 					                            //String renderMe = word.getReadableName();
 												//List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
 												//int myWordsSize=myWords.size();
@@ -1671,7 +1691,7 @@ System.out.println("name -> "+thisName);
 
 
 					                          //    }
-					                       // } 
+					                       // }
 
                           %>
 										</span></td>
@@ -1727,40 +1747,40 @@ System.out.println("name -> "+thisName);
 <br />
 <%
 if(CommonConfiguration.showUsersToPublic(context)){
-	
-	
-	Shepherd userShepherd=new Shepherd("context0");	
+
+
+	Shepherd userShepherd=new Shepherd("context0");
 	userShepherd.beginDBTransaction();
 
 %>
 <p>
   <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
 </p>
-  
+
      <p class="para">
     <table >
      <tr>
      <td>
-                         
-                         
+
+
                          <%
                          //myShepherd.beginDBTransaction();
-                         
-                         List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
+
+                         ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
                          int numUsers=relatedUsers.size();
                          if(numUsers>0){
-                         for(int userNum=0;userNum<numUsers;userNum++){	
-                        	 
+                         for(int userNum=0;userNum<numUsers;userNum++){
+
                         	 User thisUser=relatedUsers.get(userNum);
                         	 String username=thisUser.getUsername();
                          	 %>
-                                
+
                                 <table align="left">
                                 	<%
-                         	
-                         		
+
+
                                 	String profilePhotoURL="images/empty_profile.jpg";
-                    		    
+
                          		if(thisUser.getUserImage()!=null){
                          			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 
@@ -1773,15 +1793,15 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          		String displayName="";
                          		if(thisUser.getFullName()!=null){
                          			displayName=thisUser.getFullName();
-                         		
+
                          		%>
                          		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
-                         		<%	
+                         		<%
                          		}
-                         		
+
                          		%>
                          	</table>
-                         		
+
                          		<!-- Now prep the popup dialog -->
                          		<div id="dialog<%=userNum%>" title="<%=displayName %>" style="display:none">
                          			<table cellpadding="3px"><tr><td>
@@ -1792,25 +1812,25 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          			if(thisUser.getAffiliation()!=null){
                          			%>
                          			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
-                         			<%	
+                         			<%
                          			}
-                         			
+
                          			if(thisUser.getUserProject()!=null){
                          			%>
                          			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
-                         			<%	
+                         			<%
                          			}
-                         			
+
                          			if(thisUser.getUserURL()!=null){
                              			%>
                              			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
-                             			<%	
+                             			<%
                              			}
-                         			
+
                          			if(thisUser.getUserStatement()!=null){
                              			%>
                              			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
-                             			<%	
+                             			<%
                              			}
                          			%>
                          			</p>
@@ -1825,28 +1845,28 @@ if(CommonConfiguration.showUsersToPublic(context)){
 					      resizable: false,
 					      width: 500
 					    });
-					    
+
 					    $("a#username<%=userNum%>").click(function() {
 					      dlg<%=userNum%>.dialog("open");
 					    });
 					</script>
 
-                         		
-                         		<% 
+
+                         		<%
                          	} //end for loop of users
-                         	
+
                          } //end if loop if there are any users
                          else{
-                        %>	 
-                         
+                        %>
+
                         	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
-                        <%	 
+                        <%
                          }
-                        
+
                         %>
                         </td>
 
-    
+
     </tr></table></p>
   <%
   userShepherd.rollbackDBTransaction();
@@ -1856,18 +1876,18 @@ if(CommonConfiguration.showUsersToPublic(context)){
 //myShepherd.beginDBTransaction();
 
   %>
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
 
 <!-- Start genetics -->
 <br />
@@ -1895,7 +1915,7 @@ for(int j=0;j<numTissueSamples;j++){
 		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
 		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
 		</td>
-	
+
 	<td><table>
 		<%
 		int numAnalyses=thisSample.getNumAnalyses();
@@ -1916,7 +1936,7 @@ for(int j=0;j<numTissueSamples;j++){
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
 				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-				
+
 			%>
 			<tr>
 				<td style="border-style: none;">
@@ -1932,8 +1952,8 @@ for(int j=0;j<numTissueSamples;j++){
 					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
 				</td>
 				</tr></li>
-			
-			<% 
+
+			<%
 			}
 			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
 				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
@@ -1957,8 +1977,8 @@ for(int j=0;j<numTissueSamples;j++){
 		</table>
 
 	</td>
-	
-	
+
+
 	</tr>
 	<%
 }
@@ -1998,7 +2018,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">  
+<div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">
 
 <form id="setRelationship" action="RelationshipCreate" method="post">
 <table cellspacing="2" bordercolor="#FFFFFF" >
@@ -2018,14 +2038,14 @@ String communityName="";
 
 //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
 
-	if(request.getParameter("persistenceID")!=null){	
+	if(request.getParameter("persistenceID")!=null){
 
 	//Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
-	
+
 	Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));
-	
+
 	Relationship myRel=(Relationship)myShepherd.getPM().getObjectById(identity);
-	
+
 	if(myRel.getMarkedIndividualName1()!=null){
 		markedIndividual1Name=myRel.getMarkedIndividualName1();
 	}
@@ -2047,23 +2067,23 @@ String communityName="";
 	if(myRel.getMarkedIndividual2DirectionalDescriptor()!=null){
 		markedIndividual2DirectionalDescriptor=myRel.getMarkedIndividual2DirectionalDescriptor();
 	}
-	
+
 	if(myRel.getStartTime()>-1){
 		startTime=(new DateTime(myRel.getStartTime())).toString();
 	}
 	if(myRel.getEndTime()>-1){
 		endTime=(new DateTime(myRel.getEndTime())).toString();
 	}
-	
+
 	if(myRel.getBidirectional()!=null){
 		bidirectional=myRel.getBidirectional().toString();
 	}
-	
+
 	if(myRel.getRelatedSocialUnitName()!=null){
 		communityName=myRel.getRelatedSocialUnitName();
 	}
-	
-	
+
+
 }
 %>
 
@@ -2077,37 +2097,37 @@ String communityName="";
 				List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
 				int numTypes=types.size();
 				for(int g=0;g<numTypes;g++){
-					
+
 					String selectedText="";
 					if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
-			%>      
+			%>
           		<option <%=selectedText%>><%=types.get(g)%></option>
           	<%
           		}
           	%>
           	</select>
-          
-          
+
+
         </td>
      </tr>
      <tr>
      	<td>
-          
+
           <strong><%=props.getProperty("individualID1")%></strong><br />
            <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
            </td>
           <td>
-          
+
              <%
                        	if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
                        %>
                			<%=sharky.getIndividualID()%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-               			
+
                		<%
                			               			}
                			               		            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
                			               		%>
-        		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name%>" /> 
+        		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name%>" />
        		<%
         			}
         		        	else{
@@ -2124,40 +2144,40 @@ String communityName="";
           <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
          </td>
          <td>
-         	
+
          <select name="markedIndividualRole1">
 			<%
 				List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
 				int numRoles=roles.size();
 				for(int g=0;g<numRoles;g++){
-					
+
 					String selectedText="";
 					if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-			%>      
+			%>
           		<option <%=selectedText%>><%=roles.get(g)%></option>
           	<%
           		}
           	%>
           	</select>
-         
+
          </td>
-         
+
          <td>
          	<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>
          </td>
          <td>
-         	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor%>" />       
+         	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor%>" />
          </td>
-         
+
    	</tr>
-   	
+
     <tr>
      	<td><strong><%=props.getProperty("individualID2")%></strong></td>
         <td>
    			<%
    				if(!markedIndividual2Name.equals(sharky.getIndividualID())){
    			%>
-        		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name%>" /> 
+        		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name%>" />
        		<%
         			}
         		        	else{
@@ -2170,17 +2190,17 @@ String communityName="";
    	</tr>
    	<tr>
      	<td>
-          
+
           <strong><%=props.getProperty("individualRole2")%></strong>
           <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
           <td>
           	<select name="markedIndividualRole2">
 			<%
 				for(int g=0;g<numRoles;g++){
-					
+
 					String selectedText="";
 					if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-			%>      
+			%>
           		<option <%=selectedText%>><%=roles.get(g)%></option>
           	<%
           		}
@@ -2190,42 +2210,42 @@ String communityName="";
          	<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>
          </td>
          <td>
-         	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor%>" />       
+         	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor%>" />
          </td>
    	</tr>
-   	
+
    <tr>
      	<td>
-          
-          <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName%>" /> 
+
+          <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName%>" />
        </td>
-   	</tr> 	
-   	
+   	</tr>
+
    	   <tr>
      	<td>
-          
+
           <strong><%=props.getProperty("startTime")%></strong></td>
-          <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime%>" /> 
+          <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime%>" />
        </td>
        </tr>
        <tr>
        <td>
-          
+
          <strong><%=props.getProperty("endTime")%></strong></td>
-          <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" /> 
+          <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" />
        </td>
-       
-   	</tr> 	
-   	
+
+   	</tr>
+
    	<tr>
      	<td>
-          
+
           <strong><%=props.getProperty("bidirectional")%></strong>
        </td>
        <td>
           	<select name="bidirectional">
-          	
-          	
+
+
           		<option value=""></option>
           		<%
           			String selected="";
@@ -2242,21 +2262,21 @@ String communityName="";
           		%>
           		<option value="false" <%=selected%>>false</option>
           	</select>
-          	 
-       </td>
-   	</tr> 
 
-            
+       </td>
+   	</tr>
+
+
     <tr><td colspan="2">
             	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>" />
    			</td>
    	</tr>
-   			
-   			
+
+
       </td>
     </tr>
   </table>
-  
+
   <%
     	if(request.getParameter("persistenceID")!=null){
     %>
@@ -2264,8 +2284,8 @@ String communityName="";
   <%
   	}
   %>
-  
-</form>	
+
+</form>
 </div>
                          		<!-- popup dialog script -->
 <script>
@@ -2279,10 +2299,10 @@ var dlgRel = $("#dialogRelationship").dialog({
 $("a#addRelationship").click(function() {
   dlgRel.dialog("open");
   //$("#setRelationship").find("input[type=text], textarea").val("");
-  
-  
+
+
 });
-</script>   
+</script>
 <%
    	}
 
@@ -2291,10 +2311,10 @@ $("a#addRelationship").click(function() {
    %>
 <script>
 dlgRel.dialog("open");
-</script>  
+</script>
 
 <%
-  	}	
+  	}
 
   //end relationship code
 
@@ -2335,7 +2355,7 @@ for(int f=0;f<numRels;f++){
 	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
 	String type="";
 	if(myRel.getType()!=null){type=myRel.getType();}
-	
+
 	String community="";
 	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
 %>
@@ -2347,7 +2367,7 @@ for(int f=0;f<numRels;f++){
 		if(otherIndy.getNickName()!=null){
 		%>
 		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
-		<%	
+		<%
 		}
 		if(otherIndy.getAlternateID()!=null){
 		%>
@@ -2359,7 +2379,7 @@ for(int f=0;f<numRels;f++){
 			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
 		<%
 		}
-		
+
 		if(otherIndy.getHaplotype()!=null){
 		%>
 			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
@@ -2369,21 +2389,21 @@ for(int f=0;f<numRels;f++){
 	</td>
 	<td><%=type %></td>
 	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
-	
+
 	<%
 	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-		
+
 		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
-		
+
 		//int bracketLocation=persistenceID.indexOf("[");
 		//persistenceID=persistenceID.substring(0,bracketLocation);
 
 	%>
 	<td>
 	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
-	
+
 	</td>
-	
+
 	<td>
 		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
 	</td>
@@ -2393,7 +2413,7 @@ for(int f=0;f<numRels;f++){
 	<%
 	}
 	%>
-	
+
 	</tr>
 <%
 
@@ -2424,7 +2444,7 @@ else {
 List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
 if(otherIndies.size()>0){
-	
+
 //ok, let's iterate the social relationships
 %>
 
@@ -2446,7 +2466,7 @@ while(othersIterator.hasNext()){
 			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=occurIndy.getSex() %></span>
 		<%
 		}
-		
+
 		if(occurIndy.getHaplotype()!=null){
 		%>
 			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=occurIndy.getHaplotype() %></span>
@@ -2474,7 +2494,7 @@ else {
 %>
 <br />
 <p>
-<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong> 
+<strong><img align="absmiddle" src="images/48px-Crystal_Clear_mimetype_binary.png" /> <%=additionalDataFiles %></strong>
 <%if ((sharky.getDataFiles()!=null)&&(sharky.getDataFiles().size() > 0)) {%>
 </p>
 <table>
@@ -2603,11 +2623,11 @@ if(isOwner){
 
 
   <%
-   
 
 
 
-} 
+
+}
 
 //could not find the specified individual!
 else {
@@ -2623,15 +2643,15 @@ else {
 	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
 	  </HEAD>
 	  <%
-	  } 
+	  }
 	  else if(myShepherd.isOccurrence(name)) {
 	  %>
 	  <meta http-equiv="REFRESH"
 	        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
 	  </HEAD>
-	  <%	
+	  <%
 	  }
-  
+
 	  else if (al.size() > 0) {
     //just grab the first one
     MarkedIndividual shr = al.get(0);
@@ -2662,7 +2682,7 @@ else {
       content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
 </HEAD>
 <%
-} 
+}
 else {
 %>
 
@@ -2702,10 +2722,10 @@ else {
 </tr>
 </table>
 
-      
+
       <%
     }
-  } 
+  }
   catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in individuals.jsp!");
     eSharks_jsp.printStackTrace();
@@ -2716,7 +2736,7 @@ else {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
-  
+
 %>
 </div>
 
@@ -2724,5 +2744,3 @@ else {
 
 
 <jsp:include page="footer.jsp" flush="true"/>
-
-
