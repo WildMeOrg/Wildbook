@@ -74,7 +74,21 @@ try {
       })
     });
   }
-
+  // because we have links within the photoswipe-opening clickable area
+  function forceLink(el) {
+    var address = el.href;
+    if (address) {
+      window.location.href = address;
+    };
+    el.stopPropagation();
+  }
+  /*
+  $(".forceLink").click(function(e) {
+    alert('callin!');
+    e.stopPropagation();
+  });
+  */
+  //
   </script>
 <%
 
@@ -91,7 +105,8 @@ try {
         String[] linkArray = new String[tasks.length+1];
         linkArray[0] = "<a data-id="+ann.getId()+" onClick=\"startIdentify(this)\">Match this image</a>";
     		for (int i = 0 ; i < tasks.length ; i++) {
-          linkArray[i+1] = "<a target=\"_new\" href=\"matchResults.jsp?taskId=" + tasks[i] + "\">" + (i+1) + ") previous match results</a>";
+          String linkAddr = "matchResults.jsp?taskId=" + tasks[i];
+          linkArray[i+1] = "<a target=\"_new\" href=\"" + linkAddr + "\" onClick=\"forceLink(this)\">" + (i+1) + ") previous match results</a>";
           %> <script>console.log('added links: <%=linkArray[i] %>'); </script> <%
     		}
         captionLinks.add(linkArray);
