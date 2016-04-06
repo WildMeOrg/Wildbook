@@ -39,10 +39,50 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   return;
 }
 
+
+maLib.startIdentify = function(el) {
+  	var aid = el.getAttribute('data-id');
+  	el.parentElement.innerHTML = '<i>starting identification</i>';
+  	jQuery.ajax({
+  		url: '/ia',
+  		type: 'POST',
+  		dataType: 'json',
+  		contentType: 'application/javascript',
+  		success: function(d) {
+  			console.info('identify returned %o', d);
+  			if (d.taskID) {
+  				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+  			} else {
+  				alert('error starting identification');
+  			}
+  		},
+  		error: function(x,y,z) {
+  			alert('error starting identification');
+  			console.warn('%o %o %o', x, y, z);
+  		},
+  		data: JSON.stringify({
+  			identify: aid,
+  			genus: '<%=imageEnc.getGenus()%>',
+  			species: '<%=imageEnc.getSpecificEpithet()%>'
+  		})
+  	});
+  }
+
+
 maLib.defaultCaptionFunction = function(maJson) {
   if ('url' in maJson) {return maJson.url;}
   else {return "Test caption, do not read"}
 }
+
+/*
+var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
+fig.append(
+  $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+    mkImg(maJson)
+  )
+);
+*/
+
 
 maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
@@ -51,6 +91,7 @@ maLib.cascadiaCaptionFunction = function(maJson) {
     return partArray[0];
   }
   return "Test caption, do not read";
+
 }
 
 /**
@@ -98,6 +139,48 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) 
   maLib.testExtraction(maJson);
   return;
 }
+
+maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
+  //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  caption = caption || '';
+
+  // TODO: copy into html figure element
+  var url = maJson.url, w, h;
+  // have to check to make sure values exist
+  if ('metadata' in maJson) {
+    w = maJson.metadata.width;
+    h = maJson.metadata.height;
+  }
+  if (!url || !w || !h) {
+    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    return;
+  }
+  var wxh = w+'x'+h;
+  var watermarkUrl = maLib.getChildUrl('_watermark');
+
+  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
+  fig.append(
+    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      mkImg(maJson)
+    )
+  );
+  fig.append('<figcaption itemprop="caption description">'+maCaptionFunction(maJson)+caption+'</figcaption>');
+
+
+  intoElem.append(fig);
+  /*
+    $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
+      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      )
+    )
+  );*/
+  maLib.testExtraction(maJson);
+  return;
+}
+
+
 
 /***
   SCHEMA EXAMPLE FOR HTML FIGURE:
