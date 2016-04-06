@@ -150,6 +150,24 @@ System.out.println("tlist.size()=" + tlist.size());
     }
 
 
+    public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectAnnotations is not set");
+        URL url = new URL(u);
+
+        HashMap<String,Object> map = new HashMap<String,Object>();
+        map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+        ArrayList<JSONObject> malist = new ArrayList<JSONObject>();
+
+        for (MediaAsset ma : mas) {
+            malist.add(toFancyUUID(ma.getUUID()));
+        }
+        map.put("image_uuid_list", malist);
+
+        return RestClient.post(url, new JSONObject(map));
+    }
+
+
     public static JSONObject getJobStatus(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobStatus", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobStatus is not set");
