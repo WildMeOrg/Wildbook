@@ -396,6 +396,30 @@ function doTable() {
 				iaResults[i][anns[a].id] = [];
 			}
 		}
+		colDefn.splice(1, 0, {
+			key: 'ia',
+			label: 'ID match',
+			value: _colIA,
+			sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); },
+			sortValue: _colIASort
+		});
+
+		var allIds = [];
+		for (var i in iaResults) {
+			for (var annId in iaResults[i]) {
+				allIds.push(annId);
+			}
+		}
+
+		jQuery.ajax({
+			url: '../ia',
+			type: 'POST',
+			contentType: 'application/javascript',
+			dataType: 'json',
+			data: JSON.stringify({ taskSummary: allIds }),
+			success: function(d) { updateIAResults(d); },
+			error: function(a,b,c) { console.warn('%o %o %o', a, b, c); alert('error finding IA results'); },
+		});
 	}
 /*
 	for (var i = 0 ; i < searchResults.length ; i++) {
@@ -455,6 +479,17 @@ function doTable() {
 	});
 
 }
+
+
+
+function updateIAResults(d) {
+	console.info('iaresults -> %o', d);
+	if (d.error) {
+		alert('error getting IA results: ' + d.error);
+		return;	
+	}
+}
+
 
 function rowClick(el) {
 	console.log(el);
@@ -821,6 +856,16 @@ function _colRowNum(o) {
 	return o._rowNum;
 }
 
+
+function _colIA(o) {
+	if (!o.get('_iaCandidate')) return '';
+	return '[?]';
+}
+
+function _colIASort(o) {
+	if (!o.get('_iaCandidate')) return 1000;
+	return 0;
+}
 
 function _colThumb(o) {
 	var url = o.thumbUrl();
