@@ -140,6 +140,7 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
 
 
 
+/*
 jQuery(document).ready(function() {
     imageEnhancer.applyTo('figure img', {
         debug: true,
@@ -148,6 +149,8 @@ jQuery(document).ready(function() {
         ]
     });
 });
+*/
+
 
 
 
