@@ -68,6 +68,7 @@ public class IAGateway extends HttpServlet {
 
 ///////////////
     } else if (request.getParameter("getJobResultFromTaskID") != null) {
+        JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskID = request.getParameter("getJobResultFromTaskID");
@@ -111,6 +112,9 @@ System.out.println("firstResult -> " + firstResult.toString());
                 }
             }
         }
+
+        response.setContentType("text/plain");
+        getOut = res.toString();
 /////////////
 
     } else if (request.getParameter("getDetectReviewHtml") != null) {
