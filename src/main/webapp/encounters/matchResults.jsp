@@ -94,7 +94,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 #result-images {
 	margin-bottom: 100px;
 }
- 
+
 td.ptcol-overall_score,
 td.ptcol-score_holmbergIntersection,
 td.ptcol-score_fastDTW,
@@ -103,7 +103,7 @@ td.ptcol-score_proportion {
 	text-align: right;
 }
 
-.ptcol-adaboost_match { 
+.ptcol-adaboost_match {
         display: none !important;
 }
 
@@ -259,7 +259,7 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 <p>
 
 
-  
+
 
 
 <div id="result-images"></div>
@@ -363,14 +363,19 @@ console.info('waiting to try again...');
 	updateMatch(res.matchAnnotations[0]);
 	var h = '<p><b>' + res.matchAnnotations.length + ' matches</b></p><ul>';
 	for (var i = 0 ; i < res.matchAnnotations.length ; i++) {
+      // a little handling of the alternate ID
+      var altIDString = res.matchAnnotations[i].encounter.otherCatalogNumbers;
+      if (altIDString && altIDString.length > 0) {
+        altIDString = ' (altID: '+altIDString+')';
+      }
 		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
-			res.matchAnnotations[i].encounter.catalogNumber + '</a> (' +
+			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
 			res.matchAnnotations[i].encounter.individualID + '), score = ' +
 			res.matchAnnotations[i].score + '</li>';
 	}
 	h += '</ul><div>' + approvalButtons(res.queryAnnotation, res.matchAnnotations) + '</div>';
-		
+
 	$('#results').html(h);
 	$('#results li').on('mouseover', function(ev) {
 		var i = ev.currentTarget.getAttribute('data-i');
@@ -437,6 +442,3 @@ function approvalButtonClick(encID, indivID) {
 }
 
 </script>
-
-
-
