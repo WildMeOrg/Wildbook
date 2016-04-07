@@ -934,8 +934,14 @@ function _colIA(o) {
 	};
 	var res = [];
 	var total = {};
+	var mostRecent = 0;
+	var mostRecentNice = '';
 	for (var annId in o.get('_iaResults')) {
 		var sum = _colAnnIASummary(annId, o.get('_iaResults')[annId]);
+		if (sum.mostRecent > mostRecent) {
+			mostRecent = sum.mostRecent;
+			mostRecentNice = sum.mostRecentNice;
+		}
 		res.push(sum.html);
 		for (var flav in sum.data) {
 			if (sum.data[flav] < 1) continue;
@@ -946,8 +952,8 @@ function _colIA(o) {
 	if (res.length < 1) return '<span class="ia-ann-summary"><span class="ia-unknown">?</span></span>';
 	if (Object.keys(total).length == 1) {
 		var flav = Object.keys(total)[0];
-		o.set('_sortWeight', sortWeights[flav]);
-		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecent + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
+		o.set('_sortWeight', sortWeights[flav] + '.' + (10000000000000 - mostRecent));
+		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecentNice + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
 	}
 
 	//for sortWeight, we pick the lowest value
@@ -955,7 +961,7 @@ function _colIA(o) {
 	for (var flav in Object.keys(total)) {
 		if (sortWeights[flav] < sw) sw = sortWeights[flav];
 	}
-	o.set('_sortWeight', sw);
+	o.set('_sortWeight', sw + '.' + (10000000000000 - mostRecent));
 	return res.join('');
 }
 
@@ -1014,7 +1020,8 @@ function _colAnnIASummary(annId, sum) {
 	var d = new Date(mostRecent);
 	return {
 		html: '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>',
-		mostRecent: d.toLocaleString(),
+		mostRecent: mostRecent,
+		mostRecentNice: d.toLocaleString(),
 		data: r
 	};
 }
