@@ -53,14 +53,17 @@ context=ServletUtilities.getContext(request);
 	margin: 0 2px;
 }
 
-.ia-success, .ia-pending, .ia-error, .ia-unknown {
+.ia-success-match, .ia-success-miss, .ia-pending, .ia-error, .ia-unknown {
 	padding: 0 3px;
 	color: #FFF;
 	font-weight: bold;
 }
 
-.ptcol-ia .ia-success {
+.ptcol-ia .ia-success-match {
 	background-color: #1A0;
+}
+.ptcol-ia .ia-success-miss {
+	background-color: #222;
 }
 .ptcol-ia .ia-pending {
 	background-color: #42F;
@@ -542,9 +545,13 @@ function updateIAResults(d) {
 	}
 	console.log('needUpdating -> %o', needUpdating);
 	if (needUpdating.length < 1) return;
+
+	//refresh the values where needed, then the sorting for the IA summary column
 	for (var i = 0 ; i < needUpdating.length ; i++) {
 		sTable.refreshValue(needUpdating[i], 1);
 	}
+	sTable.refreshSort(1);
+	newSlice(sortCol);
 	show();  //update table to show changes
 }
 
@@ -917,18 +924,45 @@ function _colRowNum(o) {
 
 function _colIA(o) {
 	if (!o.get('_iaResults')) return '';
+	//for sorting.  not it is asc numeric, so smaller appears at top
+	var sortWeights = {
+		pending: 0,
+		'success-match': 3,
+		'success-miss': 5,
+		error: 7,
+		unknown: 9,
+	};
 	var res = [];
+	var total = {};
 	for (var annId in o.get('_iaResults')) {
-		res.push(_colAnnIASummary(annId, o.get('_iaResults')[annId]));
+		var sum = _colAnnIASummary(annId, o.get('_iaResults')[annId]);
+		res.push(sum.html);
+		for (var flav in sum.data) {
+			if (sum.data[flav] < 1) continue;
+			if (!total[flav]) total[flav] = 0;
+			total[flav] += sum.data[flav];
+		}
 	}
-	if (res.length < 1) return '<span class="ia-unknown">?</span>';
+	if (res.length < 1) return '<span class="ia-ann-summary"><span class="ia-unknown">?</span></span>';
+	if (Object.keys(total).length == 1) {
+		var flav = Object.keys(total)[0];
+		o.set('_sortWeight', sortWeights[flav]);
+		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecent + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
+	}
+
+	//for sortWeight, we pick the lowest value
+	var sw = 500;
+	for (var flav in Object.keys(total)) {
+		if (sortWeights[flav] < sw) sw = sortWeights[flav];
+	}
+	o.set('_sortWeight', sw);
 	return res.join('');
 }
 
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
 	var mostRecent = 0;
-	var flav = ['success', 'pending', 'error', 'unknown'];
+	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
 	for (var i = 0 ; i < flav.length ; i++) {
 		r[flav[i]] = 0;
@@ -940,11 +974,29 @@ function _colAnnIASummary(annId, sum) {
 			continue;
 		}
 		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
-		if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
+
+		//wtf, gimme a break, nested json!
+		if (sum[taskId].status && sum[taskId].status._response && sum[taskId].status._response.status && sum[taskId].status._response.response && sum[taskId].status._response.status.success) {
+			if (sum[taskId].status._response.response && sum[taskId].status._response.response.json_result &&
+			    (sum[taskId].status._response.response.json_result.length > 0)) {
+				var numMatches = 0;
+//console.warn(sum[taskId].status._response.response.json_result);
+				for (var m = 0 ; m < sum[taskId].status._response.response.json_result.length ; m++) {
+					if (!sum[taskId].status._response.response.json_result[m].daid_list) continue;
+					numMatches += sum[taskId].status._response.response.json_result[m].daid_list.length;
+				}
+				if (numMatches > 0) {
+					r['success-match']++;
+				} else {
+					r['success-miss']++;
+				}
+			} else {
+				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status);
+				r.error++;
+			}
+		} else if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
 			console.warn('error on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status._response.error || 'non-success');
 			r.error++;
-		} else if (false) {
-			r.success++;
 		} else {  //guess this means we are waiting on results?
 			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
 			r.pending++;
@@ -960,11 +1012,17 @@ function _colAnnIASummary(annId, sum) {
 	}
 	if (!rtn) return '<span class="ia-error">!</span>';
 	var d = new Date(mostRecent);
-	return '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>';
+	return {
+		html: '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>',
+		mostRecent: d.toLocaleString(),
+		data: r
+	};
 }
 
 
 function _colIASort(o) {
+//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults'))); 
+	if (o.get('_sortWeight')) return o.get('_sortWeight');
 	if (!o.get('_iaResults')) return 1000;
 	return 0;
 }
