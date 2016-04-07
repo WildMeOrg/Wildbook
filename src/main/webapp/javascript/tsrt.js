@@ -50,6 +50,25 @@ function SortTable(opts) {
             this.values[i][col] = this.valueAt(this.opts.data[i], col);
         };
 
+	this.refreshSort = function(col) {
+		var s = [];
+		for (var i = 0 ; i < this.opts.data.length ; i++) {
+			s.push(this.sortValueAt(this.opts.data[i], col) + '       ' + i);
+		}
+		s.sort(this.opts.columns[col].sortFunction);
+		var si = [];
+		for (var i = 0 ; i < s.length ; i++) {
+			s[i] = s[i].slice(-7) - 0;
+			si[s[i]] = i;
+		}
+		this.sorts[col] = s;
+		this.sortsInd[col] = si;
+                this._sortCache = [];
+                this._sortCacheRev = [];
+	};
+
+
+
 
 //TODO cache the full slice until filter changes (per column)
 //TODO when no filter, just return the sorts[col]
