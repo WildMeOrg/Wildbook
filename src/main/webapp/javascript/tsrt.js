@@ -46,6 +46,10 @@ function SortTable(opts) {
 		}
 	};
 
+        this.refreshValue = function(i, col) {
+            this.values[i][col] = this.valueAt(this.opts.data[i], col);
+        };
+
 
 //TODO cache the full slice until filter changes (per column)
 //TODO when no filter, just return the sorts[col]
