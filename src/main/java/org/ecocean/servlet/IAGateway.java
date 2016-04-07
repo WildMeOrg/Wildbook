@@ -267,6 +267,7 @@ System.out.println(id);
                 jenc.put("verbatimLocality", enc.getVerbatimLocality());
                 jenc.put("locationID", enc.getLocationID());
                 jenc.put("individualID", enc.getIndividualID());
+                jenc.put("otherCatalogNumbers", enc.getOtherCatalogNumbers());
                 rtn.put("encounter", jenc);
             }
             MediaAsset ma = ann.getMediaAsset();
@@ -280,5 +281,3 @@ System.out.println(id);
     }
 
 }
-  
-
