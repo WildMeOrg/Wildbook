@@ -191,10 +191,10 @@ context=ServletUtilities.getContext(request);
         <div id="maintext" style='overflow: auto; z-index: 0;'>
 
         
-          <div align="center" id="scheduler_here" class="dhx_cal_container"
-               style='width: 810px; height: 800px; overflow: auto; margin-left: auto; margin-right: auto; position: relative; z-index: 0;'>
+          <div align="left" id="scheduler_here" class="dhx_cal_container"
+               style='width: 810px; height: 800px; overflow: auto; margin-right: auto; position: relative; z-index: 0;'>
             	
-            	<div align="center" class="dhx_cal_navline" style='z-index: 0;'>
+            	<div align="left" class="dhx_cal_navline" style='z-index: 0;'>
 
               		<div class="dhx_cal_prev_button" style='z-index: 0;'>&nbsp;</div>
               		<div class="dhx_cal_next_button" style='z-index: 0;'>&nbsp;</div>
