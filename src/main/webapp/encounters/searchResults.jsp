@@ -45,6 +45,34 @@ context=ServletUtilities.getContext(request);
 
 <style type="text/css">
 
+#results-table thead tr {
+	height: 4em;
+}
+
+.ia-ann-summary {
+	margin: 0 2px;
+}
+
+.ia-success, .ia-pending, .ia-error, .ia-unknown {
+	padding: 0 3px;
+	color: #FFF;
+	font-weight: bold;
+}
+
+.ptcol-ia .ia-success {
+	background-color: #1A0;
+}
+.ptcol-ia .ia-pending {
+	background-color: #42F;
+}
+.ptcol-ia .ia-error {
+	background-color: #D20;
+}
+.ptcol-ia .ia-unknown {
+	background-color: #888;
+}
+
+
 .ptcol-individualID {
 	position: relative;
 }
@@ -390,7 +418,7 @@ function doTable() {
 			if (searchResults[i].get('individualID') && (searchResults[i].get('individualID') != 'Unassigned')) continue;
 			var anns = searchResults[i].get('annotations');
 			if (!anns || (anns.length < 1)) continue;
-			searchResults[i].set('_iaCandidate', true);
+			searchResults[i].set('_iaResults', {});
 			iaResults[i] = {};
 			for (var a = 0 ; a < anns.length ; a++) {
 				iaResults[i][anns[a].id] = [];
@@ -484,10 +512,40 @@ function doTable() {
 
 function updateIAResults(d) {
 	console.info('iaresults -> %o', d);
-	if (d.error) {
+	if (d.error || !d.success || !d.taskSummary) {
+		if (!d.error) d.error = 'unknown';
 		alert('error getting IA results: ' + d.error);
 		return;	
 	}
+	var needUpdating = [];
+	var foundAnns = [];
+	for (var i in iaResults) {
+		var updated = false;
+		for (var annId in iaResults[i]) {
+			if (d.taskSummary[annId]) {
+				var r = searchResults[i].get('_iaResults');
+				if (!r) {
+					console.error('searchResults[%s] did not have _iaResults!?', i);
+					continue;
+				}
+				r[annId] = d.taskSummary[annId];
+				updated = true;
+				foundAnns.push(annId);
+			}
+		}
+		if (updated) needUpdating.push(i);
+	}
+	for (var annId in d.taskSummary) {
+		if (foundAnns.indexOf(annId) < 0) {
+			console.warn('taskSummary reported an annotation we dont care about: %s', annId);
+		}
+	}
+	console.log('needUpdating -> %o', needUpdating);
+	if (needUpdating.length < 1) return;
+	for (var i = 0 ; i < needUpdating.length ; i++) {
+		sTable.refreshValue(needUpdating[i], 1);
+	}
+	show();  //update table to show changes
 }
 
 
@@ -858,12 +916,56 @@ function _colRowNum(o) {
 
 
 function _colIA(o) {
-	if (!o.get('_iaCandidate')) return '';
-	return '[?]';
+	if (!o.get('_iaResults')) return '';
+	var res = [];
+	for (var annId in o.get('_iaResults')) {
+		res.push(_colAnnIASummary(annId, o.get('_iaResults')[annId]));
+	}
+	if (res.length < 1) return '<span class="ia-unknown">?</span>';
+	return res.join('');
 }
 
+function _colAnnIASummary(annId, sum) {
+	console.log('%s ------> %o', annId, sum);
+	var mostRecent = 0;
+	var flav = ['success', 'pending', 'error', 'unknown'];
+	var r = {};
+	for (var i = 0 ; i < flav.length ; i++) {
+		r[flav[i]] = 0;
+	}
+	for (var taskId in sum) {
+		if (!sum[taskId].timestamp || !sum[taskId].status || !sum[taskId].status._response) {
+			console.warn('unknown summary on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId]);
+			r.unknown++;
+			continue;
+		}
+		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
+		if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
+			console.warn('error on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status._response.error || 'non-success');
+			r.error++;
+		} else if (false) {
+			r.success++;
+		} else {  //guess this means we are waiting on results?
+			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
+			r.pending++;
+		}
+	}
+
+	var rtn = '';
+	var expl = '';
+	for (var i = 0 ; i < flav.length ; i++) {
+		if (r[flav[i]] < 1) continue;
+		rtn += '<span class="ia-' + flav[i] + '">' + r[flav[i]] + '</span>';
+		expl += ' ' + flav[i] + ':' + r[flav[i]];
+	}
+	if (!rtn) return '<span class="ia-error">!</span>';
+	var d = new Date(mostRecent);
+	return '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>';
+}
+
+
 function _colIASort(o) {
-	if (!o.get('_iaCandidate')) return 1000;
+	if (!o.get('_iaResults')) return 1000;
 	return 0;
 }
 
