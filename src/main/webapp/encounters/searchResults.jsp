@@ -958,7 +958,7 @@ function _colIA(o) {
 
 	//for sortWeight, we pick the lowest value
 	var sw = 500;
-	for (var flav in Object.keys(total)) {
+	for (var flav in total) {
 		if (sortWeights[flav] < sw) sw = sortWeights[flav];
 	}
 	o.set('_sortWeight', sw + '.' + (10000000000000 - mostRecent));
