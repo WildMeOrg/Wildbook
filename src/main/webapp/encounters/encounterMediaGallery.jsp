@@ -51,7 +51,7 @@ try {
     var aid = el.getAttribute('data-id');
     el.parentElement.innerHTML = '<i>starting identification</i>';
     jQuery.ajax({
-      url: '/ia',
+      url: '../ia',
       type: 'POST',
       dataType: 'json',
       contentType: 'application/javascript',
