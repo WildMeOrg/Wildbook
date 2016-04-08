@@ -1,6 +1,6 @@
 
-<p><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg">
-# Wildbook #<img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></p>
+<h1><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg">Wildbook
+<img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></h1>
 
 
  
