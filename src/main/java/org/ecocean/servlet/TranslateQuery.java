@@ -139,7 +139,6 @@ public class TranslateQuery extends HttpServlet {
     // read. We use the StringWriter class to produce the string.
     if (is != null) {
         Writer writer = new StringWriter();
-
         char[] buffer = new char[1024];
         try {
             Reader reader = new BufferedReader(
