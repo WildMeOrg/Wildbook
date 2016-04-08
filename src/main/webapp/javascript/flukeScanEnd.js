@@ -413,8 +413,8 @@ console.info('addImage(%o, %o)', enc, el);
     el.find('.note').remove();
     el.append('<img src="' + imgSrc + '"/>');
     var inf = {
-        catalogNumber: 'Encounter ID'
-        otherCatalogNumbers: 'Alternate Encounter ID'
+        catalogNumber: 'Encounter ID',
+        otherCatalogNumbers: 'Alternate Encounter ID',
         individualID: 'Assigned to',
         date: 'Date',
         sex: 'Sex',
