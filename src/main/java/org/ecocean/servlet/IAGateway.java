@@ -237,6 +237,10 @@ System.out.println(id);
         res.put("taskIds", IBEISIA.findTaskIDsFromObjectID(j.getString("taskIds"), myShepherd));
         res.put("success", true);
 
+    } else if (j.optJSONArray("taskSummary") != null) {  //pass annotation ids
+        res.put("taskSummary", taskSummary(j.getJSONArray("taskSummary"), myShepherd));
+        res.put("success", true);
+
     } else {
         res.put("error", "unknown");
     }
@@ -275,6 +279,28 @@ System.out.println(id);
                 try {
                     rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
                 } catch (Exception ex) {}
+            }
+        }
+        return rtn;
+    }
+
+    public static JSONObject taskSummary(JSONArray taskIds, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+        if ((taskIds == null) || (taskIds.length() < 1)) return rtn;
+        for (int i = 0 ; i < taskIds.length() ; i++) {
+            String annId = taskIds.optString(i);
+            if (annId == null) continue;
+            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.summaryForAnnotationId(annId, myShepherd);
+            if ((logs != null) && (logs.size() > 0)) {
+                JSONObject tasks = new JSONObject();
+                for (IdentityServiceLog l : logs) {
+                    if (l.getTaskID() == null) continue;
+                    JSONObject t = new JSONObject();
+                    if (l.getStatus() != null) t.put("status", new JSONObject(l.getStatus()));
+                    t.put("timestamp", l.getTimestamp());
+                    tasks.put(l.getTaskID(), t);
+                }
+                rtn.put(annId, tasks);
             }
         }
         return rtn;
