@@ -347,10 +347,15 @@ console.info('waiting to try again...');
 		return;
 	}
 	if (res.matchAnnotations.length == 1) {
+    var altIDString = res.matchAnnotations[0].encounter.otherCatalogNumbers;
+    if (altIDString && altIDString.length > 0) {
+      altIDString = ', altID '+altIDString;
+    }
+
 		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
-			'</a> id ' + res.matchAnnotations[0].encounter.individualID +
+			'</a> id ' + res.matchAnnotations[0].encounter.individualID + altIDString +
 			') - score ' + res.matchAnnotations[0].score + approvalButtons(res.queryAnnotation, res.matchAnnotations));
 		updateMatch(res.matchAnnotations[0]);
 		return;
