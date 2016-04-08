@@ -1,7 +1,10 @@
+
+<p><img style="float: right;" align="middle" src="src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg"><img style="float: right;" align="middle" src="src/main/webapp/cust/mantamatcher/img/logo_wildmeproject.svg"></p>
+
 # Wildbook #
  
 
-Wildbook (formerly the “Shepherd Project”) is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
+Wildbook is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
 
 -provides a scalable and collaborative platform for intelligent wildlife data storage and management, including advanced, consolidated searching
 
