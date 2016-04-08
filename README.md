@@ -1,6 +1,6 @@
 
-<h1><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg">Wildbook
-<img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></h1>
+<h1><a href="http://www.ibeis.org"><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg"></a>Wildbook
+<a href="http://www.wildme.org"><img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></a></h1>
 
 
  
