@@ -1,8 +1,8 @@
 
 <p><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg">
-<img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></p>
+# Wildbook #<img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></p>
 
-# Wildbook #
+
  
 
 Wildbook is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
