@@ -19,6 +19,6 @@ Wildbook is an open source software framework to support mark-recapture, molecul
 
 Wildbook started as a collaborative software platform for globally-coordinated whale shark (Rhincodon typus ) research as deployed in the Wildbook for Whale Sharks (http://www.whaleshark.org). After many requests to use our software outside of whale shark research, it is now an open source, community-maintained standard for mark-recapture studies.
 
-Please see http://www.wildme.org/wildbook for documentation.
+Please see http://www.wildbook.org for documentation and support.
 
 <p><img style="float: right;" align="middle" src="src/main/webapp/images/wild-me-logo-only-100-100.png"> Wildbook is a registered trademark of Wild Me, a 501(c)(3) non-profit organization.</p> http://www.wildme.org
