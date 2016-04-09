@@ -81,7 +81,7 @@ finally{
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
   var assets = <%=all.toString()%>;
   assets.forEach( function(elem) {
-    maLib.maJsonToFigureElem(elem, $('#enc-gallery'));
+    maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'));
   });
 
 </script>
