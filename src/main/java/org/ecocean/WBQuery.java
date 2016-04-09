@@ -41,9 +41,11 @@ public class WBQuery implements java.io.Serializable {
         this.parameters = params.optJSONObject("query");
         // TODO: ? find a more elegant solution to range queries
         this.minRange = params.optInt("minRange", 0);
-        this.range = params.optInt("range", 10);
+        this.range = params.optInt("range", 100);
 
-        this.range = params.optInt("range", 10);
+        if (this.parameters==null) this.parameters = new JSONObject();
+
+
         if (params != null) this.parametersAsString = params.toString();
         this.setRevision();
     }
