@@ -44,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "www.whaleshark.org";
+  public static final String thisURLRoot = "spotashark.com";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;

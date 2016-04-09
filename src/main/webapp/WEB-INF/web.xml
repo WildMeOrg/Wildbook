@@ -700,7 +700,7 @@
   </servlet>
   <servlet>
     <servlet-name>ScanTaskHandler</servlet-name>
-    <servlet-class>org.ecocean.servlet.ScanTaskHandler</servlet-class>
+    <servlet-class>org.ecocean.servlet.ScanTaskHandlerAWS</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>IndividualRemoveDataFile</servlet-name>
