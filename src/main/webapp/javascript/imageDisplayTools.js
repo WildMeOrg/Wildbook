@@ -10,8 +10,9 @@ var maLib = {};
 /**
  * Builds an html 'figure' element displaying a MediaAsset. This element can be
  * later grabbed by PhotoSwipe to display a lightbox.
- * @param {number} maID - index of the MediaAsset in question
- * @param {DOM} el - the element that will be populated
+ * @param {string} maJSON - a jsonified MediaAsset
+ * @param {DOM} intoElem - the element that will be populated
+ *
  */
 maLib.maJsonToFigureElem = function(maJson, intoElem) {
   // TODO: copy into html figure element
@@ -37,6 +38,79 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   maLib.testExtraction(maJson);
   return;
 }
+
+maLib.defaultCaptionFunction = function(maJson) {
+  if ('url' in maJson) {return maJson.url;}
+  else {return "Test caption, do not read"}
+}
+
+maLib.cascadiaCaptionFunction = function(maJson) {
+  if ('url' in maJson) {
+    var partArray = maJson.url.split('/');
+    partArray = partArray[partArray.length-1].split('.')
+    return partArray[0];
+  }
+  return "Test caption, do not read";
+}
+
+/**
+ * Like the above, but with also writes a labeled html caption,
+ * which = maCaptionFunction(maJson)
+ *
+ * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
+ */
+maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) {
+  //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+
+  // TODO: copy into html figure element
+  var url = maJson.url, w, h;
+  // have to check to make sure values exist
+  if ('metadata' in maJson) {
+    w = maJson.metadata.width;
+    h = maJson.metadata.height;
+  }
+  if (!url || !w || !h) {
+    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    return;
+  }
+  var wxh = w+'x'+h;
+  var watermarkUrl = maLib.getChildUrl('_watermark');
+
+  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
+  fig.append(
+    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+    )
+  );
+  var caption = maCaptionFunction(maJson);
+  fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
+
+
+  intoElem.append(fig);
+  /*
+    $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
+      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      )
+    )
+  );*/
+  maLib.testExtraction(maJson);
+  return;
+}
+
+/***
+  SCHEMA EXAMPLE FOR HTML FIGURE:
+  <figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject">
+    <a href="large-image.jpg" itemprop="contentUrl" data-size="600x400">
+        <img src="small-image.jpg" itemprop="thumbnail" alt="Image description" />
+    </a>
+    <figcaption itemprop="caption description">Image caption</figcaption>
+  </figure>
+ ***/
+
+
+
 
 maLib.testExtraction = function(maJson) {
   var children = "[";
