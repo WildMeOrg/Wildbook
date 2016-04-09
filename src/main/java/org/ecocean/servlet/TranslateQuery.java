@@ -16,6 +16,7 @@ import java.io.Writer;*/
 import java.io.*;
 import java.util.StringTokenizer;
 import java.util.List;
+import java.util.Map;
 
 //import JSONObject;
 //import JSONArray;
@@ -26,15 +27,46 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 /**
- * request looks like this
- *
- *
+ * Takes JS queries from the UI, and returns a JSONArray of REST-like database results.
+ * JavaScript usage example:
+ * <pre><code> // note that the tags to the left simply delimit the example
+ * var args = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
+ * // var args = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
+ * // var args = {class: 'org.ecocean.Encounter', query: {}};
+ * $.post( "TranslateQuery", args, function( data ) {
+ *   $(".results").append( "Data Loaded: " + data );
+ * });
+ * </code></pre>
+ * @requestParameter class a string naming a Wildbook class, e.g. org.ecocean.Encounter or org.ecocean.media.MediaAsset. Note this is the only required argument.
+ * @requestParameter query a mongo-query-syntax JSON object defining the search on 'class'.
+ * @requestParameter rangeMin the start index of the results. E.g. rangeMin=10 returns search
+ * results starting with the 10th entry. Default 0. Note that sorting options are required (TODO)
+ * for this to be as useful as we'd like, as results are currently returned in whatever order JDOQL needs.
+ * @requestParameter range the end index of the results, similarly to rangeMin. Defaults to 100 because the server is slow on anything longer, and it's hard to imagine a UI call that would need so many objects.
  */
 public class TranslateQuery extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
+
+
+  /**
+   * From stackOverflow http://stackoverflow.com/a/7085652
+   *
+   **/
+  public static JSONObject requestParamsToJSON(HttpServletRequest req) throws JSONException {
+    JSONObject jsonObj = new JSONObject();
+    Map<String,String[]> params = req.getParameterMap();
+    for (Map.Entry<String,String[]> entry : params.entrySet()) {
+      String v[] = entry.getValue();
+      Object o = (v.length == 1) ? v[0] : v;
+      jsonObj.put(entry.getKey(), o);
+    }
+    return jsonObj;
+  }
+
+
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
@@ -53,20 +85,14 @@ public class TranslateQuery extends HttpServlet {
 
     try {
 
-      if (request.getParameter("stringifiedJSONQuery")==null) {
-        out.println("NO stringifiedJSONQuery ERROR");
-        throw new IOException("NO stringifiedJSONQuery ERROR");
-      }
-
-      String jsonString = request.getParameter("stringifiedJSONQuery");
-
-      //out.println("inputStreamToString = "+jsonString);
-
-      JSONObject json = new JSONObject(jsonString);
+      JSONObject json = requestParamsToJSON(request);
 
       // test request format:
-      if (json.optString("class")==null || json.optJSONObject("query")==null) {
-        throw new IOException("TranslateQuery argument requires a \"class\" and \"query\" field.");
+      if (json.optString("class")==null) {
+        throw new IOException("TranslateQuery argument requires a \"class\" field.");
+      }
+      if (json.optString("query")==null) {
+        json.put("query", new JSONObject());
       }
 
 
