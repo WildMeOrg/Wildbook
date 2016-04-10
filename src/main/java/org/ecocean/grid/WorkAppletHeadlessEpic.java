@@ -44,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "spotashark.com";
+  public static final String thisURLRoot = "www.spotashark.com";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -62,7 +62,7 @@ public class WorkAppletHeadlessEpic {
     if (!newEncounterNumber.equals("")) {
       encNumParam = "&newEncounterNumber=" + newEncounterNumber;
     }
-    URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+    URL u = new URL("http://" + thisURLRoot + "/ScanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
     System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
     URLConnection con = u.openConnection();
     con.setDoInput(true);
@@ -179,7 +179,7 @@ public class WorkAppletHeadlessEpic {
             //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             String encNumParam = "&newEncounterNumber=" + holdEncNumber;
            
-            URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            URL u = new URL("http://" + thisURLRoot + "/ScanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
             con = u.openConnection();

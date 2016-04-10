@@ -414,8 +414,14 @@ public class WorkApplet3 extends JApplet {
               con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
               ObjectInputStream inputFromServlet = new ObjectInputStream(con.getInputStream());
               workItems = (Vector) inputFromServlet.readObject();
-              swi = (ScanWorkItem) workItems.get(0);
-              successfulConnect = true;
+              if((workItems!=null)&&(workItems.get(0)!=null)){
+                swi = (ScanWorkItem) workItems.get(0);
+                successfulConnect = true;
+              }
+              else{
+                successfulConnect = false;
+                
+              }
               inputFromServlet.close();
               inputFromServlet = null;
             } catch (Exception ioe) {
