@@ -19,7 +19,7 @@ Wildbook is an open source software framework to support mark-recapture, molecul
 
 <h2>Support</h2>
 
-Please see <a href="http://www.wildbook.org">Wildbook</a> for documentation and support. Support resources include:
+Please see <a href="http://www.wildbook.org">Wildbook.org</a> for documentation and support. Support resources include:
 <ul>
 <li><a href="http://www.wildbook.org/doku.php?id=documentation">User Manual</a></li>
 <li><a href="http://www.wildbook.org/doku.php?id=configuration">Configuration Guide</a></li>
