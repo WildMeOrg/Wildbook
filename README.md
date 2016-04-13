@@ -17,6 +17,10 @@ Wildbook is an open source software framework to support mark-recapture, molecul
 
 -provides a platform for animal biometrics that supports easy data access and facilitates matching application deployment for multiple species
 
+<h2>Wildbook in IBEIS</h2>
+
+<img src="http://www.wildbook.org/lib/exe/fetch.php?w=200&tok=c557df&media=logo_400x4001.png" /> Wildbook is the data management layer for the <a href="http://www.ibeis.org">Image-Based Ecological Information System (IBEIS)</a>. IBEIS computer vision components pull data from Wildbook servers to detect features in images and identify individual animals. IBEIS brings massive-scale computer vision to wildlife research for the first time. 
+
 <h2>Support</h2>
 
 Please see <a href="http://www.wildbook.org">Wildbook.org</a> for documentation and support. Support resources include:
