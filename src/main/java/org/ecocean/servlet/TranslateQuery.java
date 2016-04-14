@@ -79,6 +79,11 @@ public class TranslateQuery extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+
+    try {
+    JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+    String getOut = "";
+
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
@@ -87,14 +92,14 @@ public class TranslateQuery extends HttpServlet {
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
     //out.println("Servlet wrote this!");
+    out.println("[");
 
     try {
 
       JSONObject json = requestParamsToJSON(request);
 
-      // test request format:
-      if (json.optString("class")==null) {
-        throw new IOException("TranslateQuery argument requires a \"class\" field.");
+      if (json.optString("class").isEmpty()) {
+        throw new IOException("TranslateQuery argument requires a \"class\" field, which could not be parsed from your input.");
       }
       if (json.optString("query")==null) {
         json.put("query", new JSONObject());
@@ -113,7 +118,6 @@ public class TranslateQuery extends HttpServlet {
 
       // Need to switch on queryClass, because we need to know the class of each object in queryResult in order to call .sanitizeJson
 
-      out.println("[");
 
       // hackey debug mode
       if (request.getParameter("debug")!=null) {
@@ -125,40 +129,47 @@ public class TranslateQuery extends HttpServlet {
           for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             Encounter enc = (Encounter) queryResult.get(i);
-            JSONObject encJSON = enc.sanitizeJson(request, new JSONObject());
-            out.print(encJSON.toString());
+            res = enc.sanitizeJson(request, new JSONObject());
+            out.print(res.toString());
           }
           break;
         case "org.ecocean.media.MediaAsset":
         for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MediaAsset ma = (MediaAsset) queryResult.get(i);
-            JSONObject maJSON = ma.sanitizeJson(request, new JSONObject());
-            out.print(maJSON.toString());
+            res = ma.sanitizeJson(request, new JSONObject());
+            out.print(res.toString());
           }
           break;
         case "org.ecocean.MarkedIndividual":
         for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MarkedIndividual mi = (MarkedIndividual) queryResult.get(i);
-            JSONObject miJSON = mi.sanitizeJson(request, new JSONObject());
-            out.print(miJSON.toString());
+            res = mi.sanitizeJson(request, new JSONObject());
+            out.print(res.toString());
           }
           break;
       } // end switch(queryClass)
-      out.println("]");
 
     }
     catch (Exception e) {
-      out.println("There was an exception!");
-      e.printStackTrace(out);
+      StringWriter sw = new StringWriter();
+      PrintWriter pw = new PrintWriter(sw);
+      e.printStackTrace(pw);
+      res.put("error", sw.toString());
+      out.println(res.toString());
       myShepherd.rollbackDBTransaction();
+      response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
+    out.println("]");
 
     out.close();
     myShepherd.closeDBTransaction();
 
-
+  }
+  catch (JSONException e) {
+    // hmmm how do we handle this
+  }
   } // end doPost
 
   public String convertStreamToString(InputStream is, PrintWriter out) throws IOException {
