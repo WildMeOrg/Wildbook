@@ -34,11 +34,13 @@ public class WBQuery implements java.io.Serializable {
     public WBQuery() {
     }
 
-    public WBQuery(final int id, final JSONObject params, final AccessControl owner) {
+    public WBQuery(final int id, final JSONObject params, final AccessControl owner) throws org.datanucleus.api.rest.orgjson.JSONException {
+        System.out.println("initializing WBQuery with params = "+params.toString());
         this.id = id;
         this.owner = owner;
         this.className = params.optString("class");
-        this.parameters = params.optJSONObject("query");
+        this.parameters = new JSONObject(params.optString("query"));
+        System.out.println("initialized parameters at "+this.parameters.toString());
         // TODO: ? find a more elegant solution to range queries
         this.minRange = params.optInt("minRange", 0);
         this.range = params.optInt("range", 100);
@@ -50,11 +52,11 @@ public class WBQuery implements java.io.Serializable {
         this.setRevision();
     }
 
-    public WBQuery(final JSONObject params) {
+    public WBQuery(final JSONObject params) throws org.datanucleus.api.rest.orgjson.JSONException {
         this(-1, params, null);
     }
 
-    public WBQuery(final JSONObject params, final AccessControl owner) {
+    public WBQuery(final JSONObject params, final AccessControl owner) throws org.datanucleus.api.rest.orgjson.JSONException {
         this(-1, params, owner);
     }
 
@@ -121,7 +123,7 @@ public class WBQuery implements java.io.Serializable {
      */
     public String toJDOQL() {
         /////getParameters() will give the JSONObject we need to magically turn into JDOQL!!
-        System.out.println("starting toJDOQL");
+        System.out.println("starting toJDOQL with parameters = "+parameters.toString());
         String output = "SELECT FROM "+className;
         String[] names = JSONObject.getNames(parameters);
         System.out.println("continuing toJDOQL...");
