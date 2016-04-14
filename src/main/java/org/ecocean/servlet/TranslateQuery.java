@@ -67,7 +67,10 @@ public class TranslateQuery extends HttpServlet {
   }
 
     public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        ServletUtilities.doOptions(request, response);
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+        if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+        //response.setContentType("text/plain");
     }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
