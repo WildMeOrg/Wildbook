@@ -42,10 +42,14 @@ public class MediaAssetCreate extends HttpServlet {
   }
 
 
+    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ServletUtilities.doOptions(request, response);
+    }
 
     //this is a little hacky, but it is a way for the browser/client to request a MediaAssetSet with which to associate MediaAssets
     //  i guess we should *enforce* (require) this to have some sort of sanity around preventing backdoors to overwriting MediaAssets or whatever
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         if (request.getParameter("requestMediaAssetSet") == null) throw new IOException("invalid GET parameters");
 
         String context = "context0";
@@ -88,6 +92,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 }
 */
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context="context0";
         //context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
