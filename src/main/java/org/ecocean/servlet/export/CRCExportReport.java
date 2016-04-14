@@ -3,12 +3,16 @@ package org.ecocean.servlet.export;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import java.io.*;
+import java.lang.Boolean;
 import java.util.*;
 import org.ecocean.*;
+import org.ecocean.grid.MatchObject;
 import org.ecocean.media.*;
 import org.ecocean.servlet.ServletUtilities;
 import jxl.write.*;
 import jxl.Workbook;
+import org.ecocean.identity.*;
+import org.json.JSONObject;
 
 
 public class CRCExportReport extends HttpServlet{
@@ -126,24 +130,90 @@ public class CRCExportReport extends HttpServlet{
               if(annot.getMediaAsset()!=null){
                 MediaAsset asset=annot.getMediaAsset();
                 String localFilename="FILENAME";
+                if(asset.webURLString()!=null){
+                  localFilename=asset.webURLString();
+                  if(localFilename.indexOf("/")!=-1){
+                    int lastIndex=localFilename.lastIndexOf("/");
+                    localFilename=localFilename.substring(lastIndex);
+                  }
+                }
                 count++;
                 numResults++;
                 
-                //OBIS formt export
+                //set the filename
                 Label lNumber = new Label(0, count, localFilename);
                 sheet.addCell(lNumber);
+                
+                //set Encounter.alternateID
                 String altID="";
                 if(enc.getAlternateID()!=null){altID=enc.getAlternateID();}
                 Label lNumberx1 = new Label(1, count, altID);
-                
-                //NEED HELP HERE
-                
                 sheet.addCell(lNumberx1);
-                Label lNumberx2 = new Label(2, count, "");
+                
+                
+                
+                
+                
+                //set whether any result has surfaced
+                String matchString="N";
+                String matchID="";
+                String matchAlternateID="";
+                
+                //OK, now check for the existence of any match
+                String[] jobID=IBEISIA.findTaskIDsFromObjectID(annot.getId(), myShepherd);
+                if(jobID!=null){
+                  int numJobs=jobID.length;
+                  for(int k=0;k<numJobs;k++){
+                    String taskID=jobID[k];
+                    HashMap<String,Object> ires = IBEISIA.getTaskResultsAsHashMap(taskID, myShepherd);
+                    if ((ires.get("success") != null) && (Boolean)ires.get("success") && (ires.get("results") != null)) {
+                        System.out.println("got legit results from IBEIS-IA" + ires.toString());
+                        HashMap<String,Object> map = (HashMap<String,Object>)ires.get("results");
+                        if(map!=null){
+                          Set<String> keys=map.keySet();
+                          Iterator<String> iter=keys.iterator();
+                          while(iter.hasNext()){
+                            HashMap<String,Double> iscores = (HashMap<String,Double>)map.get(iter.next());  //the thing we are really after, encNum=>score
+                            if(iscores!=null){
+                              Set<String> encNums=iscores.keySet();
+                              Iterator<String> iter2=encNums.iterator();
+                              while(iter2.hasNext()){
+                                String encNum=iter2.next();
+                                if(myShepherd.isEncounter(encNum)){
+                                  Encounter matchEnc=myShepherd.getEncounter(encNum);
+                                  String matchIndy="";
+                                  String matchAlt="";
+                                  if(matchEnc.getIndividualID()!=null){
+                                    matchIndy=matchEnc.getIndividualID();
+                                    if(!matchID.equals("")){matchIndy=", "+matchIndy;}
+                                    
+                                    if(matchEnc.getAlternateID()!=null){
+                                      matchAlt=matchAlt+matchEnc.getAlternateID();
+                                      if(!matchAlternateID.equals("")){matchAlt=", "+matchAlt;}
+                                      
+                                    }
+                                  }
+                                  matchID=matchID+matchIndy;
+                                  matchAlternateID=matchAlternateID+matchAlt;
+                                }
+                              }
+                            }
+                            
+                            
+                            
+                          }
+                        }
+                    }
+                  }
+                  
+                }
+              //NEED HELP HERE
+                
+                Label lNumberx2 = new Label(2, count, matchString);
                 sheet.addCell(lNumberx2);
-                Label lNumberx3 = new Label(3, count, "");
+                Label lNumberx3 = new Label(3, count, matchID);
                 sheet.addCell(lNumberx3);
-                Label lNumberx4 = new Label(4, count, "");
+                Label lNumberx4 = new Label(4, count, matchAlternateID);
                 sheet.addCell(lNumberx4);
               }
               
