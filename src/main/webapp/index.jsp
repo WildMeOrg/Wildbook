@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" %>
+<%@ page import="java.text.NumberFormat" %>
 <%@ page import="java.util.*" %>
 <%@ page import="org.ecocean.*" %>
 <%@ page import="org.ecocean.servlet.ServletUtilities" %>
@@ -8,6 +9,8 @@
 <%
 	String context = ServletUtilities.getContext(request);
 	String langCode = ServletUtilities.getLanguageCode(request);
+	Locale locale = new Locale(langCode);
+	NumberFormat nf = NumberFormat.getIntegerInstance(locale);
 	Properties props = ShepherdProperties.getProperties("index.properties", langCode, context);
 
 //set up our Shepherd
@@ -612,14 +615,14 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("statText-identified")%></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=nf.format(numMarkedIndividuals)%></span> <%=props.getProperty("statText-identified")%></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("statText-encounters")%></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=nf.format(numEncounters)%></span> <%=props.getProperty("statText-encounters")%></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("statText-contributors")%></i></p>
+                <p class="brand-primary"><i><span class="massive"><%=nf.format(numDataContributors)%></span> <%=props.getProperty("statText-contributors")%></i></p>
             </section>
         </div>
 
