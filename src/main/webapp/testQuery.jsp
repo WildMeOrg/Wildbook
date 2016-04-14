@@ -81,7 +81,7 @@ out.println("</ul></p>");
 
   // returns the first 100 MediaAssets in the db
   // var testQuery = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
-  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
+  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 30, rangeMin:15};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
 
   $(".results").append("<p>Query = "+JSON.stringify(testQuery)+"</p>");
