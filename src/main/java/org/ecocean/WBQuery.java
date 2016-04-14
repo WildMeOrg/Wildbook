@@ -1,7 +1,7 @@
 package org.ecocean;
 
 import org.ecocean.Util;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.media.*;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 
 import java.util.List;
@@ -248,6 +248,9 @@ public class WBQuery implements java.io.Serializable {
         case "org.ecocean.media.MediaAsset": {
           return (!mediaAssetNonStringFields.contains(field));
         }
+        case "org.ecocean.media.MediaAssetSet": {
+          return (!mediaAssetSetNonStringFields.contains(field));
+        }
       }
       return true;
     }
@@ -424,6 +427,7 @@ public class WBQuery implements java.io.Serializable {
     // TODO: perhaps generate these dynamically? These MUST correspond with classDefinitions.json
     private static final Set<String> encounterNonStringFields;
     private static final Set<String> mediaAssetNonStringFields;
+    private static final Set<String> mediaAssetSetNonStringFields;
     private static final Set<String> markedIndividualNonStringFields;
     private static final Set<String> annotationNonStringFields;
     static {
@@ -436,6 +440,9 @@ public class WBQuery implements java.io.Serializable {
       HashSet<String> maNSFields = new HashSet<String>();
       maNSFields.add("id");
       mediaAssetNonStringFields = Collections.unmodifiableSet(maNSFields);
+
+      HashSet<String> masNSFields = new HashSet<String>();
+      mediaAssetSetNonStringFields = Collections.unmodifiableSet(masNSFields);
 
       HashSet<String> miNSFields = new HashSet<String>();
       markedIndividualNonStringFields = Collections.unmodifiableSet(miNSFields);
