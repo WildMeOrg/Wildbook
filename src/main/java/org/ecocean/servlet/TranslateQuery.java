@@ -1,7 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.media.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -134,10 +134,18 @@ public class TranslateQuery extends HttpServlet {
           }
           break;
         case "org.ecocean.media.MediaAsset":
-        for (int i=0;i<nResults;i++) {
+          for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MediaAsset ma = (MediaAsset) queryResult.get(i);
             res = ma.sanitizeJson(request, new JSONObject());
+            out.print(res.toString());
+          }
+          break;
+        case "org.ecocean.media.MediaAssetSet":
+          for (int i=0;i<nResults;i++) {
+            if (i!=0) {out.println(",");}
+            MediaAssetSet maSet = (MediaAssetSet) queryResult.get(i);
+            res = maSet.sanitizeJson(request, new JSONObject());
             out.print(res.toString());
           }
           break;
