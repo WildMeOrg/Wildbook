@@ -39,7 +39,7 @@ public class WBQuery implements java.io.Serializable {
         this.id = id;
         this.owner = owner;
         this.className = params.optString("class");
-        this.parameters = new JSONObject(params.optString("query"));
+        this.parameters = new JSONObject(params.optString("query", "{}"));
         System.out.println("initialized parameters at "+this.parameters.toString());
         // TODO: ? find a more elegant solution to range queries
         this.minRange = params.optInt("minRange", 0);
