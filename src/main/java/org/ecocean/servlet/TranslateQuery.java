@@ -94,6 +94,7 @@ public class TranslateQuery extends HttpServlet {
     try {
 
       JSONObject json = requestParamsToJSON(request);
+      System.out.println("Starting TranslateQuery with request-as-JSON= "+json.toString());
 
       if (json.optString("class").isEmpty()) {
         throw new IOException("TranslateQuery argument requires a \"class\" field, which could not be parsed from your input.");
