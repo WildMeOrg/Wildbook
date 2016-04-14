@@ -462,6 +462,7 @@ public final class BatchProcessor implements Runnable {
           DateTime dt = new DateTime();
           DateTimeFormatter fmt = ISODateTimeFormat.date();
           String strOutputDateTime = fmt.print(dt);
+          enc.setDWCDateAdded(dt.getMillis());
           enc.setDWCDateAdded(strOutputDateTime);
           enc.setDWCDateLastModified(strOutputDateTime);
           // Set encounter state to "approved".
