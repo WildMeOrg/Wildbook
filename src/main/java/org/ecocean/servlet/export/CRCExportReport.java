@@ -134,7 +134,7 @@ public class CRCExportReport extends HttpServlet{
                   localFilename=asset.webURLString();
                   if(localFilename.indexOf("/")!=-1){
                     int lastIndex=localFilename.lastIndexOf("/");
-                    localFilename=localFilename.substring(lastIndex);
+                    localFilename=localFilename.substring(lastIndex+1);
                   }
                 }
                 count++;
@@ -155,7 +155,7 @@ public class CRCExportReport extends HttpServlet{
                 
                 
                 //set whether any result has surfaced
-                String matchString="N";
+                String matchString="";
                 String matchID="";
                 String matchAlternateID="";
                 
@@ -168,6 +168,10 @@ public class CRCExportReport extends HttpServlet{
                     HashMap<String,Object> ires = IBEISIA.getTaskResultsAsHashMap(taskID, myShepherd);
                     if ((ires.get("success") != null) && (Boolean)ires.get("success") && (ires.get("results") != null)) {
                         System.out.println("got legit results from IBEIS-IA" + ires.toString());
+                        
+                        //we can now say at least that analysis was run, even if no result came back
+                        matchString="N";
+                        
                         HashMap<String,Object> map = (HashMap<String,Object>)ires.get("results");
                         if(map!=null){
                           Set<String> keys=map.keySet();
@@ -208,6 +212,8 @@ public class CRCExportReport extends HttpServlet{
                   
                 }
               //NEED HELP HERE
+                
+                if((!matchID.equals(""))||(!matchAlternateID.equals(""))){matchString="Y";}
                 
                 Label lNumberx2 = new Label(2, count, matchString);
                 sheet.addCell(lNumberx2);
