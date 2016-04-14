@@ -35,8 +35,9 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import javax.jdo.Query;
-//import javax.servlet.http.HttpServlet;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContext;
 //import javax.servlet.http.HttpSession;
 import org.json.JSONObject;
@@ -663,6 +664,14 @@ String rootWebappPath = "xxxxxx";
         }
 //ParseException
         return new JSONObject(sb.toString());
+    }
+
+
+    //handy "let anyone do anything (?) cors stuff
+    public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+        if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
     }
 
 }
