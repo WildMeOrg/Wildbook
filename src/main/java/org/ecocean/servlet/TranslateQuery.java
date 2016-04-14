@@ -134,6 +134,16 @@ public class TranslateQuery extends HttpServlet {
             out.print(res.toString());
           }
           break;
+        case "org.ecocean.Annotation":
+          for (int i=0;i<nResults;i++) {
+            if (i!=0) {out.println(",");}
+            Annotation ann = (Annotation) queryResult.get(i);
+            // res = ann.sanitizeJson(request);
+            res = ann.sanitizeMedia(request);
+            out.print(res.toString());
+          }
+          break;
+
         case "org.ecocean.media.MediaAsset":
           for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}

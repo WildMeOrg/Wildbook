@@ -57,7 +57,7 @@ public class Annotation implements java.io.Serializable {
         this.id = org.ecocean.Util.generateUUID();
         this.x = (int) iatt.getXOffset();
         this.y = (int) iatt.getYOffset();
-        this.width = (int) iatt.getWidth(); 
+        this.width = (int) iatt.getWidth();
         this.height = (int) iatt.getHeight();
         this.theta = 0.0;  /// TODO ????
         this.species = species;
@@ -137,7 +137,7 @@ public class Annotation implements java.io.Serializable {
         if (!needsTransform()) return new float[]{1,0,0,1,0,0};
         return transformMatrix;
     }
-        
+
     public boolean isTrivial() {
         if (mediaAsset == null) return false;
         return (!needsTransform() && (getWidth() == (int)mediaAsset.getWidth()) && (getHeight() == (int)mediaAsset.getHeight()));
@@ -249,6 +249,27 @@ public class Annotation implements java.io.Serializable {
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
             return this.sanitizeJson(request, false);
         }
+
+        /**
+        * returns only the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
+        * all they want in return are MediaAssets
+        * TODO: add metadata?
+        **/
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+          org.datanucleus.api.rest.orgjson.JSONObject jobj;
+          if (this.getMediaAsset() != null) {
+            jobj = this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess);
+          }
+          else {
+            jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
+          }
+          return jobj;
+        }
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+          return this.sanitizeMedia(request, false);
+        }
+
+
 
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
         if (mediaAsset == null) return "<!-- Annotation.toHtmlElement(): " + this + " has no MediaAsset -->";
