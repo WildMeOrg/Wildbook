@@ -92,7 +92,9 @@ public class TranslateQuery extends HttpServlet {
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
     //out.println("Servlet wrote this!");
-    out.println("[");
+
+    org.datanucleus.api.rest.orgjson.JSONArray resultArray = new org.datanucleus.api.rest.orgjson.JSONArray();
+    org.datanucleus.api.rest.orgjson.JSONObject resultMetadata = new org.datanucleus.api.rest.orgjson.JSONObject();
 
     try {
 
@@ -127,48 +129,72 @@ public class TranslateQuery extends HttpServlet {
       }
       switch (queryClass) {
         case "org.ecocean.Encounter":
+          boolean printedAResYet = false;
           for (int i=0;i<nResults;i++) {
-            if (i!=0) {out.println(",");}
             Encounter enc = (Encounter) queryResult.get(i);
+            Util.concatJsonArrayInPlace(resultArray, enc.sanitizeMedia(request));
+            /** this code produces a list of Encounter JSONs, deprecated in favor of pure MediaAssets:
             res = enc.sanitizeJson(request, new JSONObject());
+            if (i!=0) {out.println(",");}
             out.print(res.toString());
+            */
+            /*
+            for (int j=0; j<jarr.length(); j++) {
+              if (printedAResYet) {out.println(",");}
+              out.print(jarr.getJSONObject(j));
+              printedAResYet = true;
+            }
+            */
           }
+          //out.println(resultArray.toString());
           break;
         case "org.ecocean.Annotation":
           for (int i=0;i<nResults;i++) {
-            if (i!=0) {out.println(",");}
             Annotation ann = (Annotation) queryResult.get(i);
+            resultArray.put(ann.sanitizeMedia(request));
+            // if (i!=0) {out.println(",");}
             // res = ann.sanitizeJson(request);
-            res = ann.sanitizeMedia(request);
-            out.print(res.toString());
+            // res = ann.sanitizeMedia(request);
+            // out.print(res.toString());
           }
           break;
 
         case "org.ecocean.media.MediaAsset":
           for (int i=0;i<nResults;i++) {
-            if (i!=0) {out.println(",");}
             MediaAsset ma = (MediaAsset) queryResult.get(i);
-            res = ma.sanitizeJson(request, new JSONObject());
-            out.print(res.toString());
+            resultArray.put(ma.sanitizeJson(request, new JSONObject()));
+            // if (i!=0) {out.println(",");}
+            // res = ma.sanitizeJson(request, new JSONObject());
+            // out.print(res.toString());
           }
           break;
         case "org.ecocean.media.MediaAssetSet":
           for (int i=0;i<nResults;i++) {
-            if (i!=0) {out.println(",");}
             MediaAssetSet maSet = (MediaAssetSet) queryResult.get(i);
             res = maSet.sanitizeJson(request, new JSONObject());
-            out.print(res.toString());
+            if (res.optJSONArray("assets")!=null) {
+              Util.concatJsonArrayInPlace(resultArray, res.getJSONArray("assets"));
+            }
+            // if (i!=0) {out.println(",");}
+            // out.print(res.toString());
           }
           break;
+        // TODO: fix this behavior
         case "org.ecocean.MarkedIndividual":
         for (int i=0;i<nResults;i++) {
             if (i!=0) {out.println(",");}
             MarkedIndividual mi = (MarkedIndividual) queryResult.get(i);
             res = mi.sanitizeJson(request, new JSONObject());
-            out.print(res.toString());
+            resultArray.put(res);
+            //out.print(res.toString());
           }
           break;
       } // end switch(queryClass)
+
+      org.datanucleus.api.rest.orgjson.JSONObject fullResults = new org.datanucleus.api.rest.orgjson.JSONObject();
+      fullResults.put("assets", resultArray);
+      fullResults.put("queryMetadata", resultMetadata);
+      out.print(fullResults.toString());
 
     }
     catch (Exception e) {
@@ -180,7 +206,6 @@ public class TranslateQuery extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
-    out.println("]");
 
     out.close();
     myShepherd.closeDBTransaction();
