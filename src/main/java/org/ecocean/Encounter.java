@@ -128,10 +128,10 @@ public class Encounter implements java.io.Serializable {
   //Date the encounter was added to the library.
   private String dwcDateAdded;
   private Long dwcDateAddedLong;
-  
+
   // If Encounter spanned more than one day, date of release
   private Date releaseDate;
-  
+
   private Long releaseDateLong;
 
   //Size of the individual in meters
@@ -143,7 +143,7 @@ public class Encounter implements java.io.Serializable {
   //username of the logged in researcher assigned to the encounter
   //this STring is matched to an org.ecocean.User object to obtain more information
   private String submitterID;
-  
+
   //name, email, phone, address of the encounter reporter
   private String submitterEmail, submitterPhone, submitterAddress;
   private String hashedSubmitterEmail;
@@ -159,9 +159,9 @@ public class Encounter implements java.io.Serializable {
   //time metrics of the report
   private int hour = 0;
   private String minutes = "00";
-  
+
   private String state="";
-  
+
   //the globally unique identifier (GUID) for this Encounter
   private String guid;
 
@@ -234,7 +234,7 @@ public class Encounter implements java.io.Serializable {
   private SatelliteTag satelliteTag;
 
   private Boolean mmaCompatible = false;
-  
+
   //start constructors
 
   /**
@@ -331,7 +331,7 @@ public class Encounter implements java.io.Serializable {
     ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
     if(fakeSpots!=null){return fakeSpots.size();}
     else{return 0;}
-    
+
   }
 
   public int getNumRightSpots() {
@@ -627,7 +627,7 @@ public class Encounter implements java.io.Serializable {
    */
   public Vector getAdditionalImageNames() {
     Vector imageNamesOnly=new Vector();
-    
+
     //List<SinglePhotoVideo> images=getCollectedDataOfClass(SinglePhotoVideo.class);
     if((images!=null)&&(images.size()>0)){
       int imagesSize=images.size();
@@ -661,8 +661,8 @@ public class Encounter implements java.io.Serializable {
     //additionalImageNames.add(fileName);
   }
 */
-  
-  
+
+
   /**
    * Removes the specified additional image from this encounter.
    *
@@ -672,20 +672,20 @@ public class Encounter implements java.io.Serializable {
   public void removeAdditionalImageName(String imageFile) {
 
     for (int i = 0; i < collectedData.size(); i++) {
-   
-        
+
+
       String thisName = images.get(i).getFilename();
       if ((thisName.equals(imageFile)) || (thisName.indexOf("#") != -1)) {
         images.remove(i);
         i--;
       }
-    
+
     }
 
 
   }
   */
-  
+
   /*
   public void removeDataCollectionEvent(DataCollectionEvent dce) {
    collectedData.remove(dce);
@@ -760,7 +760,7 @@ public class Encounter implements java.io.Serializable {
 
     if (day > 0) {
       date = String.format("%04d-%02d-%02d %s", year, month, day, time);
-    } 
+    }
     else if(month>-1) {
       date = String.format("%04d-%02d %s", year, month, time);
     }
@@ -853,8 +853,8 @@ public class Encounter implements java.io.Serializable {
 
   /**
    * A legacy method replaced by setLocationID(...).
-   * 
-   * 
+   *
+   *
    */
   public void setLocationCode(String newLoc) {
     setLocationID(newLoc);
@@ -893,7 +893,7 @@ public class Encounter implements java.io.Serializable {
   public void setMatchedBy(String matchType) {
     identificationRemarks = matchType;
   }
-  
+
   public void setIdentificationRemarks(String matchType) {
     identificationRemarks = matchType;
   }
@@ -1125,14 +1125,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     if(username!=null){submitterID = username;}
     else{submitterID=null;}
   }
-  
+
 
 
   //old method. use getAssignedUser() instead
   public String getSubmitterID() {
     return getAssignedUsername();
   }
-  
+
   public String getAssignedUsername() {
     return submitterID;
   }
@@ -1145,7 +1145,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     interestedResearchers.add(email);
   }
 
- /* 
+ /*
   public boolean isApproved() {
     return approved;
   }
@@ -1354,7 +1354,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 */
 
-  
+
   public void setDWCGlobalUniqueIdentifier(String guid) {
     this.guid = guid;
   }
@@ -1378,7 +1378,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public String getDWCDateAdded() {
     return dwcDateAdded;
   }
-  
+
   public Long getDWCDateAddedLong(){
     return dwcDateAddedLong;
   }
@@ -1386,8 +1386,8 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
-  
-  
+
+
  public void setDWCDateAdded(Long m_dateAdded) {
     dwcDateAddedLong = m_dateAdded;
     //org.joda.time.DateTime dt=new org.joda.time.DateTime(dwcDateAddedLong.longValue());
@@ -1401,7 +1401,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public Date getReleaseDateDONOTUSE() {
     return releaseDate;
   }
-  
+
    public Date getReleaseDate() {
     if((releaseDateLong!=null)&&(releaseDateLong>0)){
       Date mDate=new Date(releaseDateLong);
@@ -1409,7 +1409,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     }
     return null;
   }
-   
+
    public Long getReleaseDateLong(){return releaseDateLong;}
 
   public void setReleaseDate(Long releaseDate) {
@@ -1752,7 +1752,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
-  
+
 
   public String getDecimalLatitude(){
     if(decimalLatitude!=null){return Double.toString(decimalLatitude);}
@@ -1809,7 +1809,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return result;
     }
-    
+
     public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
       List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
       List<T> result = new ArrayList<T>();
@@ -1820,14 +1820,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return result;
     }
-    
+
     public void addCollectedDataPoint(DataCollectionEvent dce){
       if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
       if(!collectedData.contains(dce)){collectedData.add(dce);}
     }
     public void removeCollectedDataPoint(int num){collectedData.remove(num);}
     */
-    
+
     public void addTissueSample(TissueSample dce){
       if(tissueSamples==null){tissueSamples=new ArrayList<TissueSample>();}
       if(!tissueSamples.contains(dce)){tissueSamples.add(dce);}
@@ -1843,15 +1843,15 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     public void removeSinglePhotoVideo(int num){images.remove(num);}
     public List<SinglePhotoVideo> getSinglePhotoVideo(){return images;}
     public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
-    
+
 
     public void setMeasurement(Measurement measurement, Shepherd myShepherd){
-      
+
       //if measurements are null, set the empty list
       if(measurements==null){measurements=new ArrayList<Measurement>();}
-      
+
       //now start checking for existence of a previous measurement
-      
+
       //if we have it but the new value is null, remove the measurement
       if((this.hasMeasurement(measurement.getType()))&&(measurement.getValue()==null)){
         Measurement m=this.getMeasurement(measurement.getType());
@@ -1860,14 +1860,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
       //just add the measurement it if we did not have it before
       else if(!this.hasMeasurement(measurement.getType())){
         measurements.add(measurement);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
       //if we had it before then just update the value
       else if((this.hasMeasurement(measurement.getType()))&&(measurement!=null)){
         Measurement m=this.getMeasurement(measurement.getType());
@@ -1876,7 +1876,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
-      
+
     }
     public void removeMeasurement(int num){measurements.remove(num);}
     public List<Measurement> getMeasurements(){return measurements;}
@@ -1892,22 +1892,22 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return null;
     }
-    
+
     public void addMetalTag(MetalTag metalTag) {
       if (metalTags == null) {
         metalTags = new ArrayList<MetalTag>();
       }
       metalTags.add(metalTag);
     }
-    
+
     public void removeMetalTag(MetalTag metalTag) {
       metalTags.remove(metalTag);
     }
-    
+
     public List<MetalTag> getMetalTags() {
       return metalTags;
     }
-    
+
     public MetalTag findMetalTagForLocation(String location) {
       List<MetalTag> metalTags = getMetalTags();
       if (metalTags != null) {
@@ -1919,7 +1919,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return null;
     }
-    
+
     public AcousticTag getAcousticTag() {
       return acousticTag;
     }
@@ -1941,11 +1941,11 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       if(newStage!=null){lifeStage = newStage;}
       else{lifeStage=null;}
     }
-    
-    
+
+
     /**
-     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter. 
-     * 
+     * A convenience method that returns the first haplotype found in the TissueSamples for this Encounter.
+     *
      *@return a String if found or null if no haplotype is found
      */
     public String getHaplotype(){
@@ -1969,10 +1969,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return null;
     }
-    
+
     /**
-     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter. 
-     * 
+     * A convenience method that returns the first genetic sex found in the TissueSamples for this Encounter.
+     *
      *@return a String if found or null if no genetic sex is found
      */
     public String getGeneticSex(){
@@ -1997,9 +1997,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return null;
     }
-    
+
     public List<SinglePhotoVideo> getImages(){return images;}
-    
+
     public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
@@ -2061,25 +2061,25 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
        SinglePhotoVideo image=images.get(i);
        if(image.getKeywords().contains(word)){return true;}
      }
-     return false; 
+     return false;
     }
 
     public String getState(){return state;}
-    
+
     public void setState(String newState){this.state=newState;}
-    
+
     //DO NOT USE - LEGACY MIGRATION ONLY
    /*
     public boolean getApproved(){return approved;}
     public boolean getUnidentifiable(){return unidentifiable;}
     */
-    
-    
+
+
     public Vector getOldAdditionalImageNames(){return additionalImageNames;}
-    
+
     public Double getLatitudeAsDouble(){return decimalLatitude;}
     public Double getLongitudeAsDouble(){return decimalLongitude;}
-    
+
     public boolean hasMeasurements(){
       if((measurements!=null)&&(measurements.size()>0)){
         int numMeasurements=measurements.size();
@@ -2090,7 +2090,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return false;
     }
-    
+
     public boolean hasMeasurement(String type){
       if((measurements!=null)&&(measurements.size()>0)){
         int numMeasurements=measurements.size();
@@ -2101,9 +2101,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return false;
     }
-    
+
     public boolean hasBiologicalMeasurement(String type){
-      if((tissueSamples!=null)&&(tissueSamples.size()>0)){  
+      if((tissueSamples!=null)&&(tissueSamples.size()>0)){
         int numTissueSamples=tissueSamples.size();
         for(int i=0;i<numTissueSamples;i++){
           TissueSample ts=tissueSamples.get(i);
@@ -2115,9 +2115,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return false;
     }
-    
-    
-    
+
+
+
     /**
      * Returns the first measurement of the specified type
      * @param type
@@ -2133,9 +2133,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       }
       return null;
     }
-    
+
     public BiologicalMeasurement getBiologicalMeasurement(String type){
-      
+
       if(tissueSamples!=null){int numTissueSamples=tissueSamples.size();
       for(int y=0;y<numTissueSamples;y++){
         TissueSample ts=tissueSamples.get(y);
@@ -2154,21 +2154,21 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
       return null;
     }
-    
+
     public String getCountry(){return country;}
-    
+
     public void setCountry(String newCountry) {
       if(newCountry!=null){country = newCountry;}
       else{country=null;}
     }
-    
+
     public void setOccurrenceID(String vet) {
       if(vet!=null){this.occurrenceID = vet;}
       else{this.occurrenceID=null;}
   }
-    
+
     public String getOccurrenceID(){return occurrenceID;}
-    
+
     public boolean hasSinglePhotoVideoByFileName(String filename){
         int numImages=images.size();
         for(int i=0;i<numImages;i++){
@@ -2232,6 +2232,27 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
             return jobj;
         }
+
+        /**
+        * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
+        * all they want in return are MediaAssets
+        * TODO: decorate with metadata
+        **/
+
+        public org.datanucleus.api.rest.orgjson.JSONArray sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+
+          org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
+          boolean fullAccess = this.canUserAccess(request);
+
+          if ((this.getAnnotations() != null) && (this.getAnnotations().size() > 0)) {
+              for (Annotation ann : this.getAnnotations()) {
+                  jarr.put(ann.sanitizeMedia(request, fullAccess));
+              }
+          }
+          return jarr;
+
+        }
+
 
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
@@ -2442,4 +2463,3 @@ throw new Exception();
     }
 
 }
-
