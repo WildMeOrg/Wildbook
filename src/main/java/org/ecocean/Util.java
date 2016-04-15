@@ -378,5 +378,12 @@ public class Util {
       return j;
     }
 
+    public static org.datanucleus.api.rest.orgjson.JSONArray concatJsonArrayInPlace(org.datanucleus.api.rest.orgjson.JSONArray toBeReturned, org.datanucleus.api.rest.orgjson.JSONArray toBeAdded) throws org.datanucleus.api.rest.orgjson.JSONException {
+      for (int i=0; i<toBeAdded.length(); i++) {
+        toBeReturned.put(toBeAdded.get(i));
+      }
+      return toBeReturned;
+    }
+
 
 }
