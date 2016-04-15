@@ -182,10 +182,11 @@ public class TranslateQuery extends HttpServlet {
         // TODO: fix this behavior
         case "org.ecocean.MarkedIndividual":
         for (int i=0;i<nResults;i++) {
-            if (i!=0) {out.println(",");}
             MarkedIndividual mi = (MarkedIndividual) queryResult.get(i);
-            res = mi.sanitizeJson(request, new JSONObject());
-            resultArray.put(res);
+            Util.concatJsonArrayInPlace(resultArray, mi.sanitizeMedia(request));
+            //if (i!=0) {out.println(",");}
+            //res = mi.sanitizeJson(request, new JSONObject());
+            //resultArray.put(res);
             //out.print(res.toString());
           }
           break;
