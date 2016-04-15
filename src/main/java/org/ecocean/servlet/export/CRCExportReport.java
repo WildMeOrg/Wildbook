@@ -106,15 +106,19 @@ public class CRCExportReport extends HttpServlet{
       //let's write out headers for the OBIS export file
         WritableWorkbook workbookOBIS = Workbook.createWorkbook(excelFile);
         WritableSheet sheet = workbookOBIS.createSheet("Search Results", 0);
-        Label label0 = new Label(0, 0, "Filename");
+        
+        Label labelNegA = new Label(0, 0, "Encounter");
+        sheet.addCell(labelNegA);
+        
+        Label label0 = new Label(1, 0, "Filename");
         sheet.addCell(label0);
-        Label label1 = new Label(1, 0, "Alternate ID");
+        Label label1 = new Label(2, 0, "Alternate ID");
         sheet.addCell(label1);
-        Label label2 = new Label(2, 0, "Match Found (Y/N)");
+        Label label2 = new Label(3, 0, "Match Found (Y/N)");
         sheet.addCell(label2);
-        Label label2a = new Label(3, 0, "Matched Splash ID or Filename of Alternate ID");
+        Label label2a = new Label(4, 0, "Matched Splash ID or Filename of Alternate ID");
         sheet.addCell(label2a);
-        Label label3 = new Label(4, 0, "Alternate ID of Match");
+        Label label3 = new Label(5, 0, "Alternate ID of Match");
         sheet.addCell(label3);
 
         // Excel export =========================================================
@@ -140,14 +144,18 @@ public class CRCExportReport extends HttpServlet{
                 count++;
                 numResults++;
                 
+              //set the filename
+                Label lNumberNeg = new Label(0, count, enc.getCatalogNumber());
+                sheet.addCell(lNumberNeg);
+                
                 //set the filename
-                Label lNumber = new Label(0, count, localFilename);
+                Label lNumber = new Label(1, count, localFilename);
                 sheet.addCell(lNumber);
                 
                 //set Encounter.alternateID
                 String altID="";
                 if(enc.getAlternateID()!=null){altID=enc.getAlternateID();}
-                Label lNumberx1 = new Label(1, count, altID);
+                Label lNumberx1 = new Label(2, count, altID);
                 sheet.addCell(lNumberx1);
                 
                 
@@ -215,11 +223,11 @@ public class CRCExportReport extends HttpServlet{
                 
                 if((!matchID.equals(""))||(!matchAlternateID.equals(""))){matchString="Y";}
                 
-                Label lNumberx2 = new Label(2, count, matchString);
+                Label lNumberx2 = new Label(3, count, matchString);
                 sheet.addCell(lNumberx2);
-                Label lNumberx3 = new Label(3, count, matchID);
+                Label lNumberx3 = new Label(4, count, matchID);
                 sheet.addCell(lNumberx3);
-                Label lNumberx4 = new Label(4, count, matchAlternateID);
+                Label lNumberx4 = new Label(5, count, matchAlternateID);
                 sheet.addCell(lNumberx4);
               }
               
