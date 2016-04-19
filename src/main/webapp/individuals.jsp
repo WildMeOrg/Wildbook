@@ -837,11 +837,6 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
-<h2>Under Construction:</h2>
-<p>
-
-</p>
-
 <div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
@@ -855,8 +850,23 @@ catch(NullPointerException nullLogged){}
 
 Encounter[] galleryEncs = sharky.getDateSortedEncounters();
 
+if (galleryEncs.length>0) {
+  String encNum = galleryEncs[0].getCatalogNumber();
+  %>
+  <jsp:include page="individualMediaGallery.jsp" flush="true">
+    <jsp:param name="encounterNumber" value="<%=encNum%>" />
+    <jsp:param name="individualID" value="<%=name%>" />
+    <jsp:param name="isOwner" value="<%=isOwner %>" />
+    <jsp:param name="loggedIn" value="<%=loggedIn %>" />
+  </jsp:include>
+  <%
+
+}
+
+
 %>
 </div>
+
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
@@ -2740,6 +2750,17 @@ else {
 %>
 </div>
 
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
+<jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 
 
