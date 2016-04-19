@@ -240,7 +240,7 @@ var xcolDefn = [
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
-	
+
 ];
 
 */
@@ -413,6 +413,8 @@ console.info('addImage(%o, %o)', enc, el);
     el.find('.note').remove();
     el.append('<img src="' + imgSrc + '"/>');
     var inf = {
+        catalogNumber: 'Encounter ID',
+        otherCatalogNumbers: 'Alternate Encounter ID',
         individualID: 'Assigned to',
         date: 'Date',
         sex: 'Sex',
@@ -901,4 +903,3 @@ function drawChart(d1, d2) {
     var chart = new google.visualization.LineChart(document.getElementById('chart'));
     chart.draw(joinedData, options);
 }
-

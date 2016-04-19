@@ -1,0 +1,78 @@
+
+.image-enhancer-wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+}
+
+.image-enhancer-debug {
+    outline: dashed 3px rgba(255,255,0,0.5);
+}
+
+
+.image-enhancer-menu {
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+    width: 5%;
+    min-width: 15px;
+    max-width: 40px;
+    background: url(../images/hamburger-menu.svg) no-repeat;
+    background-size: 100% auto;
+    opacity: 0.3;
+    cursor: pointer;
+}
+
+.image-enhancer-wrapper:hover .image-enhancer-menu {
+    opacity: 1.0;
+}
+
+.image-enhancer-menu-open {
+    position: absolute;
+    top: 95%;
+    left: 95%;
+    min-width: 4em;
+    border: solid black 2px;
+    border-radius: 2px;
+    background-color: white;
+}
+
+.image-enhancer-menu-open .menu-item {
+    font-size: 0.8em;
+    padding: 2px 8px;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.image-enhancer-menu-open .menu-item:hover {
+    background-color: #444;
+    color: #EEE;
+}
+
+
+.image-enhancer-popup {
+    position: fixed;
+    width: 70%;
+    margin-left: 15%;
+    min-height: 20%;
+    top: 70px;
+    z-index: 2000;
+    border: solid 4px #448;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #DEDEDE;
+}
+.image-enhancer-popup .popup-close {
+    background-color: #999;
+    padding: 5px;
+    border-radius: 3px;
+    cursor: pointer;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+
+
