@@ -66,6 +66,57 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = res.toString();
 
+///////////////
+    } else if (request.getParameter("getJobResultFromTaskID") != null) {
+        JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskID = request.getParameter("getJobResultFromTaskID");
+        String jobID = IBEISIA.findJobIDFromTaskID(taskID, myShepherd);
+        //String jobID = null;
+        //String qannID = null;
+/*
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        for (IdentityServiceLog l : logs) {
+            if (l.getServiceJobID() != null) jobID = l.getServiceJobID();
+            if (l.getObjectID() != null) qannID = l.getObjectID();
+        }
+*/
+        if (jobID == null) {
+            res.put("error", "could not find jobID for taskID=" + taskID);
+        } else {
+            try {
+                res = IBEISIA.getJobResult(jobID);
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+
+            if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
+                JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
+                if (firstResult != null) {
+System.out.println("firstResult -> " + firstResult.toString());
+                    res.put("queryAnnotation", expandAnnotation(IBEISIA.fromFancyUUID(firstResult.optJSONObject("qauuid")), myShepherd, request));
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    JSONArray mout = new JSONArray();
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            JSONObject aj = expandAnnotation(IBEISIA.fromFancyUUID(matches.optJSONObject(i)), myShepherd, request);
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+                    res.put("matchAnnotations", mout);
+                }
+            }
+        }
+
+        response.setContentType("text/plain");
+        getOut = res.toString();
+/////////////
+
     } else if (request.getParameter("getDetectReviewHtml") != null) {
         String jobID = request.getParameter("getDetectReviewHtml");
         int offset = 0;
@@ -186,6 +237,10 @@ System.out.println(id);
         res.put("taskIds", IBEISIA.findTaskIDsFromObjectID(j.getString("taskIds"), myShepherd));
         res.put("success", true);
 
+    } else if (j.optJSONArray("taskSummary") != null) {  //pass annotation ids
+        res.put("taskSummary", taskSummary(j.getJSONArray("taskSummary"), myShepherd));
+        res.put("success", true);
+
     } else {
         res.put("error", "unknown");
     }
@@ -216,6 +271,7 @@ System.out.println(id);
                 jenc.put("verbatimLocality", enc.getVerbatimLocality());
                 jenc.put("locationID", enc.getLocationID());
                 jenc.put("individualID", enc.getIndividualID());
+                jenc.put("otherCatalogNumbers", enc.getOtherCatalogNumbers());
                 rtn.put("encounter", jenc);
             }
             MediaAsset ma = ann.getMediaAsset();
@@ -228,6 +284,26 @@ System.out.println(id);
         return rtn;
     }
 
-}
-  
+    public static JSONObject taskSummary(JSONArray taskIds, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+        if ((taskIds == null) || (taskIds.length() < 1)) return rtn;
+        for (int i = 0 ; i < taskIds.length() ; i++) {
+            String annId = taskIds.optString(i);
+            if (annId == null) continue;
+            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.summaryForAnnotationId(annId, myShepherd);
+            if ((logs != null) && (logs.size() > 0)) {
+                JSONObject tasks = new JSONObject();
+                for (IdentityServiceLog l : logs) {
+                    if (l.getTaskID() == null) continue;
+                    JSONObject t = new JSONObject();
+                    if (l.getStatus() != null) t.put("status", new JSONObject(l.getStatus()));
+                    t.put("timestamp", l.getTimestamp());
+                    tasks.put(l.getTaskID(), t);
+                }
+                rtn.put(annId, tasks);
+            }
+        }
+        return rtn;
+    }
 
+}
