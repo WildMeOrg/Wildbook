@@ -675,6 +675,11 @@
       <servlet-name>OccurrenceRemoveEncounter</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
   </servlet>
+  
+          <servlet>
+        <servlet-name>CRCExportReport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
@@ -1054,7 +1059,11 @@
 <url-pattern>/rest/*</url-pattern>
 </servlet-mapping>
 
-
+     <servlet-mapping>
+        <servlet-name>CRCExportReport</servlet-name>
+        <url-pattern>/CRCExportReport</url-pattern>
+  </servlet-mapping>
+  
 
 <servlet-mapping>
   <servlet-name>TranslateQuery</servlet-name>
