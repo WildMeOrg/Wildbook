@@ -238,61 +238,6 @@ table.tissueSample td {
 
     <jsp:include page="header.jsp" flush="true"/>
 
-
-  <!--
-    1 ) Reference to the files containing the JavaScript and CSS.
-    These files must be located on your server.
-  -->
-
-  <script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css"/>
-
-  <!--
-    2) Optionally override the settings defined at the top
-    of the highslide.js file. The parameter hs.graphicsDir is important!
-  -->
-
-  <script type="text/javascript">
-    hs.graphicsDir = 'highslide/highslide/graphics/';
-
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
-
-    hs.align = 'auto';
-  	hs.anchor = 'top';
-
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 250;
-
-    //block right-click user copying if no permissions available
-    <%
-    if(request.getUserPrincipal()==null){
-    %>
-    hs.blockRightClick = true;
-    <%
-    }
-    %>
-
-    // Add the controlbar
-    hs.addSlideshow({
-      //slideshowGroup: 'group1',
-      interval: 5000,
-      repeat: false,
-      useControls: true,
-      fixedControls: 'fit',
-      overlayOptions: {
-        opacity: 0.75,
-        position: 'bottom center',
-        hideOnMouseOut: true
-      }
-    });
-
-  </script>
-
 <!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
