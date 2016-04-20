@@ -32,7 +32,7 @@
 .image-enhancer-menu-open {
     position: absolute;
     top: 95%;
-    left: 95%;
+    right: 10px;
     min-width: 4em;
     border: solid black 2px;
     border-radius: 2px;

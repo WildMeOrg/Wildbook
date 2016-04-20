@@ -81,13 +81,25 @@ console.warn('menu -> %o', el);
         el.menuOpened = true;
         var mh = '<div class="image-enhancer-menu-open">';
         for (var i = 0 ; i < el.enhancer.opt.menu.length ; i++) {
-            mh += '<div class="menu-item" data-i="' + i + '">' + el.enhancer.opt.menu[i][0] + '</div>';
+            var menuItem = el.enhancer.opt.menu[i][0];
+            if (typeof menuItem == 'function') menuItem = menuItem(el.enhancer, ev);
+            if (menuItem === false) continue;  //allows us to skip menu item based on function returns
+            mh += '<div class="menu-item" data-i="' + i + '">' + menuItem + '</div>';
         }
         if (el.enhancer.opt.debug) {
             mh += '<div class="menu-item" data-i="-1"><i>test item (debug == true)</i></div>';
         }
         mh += '</div>';
-        jQuery(el).append(mh);
+        jQuery(el).append(mh).on('mouseout', function(ev) {
+            var e = ev.toElement || ev.relatedTarget;
+            if (!e || !e.parentNode) return;
+            var k = jQuery(e.parentNode).closest('.image-enhancer-wrapper');
+            //var k = jQuery(e.parentNode).closest('.image-enhancer-menu-open');
+            if (k.length) return;
+            //if (!e || !e.parentNode || jQuery(e.parentNode).hasClass('image-enhancer-menu-open')) return;
+            //console.log('OUT!!!!!!!!!!!! parent=%o currentTarget=%o', e.parentNode, ev.currentTarget);
+            imageEnhancer.closeMenu(ev.currentTarget);
+        });
         jQuery(el).find('.menu-item').on('click', function(ev) {
             imageEnhancer.clickMenuItem(ev);
         });
@@ -137,19 +149,6 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         return true;
     }
 };
-
-
-
-/*
-jQuery(document).ready(function() {
-    imageEnhancer.applyTo('figure img', {
-        debug: true,
-        menu: [
-            ['boring alert thing', function(enh) { console.info(enh); alert('ok!');}]
-        ]
-    });
-});
-*/
 
 
 
