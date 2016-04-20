@@ -95,8 +95,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
         <header class="page-header clearfix">
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
-                <div class="container">
-                <a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>
+                <div class="container navbar-container">
+                <!--<a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>-->
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
                       <%
