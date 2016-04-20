@@ -169,6 +169,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 <h2>Gallery</h2>
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
+<script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageUtilities.js'></script>
 <script>
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
@@ -181,6 +182,85 @@ for (int i=0; i<captionLinks.size(); i++) {
   assets.forEach( function(elem, index) {
     maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
   });
+
+
+
+//initializes image enhancement (layers)
+jQuery(document).ready(function() {
+    var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
+    var opt = {
+    };
+
+    if (loggedIn) {
+        opt.debug = true;
+        opt.menu = [
+            ['remove this image', function(enh) {
+            }],
+            ['replace this image', function(enh) {
+            }],
+            [
+		function(enh) { return imagePopupInfoMenuItem(enh); },
+		function(enh) { imagePopupInfo(enh); }
+            ],
+        ];
+
+        if (true) {
+            opt.menu.push(['set image as encounter thumbnail', function(enh) {
+            }]);
+        }
+
+        opt.init = [
+            function(el, enh) {
+console.info(' ===========>   %o %o', el, enh);
+		imageLayerKeywords(el, enh);
+            },
+        ];
+    }
+
+    imageEnhancer.applyTo('figure img', opt);
+});
+
+
+
+function imageLayerKeywords(el, opt) {
+	var mid = el.context.id.substring(11);
+	var ma = assetById(mid);
+console.info("############## mid=%s -> %o", mid, ma);
+	if (!ma) return;
+}
+
+function imagePopupInfo(obj) {
+	if (!obj || !obj.imgEl || !obj.imgEl.context) return;
+	var mid = obj.imgEl.context.id.substring(11);
+	var ma = assetById(mid);
+	if (!ma) return;
+	var h = '<div>media asset id: <b>' + mid + '</b><br />';
+	if (ma.metadata) {
+		for (var n in ma.metadata) {
+			h += n + ': <b>' + ma.metadata[n] + '</b><br />';
+		}
+	}
+	h += '</div>';
+	imageEnhancer.popup(h);
+}
+
+function imagePopupInfoMenuItem(obj) {
+//console.log('MENU!!!! ----> %o', obj);
+	if (!obj || !obj.imgEl || !obj.imgEl.context) return false;
+	var mid = obj.imgEl.context.id.substring(11);
+	var ma = assetById(mid);
+	if (!ma) return false;
+	return 'image info';
+}
+ 
+
+function assetById(mid) {
+	if (!assets || (assets.length < 1)) return false;
+	for (var i = 0 ; i < assets.length ; i++) {
+		if (assets[i].id == mid) return assets[i];
+	}
+	return false;
+}
 
 </script>
 <style>
