@@ -52,7 +52,12 @@ public class IAGateway extends HttpServlet {
   }
 
 
+    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ServletUtilities.doOptions(request, response);
+    }
+
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String getOut = "";
 
     if (request.getParameter("getJobResult") != null) {
@@ -129,6 +134,7 @@ System.out.println("url --> " + url);
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
