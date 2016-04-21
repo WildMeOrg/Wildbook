@@ -227,6 +227,24 @@ function imageLayerKeywords(el, opt) {
 	var ma = assetById(mid);
 console.info("############## mid=%s -> %o", mid, ma);
 	if (!ma) return;
+ma.xeywords = [
+	{readableName: "fubar", indexname: "xxx"},
+	{readableName: "fubar", indexname: "yyy"},
+	{readableName: "fubar", indexname: "zzz"}
+	];
+
+	if (!ma.keywords) ma.keywords = [];
+	var h = '<div class="image-enhancer-keyword-wrapper">';
+	for (var i = 0 ; i < ma.keywords.length ; i++) {
+		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
+	}
+
+	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">Add new keyword <div class="iek-new-form">';
+h += '(form)';
+	h += '</div></div>';
+
+	h += '</div>';
+	el.append(h);
 }
 
 function imagePopupInfo(obj) {
