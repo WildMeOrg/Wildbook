@@ -88,7 +88,7 @@ maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
     partArray = partArray[partArray.length-1].split('.');
-    return partArray[0];
+    return encodeURI(partArray[0]);
   }
   return "Test caption, do not read";
 
@@ -107,6 +107,8 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
+  url = encodeURI(url);
+
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -149,6 +151,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
+  url = encodeURI(url);
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -219,6 +222,7 @@ maLib.testExtraction = function(maJson) {
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
+  url = encodeURI(url);
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
