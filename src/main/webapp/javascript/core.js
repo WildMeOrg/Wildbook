@@ -199,7 +199,12 @@ console.log('is %o', ajax);
 				};
 				return wildbookGlobals.social[svc].auth[keyMap[svc]] || wildbook.social.SERVICE_NOT_SUPPORTED;
 			}
-		} //end social.
+		}, //end social.
+
+    openInTab: function(url) {
+        var win = window.open(url, '_blank');
+        win.focus();
+    }
 
 };
 
