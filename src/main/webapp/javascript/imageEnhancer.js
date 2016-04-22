@@ -119,6 +119,7 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         if (i < 0) return imageEnhancer.debugMenuItem(enh);
         //ev.target.parentElement.parentElement.enhancer.opt.menu[i][1](ev.target.parentElement.parentElement.enhancer);
         enh.opt.menu[i][1](enh);
+        //enh.opt.menu[i][1](enh, enh.opt.menu[i][2]);
     },
 
 
