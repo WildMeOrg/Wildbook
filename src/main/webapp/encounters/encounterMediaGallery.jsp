@@ -135,7 +135,10 @@ JSONObject iaTasks = new JSONObject();
   		MediaAsset ma = ann.getMediaAsset();
   		if (ma != null) {
   			JSONObject j = ma.sanitizeJson(request, new JSONObject());
-  			if (j != null) all.put(j);
+  			if (j != null) {
+				j.put("annotationId", ann.getId());
+				all.put(j);
+			}
   		}
   	}
   	// out.println("var assets = " + all.toString() + ";");
@@ -220,7 +223,10 @@ jQuery(document).ready(function() {
 		function(enh) { imagePopupInfo(enh); }
             ],
 		['start new matching scan', function(enh) {
-console.log('%o ?????', enh.imgEl.context.id);  //maId
+			//var mid = enh.imgEl.context.id.substring(11);
+			var mid = enh.imgEl.data('enh-mediaassetid');
+console.log('%o ?????', mid);
+			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>mid = ' + mid + '</p>');
 			//startIdentify(aid, enh.imgEl);
 		}],
         ];
@@ -228,9 +234,10 @@ console.log('%o ?????', enh.imgEl.context.id);  //maId
 	var ct = 1;
 	for (var tid in iaTasks) {
 		opt.menu.push([
-			'previous scan ' + ct,
-			function(enh, foo) {
-				//console.log('enh(%o) foo(%o)', enh, foo);
+			'- previous scan ' + ct,
+			function(enh, tid) {
+				console.log('enh(%o) tid(%o)', enh, tid);
+				wildbook.openInTab('matchResults.jsp?taskId=' + tid);
 			},
 			tid
 		]);

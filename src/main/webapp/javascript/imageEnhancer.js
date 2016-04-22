@@ -8,6 +8,7 @@ var imageEnhancer = {
 
     apply: function(el, opt) {
         var jel = jQuery(el);
+        var mid = jel.data('enh-mediaassetid');
         var parEl = jel.parent();  //TODO what if there is none... oops???
         if (parEl.prop('tagName') == 'A') parEl = parEl.parent();
 console.info('imageEnhancer.apply to %o with opt %o (parEl=%o)', el, opt, parEl);
@@ -15,7 +16,8 @@ console.info('imageEnhancer.apply to %o with opt %o (parEl=%o)', el, opt, parEl)
 
         if (parEl.css('position') == 'static') parEl.css('position', 'relative');
 
-        parEl.append('<div class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
+        //parEl.append('<div class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
+        parEl.append('<div id="image-enhancer-wrapper-' + mid + '" class="image-enhancer-wrapper' + (opt.debug ? ' image-enhancer-debug' : '') + '" />');
         imageEnhancer.wrapperSizeSetFromImg(parEl);
         var wrapper = parEl.find('.image-enhancer-wrapper');
 
@@ -118,10 +120,14 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         imageEnhancer.closeMenu(ev.currentTarget.parentElement.parentElement);
         if (i < 0) return imageEnhancer.debugMenuItem(enh);
         //ev.target.parentElement.parentElement.enhancer.opt.menu[i][1](ev.target.parentElement.parentElement.enhancer);
-        enh.opt.menu[i][1](enh);
-        //enh.opt.menu[i][1](enh, enh.opt.menu[i][2]);
+        enh.opt.menu[i][1](enh, enh.opt.menu[i][2]);
     },
 
+    message: function(el, h) {
+        var mel = jQuery('<div class="image-enhancer-overlay-message">' + h + '</div>');
+        mel.appendTo(el);
+        return mel;
+    },
 
     popup: function(h) {
         jQuery('.image-enhancer-popup').remove();
