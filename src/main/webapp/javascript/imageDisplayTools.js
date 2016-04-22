@@ -87,7 +87,7 @@ fig.append(
 maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
-    partArray = partArray[partArray.length-1].split('.')
+    partArray = partArray[partArray.length-1].split('.');
     return partArray[0];
   }
   return "Test caption, do not read";
@@ -100,9 +100,10 @@ maLib.cascadiaCaptionFunction = function(maJson) {
  *
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
-maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) {
+maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  caption = caption || '';
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
@@ -124,8 +125,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) 
       mkImg(maJson)
     )
   );
-  var caption = maCaptionFunction(maJson);
-  fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
+  fig.append('<figcaption itemprop="caption description">'+maCaptionFunction(maJson)+caption+'</figcaption>');
 
 
   intoElem.append(fig);
