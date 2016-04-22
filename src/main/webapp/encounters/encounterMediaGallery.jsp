@@ -47,8 +47,9 @@ try {
   ArrayList<Annotation> anns = enc.getAnnotations();
   %>
   <script>
-  function startIdentify(el) {
-    var aid = el.getAttribute('data-id');
+
+  function startIdentify(aid, el) {
+    //var aid = el.getAttribute('data-id');
     el.parentElement.innerHTML = '<i>starting identification</i>';
     jQuery.ajax({
       url: '../ia',
@@ -95,12 +96,15 @@ try {
 
 
 
+JSONObject iaTasks = new JSONObject();
+
   if ((anns == null) || (anns.size() < 1)) {
     %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
   }
   else {
   	for (Annotation ann: anns) {
       String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+/*
     	if (tasks != null) {
         String[] linkArray = new String[tasks.length+1];
         linkArray[0] = "<a data-id="+ann.getId()+" onClick=\"startIdentify(this)\">Match this image</a>";
@@ -115,6 +119,15 @@ try {
         captionLinks.add(new String[]{"<a data-id="+ann.getId()+" onClick=\"startIdentify(this)\">Match this image</a>"});
         //out.println("no scan tasks here");
       }
+*/
+
+	if ((tasks != null) && (tasks.length > 0)) {
+		JSONArray t = new JSONArray();
+		for (int i = 0 ; i < tasks.length ; i++) {
+			t.put(tasks[i]);
+		}
+		iaTasks.put(ann.getId(), t);
+	}
 
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
   		if (!ann.isTrivial()) continue;
@@ -126,9 +139,10 @@ try {
   		}
   	}
   	// out.println("var assets = " + all.toString() + ";");
-    System.out.println("All media assets as an array: "+all.toString());
+    //System.out.println("All media assets as an array: "+all.toString());
 
 }
+	out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
 
 }
 catch(Exception e){e.printStackTrace();}
@@ -136,6 +150,7 @@ finally{
 	imageShepherd.rollbackDBTransaction();
 	imageShepherd.commitDBTransaction();
 }
+
 
 // here we just transform captionLinks into the actual captions we want to pass
 JSONArray captions = new JSONArray();
@@ -150,6 +165,8 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 
 %>
+
+
 <style>
 	.match-tools {
 		padding: 5px 15px;
@@ -202,7 +219,22 @@ jQuery(document).ready(function() {
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }
             ],
+		['start new matching scan', function(enh) {
+console.log('%o ?????', enh.imgEl.context.id);  //maId
+			//startIdentify(aid, enh.imgEl);
+		}],
         ];
+
+	var ct = 1;
+	for (var tid in iaTasks) {
+		opt.menu.push([
+			'previous scan ' + ct,
+			function(enh, foo) {
+				//console.log('enh(%o) foo(%o)', enh, foo);
+			},
+			tid
+		]);
+	}
 
         if (true) {
             opt.menu.push(['set image as encounter thumbnail', function(enh) {
