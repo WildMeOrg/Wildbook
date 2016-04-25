@@ -632,16 +632,13 @@ public class CommonConfiguration {
   }
 
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
-    System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
     int index = 0;
     while (hasMore) {
       String key = baseKey + index;
       String value = CommonConfiguration.getProperty(key, context);
-      System.out.println("     key "+key+" and value "+value);
       if (value != null) {
         value = value.trim();
-        System.out.println("CommonConfiguration: "+value);
         if(value.equals(checkValue)){return (new Integer(index));}
       }
       else {
