@@ -174,10 +174,12 @@ public class ActionResult {
   }
 
   public ActionResult addParams(Object... o) {
-    addMessageParams(o);
-    addCommentParams(o);
-    addDetailParams(o);
-    addLinkParams(o);
+    if (o != null) {
+      addMessageParams(o);
+      addCommentParams(o);
+      addDetailParams(o);
+      addLinkParams(o);
+    }
     return this;
   }
 
@@ -197,10 +199,12 @@ public class ActionResult {
    * @return this ActionResult instance (for method chaining support)
    */
   public ActionResult addMessageParams(Object... o) {
-    Object[] x = new Object[messageParams.length + o.length];
-    System.arraycopy(messageParams, 0, x, 0, messageParams.length);
-    System.arraycopy(o, 0, x, messageParams.length, o.length);
-    this.messageParams = x;
+    if (o != null) {
+      Object[] x = new Object[messageParams.length + o.length];
+      System.arraycopy(messageParams, 0, x, 0, messageParams.length);
+      System.arraycopy(o, 0, x, messageParams.length, o.length);
+      this.messageParams = x;
+    }
     return this;
   }
 
@@ -229,10 +233,12 @@ public class ActionResult {
    * @return this ActionResult instance (for method chaining support)
    */
   public ActionResult addLinkParams(Object... o) {
-    Object[] x = new Object[linkParams.length + o.length];
-    System.arraycopy(linkParams, 0, x, 0, linkParams.length);
-    System.arraycopy(o, 0, x, linkParams.length, o.length);
-    this.linkParams = x;
+    if (o != null) {
+      Object[] x = new Object[linkParams.length + o.length];
+      System.arraycopy(linkParams, 0, x, 0, linkParams.length);
+      System.arraycopy(o, 0, x, linkParams.length, o.length);
+      this.linkParams = x;
+    }
     return this;
   }
 
@@ -261,10 +267,12 @@ public class ActionResult {
    * @return this ActionResult instance (for method chaining support)
    */
   public ActionResult addCommentParams(Object... o) {
-    Object[] x = new Object[commentParams.length + o.length];
-    System.arraycopy(commentParams, 0, x, 0, commentParams.length);
-    System.arraycopy(o, 0, x, commentParams.length, o.length);
-    this.commentParams = x;
+    if (o != null) {
+      Object[] x = new Object[commentParams.length + o.length];
+      System.arraycopy(commentParams, 0, x, 0, commentParams.length);
+      System.arraycopy(o, 0, x, commentParams.length, o.length);
+      this.commentParams = x;
+    }
     return this;
   }
 
@@ -293,10 +301,12 @@ public class ActionResult {
    * @return this ActionResult instance (for method chaining support)
    */
   public ActionResult addDetailParams(Object... o) {
-    Object[] x = new Object[detailParams.length + o.length];
-    System.arraycopy(detailParams, 0, x, 0, detailParams.length);
-    System.arraycopy(o, 0, x, detailParams.length, o.length);
-    this.detailParams = x;
+    if (o != null) {
+      Object[] x = new Object[detailParams.length + o.length];
+      System.arraycopy(detailParams, 0, x, 0, detailParams.length);
+      System.arraycopy(o, 0, x, detailParams.length, o.length);
+      this.detailParams = x;
+    }
     return this;
   }
 
