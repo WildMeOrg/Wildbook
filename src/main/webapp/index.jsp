@@ -362,7 +362,7 @@ finally{
     -->   <h2>
             <a href="submit.jsp">
                 <!--<button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>-->
-                <button class="btn btn-primary btn-large">Report encounter</button>
+                <button class="btn btn-primary btn-large">Ilmoita havainto</button>
             </a>
           </h2>
         </div>
@@ -380,73 +380,15 @@ finally{
 
 	<h2 class="section-header">Tavoitteena kaikkien norppien tunnistaminen</h2>
 
-	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
-		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
-	    </ol>
-		<div class="carousel-inner text-left">
-			<div class="item active">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Photograph the ID area</h3>
-					<p class="lead">
-						Trailing edges of flukes and dorsal fins are primarily used to ID whales and dolphins. Get an image of the flukes or fins and you can match that pattern to others already in the database. Who knows your animal might be completely new to the database!
-					</p>
+	<div class="row">
+    <div class="col-md-6 col-md-offset-3">
+      <p>
+        Mik&auml; ihmeen Lorem ipsum?
 
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Submit PhotoID or sighting</h3>
-					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed.
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Researcher verification</h3>
-					<p class="lead">
-						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching process</h3>
-					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for whale flukes.
-						</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching Results</h3>
-					<p class="lead">
-						Wildbook uses multiple algorithms to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
-				</div>
-			</div>
-		</div>
-	</div>
+        Lorem ipsum on 1500-luvulta l&auml;htien olemassa ollut t&auml;yteteksti, jota k&auml;ytet&auml;&auml;n usein ulkoasun testaamiseen graafisessa suunnittelussa, kun mit&auml;&auml;n oikeata sis&auml;lt&ouml;&auml; ei viel&auml; ole. Lorem ipsumia k&auml;ytet&auml;&auml;n n&auml;ytt&auml;m&auml;&auml;n, milt&auml; esimerkiksi kirjasin tai julkaisun tekstin asettelu n&auml;ytt&auml;v&auml;t
+      </p>
+    </div>
+  </div>
 
 </section>
 

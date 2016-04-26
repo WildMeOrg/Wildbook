@@ -21,20 +21,42 @@
   background: #272727;
 }
 
-.navbar-fixed-top>.header-top-wrapper, .search-field-header input[type=text] {
+.navbar-fixed-top>.header-top-wrapper {
   background: #fff;
   color: #000;
 }
 
-body, body p, li.loginout>a {
+.search-field-header>form>input[type="text"] {
+  color: #fff;
+}
+
+.page-header .secondary-nav {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+body, body p, li.loginout>a, .main-text>div>p {
   font-family: 'open-sans', Helvetica, Arial, sans-serif;
+}
+
+// hand-holding navbar UI
+label.search-field-header {
+  padding-bottom: 0;
+  margin-bottom: 0;
 }
 
 section.main-section>h2.section-header {
   font-family: 'UniversLTW01-59UltraCn', sans-serif;
+  font-weight: lighter;
   text-transform: none;
   color: #44C7F5;
 }
+
+section.hero.container-fluid.main-section {
+  padding-top: 200px;
+  padding-bottom: 30px;
+}
+
 
 section.main-section.grey-background {
   background: #f7f7f7;
@@ -44,9 +66,13 @@ section.main-section.main-text {
   margin-top: 0;
   padding-top: 0;
 }
+section.main-text>div>p {
+  text-align: center;
+}
 
 li.loginout>a {
-  font-style: italic;
+  font-weight: 300;
+  text-transform: none;
 }
 
 .page-header a, .search-field-header input[type="submit"] {
@@ -56,6 +82,7 @@ li.loginout>a {
 .page-header {
   padding-top: 12px;
 }
+
 
 .search-field-header input.submitLink {
   background: none;
@@ -83,6 +110,12 @@ body {
 }
 
 @media (min-width: 768px) {
+  footer.page-footer div.row {
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+
+
   .navbar-nav {
     padding-left: 135px;
   }
@@ -121,6 +154,13 @@ body {
     padding-right: 30px;
 
   }
+
+  header>nav.navbar-fixed-top {
+    margin-bottom: 0;
+  }
+  header.page-header.clearfix {
+    margin-bottom:0;
+  }
 }
 
 
@@ -139,7 +179,13 @@ body {
   text-transform: uppercase;
   font-family: 'UniversLTW01-59UltraCn', sans-serif;
 }
+.hero h2>a>button {
+  font-family: 'open-sans', Helvetica, Arial, sans-serif;
+  font-weight: lighter;
+  text-transform: uppercase;
+}
 
-.search-and-secondary-wrapper .search-wrapper {
-  float: right;
+.search-wrapper {
+  margin-top: 3px;
+  margin-bottom: 3px;
 }

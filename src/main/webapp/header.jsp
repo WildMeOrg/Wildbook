@@ -234,15 +234,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                     </ul>
 
-                    <div class="search-wrapper">
-                      <label class="search-field-header">
-                            <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="search on nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-	                            <!--<input type="submit" class="submitLink" value="search"/>-->
-                          </form>
-                      </label>
-                    </div>
                   </div>
                   <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
@@ -419,12 +410,26 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
+
                       <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="#6" itemprop="url">Liity ja lahjoita</a>
                         <ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
                           <li><a href="#">Liity kummiksi</a></li>
                           <li><a href="#">Tee kertalahjoitus</a></li>
                         </ul>
                       </li>
+
+                      <li class="pull-right">
+                        <div class="search-wrapper">
+                          <label class="search-field-header">
+                                <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
+                                  <input type="text" id="search-site" placeholder="search on nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+                                  <input type="hidden" name="langCode" value="<%=langCode%>"/>
+                                  <!--<input type="submit" class="submitLink" value="search"/>-->
+                              </form>
+                          </label>
+                        </div>
+                      </li>
+
 
                     </ul>
                     <!--
