@@ -18,26 +18,5 @@
 
 
 
-	<class name="Feature" identity-type="application">
-		<field name="id" primary-key="true">
-			<column length="36" />
-		</field>
-		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.identity.FeatureType" allows-null="false" />
-            	<field name="revision" persistence-modifier="persistent">
-                	<column jdbc-type="BIGINT" allows-null="false"/>
-            	</field>
-		<property name="parametersAsString" persistence-modifier="persistent">
-                	<column jdbc-type="LONGVARCHAR" name="parameters" />
-		</property>
-	</class>
-
-	<class name="FeatureType" identity-type="application">
-		<field name="id" primary-key="true">
-			<column length="255" />
-		</field>
-		<field name="description" persistence-modifier="persistent" />
-	</class>
-
-
     </package>
 </jdo>

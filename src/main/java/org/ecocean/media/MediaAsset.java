@@ -26,7 +26,6 @@ import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 //import org.ecocean.Encounter;
-import org.ecocean.identity.Feature;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -385,6 +384,17 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
     public Double getLongitude() {
         return null;
+    }
+
+    //note: default behavior will add this to the features on this MediaAsset -- can pass false to disable
+    //TODO expand to handle things other than images (some day)
+    public Feature generateUnityFeature() {
+        return generateUnityFeature(true);
+    }
+    public Feature generateUnityFeature(boolean addToMediaAsset) {
+        Feature f = new Feature();
+        if (addToMediaAsset) this.addFeature(f);
+        return f;
     }
 
 /*
