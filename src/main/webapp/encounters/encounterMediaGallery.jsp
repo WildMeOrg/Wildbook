@@ -234,7 +234,9 @@ console.log('%o ?????', mid);
         ];
 
 	var ct = 1;
-	for (var tid in iaTasks) {
+	for (var annId in iaTasks) {
+		//we really only care about first tid now (most recent)
+		var tid = iaTasks[annId][0];
 		opt.menu.push([
 			//'- previous scan results ' + ct,
 			'- previous scan results',
