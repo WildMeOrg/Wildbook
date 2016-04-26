@@ -350,7 +350,7 @@ finally{
 %>
 
 <section class="hero container-fluid main-section relative">
-    <div class="container relative">
+    <div class="container-fluid relative">
         <div class="col-lg-12 bc4">
             <!--<h1 class="hidden">Wildbook</h1>-->
             <h2 class="jumboesque">Kuvasitko <br/> Saimannorpan?</h2>
@@ -376,9 +376,9 @@ finally{
 
 </section>
 
-<section class="container text-center main-section">
+<section class="container-fluid text-center main-section main-text grey-background">
 
-	<h2 class="section-header">How it works</h2>
+	<h2 class="section-header">Tavoitteena kaikkien norppien tunnistaminen</h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
@@ -447,11 +447,12 @@ finally{
 			</div>
 		</div>
 	</div>
+
 </section>
 
 <div class="container-fluid relative data-section">
 
-    <aside class="container main-section">
+    <aside class="container-fluid main-section">
         <div class="row">
 
             <!-- Random user profile to select -->
@@ -604,7 +605,7 @@ finally{
 </div>
 
 <div class="container-fluid">
-    <section class="container text-center  main-section">
+    <section class="container-fluid text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
@@ -620,7 +621,7 @@ finally{
 
         <hr/>
 
-        <main class="container">
+        <main class="container-fluid">
             <article class="text-center">
                 <div class="row">
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
