@@ -1735,7 +1735,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     org.datanucleus.api.rest.orgjson.JSONArray resultArray = new org.datanucleus.api.rest.orgjson.JSONArray();
     for(int i=0;i<encounters.size();i++) {
       Encounter tempEnc=(Encounter)encounters.get(i);
-      Util.concatJsonArrayInPlace(resultArray, tempEnc.sanitizeMedia());
+      Util.concatJsonArrayInPlace(resultArray, tempEnc.sanitizeMedia(request));
     }
     return resultArray;
   }
