@@ -121,11 +121,15 @@ JSONObject iaTasks = new JSONObject();
       }
 */
 
+System.out.println(tasks);
 	if ((tasks != null) && (tasks.length > 0)) {
 		JSONArray t = new JSONArray();
+/*  we only want the most recent for now!!
 		for (int i = 0 ; i < tasks.length ; i++) {
 			t.put(tasks[i]);
 		}
+*/
+		t.put(tasks[tasks.length - 1]);
 		iaTasks.put(ann.getId(), t);
 	}
 
@@ -212,16 +216,14 @@ jQuery(document).ready(function() {
     };
 
     if (loggedIn) {
-        opt.debug = true;
+        opt.debug = false;
         opt.menu = [
+/*
             ['remove this image', function(enh) {
             }],
             ['replace this image', function(enh) {
             }],
-            [
-		function(enh) { return imagePopupInfoMenuItem(enh); },
-		function(enh) { imagePopupInfo(enh); }
-            ],
+*/
 		['start new matching scan', function(enh) {
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
@@ -234,7 +236,8 @@ console.log('%o ?????', mid);
 	var ct = 1;
 	for (var tid in iaTasks) {
 		opt.menu.push([
-			'- previous scan ' + ct,
+			//'- previous scan results ' + ct,
+			'- previous scan results',
 			function(enh, tid) {
 				console.log('enh(%o) tid(%o)', enh, tid);
 				wildbook.openInTab('matchResults.jsp?taskId=' + tid);
@@ -243,6 +246,14 @@ console.log('%o ?????', mid);
 		]);
 	}
 
+	opt.menu.push(
+            [
+		function(enh) { return imagePopupInfoMenuItem(enh); },
+		function(enh) { imagePopupInfo(enh); }
+            ]
+	);
+
+/*
         if (true) {
             opt.menu.push(['set image as encounter thumbnail', function(enh) {
             }]);
@@ -254,6 +265,7 @@ console.info(' ===========>   %o %o', el, enh);
 		imageLayerKeywords(el, enh);
             },
         ];
+*/
     }
 
     imageEnhancer.applyTo('figure img', opt);
