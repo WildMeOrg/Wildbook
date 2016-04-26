@@ -1,3 +1,5 @@
+.settings/org.eclipse*
+*.DS_Store
 target
 bin
 out
