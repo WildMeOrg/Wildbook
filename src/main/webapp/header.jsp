@@ -95,7 +95,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
         <header class="page-header clearfix">
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
-                <div class="container navbar-container">
+                <div class="container-fluid navbar-container">
                 <!--<a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>-->
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
@@ -114,7 +114,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 		                          }
 		                  %>
   		                  <li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
-  		             			<li><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
+  		             			<li class="loginout"><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 		                  <%
 	                          }
 	                          catch(Exception e){e.printStackTrace();}
@@ -125,13 +125,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 	                      }
 	                      else{
 	                      %>
-	                       <li><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login")%></a></li>
+	                       <li class="loginout"><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login")%></a></li>
 	                      <%
 	                      }
                       %>
-                       <!--
-                      <li><a href="#" title="">English</a></li>
-                     -->
+<!--<li><a href="#" title="">English</a></li>-->
                       <%
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
                       %>
@@ -239,9 +237,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <div class="search-wrapper">
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
-	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
+	                            <input type="text" id="search-site" placeholder="search on nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
 	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
-	                            <input type="submit" value="search" />
+	                            <!--<input type="submit" class="submitLink" value="search"/>-->
                           </form>
                       </label>
                     </div>
@@ -251,7 +249,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
               </div>
 
               <div class="nav-bar-wrapper">
-                <div class="container">
+                <div class="container-fluid cont-primary">
                   <div class="navbar-header clearfix">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                       <span class="sr-only">Toggle navigation</span>
@@ -263,10 +261,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                   <div id="navbar" class="navbar-collapse collapse">
                   <div id="notifications"><%= Collaboration.getNotificationsWidgetHtml(request) %></div>
-                    <ul class="nav navbar-nav">
-                                  <!--                -->
-                      <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
-                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
+                    <ul class="nav navbar-nav nav-primary" >
+                      <!--<li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+                      <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>-->
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
@@ -422,7 +419,123 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
+                      <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="#6" itemprop="url">Liity ja lahjoita</a>
+                        <ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+                          <li><a href="#">Liity kummiksi</a></li>
+                          <li><a href="#">Tee kertalahjoitus</a></li>
+                        </ul>
+                      </li>
+
                     </ul>
+                    <!--
+        <ul class="nav nav-primary nav-parent" itemscope="itemscope" itemtype="http://schema.org/SiteNavigationElement" style="visibility:hidden;">
+        	<li class="branding"><a class="logo wwf-logo" href="/" title="Etusivu" rel="home" tabindex="1"><span class="screen-reader-text">WWF</span></a></li>
+        	<li class="has-sub-menu bc4-alt"><a class="top-link current-page-parent" href="#1" itemprop="url">Eläinlajit</a>
+        		<div class="sub-menu">
+        			<ul class="nav-menu has-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#1-1" itemprop="url">Kiljuhanhi</a></li>
+        				<li><a href="#1-2" itemprop="url">Saimaannorppa</a></li>
+        				<li><a href="#1-2" itemprop="url">Ahma</a></li>
+        				<li><a href="#1-3" itemprop="url">Lohikalat</a></li>
+        				<li><a href="#1-4" itemprop="url" class="current-page">Tiikeri</a></li>
+        				<li><a href="#1-5" itemprop="url">Oranki</a></li>
+        				<li><a href="#1-6" itemprop="url">Lumileopardi</a></li>
+        				<li><a href="#1-7" itemprop="url">Norsut</a></li>
+        			</ul>
+        			<ul class="nav-footer" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#1-0" itemprop="url">Kaikki eläinlajit <i class="icon icon-chevron-right" aria-hidden="true"></i></a></li>
+        			</ul>
+        			<ul class="nav-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#1-8" itemprop="url">Ryhdy norppa-kummiksi</a></li>
+        				<li><a href="#1-9" itemprop="url">Miten WWF suojelee lajeja?</a></li>
+        				<li><a href="#1-10" itemprop="url">Taustakuvat</a></li>
+        			</ul>
+        		</div>
+        	</li>
+        	<li class="has-sub-menu bc3-alt"><a class="top-link" href="#2" itemprop="url">Alueet</a>
+        		<div class="sub-menu">
+        			<ul class="nav-menu" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#2-1" itemprop="url">Suomi</a></li>
+        				<li><a href="#2-2" itemprop="url">Itämeri</a></li>
+        				<li><a href="#2-2" itemprop="url">Himalaja</a></li>
+        				<li><a href="#2-3" itemprop="url">Borneo</a></li>
+        				<li><a href="#2-4" itemprop="url">Itäinen Afrikka</a></li>
+        				<li><a href="#2-5" itemprop="url">Artkinen</a></li>
+        				<li><a href="#2-6" itemprop="url">Valtameret</a></li>
+        			</ul>
+        			<ul class="nav-footer" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#2-0" itemprop="url">Kaikki alueet <i class="icon icon-chevron-right" aria-hidden="true"></i></a></li>
+        			</ul>
+        			<ul class="nav-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#2-7" itemprop="url">Ryhdy sademetsä-kummiksi</a></li>
+        				<li><a href="#2-8" itemprop="url">Taustakuvat</a></li>
+        				<li><a href="#2-9" itemprop="url">Nostopaikka</a></li>
+        			</ul>
+        		</div>
+        	</li>
+        	<li class="has-sub-menu bc2-alt"><a class="top-link" href="#3" itemprop="url">Uhat</a>
+        		<div class="sub-menu">
+        			<ul class="nav-menu has-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#3-1" itemprop="url">Ylikulutus</a></li>
+        				<li><a href="#3-2" itemprop="url">Ilmastonmuutos</a></li>
+        				<li><a href="#3-2" itemprop="url">Metsäkato</a></li>
+        				<li><a href="#3-3" itemprop="url">Salametsästys</a></li>
+        				<li><a href="#3-4" itemprop="url">Maankäytön muutokset</a></li>
+        				<li><a href="#3-5" itemprop="url">Merien uhat</a></li>
+        			</ul>
+        			<ul class="nav-footer" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#3-0" itemprop="url">Kaikki uhat <i class="icon icon-chevron-right" aria-hidden="true"></i></a></li>
+        			</ul>
+        			<ul class="nav-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#3-6" itemprop="url">Ryhdy sademetsä-kummiksi</a></li>
+        				<li><a href="#3-7" itemprop="url">Nostopaikka</a></li>
+        				<li><a href="#3-8" itemprop="url">Nostopaikka</a></li>
+        				<li><a href="#3-9" itemprop="url">Nostopaikka</a></li>
+        			</ul>
+        		</div>
+        	</li>
+        	<li class="has-sub-menu bc1-alt"><a class="top-link" href="#4" itemprop="url">Vaikuta kansamme</a>
+        		<div class="sub-menu">
+        			<ul class="nav-menu has-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#4-1" itemprop="url">Vastuullinen elämäntapa</a></li>
+        				<li><a href="#4-2" itemprop="url">Vapaaehtoistyö</a></li>
+        				<li><a href="#4-3" itemprop="url">Green Office</a></li>
+        				<li><a href="#4-4" itemprop="url">Yhteistyö yritysten kanssa</a></li>
+        				<li><a href="#4-5" itemprop="url">Ympäristökasvatus</a></li>
+        			</ul>
+        			<ul class="nav-footer" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#4-0" itemprop="url">Kaikki tavat vaikuttaa <i class="icon icon-chevron-right" aria-hidden="true"></i></a></li>
+        			</ul>
+        			<ul class="nav-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="#4-6" itemprop="url">Ryhdy ilmasto-kummiksi</a></li>
+        				<li><a href="#4-7" itemprop="url">Ruokaopas</a></li>
+        				<li><a href="#4-8" itemprop="url">Earth Hour</a></li>
+        			</ul>
+        		</div>
+        	</li>
+        	<li class="has-sub-menu bc5-alt">
+        		<a class="top-link " href="/wwfsuomi/" itemprop="url">WWF Suomi</a>
+        		<div class="sub-menu">
+        			<ul class="nav-menu has-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li><a href="/wwfsuomi/viestinta/" itemprop="url">Viestintä</a></li>
+        			</ul>
+        			<ul class="nav-footer" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        				<li>
+        					<a href="/wwfsuomi/" itemprop="url">Kaikki WWF Suomi <i class="icon icon-chevron-right" aria-hidden="true"></i></a>
+        				</li>
+        			</ul>
+        			<ul class="nav-sidebar" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        			</ul>
+        		</div>
+        	</li>
+        	<li class="donate"><a class="bc1-primary-bkg donate-link" href="#6" itemprop="url">Liity ja lahjoita</a>
+        		<ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
+        			<li><a href="#">Liity kummiksi</a></li>
+        			<li><a href="#">Tee kertalahjoitus</a></li>
+        		</ul>
+        	</li>
+        </ul>
+      -->
 
 
 
@@ -492,5 +605,12 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             }
         });
         </script>
-
+        <script>
+        		var ipAddress   = "83.142.73.162";
+        		var xipHostname = "http://patternlab.*.xip.io";
+        	</script>	<script>
+        		var patternPaths = {"atoms":{"animations":"00-atoms-01-global-animations","colors":"00-atoms-01-global-colors","copyright":"00-atoms-01-global-copyright","donate-link":"00-atoms-01-global-donate-link","fonts":"00-atoms-01-global-fonts","visibility":"00-atoms-01-global-visibility","wwf-copyright":"00-atoms-01-global-wwf-copyright","buttons":"00-atoms-buttons-00-buttons","buttons-brand-colors-1":"00-atoms-buttons-01-buttons-brand-colors-1","buttons-brand-colors-2":"00-atoms-buttons-02-buttons-brand-colors-2","buttons-brand-colors-3":"00-atoms-buttons-03-buttons-brand-colors-3","buttons-brand-colors-4":"00-atoms-buttons-04-buttons-brand-colors-4","checkbox":"00-atoms-forms-checkbox","html5-inputs":"00-atoms-forms-html5-inputs","radio-buttons":"00-atoms-forms-radio-buttons","select-menu":"00-atoms-forms-select-menu","text-fields":"00-atoms-forms-text-fields","icon-angle-down":"00-atoms-icons-icon-angle-down","icon-angle-left":"00-atoms-icons-icon-angle-left","icon-angle-right":"00-atoms-icons-icon-angle-right","icon-angle-up":"00-atoms-icons-icon-angle-up","icon-blog":"00-atoms-icons-icon-blog","icon-chat":"00-atoms-icons-icon-chat","icon-chevron-left":"00-atoms-icons-icon-chevron-left","icon-chevron-right":"00-atoms-icons-icon-chevron-right","icon-earth":"00-atoms-icons-icon-earth","icon-facebook-btn":"00-atoms-icons-icon-facebook-btn","icon-facebook":"00-atoms-icons-icon-facebook","icon-file-pdf":"00-atoms-icons-icon-file-pdf","icon-gallery":"00-atoms-icons-icon-gallery","icon-google-plus-btn":"00-atoms-icons-icon-google-plus-btn","icon-google-plus":"00-atoms-icons-icon-google-plus","icon-grid":"00-atoms-icons-icon-grid","icon-home":"00-atoms-icons-icon-home","icon-list":"00-atoms-icons-icon-list","icon-menu":"00-atoms-icons-icon-menu","icon-minus":"00-atoms-icons-icon-minus","icon-ok-btn":"00-atoms-icons-icon-ok-btn","icon-ok":"00-atoms-icons-icon-ok","icon-plus":"00-atoms-icons-icon-plus","icon-remove-btn":"00-atoms-icons-icon-remove-btn","icon-remove":"00-atoms-icons-icon-remove","icon-rss":"00-atoms-icons-icon-rss","icon-search":"00-atoms-icons-icon-search","icon-twitter-btn":"00-atoms-icons-icon-twitter-btn","icon-twitter":"00-atoms-icons-icon-twitter","icon-vimeo":"00-atoms-icons-icon-vimeo","icon-youtube":"00-atoms-icons-icon-youtube","favicon":"00-atoms-images-favicon","featured-image":"00-atoms-images-featured-image","flex-slider-image":"00-atoms-images-flex-slider-image","image-with-copyright":"00-atoms-images-image-with-copyright","loading-icon":"00-atoms-images-loading-icon","medium-image":"00-atoms-images-medium-image","news-feed-image":"00-atoms-images-news-feed-image","rounded-image":"00-atoms-images-rounded-image","small-image":"00-atoms-images-small-image","wide-landscape-image":"00-atoms-images-wide-landscape-image","definition":"00-atoms-lists-definition","ordered":"00-atoms-lists-ordered","styled-definition":"00-atoms-lists-styled-definition","unordered":"00-atoms-lists-unordered","logo":"00-atoms-logos-00-logo","logo-image-svg":"00-atoms-logos-01-logo-image-svg","logo-image-png":"00-atoms-logos-02-logo-image-png","logo-link":"00-atoms-logos-03-logo-link","logo-alt":"00-atoms-logos-04-logo-alt","logo-alt-image-svg":"00-atoms-logos-05-logo-alt-image-svg","logo-alt-image-png":"00-atoms-logos-06-logo-alt-image-png","logo-alt-link":"00-atoms-logos-07-logo-alt-link","youtube-video":"00-atoms-media-youtube-video","area-list-nav":"00-atoms-navigation-area-list-nav","area-teaser-nav":"00-atoms-navigation-area-teaser-nav","footer-follow-links":"00-atoms-navigation-footer-follow-links","footer-navigation":"00-atoms-navigation-footer-navigation","footer-sitemap":"00-atoms-navigation-footer-sitemap","header-primary-nav-bc4":"00-atoms-navigation-header-primary-nav-bc4","header-primary-nav-bc5":"00-atoms-navigation-header-primary-nav-bc5","header-primary-nav":"00-atoms-navigation-header-primary-nav","header-secondary-nav":"00-atoms-navigation-header-secondary-nav","news-feed-nav":"00-atoms-navigation-news-feed-nav","table":"00-atoms-tables-table","blockquote":"00-atoms-text-blockquote","comment-bubble":"00-atoms-text-comment-bubble","definition-figure":"00-atoms-text-definition-figure","definition-term":"00-atoms-text-definition-term","emphasis-colors":"00-atoms-text-emphasis-colors","headings-with-links":"00-atoms-text-headings-with-links","headings":"00-atoms-text-headings","hr":"00-atoms-text-hr","ingress":"00-atoms-text-ingress","inline-elements":"00-atoms-text-inline-elements","lorem-ipsum":"00-atoms-text-lorem-ipsum","paragraph":"00-atoms-text-paragraph","preformatted-text":"00-atoms-text-preformatted-text","site-intro":"00-atoms-text-site-intro","time":"00-atoms-text-time"},"molecules":{"accordion":"01-molecules-components-accordion","flex-slide":"01-molecules-components-flex-slide","google-maps":"01-molecules-components-google-maps","more-info":"01-molecules-components-more-info","social-share":"01-molecules-components-social-share","tabs":"01-molecules-components-tabs","comment-form":"01-molecules-forms-comment-form","generated-form-with-errors":"01-molecules-forms-generated-form-with-errors","generated-form-without-errors":"01-molecules-forms-generated-form-without-errors","newsletter-form":"01-molecules-forms-newsletter-form","search":"01-molecules-forms-search","icons":"01-molecules-icons-and-logos-icons","logos":"01-molecules-icons-and-logos-logos","basic-grid":"01-molecules-layout-00-basic-grid","changing-grid":"01-molecules-layout-01-changing-grid","jumping-grid":"01-molecules-layout-02-jumping-grid","nested-grid":"01-molecules-layout-03-nested-grid","smaller-gutter":"01-molecules-layout-04-smaller-gutter","blocked-grid":"01-molecules-layout-05-blocked-grid","no-gutter":"01-molecules-layout-06-no-gutter","list-items":"01-molecules-layout-07-list-items","no-additional-classes":"01-molecules-layout-08-no-additional-classes","complex-grid":"01-molecules-layout-09-complex-grid","contacts-with-image":"01-molecules-media-contacts-with-image","figure-with-caption-and-copyright":"01-molecules-media-figure-with-caption-and-copyright","figure-with-caption":"01-molecules-media-figure-with-caption","figure":"01-molecules-media-figure","main-article-image":"01-molecules-media-main-article-image","youtube-video":"01-molecules-media-youtube-video","area-navigation":"01-molecules-navigation-area-navigation","article-navigation":"01-molecules-navigation-article-navigation","breadcrumbs-immersive":"01-molecules-navigation-breadcrumbs-immersive","breadcrumbs":"01-molecules-navigation-breadcrumbs","follow-links":"01-molecules-navigation-follow-links","footer-navigation-with-logo":"01-molecules-navigation-footer-navigation-with-logo","footer-navigation":"01-molecules-navigation-footer-navigation","header-navigation-bc4":"01-molecules-navigation-header-navigation-bc4","header-navigation-bc5":"01-molecules-navigation-header-navigation-bc5","header-navigation":"01-molecules-navigation-header-navigation","pagination":"01-molecules-navigation-pagination","action-teaser-with-image":"01-molecules-teasers-action-teaser-with-image","area-teaser-with-image":"01-molecules-teasers-area-teaser-with-image","download-teaser-with-image":"01-molecules-teasers-download-teaser-with-image","medium-teaser-with-title-and-caption":"01-molecules-teasers-medium-teaser-with-title-and-caption","promo-teaser-with-image":"01-molecules-teasers-promo-teaser-with-image","related-teaser-with-image":"01-molecules-teasers-related-teaser-with-image","social-media-teaser-with-image":"01-molecules-teasers-social-media-teaser-with-image","social-media-teaser-without-image":"01-molecules-teasers-social-media-teaser-without-image","wide-teaser-with-title-and-caption":"01-molecules-teasers-wide-teaser-with-title-and-caption","address":"01-molecules-text-address","article-heading":"01-molecules-text-article-heading","attribution":"01-molecules-text-attribution","blockquote-with-citation":"01-molecules-text-blockquote-with-citation","byline-author":"01-molecules-text-byline-author","contact-info":"01-molecules-text-contact-info","copyright":"01-molecules-text-copyright","definition-figures":"01-molecules-text-definition-figures","entry-summary":"01-molecules-text-entry-summary","footer-copyright":"01-molecules-text-footer-copyright","footer-heading":"01-molecules-text-footer-heading","news-feed-heading":"01-molecules-text-news-feed-heading","news-item":"01-molecules-text-news-item","page-intro":"01-molecules-text-page-intro","page-section":"01-molecules-text-page-section","publish-date":"01-molecules-text-publish-date","pullquote":"01-molecules-text-pullquote","support-info":"01-molecules-text-support-info"},"organisms":{"header":"02-organisms-00-common-00-header","header-bc4":"02-organisms-00-common-01-header-bc4","header-bc5":"02-organisms-00-common-01-header-bc5","footer":"02-organisms-00-common-02-footer","home-header":"02-organisms-00-common-home-header","page-header":"02-organisms-00-common-page-header","article-header":"02-organisms-article-00-article-header","article-body":"02-organisms-article-01-article-body","article-footer":"02-organisms-article-02-article-footer","article-immersive-header":"02-organisms-article-immersive-00-article-immersive-header","article-immersive-body":"02-organisms-article-immersive-01-article-immersive-body","article-immersive-footer":"02-organisms-article-immersive-02-article-immersive-footer","flex-slider":"02-organisms-components-flex-slider","article-figures":"02-organisms-content-article-figures","contacts":"02-organisms-content-contacts","definition-figures":"02-organisms-content-definition-figures","news-feed-header":"02-organisms-news-feed-00-news-feed-header","news-feed-body":"02-organisms-news-feed-01-news-feed-body","action-teasers-with-title":"02-organisms-teasers-action-teasers-with-title","action-teasers":"02-organisms-teasers-action-teasers","area-teasers":"02-organisms-teasers-area-teasers","download-teasers-with-title":"02-organisms-teasers-download-teasers-with-title","download-teasers":"02-organisms-teasers-download-teasers","medium-teasers":"02-organisms-teasers-medium-teasers","promo-teasers-with-title":"02-organisms-teasers-promo-teasers-with-title","promo-teasers":"02-organisms-teasers-promo-teasers","related-teasers-with-title":"02-organisms-teasers-related-teasers-with-title","related-teasers":"02-organisms-teasers-related-teasers","social-feed-with-title":"02-organisms-teasers-social-feed-with-title","social-media-teasers":"02-organisms-teasers-social-media-teasers","wide-teasers-with-title":"02-organisms-teasers-wide-teasers-with-title","wide-teasers":"02-organisms-teasers-wide-teasers"},"templates":{"area":"03-templates-area","article-immersive":"03-templates-article-immersive","article":"03-templates-article","contacts-page":"03-templates-contacts-page","homepage":"03-templates-homepage","news-feed":"03-templates-news-feed"},"pages":{"article-immersive":"04-pages-article-immersive","article":"04-pages-article","contacts-page":"04-pages-contacts-page","homepage":"04-pages-homepage","news-feed":"04-pages-news-feed"}}
+        	</script>	<script>
+        		var viewAllPaths = {"atoms":{"global":"00-atoms-01-global","buttons":"00-atoms-buttons","forms":"00-atoms-forms","icons":"00-atoms-icons","images":"00-atoms-images","lists":"00-atoms-lists","logos":"00-atoms-logos","media":"00-atoms-media","navigation":"00-atoms-navigation","tables":"00-atoms-tables","text":"00-atoms-text"},"molecules":{"components":"01-molecules-components","forms":"01-molecules-forms","icons-and-logos":"01-molecules-icons-and-logos","layout":"01-molecules-layout","media":"01-molecules-media","navigation":"01-molecules-navigation","teasers":"01-molecules-teasers","text":"01-molecules-text"},"organisms":{"common":"02-organisms-00-common","article":"02-organisms-article","article-immersive":"02-organisms-article-immersive","components":"02-organisms-components","content":"02-organisms-content","news-feed":"02-organisms-news-feed","teasers":"02-organisms-teasers"}}
+        	</script>
         <!-- ****/header**** -->

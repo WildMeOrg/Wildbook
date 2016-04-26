@@ -3,22 +3,141 @@
   position: absolute;
   height: 188px;
   width: 105px;
+  margin-left: 25px;
   margin-top: -10px;
+  z-index: 10;
 }
+
+.hero, .data-section {
+    background-position: 50% 39%;
+}
+
 .navbar-container {
   position: relative;
 }
 
+
+.navbar-collapse, .navbar-default>.nav-bar-wrapper {
+  background: #272727;
+}
+
+.navbar-fixed-top>.header-top-wrapper, .search-field-header input[type=text] {
+  background: #fff;
+  color: #000;
+}
+
+body, body p, li.loginout>a {
+  font-family: 'open-sans', Helvetica, Arial, sans-serif;
+}
+
+section.main-section>h2.section-header {
+  font-family: 'UniversLTW01-59UltraCn', sans-serif;
+  text-transform: none;
+  color: #44C7F5;
+}
+
+section.main-section.grey-background {
+  background: #f7f7f7;
+}
+
+section.main-section.main-text {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+li.loginout>a {
+  font-style: italic;
+}
+
+.page-header a, .search-field-header input[type="submit"] {
+  color: #000;
+}
+
+.page-header {
+  padding-top: 12px;
+}
+
+.search-field-header input.submitLink {
+  background: none;
+  background-color: transparent;
+  text-decoration: underline;
+  border: none;
+  color: blue;
+  cursor: pointer;
+}
+
+
+.navbar-collapse>.nav-primary>li>a {
+color: #fff; padding: 16px; padding: 1rem; text-transform: uppercase; transition: all .2s ease-in-out;}
+
+.nav-bar-wrapper>.cont-primary {
+  margin-right: 0;
+}
+
+html {
+  background: #f7f7f7;
+}
+
+body {
+  background: #fff;
+}
+
 @media (min-width: 768px) {
   .navbar-nav {
-    padding-left: 105px;
+    padding-left: 135px;
+  }
+  .search-and-secondary-wrapper {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+  .search-and-secondary-wrapper label {
+    padding-bottom: 0;
+    margin-bottom: 0;
+  }
+  .navbar>.header-top-wrapper .container {
+    padding-top: 13px;
+  }
+  ul.nav-primary>li.donate {
+    list-style:none;
+    float: right;
+  }
+  div.navbar-collapse>ul.nav-primary {
+    width: 100%;
+  }
+
+  html {
+    padding-left: 6.25%;
+    padding-right: 6.25%;
+  }
+
+  nav.navbar-fixed-top {
+    margin-left: 6.25%;
+    margin-right: 6.25%;
+  }
+
+  .navbar-container>.search-and-secondary-wrapper {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-right: 30px;
+
   }
 }
 
+
+.navbar-container>.search-and-secondary-wrapper .secondary-nav li, .navbar-collapse>.nav-primary>li>a {
+  font-family: 'UniversLTW01-59UltraCn', sans-serif;
+}
+
+
+@media (min-width: 53.75em) {
+  ul.nav.navbar-nav.nav-primary {
+    margin: 0 0 0 0;
+  }
+}
 .hero {
   text-align: right;
   text-transform: uppercase;
-  font-family: "UniversLTW01-59UltraCn", Helvetica, Arial, sans-serif;
+  font-family: 'UniversLTW01-59UltraCn', sans-serif;
 }
 
 .search-and-secondary-wrapper .search-wrapper {
