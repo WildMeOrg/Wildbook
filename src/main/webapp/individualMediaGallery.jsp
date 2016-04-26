@@ -39,10 +39,16 @@ String indID = request.getParameter("individualID");
 JSONArray all = new JSONArray();
 try {
 
+  MarkedIndividual sharky = imageShepherd.getMarkedIndividual(indID);
+  Encounter[] galleryEncs = sharky.getDateSortedEncounters();
+
   String langCode=ServletUtilities.getLanguageCode(request);
   Properties encprops = new Properties();
   encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
-  Encounter enc = imageShepherd.getEncounter(encNum);
+
+  for (Encounter enc : galleryEncs) {
+
+  //Encounter enc = imageShepherd.getEncounter(encNum);
   ArrayList<Annotation> anns = enc.getAnnotations();
 
   if ((anns == null) || (anns.size() < 1)) {
@@ -63,6 +69,7 @@ try {
     System.out.println("All media assets as an array: "+all.toString());
 
 }
+}
 
 }
 catch(Exception e){e.printStackTrace();}
@@ -73,17 +80,53 @@ finally{
 
 %>
 
-<h2>Gallery</h2>
+<!--<h2>Gallery</h2>-->
+<div class='row' id='ind-gallery'>
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
+
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
+
+<style>
+  .my-gallery>figure {
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 5px;
+  }
+</style>
+
+
 <script>
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
   var assets = <%=all.toString()%>;
+  var unseenImages = false;
+  for (var index in assets) {
+    var elem = assets[index];
+    if (index==0) {
+      maLib.maJsonToFigureElemColCaption(elem, $('#enc-gallery'), 6);
+      first = false;
+    } else if (index<5){
+      maLib.maJsonToFigureElemColCaption(elem, $('#enc-gallery'), 3);
+    } else {
+      unseenImages = true;
+      break;
+    }
+  }
+
+  // TODO: fix this link, Bink.
+  if (unseenImages) {
+    console.log('shalom!');
+    // link to individual thumbnail search results
+    var thumbGalleryLink = 'http://<%=CommonConfiguration.getURLLocation(request) %>/individualThumbnailSearchResults.jsp?individualID=<%=indID%>';
+
+    $('#ind-gallery').append('<p style="text-align:right;">Most recent images shown. <a href="'+thumbGalleryLink+'"><em>See all images.</em></a></p>');
+  }
+
   assets.forEach( function(elem) {
-    maLib.maJsonToFigureElem(elem, $('#enc-gallery'));
+
   });
 
 </script>
-<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+</div>
+<jsp:include page="/photoswipe/photoswipeTemplate.jsp" flush="true"/>

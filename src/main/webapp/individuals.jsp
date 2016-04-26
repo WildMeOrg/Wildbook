@@ -238,61 +238,6 @@ table.tissueSample td {
 
     <jsp:include page="header.jsp" flush="true"/>
 
-
-  <!--
-    1 ) Reference to the files containing the JavaScript and CSS.
-    These files must be located on your server.
-  -->
-
-  <script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css"/>
-
-  <!--
-    2) Optionally override the settings defined at the top
-    of the highslide.js file. The parameter hs.graphicsDir is important!
-  -->
-
-  <script type="text/javascript">
-    hs.graphicsDir = 'highslide/highslide/graphics/';
-
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
-
-    hs.align = 'auto';
-  	hs.anchor = 'top';
-
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 250;
-
-    //block right-click user copying if no permissions available
-    <%
-    if(request.getUserPrincipal()==null){
-    %>
-    hs.blockRightClick = true;
-    <%
-    }
-    %>
-
-    // Add the controlbar
-    hs.addSlideshow({
-      //slideshowGroup: 'group1',
-      interval: 5000,
-      repeat: false,
-      useControls: true,
-      fixedControls: 'fit',
-      overlayOptions: {
-        opacity: 0.75,
-        position: 'bottom center',
-        hideOnMouseOut: true
-      }
-    });
-
-  </script>
-
 <!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -837,11 +782,6 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
-<h2>Under Construction:</h2>
-<p>
-
-</p>
-
 <div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
@@ -855,8 +795,23 @@ catch(NullPointerException nullLogged){}
 
 Encounter[] galleryEncs = sharky.getDateSortedEncounters();
 
+if (galleryEncs.length>0) {
+  String encNum = galleryEncs[0].getCatalogNumber();
+  %>
+  <jsp:include page="individualMediaGallery.jsp" flush="true">
+    <jsp:param name="encounterNumber" value="<%=encNum%>" />
+    <jsp:param name="individualID" value="<%=name%>" />
+    <jsp:param name="isOwner" value="<%=isOwner %>" />
+    <jsp:param name="loggedIn" value="<%=loggedIn %>" />
+  </jsp:include>
+  <%
+
+}
+
+
 %>
 </div>
+
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
@@ -1320,429 +1275,7 @@ System.out.println("name -> "+thisName);
 <!-- Start thumbnail gallery -->
 
 <br />
-<p>
-  <strong><%=props.getProperty("imageGallery") %>
-  </strong></p>
 
-    <%
-    String[] keywords=keywords=new String[0];
-		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-		if(numThumbnails>0){
-		%>
-
-<table id="results" border="0" width="100%">
-    <%
-
-
-			int countMe=0;
-			//Vector thumbLocs=new Vector();
-			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-
-			int  numColumns=3;
-			int numThumbs=0;
-			  if (CommonConfiguration.allowAdoptions(context)) {
-				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-				  int numAdoptions = adoptions.size();
-				  if(numAdoptions>0){
-					  numColumns=2;
-				  }
-			  }
-
-			try {
-
-			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE individualID == \""+sharky.getIndividualID()+"\"");
-		        //query.setFilter("SELECT "+jdoqlQueryString);
-		        query.setResult("catalogNumber");
-		        Collection c = (Collection) (query.execute());
-		        ArrayList<String> enclist = new ArrayList<String>(c);
-		        query.closeAll();
-
-
-				thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
-				numThumbs=thumbLocs.size();
-			%>
-
-  <tr valign="top">
- <td>
- <!-- HTML Codes by Quackit.com -->
-<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-      <%
-      						while(countMe<numThumbs){
-							//for(int columns=0;columns<numColumns;columns++){
-								if(countMe<numThumbs) {
-									//String combined ="";
-									//if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-									//	combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-									//}
-									//else{
-									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-
-									//}
-
-									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-									//String thumbLink=stzr.nextToken();
-									//String encNum=stzr.nextToken();
-									//int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									//String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
-
-									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-									String encSubdir = thisEnc.subdir();
-									boolean visible = thisEnc.canUserAccess(request);
-
-									String thumbLink="";
-									boolean video=true;
-									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
-										video=false;
-									}
-									else{
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-
-									}
-									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
-
-	boolean thisEncounterVisible = thisEnc.canUserAccess(request);
-							%>
-
-
-
-      <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%">
-        <tr>
-          <td valign="top">
-
-              <%
-			if(isOwner && thisEncounterVisible){
-												%>
-            <a href="<%=link%>" target="_blank"
-            <%
-            if(thumbLink.indexOf("video.jpg")==-1){
-            %>
-            	class="highslide" onclick="return hs.expand(this)"
-            <%
-            }
-            %>
-            >
-            <%
-            }
-             %>
-              <img src="<%=thumbLink%>" alt="photo" border="1" title="<%=props.getProperty("clickEnlarge")%>"/>
-              <%
-                if (isOwner) {
-              %>
-            </a>
-              <%
-			}
-
-			%>
-
-            <div
-            <%
-            if(!thumbLink.endsWith("video.jpg")){
-            %>
-            class="highslide-caption"
-            <%
-            }
-            %>
-            >
-
-              <table>
-                <tr>
-                  <td align="left" valign="top">
-
-                    <table>
-                      <%
-
-                        int kwLength = keywords.length;
-                        //Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-                      %>
-
-
-
-                      <tr>
-                        <td>
-
-	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-                        	<span class="caption"><%=props.getProperty("location") %>:
-                        		<%
-                        		if(thisEnc.getLocation()!=null){
-                        		%>
-                        			<%=thisEnc.getLocation() %>
-                        		<%
-                        		}
-                        		else {
-                        		%>
-                        			&nbsp;
-                        		<%
-                        		}
-                        		%>
-                        	</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td>
-                        	<span class="caption"><%=props.getProperty("locationID") %>:
-				                        		<%
-				                        		if(thisEnc.getLocationID()!=null){
-				                        		%>
-				                        			<%=thisEnc.getLocationID() %>
-				                        		<%
-				                        		}
-				                        		else {
-				                        		%>
-				                        			&nbsp;
-				                        		<%
-				                        		}
-				                        		%>
-                        	</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a target="_blank"
-                          href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-                        </a></span></td>
-                      </tr>
-                      <%
-                        if (thisEnc.getVerbatimEventDate() != null) {
-                      %>
-                      <tr>
-
-                        <td><span
-                          class="caption"><%=props.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
-                        </td>
-                      </tr>
-                      <%
-                        }
-                      %>
-                      <tr>
-                        <td><span class="caption">
-											<%=props.getProperty("matchingKeywords") %>
-											<%
-											 //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
-
-
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-
-					                            //String renderMe = word.getReadableName();
-												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
-
-
-
-
-					                          //    }
-					                       // }
-
-                          %>
-										</span></td>
-                      </tr>
-                    </table>
-                    <br/>
-
-                    <%
-                      if (CommonConfiguration.showEXIFData(context)) {
-
-            	if(!thumbLink.endsWith("video.jpg")){
-           		 %>
-					<span class="caption">
-						<div class="scroll">
-						<span class="caption">
-					<%
-            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              try{
-              File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              if(exifImage.exists()){
-              	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-              	// iterate through metadata directories
-                for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-          				%>
-  								<%=tag.toString() %><br/>
-  								<%
-                }
-              } //end if
-              else{
-            	  %>
-		            <p>File not found on file system. No EXIF data available.</p>
-          		<%
-              }
-            } //end try
-            catch(Exception e){
-            	 %>
-		            <p>Cannot read metadata for this file.</p>
-            	<%
-            	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
-            	e.printStackTrace();
-            }
-
-                  }
-                %>
-
-
-   								</span>
-            </div>
-   								</span>
-   			<%
-            	}
-   			%>
-
-
-                  </td>
-                  <%
-                    }
-                  %>
-                </tr>
-              </table>
-            </div>
-
-
-</td>
-</tr>
-
- <%
-            if(!thumbLink.endsWith("video.jpg")){
- %>
-<tr>
-  <td class="lock-td">
-<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-  	<span class="caption"><%=props.getProperty("location") %>:
-	                        		<%
-	                        		if(thisEnc.getLocation()!=null){
-	                        		%>
-	                        			<%=thisEnc.getLocation() %>
-	                        		<%
-	                        		}
-	                        		else {
-	                        		%>
-	                        			&nbsp;
-	                        		<%
-	                        		}
-	                        		%>
-                        	</span>
-  </td>
-</tr>
-<tr>
-  <td>
- 	<span class="caption"><%=props.getProperty("locationID") %>:
-                        		<%
-                        		if(thisEnc.getLocationID()!=null){
-                        		%>
-                        			<%=thisEnc.getLocationID() %>
-                        		<%
-                        		}
-                        		else {
-                        		%>
-                        			&nbsp;
-                        		<%
-                        		}
-                        		%>
-                        	</span>
-   </td>
-</tr>
-<tr>
-  <td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
-</tr>
-<tr>
-  <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a target="_blank"
-    href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-  </a></span></td>
-</tr>
-<tr>
-  <td><span class="caption">
-											<%=props.getProperty("matchingKeywords") %>
-											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-											 //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
-
-
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-
-					                            //String renderMe = word.getReadableName();
-												//List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												//int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
-
-
-
-
-					                          //    }
-					                       // }
-
-                          %>
-										</span></td>
-</tr>
-<%
-
-            }
-%>
-</table>
-
-<%
-
-      countMe++;
-    } //end if
-  } //endFor
-%>
-</div>
-
-</td>
-</tr>
-<%
-
-
-
-} catch (Exception e) {
-  e.printStackTrace();
-%>
-<tr>
-  <td>
-    <p><%=props.getProperty("error")%>
-    </p>.
-  </td>
-</tr>
-<%
-  }
-%>
-
-</table>
-</div>
-<%
-} else {
-%>
-
-<p><%=props.getProperty("noImages")%></p>
-
-<%
-  }
-%>
-
-</table>
-<!-- end thumbnail gallery -->
 
 <br />
 <%
@@ -2740,6 +2273,17 @@ else {
 %>
 </div>
 
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
+<jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 
 
