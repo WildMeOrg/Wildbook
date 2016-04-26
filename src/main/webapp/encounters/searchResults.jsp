@@ -968,6 +968,7 @@ function _colIA(o) {
 function _colAnnIASummary(annId, sum) {
 	console.log('%s ------> %o', annId, sum);
 	var mostRecent = 0;
+	var mostRecentTaskId = false;
 	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
 	var r = {};
 	for (var i = 0 ; i < flav.length ; i++) {
@@ -979,6 +980,42 @@ function _colAnnIASummary(annId, sum) {
 			r.unknown++;
 			continue;
 		}
+
+		if (sum[taskId].timestamp > mostRecent) {
+			mostRecent = sum[taskId].timestamp;
+			mostRecentTaskId = taskId;
+		}
+	}
+
+	if (mostRecentTaskId) {
+		if (sum[mostRecentTaskId].status && sum[mostRecentTaskId].status._response && sum[mostRecentTaskId].status._response.status && sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.status.success) {
+			if (sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.response.json_result &&
+			    (sum[mostRecentTaskId].status._response.response.json_result.length > 0)) {
+				var numMatches = 0;
+//console.warn(sum[mostRecentTaskId].status._response.response.json_result);
+				for (var m = 0 ; m < sum[mostRecentTaskId].status._response.response.json_result.length ; m++) {
+					if (!sum[mostRecentTaskId].status._response.response.json_result[m].daid_list) continue;
+					numMatches += sum[mostRecentTaskId].status._response.response.json_result[m].daid_list.length;
+				}
+				if (numMatches > 0) {
+					r['success-match']++;
+				} else {
+					r['success-miss']++;
+				}
+			} else {
+				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status);
+				r.error++;
+			}
+		} else if (!sum[mostRecentTaskId].status._response.success || sum[mostRecentTaskId].status._response.error) {
+			console.warn('error on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response.error || 'non-success');
+			r.error++;
+		} else {  //guess this means we are waiting on results?
+			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response);
+			r.pending++;
+		}
+
+
+/* old way, to show *all* results
 		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
 
 		//wtf, gimme a break, nested json!
@@ -1007,6 +1044,7 @@ function _colAnnIASummary(annId, sum) {
 			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
 			r.pending++;
 		}
+*/
 	}
 
 	var rtn = '';
