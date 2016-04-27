@@ -392,172 +392,33 @@ finally{
 
 </section>
 
-<div class="container-fluid relative data-section">
+<div class="container-fluid">
+  <section class="container-fluid main-section">
+    <div class="row">
 
-    <aside class="container-fluid main-section">
-        <div class="row">
+      <jsp:include page="individualGalleryPanel.jsp" flush="true">
+        <jsp:param name="individualID" value="000" />
+      </jsp:include>
 
-            <!-- Random user profile to select -->
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-								User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
-            if(featuredUser!=null){
-                String profilePhotoURL="images/empty_profile.jpg";
-                if(featuredUser.getUserImage()!=null){
-                	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                }
-
-            %>
-                <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                    <div class="focusbox-inner opec">
-                        <h2>Our contributors</h2>
-                        <div>
-                            <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-                            <p><%=featuredUser.getFullName() %>
-                                <%
-                                if(featuredUser.getAffiliation()!=null){
-                                %>
-                                <i><%=featuredUser.getAffiliation() %></i>
-                                <%
-                                }
-                                %>
-                            </p>
-                            <p><%=featuredUser.getUserStatement() %></p>
-                        </div>
-                        <a href="whoAreWe.jsp" title="" class="cta">Show me all the contributors</a>
-                    </div>
-                </section>
-            <%
-            } // end if
-
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{
-
-            	myShepherd.rollbackDBTransaction();
-            }
-            %>
-
-
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
-                    <ul class="encounter-list list-unstyled">
-
-                       <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
-                       int numResults=latestIndividuals.size();
-                       myShepherd.beginDBTransaction();
-                       try{
-	                       for(int i=0;i<numResults;i++){
-	                           Encounter thisEnc=latestIndividuals.get(i);
-	                           %>
-	                            <li>
-	                                <img src="cust/mantamatcher/img/manta-silhouette.png" alt="" width="85px" height="75px" class="pull-left" />
-	                                <small>
-	                                    <time>
-	                                        <%=thisEnc.getDate() %>
-	                                        <%
-	                                        if((thisEnc.getLocationID()!=null)&&(!thisEnc.getLocationID().trim().equals(""))){
-	                                        %>/ <%=thisEnc.getLocationID() %>
-	                                        <%
-	                                           }
-	                                        %>
-	                                    </time>
-	                                </small>
-	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
-
-
-	                            </li>
-	                        <%
-	                        }
-						}
-                       catch(Exception e){e.printStackTrace();}
-                       finally{
-                    	   myShepherd.rollbackDBTransaction();
-
-                       }
-
-                        %>
-
-                    </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
-                </div>
-            </section>
-            <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
-                <div class="focusbox-inner opec">
-                    <h2>Top spotters (past 30 days)</h2>
-                    <ul class="encounter-list list-unstyled">
-                    <%
-                    myShepherd.beginDBTransaction();
-                    try{
-	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
-	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
-
-	                    System.out.println("  I think my startTime is: "+startTime);
-
-	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
-	                    int numUsersToDisplay=3;
-	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
-	                    Iterator<String> keys=spotters.keySet().iterator();
-	                    Iterator<Integer> values=spotters.values().iterator();
-	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
-	                          String spotter=keys.next();
-	                          int numUserEncs=values.next().intValue();
-	                          if(myShepherd.getUser(spotter)!=null){
-	                        	  String profilePhotoURL="images/empty_profile.jpg";
-	                              User thisUser=myShepherd.getUser(spotter);
-	                              if(thisUser.getUserImage()!=null){
-	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	                              }
-	                              //System.out.println(spotters.values().toString());
-	                            Integer myInt=spotters.get(spotter);
-	                            //System.out.println(spotters);
-
-	                          %>
-	                                <li>
-	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-	                                    <%
-	                                    if(thisUser.getAffiliation()!=null){
-	                                    %>
-	                                    <small><%=thisUser.getAffiliation() %></small>
-	                                    <%
-	                                      }
-	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
-	                                </li>
-
-	                           <%
-	                           numUsersToDisplay--;
-	                    }
-	                   } //end while
-                    }
-                    catch(Exception e){e.printStackTrace();}
-                    finally{myShepherd.rollbackDBTransaction();}
-
-                   %>
-
-                    </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
-                </div>
-            </section>
-        </div>
-    </aside>
+    </div>
+  </section>
 </div>
+
+
 
 <div class="container-fluid">
     <section class="container-fluid text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><span class="massive"><%=numMarkedIndividuals %></span>
+                Identified individuals</p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><span class="massive"><%=numEncounters %></span> Reported encounters</p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><span class="massive"><%=numDataContributors %></span> contributors</p>
             </section>
         </div>
 
