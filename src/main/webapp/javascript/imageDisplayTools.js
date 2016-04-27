@@ -107,7 +107,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
-  url = encodeURI(url);
+  url = wildbook.cleanUrl(url);
 
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -151,7 +151,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
-  url = encodeURI(url);
+  url = wildbook.cleanUrl(url);
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -222,7 +222,7 @@ maLib.testExtraction = function(maJson) {
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
-  url = encodeURI(url);
+  url = wildbook.cleanUrl(url);
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -494,8 +494,9 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
 };
 
 
+
 function mkImg(maJson) {
-    var url = maJson.url;
+    var url = wildbook.cleanUrl(maJson.url);
     return '<img id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
 }
 

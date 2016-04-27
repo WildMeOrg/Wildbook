@@ -201,6 +201,10 @@ console.log('is %o', ajax);
 			}
 		}, //end social.
 
+    cleanUrl: function (url) {
+        return encodeURI(url).replace(new RegExp('#', 'g'), '%23');
+    },
+
     openInTab: function(url) {
         var win = window.open(url, '_blank');
         win.focus();

@@ -304,7 +304,7 @@ function init2() {   //called from wildbook.init() when finished
     	$('#result-images').append('<div class="result-image-wrapper" id="image-main" />');
     	$('#result-images').append('<div class="result-image-wrapper" id="image-compare" />');
 	//if (qMediaAsset) addImage(fakeEncounter({}, qMediaAsset),jQuery('#image-main'));
-	if (qMediaAsset) jQuery('#image-main').append('<img src="' + qMediaAsset.url + '" />');
+	if (qMediaAsset) jQuery('#image-main').append('<img src="' + wildbook.cleanUrl(qMediaAsset.url) + '" />');
 	jQuery('#image-compare').append('<img style="height: 11px; width: 50%; margin: 40px 25%;" src="../images/image-processing.gif" />');
 	checkForResults();
 }
@@ -445,5 +445,6 @@ function approvalButtonClick(encID, indivID) {
 	});
 	return true;
 }
+
 
 </script>
