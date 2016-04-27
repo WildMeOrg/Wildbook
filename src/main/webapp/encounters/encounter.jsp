@@ -406,7 +406,7 @@ margin-bottom: 8px !important;
 
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 
 
 			<%
@@ -545,9 +545,9 @@ $(function() {
   </script>
 
 
-    			<table width="100%">
+    			<table>
     				<tr>
-    					<td bgcolor="#<%=headerBGColor %>">
+    					<td>
     						<%
     						//int stateInt=-1;
     						String classColor="approved_encounters";
@@ -627,7 +627,7 @@ $(function() {
     							if (enc.getIndividualID() == null) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%> 
+    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
@@ -641,7 +641,7 @@ $(function() {
     							else {
     							%>
     							<p class="para">
-    								
+
       								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
 
       								<%
@@ -701,8 +701,8 @@ $(function() {
 
   									<%
   									if(enc.getIndividualID()==null){
-  									%>		
-  		
+  									%>
+
   									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
   									%>
 
@@ -776,8 +776,8 @@ $(function() {
 									<%
    									}
 									if(enc.getIndividualID()==null){
-									%>	 
-	 
+									%>
+
 									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
 									%>
 
@@ -2948,7 +2948,7 @@ $("a#username").click(function() {
 
         	Shepherd userShepherd=new Shepherd("context0");
         	userShepherd.beginDBTransaction();
-        	
+
         	ArrayList<String> usernames=userShepherd.getAllUsernames();
 
         	int numUsers=usernames.size();
