@@ -408,6 +408,7 @@ margin-bottom: 8px !important;
 
 <div class="container-fluid maincontent">
 
+<div class="row">
 
 			<%
   			myShepherd.beginDBTransaction();
@@ -604,6 +605,7 @@ $(function() {
 								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
+          </div>
 					<table>
 						<tr>
 							<td width="560px" style="vertical-align:top">
