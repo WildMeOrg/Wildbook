@@ -48,9 +48,12 @@ try {
   %>
   <script>
 
-  function startIdentify(aid, el) {
+  function startIdentify(ma) {
+	if (!ma) return;
+	var aid = ma.annotationId;
     //var aid = el.getAttribute('data-id');
-    el.parentElement.innerHTML = '<i>starting identification</i>';
+    //el.parentElement.innerHTML = '<i>starting identification</i>';
+//console.warn('aid=%o, el=%o', aid, el); return;
     jQuery.ajax({
       url: '../ia',
       type: 'POST',
@@ -59,13 +62,14 @@ try {
       success: function(d) {
         console.info('identify returned %o', d);
         if (d.taskID) {
+		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
           window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
         } else {
-          alert('error starting identification');
+		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
         }
       },
       error: function(x,y,z) {
-        alert('error starting identification');
+		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
         console.warn('%o %o %o', x, y, z);
       },
       data: JSON.stringify({
@@ -75,6 +79,7 @@ try {
       })
     });
   }
+
   // because we have links within the photoswipe-opening clickable area
   function forceLink(el) {
     var address = el.href;
@@ -228,8 +233,8 @@ jQuery(document).ready(function() {
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
 console.log('%o ?????', mid);
-			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>mid = ' + mid + '</p>');
-			//startIdentify(aid, enh.imgEl);
+			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
+			startIdentify(assetById(mid), enh.imgEl);
 		}],
         ];
 

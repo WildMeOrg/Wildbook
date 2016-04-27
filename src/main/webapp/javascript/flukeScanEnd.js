@@ -411,7 +411,7 @@ console.info('addImage(%o, %o)', enc, el);
     var imgSrc = ma.labelUrl('_spot', ma.labelUrl());
 
     el.find('.note').remove();
-    el.append('<img src="' + imgSrc + '"/>');
+    el.append('<img src="' + wildbook.cleanUrl(imgSrc) + '"/>');
     var inf = {
         catalogNumber: 'Encounter ID',
         otherCatalogNumbers: 'Alternate Encounter ID',
