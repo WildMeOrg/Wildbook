@@ -106,7 +106,8 @@ public class Feature implements java.io.Serializable {
         type = t;
     }
     public boolean isType(String tid) {  //pass in string version of FeatureType.id (e.g. "org.ecocean.fubar")
-        if (type == null) return false;  //"should never happen"
+        if ((type == null) && (tid == null)) return true;  //who would really do this?
+        if (type == null) return false;
         return type.getId().equals(tid);
     }
     public boolean isUnity() {
