@@ -734,7 +734,7 @@ function dataTypes(obj, fieldName) {
 
 
 <div class="container-fluid maincontent">
-
+<div class="row">
 <%=blocker%>
 
 <%
@@ -783,6 +783,9 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
+
+</div>
+
 <div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
