@@ -1073,7 +1073,7 @@ function _colIASort(o) {
 }
 
 function _colThumb(o) {
-	var url = o.thumbUrl();
+	var url = wildbook.cleanUrl(o.thumbUrl());
 	if (!url) return '';
 	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /><span class="collab-icon"></span></div>';
 	return '<img src="' + url + '" />';
