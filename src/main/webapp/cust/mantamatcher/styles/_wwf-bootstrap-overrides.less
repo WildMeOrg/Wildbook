@@ -39,6 +39,34 @@ body, body p, li.loginout>a, .main-text>div>p {
   font-family: 'open-sans', Helvetica, Arial, sans-serif;
 }
 
+
+// navbar link styling
+.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus .navbar-default .navbar.nav>li.donate>a.bc1-primary-bkg:hover {
+    background-color: #ffab2e;
+    color: #fff;
+}
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.open>a:hover, .navbar-default .navbar-nav>.open>a:focus {
+  background-color: #fff;
+  color: #FA9600;
+}
+ul.dropdown-menu {
+  background: #fff;
+  border-top: 0;
+}
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.active>a, .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
+  background-image: none;
+  background-color: #fff;
+}
+// just removing shadows everywhere
+.navbar-default .navbar-nav>.open>a, .navbar-default .navbar-nav>.active>a, .dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, header>nav.navbar-default {
+  -webkit-box-shadow: none;
+  box-shadow: none;
+}
+
+.navbar-default .navbar-collapse, .navbar-default .navbar-form {
+    border-color: #fff;
+}
+
 // hand-holding navbar UI
 label.search-field-header {
   padding-bottom: 0;
