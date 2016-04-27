@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import java.io.InputStream;
 
 public class IAGateway extends HttpServlet {
 
@@ -97,8 +98,8 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
             if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
             url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
             url += "result_list=" + rlist.getJSONArray(offset).toString() + "&";
-            url += "callback_url=" + "http://example.com/" + "&callback_method=POST";
             try {
+                url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FdetectionReviewPost&callback_method=POST";
 System.out.println("url --> " + url);
                 URL u = new URL(url);
                 JSONObject rtn = RestClient.get(u);
@@ -137,6 +138,35 @@ System.out.println("url --> " + url);
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+
+    String qstr = request.getQueryString();
+    if ("detectionReviewPost".equals(qstr)) {
+        String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
+        if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
+System.out.println("attempting passthru to " + url);
+        URL u = new URL(url);
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+/*
+InputStream is = request.getInputStream();
+byte buffer[] = new byte[10240];
+int i;
+System.out.println("before....");
+while ((i = is.read(buffer)) > 0) {
+    System.out.write(buffer, 0, i);
+}
+System.out.println("....after");
+*/
+        try {
+            rtn = RestClient.postStream(u, request.getInputStream());
+        } catch (Exception ex) {
+            rtn.put("error", ex.toString());
+        }
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
 
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
