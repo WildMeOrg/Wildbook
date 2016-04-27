@@ -915,6 +915,12 @@ public class Encounter implements java.io.Serializable {
 
   }
 
+    //this is probably what you wanted above to do.  :/
+    public boolean hasMarkedIndividual() {
+        if ((individualID == null) || individualID.toLowerCase().equals("unassigned")) return false;
+        return true;
+    }
+
   public void assignToMarkedIndividual(String sharky) {
     individualID = sharky;
   }
