@@ -101,27 +101,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <ul class="secondary-nav hor-ul no-bullets">
                       <%
 	                      if(request.getUserPrincipal()!=null){
-	                    	  Shepherd myShepherd = new Shepherd(context);
-	                        try{
-	                        	myShepherd.beginDBTransaction();
-		                    	  String username = request.getUserPrincipal().toString();
-		                    	  User user = myShepherd.getUser(username);
-		                    	  String fullname=username;
-		                    	  if(user.getFullName()!=null){fullname=user.getFullName();}
-		                    	  String profilePhotoURL=urlLoc+"/images/empty_profile.jpg";
-		                          if(user.getUserImage()!=null){
-		                          	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+user.getUsername()+"/"+user.getUserImage().getFilename();
-		                          }
 		                  %>
-  		                  <li><a href="<%=urlLoc %>/myAccount.jsp" title=""><img align="left" title="Your Account" style="border-radius: 3px;border:1px solid #ffffff;margin-top: -7px;" width="*" height="32px" src="<%=profilePhotoURL %>" /></a></li>
+  		                  <li class="loginout"><a href="<%=urlLoc %>/myAccount.jsp" title="Your Account">Your Account </a></li>
   		             			<li class="loginout"><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 		                  <%
-	                          }
-	                          catch(Exception e){e.printStackTrace();}
-	                          finally{
-	                        	  myShepherd.rollbackDBTransaction();
-	                        	  myShepherd.closeDBTransaction();
-	                          }
 	                      }
 	                      else{
 	                      %>
