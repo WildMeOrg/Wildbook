@@ -333,11 +333,11 @@ myShepherd.beginDBTransaction();
 
 try{
 
-
+    /* commented out to reduce load time during development
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
-
+    */
 
 }
 catch(Exception e){
@@ -397,7 +397,7 @@ finally{
     <div class="row">
 
       <jsp:include page="individualGalleryPanel.jsp" flush="true">
-        <jsp:param name="individualID" value="000" />
+        <jsp:param name="individualID" value="2014-03-29" />
       </jsp:include>
 
     </div>
