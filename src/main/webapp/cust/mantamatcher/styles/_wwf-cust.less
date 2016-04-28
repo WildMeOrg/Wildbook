@@ -36,14 +36,56 @@
   margin-right: 15px;
 }
 
+// section.front-gallery stuff is for, duh, the front-gallery in index.jsp
+section.front-gallery.container-fluid .row {
+  margin-left: 0;
+  margin-right: 0;
+  background: #fff;
+}
+section.front-gallery .row>.col-md-6:first-child {
+  padding-left: 0;
+  padding-right: 0;
+}
+section.front-gallery.main-section {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+section.front-gallery .row .col-md-6 p {
+  font-weight: normal;
+}
+section.front-gallery .row .col-md-6 p, section.front-gallery .row .col-md-6 h2 {
+  margin-left: 5px;
+  margin-right: 30px;
+}
+section.front-gallery .row .col-md-6 h2 {
+  margin-top: 13px;
+  margin-bottom: 13px;
+}
+section.front-gallery .row .col-md-6.full-height {
+  height: 100%;
+}
+p.pfooter-link a {
+  font-weight: bold;
+  color: #44c7f5;
+}
+
+.main-section h2.map-header {
+  background-color: #0d548d;
+  color: #fff;
+  margin-bottom: 0;
+}
+
+
 // styles for the big numbers+captions on index.jsp
-p.brand-primary span.massive {
+p.brand-primary>span.massive {
   font-family: 'UniversLTW01-59UltraCn', sans-serif;
   font-style: normal;
+  color: #16696d;
 }
 p.brand-primary {
   font-weight: normal;
-  color: #44c7f5
+  color: #44c7f5;
+  margin-bottom: 30px;
 }
 .page-header .secondary-nav {
   margin-top: 4px;
@@ -54,6 +96,9 @@ body, body p, li.loginout>a, .main-text>div>p {
   font-family: 'open-sans', Helvetica, Arial, sans-serif;
 }
 
+.greenish {
+  color: #16696d !important;
+}
 
 // navbar link styling
 .navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus .navbar-default .navbar.nav>li.donate>a.bc1-primary-bkg:hover {
@@ -95,7 +140,7 @@ section.main-section>h2.section-header {
   color: #44C7F5;
 }
 
-section.hero.container-fluid.main-section {
+.hero {
   padding-top: 200px;
   padding-bottom: 30px;
 }
@@ -149,7 +194,7 @@ html {
 }
 
 body {
-  background: #fff;
+  background: #f7f7f7;
 }
 
 @media (min-width: 768px) {
@@ -159,7 +204,7 @@ body {
   }
 
 
-  .navbar-nav {
+  .navbar-nav:first-of-type {
     padding-left: 135px;
   }
   .search-and-secondary-wrapper {
@@ -231,4 +276,32 @@ body {
 .search-wrapper {
   margin-top: 3px;
   margin-bottom: 3px;
+}
+
+
+// gallery.jsp styles:
+.navbar.gallery-nav {
+  min-height: 0;
+}
+.gallery.hero {
+  background-image: url("../img/gallery_header.jpg");
+  padding-top: 100px;
+  padding-bottom: 5px;
+}
+nav.gallery-nav, nav.gallery-nav ul.nav.navbar-nav>li>button {
+  background-color: #00adcd;
+  border-radius: 0;
+}
+nav.gallery-nav button.btn-link {
+  color: #f7f7f7;
+  font-family: 'UniversLTW01-59UltraCn', sans-serif;
+  font-weight: 300;
+  font-size: 1.6em;
+}
+.gallery-nav.navbar-default .btn-link:hover, .gallery-nav.navbar-default .btn-link:focus {
+  color: #f7f7f7;
+  outline: none;
+}
+nav.gallery-nav>.container-fluid {
+  padding-left: 15px;
 }
