@@ -393,7 +393,7 @@ finally{
 </section>
 
 <div class="container-fluid">
-  <section class="container-fluid main-section">
+  <section class="container-fluid main-section front-gallery">
     <div class="row">
 
       <jsp:include page="individualGalleryPanel.jsp" flush="true">
@@ -407,7 +407,7 @@ finally{
 
 
 <div class="container-fluid">
-    <section class="container-fluid text-center  main-section">
+    <section class="container-fluid text-center  main-section grey-background">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><span class="massive"><%=numMarkedIndividuals %></span>
@@ -421,28 +421,11 @@ finally{
                 <p class="brand-primary"><span class="massive"><%=numDataContributors %></span> contributors</p>
             </section>
         </div>
-
-        <hr/>
-
-        <main class="container-fluid">
-            <article class="text-center">
-                <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
-                        <p class="lead">
-                            <i>This is a quote from our organization.</i></p>
-                        <a href="#" title="">I want to know more</a>
-                    </div>
-                </div>
-            </article>
-        <main>
-
     </section>
 </div>
 
-<div class="container-fluid main-section">
-    <h2 class="section-header">Encounters around the world</h2>
+<div class="container-fluid main-section grey-background">
+    <h2 class="section-header map-header">Encounters around the world</h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
 
