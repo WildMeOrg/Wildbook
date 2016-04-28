@@ -136,8 +136,6 @@ System.out.println("url --> " + url);
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
-    String context = ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
 
     String qstr = request.getQueryString();
     if ("detectionReviewPost".equals(qstr)) {
@@ -167,6 +165,10 @@ System.out.println("....after");
         out.close();
         return;
     }
+
+
+    String context = ServletUtilities.getContext(request);  //note! this *must* be run after postStream stuff above
+    Shepherd myShepherd = new Shepherd(context);
 
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
