@@ -8,7 +8,7 @@ org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
+
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -18,6 +18,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
+	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.beginDBTransaction();
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
@@ -29,6 +30,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 		myShepherd.commitDBTransaction();
 		out.println("{\"success\": true}");
 	}
+	myShepherd.closeDBTransaction();
 	return;
 }
 
@@ -38,7 +40,9 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 
 	String jobId = null;
 	String qannId = null;
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd);
+	Shepherd myShepherd2 = new Shepherd(context);
+	myShepherd2.beginDBTransaction();
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
         for (IdentityServiceLog l : logs) {
             if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
             if (l.getObjectID() != null) qannId = l.getObjectID();
@@ -49,32 +53,18 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	String num = null;
 	Encounter enc = null;
 	try {
-        	qann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, qannId), true)));
+        	qann = ((Annotation) (myShepherd2.getPM().getObjectById(myShepherd2.getPM().newObjectIdInstance(Annotation.class, qannId), true)));
 	} catch (Exception ex) {}
 	if ((qann != null) && (qann.getMediaAsset() != null)) {
 		qMediaAssetJson = qann.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString();
-        	enc = Encounter.findByAnnotation(qann, myShepherd);
+        	enc = Encounter.findByAnnotation(qann, myShepherd2);
 		num = enc.getCatalogNumber();
 	}
+	
 
 
-
-	//String encSubdir = Encounter.subdir(num);
-  //if (request.getParameter("writeThis") == null) {
-  //  myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
-  //}
-  //Shepherd altShepherd = new Shepherd(context);
-  String sessionId = session.getId();
-  boolean xmlOK = false;
-  SAXReader xmlReader = new SAXReader();
-  File file = new File("foo");
-  String scanDate = "";
-  String C = "";
-  String R = "";
-  String epsilon = "";
-  String Sizelim = "";
-  String maxTriangleRotation = "";
-  String side2 = "";
+	myShepherd2.rollbackDBTransaction();
+	myShepherd2.closeDBTransaction();
 %>
 
  <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
@@ -245,15 +235,6 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 </h1>
 
 
-<%
-  if (xmlOK) {%>
-<p><img src="../images/Crystal_Clear_action_flag.png" width="28px" height="28px" hspace="2" vspace="2" align="absmiddle">&nbsp;<strong>Saved
-  scan data may be old and invalid. Check the date below and run a fresh
-  scan for the latest results.</strong></p>
-
-<p><em>Date of scan: <%=scanDate%>
-</em></p>
-<%}%>
 
 
 <p>
