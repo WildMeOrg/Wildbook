@@ -377,7 +377,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Manta Matcher</h1>
+            <h1 class="hidden">MantaMatcher</h1>
             <h2><%=props.getProperty("mainStrapline")%></h2>
             <!--
             <button id="watch-movie" class="large light">
