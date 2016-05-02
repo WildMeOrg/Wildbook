@@ -22,12 +22,15 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import java.util.Iterator;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 
 import org.ecocean.tag.MetalTag;
@@ -385,5 +388,19 @@ public class Util {
       return toBeReturned;
     }
 
+    /**
+     * Useful for some UI stuff -db
+     * From stackOverflow http://stackoverflow.com/a/7085652
+     **/
+    public static org.datanucleus.api.rest.orgjson.JSONObject requestParamsToJSON(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+      org.datanucleus.api.rest.orgjson.JSONObject jsonObj = new org.datanucleus.api.rest.orgjson.JSONObject();
+      Map<String,String[]> params = req.getParameterMap();
+      for (Map.Entry<String,String[]> entry : params.entrySet()) {
+        String v[] = entry.getValue();
+        Object o = (v.length == 1) ? v[0] : v;
+        jsonObj.put(entry.getKey(), o);
+      }
+      return jsonObj;
+    }
 
 }
