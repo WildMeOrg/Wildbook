@@ -6,23 +6,60 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.Vector;
+import java.util.HashMap;
+import java.util.GregorianCalendar;
+import java.lang.Math;
+import java.io.*;
+import java.lang.reflect.Field;
+import javax.jdo.Query;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.ecocean.genetics.*;
+import org.ecocean.tag.AcousticTag;
+import org.ecocean.tag.MetalTag;
+import org.ecocean.tag.SatelliteTag;
+import org.ecocean.Util;
+import org.ecocean.servlet.ServletUtilities;
+
+import org.ecocean.media.*;
+import org.ecocean.identity.Feature;
+
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
+import org.ecocean.security.Collaboration;
+import org.ecocean.servlet.ServletUtilities;
 
 // A workspace simply saves arguments to the TranslateQuery servlet, attaching a name to them.
 public class Workspace implements java.io.Serializable {
 
-  public String id;
-  public JSONObject translateQueryArg;
+  static final long serialVersionUID = -146404246317121604L;
 
-  public Workspace(String id, JSONObject arg) {
-    this.id = id;
-    this.translateQueryArg = arg;
-  }
+  public String id;
+  public JSONObject queryArg;
+  public String queryAsString;
 
   /**
    * empty constructor used by JDO Enhancer - DO NOT USE
    */
   public Workspace() {
   }
+
+  public Workspace(String id, JSONObject arg) {
+    this.id = id;
+    this.queryArg = arg;
+    this.queryAsString = this.queryArg.toString();
+  }
+
 
 
 }

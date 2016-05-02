@@ -52,19 +52,6 @@ public class TranslateQuery extends HttpServlet {
   }
 
 
-  /**
-   * From stackOverflow http://stackoverflow.com/a/7085652
-   **/
-  public static JSONObject requestParamsToJSON(HttpServletRequest req) throws JSONException {
-    JSONObject jsonObj = new JSONObject();
-    Map<String,String[]> params = req.getParameterMap();
-    for (Map.Entry<String,String[]> entry : params.entrySet()) {
-      String v[] = entry.getValue();
-      Object o = (v.length == 1) ? v[0] : v;
-      jsonObj.put(entry.getKey(), o);
-    }
-    return jsonObj;
-  }
 
   public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
       response.setHeader("Access-Control-Allow-Origin", "*");
@@ -97,7 +84,15 @@ public class TranslateQuery extends HttpServlet {
 
     try {
 
-      JSONObject json = requestParamsToJSON(request);
+      JSONObject json;
+      // this if/else deals with 1) handovers from the WorkspaceServer servlet, and 2) manually submitted args (from UI)
+      if (request.getAttribute("queryArg") != null) {
+        json = (JSONObject) request.getAttribute("queryArg");
+      } else {
+        json = Util.requestParamsToJSON(request);
+      }
+
+
       System.out.println("Starting TranslateQuery with request-as-JSON= "+json.toString());
 
       if (json.optString("class").isEmpty()) {
