@@ -85,9 +85,11 @@ public class TranslateQuery extends HttpServlet {
     try {
 
       JSONObject json;
+      String queryFromWorkspace = (String) request.getAttribute("queryAsString");
       // this if/else deals with 1) handovers from the WorkspaceServer servlet, and 2) manually submitted args (from UI)
-      if (request.getAttribute("queryArg") != null) {
-        json = (JSONObject) request.getAttribute("queryArg");
+      if (queryFromWorkspace != null) {
+        System.out.println("TranslateQuery called by WorkspaceServer with queryAsString="+queryFromWorkspace);
+        json = new JSONObject(queryFromWorkspace);
       } else {
         json = Util.requestParamsToJSON(request);
       }
@@ -166,6 +168,9 @@ public class TranslateQuery extends HttpServlet {
       StringWriter sw = new StringWriter();
       PrintWriter pw = new PrintWriter(sw);
       e.printStackTrace(pw);
+      if (request.getAttribute("workspaceID") != null) {
+        res.put("Workplace Error on id", request.getAttribute("workspaceID"));
+      }
       res.put("error", sw.toString());
       out.println(res.toString());
       myShepherd.rollbackDBTransaction();

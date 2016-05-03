@@ -60,6 +60,11 @@ public class Workspace implements java.io.Serializable {
     this.queryAsString = this.queryArg.toString();
   }
 
+  public void setArg(JSONObject arg) {
+    this.queryArg = arg;
+    this.queryAsString = this.queryArg.toString();
+  }
+
 
 
 }

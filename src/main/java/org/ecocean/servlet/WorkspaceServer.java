@@ -49,7 +49,8 @@ public class WorkspaceServer extends HttpServlet {
       } else {
         System.out.println("doGet successfully grabbed workspace with id="+wSpace.id+" and queryArg="+wSpace.queryArg);
       }
-      request.setAttribute("queryArg", wSpace.queryArg);
+      request.setAttribute("queryAsString", wSpace.queryAsString);
+      request.setAttribute("workspaceID", wSpace.id);
       RequestDispatcher rd=request.getRequestDispatcher("TranslateQuery");
       rd.forward(request, response);
 
@@ -85,16 +86,25 @@ public class WorkspaceServer extends HttpServlet {
       JSONObject args = ((request.getParameter("args"))!=null) ? new JSONObject(request.getParameter("args")) : Util.requestParamsToJSON(request);
 
       String id = request.getParameter("id");
-      Workspace wSpace = new Workspace(id, args);
+      boolean overwrite = (request.getParameter("overwrite")!=null && request.getParameter("overwrite").equalsIgnoreCase("true"));
+      boolean inDB = myShepherd.isWorkspace(id);
+
+      if (inDB && !overwrite) throw new IOException("Workspace with id="+id+" already in database. Include request parameter overwrite=true if you wish to overwrite.");
+
+      String isStored = "false";
+      Workspace wSpace = (inDB && overwrite) ? myShepherd.getWorkspace(id) : new Workspace(id, args);
+      if (overwrite) wSpace.setArg(args);
+
       out.println("initializing new workspace with args id="+id+" and args="+args.toString());
 
-      boolean inDB = myShepherd.isWorkspace("id");
       out.println("workspace with id="+id+" already in database? "+inDB);
-
       if (!inDB) {
-        String isStored=myShepherd.storeNewWorkspace(wSpace);
-        out.println("workspace stored="+isStored);
+        isStored=myShepherd.storeNewWorkspace(wSpace);
+      } else {
+        isStored="overwritten";
       }
+      out.println("workspace stored = "+isStored);
+
 
 
     } catch(Exception e) {
