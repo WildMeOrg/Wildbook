@@ -25,7 +25,7 @@ public class WorkspaceServer extends HttpServlet {
   /**
    * retrieves a workspace object
    * @requestParameter id identifies the workspace
-   * @returns the output of the query described by that workspace
+   * @returns the output of the query described by that workspace (a MediaAsset JSONArray)
    **/
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     JSONObject res;
@@ -68,6 +68,9 @@ public class WorkspaceServer extends HttpServlet {
 
   /**
    * Creates & persists a new workspace object
+   * @requestParameter id the name of the new workspace
+   * @requestParameter args a JSON object containing the named parameters that would be sent to TranslateQuery servlet
+   * @requestParameter overwrite (optional) if "true", will overwrite an existing workspace
    **/
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
