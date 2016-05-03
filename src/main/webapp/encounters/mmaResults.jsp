@@ -54,26 +54,14 @@
   }
 %>
 <%
-  String context = "context0";
-  context = ServletUtilities.getContext(request);
+  String context = ServletUtilities.getContext(request);
+  String langCode = ServletUtilities.getLanguageCode(request);
+  Properties bundle = ShepherdProperties.getProperties("mmaResults.properties", langCode, context);
   Shepherd shepherd = new Shepherd(context);
   // Get map for implementing i18n of pigmentation.
   Map<String, String> mapPig = CommonConfiguration.getIndexedValuesMap("patterningCode", context);
   // Get set of all LocationIDs.
   Set<String> allLocationIDs = new HashSet<String>(CommonConfiguration.getIndexedValues("locationID", context));
-
-  // Page internationalization.
-  String langCode = ServletUtilities.getLanguageCode(request);
-//  String langCode = "en";
-//  if (session.getAttribute("langCode") != null) {
-//    langCode = (String)session.getAttribute("langCode");
-//  } else {
-//    Locale loc = request.getLocale();
-//    langCode = loc.getLanguage();
-//  }
-//  Properties bundle = new Properties();
-//  bundle.load(getClass().getResourceAsStream("/bundles/" + langCode + "/mmaResults.properties"));
-  Properties bundle = ShepherdProperties.getProperties("mmaResults.properties", langCode, context);
 
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
 	response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
@@ -100,22 +88,10 @@
   String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=%s";
   String pageUrlFormatInd = "//" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=%s";
 %>
-<html>
-<head>
-	<title><%=CommonConfiguration.getHTMLTitle(context) %></title>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<meta name="Description" content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-	<meta name="Keywords" content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-	<meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-	<link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>" rel="stylesheet" type="text/css"/>
-	<link rel="shortcut icon" href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-</head>
 
-<body>
-
-  <jsp:include page="../header.jsp" flush="true">
-    <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
-  </jsp:include>
+<jsp:include page="../header.jsp" flush="true">
+  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>"/>
+</jsp:include>
 
   <div class="container maincontent">
 
