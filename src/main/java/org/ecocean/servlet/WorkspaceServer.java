@@ -71,6 +71,7 @@ public class WorkspaceServer extends HttpServlet {
    * @requestParameter id the name of the new workspace
    * @requestParameter args a JSON object containing the named parameters that would be sent to TranslateQuery servlet
    * @requestParameter overwrite (optional) if "true", will overwrite an existing workspace
+   * e.g. http://52.36.191.214/WorkspaceServer?id=testServer&args={class:org.ecocean.MarkedIndividual, range:3}&overwrite=true
    **/
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
