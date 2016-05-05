@@ -175,22 +175,34 @@ System.out.println("....after");
 
     JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
     JSONObject res = new JSONObject();
+    String taskId = Util.generateUUID();
+    res.put("taskId", taskId);
 
     if (j.optJSONArray("detect") != null) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         JSONArray ids = j.getJSONArray("detect");
+        ArrayList<String> validIds = new ArrayList<String>();
         for (int i = 0 ; i < ids.length() ; i++) {
             int id = ids.optInt(i, 0);
 System.out.println(id);
             if (id < 1) continue;
             MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-            if (ma != null) mas.add(ma);
+            if (ma != null) {
+                mas.add(ma);
+                validIds.add(Integer.toString(id));
+            }
         }
         if (mas.size() > 0) {
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas));
-                res.put("sendDetect", IBEISIA.sendDetect(mas, baseUrl));
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl);
+                res.put("sendDetect", sent);
+                String jobId = null;
+                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
+                    jobId = sent.optString("response", null);
+                res.put("jobId", jobId);
+                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
             } catch (Exception ex) {
                 throw new IOException(ex.toString());
             }
