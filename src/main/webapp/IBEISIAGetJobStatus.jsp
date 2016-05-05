@@ -114,6 +114,9 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		rlog.put("_response", resultResponse);
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
+
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, myShepherd);
+System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
  System.out.println("whoops got exception: " + ex.toString());
