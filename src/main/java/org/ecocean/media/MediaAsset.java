@@ -397,8 +397,19 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return f;
     }
 
+    public ArrayList<Annotation> findAnnotations(Shepherd myShepherd) {
+        String queryString = "SELECT FROM org.ecocean.Annotation WHERE mediaAsset.id == " + this.getId();
+        Query query = myShepherd.getPM().newQuery(queryString);
+        List results = (List)query.execute();
+        if (results.size() < 1) return null;
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        for (Object r : results) {
+            anns.add((Annotation)r);
+        }
+        return anns;
+    }
+
 /*
-    public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
 

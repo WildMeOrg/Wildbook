@@ -1026,6 +1026,10 @@
     <servlet-class>org.ecocean.servlet.TranslateQuery</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>WorkspaceServer</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspaceServer</servlet-class>
+  </servlet>
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1040,6 +1044,10 @@
   <url-pattern>/TranslateQuery</url-pattern>
 </servlet-mapping>
 
+<servlet-mapping>
+  <servlet-name>WorkspaceServer</servlet-name>
+  <url-pattern>/WorkspaceServer</url-pattern>
+</servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>ImgSyncServlet0</servlet-name>

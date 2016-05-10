@@ -7,6 +7,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import java.net.URL;
@@ -18,9 +19,17 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
+import org.apache.commons.lang3.StringUtils;
 
 
 public class IBEISIA {
+
+    private static final Map<String, String[]> speciesMap;
+    static {
+        speciesMap = new HashMap<String, String[]>();
+        speciesMap.put("zebra_plains", new String[]{"Equus","quagga"});
+        speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
+    }
 
     private static String SERVICE_NAME = "IBEISIA";
 
@@ -188,6 +197,59 @@ System.out.println("tlist.size()=" + tlist.size());
        there would be one element for each queried annotation (492 here)... but we are FOR NOW always only sending one.  we should TODO adapt for many-to-many eventually?
     */
     public static JSONObject getTaskResults(String taskID, Shepherd myShepherd) {
+        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+        if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
+        JSONArray resOut = new JSONArray();
+        JSONArray res = (JSONArray)rtn.get("_json_result");
+
+        for (int i = 0 ; i < res.length() ; i++) {
+            JSONObject el = new JSONObject();
+            el.put("score_list", res.getJSONObject(i).get("score_list"));
+            el.put("query_annot_uuid", fromFancyUUID(res.getJSONObject(i).getJSONObject("qauuid")));
+            JSONArray matches = new JSONArray();
+            JSONArray dlist = res.getJSONObject(i).getJSONArray("dauuid_list");
+            for (int d = 0 ; d < dlist.length() ; d++) {
+                matches.put(fromFancyUUID(dlist.getJSONObject(d)));
+            }
+            el.put("match_annot_list", matches);
+            resOut.put(el);
+        }
+
+        rtn.put("results", resOut);
+        rtn.remove("_json_result");
+        return rtn;
+    }
+
+
+    public static JSONObject getTaskResultsDetect(String taskID, Shepherd myShepherd) {
+        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+        if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
+        JSONArray resOut = new JSONArray();
+/*
+        JSONArray res = (JSONObject)rtn.get("_json_result");
+
+        for (int i = 0 ; i < res.length() ; i++) {
+            JSONObject el = new JSONObject();
+            el.put("score_list", res.getJSONObject(i).get("score_list"));
+            el.put("query_annot_uuid", fromFancyUUID(res.getJSONObject(i).getJSONObject("qauuid")));
+            JSONArray matches = new JSONArray();
+            JSONArray dlist = res.getJSONObject(i).getJSONArray("dauuid_list");
+            for (int d = 0 ; d < dlist.length() ; d++) {
+                matches.put(fromFancyUUID(dlist.getJSONObject(d)));
+            }
+            el.put("match_annot_list", matches);
+            resOut.put(el);
+        }
+
+        rtn.put("results", resOut);
+        rtn.remove("_json_result");
+*/
+        return rtn;
+    }
+
+
+
+    public static JSONObject getTaskResultsBasic(String taskID, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
         if ((logs == null) || (logs.size() < 1)) {
@@ -209,6 +271,12 @@ System.out.println("tlist.size()=" + tlist.size());
             if (last.getJSONObject("_response").getJSONObject("status").getBoolean("success") && "ok".equals(last.getJSONObject("_response").getJSONObject("response").getString("status"))) {
                 rtn.put("success", true);
                 rtn.put("_debug", last);
+                rtn.put("_json_result", last.getJSONObject("_response").getJSONObject("response").opt("json_result")); //"should never" fail. HA!
+                if (rtn.get("_json_result") == null) {
+                    rtn.put("success", false);
+                    rtn.put("error", "json_result seems empty");
+                }
+/*
 
                 JSONArray resOut = new JSONArray();
                 JSONArray res = last.getJSONObject("_response").getJSONObject("response").getJSONArray("json_result"); //"should never" fail. HA!
@@ -229,6 +297,7 @@ System.out.println("tlist.size()=" + tlist.size());
 
                 rtn.put("results", resOut);
 
+*/
             } else {
                 rtn.put("error", "getJobResult for task " + taskID + " logged as either non successful or with a status not OK");
                 rtn.put("details", last.get("_response"));
@@ -389,7 +458,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return results;
         }
 
-        log(taskID, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
+        log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
         try {
             for (Encounter enc : queryEncs) {
@@ -464,8 +533,19 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
 
     public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
+        String[] sa = null;
+        return log(taskID, sa, jobID, jlog, context);
+    }
+
+    public static IdentityServiceLog log(String taskID, String objectID, String jobID, JSONObject jlog, String context) {
+        String[] sa = new String[1];
+        sa[0] = objectID;
+        return log(taskID, sa, jobID, jlog, context);
+    }
+
+    public static IdentityServiceLog log(String taskID, String[] objectIDs, String jobID, JSONObject jlog, String context) {
 //System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
-        IdentityServiceLog log = new IdentityServiceLog(taskID, SERVICE_NAME, jobID, jlog);
+        IdentityServiceLog log = new IdentityServiceLog(taskID, objectIDs, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.beginDBTransaction();
         try{
@@ -612,6 +692,132 @@ System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(
             }
         }
 System.out.println("!!!! waitForTrainingJobs() has finished.");
+    }
+
+    public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
+        if (iaResult == null) return null;
+        return new Annotation(ma, convertSpeciesToString(iaResult.optString("class", null)), iaResult.optInt("xtl", 0), iaResult.optInt("ytl", 0),
+                              iaResult.optInt("width", (int)Math.round(ma.getWidth())), iaResult.optInt("height", (int)Math.round(ma.getHeight())), null);
+    }
+
+    public static String convertSpeciesToString(String iaClassLabel) {
+        String[] s = convertSpecies(iaClassLabel);
+        if (s == null) return null;
+        return StringUtils.join(s, " ");
+    }
+    public static String[] convertSpecies(String iaClassLabel) {
+        if (iaClassLabel == null) return null;
+        if (speciesMap.containsKey(iaClassLabel)) return speciesMap.get(iaClassLabel);
+        return iaClassLabel.split("_");
+    }
+
+    public static String getTaskType(ArrayList<IdentityServiceLog> logs) {
+        for (IdentityServiceLog l : logs) {
+            JSONObject j = l.getStatusJson();
+            if ((j == null) || j.optString("_action").equals("")) continue;
+            if (j.getString("_action").indexOf("init") == 0) return j.getString("_action").substring(4).toLowerCase();
+        }
+        return null;
+    }
+
+    public static JSONObject processCallback(String taskID, JSONObject resp, Shepherd myShepherd) {
+System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+        rtn.put("taskId", taskID);
+        if (taskID == null) return rtn;
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        rtn.put("_logs", logs);
+        if ((logs == null) || (logs.size() < 1)) return rtn;
+
+        String type = getTaskType(logs);
+        if ("detect".equals(type)) {
+            rtn.put("success", true);
+            rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd));
+        } else if ("identify".equals(type)) {
+            rtn.put("success", true);
+            //rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, myShepherd));
+        } else {
+            rtn.put("error", "unknown task action type " + type);
+        }
+        return rtn;
+    }
+
+/* resp ->
+{"_action":"getJobResult","_response":{"response":{"json_result":{"score_list":[0],"results_list":[[{"xtl":679,"theta":0,"height":366,"width":421,"class":"elephant_savanna","confidence":0.215,"ytl":279},{"xtl":71,"theta":0,"height":206,"width":166,"class":"elephant_savanna","confidence":0.2685,"ytl":425},{"xtl":1190,"theta":0,"height":222,"width":67,"class":"elephant_savanna","confidence":0.2947,"ytl":433}]],"image_uuid_list":[{"__UUID__":"f0f9cc19-a56d-3a81-be40-bc51e65714e6"}]},"status":"ok","jobid":"jobid-0025"},"status":{"message":"","cache":-1,"code":200,"success":true}},"jobID":"jobid-0025"}
+*/
+
+    private static JSONObject processCallbackDetect(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+        String[] ids = IdentityServiceLog.findObjectIDs(logs);
+        if (ids == null) {
+            rtn.put("error", "could not find any MediaAsset ids from logs");
+            return rtn;
+        }
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        for (int i = 0 ; i < ids.length ; i++) {
+            MediaAsset ma = MediaAssetFactory.load(Integer.parseInt(ids[i]), myShepherd);
+            if (ma != null) mas.add(ma);
+        }
+        int numCreated = 0;
+        if ((resp.optJSONObject("_response") != null) && (resp.getJSONObject("_response").optJSONObject("response") != null) &&
+            (resp.getJSONObject("_response").getJSONObject("response").optJSONObject("json_result") != null)) {
+            JSONObject j = resp.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result");
+            JSONArray rlist = j.optJSONArray("results_list");
+            JSONArray ilist = j.optJSONArray("image_uuid_list");
+/* TODO lots to consider here:
+    1. how do we determine where the cutoff is for auto-creating the annotation?
+    2. if we do create (or dont!) how do we denote this for the sake of the user/ui querying status?
+    3. do we first clear out existing annotations?
+    4. do we allow duplicate (identical) annoations?  if not, do we block that at the level where we attach to encounter? or globally?
+    5. do we have to tell IA when we auto-approve (i.e. no user review) results?
+    6.  etc???
+*/
+            if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
+                JSONObject amap = new JSONObject();
+                for (int i = 0 ; i < rlist.length() ; i++) {
+                    JSONArray janns = rlist.optJSONArray(i);
+                    if (janns == null) continue;
+                    JSONObject jiuuid = ilist.optJSONObject(i);
+                    if (jiuuid == null) continue;
+                    String iuuid = fromFancyUUID(jiuuid);
+                    MediaAsset asset = null;
+                    for (MediaAsset ma : mas) {
+                        if (ma.getUUID().equals(iuuid)) {
+                            asset = ma;
+                            break;
+                        }
+                    }
+                    if (asset == null) {
+                        System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
+                        continue;
+                    }
+                    JSONArray newAnns = new JSONArray();
+                    for (int a = 0 ; a < janns.length() ; a++) {
+                        JSONObject jann = janns.optJSONObject(a);
+                        if (jann == null) continue;
+                        if (jann.optDouble("confidence") < 0.001) continue; //TODO real confidence value here
+                        Annotation ann = convertAnnotation(asset, jann);
+                        if (ann == null) continue;
+                        myShepherd.getPM().makePersistent(ann);
+System.out.println("* CREATED " + ann);
+                        newAnns.put(ann.getId());
+                        numCreated++;
+                    }
+                    amap.put(Integer.toString(asset.getId()), newAnns);
+                }
+                rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
+                rtn.put("success", true);
+                JSONObject jlog = new JSONObject();
+                jlog.put("_action", "generatedAnnotations");
+                jlog.put("annotations", amap);
+                log(taskID, null, jlog, "context0");
+                
+            } else {
+                rtn.put("error", "results_list is empty");
+            }
+        }
+        
+        return rtn;
     }
 
 }
