@@ -165,6 +165,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 		}
                 		%>
                 		   <!-- Can we inject language functionality here? -->
+
+                       <!--
                     <%
 
             		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
@@ -173,7 +175,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             		if(numSupportedLanguages>1){
             		%>
             			<li>
-
 
             					<%
             					for(int h=0;h<numSupportedLanguages;h++){
@@ -210,6 +211,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             		<%
             		}
             		%>
+              -->
             		<!-- end language functionality injection -->
 
 
