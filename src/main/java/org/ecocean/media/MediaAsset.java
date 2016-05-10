@@ -397,6 +397,23 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return f;
     }
 
+    //if unity feature is appropriate, generates that; otherwise does a boundingBox one
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+        Feature f = null;
+        if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
+            JSONObject p = new JSONObject();
+            p.put("width", w);
+            p.put("height", h);
+            p.put("x", x);
+            p.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", p);
+            this.addFeature(f);
+        } else {
+            f = this.generateUnityFeature();
+        }
+        return f;
+    }
+
     public ArrayList<Annotation> findAnnotations(Shepherd myShepherd) {
         String queryString = "SELECT FROM org.ecocean.Annotation WHERE mediaAsset.id == " + this.getId();
         Query query = myShepherd.getPM().newQuery(queryString);
