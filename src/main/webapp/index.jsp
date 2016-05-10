@@ -16,6 +16,8 @@
 
 <%
 String context=ServletUtilities.getContext(request);
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+
 
 //set up our Shepherd
 
@@ -29,6 +31,49 @@ myShepherd=new Shepherd(context);
 %>
 
 <style type="text/css">
+
+  .container-fluid .row.saimaa-row {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+   .row.saimaa-row, .main-section row.saimaa-row li {
+    background: #3ac6f7;
+    color: #f7f7f7;
+  }
+   .row.saimaa-row h2 {
+    margin-bottom: 10px;
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1.3em;
+    color: #f7f7f7;
+  }
+ .row.saimaa-row h3, .main-section .row.saimaa-row a h3  {
+font-family: 'open-sans', Helvetica, Arial, sans-serif;
+font-size: 1.3em;
+margin-bottom: 0;
+color: #f7f7f7;
+}
+ .row.saimaa-row a, .main-section .row.saimaa-row a:hover {
+  color: #f7f7f7;
+}
+
+   .row.saimaa-row li p {
+    color: #007476;
+  }
+ .saimaa-map {
+  background: url(cust/mantamatcher/img/wwf-saimaa.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  min-height: 618px;
+}
+  .saimaa-row .section-header.map-header {
+   background: #3ac6f7;
+   color: #f7f7f7
+   margin-top: 7px;
+ }
+
+
 .full_screen_map {
 position: absolute !important;
 top: 0px !important;
@@ -38,6 +83,7 @@ width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
+}
 </style>
 
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
@@ -424,10 +470,88 @@ finally{
     </section>
 </div>
 
-<div class="container-fluid main-section grey-background">
-    <h2 class="section-header map-header">Encounters around the world</h2>
+<div class="container-fluid grey-background">
+    <div class="row saimaa-row">
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
+
+    <div class="col-xs-6 col-lg-6">
+      <h2 class="section-header map-header">Kuvatut Norpat Alueittain<!--Encounters around the world--></h2>
+
+
+
+      <ol>
+
+
+        <%
+        List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
+        int numLocIDs = locs2.size();
+        %>
+        <script>console.log("numLocationIDs = <%=numLocationIDs%>");</script>
+        <%
+        myShepherd.beginDBTransaction();
+        try{
+    	 		for(int i=0;i<numLocationIDs;i++){
+            String locID = locs2.get(i);
+            int numSightings = myShepherd.getNumEncounters(locID);
+            %>
+            <!-- TODO: double check this link (need to clean locID?)-->
+            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>
+              <p><%=numSightings%> kuvattua norppaa</p>
+            </li>
+            <%
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        } finally {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+        }
+        %>
+
+        <!-- TODO: generate this list from Shepherd.getNumEncounters(String location) -->
+
+        <li>
+
+
+
+          <h3>
+          Location 1
+          </h3>
+          <p>
+            7 kuvattua norppaa
+          </p>
+        </li>
+        <li>
+          <h3>
+          Location 2
+          </h3>
+          <p>
+            7 kuvattua norppaa
+          </p>
+        </li>
+        <li>
+          <h3>
+          Location 3
+          </h3>
+          <p>
+            7 kuvattua norppaa
+          </p>
+        </li>
+
+      </ol>
+
+    </div>
+
+    <div class="col-xs-6 col-lg-6 saimaa-map">
+    </div>
+
+
+
+
+
+      <!--<div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
+      -->
+      </div>
 
 </div>
 
