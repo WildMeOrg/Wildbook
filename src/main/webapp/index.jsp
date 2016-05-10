@@ -73,6 +73,18 @@ color: #f7f7f7;
    margin-top: 7px;
  }
 
+ [class^="icon-"], [class*=" icon-"] {
+    font-family: 'wwf-icons' !important;
+    speak: none;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
 
 .full_screen_map {
 position: absolute !important;
@@ -428,6 +440,8 @@ finally{
 
 	<div class="row">
     <div class="col-md-6 col-md-offset-3">
+      <p><i class="icon icon-facebook-btn" aria-hidden="true"></i> </p>
+
       <p>
         Mik&auml; ihmeen Lorem ipsum?
 
