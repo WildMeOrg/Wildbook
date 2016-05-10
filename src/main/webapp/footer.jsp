@@ -83,7 +83,7 @@
             <div class="container-fluid">
               <div class="container-fluid main-section">
 								<div class="row donate-row">
-									<div class="col-lg-6 bc4 donate-zone">
+									<div class="col-xs-6 bc4 donate-zone">
 											<!--<h1 class="hidden">Wildbook</h1>-->
 											<h2 class="jumboesque">Miten voit auttaa?</h2>
 											<!--
