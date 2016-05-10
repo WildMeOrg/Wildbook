@@ -71,7 +71,8 @@ try {
   Properties encprops = new Properties();
   encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
   //JSONObject maJson = new JSONObject();
-  JSONObject maJson = getExemplarImage(indie, request);
+  //JSONObject maJson = getExemplarImage(indie, request);
+  JSONObject maJson = indie.getExemplarImage(request);
   imgUrl = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
   if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) nickname = indie.getNickName();
   // loop through encs until we get a good representative MediaAsset
