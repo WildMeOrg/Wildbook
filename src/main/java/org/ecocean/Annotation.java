@@ -94,7 +94,7 @@ public class Annotation implements java.io.Serializable {
             }
             f = new Feature("org.ecocean.boundingBox", params);
         }
-        getMediaAsset().addFeature(f);
+        __getMediaAsset().addFeature(f);
         addFeature(f);
         return f;
     }
@@ -168,8 +168,9 @@ public class Annotation implements java.io.Serializable {
     }
 
     public boolean isTrivial() {
-        if (mediaAsset == null) return false;
-        return (!needsTransform() && (getWidth() == (int)mediaAsset.getWidth()) && (getHeight() == (int)mediaAsset.getHeight()));
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) return false;
+        return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
     public double getTheta() {
@@ -179,8 +180,17 @@ public class Annotation implements java.io.Serializable {
         theta = t;
     }
 //FIXME this all needs to be deprecated once deployed sites are migrated
-    public MediaAsset getMediaAsset() {
+    public MediaAsset __getMediaAsset() {
         return mediaAsset;
+    }
+    //TODO what should we do for multiple features that point to more than one MediaAsset ?
+    public MediaAsset getMediaAsset() {
+        ArrayList<Feature> fts = getFeatures();
+        if ((fts == null) || (fts.size() < 1) || (fts.get(0) == null)) {
+            System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
+            return __getMediaAsset();
+        }
+        return fts.get(0).getMediaAsset();
     }
 /*  deprecated
     public void setMediaAsset(MediaAsset ma) {
