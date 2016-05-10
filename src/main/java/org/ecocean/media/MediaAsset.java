@@ -615,6 +615,20 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+            ArrayList<Feature> fts = getFeatures();
+            if ((fts != null) && (fts.size() > 0)) {
+                org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
+                for (int i = 0 ; i < fts.size() ; i++) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
+                    Feature ft = fts.get(i);
+                    jf.put("id", ft.getId());
+                    jf.put("type", ft.getType());
+                    JSONObject p = ft.getParameters();
+                    if (p != null) jf.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(p.toString()));
+                    jarr.put(jf);
+                }
+                jobj.put("features", jarr);
+            }
             jobj.put("url", webURLString());
             if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
                 //hactacular, but if it works....
