@@ -150,7 +150,7 @@
                   <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
                   <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
-                     <img src="<%=urlLoc %>/images/logo_wildbook.jpg" alt=" logo" class="pull-right" />
+                     <img src="<%=urlLoc %>/images/logo_wildbook.png" alt=" logo" class="pull-right" />
 
 
 
