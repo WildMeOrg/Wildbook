@@ -14,6 +14,8 @@
 					width: 100%;
 					min-height: 240px;
 					background: url('cust/mantamatcher/img/wwf-join-banner.jpg');
+					background-repeat: no-repeat;
+					background-position: center;
 					margin-left: 0;
 					margin-right: 0;
 				}
