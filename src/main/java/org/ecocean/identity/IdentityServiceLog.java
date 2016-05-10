@@ -22,6 +22,8 @@ package org.ecocean.identity;
 import org.ecocean.Shepherd;
 import javax.jdo.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Calendar;
 import org.json.JSONObject;
@@ -36,19 +38,35 @@ public class IdentityServiceLog implements java.io.Serializable {
     private long timestamp;
     private String serviceName;
     private String serviceJobID;
+    private String[] objectIDs;
     private String status;
 
 
     //probably (?) we will standardize on  "status" actually being a json object, so this will likely be the main constructor
-    public IdentityServiceLog(String taskID, String serviceName, String serviceJobID, JSONObject jstatus) {
-        this(taskID, serviceName, serviceJobID, jstatus.toString());
+    public IdentityServiceLog(String taskID, String[] objectIDs, String serviceName, String serviceJobID, JSONObject jstatus) {
+        this(taskID, objectIDs, serviceName, serviceJobID, jstatus.toString());
     }
 
-    public IdentityServiceLog(String taskID, String serviceName, String serviceJobID, String status) {
+    public IdentityServiceLog(String taskID, String serviceName, String serviceJobID, JSONObject jstatus) {
+        this(taskID, null, serviceName, serviceJobID, jstatus.toString());
+    }
+
+    public IdentityServiceLog(String taskID, String[] objectIDs, String serviceName, String serviceJobID, String status) {
         this.taskID = taskID;
+        this.objectIDs = objectIDs;
         this.serviceName = serviceName;
         this.serviceJobID = serviceJobID;
         this.status = status;
+        this.timestamp = System.currentTimeMillis();
+    }
+    public IdentityServiceLog(String taskID, String objectID, String serviceName, String serviceJobID, JSONObject jstatus) {
+        String[] sa = new String[1];
+        sa[0] = objectID;
+        this.taskID = taskID;
+        this.objectIDs = sa;
+        this.serviceName = serviceName;
+        this.serviceJobID = serviceJobID;
+        this.status = jstatus.toString();
         this.timestamp = System.currentTimeMillis();
     }
 
@@ -81,6 +99,9 @@ public class IdentityServiceLog implements java.io.Serializable {
     }
     public String getStatus() {
         return status;
+    }
+    public String[] getObjectIDs() {
+        return objectIDs;
     }
 
     public JSONObject getStatusJson() {
@@ -145,6 +166,108 @@ public class IdentityServiceLog implements java.io.Serializable {
     }
 
 
+    public static ArrayList<IdentityServiceLog> loadByObjectID(String serviceName, String objectID, Shepherd myShepherd) {
+//System.out.println("serviceName=(" + serviceName + ") serviceJobID=(" + serviceJobID + ")");
+        Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
+        //Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\" && this.objectIDs.contains(\"" + objectID + "\")");
+        Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\"");
+        qry.setOrdering("timestamp");
+        ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
+        try {
+            Collection coll = (Collection) (qry.execute());
+            for (Object c : coll) {
+                IdentityServiceLog l = (IdentityServiceLog)c;
+                if (l.hasObjectID(objectID)) log.add(l);
+            }
+            //log=new ArrayList<IdentityServiceLog>(coll);
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
+        }
+        qry.closeAll();
+        return log;
+    }
+
+
+    //loads only most recent task's worth of log items (note that it first finds task-for-object, then uses that task id)
+    public static ArrayList<IdentityServiceLog> loadMostRecentByObjectID(String serviceName, String objectID, Shepherd myShepherd) {
+//System.out.println("serviceName=(" + serviceName + ") serviceJobID=(" + serviceJobID + ")");
+        Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
+        Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\"");
+        qry.setOrdering("timestamp");
+        String activeTaskId = null;
+        ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
+        try {
+            Collection coll = (Collection) (qry.execute());
+            for (Object c : coll) {
+                IdentityServiceLog l = (IdentityServiceLog)c;
+                if ((activeTaskId != null) && !activeTaskId.equals(l.getTaskID())) continue;
+                if ((activeTaskId == null) && !l.hasObjectID(objectID)) continue;
+                activeTaskId = l.getTaskID();
+                log.add(l);
+            }
+            //log=new ArrayList<IdentityServiceLog>(coll);
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
+        }
+        qry.closeAll();
+        return log;
+    }
+
+
+/*
+ IDENTITYSERVICELOG_ID | SERVICEJOBID | SERVICENAME |       STATUS       |                TASKID                |   TIMESTAMP   |               OBJECTID               
+-----------------------+--------------+-------------+--------------------+--------------------------------------+---------------+--------------------------------------
+                   737 | -1           | IBEISIA     | {"_action":"init"} | 6bc34656-0847-4a80-b093-2a52481d8b22 | 1459307111383 | fd5b557e-337c-4239-9625-dfacc8822550
+                   739 | -1           | IBEISIA     | {"_action":"init"} | 8fce30ef-a8e2-4a4f-8830-5a3273df9baf | 1459307241643 | fd5b557e-337c-4239-9625-dfacc8822550
+                   745 | -1           | IBEISIA     | {"_action":"init"} | 32bb426a-a03d-4386-bbbf-15d6259ef732 | 1459308840326 | fd5b557e-337c-4239-9625-dfacc8822550
+(3 rows)
+
+(END)*/
+
+    public static ArrayList<IdentityServiceLog> summaryForAnnotationId(String annId, Shepherd myShepherd) {
+        Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
+        Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"IBEISIA\"");
+        qry.setOrdering("timestamp");
+        HashMap<String,IdentityServiceLog> lmap = new HashMap<String,IdentityServiceLog>();
+        try {
+            Collection coll = (Collection) (qry.execute());
+            //log=new ArrayList<IdentityServiceLog>(coll);
+            for (Object c : coll) {
+                IdentityServiceLog log = (IdentityServiceLog)c;
+                if (log.getTaskID() == null) continue;
+                if (log.hasObjectID(annId) || (lmap.get(log.getTaskID()) != null)) {
+                    lmap.put(log.getTaskID(), log);
+                }
+            }
+        } 
+        catch (Exception ex) {
+            //return new ArrayList<IdentityServiceLog>();
+          ex.printStackTrace();
+        }
+        qry.closeAll();
+        return new ArrayList<IdentityServiceLog>(lmap.values());
+    }
+
+
+    public boolean hasObjectID(String oid) {
+        String[] sa = this.getObjectIDs();
+        if (sa == null) return false;
+        return Arrays.asList(sa).contains(oid);
+    }
+
+    //this is the pass-in-log-lines version ... could make similar for from-db version
+    // thus, this assumes these are already only for a given taskId
+    public static String[] findObjectIDs(ArrayList<IdentityServiceLog> logs) {
+        for (IdentityServiceLog l : logs) {
+            if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) return l.getObjectIDs();
+        }
+        return null;
+    }
+
 
 //S3AssetStore s3as = ((S3AssetStore) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(S3AssetStore.class, 3), true)));
 
@@ -167,6 +290,7 @@ public class IdentityServiceLog implements java.io.Serializable {
                 .append("timestamp", timestamp)
                 .append("date/time", c.getTime().toString())
                 .append("taskID", taskID)
+                .append("objectIDs", Arrays.toString(objectIDs))
                 .append("serviceName", serviceName)
                 .append("serviceJobID", serviceJobID)
                 .append("status", status)

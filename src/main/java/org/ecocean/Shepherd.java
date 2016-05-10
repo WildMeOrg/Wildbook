@@ -126,6 +126,22 @@ public class Shepherd {
     return (uniqueID);
   }
 
+  public String storeNewWorkspace(Workspace wSpace) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wSpace);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
+      System.out.println("     id:" + wSpace.id);
+      e.printStackTrace();
+      return "fail";
+    }
+    return (wSpace.id);
+  }
+
+
     public void storeNewOccurrence(Occurrence enc) {
       //enc.setOccurrenceID(uniqueID);
       beginDBTransaction();
@@ -312,6 +328,16 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+
+  public Workspace getWorkspace(String id) {
+    Workspace tempWork = null;
+    try {
+      tempWork = ((Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempWork;
   }
 
 
@@ -689,6 +715,16 @@ public class Shepherd {
   public boolean isEncounter(String num) {
     try {
       Encounter tempEnc = ((org.ecocean.Encounter) (pm.getObjectById(pm.newObjectIdInstance(Encounter.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      //nsoe.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public boolean isWorkspace(String num) {
+    try {
+      Workspace tempSpace = ((org.ecocean.Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, num.trim()), true)));
     } catch (Exception nsoe) {
       //nsoe.printStackTrace();
       return false;
