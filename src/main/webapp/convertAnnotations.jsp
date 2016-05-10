@@ -21,6 +21,10 @@ org.ecocean.media.*
 %>
 
 
+<html><head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<title>convertAnnotation</title>
+</head><body>
 
 
 <%
@@ -47,16 +51,28 @@ int convCount = 0;
 
 for (Object o : allAnn) {
 	Annotation ann = (Annotation)o;
-	System.out.println(count + ") " + ann);
+	System.out.println(count + ":" + convCount + ") " + ann);
 	ArrayList<Feature> feats = ann.getFeatures();
-	if ((feats == null) || (feats.size() < 1)) {
+	int fct = 0;
+	boolean needsMigration = true;
+	//really an annotations should only have linking feature(s) on it; so this is kinda a silly check
+	if ((feats != null) && (feats.size() > 0)) {
+		fct = feats.size();
+		for (Feature ft : feats) {
+			if (ft.isUnity() || ft.isType("org.ecocean.boundingBox")) {
+				needsMigration = false;
+				break;
+			}
+		}
+	}
+	if (needsMigration) {
 		Feature newF = ann.migrateToFeatures();
-		out.println("<p>" + count + ") <b><a href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\" target=\"_new\">" + ann.getId() + "</a>: no features</b>");
+		out.println("<p>" + count + ") <b><a href=\"obrowse.jsp?type=Annotation&id=" + ann.getId() + "\" target=\"_new\">" + ann.getId() + "</a>: was " + fct + " feature(s)</b>");
 		out.println(" [add feature " + newF + "]");
 		out.println("</p>");
 		convCount++;
 	} else {
-		out.println("<p style=\"color: #555;\">" + count + ") " + ann.getId() + " <b>has " + feats.size() + " feature(s)</b>:");
+		out.println("<p class=\"already\" style=\"color: #777;\">" + count + ") " + ann.getId() + " <b>has " + fct + " feature(s) including migrated one</b>:");
 		for (Feature f : feats) {
 			out.println(f);
 		}
@@ -64,7 +80,7 @@ for (Object o : allAnn) {
 	}
 
 	count++;
-	if (convCount > 7) break;
+	if (convCount > 3) break;
 }
 
 
@@ -78,3 +94,4 @@ myShepherd.commitDBTransaction();
 
 <p>
 done.
+</body></html>
