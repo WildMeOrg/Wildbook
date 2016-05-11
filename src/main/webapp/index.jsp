@@ -440,12 +440,16 @@ finally{
 
 	<div class="row">
     <div class="col-md-6 col-md-offset-3">
-      <p><i class="icon icon-facebook-btn" aria-hidden="true"></i> </p>
 
       <p>
         Mik&auml; ihmeen Lorem ipsum?
 
         Lorem ipsum on 1500-luvulta l&auml;htien olemassa ollut t&auml;yteteksti, jota k&auml;ytet&auml;&auml;n usein ulkoasun testaamiseen graafisessa suunnittelussa, kun mit&auml;&auml;n oikeata sis&auml;lt&ouml;&auml; ei viel&auml; ole. Lorem ipsumia k&auml;ytet&auml;&auml;n n&auml;ytt&auml;m&auml;&auml;n, milt&auml; esimerkiksi kirjasin tai julkaisun tekstin asettelu n&auml;ytt&auml;v&auml;t
+      </p>
+      <p style="font-size:2em;color:#999">
+        <i class="icon icon-facebook-btn" aria-hidden="true"></i>
+        <i class="icon icon-twitter-btn" aria-hidden="true"></i>
+        <i class="icon icon-google-plus-btn" aria-hidden="true"></i>
       </p>
     </div>
   </div>
