@@ -1241,16 +1241,20 @@ function sendButtonClicked() {
     }
     else{
     %>
-    console.log('trying to submit');
-    console.log(captchaWidgetId);
-		var recaptchaResponse = grecaptcha.getResponse( captchaWidgetId );
-
-   		 console.log( 'g-recaptcha-response: ' + recaptchaResponse );
-		if(!isEmpty(recaptchaResponse)) {		
-			$("#encounterForm").attr("action", "EncounterForm");
+	    if(($('#myCaptcha > *').length < 1)){
+	    	$("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
+	    }
+	    else{	console.log('Here!'); 	
+	    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+			
+			console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+			if(!isEmpty(recaptachaResponse)) {		
+				$("#encounterForm").attr("action", "EncounterForm");
+				submitForm();
+			}
 		}
-	//alert(recaptachaResponse);
+		//alert(recaptachaResponse);
 	<%
     }
 	%>
