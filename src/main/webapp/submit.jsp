@@ -380,6 +380,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
 
 <script>
 
+grecaptcha.reset();	
 
 $('#social_files_iframe').on('load', function(ev) {
 	if (!ev || !ev.target) return;
@@ -420,7 +421,8 @@ function sendButtonClicked() {
  }
  else{
  %>
-		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+ 	
+ 	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
 		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
 		if(!isEmpty(recaptachaResponse)) {		
 			$("#encounterForm").attr("action", "EncounterForm");
