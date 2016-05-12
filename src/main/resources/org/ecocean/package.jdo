@@ -576,9 +576,13 @@
     </class>
 
     <class name="Workspace" identity-type="application" table="WORKSPACE">
-      <field name="id" primary-key="true">
-        <column length="100"/>
-      </field>
+      <field name="id" primary-key="true" jdbc-type="BIGINT" value-strategy="identity"/>
+      <field name="name"/>
+      <field name="owner"/>
+      <field name="created"/>
+      <field name="modified"/>
+      <field name="accessed"/>
+
       <field name="queryAsString" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR" name="queryAsString"/>
       </field>

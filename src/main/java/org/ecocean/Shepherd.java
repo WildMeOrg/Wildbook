@@ -138,7 +138,7 @@ public class Shepherd {
       e.printStackTrace();
       return "fail";
     }
-    return (wSpace.id);
+    return (String.valueOf(wSpace.id));
   }
 
 
@@ -330,14 +330,25 @@ public class Shepherd {
     return tempEnc;
   }
 
-  public Workspace getWorkspace(String id) {
+  public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {
-      tempWork = ((Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, id.trim()), true)));
+      tempWork = (Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, id)));
     } catch (Exception nsoe) {
       return null;
     }
     return tempWork;
+  }
+  // finds the workspace that user 'owner' created and named 'name'
+  public Workspace getWorkspaceForUser(String name, String owner) {
+    String filter = "this.name == \""+name+"\" && this.owner == \""+owner+"\"";
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    Collection results = (Collection) (workspaceQuery.execute());
+    if (!results.isEmpty()) {
+      return (Workspace) (results.iterator().next());
+    }
+    return null;
   }
 
 
