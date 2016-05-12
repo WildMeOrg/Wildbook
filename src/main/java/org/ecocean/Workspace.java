@@ -44,9 +44,16 @@ public class Workspace implements java.io.Serializable {
 
   static final long serialVersionUID = -146404246317121604L;
 
-  public String id;
+  public int id;
+
+  public String name;
+  public String owner;
   public JSONObject queryArg;
   public String queryAsString;
+
+  public Date created;
+  public Date modified;
+  public Date accessed;
 
   /**
    * empty constructor used by JDO Enhancer - DO NOT USE
@@ -54,17 +61,58 @@ public class Workspace implements java.io.Serializable {
   public Workspace() {
   }
 
-  public Workspace(String id, JSONObject arg) {
-    this.id = id;
+  public Workspace(String name, String owner, JSONObject arg) {
+    System.out.println("BEGIN WORKSPACE CREATION");
+    this.name = name;
+    this.owner = owner;
     this.queryArg = arg;
     this.queryAsString = this.queryArg.toString();
+    this.created = new Date();
+    this.modified = new Date();
+    this.accessed = new Date();
+  }
+
+  public int getID() {
+    return this.id;
+  }
+  public String getName() {
+    return this.name;
+  }
+  public String getOwner() {
+    return this.owner;
   }
 
   public void setArg(JSONObject arg) {
     this.queryArg = arg;
     this.queryAsString = this.queryArg.toString();
   }
+  public String getArgs() {
+    return this.queryAsString;
+  }
 
+  public void setCreated(Date created) {
+    this.created = created;
+    this.modified = created;
+    this.accessed = created;
+  }
+  public Date getCreated() {
+    return this.created;
+  }
+
+  public void setModified(Date modified) {
+    this.modified = modified;
+    this.accessed = modified;
+  }
+  public Date getModified() {
+    return this.modified;
+  }
+
+  public void setAccessed(Date accessed) {
+    this.accessed = accessed;
+  }
+  public Date getAccessed() {
+    return this.accessed;
+  }
 
 
 }
