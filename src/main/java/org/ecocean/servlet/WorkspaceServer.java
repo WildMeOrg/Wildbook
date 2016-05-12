@@ -22,12 +22,19 @@ public class WorkspaceServer extends HttpServlet {
     super.init(config);
   }
 
+
+  public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      ServletUtilities.doOptions(request, response);
+  }
+
+
   /**
    * retrieves a workspace object
    * @requestParameter id identifies the workspace
    * @returns the output of the query described by that workspace (a MediaAsset JSONArray)
    **/
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     JSONObject res;
     try {
       res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
