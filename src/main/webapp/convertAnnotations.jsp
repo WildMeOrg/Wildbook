@@ -46,12 +46,13 @@ q.setOrdering("id");
 Collection allAnn = (Collection) (q.execute());
 
 
+int totalAll = allAnn.size();
 int count = 0;
 int convCount = 0;
 
 for (Object o : allAnn) {
 	Annotation ann = (Annotation)o;
-	System.out.println(count + ":" + convCount + ") " + ann);
+	System.out.println(count + ":" + convCount + ") [" + totalAll + "] " + ann);
 	ArrayList<Feature> feats = ann.getFeatures();
 	int fct = 0;
 	boolean needsMigration = true;
@@ -80,7 +81,7 @@ for (Object o : allAnn) {
 	}
 
 	count++;
-	if (convCount > 3) break;
+	if (convCount > 1000) break;
 }
 
 
