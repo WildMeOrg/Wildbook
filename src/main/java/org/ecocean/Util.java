@@ -357,6 +357,12 @@ public class Util {
         return hashDirectories(in, File.separator);
     }
 
+    public static boolean isIdentityMatrix(float[] m) {
+        if (m == null) return false;
+        if (m.length != 6) return false;
+        if ((m[0] == 1) && (m[1] == 0) && (m[2] == 0) && (m[3] == 1) && (m[4] == 0) && (m[5] == 0)) return false;
+        return true;
+    }
 
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {

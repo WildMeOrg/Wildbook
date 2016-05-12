@@ -44,7 +44,6 @@ import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.ecocean.media.*;
-import org.ecocean.identity.Feature;
 
 
 import javax.servlet.http.HttpServletRequest;
@@ -916,6 +915,12 @@ public class Encounter implements java.io.Serializable {
 
   }
 
+    //this is probably what you wanted above to do.  :/
+    public boolean hasMarkedIndividual() {
+        if ((individualID == null) || individualID.toLowerCase().equals("unassigned")) return false;
+        return true;
+    }
+
   public void assignToMarkedIndividual(String sharky) {
     individualID = sharky;
   }
@@ -1024,7 +1029,7 @@ public class Encounter implements java.io.Serializable {
             ma.addLabel("_original");
             haveMedia.add(ma);
 
-            annotations.add(new Annotation(ma, getTaxonomyString()));
+            annotations.add(new Annotation(getTaxonomyString(), ma));
             //if (!media.contains(ma)) media.add(ma);
             //File idir = new File(this.dir(baseDir));
             File idir = new File(spv.getFullFileSystemPath()).getParentFile();

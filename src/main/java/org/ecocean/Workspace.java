@@ -31,7 +31,6 @@ import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
 
 import org.ecocean.media.*;
-import org.ecocean.identity.Feature;
 
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;

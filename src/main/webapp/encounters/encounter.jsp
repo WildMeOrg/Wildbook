@@ -624,7 +624,7 @@ $(function() {
 
 
     							<%
-    							if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+    							if (!enc.hasMarkedIndividual()) {
   								%>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%>
@@ -699,7 +699,7 @@ $(function() {
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>
 
   									<%
-  									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+  									if(!enc.hasMarkedIndividual()) {
   									%>
 
   									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
@@ -737,7 +737,7 @@ $(function() {
 									<%
   									}
   		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  	  						if((!enc.isAssignedToMarkedIndividual().equals("Unassigned")) && CommonConfiguration.isCatalogEditable(context)) {
+		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
 		  							%>
 									<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
  										<tr>
@@ -771,7 +771,7 @@ $(function() {
 									<br />
 									<%
    									}
-									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
+									if(!enc.hasMarkedIndividual()) {
 									%>
 
 									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">

@@ -26,7 +26,6 @@ import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 //import org.ecocean.Encounter;
-import org.ecocean.identity.Feature;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -387,6 +386,34 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return null;
     }
 
+    //note: default behavior will add this to the features on this MediaAsset -- can pass false to disable
+    //TODO expand to handle things other than images (some day)
+    public Feature generateUnityFeature() {
+        return generateUnityFeature(true);
+    }
+    public Feature generateUnityFeature(boolean addToMediaAsset) {
+        Feature f = new Feature();
+        if (addToMediaAsset) this.addFeature(f);
+        return f;
+    }
+
+    //if unity feature is appropriate, generates that; otherwise does a boundingBox one
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+        Feature f = null;
+        if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
+            JSONObject p = new JSONObject();
+            p.put("width", w);
+            p.put("height", h);
+            p.put("x", x);
+            p.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", p);
+            this.addFeature(f);
+        } else {
+            f = this.generateUnityFeature();
+        }
+        return f;
+    }
+
     public ArrayList<Annotation> findAnnotations(Shepherd myShepherd) {
         String queryString = "SELECT FROM org.ecocean.Annotation WHERE mediaAsset.id == " + this.getId();
         Query query = myShepherd.getPM().newQuery(queryString);
@@ -398,6 +425,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         }
         return anns;
     }
+
 /*
         return annotations;
     }
@@ -587,6 +615,20 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+            ArrayList<Feature> fts = getFeatures();
+            if ((fts != null) && (fts.size() > 0)) {
+                org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
+                for (int i = 0 ; i < fts.size() ; i++) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
+                    Feature ft = fts.get(i);
+                    jf.put("id", ft.getId());
+                    jf.put("type", ft.getType());
+                    JSONObject p = ft.getParameters();
+                    if (p != null) jf.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(p.toString()));
+                    jarr.put(jf);
+                }
+                jobj.put("features", jarr);
+            }
             jobj.put("url", webURLString());
             if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
                 //hactacular, but if it works....
