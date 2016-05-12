@@ -770,7 +770,8 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
     3. do we first clear out existing annotations?
     4. do we allow duplicate (identical) annoations?  if not, do we block that at the level where we attach to encounter? or globally?
     5. do we have to tell IA when we auto-approve (i.e. no user review) results?
-    6.  etc???
+    6. how do (when do) we kick off *identification* on an annotation? and what are the target annotations?
+    7.  etc???
 */
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
                 JSONObject amap = new JSONObject();
