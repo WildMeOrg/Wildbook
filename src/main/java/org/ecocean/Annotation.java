@@ -6,6 +6,7 @@ package org.ecocean;
 */
 
 import org.ecocean.ImageAttributes;
+import org.ecocean.media.Feature;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
 import org.json.JSONObject;
@@ -13,6 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 
@@ -21,6 +23,11 @@ import javax.servlet.http.HttpServletRequest;
 public class Annotation implements java.io.Serializable {
     public Annotation() {}  //empty for jdo
     private String id;  //TODO java.util.UUID ?
+    private String species;
+    private String name;
+    private ArrayList<Feature> features;
+
+////// these will go away after transition to Features
     private int x;
     private int y;
     private int width;
@@ -35,36 +42,28 @@ public class Annotation implements java.io.Serializable {
     //~'annot_semantic_uuid': 'UUID',
     //*'annot_quality': 'INTEGER',
     //~'annot_tags': 'TEXT',
-    private String species;
-    private String name;
-    //private String image_uuid;  //TODO UUID?
 
     private MediaAsset mediaAsset = null;
+////// end of what will go away
 
-    //the "trivial" Annotation - its bounding box is the same as the MediaAsset image
-    public Annotation(MediaAsset ma, String species) {
-        this(ma, species, ma.getImageAttributes());
+
+    //the "trivial" Annotation - will have a single feature which references the total MediaAsset
+    public Annotation(String species, MediaAsset ma) {
+        this(species, ma.generateUnityFeature());
     }
 
-    public Annotation(MediaAsset ma, String species, ImageAttributes iatt) {
-/*
-        if ((ma == null) || (ma.getId() < 1)) {
-            this.id = org.ecocean.Util.generateUUID();
-        } else {
-            this.id = ma.generateUUIDv3((byte)65, (byte)110);  //An____
-        }
-*/
-        this.id = org.ecocean.Util.generateUUID();
-        this.x = (int) iatt.getXOffset();
-        this.y = (int) iatt.getYOffset();
-        this.width = (int) iatt.getWidth();
-        this.height = (int) iatt.getHeight();
-        this.theta = 0.0;  /// TODO ????
+    //single feature convenience constructor
+    public Annotation(String species, Feature f) {
+        this(species, (ArrayList)Arrays.asList(f));
+    }
+
+    public Annotation(String species, ArrayList<Feature> f) {
+        this.id = Util.generateUUID();
         this.species = species;
-        this.mediaAsset = ma;
-        //this.name = this.annot_uuid + " on " + ma.getUUID();
+        this.features = f;
     }
 
+/*
     public Annotation(MediaAsset ma, String species, int x, int y, int w, int h, float[] tm) {
         this.id = org.ecocean.Util.generateUUID();
         this.x = x;
@@ -75,6 +74,40 @@ public class Annotation implements java.io.Serializable {
         this.theta = 0.0;
         this.species = species;
         this.mediaAsset = ma;
+    }
+*/
+
+    //this is for use *only* to migrate old-world Annotations to new-world
+    public Feature migrateToFeatures() {
+        Feature f;
+        if (isTrivial()) { //this gets special "unity" feature, which means the whole thing basically
+            f = new Feature();
+        } else {
+            JSONObject params = new JSONObject();
+            params.put("width", getWidth());
+            params.put("height", getHeight());
+            if (needsTransform()) {
+                params.put("transformMatrix", getTransformMatrix());
+            } else {
+                params.put("x", getX());
+                params.put("y", getY());
+            }
+            f = new Feature("org.ecocean.boundingBox", params);
+        }
+        __getMediaAsset().addFeature(f);
+        addFeature(f);
+        return f;
+    }
+
+    public ArrayList<Feature> getFeatures() {
+        return features;
+    }
+    public void setFeatures(ArrayList<Feature> f) {
+        features = f;
+    }
+    public void addFeature(Feature f) {
+        if (features == null) features = new ArrayList<Feature>();
+        if (!features.contains(f)) features.add(f);
     }
 
     public String getId() {
@@ -126,11 +159,7 @@ public class Annotation implements java.io.Serializable {
 
     //transform is not empty or "useless" (e.g. identity)
     public boolean needsTransform() {
-        if (transformMatrix == null) return false;
-        if (transformMatrix.length != 6) return false;
-        if ((transformMatrix[0] == 1) && (transformMatrix[1] == 0) && (transformMatrix[2] == 0) &&
-            (transformMatrix[3] == 1) && (transformMatrix[4] == 0) && (transformMatrix[5] == 0)) return false;
-        return true;
+        return Util.isIdentityMatrix(transformMatrix);
     }
 
     public float[] getTransformMatrixClean() {
@@ -139,8 +168,9 @@ public class Annotation implements java.io.Serializable {
     }
 
     public boolean isTrivial() {
-        if (mediaAsset == null) return false;
-        return (!needsTransform() && (getWidth() == (int)mediaAsset.getWidth()) && (getHeight() == (int)mediaAsset.getHeight()));
+        MediaAsset ma = this.getMediaAsset();
+        if (ma == null) return false;
+        return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
     public double getTheta() {
@@ -149,12 +179,24 @@ public class Annotation implements java.io.Serializable {
     public void setTheta(double t) {
         theta = t;
     }
-    public MediaAsset getMediaAsset() {
+//FIXME this all needs to be deprecated once deployed sites are migrated
+    public MediaAsset __getMediaAsset() {
         return mediaAsset;
     }
+    //TODO what should we do for multiple features that point to more than one MediaAsset ?
+    public MediaAsset getMediaAsset() {
+        ArrayList<Feature> fts = getFeatures();
+        if ((fts == null) || (fts.size() < 1) || (fts.get(0) == null)) {
+            System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
+            return __getMediaAsset();
+        }
+        return fts.get(0).getMediaAsset();
+    }
+/*  deprecated
     public void setMediaAsset(MediaAsset ma) {
         mediaAsset = ma;
     }
+*/
 
     // get the MediaAsset created using this Annotation  TODO make this happen
     public MediaAsset getDerivedMediaAsset() {
@@ -184,6 +226,7 @@ public class Annotation implements java.io.Serializable {
         name = n;
     }
 
+
     public int[] getBbox() {
         int[] bbox = new int[4];
         bbox[0] = x;
@@ -192,6 +235,7 @@ public class Annotation implements java.io.Serializable {
         bbox[3] = height;
         return bbox;
     }
+
 
 /*  TODO should this use the IBEIS-IA attribute names or what?
     public JSONObject toJSONObject() {
@@ -209,6 +253,7 @@ public class Annotation implements java.io.Serializable {
     }
 */
 
+/*  we no longer make a MediaAsset "from an Annotation", but rather from its associated Feature(s)
     public MediaAsset createMediaAsset() throws IOException {
         if (mediaAsset == null) return null;
         if (this.isTrivial()) return null;  //we shouldnt make a new MA that is identical, right?
@@ -216,15 +261,18 @@ public class Annotation implements java.io.Serializable {
         hmap.put("annotation", this);
         return mediaAsset.updateChild("annotation", hmap);
     }
+*/
 
     public String toString() {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("species", species)
+/*
                 .append("bbox", getBbox())
                 //.append("transform", ((getTransformMatrix == null) ? null : Arrays.toString(getTransformMatrix())))
                 .append("transform", Arrays.toString(getTransformMatrix()))
                 .append("asset", mediaAsset)
+*/
                 .toString();
     }
 
@@ -271,9 +319,11 @@ public class Annotation implements java.io.Serializable {
 
 
 
+/*  deprecated, maybe?
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
         if (mediaAsset == null) return "<!-- Annotation.toHtmlElement(): " + this + " has no MediaAsset -->";
         return mediaAsset.toHtmlElement(request, myShepherd, this);
     }
+*/
 
 }
