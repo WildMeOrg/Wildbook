@@ -696,8 +696,10 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
         if (iaResult == null) return null;
-        return new Annotation(ma, convertSpeciesToString(iaResult.optString("class", null)), iaResult.optInt("xtl", 0), iaResult.optInt("ytl", 0),
-                              iaResult.optInt("width", (int)Math.round(ma.getWidth())), iaResult.optInt("height", (int)Math.round(ma.getHeight())), null);
+        Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
+                                                iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0));
+System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
+        return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
     }
 
     public static String convertSpeciesToString(String iaClassLabel) {
