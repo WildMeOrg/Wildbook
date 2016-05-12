@@ -13,6 +13,7 @@ import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
+import java.util.Date;
 
 import org.ecocean.*;
 
@@ -22,11 +23,9 @@ public class WorkspaceServer extends HttpServlet {
     super.init(config);
   }
 
-
   public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
       ServletUtilities.doOptions(request, response);
   }
-
 
   /**
    * retrieves a workspace object
@@ -41,27 +40,28 @@ public class WorkspaceServer extends HttpServlet {
     } catch (JSONException e) { //datanucleus JSONObject initialization requires explicit error handling
     }
 
-    String getOut = "";
-
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
+    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+
     if (request.getParameter("id")==null) throw new IOException("WorkspaceServer requires an \"id\" argument");
 
+    String id = request.getParameter("id");
+
     try {
-      Workspace wSpace = myShepherd.getWorkspace(request.getParameter("id"));
+      Workspace wSpace = myShepherd.getWorkspaceForUser(id, owner);
+      //Workspace wSpace = myShepherd.getWorkspace(1);
       if (wSpace==null) {
-        throw new IOException("No workspace in DB with id="+request.getParameter("id"));
+        throw new IOException("No workspace in DB with id="+id+" for user "+owner);
       } else {
-        System.out.println("doGet successfully grabbed workspace with id="+wSpace.id+" and queryArg="+wSpace.queryArg);
+        System.out.println("doGet successfully grabbed workspace with id="+wSpace.getID()+" and queryArg="+wSpace.getArgs());
       }
       request.setAttribute("queryAsString", wSpace.queryAsString);
       request.setAttribute("workspaceID", wSpace.id);
       RequestDispatcher rd=request.getRequestDispatcher("TranslateQuery");
       rd.forward(request, response);
-
-
 
     }
     catch (Exception e) {
@@ -88,8 +88,10 @@ public class WorkspaceServer extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-
     PrintWriter out = response.getWriter();
+
+    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+    out.println("owner = "+owner);
 
     try {
 
@@ -98,24 +100,29 @@ public class WorkspaceServer extends HttpServlet {
 
       String id = request.getParameter("id");
       boolean overwrite = (request.getParameter("overwrite")!=null && request.getParameter("overwrite").equalsIgnoreCase("true"));
-      boolean inDB = myShepherd.isWorkspace(id);
 
-      if (inDB && !overwrite) throw new IOException("Workspace with id="+id+" already in database. Include request parameter overwrite=true if you wish to overwrite.");
+      Workspace wSpace = myShepherd.getWorkspaceForUser(id, owner);
+      boolean inDB = (wSpace!=null);
+      out.println("inDB = "+inDB);
+
+      if (inDB && !overwrite) throw new IOException("Workspace with id="+id+" and owner="+owner+" already in database. Include request parameter overwrite=true if you wish to overwrite.");
+
+      if (inDB) {
+        wSpace.setArg(args);
+        wSpace.setModified(new Date());
+        out.println("modifying existing workspace with id="+wSpace.getID()+", name="+wSpace.getName()+", owner="+wSpace.getOwner()+", args="+wSpace.getArgs()+", created="+wSpace.getCreated()+", and modified ="+wSpace.getModified());
+      } else {
+        wSpace = new Workspace(id, owner, args);
+        out.println("initializing new workspace with id="+wSpace.id+", name="+id+", owner="+wSpace.owner+", args="+args.toString()+", and created="+wSpace.created);
+      }
 
       String isStored = "false";
-      Workspace wSpace = (inDB && overwrite) ? myShepherd.getWorkspace(id) : new Workspace(id, args);
-      if (overwrite) wSpace.setArg(args);
-
-      out.println("initializing new workspace with args id="+id+" and args="+args.toString());
-
-      out.println("workspace with id="+id+" already in database? "+inDB);
       if (!inDB) {
         isStored=myShepherd.storeNewWorkspace(wSpace);
       } else {
-        isStored="overwritten";
+        isStored=String.valueOf(overwrite);
       }
       out.println("workspace stored = "+isStored);
-
 
 
     } catch(Exception e) {
@@ -124,20 +131,5 @@ public class WorkspaceServer extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }
-
-
-
   }
-
-  private static JSONObject getArgs (HttpServletRequest request) throws JSONException, IOException {
-    JSONObject args = new JSONObject();
-
-    String className = request.getParameter("className");
-    return args;
-
-
-
-  }
-
-
 }
