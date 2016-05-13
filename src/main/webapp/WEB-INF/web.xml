@@ -1031,6 +1031,12 @@
     <servlet-class>org.ecocean.servlet.WorkspaceServer</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>WorkspacesForUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspacesForUser</servlet-class>
+  </servlet>
+
+
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
 <url-pattern>/api/*</url-pattern>
@@ -1048,6 +1054,12 @@
   <servlet-name>WorkspaceServer</servlet-name>
   <url-pattern>/WorkspaceServer</url-pattern>
 </servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspacesForUser</servlet-name>
+  <url-pattern>/WorkspacesForUser</url-pattern>
+</servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>ImgSyncServlet0</servlet-name>

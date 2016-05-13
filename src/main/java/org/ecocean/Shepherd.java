@@ -342,6 +342,9 @@ public class Shepherd {
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
     String filter = "this.name == \""+name+"\" && this.owner == \""+owner+"\"";
+    if (owner==null) {
+      filter = "this.name == \""+name+"\" && this.owner == null";
+    }
     Extent allWorkspaces = pm.getExtent(Workspace.class, true);
     Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
     Collection results = (Collection) (workspaceQuery.execute());
@@ -351,6 +354,29 @@ public class Shepherd {
     return null;
   }
 
+  // Returns all of a user's workspaces.
+  public ArrayList<Workspace> getWorkspacesForUser(String owner) {
+    String filter = "this.owner == \""+owner+"\"";
+    if (owner==null) {
+      filter = "this.owner == null";
+    }
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    workspaceQuery.setOrdering("accessed descending");
+
+    try {
+      Collection results = (Collection) (workspaceQuery.execute());
+      ArrayList<Workspace> resultList = new ArrayList<Workspace>();
+      if (results!=null) {
+        resultList = new ArrayList<Workspace>(results);
+      }
+      workspaceQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
 
 
   public Relationship getRelationship(String type, String indie1,String indie2) {
