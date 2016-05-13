@@ -85,6 +85,7 @@ public class Workspace implements java.io.Serializable {
     this.queryArg = arg;
     this.queryAsString = this.queryArg.toString();
   }
+  
   public String getArgs() {
     return this.queryAsString;
   }
