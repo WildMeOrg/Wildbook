@@ -59,8 +59,13 @@ public class WorkspaceServer extends HttpServlet {
       } else {
         System.out.println("doGet successfully grabbed workspace with id="+wSpace.getID()+" and queryArg="+wSpace.getArgs());
       }
-      request.setAttribute("queryAsString", wSpace.queryAsString);
-      request.setAttribute("workspaceID", wSpace.id);
+
+      myShepherd.beginDBTransaction();
+      wSpace.setAccessed(new Date());
+      myShepherd.commitDBTransaction();
+
+      request.setAttribute("queryAsString", wSpace.getArgs());
+      request.setAttribute("workspaceID", wSpace.getArgs());
       RequestDispatcher rd=request.getRequestDispatcher("TranslateQuery");
       rd.forward(request, response);
 
