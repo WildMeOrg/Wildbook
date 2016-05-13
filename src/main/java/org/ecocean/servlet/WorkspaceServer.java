@@ -44,7 +44,8 @@ public class WorkspaceServer extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
-    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+    //String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "testUser";
 
     if (request.getParameter("id")==null) throw new IOException("WorkspaceServer requires an \"id\" argument");
 
@@ -90,7 +91,8 @@ public class WorkspaceServer extends HttpServlet {
     Shepherd myShepherd = new Shepherd(context);
     PrintWriter out = response.getWriter();
 
-    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+    //String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : null;
+    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "testUser";
     out.println("owner = "+owner);
 
     try {
