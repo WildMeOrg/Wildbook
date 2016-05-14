@@ -28,6 +28,8 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.format.*;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+
 //import jackcess
 //import com.healthmarketscience.*;
 import com.healthmarketscience.jackcess.*;
@@ -488,30 +490,60 @@ public class DiscoveryImporter {
                 
                 
                 //TAG number
+                if((String)thisFeatureRow.get("Tagnumber")!=null){
+                  String altID="";
+                  if(newWhale.getAlternateID()!=null)altID=newWhale.getAlternateID();
+                  newWhale.setAlternateID(altID+((String)thisRow.get("Tagnumber")).toLowerCase());
+                }
                 
                 
+                
+                if((String)thisFeatureRow.get("Other")!=null){
+                  String otherValue=(String)thisFeatureRow.get("Other");
+                  StringTokenizer strOther=new StringTokenizer(otherValue);
+                  int numTokens=strOther.countTokens();
+                  ArrayList<String> otherTokens=new ArrayList<String>();
+                  while(strOther.hasMoreTokens()){
+                    otherTokens.add(strOther.nextToken());
+                  }
+                  
+                  for(int k=0;k<numTokens;k++){
+                    String tokenValue=otherTokens.get(k);
+                    
+                    //year of birth
+                    if(tokenValue.toLowerCase().trim().equals("born")){
+                      String string_date = otherTokens.get(k+1);
+
+                      SimpleDateFormat f = new SimpleDateFormat("yyyy");
+                      Date d = f.parse(string_date);
+                      long milliseconds = d.getTime();
+                      newWhale.setTimeOfBirth(milliseconds);
+                    }
+                    
+                    
+                    
+                    //carcass dp
+                    if(tokenValue.toLowerCase().trim().equals("carcass")){
+                      newWhale.setDynamicProperty("Carcass", ("Carcass "+otherTokens.get(k+1)));
+                    }
+                    
+                    //set general Other DP as  catch-all
+                    newWhale.setDynamicProperty("Other", otherValue);
+                    
+                    
+                    
+                  }
+                  
+                  
+                }
                 
                 //living status
+                if((String)thisFeatureRow.get("Dead")!=null){
+                  String deadValue=(String)thisFeatureRow.get("Dead");
+                  newWhale.setDynamicProperty("Dead", deadValue);
+                }
                 
-                
-                //Other
-                
-                
-                //Pup1
-                
-                
-                //Pup2
-                
-                
-                
-                //Pup3
-                
-                
-                //Mother
-                
-                
-                
-                
+     
                 
               }
               
@@ -525,12 +557,92 @@ public class DiscoveryImporter {
 				myShepherd.commitDBTransaction();
 				newWhale.refreshDependentProperties(context);
 				myShepherd.addMarkedIndividual(newWhale);
+				
+				myShepherd.beginDBTransaction();
+				//define relationships between animals and set dead on last encounter
+				featuresIter = features.iterator();
+        while(featuresIter.hasNext()){
+              Map<String,Object> thisFeatureRow=featuresIter.next();
+              if((String)thisFeatureRow.get("INDIVIDUAL")!=null){
+                String individualID=(String)thisFeatureRow.get("INDIVIDUAL");
+                if(myShepherd.getMarkedIndividual(individualID)!=null){
+                  
+                  MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
+                  
+                  //Mother
+                  if((String)thisFeatureRow.get("Mother")!=null){
+                      String momValue=((String)thisFeatureRow.get("Mother")).trim();
+                      if(myShepherd.getMarkedIndividual(momValue)!=null){
+                        MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                        myShepherd.getPM().makePersistent(myRel);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
+                        
+                      }
+                      
+                  }
+                    
+                  
+                  //pups
+                  for(int w=1;1<4;w++){
+                    String pupString="Pup"+w;
+                    if((String)thisFeatureRow.get(pupString)!=null){
+                      String pupValue=((String)thisFeatureRow.get(pupString)).trim();
+                      pupValue=pupValue.replaceAll(",", "");
+                      pupValue=pupValue.replaceAll("twins", "");
+                      StringTokenizer strPup=new StringTokenizer(pupValue," ");
+                      int numTokens=strPup.countTokens();
+                      if(numTokens==1){indy.setDynamicProperty(pupString, strPup.nextToken());}
+                      else if(numTokens>1){
+                        
+                        String yearString=strPup.nextToken();
+                        SimpleDateFormat f = new SimpleDateFormat("yyyy");
+                        Date d = f.parse(yearString);
+                        long milliseconds = d.getTime();
+                        while(strPup.hasMoreTokens()){
+                          
+                          String pupName=strPup.nextToken();
+                          if(myShepherd.isMarkedIndividual(pupName)){
+                            MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
+                            puppy.setTimeOfBirth(milliseconds);
+                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
+                            myShepherd.getPM().makePersistent(myRel);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
+                          
+                        }
+                        
+                        
+                        
+                      }
+                    }
+                    
+                  }
+                  
+                }
+               
+                
+              }
+              
+              
+        }
+        
+        
+        
+        
+				myShepherd.commitDBTransaction();
+				
 
 			}
 		}
 		catch(Exception e){
 			e.printStackTrace();
 			myShepherd.rollbackDBTransaction();
+		}
+		finally{
+		  myShepherd.closeDBTransaction();
 		}
 		
 		
