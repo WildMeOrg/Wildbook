@@ -14,8 +14,7 @@ import org.ecocean.Util;
 import org.ecocean.Keyword;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.genetics.*;
-import org.ecocean.media.AssetStore;
-import org.ecocean.media.MediaAsset;
+import org.ecocean.media.*;
 
 //import basic IO
 import java.io.*;
@@ -63,21 +62,34 @@ public class DiscoveryImporter {
 		
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		String rootDir="C:/apache-tomcat-8.0.24/webapps";
-		String encountersDirPath="C:/apache-tomcat-8.0.24/webapps/wildbook_data_dir/encounters";
+		String assetStorePath=rootDir+"/wildbook_data_dir/assets";
+		String rootURL="http://www.flukebook.org";
+		String encountersDirPath=assetStorePath+"/encounters";
 		String splashImagesDirPath="C:/Users/jholmber/Dropbox/RingedSeal/DISCOVERY_DATA";
-		String urlToThumbnailJSPPage="http://www..flukebook.org/resetThumbnail.jsp";
-		String baseDir="C:/apache-tomcat-8.0.24/webapps/wildbook_data_dir";
+		String urlToThumbnailJSPPage=rootURL+"/resetThumbnail.jsp";
 		String importDate="2016-05-13";
+		String assetStoreURL=rootURL+"/wildbook_data_dir";
+		
 
+		//Shepherd
+	//let's get our Shepherd Project structures built
+    Shepherd myShepherd = new Shepherd(context);
+		
 
+		//AssetSyore work
+		////////////////begin local //////////////
+    myShepherd.beginDBTransaction();
+		LocalAssetStore as = new LocalAssetStore("WWFSeals-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+		myShepherd.getPM().makePersistent(as);
+		myShepherd.commitDBTransaction();
+////////////////end local //////////////
 		
 		
 		//an arraylist for later thumbnail generation
 		ArrayList<String> thumbnailThese=new ArrayList<String>();
 		ArrayList<String> thumbnailTheseImages=new ArrayList<String>();
 		
-		//let's get our Shepherd Project structures built
-		Shepherd myShepherd = new Shepherd(context);
+		
 		
     //set up our media objects
     AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -105,7 +117,7 @@ public class DiscoveryImporter {
           Map<String,Object> thisRow=tIdentificationsIterator.next();
 
             numMatchingIdentifications++;
-            processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, urlToThumbnailJSPPage,images, features,context,baseDir,astore,importDate );
+            processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, urlToThumbnailJSPPage,images, features,context,assetStorePath,importDate );
             
             
       
@@ -178,7 +190,6 @@ public class DiscoveryImporter {
 									   Table features,
 									   String context,
 									   String baseDir,
-									   AssetStore astore,
 					            String importDate
 									   ){
 		
@@ -352,7 +363,7 @@ public class DiscoveryImporter {
           //check if file exists
           if(thisFile.exists()){
             
-            
+            /*
             //copy it
             //File encountersRootDirPathLocalFile=new File(encountersRootDirPath+"/"+IDKey);
             File outputFile = new File(encDir,imageName);
@@ -371,22 +382,17 @@ public class DiscoveryImporter {
                     bis.close();
               System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
   
-              System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
-  
-              
-              System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
-  
-              
-  
             }
             catch(IOException ioe){
               System.out.println("IOException on file transfer for: "+imageName);
               ioe.printStackTrace();
             }
             }
+            */
             
             //now add it to the encounter
-            //SinglePhotoVideo vid=new SinglePhotoVideo(enc.getCatalogNumber(),imageName, (encDir+"/"+imageName));
+            myShepherd.beginDBTransaction();
+            AssetStore astore = AssetStore.getDefault(myShepherd);
             JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + thisFile.getName()));
             sp.put("key", Util.hashDirectories(enc.getCatalogNumber()) + "/" +  thisFile.getName());
             MediaAsset ma = new MediaAsset(astore, sp);
@@ -395,23 +401,43 @@ public class DiscoveryImporter {
             if (!tmpDir.exists()) tmpDir.mkdirs();
             System.out.println("attempting to write uploaded file to " + tmpFile);
             try {
-              if (tmpFile.exists()) {
+              
+              //copy in the file to the MA location if it does not yet exist
+              if(!tmpFile.exists()){
+                try{
+      
+                      BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
+                      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile), 4096);
+                           int theChar;
+                           while ((theChar = bis.read()) != -1) {
+                              bos.write(theChar);
+                           }
+                        bos.close();
+                        bis.close();
+                  System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
+      
+                }
+                catch(IOException ioe){
+                  System.out.println("IOException on file transfer for: "+imageName);
+                  ioe.printStackTrace();
+                }
+             }
+              
+              
+              //if (tmpFile.exists()) {
                 ma.addLabel("_original");
                 ma.copyIn(tmpFile);
                 ma.updateMetadata();
                 newAnnotations.add(new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet())));
-            } 
+              //} 
+                myShepherd.commitDBTransaction();
             } 
             catch (Exception ex) {
+              myShepherd.rollbackDBTransaction();
+                ex.printStackTrace();
                 System.out.println("Could not write " + tmpFile + ": " + ex.toString());
             }
 
-            
-            
-            
-  
-   
-            
           } 
           
           enc.setAnnotations(newAnnotations);
@@ -470,24 +496,24 @@ public class DiscoveryImporter {
 
             //now check for the markedindividual
             if(thisFeatureRow.get("INDIVIDUAL")!=null){
-              String featureIndividualName=((Integer)thisRow.get("INDIVIDUAL")).toString().trim();
+              String featureIndividualName=((String)thisRow.get("INDIVIDUAL")).toString().trim();
               if(featureIndividualName.equals(markedIndividualName)){
-                
+                System.out.println("Found a matching MarkedIndividual name!");
                 //we have a match and can assign our indy some additional attributes
-                if((String)thisFeatureRow.get("Sex")!=null){
-                  newWhale.setSex(((String)thisRow.get("Sex")).toLowerCase());
+                if(thisFeatureRow.get("Sex")!=null){
+                  newWhale.setSex(((String)thisFeatureRow.get("Sex")).toLowerCase());
                 }
                 
                 if((String)thisFeatureRow.get("Name")!=null){
-                  newWhale.setNickName((String)thisRow.get("Name"));
+                  newWhale.setNickName((String)thisFeatureRow.get("Name"));
                 }
                 
                 if((String)thisFeatureRow.get("Additional code")!=null){
-                  newWhale.setAlternateID((String)thisRow.get("Additional code"));
+                  newWhale.setAlternateID((String)thisFeatureRow.get("Additional code"));
                 }
                 
                 if((String)thisFeatureRow.get("Age")!=null){
-                  enc.setLifeStage(((String)thisRow.get("Age")).toLowerCase());
+                  enc.setLifeStage(((String)thisFeatureRow.get("Age")).toLowerCase());
                 }
                 
                 
@@ -495,14 +521,14 @@ public class DiscoveryImporter {
                 if((String)thisFeatureRow.get("Tagnumber")!=null){
                   String altID="";
                   if(newWhale.getAlternateID()!=null)altID=newWhale.getAlternateID();
-                  newWhale.setAlternateID(altID+((String)thisRow.get("Tagnumber")).toLowerCase());
+                  newWhale.setAlternateID(altID+((String)thisFeatureRow.get("Tagnumber")).toLowerCase());
                 }
                 
                 
-                
-                if((String)thisFeatureRow.get("Other")!=null){
-                  String otherValue=(String)thisFeatureRow.get("Other");
-                  StringTokenizer strOther=new StringTokenizer(otherValue);
+               
+                if((thisFeatureRow.get("Other")!=null)&& (!((String)thisFeatureRow.get("Other")).trim().equals("")) ){
+                  String otherValue=((String)thisFeatureRow.get("Other")).trim().replaceAll(",", "").replaceAll(";", "");
+                  StringTokenizer strOther=new StringTokenizer(otherValue," ");
                   int numTokens=strOther.countTokens();
                   ArrayList<String> otherTokens=new ArrayList<String>();
                   while(strOther.hasMoreTokens()){
@@ -683,6 +709,7 @@ public static String getExactFileName(File f) {
       returnVal.substring(returnVal.lastIndexOf(File.separator)+1);
   }
   catch(IOException e) {
+    e.printStackTrace();
     returnVal = "";
   }
   return returnVal;
