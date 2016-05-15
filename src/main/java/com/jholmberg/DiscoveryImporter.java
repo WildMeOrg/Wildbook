@@ -191,17 +191,19 @@ public class DiscoveryImporter {
 		//create the encounter
 		String markedIndividualName=null;
 		if(thisRow.get("INDIVIDUAL")!=null){
-		  markedIndividualName=((Integer)thisRow.get("INDIVIDUAL")).toString().trim();
+		  markedIndividualName=((String)thisRow.get("INDIVIDUAL")).trim();
 	    
 		}
 		Encounter enc=new Encounter();
 		
 	//set encounter number
-    String IDKey=((Integer)thisRow.get("PKEY")).toString().trim();
+    String IDKey=((Integer)thisRow.get("PKey")).toString().trim();
     
         //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
 
     enc.setCatalogNumber(IDKey);
+    
+    
     File encDir = new File(enc.dir(baseDir));
     //File encsDir=new File(encountersRootDirPath);
     //File encDir=new File(encsDir, IDKey);
@@ -235,13 +237,13 @@ public class DiscoveryImporter {
     
     String location=null;
     if(thisRow.get("LOCATION")!=null){
-      location=((Integer)thisRow.get("LOCATION")).toString().trim();
+      location=((String)thisRow.get("LOCATION")).trim();
       enc.setLocation(location);
     }
 		
     String locationID=null;
     if(thisRow.get("STUDY_SITE")!=null){
-      locationID=((Integer)thisRow.get("STUDY_SITE")).toString().trim();
+      locationID=((String)thisRow.get("STUDY_SITE")).trim();
       enc.setLocationID(locationID);
     }
 
@@ -252,8 +254,8 @@ public class DiscoveryImporter {
 			enc.setDynamicProperty("PublicView",(String)thisRow.get("Can be shown in public view"));
 		}
 		
-		if((String)thisRow.get("TYPE_SPECIMEN")!=null){
-			enc.setDynamicProperty("TYPE_SPECIMEN",(String)thisRow.get("TYPE_SPECIMEN"));
+		if((Boolean)thisRow.get("TYPE_SPECIMEN")!=null){
+			enc.setDynamicProperty("TYPE_SPECIMEN",((Boolean)thisRow.get("TYPE_SPECIMEN")).toString());
 		}
 		
 		enc.setComments("");
@@ -301,10 +303,10 @@ public class DiscoveryImporter {
 		enc.setInformOthers("");
 
 		if((Object)thisRow.get("DATE")!=null){
-			String originalDate=((Object)thisRow.get("DATE")).toString().replaceAll(" EDT", "").replaceAll(" EST", "").replaceAll(" UTC", "");
+			String originalDate=((Object)thisRow.get("DATE")).toString();
 			//System.out.println("     "+originalDate);
 			
-			DateTimeFormatter splashFMT = DateTimeFormat.forPattern("MM/dd/yyyy");
+			DateTimeFormatter splashFMT = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss zzz yyyy");
 			DateTime dt = splashFMT.parseDateTime(originalDate);
 			enc.setDay(dt.getDayOfMonth());
 			enc.setMonth(dt.getMonthOfYear());
