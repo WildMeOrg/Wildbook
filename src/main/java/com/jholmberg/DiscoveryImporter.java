@@ -118,9 +118,79 @@ public class DiscoveryImporter {
 
             numMatchingIdentifications++;
             processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, urlToThumbnailJSPPage,images, features,context,assetStorePath,importDate );
-            
-            
       
+        }
+        
+        myShepherd.beginDBTransaction();
+        //define relationships between animals and set dead on last encounter
+        Iterator<Map<String,Object>> featuresIter2 = features.iterator();
+        System.out.println("....starting relationship logic.");
+        while(featuresIter2.hasNext()){
+              Map<String,Object> thisFeatureRow=featuresIter2.next();
+              if((String)thisFeatureRow.get("INDIVIDUAL")!=null){
+                String individualID=(String)thisFeatureRow.get("INDIVIDUAL");
+                if(myShepherd.getMarkedIndividual(individualID)!=null){
+                  
+                  MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
+                  
+                  //Mother
+                  if((String)thisFeatureRow.get("Mother")!=null){
+                      String momValue=((String)thisFeatureRow.get("Mother")).trim();
+                      if(myShepherd.getMarkedIndividual(momValue)!=null){
+                        MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                        myShepherd.getPM().makePersistent(myRel);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
+                        
+                      }
+                      
+                  }
+                    
+                  
+                  //pups
+                  for(int w=1;1<4;w++){
+                    String pupString="Pup"+w;
+                    if((String)thisFeatureRow.get(pupString)!=null){
+                      String pupValue=((String)thisFeatureRow.get(pupString)).trim();
+                      pupValue=pupValue.replaceAll(",", "");
+                      pupValue=pupValue.replaceAll("twins", "");
+                      StringTokenizer strPup=new StringTokenizer(pupValue," ");
+                      int numTokens=strPup.countTokens();
+                      if(numTokens==1){indy.setDynamicProperty(pupString, strPup.nextToken());}
+                      else if(numTokens>1){
+                        
+                        String yearString=strPup.nextToken();
+                        SimpleDateFormat f = new SimpleDateFormat("yyyy");
+                        Date d = f.parse(yearString);
+                        long milliseconds = d.getTime();
+                        while(strPup.hasMoreTokens()){
+                          
+                          String pupName=strPup.nextToken();
+                          if(myShepherd.isMarkedIndividual(pupName)){
+                            MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
+                            puppy.setTimeOfBirth(milliseconds);
+                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
+                            myShepherd.getPM().makePersistent(myRel);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
+                          
+                        }
+                        
+                        
+                        
+                      }
+                    }
+                    
+                  }
+                  
+                }
+               
+                
+              }
+              
+              
         }
 
 		}
@@ -346,6 +416,8 @@ public class DiscoveryImporter {
 		
 		if((thisRow.get("FILENAME")!=null)&&(thisRow.get("FILENAME")!=null)&&(((Object)thisRow.get("FILENAME")).toString().trim().equals(((Object)thisRow.get("FILENAME")).toString().trim()))){
       
+		  System.out.println("Starting image processing...");
+		  
         String imageName=((Object)thisRow.get("FILENAME")).toString().trim(); 
         File parentDir=new File(splashImagesDirPath+"/"+enc.getIndividualID());
         File thisFile = new File(parentDir,imageName);  
@@ -446,6 +518,7 @@ public class DiscoveryImporter {
 				
 		
 		enc.setDynamicProperty("ImportDate", importDate);
+		System.out.println("Finished importDate.");
 		
 		
 		//let's persist the encounter
@@ -465,9 +538,11 @@ public class DiscoveryImporter {
 		//START MARKED INDIVIDUAL LOGIC
 		
 		//let's check if the MarkedIndividual exists and create it if not
+		System.out.println("Starting indy logic for: "+markedIndividualName);
 		myShepherd.beginDBTransaction();
 		try{
 			if(myShepherd.isMarkedIndividual(markedIndividualName)){
+			  System.out.println(markedIndividualName+" is already a marked individual.");
 				MarkedIndividual markie=myShepherd.getMarkedIndividual(markedIndividualName);
 				enc.setSex(markie.getSex());
 				markie.addComments("<p>Added encounter "+enc.getCatalogNumber()+".</p>");
@@ -480,6 +555,7 @@ public class DiscoveryImporter {
 			}
 			else{
 			
+			  System.out.println("...is a new marked individual.");
 				MarkedIndividual newWhale=new MarkedIndividual(markedIndividualName, enc);
 
 				
@@ -496,24 +572,33 @@ public class DiscoveryImporter {
 
             //now check for the markedindividual
             if(thisFeatureRow.get("INDIVIDUAL")!=null){
-              String featureIndividualName=((String)thisRow.get("INDIVIDUAL")).toString().trim();
+              String featureIndividualName=((String)thisFeatureRow.get("INDIVIDUAL")).toString().trim();
               if(featureIndividualName.equals(markedIndividualName)){
                 System.out.println("Found a matching MarkedIndividual name!");
                 //we have a match and can assign our indy some additional attributes
                 if(thisFeatureRow.get("Sex")!=null){
-                  newWhale.setSex(((String)thisFeatureRow.get("Sex")).toLowerCase());
+                  String thisSex=((String)thisFeatureRow.get("Sex")).toLowerCase();
+                  newWhale.setSex(thisSex);
+                  System.out.println("...set indy sex: "+thisSex);
                 }
                 
                 if((String)thisFeatureRow.get("Name")!=null){
-                  newWhale.setNickName((String)thisFeatureRow.get("Name"));
+                  String thisNickname=(String)thisFeatureRow.get("Name");
+                  newWhale.setNickName(thisNickname);
+                  
+                  System.out.println("...set indy nickname: "+thisNickname);
                 }
                 
                 if((String)thisFeatureRow.get("Additional code")!=null){
-                  newWhale.setAlternateID((String)thisFeatureRow.get("Additional code"));
+                  String addCode=(String)thisFeatureRow.get("Additional code");
+                  newWhale.setAlternateID(addCode);
+                  System.out.println("...set additional code: "+addCode);
                 }
                 
                 if((String)thisFeatureRow.get("Age")!=null){
-                  enc.setLifeStage(((String)thisFeatureRow.get("Age")).toLowerCase());
+                  String lifer=((String)thisFeatureRow.get("Age")).toLowerCase();
+                  enc.setLifeStage(lifer);
+                  System.out.println("...set additional code: "+lifer);
                 }
                 
                 
@@ -522,6 +607,7 @@ public class DiscoveryImporter {
                   String altID="";
                   if(newWhale.getAlternateID()!=null)altID=newWhale.getAlternateID();
                   newWhale.setAlternateID(altID+((String)thisFeatureRow.get("Tagnumber")).toLowerCase());
+                  System.out.println("...set alternateID: "+altID);
                 }
                 
                 
@@ -557,7 +643,7 @@ public class DiscoveryImporter {
                     
                     //set general Other DP as  catch-all
                     newWhale.setDynamicProperty("Other", otherValue);
-                    
+                    System.out.println("...set Other value: "+otherValue);
                     
                     
                   }
@@ -569,6 +655,7 @@ public class DiscoveryImporter {
                 if((String)thisFeatureRow.get("Dead")!=null){
                   String deadValue=(String)thisFeatureRow.get("Dead");
                   newWhale.setDynamicProperty("Dead", deadValue);
+                  System.out.println("...set dead value: "+deadValue);
                 }
                 
      
@@ -585,82 +672,9 @@ public class DiscoveryImporter {
 				myShepherd.commitDBTransaction();
 				newWhale.refreshDependentProperties(context);
 				myShepherd.addMarkedIndividual(newWhale);
+				System.out.println("New indy "+markedIndividualName+" was successfully stored.");
 				
-				myShepherd.beginDBTransaction();
-				//define relationships between animals and set dead on last encounter
-				featuresIter = features.iterator();
-        while(featuresIter.hasNext()){
-              Map<String,Object> thisFeatureRow=featuresIter.next();
-              if((String)thisFeatureRow.get("INDIVIDUAL")!=null){
-                String individualID=(String)thisFeatureRow.get("INDIVIDUAL");
-                if(myShepherd.getMarkedIndividual(individualID)!=null){
-                  
-                  MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
-                  
-                  //Mother
-                  if((String)thisFeatureRow.get("Mother")!=null){
-                      String momValue=((String)thisFeatureRow.get("Mother")).trim();
-                      if(myShepherd.getMarkedIndividual(momValue)!=null){
-                        MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
-                        myShepherd.getPM().makePersistent(myRel);
-                        myShepherd.commitDBTransaction();
-                        myShepherd.beginDBTransaction();
-                        
-                      }
-                      
-                  }
-                    
-                  
-                  //pups
-                  for(int w=1;1<4;w++){
-                    String pupString="Pup"+w;
-                    if((String)thisFeatureRow.get(pupString)!=null){
-                      String pupValue=((String)thisFeatureRow.get(pupString)).trim();
-                      pupValue=pupValue.replaceAll(",", "");
-                      pupValue=pupValue.replaceAll("twins", "");
-                      StringTokenizer strPup=new StringTokenizer(pupValue," ");
-                      int numTokens=strPup.countTokens();
-                      if(numTokens==1){indy.setDynamicProperty(pupString, strPup.nextToken());}
-                      else if(numTokens>1){
-                        
-                        String yearString=strPup.nextToken();
-                        SimpleDateFormat f = new SimpleDateFormat("yyyy");
-                        Date d = f.parse(yearString);
-                        long milliseconds = d.getTime();
-                        while(strPup.hasMoreTokens()){
-                          
-                          String pupName=strPup.nextToken();
-                          if(myShepherd.isMarkedIndividual(pupName)){
-                            MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
-                            puppy.setTimeOfBirth(milliseconds);
-                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
-                            myShepherd.getPM().makePersistent(myRel);
-                            myShepherd.commitDBTransaction();
-                            myShepherd.beginDBTransaction();
-                          }
-                          
-                        }
-                        
-                        
-                        
-                      }
-                    }
-                    
-                  }
-                  
-                }
-               
-                
-              }
-              
-              
-        }
-        
-        
-        
-        
-				myShepherd.commitDBTransaction();
+		
 				
 
 			}
@@ -683,21 +697,7 @@ public class DiscoveryImporter {
 	
 	
 	
-private static Locus getLocus(String locusName, Map<String,Object> thisMarkerRow){
-	System.out.println("     ***!!!***lOOKING FOR "+locusName+"-1 and "+locusName+"-2.");
-	
-	Integer position1=0;
-	Integer position2 =0; 	
-	if((thisMarkerRow.get(locusName+"-1")!=null)&&(thisMarkerRow.get(locusName+"-2")!=null)){
-		
-		position1= ((Double)thisMarkerRow.get(locusName+"-1")).intValue();
-		position2= ((Double)thisMarkerRow.get(locusName+"-2")).intValue();	
-	}
-	System.out.println("     ***!!!***position 1 is: "+position1+" and position2 is: "+position2);
-	Locus l=new Locus(locusName,position1,position2);
-	System.out.println("     ***!!!***Locus details: "+l.getHTMLString());
-	return l;
-}
+
 
 	
 
