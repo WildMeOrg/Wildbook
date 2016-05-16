@@ -29,6 +29,9 @@ public class WBQuery implements java.io.Serializable {
     protected int range;
     protected int minRange;
 
+    // query ordering arg
+    protected String ordering;
+
     protected String jdoQuery;
 
     public WBQuery() {
@@ -45,6 +48,8 @@ public class WBQuery implements java.io.Serializable {
         this.minRange = params.optInt("minRange", 0);
         this.range = params.optInt("range", 100);
 
+        this.ordering = params.optString("ordering", WBQuery.defaultSortOrdering(this.className));
+
         if (this.parameters==null) this.parameters = new JSONObject();
 
 
@@ -58,6 +63,22 @@ public class WBQuery implements java.io.Serializable {
 
     public WBQuery(final JSONObject params, final AccessControl owner) throws org.datanucleus.api.rest.orgjson.JSONException {
         this(-1, params, owner);
+    }
+
+    private static String defaultSortOrdering(String className) {
+      switch (className) {
+        case "org.ecocean.Encounter" : return "catalogNumber descending";
+
+        case "org.ecocean.Annotation" : return "id descending";
+
+        case "org.ecocean.media.MediaAsset" : return "id descending";
+
+        case "org.ecocean.media.MediaAssetSet" : return "id descending";
+
+        case "org.ecocean.MarkedIndividual" : return "individualID descending";
+
+        default : return "";
+      }
     }
 
     public JSONObject getParameters() {
@@ -172,8 +193,10 @@ public class WBQuery implements java.io.Serializable {
     }
 
     //TODO
-    public void querySetOrdering(Query query) {
-        //query.setOrdering("id DESC");
+    private void querySetOrdering(Query query) {
+      if ( this.ordering!=null && !this.ordering.equals("")) {
+        query.setOrdering(this.ordering);
+      }
     }
 
     public long setRevision() {
