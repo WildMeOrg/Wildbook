@@ -85,6 +85,7 @@ public class TranslateQuery extends HttpServlet {
     try {
 
       JSONObject json;
+      // handling of both access protocols here: attributes come passed in from WorkspaceServer, and parameters come from a direct user call of this servlet
       String queryFromWorkspace = (String) request.getAttribute("queryAsString");
       // this if/else deals with 1) handovers from the WorkspaceServer servlet, and 2) manually submitted args (from UI)
       if (queryFromWorkspace != null) {
@@ -93,6 +94,9 @@ public class TranslateQuery extends HttpServlet {
       } else {
         json = Util.requestParamsToJSON(request);
       }
+
+      // attempt to return the query's text
+      resultMetadata.put("TranslateQueryArgs", json);
 
 
       System.out.println("Starting TranslateQuery with request-as-JSON= "+json.toString());
