@@ -126,8 +126,8 @@ public class WBQuery implements java.io.Serializable {
             // TODO: double-check that this is the best way to do datestuff
             queryDeclareImports(query);
 
-            querySetRange(query);
             querySetOrdering(query);
+            querySetRange(query);
 
 
 
