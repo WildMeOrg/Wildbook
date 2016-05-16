@@ -164,7 +164,7 @@ public class TranslateQuery extends HttpServlet {
 
       org.datanucleus.api.rest.orgjson.JSONObject fullResults = new org.datanucleus.api.rest.orgjson.JSONObject();
       fullResults.put("assets", resultArray);
-      fullResults.put("queryMetadata", resultMetadata);
+      fullResults.put("metadata", resultMetadata);
       out.print(fullResults.toString());
 
     }
