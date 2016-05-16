@@ -63,12 +63,12 @@ public class DiscoveryImporter {
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		String rootDir="C:/apache-tomcat-8.0.24/webapps";
 		String assetStorePath=rootDir+"/wildbook_data_dir/assets";
-		String rootURL="http://www.flukebook.org";
+		String rootURL="http://localhost:8080";
 		String encountersDirPath=assetStorePath+"/encounters";
 		String splashImagesDirPath="C:/Users/jholmber/Dropbox/RingedSeal/DISCOVERY_DATA";
-		String urlToThumbnailJSPPage=rootURL+"/resetThumbnail.jsp";
+		String urlToThumbnailJSPPage=rootURL+"wildbook/resetThumbnail.jsp";
 		String importDate="2016-05-13";
-		String assetStoreURL=rootURL+"/wildbook_data_dir";
+		String assetStoreURL=rootURL+"/wildbook_data_dir/assets";
 		
 
 		//Shepherd
@@ -127,31 +127,48 @@ public class DiscoveryImporter {
         System.out.println("....starting relationship logic.");
         while(featuresIter2.hasNext()){
               Map<String,Object> thisFeatureRow=featuresIter2.next();
-              if((String)thisFeatureRow.get("INDIVIDUAL")!=null){
+              if(thisFeatureRow.get("INDIVIDUAL")!=null){
                 String individualID=(String)thisFeatureRow.get("INDIVIDUAL");
+                System.out.println("...looking for: "+individualID);
                 if(myShepherd.getMarkedIndividual(individualID)!=null){
-                  
+                  System.out.println("......in the row for: "+individualID);
                   MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
                   
                   //Mother
                   if((String)thisFeatureRow.get("Mother")!=null){
+                   
                       String momValue=((String)thisFeatureRow.get("Mother")).trim();
+                      System.out.println("......has mother: "+momValue);
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
+                        
+                        
+                        System.out.println("......referencing by individualID.");
                         MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
                         org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                         
+                        
+                        
+                      }
+                      else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
+                        System.out.println("......referencing by nickname.");
+                        MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                        myShepherd.getPM().makePersistent(myRel);
+                        myShepherd.commitDBTransaction();
+                        myShepherd.beginDBTransaction();
                       }
                       
                   }
-                    
+                  System.out.println("......DONE with mother logic!!!!");  
                   
                   //pups
-                  for(int w=1;1<4;w++){
+                  for(int w=1;w<4;w++){
                     String pupString="Pup"+w;
-                    if((String)thisFeatureRow.get(pupString)!=null){
+                    System.out.println("......lookoing at "+pupString); 
+                    if(thisFeatureRow.get(pupString)!=null){
                       String pupValue=((String)thisFeatureRow.get(pupString)).trim();
                       pupValue=pupValue.replaceAll(",", "");
                       pupValue=pupValue.replaceAll("twins", "");
@@ -168,7 +185,16 @@ public class DiscoveryImporter {
                           
                           String pupName=strPup.nextToken();
                           if(myShepherd.isMarkedIndividual(pupName)){
+                            
                             MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
+                            puppy.setTimeOfBirth(milliseconds);
+                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
+                            myShepherd.getPM().makePersistent(myRel);
+                            myShepherd.commitDBTransaction();
+                            myShepherd.beginDBTransaction();
+                          }
+                          else if(myShepherd.getMarkedIndividualsByNickname(pupName).size()>0){
+                            MarkedIndividual puppy=myShepherd.getMarkedIndividualsByNickname(pupName).get(0);
                             puppy.setTimeOfBirth(milliseconds);
                             org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
                             myShepherd.getPM().makePersistent(myRel);
