@@ -4,16 +4,12 @@
 package com.jholmberg;
 
 import org.ecocean.Annotation;
-import org.ecocean.CommonConfiguration;
 //import the Shepherd Project Framework
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
 import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
 import org.ecocean.Util;
-import org.ecocean.Keyword;
 import org.ecocean.servlet.ServletUtilities;
-import org.ecocean.genetics.*;
 import org.ecocean.media.*;
 
 //import basic IO
@@ -135,16 +131,19 @@ public class DiscoveryImporter {
                   MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
                   
                   //Mother
-                  if((String)thisFeatureRow.get("Mother")!=null){
+                  if(thisFeatureRow.get("Mother")!=null){
                    
                       String momValue=((String)thisFeatureRow.get("Mother")).trim();
+                      if(momValue.indexOf(" ")!=-1){momValue=momValue.substring(momValue.indexOf(" ")).trim();}
+                      
+                      
                       System.out.println("......has mother: "+momValue);
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
                         
                         
                         System.out.println("......referencing by individualID.");
                         MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
@@ -155,7 +154,7 @@ public class DiscoveryImporter {
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing by nickname.");
                         MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
@@ -184,20 +183,34 @@ public class DiscoveryImporter {
                         while(strPup.hasMoreTokens()){
                           
                           String pupName=strPup.nextToken();
+                          
                           if(myShepherd.isMarkedIndividual(pupName)){
                             
                             MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
+                            
+                            if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
+                              org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,puppy.getIndividualID(),"mother","pup");
+                              myShepherd.getPM().makePersistent(myRel);
+                              myShepherd.commitDBTransaction();
+                              myShepherd.beginDBTransaction();
+                            }
+                            
                             puppy.setTimeOfBirth(milliseconds);
-                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
-                            myShepherd.getPM().makePersistent(myRel);
+                            
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
                           else if(myShepherd.getMarkedIndividualsByNickname(pupName).size()>0){
                             MarkedIndividual puppy=myShepherd.getMarkedIndividualsByNickname(pupName).get(0);
+                            
+                            if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
+                              org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,puppy.getIndividualID(),"mother","pup");
+                              myShepherd.getPM().makePersistent(myRel);
+                              myShepherd.commitDBTransaction();
+                              myShepherd.beginDBTransaction();
+                            }
                             puppy.setTimeOfBirth(milliseconds);
-                            org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,pupName,"mother","pup");
-                            myShepherd.getPM().makePersistent(myRel);
+                            
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
@@ -295,13 +308,17 @@ public class DiscoveryImporter {
 	  
     ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
 		
-		//create the encounter
+  //create the encounter
+    Encounter enc=new Encounter();
+    
+    
+		//parse out MarkedIndividual data
 		String markedIndividualName=null;
 		if(thisRow.get("INDIVIDUAL")!=null){
 		  markedIndividualName=((String)thisRow.get("INDIVIDUAL")).trim();
-	    
+	    enc.setIndividualID(markedIndividualName);
 		}
-		Encounter enc=new Encounter();
+		
 		
 	//set encounter number
     String IDKey=((Integer)thisRow.get("PKey")).toString().trim();
@@ -395,6 +412,7 @@ public class DiscoveryImporter {
 		enc.setState("approved");
 		
 		//submitter
+		enc.setSubmitterName("WWF Finland");
 		enc.setSubmitterEmail("");
 		enc.setSubmitterPhone("");
 		enc.setSubmitterAddress("");
@@ -419,6 +437,7 @@ public class DiscoveryImporter {
 			enc.setMonth(dt.getMonthOfYear());
 			enc.setYear(dt.getYear());
 			enc.resetDateInMilliseconds();
+			System.out.println("...Date is: "+enc.getDate());
 		}
 		
     if((Object)thisRow.get("TIME")!=null){
@@ -432,6 +451,7 @@ public class DiscoveryImporter {
       enc.setHour(hour);
       enc.setMinutes(str.nextToken());
       enc.resetDateInMilliseconds();
+      System.out.println("...Date is: "+enc.getDate());
     }
 
 		
@@ -549,6 +569,8 @@ public class DiscoveryImporter {
 		
 		//let's persist the encounter
 		enc.resetDateInMilliseconds();
+		
+		enc.setState("approved");
 
 		if(exists){
 		  myShepherd.beginDBTransaction();
@@ -573,7 +595,7 @@ public class DiscoveryImporter {
 				enc.setSex(markie.getSex());
 				markie.addComments("<p>Added encounter "+enc.getCatalogNumber()+".</p>");
 
-
+				enc.setMatchedBy("Visual inspection");
 				markie.addEncounter(enc, context);
 				markie.refreshDependentProperties(context);
 				myShepherd.commitDBTransaction();
@@ -695,8 +717,9 @@ public class DiscoveryImporter {
 				
 				
 				enc.addComments("<p>Added to newly marked individual "+markedIndividualName+" by the SplashMigratorApp.</p>");
-				myShepherd.commitDBTransaction();
 				newWhale.refreshDependentProperties(context);
+				myShepherd.commitDBTransaction();
+				
 				myShepherd.addMarkedIndividual(newWhale);
 				System.out.println("New indy "+markedIndividualName+" was successfully stored.");
 				
