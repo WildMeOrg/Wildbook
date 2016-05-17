@@ -103,6 +103,9 @@ public class WBQuery implements java.io.Serializable {
       List<Object> out;
       Query query = toQuery(myShepherd);
       out = (List<Object>) query.execute();
+
+      System.out.println("calling doQuery on WBQuery with params = "+parametersAsString);
+
       // closing the query for some reason makes out inaccessible
       //query.closeAll();
       return out;
