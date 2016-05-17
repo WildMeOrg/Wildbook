@@ -75,7 +75,7 @@ try {
 catch(Exception e){e.printStackTrace();}
 finally{
 	imageShepherd.rollbackDBTransaction();
-	imageShepherd.commitDBTransaction();
+	imageShepherd.closeDBTransaction();
 }
 
 %>
