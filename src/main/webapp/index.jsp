@@ -507,7 +507,7 @@ finally{
     <div class="row">
 
       <jsp:include page="individualGalleryPanel.jsp" flush="true">
-        <jsp:param name="individualID" value="2014-03-29" />
+        <jsp:param name="individualID" value="Phs002" />
       </jsp:include>
 
     </div>
