@@ -134,7 +134,7 @@ try {
 catch(Exception e){e.printStackTrace();}
 finally{
 	imageShepherd.rollbackDBTransaction();
-	imageShepherd.commitDBTransaction();
+	imageShepherd.closeDBTransaction();
 }
 
 // here we just transform captionLinks into the actual captions we want to pass
