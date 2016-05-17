@@ -67,7 +67,7 @@ public class WorkspacesForUser extends HttpServlet {
       }
 
       out.println(wSpaceIDs.toString());
-      System.out.println("WorkspacesForUser for user "+owner+" is returning workspace IDs: "+wspaceIDs.toString());
+      System.out.println("WorkspacesForUser for user "+owner+" is returning workspace IDs: "+wSpaceIDs.toString());
 
     } catch(Exception e) {
       throw new IOException(e.toString());
