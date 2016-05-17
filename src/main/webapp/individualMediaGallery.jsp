@@ -66,7 +66,7 @@ try {
   		}
   	}
   	// out.println("var assets = " + all.toString() + ";");
-    System.out.println("All media assets as an array: "+all.toString());
+    System.out.println("individualMediaGallery: All media assets as an array: "+all.toString());
 
 }
 }
