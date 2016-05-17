@@ -59,9 +59,9 @@ public class DiscoveryImporter {
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		//String rootDir="C:/apache-tomcat-8.0.24/webapps";
 		String rootDir="/var/lib/tomcat7/webapps";
-		String assetStorePath=rootDir+"/wildbook_data_dir/assets";
+		String assetStorePath="/data/wildbook_data_dir/assets";
 		//String rootURL="http://localhost:8080";
-		String rootURL="52.40.15.8";
+		String rootURL="http://52.40.15.8";
 		String encountersDirPath=assetStorePath+"/encounters";
 		//String splashImagesDirPath="C:/Users/jholmber/Dropbox/RingedSeal/DISCOVERY_DATA";
 		String splashImagesDirPath="/data/RingedSeal/DISCOVERY_DATA";
