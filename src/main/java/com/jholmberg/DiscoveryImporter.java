@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.jholmberg;
 
@@ -41,36 +41,39 @@ public class DiscoveryImporter {
 	/**
 	 * @param args
 	 */
-	
-  
+
+
   //TODO: fix encounter directory path for file copy
-	
+
 	public static void main(String[] args) {
-		
+
 	  String context="context0";
-	  
+
 		//a necessary primary key iterator for genetic analyses
 		Integer myKey=new Integer(0);
-		
+
 		//initial environment config
-		String pathToAccessFile="C:/Users/jholmber/Dropbox/RingedSeal/PHSdata_to_Wildme.mdb";
-		
-		
+		//String pathToAccessFile="C:/Users/jholmber/Dropbox/RingedSeal/PHSdata_to_Wildme.mdb";
+		String pathToAccessFile="/data/RingedSeal/PHSdata_to_Wildme.mdb";
+
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
-		String rootDir="C:/apache-tomcat-8.0.24/webapps";
+		//String rootDir="C:/apache-tomcat-8.0.24/webapps";
+		String rootDir="/var/lib/tomcat7/webapps";
 		String assetStorePath=rootDir+"/wildbook_data_dir/assets";
-		String rootURL="http://localhost:8080";
+		//String rootURL="http://localhost:8080";
+		String rootURL="52.40.15.8";
 		String encountersDirPath=assetStorePath+"/encounters";
-		String splashImagesDirPath="C:/Users/jholmber/Dropbox/RingedSeal/DISCOVERY_DATA";
+		//String splashImagesDirPath="C:/Users/jholmber/Dropbox/RingedSeal/DISCOVERY_DATA";
+		String splashImagesDirPath="/data/RingedSeal/DISCOVERY_DATA";
 		String urlToThumbnailJSPPage=rootURL+"wildbook/resetThumbnail.jsp";
-		String importDate="2016-05-13";
+		String importDate="2016-05-17";
 		String assetStoreURL=rootURL+"/wildbook_data_dir/assets";
-		
+
 
 		//Shepherd
 	//let's get our Shepherd Project structures built
     Shepherd myShepherd = new Shepherd(context);
-		
+
 
 		//AssetSyore work
 		////////////////begin local //////////////
@@ -79,34 +82,34 @@ public class DiscoveryImporter {
 		myShepherd.getPM().makePersistent(as);
 		myShepherd.commitDBTransaction();
 ////////////////end local //////////////
-		
-		
+
+
 		//an arraylist for later thumbnail generation
 		ArrayList<String> thumbnailThese=new ArrayList<String>();
 		ArrayList<String> thumbnailTheseImages=new ArrayList<String>();
-		
-		
-		
+
+
+
     //set up our media objects
     AssetStore astore = AssetStore.getDefault(myShepherd);
 
-		
+
 		//let's load our Access database
 		File accessDB=new File(pathToAccessFile);
 
-		
+
 		try{
-			
+
   			//lets' get to work!!!!!!!
   			Database db=Database.open(accessDB);
-  
+
   			File copyImagesFromDir=new File(splashImagesDirPath);
   			File encountersRootDir=new File(encountersDirPath);
-  			
+
   			//update changes
   			Table images=db.getTable("IMAGES");
   			Table features=db.getTable("Features");
-  			
+
   	    Iterator<Map<String,Object>> tIdentificationsIterator = images.iterator();
         int numMatchingIdentifications=0;
         while(tIdentificationsIterator.hasNext()){
@@ -114,9 +117,9 @@ public class DiscoveryImporter {
 
             numMatchingIdentifications++;
             processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, urlToThumbnailJSPPage,images, features,context,assetStorePath,importDate );
-      
+
         }
-        
+
         myShepherd.beginDBTransaction();
         //define relationships between animals and set dead on last encounter
         Iterator<Map<String,Object>> featuresIter2 = features.iterator();
@@ -129,27 +132,27 @@ public class DiscoveryImporter {
                 if(myShepherd.getMarkedIndividual(individualID)!=null){
                   System.out.println("......in the row for: "+individualID);
                   MarkedIndividual indy=myShepherd.getMarkedIndividual(individualID);
-                  
+
                   //Mother
                   if(thisFeatureRow.get("Mother")!=null){
-                   
+
                       String momValue=((String)thisFeatureRow.get("Mother")).trim();
                       if(momValue.indexOf(" ")!=-1){momValue=momValue.substring(momValue.indexOf(" ")).trim();}
-                      
-                      
+
+
                       System.out.println("......has mother: "+momValue);
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
-                        
-                        
+
+
                         System.out.println("......referencing by individualID.");
                         MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
                         org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
-                        
-                        
-                        
+
+
+
                       }
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing by nickname.");
@@ -159,14 +162,14 @@ public class DiscoveryImporter {
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
                       }
-                      
+
                   }
-                  System.out.println("......DONE with mother logic!!!!");  
-                  
+                  System.out.println("......DONE with mother logic!!!!");
+
                   //pups
                   for(int w=1;w<4;w++){
                     String pupString="Pup"+w;
-                    System.out.println("......lookoing at "+pupString); 
+                    System.out.println("......lookoing at "+pupString);
                     if(thisFeatureRow.get(pupString)!=null){
                       String pupValue=((String)thisFeatureRow.get(pupString)).trim();
                       pupValue=pupValue.replaceAll(",", "");
@@ -175,34 +178,34 @@ public class DiscoveryImporter {
                       int numTokens=strPup.countTokens();
                       if(numTokens==1){indy.setDynamicProperty(pupString, strPup.nextToken());}
                       else if(numTokens>1){
-                        
+
                         String yearString=strPup.nextToken();
                         SimpleDateFormat f = new SimpleDateFormat("yyyy");
                         Date d = f.parse(yearString);
                         long milliseconds = d.getTime();
                         while(strPup.hasMoreTokens()){
-                          
+
                           String pupName=strPup.nextToken();
-                          
+
                           if(myShepherd.isMarkedIndividual(pupName)){
-                            
+
                             MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
-                            
+
                             if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
                               org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,puppy.getIndividualID(),"mother","pup");
                               myShepherd.getPM().makePersistent(myRel);
                               myShepherd.commitDBTransaction();
                               myShepherd.beginDBTransaction();
                             }
-                            
+
                             puppy.setTimeOfBirth(milliseconds);
-                            
+
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
                           else if(myShepherd.getMarkedIndividualsByNickname(pupName).size()>0){
                             MarkedIndividual puppy=myShepherd.getMarkedIndividualsByNickname(pupName).get(0);
-                            
+
                             if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
                               org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,puppy.getIndividualID(),"mother","pup");
                               myShepherd.getPM().makePersistent(myRel);
@@ -210,26 +213,26 @@ public class DiscoveryImporter {
                               myShepherd.beginDBTransaction();
                             }
                             puppy.setTimeOfBirth(milliseconds);
-                            
+
                             myShepherd.commitDBTransaction();
                             myShepherd.beginDBTransaction();
                           }
-                          
+
                         }
-                        
-                        
-                        
+
+
+
                       }
                     }
-                    
+
                   }
-                  
+
                 }
-               
-                
+
+
               }
-              
-              
+
+
         }
 
 		}
@@ -237,7 +240,7 @@ public class DiscoveryImporter {
 			e.printStackTrace();
 		}
 
-		
+
 		//pause to let the user fire up the Tomcat web server
 		System.out.println("Please start Tomcat and then press ENTER to continue...");
 		char c='0';
@@ -250,50 +253,50 @@ public class DiscoveryImporter {
 			}
 		}
 		System.out.println("\n\nStarting thumbnail work!");
-		
+
 		int numThumbnailsToGenerate=thumbnailThese.size();
 		String IDKey="";
 		for(int q=0;q<numThumbnailsToGenerate;q++){
 			IDKey=thumbnailThese.get(q);
 			//ping a URL to thumbnail generator - Tomcat must be up and running
-		    try 
+		    try
 		    {
-		        
+
 		    	System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
 		    	String urlString=urlToThumbnailJSPPage+"?number="+IDKey+"&imageNum=1&imageName="+thumbnailTheseImages.get(q);
 		    	System.out.println("     "+urlString);
 		    	URL url = new URL(urlString);
-		    
+
 		        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 		        in.close();
-		    } 
+		    }
 		    catch (MalformedURLException e) {
-		    	
+
 		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
 		    	e.printStackTrace();
-		    	
+
 		    }
 		    catch (IOException ioe) {
-		    	
+
 		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
 		    	ioe.printStackTrace();
-		    	
-		    } 
-		    
-			
-			
+
+		    }
+
+
+
 		}
-		
+
 
 	}
-	
 
-	
+
+
 	private static void processThisRow(
-									   Map<String,Object> thisRow, 
-									   Shepherd myShepherd, 
-									   String splashImagesDirPath, 
-									   String encountersRootDirPath, 
+									   Map<String,Object> thisRow,
+									   Shepherd myShepherd,
+									   String splashImagesDirPath,
+									   String encountersRootDirPath,
 									   String urlToThumbnailJSPPage,
 									   Table images,
 									   Table features,
@@ -301,45 +304,45 @@ public class DiscoveryImporter {
 									   String baseDir,
 					            String importDate
 									   ){
-		
+
 		//Itertaor for primary keys
-		
+
 	  boolean exists=false;
-	  
+
     ArrayList<Annotation> newAnnotations = new ArrayList<Annotation>();
-		
+
   //create the encounter
     Encounter enc=new Encounter();
-    
-    
+
+
 		//parse out MarkedIndividual data
 		String markedIndividualName=null;
 		if(thisRow.get("INDIVIDUAL")!=null){
 		  markedIndividualName=((String)thisRow.get("INDIVIDUAL")).trim();
 	    enc.setIndividualID(markedIndividualName);
 		}
-		
-		
+
+
 	//set encounter number
     String IDKey=((Integer)thisRow.get("PKey")).toString().trim();
-    
+
         //String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
 
     enc.setCatalogNumber(IDKey);
-    
-    
+
+
     File encDir = new File(enc.dir(baseDir));
     //File encsDir=new File(encountersRootDirPath);
     //File encDir=new File(encsDir, IDKey);
     System.out.println(" fffffffffffffffffffffI am trying to create: "+encDir.getAbsolutePath());
     if(!encDir.exists()){encDir.mkdirs();}
-    
-    
+
+
     if(myShepherd.isEncounter(IDKey)){
       enc=(Encounter)myShepherd.getPM().detachCopy(myShepherd.getEncounter(IDKey));
       exists=true;
     }
-    
+
 		enc.setOccurrenceRemarks("");
 		if(markedIndividualName!=null){
 		  enc.assignToMarkedIndividual(markedIndividualName);
@@ -347,24 +350,24 @@ public class DiscoveryImporter {
 		enc.setMatchedBy("Visual inspection");
 		enc.setDWCDateAdded(ServletUtilities.getDate());
 		enc.setDWCDateLastModified(ServletUtilities.getDate());
-		
+
 		enc.setGenus("Pusa");
 		enc.setSpecificEpithet("hispida saimensis");
-		
+
 		LocalDateTime dt2 = new LocalDateTime();
 		DateTimeFormatter fmt = ISODateTimeFormat.date();
     String strOutputDateTime = fmt.print(dt2);
     enc.setDWCDateAdded(strOutputDateTime);
-    
+
     enc.setDWCDateLastModified(strOutputDateTime);
     enc.setDWCDateAdded(new Long(dt2.toDateTime().getMillis()));
-    
+
     String location=null;
     if(thisRow.get("LOCATION")!=null){
       location=((String)thisRow.get("LOCATION")).trim();
       enc.setLocation(location);
     }
-		
+
     String locationID=null;
     if(thisRow.get("STUDY_SITE")!=null){
       locationID=((String)thisRow.get("STUDY_SITE")).trim();
@@ -372,45 +375,45 @@ public class DiscoveryImporter {
     }
 
 		enc.setLivingStatus("alive");
-		
-		
+
+
 		if((String)thisRow.get("Can be shown in public view")!=null){
 			enc.setDynamicProperty("PublicView",(String)thisRow.get("Can be shown in public view"));
 		}
-		
+
 		if((Boolean)thisRow.get("TYPE_SPECIMEN")!=null){
 			enc.setDynamicProperty("TYPE_SPECIMEN",((Boolean)thisRow.get("TYPE_SPECIMEN")).toString());
 		}
-		
+
 		enc.setComments("");
 		if((String)thisRow.get("QUALITY")!=null){
 			enc.setDynamicProperty("QUALITY",(String)thisRow.get("QUALITY"));
 			enc.addComments((String)thisRow.get("QUALITY"));
 		}
-		
+
     if((String)thisRow.get("CATEGORY")!=null){
       enc.setDynamicProperty("CATEGORY",(String)thisRow.get("CATEGORY"));
     }
-    
+
     if((String)thisRow.get("ASPECT")!=null){
       enc.setDynamicProperty("ASPECT",(String)thisRow.get("ASPECT"));
     }
-    
+
     if((String)thisRow.get("RINGS")!=null){
       enc.setDynamicProperty("RINGS",(String)thisRow.get("RINGS"));
     }
 
-		
-		
+
+
 		enc.setCatalogNumber(IDKey);
 		System.out.println("Processing: "+IDKey);
-		
+
 		//expose with TapirLink
 		enc.setOKExposeViaTapirLink(false);
-		
+
 		//state
 		enc.setState("approved");
-		
+
 		//submitter
 		enc.setSubmitterName("WWF Finland");
 		enc.setSubmitterEmail("");
@@ -419,18 +422,18 @@ public class DiscoveryImporter {
     if((String)thisRow.get("PHOTOTGRAPHER")!=null){
       enc.setPhotographerName((String)thisRow.get("PHOTOTGRAPHER"));
     }
-		
 
 
-			
-		
-		
+
+
+
+
 		enc.setInformOthers("");
 
 		if((Object)thisRow.get("DATE")!=null){
 			String originalDate=((Object)thisRow.get("DATE")).toString();
 			//System.out.println("     "+originalDate);
-			
+
 			DateTimeFormatter splashFMT = DateTimeFormat.forPattern("EEE MMM dd HH:mm:ss zzz yyyy");
 			DateTime dt = splashFMT.parseDateTime(originalDate);
 			enc.setDay(dt.getDayOfMonth());
@@ -439,13 +442,13 @@ public class DiscoveryImporter {
 			enc.resetDateInMilliseconds();
 			System.out.println("...Date is: "+enc.getDate());
 		}
-		
+
     if((Object)thisRow.get("TIME")!=null){
       String originalTime=((Object)thisRow.get("TIME")).toString().replaceAll(" EDT", "").replaceAll(" EST", "").replaceAll(" UTC", "").trim();
       int hourAdjuster=0;
       if(originalTime.indexOf("PM")!=-1){hourAdjuster=12;}
       originalTime.replaceAll("PM","").replaceAll("AM","").trim();
-      
+
       StringTokenizer str=new StringTokenizer(originalTime, ":");
       int hour=(new Integer(str.nextToken())).intValue()+hourAdjuster;
       enc.setHour(hour);
@@ -454,20 +457,20 @@ public class DiscoveryImporter {
       System.out.println("...Date is: "+enc.getDate());
     }
 
-		
 
-		
-		
+
+
+
 //add photo
-		
+
 		if((thisRow.get("FILENAME")!=null)&&(thisRow.get("FILENAME")!=null)&&(((Object)thisRow.get("FILENAME")).toString().trim().equals(((Object)thisRow.get("FILENAME")).toString().trim()))){
-      
+
 		  System.out.println("Starting image processing...");
-		  
-        String imageName=((Object)thisRow.get("FILENAME")).toString().trim(); 
+
+        String imageName=((Object)thisRow.get("FILENAME")).toString().trim();
         File parentDir=new File(splashImagesDirPath+"/"+enc.getIndividualID());
-        File thisFile = new File(parentDir,imageName);  
-        
+        File thisFile = new File(parentDir,imageName);
+
         //let's check for and try to fix the .jpg vs .JPG issue
         if(!thisFile.exists()){
           if(thisFile.getName().endsWith("jpg")){
@@ -477,19 +480,19 @@ public class DiscoveryImporter {
             thisFile = new File(parentDir,imageName.replaceAll(".JPG", ".jpg"));
           }
         }
-        
+
           //check if file exists
           if(thisFile.exists()){
-            
+
             /*
             //copy it
             //File encountersRootDirPathLocalFile=new File(encountersRootDirPath+"/"+IDKey);
             File outputFile = new File(encDir,imageName);
-            
-            
+
+
             if(!outputFile.exists()){
             try{
-  
+
                   BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
                   BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(outputFile), 4096);
                        int theChar;
@@ -499,7 +502,7 @@ public class DiscoveryImporter {
                     bos.close();
                     bis.close();
               System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
-  
+
             }
             catch(IOException ioe){
               System.out.println("IOException on file transfer for: "+imageName);
@@ -507,7 +510,7 @@ public class DiscoveryImporter {
             }
             }
             */
-            
+
             //now add it to the encounter
             myShepherd.beginDBTransaction();
             AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -519,11 +522,11 @@ public class DiscoveryImporter {
             if (!tmpDir.exists()) tmpDir.mkdirs();
             System.out.println("attempting to write uploaded file to " + tmpFile);
             try {
-              
+
               //copy in the file to the MA location if it does not yet exist
               if(!tmpFile.exists()){
                 try{
-      
+
                       BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
                       BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile), 4096);
                            int theChar;
@@ -533,43 +536,43 @@ public class DiscoveryImporter {
                         bos.close();
                         bis.close();
                   System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
-      
+
                 }
                 catch(IOException ioe){
                   System.out.println("IOException on file transfer for: "+imageName);
                   ioe.printStackTrace();
                 }
              }
-              
-              
+
+
               //if (tmpFile.exists()) {
                 ma.addLabel("_original");
                 ma.copyIn(tmpFile);
                 ma.updateMetadata();
                 newAnnotations.add(new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet())));
-              //} 
+              //}
                 myShepherd.commitDBTransaction();
-            } 
+            }
             catch (Exception ex) {
               myShepherd.rollbackDBTransaction();
                 ex.printStackTrace();
                 System.out.println("Could not write " + tmpFile + ": " + ex.toString());
             }
 
-          } 
-          
+          }
+
           enc.setAnnotations(newAnnotations);
 
     }
-				
-		
+
+
 		enc.setDynamicProperty("ImportDate", importDate);
 		System.out.println("Finished importDate.");
-		
-		
+
+
 		//let's persist the encounter
 		enc.resetDateInMilliseconds();
-		
+
 		enc.setState("approved");
 
 		if(exists){
@@ -580,11 +583,11 @@ public class DiscoveryImporter {
 		else{
 		    myShepherd.storeNewEncounter(enc, IDKey);
 		}
-		
-		
-		
+
+
+
 		//START MARKED INDIVIDUAL LOGIC
-		
+
 		//let's check if the MarkedIndividual exists and create it if not
 		System.out.println("Starting indy logic for: "+markedIndividualName);
 		myShepherd.beginDBTransaction();
@@ -599,20 +602,20 @@ public class DiscoveryImporter {
 				markie.addEncounter(enc, context);
 				markie.refreshDependentProperties(context);
 				myShepherd.commitDBTransaction();
-			
+
 			}
 			else{
-			
+
 			  System.out.println("...is a new marked individual.");
 				MarkedIndividual newWhale=new MarkedIndividual(markedIndividualName, enc);
 
-				
-				
-				
+
+
+
 				enc.setMatchedBy("Unmatched first encounter");
 				newWhale.addComments("<p>Created "+markedIndividualName+" with the SplashMigratorApp.</p>");
 				newWhale.setDateTimeCreated(ServletUtilities.getDate());
-				
+
 
         Iterator<Map<String,Object>> featuresIter = features.iterator();
         while(featuresIter.hasNext()){
@@ -629,27 +632,27 @@ public class DiscoveryImporter {
                   newWhale.setSex(thisSex);
                   System.out.println("...set indy sex: "+thisSex);
                 }
-                
+
                 if((String)thisFeatureRow.get("Name")!=null){
                   String thisNickname=(String)thisFeatureRow.get("Name");
                   newWhale.setNickName(thisNickname);
-                  
+
                   System.out.println("...set indy nickname: "+thisNickname);
                 }
-                
+
                 if((String)thisFeatureRow.get("Additional code")!=null){
                   String addCode=(String)thisFeatureRow.get("Additional code");
                   newWhale.setAlternateID(addCode);
                   System.out.println("...set additional code: "+addCode);
                 }
-                
+
                 if((String)thisFeatureRow.get("Age")!=null){
                   String lifer=((String)thisFeatureRow.get("Age")).toLowerCase();
                   enc.setLifeStage(lifer);
                   System.out.println("...set additional code: "+lifer);
                 }
-                
-                
+
+
                 //TAG number
                 if((String)thisFeatureRow.get("Tagnumber")!=null){
                   String altID="";
@@ -657,9 +660,9 @@ public class DiscoveryImporter {
                   newWhale.setAlternateID(altID+((String)thisFeatureRow.get("Tagnumber")).toLowerCase());
                   System.out.println("...set alternateID: "+altID);
                 }
-                
-                
-               
+
+
+
                 if((thisFeatureRow.get("Other")!=null)&& (!((String)thisFeatureRow.get("Other")).trim().equals("")) ){
                   String otherValue=((String)thisFeatureRow.get("Other")).trim().replaceAll(",", "").replaceAll(";", "");
                   StringTokenizer strOther=new StringTokenizer(otherValue," ");
@@ -668,10 +671,10 @@ public class DiscoveryImporter {
                   while(strOther.hasMoreTokens()){
                     otherTokens.add(strOther.nextToken());
                   }
-                  
+
                   for(int k=0;k<numTokens;k++){
                     String tokenValue=otherTokens.get(k);
-                    
+
                     //year of birth
                     if(tokenValue.toLowerCase().trim().equals("born")){
                       String string_date = otherTokens.get(k+1);
@@ -681,50 +684,50 @@ public class DiscoveryImporter {
                       long milliseconds = d.getTime();
                       newWhale.setTimeOfBirth(milliseconds);
                     }
-                    
-                    
-                    
+
+
+
                     //carcass dp
                     if(tokenValue.toLowerCase().trim().equals("carcass")){
                       newWhale.setDynamicProperty("Carcass", ("Carcass "+otherTokens.get(k+1)));
                     }
-                    
+
                     //set general Other DP as  catch-all
                     newWhale.setDynamicProperty("Other", otherValue);
                     System.out.println("...set Other value: "+otherValue);
-                    
-                    
+
+
                   }
-                  
-                  
+
+
                 }
-                
+
                 //living status
                 if((String)thisFeatureRow.get("Dead")!=null){
                   String deadValue=(String)thisFeatureRow.get("Dead");
                   newWhale.setDynamicProperty("Dead", deadValue);
                   System.out.println("...set dead value: "+deadValue);
                 }
-                
-     
-                
+
+
+
               }
-              
+
             }
-      
+
         }
-				
-				
-				
+
+
+
 				enc.addComments("<p>Added to newly marked individual "+markedIndividualName+" by the SplashMigratorApp.</p>");
 				newWhale.refreshDependentProperties(context);
 				myShepherd.commitDBTransaction();
-				
+
 				myShepherd.addMarkedIndividual(newWhale);
 				System.out.println("New indy "+markedIndividualName+" was successfully stored.");
-				
-		
-				
+
+
+
 
 			}
 		}
@@ -735,20 +738,20 @@ public class DiscoveryImporter {
 		finally{
 		  myShepherd.closeDBTransaction();
 		}
-		
-		
+
+
 		//END MARKED INDIVIDUAL LOGIC
-		
-		
-		
+
+
+
 	}
-	
-	
-	
-	
 
 
-	
+
+
+
+
+
 
 public static String getExactFileName(File f) {
   String returnVal;
@@ -763,6 +766,6 @@ public static String getExactFileName(File f) {
   }
   return returnVal;
 }
-	
+
 
 }
