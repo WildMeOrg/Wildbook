@@ -60,6 +60,10 @@ myShepherd=new Shepherd(context);
 			Role newRole7=new Role("tomcat","rest");
 	  		newRole7.setContext("context0");
 	  		myShepherd.getPM().makePersistent(newRole7);
+	  		
+	  		Role newRole8=new Role("tomcat","researcher");
+	  		newRole8.setContext("context0");
+	  		myShepherd.getPM().makePersistent(newRole8);
 			
 			myShepherd.commitDBTransaction();
 			
