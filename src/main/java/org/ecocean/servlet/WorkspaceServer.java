@@ -118,9 +118,11 @@ public class WorkspaceServer extends HttpServlet {
         wSpace.setArg(args);
         wSpace.setModified(new Date());
         out.println("modifying existing workspace with id="+wSpace.getID()+", name="+wSpace.getName()+", owner="+wSpace.getOwner()+", args="+wSpace.getArgs()+", created="+wSpace.getCreated()+", and modified ="+wSpace.getModified());
+        System.out.println("modifying existing workspace with id="+wSpace.getID()+", name="+wSpace.getName()+", owner="+wSpace.getOwner()+", args="+wSpace.getArgs()+", created="+wSpace.getCreated()+", and modified ="+wSpace.getModified());
       } else {
         wSpace = new Workspace(id, owner, args);
         out.println("initializing new workspace with id="+wSpace.id+", name="+id+", owner="+wSpace.owner+", args="+args.toString()+", and created="+wSpace.created);
+        System.out.println("initializing new workspace with id="+wSpace.id+", name="+id+", owner="+wSpace.owner+", args="+args.toString()+", and created="+wSpace.created);
       }
 
       String isStored = "false";
@@ -130,6 +132,8 @@ public class WorkspaceServer extends HttpServlet {
         isStored=String.valueOf(overwrite);
       }
       out.println("workspace stored = "+isStored);
+      System.out.println("workspace stored = "+isStored);
+
 
 
     } catch(Exception e) {
