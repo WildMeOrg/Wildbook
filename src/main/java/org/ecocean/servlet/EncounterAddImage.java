@@ -24,11 +24,7 @@ import com.oreilly.servlet.multipart.MultipartParser;
 import com.oreilly.servlet.multipart.ParamPart;
 import com.oreilly.servlet.multipart.Part;
 
-import org.ecocean.CommonConfiguration;
-import org.ecocean.Encounter;
-import org.ecocean.Shepherd;
-import org.ecocean.SinglePhotoVideo;
-import org.ecocean.Util;
+import org.ecocean.*;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -41,6 +37,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Map;
 
 
 /**
@@ -59,10 +58,11 @@ public class EncounterAddImage extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    String context="context0";
-    context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    String context = ServletUtilities.getContext(request);
+    String langCode = ServletUtilities.getLanguageCode(request);
+    Locale locale = new Locale(langCode);
 
+    Shepherd myShepherd = new Shepherd(context);
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
@@ -75,6 +75,15 @@ public class EncounterAddImage extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
+
+    // Prepare for user response.
+    String link = "#";
+    try {
+      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
+    }
+    catch (URISyntaxException ex) {
+    }
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
 
     String fileName = "None";
     String encounterNumber = "None";
@@ -146,41 +155,29 @@ public class EncounterAddImage extends HttpServlet {
         if (!locked) {
           myShepherd.commitDBTransaction();
           myShepherd.closeDBTransaction();
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Success!</strong> I have successfully uploaded your new encounter image file.");
+          actionResult.setMessageOverrideKey("addImage").setMessageParams(encounterNumber);
+
           if (positionInList == 1) {
-            out.println("<p><i>You should also reset the thumbnail image for this encounter. You can do so by <a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/resetThumbnail.jsp?number=" + encounterNumber + "\">clicking here.</a></i></p>");
+            String resetLink = String.format("http://%s/resetThumbnail.jsp?number=", CommonConfiguration.getURLLocation(request), encounterNumber);
+            actionResult.setCommentOverrideKey("addImage-withReset").setCommentParams(resetLink);
           }
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
+
           String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
         } else {
-
-          out.println(ServletUtilities.getHeader(request));
-          out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
-
+          actionResult.setSucceeded(false).setMessageOverrideKey("locked");
         }
       } else {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> I was unable to upload your image file. I cannot find the encounter that you intended it for in the database.");
-        out.println(ServletUtilities.getFooter(context));
-
+        actionResult.setSucceeded(false);
       }
     } catch (IOException lEx) {
       lEx.printStackTrace();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to upload your image file. Please contact the web master about this message.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     } catch (NullPointerException npe) {
       npe.printStackTrace();
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to upload an image as no file was specified.");
-      out.println(ServletUtilities.getFooter(context));
+      actionResult.setSucceeded(false);
     }
     out.close();
   }
