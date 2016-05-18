@@ -80,8 +80,8 @@ public class EncounterSetTags extends HttpServlet {
           }
           acousticTag.setIdNumber(getParam(request, ACOUSTIC_TAG_ID));
           acousticTag.setSerialNumber(getParam(request, ACOUSTIC_TAG_SERIAL));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_serial"), getParam(request, ACOUSTIC_TAG_ID)));
-          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_id"), getParam(request, ACOUSTIC_TAG_SERIAL)));
+          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_serial"), getParam(request, ACOUSTIC_TAG_SERIAL)));
+          sb.append(String.format("<li>%s = %s</li>", encProps.getProperty("acousticTag_id"), getParam(request, ACOUSTIC_TAG_ID)));
         }
         else if ("satelliteTag".equals(tagType)) {
           SatelliteTag satelliteTag = enc.getSatelliteTag();
