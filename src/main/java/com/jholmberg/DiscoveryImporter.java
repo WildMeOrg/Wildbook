@@ -241,53 +241,11 @@ public class DiscoveryImporter {
 		}
 
 
-		//pause to let the user fire up the Tomcat web server
-		System.out.println("Please start Tomcat and then press ENTER to continue...");
-		char c='0';
-		while(c == '0'){
-			try{
-			c = (char)System.in.read();
-		}
-			catch(IOException ioe){
-				ioe.printStackTrace();
-			}
-		}
-		System.out.println("\n\nStarting thumbnail work!");
 
-		int numThumbnailsToGenerate=thumbnailThese.size();
-		String IDKey="";
-		for(int q=0;q<numThumbnailsToGenerate;q++){
-			IDKey=thumbnailThese.get(q);
-			//ping a URL to thumbnail generator - Tomcat must be up and running
-		    try
-		    {
-
-		    	System.out.println("Trying to render a thumbnail for: "+IDKey+ "as "+thumbnailTheseImages.get(q));
-		    	String urlString=urlToThumbnailJSPPage+"?number="+IDKey+"&imageNum=1&imageName="+thumbnailTheseImages.get(q);
-		    	System.out.println("     "+urlString);
-		    	URL url = new URL(urlString);
-
-		        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-		        in.close();
-		    }
-		    catch (MalformedURLException e) {
-
-		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
-		    	e.printStackTrace();
-
-		    }
-		    catch (IOException ioe) {
-
-		    	System.out.println("Error trying to render the thumbnail for "+IDKey+".");
-		    	ioe.printStackTrace();
-
-		    }
-
-
-
-		}
-
+		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
+		
+		System.out.println("!!!DONE!!!");
 
 	}
 
