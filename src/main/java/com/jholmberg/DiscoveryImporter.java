@@ -477,54 +477,25 @@ public class DiscoveryImporter {
             sp.put("key", Util.hashDirectories(enc.getCatalogNumber()) + "/" +  thisFile.getName());
             MediaAsset ma = new MediaAsset(astore, sp);
             myShepherd.getPM().makePersistent(ma);
-            File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
-            File tmpDir = tmpFile.getParentFile();
-            if (!tmpDir.exists()) tmpDir.mkdirs();
-            System.out.println("attempting to write uploaded file to " + tmpFile);
-            try {
 
-              //copy in the file to the MA location if it does not yet exist
-              if(!tmpFile.exists()){
+                
+              //copy in the file
+              ma.addLabel("_original");
                 try{
-
-                      BufferedInputStream bis = new BufferedInputStream(new FileInputStream(thisFile), 4096);
-                      BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile), 4096);
-                           int theChar;
-                           while ((theChar = bis.read()) != -1) {
-                              bos.write(theChar);
-                           }
-                        bos.close();
-                        bis.close();
-                  System.out.println("     !@@!@!#!@Completed copy of "+imageName+" "+IDKey);
-
+                  ma.copyIn(thisFile);
+                  ma.updateMetadata();
                 }
-                catch(IOException ioe){
-                  System.out.println("IOException on file transfer for: "+imageName);
-                  ioe.printStackTrace();
-                }
-             }
-
-
-              //if (tmpFile.exists()) {
-                ma.addLabel("_original");
-                ma.copyIn(tmpFile);
-                ma.updateMetadata();
+                catch(Exception io){io.printStackTrace();}
+                myShepherd.commitDBTransaction();
+                myShepherd.beginDBTransaction();
+                
+                
                 Annotation annot=new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()));
                 myShepherd.getPM().makePersistent(annot);
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
                 newAnnotations.add(annot);
-              //}
-                
-                
-                
                 myShepherd.commitDBTransaction();
-            }
-            catch (Exception ex) {
-              myShepherd.rollbackDBTransaction();
-                ex.printStackTrace();
-                System.out.println("Could not write " + tmpFile + ": " + ex.toString());
-            }
 
           }
 
