@@ -476,6 +476,7 @@ public class DiscoveryImporter {
             JSONObject sp = astore.createParameters(new File(enc.subdir() + File.separator + thisFile.getName()));
             sp.put("key", Util.hashDirectories(enc.getCatalogNumber()) + "/" +  thisFile.getName());
             MediaAsset ma = new MediaAsset(astore, sp);
+            myShepherd.getPM().makePersistent(ma);
             File tmpFile = ma.localPath().toFile();  //conveniently(?) our local version to save ma.cacheLocal() from having to do anything?
             File tmpDir = tmpFile.getParentFile();
             if (!tmpDir.exists()) tmpDir.mkdirs();
@@ -508,7 +509,11 @@ public class DiscoveryImporter {
                 ma.addLabel("_original");
                 ma.copyIn(tmpFile);
                 ma.updateMetadata();
-                newAnnotations.add(new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet())));
+                Annotation annot=new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()));
+                myShepherd.getPM().makePersistent(annot);
+                myShepherd.commitDBTransaction();
+                myShepherd.beginDBTransaction();
+                newAnnotations.add(annot);
               //}
                 
                 
