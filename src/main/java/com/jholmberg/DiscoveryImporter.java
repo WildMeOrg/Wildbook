@@ -59,7 +59,7 @@ public class DiscoveryImporter {
 		//String pathToUpdateFile="C:\\splash\\CRC SPLASHID additional sightings.mdb";
 		//String rootDir="C:/apache-tomcat-8.0.24/webapps";
 		String rootDir="/var/lib/tomcat7/webapps";
-		String assetStorePath="/data/wildbook_data_dir/assets";
+		String assetStorePath="/data/wildbook_data_dir/encounters";
 		//String rootURL="http://localhost:8080";
 		String rootURL="http://52.40.15.8";
 		String encountersDirPath=assetStorePath+"/encounters";
@@ -67,7 +67,7 @@ public class DiscoveryImporter {
 		String splashImagesDirPath="/data/RingedSeal/DISCOVERY_DATA";
 		String urlToThumbnailJSPPage=rootURL+"wildbook/resetThumbnail.jsp";
 		String importDate="2016-05-17";
-		String assetStoreURL=rootURL+"/wildbook_data_dir/assets";
+		String assetStoreURL=rootURL+"/wildbook_data_dir/encounters";
 
 
 		//Shepherd
