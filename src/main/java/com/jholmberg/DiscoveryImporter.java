@@ -287,6 +287,7 @@ public class DiscoveryImporter {
 
 		}
 
+		myShepherd.closeDBTransaction();
 
 	}
 
@@ -740,9 +741,7 @@ public class DiscoveryImporter {
 			e.printStackTrace();
 			myShepherd.rollbackDBTransaction();
 		}
-		finally{
-		  myShepherd.closeDBTransaction();
-		}
+
 
 
 		//END MARKED INDIVIDUAL LOGIC
