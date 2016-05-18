@@ -551,6 +551,9 @@ public class DiscoveryImporter {
                 ma.updateMetadata();
                 newAnnotations.add(new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet())));
               //}
+                
+                
+                
                 myShepherd.commitDBTransaction();
             }
             catch (Exception ex) {
@@ -565,6 +568,8 @@ public class DiscoveryImporter {
 
     }
 
+		//generate everything else we need for the MediaAsset
+    enc.refreshAssetFormats(myShepherd);
 
 		enc.setDynamicProperty("ImportDate", importDate);
 		System.out.println("Finished importDate.");
