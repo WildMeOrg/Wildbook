@@ -7,12 +7,12 @@
 
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
     //let's load out properties
     Properties props = new Properties();
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
 
@@ -74,7 +74,7 @@
       listNum = rIndividuals.size();
     }
   %>
- 
+
 <style type="text/css">
   #tabmenu {
     color: #000;
@@ -114,15 +114,15 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
 </style>
 
 
@@ -139,14 +139,14 @@
 <script src="javascript/tsrt.js"></script>
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 
 
       <h1 class="intro">
         <%=props.getProperty("title")%>
       </h1>
 
- 
+
 <ul id="tabmenu">
 
 
@@ -182,11 +182,11 @@
   <%
 
     //set up the statistics counters
-    
+
 
     Vector histories = new Vector();
     int rIndividualsSize=rIndividuals.size();
-    
+
     int count = 0;
     int numNewlyMarked = 0;
 
@@ -280,7 +280,7 @@ var colDefn = [
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}
-	
+
 ];
 
 
@@ -640,7 +640,7 @@ console.log(t);
 
 </script>
 
-<p>
+<p class="table-filter-text">
 <input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
 <input type="button" value="filter" />
 <input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
@@ -727,6 +727,3 @@ console.log(t);
 
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-
