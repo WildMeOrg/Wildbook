@@ -378,8 +378,17 @@ public class DiscoveryImporter {
 		enc.setSubmitterEmail("");
 		enc.setSubmitterPhone("");
 		enc.setSubmitterAddress("");
-    if((String)thisRow.get("PHOTOTGRAPHER")!=null){
-      enc.setPhotographerName((String)thisRow.get("PHOTOTGRAPHER"));
+    if(thisRow.get("PHOTOGRAPHER")!=null){
+      enc.setPhotographerName((String)thisRow.get("PHOTOGRAPHER"));
+    }
+    
+    
+    //get lat and long
+    if(thisRow.get("LATITUDE")!=null){
+      enc.setDecimalLatitude((Double)thisRow.get("LATITUDE"));
+    }
+    if(thisRow.get("LONGITUDE")!=null){
+      enc.setDecimalLatitude((Double)thisRow.get("LONGITUDE"));
     }
 
 
@@ -572,6 +581,17 @@ public class DiscoveryImporter {
                   newWhale.setSex(thisSex);
                   System.out.println("...set indy sex: "+thisSex);
                 }
+                
+                //dead
+                if(thisFeatureRow.get("Dead")!=null){
+                  String thisDead=((String)thisFeatureRow.get("Dead")).toLowerCase().replaceAll("yes", "").trim();
+                  SimpleDateFormat f = new SimpleDateFormat("yyyy");
+                  Date d = f.parse(thisDead);
+                  long milliseconds = d.getTime();
+                  newWhale.setTimeOfDeath(milliseconds);
+                  System.out.println("...set dead year: "+thisDead);
+                }
+                
 
                 if((String)thisFeatureRow.get("Name")!=null){
                   String thisNickname=(String)thisFeatureRow.get("Name");
