@@ -5158,7 +5158,6 @@ String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
-<p>Looking for photoswipe in <%=pswipedir%></p>
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
