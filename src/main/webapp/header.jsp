@@ -299,7 +299,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                      moreStates=false;
                                  }
                             } //end while %>
-                          <li class="divider"></li>
                           <li><a href="<%=urlLoc %>/encounters/thumbnailSearchResults.jsp?noQuery=true"><%=props.getProperty("viewImages")%></a></li>
                           <li><a href="<%=urlLoc %>/xcalendar/calendar.jsp"><%=props.getProperty("encounterCalendar")%></a></li>
                           <% if(request.getUserPrincipal()!=null) { %>
@@ -406,7 +405,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="pull-right">
                         <div class="search-wrapper">
                           <label class="search-field-header">
-                                <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
+                                <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp" style="margin-bottom:0">
                                   <input type="text" id="search-site" placeholder="search on nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
                                   <input type="hidden" name="langCode" value="<%=langCode%>"/>
                                   <!--<input type="submit" class="submitLink" value="search"/>-->
