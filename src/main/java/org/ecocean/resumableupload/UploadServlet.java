@@ -31,16 +31,27 @@ import ec.com.mapache.ngflow.upload.HttpUtils;
 public class UploadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	
+
 
 	/*
 	 * In ORDER to allow CORS  to multiple domains you can set a list of valid domains here
 	 */
 	private List<String> authorizedUrl = Arrays.asList("http://localhost", "http://example.com");
 
+
+	public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+			response.setHeader("Access-Control-Allow-Origin", "*");
+			response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+			if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+			//response.setContentType("text/plain");
+	}
+
+
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-		
+
+
+
 
             if (!ServletFileUpload.isMultipartContent(request)) throw new IOException("doPost is not multipart");
             ServletFileUpload upload = new ServletFileUpload(new DiskFileItemFactory());
@@ -71,13 +82,14 @@ public class UploadServlet extends HttpServlet {
 		response.setHeader("Pragma", "no-cache");
 		response.setHeader("Expires", "-1");
 
-		response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
+		response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+		//response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 		response.setHeader("Access-Control-Allow-Methods", "POST");
 		response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 		response.setHeader("Access-Control-Max-Age", "86400");
 
-			
+
 		int flowChunkNumber = getflowChunkNumber(multiparts);
 
 		FlowInfo info = getFlowInfo(multiparts, request);
@@ -142,7 +154,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
 		int flowChunkNumber = getflowChunkNumber(multiparts);
 System.out.println("GET fcn = " + flowChunkNumber);
 		System.out.println("Do Get");
-		
+
 
 		System.out.println(request.getRequestURL());
 		PrintWriter out = response.getWriter();
@@ -151,19 +163,20 @@ System.out.println("GET fcn = " + flowChunkNumber);
 		response.setHeader("Pragma", "no-cache");
 		response.setHeader("Expires", "-1");
 
-		response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
+		//response.setHeader("Access-Control-Allow-Origin", getOriginDomain(request));
+		response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
 		response.setHeader("Access-Control-Allow-Methods", "GET");
 		response.setHeader("Access-Control-Allow-Credentials", "true");
 		response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 		response.setHeader("Access-Control-Max-Age", "86400");
 
-		
+
 		FlowInfo info = getFlowInfo(multiparts, request);
 System.out.println(info.flowFilePath);
 System.out.println("flowChunkNumber " + flowChunkNumber);
-		
+
 		Object fcn = new FlowInfo.flowChunkNumber(flowChunkNumber);
-		
+
 		if (info.uploadedChunks.contains(fcn)) {
 			System.out.println("Do Get arriba");
 			response.getWriter().print("Uploaded."); // This Chunk has been
@@ -247,5 +260,5 @@ System.out.println("FlowFilePath: " + FlowFilePath);
 		return info;
 	}
 
-	
+
 }
