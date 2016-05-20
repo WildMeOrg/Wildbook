@@ -7,6 +7,7 @@ import org.ecocean.Annotation;
 //import the Shepherd Project Framework
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.Occurrence;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
@@ -533,6 +534,14 @@ public class DiscoveryImporter {
 		    myShepherd.storeNewEncounter(enc, IDKey);
 		}
 
+		myShepherd.beginDBTransaction();
+		Occurrence occur=new Occurrence();
+		occur.addEncounter(enc);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+		occur.removeEncounter(enc);
+		myShepherd.commitDBTransaction();
+		
 
 
 		//START MARKED INDIVIDUAL LOGIC
