@@ -241,12 +241,12 @@ var qMediaAsset = <%=((qMediaAssetJson == null) ? "undefined" : qMediaAssetJson)
 
 
 
-
+<div id="results">Waiting for results....</div>
 
 <div id="result-images"></div>
 
 
-<div id="results">Waiting for results....</div>
+
 <div id="link"><%
 	if (num != null) out.println("<a href=\"encounter.jsp?number=" + num + "\">Return to encounter</a>");
 %></div>
