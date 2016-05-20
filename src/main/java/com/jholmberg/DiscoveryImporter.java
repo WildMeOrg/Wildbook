@@ -534,14 +534,15 @@ public class DiscoveryImporter {
 		    myShepherd.storeNewEncounter(enc, IDKey);
 		}
 
+		//temp try creating encounters to populate database
 		myShepherd.beginDBTransaction();
-		Occurrence occur=new Occurrence();
+		Occurrence occur=new Occurrence(enc.getCatalogNumber(),enc);
 		occur.addEncounter(enc);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
 		occur.removeEncounter(enc);
 		myShepherd.commitDBTransaction();
-		
+		//end occurrence creation
 
 
 		//START MARKED INDIVIDUAL LOGIC
