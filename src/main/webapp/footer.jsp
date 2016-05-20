@@ -13,11 +13,20 @@
 				.container-fluid.main-section .row.donate-row {
 					width: 100%;
 					min-height: 240px;
-					background: url('cust/mantamatcher/img/wwf-join-banner.jpg');
+					background: url('<%=urlLoc%>/cust/mantamatcher/img/wwf-join-banner.jpg');
 					background-repeat: no-repeat;
 					background-position: center;
 					margin-left: 0;
 					margin-right: 0;
+				}
+
+				@media (min-width: 1100px) {
+					.container-fluid.main-section .row.donate-row {
+						background: url('<%=urlLoc%>/cust/mantamatcher/img/wwf-join-banner-large.jpg');
+						background-repeat: no-repeat;
+						background-position: center;
+						background-size: cover;
+					}
 				}
 
 				.row.donate-row h2.jumboesque {
@@ -108,11 +117,11 @@
 									</br>
 
 									<a href="">
-										<img border="0" alt="" src="cust/mantamatcher/img/collab1.png">
+										<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png">
 									</a>
 									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 									<a href="">
-										<img class="second" border="0" alt="" src="cust/mantamatcher/img/collab2.png">
+										<img class="second" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab2.png">
 									</a>
 								</div>
 
@@ -120,7 +129,7 @@
 								<div class="row wwf-row">
 									<div class="col-xs-2">
 										<a href="">
-											<img border="0" alt="" src="cust/mantamatcher/img/wwf_panda_logo.svg">
+											<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf_panda_logo.svg">
 										</a>
 									</div>
 
