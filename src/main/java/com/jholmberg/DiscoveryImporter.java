@@ -145,8 +145,8 @@ public class DiscoveryImporter {
 
 
                         System.out.println("......referencing by individualID.");
-                        MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
+                        //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
+                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
                         myShepherd.commitDBTransaction();
                         myShepherd.beginDBTransaction();
