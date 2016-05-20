@@ -35,7 +35,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
 
 // range of the images being displayed
-int startNum = 1;
+int startNum = 0;
 int endNum = 6;
 try {
   if (request.getParameter("startNum") != null) {
@@ -45,7 +45,7 @@ try {
     endNum = (new Integer(request.getParameter("endNum"))).intValue();
   }
 } catch (NumberFormatException nfe) {
-  startNum = 1;
+  startNum = 0;
   endNum = 6;
 }
 
@@ -204,7 +204,8 @@ myShepherd.beginDBTransaction();
   <section class="container-fluid main-section front-gallery galleria">
 
       <%
-      for (int i = 0; i < rIndividuals.size()/2 && i < 3; i++) {
+      int maxRows=5;
+      for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
         %>
         <div class="row gunit-row">
         <%
@@ -297,6 +298,18 @@ myShepherd.beginDBTransaction();
       }
 
       %>
+      <div class="row grey-background">
+        <%
+        if (startNum>0) {
+          int newStart = Math.min(startNum-6,0);
+          %>
+          <span style="float: left"><a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <<< </a></span>
+          <%
+        }
+        %>
+        <span style="float:right"><a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+6%>"> >>> </a></span>
+      </row>
+
   </section>
 </div>
 
