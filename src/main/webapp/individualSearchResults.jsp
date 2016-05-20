@@ -253,7 +253,7 @@ var colDefn = [
 	},
 	{
 		key: 'individual',
-		label: 'Individual',
+		label: '<%=props.getProperty("markedIndividual")%>',
 		value: _colIndividual,
 		sortValue: function(o) { return o.individualID.toLowerCase(); },
 		//sortFunction: function(a,b) {},
@@ -261,22 +261,22 @@ var colDefn = [
 
 	{
 		key: 'numberEncounters',
-		label: 'Encounters',
+		label: '<%=props.getProperty("numEncounters")%>',
 		value: _colNumberEncounters,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'maxYearsBetweenResightings',
-		label: 'Max yrs between resights',
+		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'sex',
-		label: 'Sex',
+		label: '<%=props.getProperty("sex")%>',//'Sex',
 	},
 	{
 		key: 'numberLocations',
-		label: 'No. Locations sighted',
+		label: '<%=props.getProperty("numLocationsSighted")%>',
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}

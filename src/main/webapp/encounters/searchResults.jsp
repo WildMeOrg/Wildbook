@@ -349,7 +349,7 @@ var colDefn = [
 	},
   {
     key: 'otherCatalogNumbers',
-    label: 'Alternate ID',
+    label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
   {
     key: 'filename',
@@ -358,27 +358,27 @@ var colDefn = [
   },
 	{
 		key: 'date',
-		label: 'Date',
+		label: '<%=encprops.getProperty("date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'verbatimLocality',
-		label: 'Location',
+		label: '<%=encprops.getProperty("location")%>',
 	},
 	{
 		key: 'locationID',
-		label: 'Location ID',
+		label: '<%=encprops.getProperty("locationID")%>',
 	},
 	{
 		key: 'taxonomy',
-		label: 'Taxonomy',
+		label: '<%=encprops.getProperty("taxonomy")%>',
 		value: _colTaxonomy,
 	},
 	{
 		key: 'submitterID',
-		label: 'User',
+		label: '<%=encprops.getProperty("submitterName")%>',
 	},
 	{
 		key: 'creationDate',

@@ -42,7 +42,10 @@ Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+
+Boolean isUserResearcher = request.isUserInRole("researcher");
 %>
+<script>console.log("isUserResearcher=<%=isUserResearcher%>")</script>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -102,7 +105,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <%
 	                      if(request.getUserPrincipal()!=null){
 		                  %>
-  		                  <li class="loginout"><a href="<%=urlLoc %>/myAccount.jsp" title="Your Account">Your Account </a></li>
+  		                  <li class="loginout"><a href="<%=urlLoc %>/myAccount.jsp" title="Your Account"><%=props.getProperty("myAccount")%> </a></li>
   		             			<li class="loginout"><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 		                  <%
 	                      }
@@ -277,7 +280,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         </ul>
                       </li>
                       <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("individuals")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
