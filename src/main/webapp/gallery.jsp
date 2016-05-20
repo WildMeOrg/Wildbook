@@ -79,7 +79,10 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
 String order ="";
 
+request.setAttribute("rangeStart", startNum);
+request.setAttribute("rangeEnd", endNum);
 MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+
 rIndividuals = result.getResult();
 
 
@@ -268,7 +271,7 @@ myShepherd.beginDBTransaction();
                 <td>
                   <ul>
                     <li>
-                      Name: <%=pairName[j]%>
+                      Living status: TODO
                     </li>
                     <li>
                       Nickname: <%=pairNickname[j]%>
