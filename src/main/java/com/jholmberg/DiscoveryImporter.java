@@ -538,6 +538,7 @@ public class DiscoveryImporter {
 		myShepherd.beginDBTransaction();
 		Occurrence occur=new Occurrence(enc.getCatalogNumber(),enc);
 		occur.addEncounter(enc);
+		myShepherd.getPM().makePersistent(occur);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
 		occur.removeEncounter(enc);
