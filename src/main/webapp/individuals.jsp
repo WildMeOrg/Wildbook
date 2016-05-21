@@ -637,7 +637,7 @@ $('#progress').html(percentage);
 
 function _colDataTypes(o) {
 	var dt = '';
-	if (o.get('hasImages')) dt += '<img title="images" src="images/Crystal_Clear_filesystem_folder_image.png" />';
+	if (o.get('hasAnnotations')) dt += '<img title="images" src="images/Crystal_Clear_filesystem_folder_image.png" />';
 	if (o.get('hasTissueSamples')) dt += '<img title="tissue samples" src="images/microscope.gif" style="padding: 0px 1px 0px 1px;" />';
 	if (o.get('hasMeasurements')) dt += '<img title="measurements" src="images/ruler.png" />';
 	return dt;
@@ -645,7 +645,7 @@ function _colDataTypes(o) {
 
 function _colDataTypesSort(o) {
 	var dt = '';
-	if (o.get('hasImages')) dt += ' images';
+	if (o.get('hasAnnotations')) dt += ' images';
 	if (o.get('hasTissueSamples')) dt += ' tissues';
 	if (o.get('hasMeasurements')) dt += ' measurements';
 	return dt;
@@ -1177,7 +1177,7 @@ $("a#deathdate").click(function() {
         henc.put("thumbUrl", imgName);
 	henc.put("date", enc.getDate());
     	henc.put("location", enc.getLocation());
-	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
+	if ((enc.getMedia()!=null) && (enc.getMedia().size()>0)) henc.put("hasAnnotations", true);
    	if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
 
    	//if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
