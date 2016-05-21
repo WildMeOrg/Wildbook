@@ -5,7 +5,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 	refClass: {
 		measurements: 'Measurements',
-		images: 'SinglePhotoVideos',
+		images: 'MediaAssets',
 	},
 
 /*
