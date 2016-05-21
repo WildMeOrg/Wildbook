@@ -752,7 +752,7 @@ $(function() {
         											<tr>
           												<td>
           													<font color="#990000">
-          														<img align="absmiddle" src="../images/cancel.gif"/>
+          														<img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/>
           													</font>
           												</td>
           												<td>
@@ -938,7 +938,7 @@ $("a#alternateID").click(function() {
     	<td align="left" valign="top" class="para">
       <table>
         <tr>
-          <td><font color="#990000"><img align="absmiddle" src="../images/cancel.gif"/></font></td>
+          <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
           <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
           </strong></td>
         </tr>
@@ -3023,7 +3023,7 @@ if (isOwner) {
               String tapirCheckIcon="cancel.gif";
               if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
               %>
-              TapirLink:&nbsp;<input align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+              TapirLink:&nbsp;<input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
         </form>
       </td>
     </tr>
@@ -3045,7 +3045,7 @@ if (isOwner) {
               <%
               String deleteIcon="cancel.gif";
               %>
-              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
+              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
         </form>
       </td>
     </tr>
@@ -4176,7 +4176,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 %>
 
 				</td>
-				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
@@ -4211,7 +4211,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 
 
 				</td>
-				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a>
+				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a>
 
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -5065,7 +5065,7 @@ $("a#addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 	</td>
 
 
-	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>
