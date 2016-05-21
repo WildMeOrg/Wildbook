@@ -1627,20 +1627,14 @@ public class Shepherd {
   }
 
 
-  //temporary retrofit for SinglePhotoVideo-dependent pages as we convert fully to MediaAsset
-  public List<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum, Shepherd myShepherd) {
-    ArrayList<SinglePhotoVideo> theList=new ArrayList<SinglePhotoVideo>();
-    if(myShepherd.getEncounter(encNum)!=null){
-      Encounter enc=myShepherd.getEncounter(encNum);
-      List<MediaAsset> assets=enc.getMedia();
-      int numAssets=assets.size();
-      for(int i=0;i<numAssets;i++){
-        MediaAsset ma=assets.get(i);
-        SinglePhotoVideo spv=new SinglePhotoVideo(enc.getCatalogNumber(),ma.webURLString(),ma.webURLString());
-        theList.add(spv);
-      }
-    }
-    return theList;
+  public List<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
+    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
+    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
+    Query samples = pm.newQuery(encClass, filter);
+    Collection c = (Collection) (samples.execute());
+    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
+    samples.closeAll();
+    return myArray;
   }
 
   public ArrayList<SinglePhotoVideo> getAllSinglePhotoVideosWithKeyword(Keyword word) {
@@ -2440,7 +2434,7 @@ public class Shepherd {
 
       if ((count + numImages) >= startNum) {
     	  Encounter enc = myShepherd.getEncounter(nextCatalogNumber);
-    	  List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber(), myShepherd);
+    	  List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
         for (int i = 0; i < images.size(); i++) {
           count++;
           if ((count <= endNum) && (count >= startNum)) {
@@ -2506,7 +2500,7 @@ public class Shepherd {
     return thumbs;
   }
 
-  public List<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords, Shepherd myShepherd) {
+  public List<SinglePhotoVideo> getMarkedIndividualThumbnails(HttpServletRequest request, Iterator<MarkedIndividual> it, int startNum, int endNum, String[] keywords) {
     ArrayList<SinglePhotoVideo> thumbs = new ArrayList<SinglePhotoVideo>();
 
     boolean stopMe = false;
@@ -2516,7 +2510,7 @@ public class Shepherd {
       Iterator allEncs = markie.getEncounters().iterator();
       while (allEncs.hasNext()&&!stopMe) {
         Encounter enc = (Encounter) allEncs.next();
-        List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber(), myShepherd);
+        List<SinglePhotoVideo> images=getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 
         if ((count + images.size()) >= startNum) {
           for (int i = 0; i < images.size(); i++) {

@@ -128,7 +128,7 @@ public class EncounterVMData extends HttpServlet {
 					e.put("sex", cand.getSex());
 					e.put("mmaCompatible", cand.getMmaCompatible());
 
-					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber(), myShepherd);
+					List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(cand.getCatalogNumber());
 					ArrayList images = new ArrayList();
 					String dataDir = CommonConfiguration.getDataDirectoryName(context);
 					for (SinglePhotoVideo s : spvs) {
@@ -148,7 +148,7 @@ public class EncounterVMData extends HttpServlet {
 				if (!candidates.isEmpty()) rtn.put("candidates", candidates);
 
 			} else {
-				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber(), myShepherd);
+				List<SinglePhotoVideo> spvs = myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber());
 				String dataDir = CommonConfiguration.getDataDirectoryName(context) + enc.dir("");
 
 				ArrayList images = new ArrayList();
