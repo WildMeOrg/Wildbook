@@ -389,7 +389,7 @@ public class DiscoveryImporter {
       enc.setDecimalLatitude((Double)thisRow.get("LATITUDE"));
     }
     if(thisRow.get("LONGITUDE")!=null){
-      enc.setDecimalLatitude((Double)thisRow.get("LONGITUDE"));
+      enc.setDecimalLongitude((Double)thisRow.get("LONGITUDE"));
     }
 
 
