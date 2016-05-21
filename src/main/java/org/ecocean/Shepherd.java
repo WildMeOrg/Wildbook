@@ -1,6 +1,5 @@
 /*
  * The Shepherd Project - A Mark-Recapture Framework
- * Copyright (C) 2011 Jason Holmberg
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -2750,7 +2749,7 @@ public class Shepherd {
   }
 
   public List<MarkedIndividual> getMarkedIndividualsByAlternateID(String altID) {
-    String filter = "this.alternateid.startsWith('" + altID + "')";
+    String filter = "this.alternateid.toLowerCase() == \"" + altID.toLowerCase() + "\"";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
@@ -2776,7 +2775,7 @@ public class Shepherd {
   }
 
   public List<Encounter> getEncountersByAlternateID(String altID) {
-    String filter = "this.otherCatalogNumbers.startsWith('" + altID + "')";
+    String filter = "this.otherCatalogNumbers.toLowerCase() == \"" + altID.toLowerCase() + "\"";
     Extent encClass = pm.getExtent(Encounter.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
@@ -2786,7 +2785,7 @@ public class Shepherd {
   }
 
   public List<MarkedIndividual> getMarkedIndividualsByNickname(String altID) {
-    String filter = "this.nickName.startsWith('" + altID + "')";
+    String filter = "this.nickName.toLowerCase() == \"" + altID.toLowerCase() + "\"";
     Extent encClass = pm.getExtent(MarkedIndividual.class, true);
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     Collection c = (Collection) (acceptedEncounters.execute());
