@@ -58,7 +58,8 @@
 
     //int numThumbnails = myShepherd.getNumMarkedIndividualThumbnails(rIndividuals.iterator(), keywords);
 	int numThumbnails=0;
-	List<SinglePhotoVideo> thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords, myShepherd);
+	List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+	thumbLocs=myShepherd.getMarkedIndividualThumbnails(request, rIndividuals.iterator(), startNum, endNum, keywords);
 	
     
     String queryString = "";
