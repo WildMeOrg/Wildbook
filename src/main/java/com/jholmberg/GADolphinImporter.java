@@ -540,7 +540,7 @@ public class GADolphinImporter {
 	private static void populateImagesForEncounter(Encounter enc, File imagesDir, Shepherd myShepherd, String myID, String dataDirPath){
 		
 		//wipe out previous photos
-		int numPhotos=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber()).size();
+		int numPhotos=myShepherd.getAllSinglePhotoVideosForEncounter(enc.getCatalogNumber(), myShepherd).size();
 		for(int i=0;i<numPhotos;i++){
 			enc.removeSinglePhotoVideo(i);
 			myShepherd.commitDBTransaction();
