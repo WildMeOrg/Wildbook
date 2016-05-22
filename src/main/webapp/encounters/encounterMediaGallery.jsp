@@ -101,20 +101,6 @@ try {
   else {
   	for (Annotation ann: anns) {
       String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
-    	if (tasks != null) {
-        String[] linkArray = new String[tasks.length+1];
-        linkArray[0] = "<a data-id="+ann.getId()+" onClick=\"startIdentify(this)\">Match this image</a>";
-    		for (int i = 0 ; i < tasks.length ; i++) {
-          String linkAddr = "matchResults.jsp?taskId=" + tasks[i];
-          linkArray[i+1] = "<a target=\"_new\" href=\"" + linkAddr + "\" onClick=\"forceLink(this)\">" + (i+1) + ") previous match results</a>";
-          %> <script>console.log('added links: <%=linkArray[i] %>'); </script> <%
-    		}
-        captionLinks.add(linkArray);
-    	}
-      else {
-        captionLinks.add(new String[]{"<a data-id="+ann.getId()+" onClick=\"startIdentify(this)\">Match this image</a>"});
-        //out.println("no scan tasks here");
-      }
 
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
   		if (!ann.isTrivial()) continue;
@@ -140,7 +126,8 @@ finally{
 // here we just transform captionLinks into the actual captions we want to pass
 JSONArray captions = new JSONArray();
 for (int i=0; i<captionLinks.size(); i++) {
-  String cappy = "<div class=\"match-tools\">";
+  //String cappy = "<div class=\"match-tools\">";
+  String cappy = "<div>";
   for (String subCaption : captionLinks.get(i)) {
     cappy = cappy+subCaption+"</br>";
   }
