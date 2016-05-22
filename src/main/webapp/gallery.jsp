@@ -9,7 +9,8 @@
               java.util.Properties,
               java.util.StringTokenizer,
               org.datanucleus.api.rest.orgjson.JSONObject,
-              org.datanucleus.api.rest.orgjson.JSONArray
+              org.datanucleus.api.rest.orgjson.JSONArray,
+              org.joda.time.DateTime
               "
 %>
 
@@ -26,14 +27,15 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 
 Properties props = new Properties();
-//String langCode = "en";
 String langCode=ServletUtilities.getLanguageCode(request);
+
+props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
+
+//String langCode = "en";
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
-props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
-
 // range of the images being displayed
 int startNum = 0;
 int endNum = 6;
@@ -256,37 +258,46 @@ myShepherd.beginDBTransaction();
                 <td>
                   <ul>
                     <li>
-                      Name: <%=pairName[j]%>
+                      <%=props.getProperty("individualID")%>: <%=pairName[j]%>
                     </li>
                     <li>
-                      Nickname: <%=pairNickname[j]%>
+                      <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
                     </li>
                     <li>
-                      Sex: <%=pair[j].getSex()%>
-                    </li>
-                    <li>
-                      Locations: <%=org.apache.commons.lang3.StringUtils.join(pair[j].participatesInTheseLocationIDs(),", ")%>
+                      <%
+                        String sexValue = pair[j].getSex();
+                        if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
+                      %>
+                      <%=props.getProperty("sex")%>: <%=sexValue%>
                     </li>
                   </ul>
                 </td>
                 <td>
                   <ul>
                     <li>
-                      Living status: TODO
+                      <%=props.getProperty("location")%>: <%=org.apache.commons.lang3.StringUtils.join(pair[j].participatesInTheseLocationIDs(),", ")%>
                     </li>
                     <li>
-                      Nickname: <%=pairNickname[j]%>
+                      <%
+                      String timeOfBirth=props.getProperty("unknown");
+                      //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
+                      if(pair[j].getTimeOfBirth()>0){
+                      	String timeOfBirthFormat="yyyy-MM-d";
+                      	timeOfBirth=(new DateTime(pair[j].getTimeOfBirth())).toString(timeOfBirthFormat);
+                      }
+                      %>
+                      <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
                     <li>
-                      Sex: <%=pair[j].getSex()%>
-                    </li>
-                    <li>
-                      Locations: <%=org.apache.commons.lang3.StringUtils.join(pair[j].participatesInTheseLocationIDs(),", ")%>
+                      <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
                   </ul>
                 </td>
-
               </tr></table>
+
+              <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
+                To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
+              </p>
 
             </div>
           </div>
