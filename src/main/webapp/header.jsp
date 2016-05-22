@@ -244,6 +244,9 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       <!--<li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>-->
 
+                      <% if (request.getUserPrincipal()!=null) {
+                        %>
+
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
@@ -397,6 +400,22 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 
                         </ul>
                       </li>
+                      <% }  else { %> <!-- end if user logged in -->
+
+                      <li>
+                        <a href="submit.jsp">ILMOITA HAVAINTO</a>
+                      </li>
+
+                      <li>
+                        <a href="#">T&Auml;ST&Auml; ON KYSE</a>
+                      </li>
+
+                      <li>
+                        <a href="gallery.jsp">GALLERIA</a>
+                      </li>
+
+                      <% } %>
+
 
                       <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="#6" itemprop="url">Liity ja lahjoita</a>
                         <ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
