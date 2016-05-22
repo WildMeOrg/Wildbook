@@ -115,9 +115,15 @@ public class DiscoveryImporter {
         int numMatchingIdentifications=0;
         while(tIdentificationsIterator.hasNext()){
           Map<String,Object> thisRow=tIdentificationsIterator.next();
-
+          try{
             numMatchingIdentifications++;
             processThisRow(thisRow, myShepherd, splashImagesDirPath, encountersDirPath, urlToThumbnailJSPPage,images, features,context,assetStorePath,importDate );
+          }
+          catch(Exception e){
+            e.printStackTrace();
+            System.out.println("Exception in row: "+numMatchingIdentifications);
+            myShepherd.rollbackDBTransaction();
+          }
 
         }
 
