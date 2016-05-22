@@ -16,7 +16,7 @@ import org.ecocean.media.*;
 //import basic IO
 import java.io.*;
 import java.util.*;
-import java.net.*;
+import org.ecocean.tag.*;
 
 //import date-time formatter for the custom SPLASH date format
 import org.joda.time.DateTime;
@@ -145,7 +145,7 @@ public class DiscoveryImporter {
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
 
 
-                        System.out.println("......referencing by individualID.");
+                        System.out.println("......referencing Mother by individualID: "+individualID);
                         //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
                         org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
@@ -156,7 +156,7 @@ public class DiscoveryImporter {
 
                       }
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
-                        System.out.println("......referencing by nickname.");
+                        System.out.println("......referencing Mother by nickname: "+momValue);
                         MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
                         org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                         myShepherd.getPM().makePersistent(myRel);
@@ -170,8 +170,9 @@ public class DiscoveryImporter {
                   //pups
                   for(int w=1;w<4;w++){
                     String pupString="Pup"+w;
-                    System.out.println("......lookoing at "+pupString);
+                    
                     if(thisFeatureRow.get(pupString)!=null){
+                      System.out.println("......looking at "+pupString);
                       String pupValue=((String)thisFeatureRow.get(pupString)).trim();
                       pupValue=pupValue.replaceAll(",", "");
                       pupValue=pupValue.replaceAll("twins", "");
@@ -189,7 +190,7 @@ public class DiscoveryImporter {
                           String pupName=strPup.nextToken();
 
                           if(myShepherd.isMarkedIndividual(pupName)){
-
+                            System.out.println("......found "+pupName+" is the pup of "+individualID);
                             MarkedIndividual puppy=myShepherd.getMarkedIndividual(pupName);
 
                             if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
@@ -537,11 +538,17 @@ public class DiscoveryImporter {
 		//temp try creating encounters to populate database
 		myShepherd.beginDBTransaction();
 		Occurrence occur=new Occurrence(enc.getCatalogNumber(),enc);
+		MetalTag tag=new MetalTag(enc.getCatalogNumber(),"unknown");
+		enc.addMetalTag(tag);
 		occur.addEncounter(enc);
 		myShepherd.getPM().makePersistent(occur);
+		myShepherd.getPM().makePersistent(tag);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
 		occur.removeEncounter(enc);
+		myShepherd.getPM().deletePersistent(occur);
+		enc.removeMetalTag(tag);
+		myShepherd.getPM().deletePersistent(tag);
 		myShepherd.commitDBTransaction();
 		//end occurrence creation
 
@@ -628,7 +635,11 @@ public class DiscoveryImporter {
                 if((String)thisFeatureRow.get("Tagnumber")!=null){
                   String altID="";
                   if(newWhale.getAlternateID()!=null)altID=newWhale.getAlternateID();
-                  newWhale.setAlternateID(altID+((String)thisFeatureRow.get("Tagnumber")).toLowerCase());
+                  String tagNumber=(String)thisFeatureRow.get("Tagnumber");
+                  newWhale.setAlternateID(altID+(tagNumber).toLowerCase());
+                  
+                  myShepherd.commitDBTransaction();
+                  myShepherd.beginDBTransaction();
                   System.out.println("...set alternateID: "+altID);
                 }
 
