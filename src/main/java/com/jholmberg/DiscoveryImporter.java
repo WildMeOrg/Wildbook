@@ -163,11 +163,15 @@ public class DiscoveryImporter {
                       }
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing Mother by nickname: "+momValue);
-                        MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
-                        myShepherd.getPM().makePersistent(myRel);
-                        myShepherd.commitDBTransaction();
-                        myShepherd.beginDBTransaction();
+                        if(myShepherd.getRelationship("familial", momValue, individualID)==null){
+                        
+                          MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
+                          org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
+                          myShepherd.getPM().makePersistent(myRel);
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
+                        }
+                        
                       }
 
                   }
