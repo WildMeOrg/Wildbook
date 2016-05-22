@@ -150,14 +150,15 @@ public class DiscoveryImporter {
                       System.out.println("......has mother: "+momValue);
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
 
-
-                        System.out.println("......referencing Mother by individualID: "+individualID);
-                        //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
-                        myShepherd.getPM().makePersistent(myRel);
-                        myShepherd.commitDBTransaction();
-                        myShepherd.beginDBTransaction();
-
+                        if(myShepherd.getRelationship("familial", momValue, individualID)==null){
+                          
+                          System.out.println("......referencing Mother by individualID: "+individualID);
+                          //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
+                          org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                          myShepherd.getPM().makePersistent(myRel);
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
+                        }
 
 
                       }
