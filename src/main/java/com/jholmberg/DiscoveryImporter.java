@@ -150,22 +150,24 @@ public class DiscoveryImporter {
                       System.out.println("......has mother: "+momValue);
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
 
-
-                        System.out.println("......referencing Mother by individualID: "+individualID);
-                        //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
-                        org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
-                        myShepherd.getPM().makePersistent(myRel);
-                        myShepherd.commitDBTransaction();
-                        myShepherd.beginDBTransaction();
-
+                        if(myShepherd.getRelationship("familial", momValue, individualID)==null){
+                          
+                          System.out.println("......referencing Mother by individualID: "+individualID);
+                          //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
+                          org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
+                          myShepherd.getPM().makePersistent(myRel);
+                          myShepherd.commitDBTransaction();
+                          myShepherd.beginDBTransaction();
+                        }
 
 
                       }
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing Mother by nickname: "+momValue);
-                        if(myShepherd.getRelationship("familial", momValue, individualID)==null){
                         
-                          MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
+                        MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
+                        if(myShepherd.getRelationship("familial", mom.getIndividualID(), individualID)==null){
+                            
                           org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                           myShepherd.getPM().makePersistent(myRel);
                           myShepherd.commitDBTransaction();
