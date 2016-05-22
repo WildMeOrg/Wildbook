@@ -437,11 +437,11 @@ myShepherd.beginDBTransaction();
 
 try{
 
-    /* commented out to reduce load time during development
+    /* below three lines can be commented out to reduce load time during development */
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
-    */
+
 
 }
 catch(Exception e){
@@ -571,36 +571,6 @@ finally{
           myShepherd.closeDBTransaction();
         }
         %>
-
-        <!-- TODO: generate this list from Shepherd.getNumEncounters(String location) -->
-
-        <li>
-
-
-
-          <h3>
-          Location 1
-          </h3>
-          <p>
-            7 kuvattua norppaa
-          </p>
-        </li>
-        <li>
-          <h3>
-          Location 2
-          </h3>
-          <p>
-            7 kuvattua norppaa
-          </p>
-        </li>
-        <li>
-          <h3>
-          Location 3
-          </h3>
-          <p>
-            7 kuvattua norppaa
-          </p>
-        </li>
 
       </ol>
 
