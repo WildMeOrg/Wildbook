@@ -18,7 +18,7 @@
               <div class="container main-section">
                       <ul class="list-unstyled partner-list large">
           <li>
-            <a href="http://http://www.marinemegafauna.org/" class="partner" title="<%=props.getProperty("logo.main.title")%>">
+            <a href="http://www.marinemegafauna.org/" class="partner" title="<%=props.getProperty("logo.main.title")%>">
               <img src="<%=urlLoc %>/cust/mantamatcher/img/partnerlogo_mmf.svg" alt=" logo" />
             </a>
           </li>
