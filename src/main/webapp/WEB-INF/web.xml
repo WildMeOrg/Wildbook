@@ -1036,6 +1036,16 @@
     <servlet-class>org.ecocean.servlet.WorkspacesForUser</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>WorkspaceDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspaceDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>WorkspaceMetadata</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspaceMetadata</servlet-class>
+  </servlet>
+
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1059,6 +1069,17 @@
   <servlet-name>WorkspacesForUser</servlet-name>
   <url-pattern>/WorkspacesForUser</url-pattern>
 </servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspaceDelete</servlet-name>
+  <url-pattern>/WorkspaceDelete</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspaceMetadata</servlet-name>
+  <url-pattern>/WorkspaceMetadata</url-pattern>
+</servlet-mapping>
+
 
 
   <servlet-mapping>

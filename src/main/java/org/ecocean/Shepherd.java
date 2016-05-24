@@ -241,6 +241,10 @@ public class Shepherd {
     pm.deletePersistent(enc);
   }
 
+  public void throwAwayWorkspace(Workspace wSpace) {
+    pm.deletePersistent(wSpace);
+  }
+
   public void throwAwayTissueSample(TissueSample genSample) {
     //String removedParameters = genSample.getHTMLString();
     //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
@@ -328,6 +332,16 @@ public class Shepherd {
       return null;
     }
     return tempEnc;
+  }
+
+  public MediaAsset getMediaAsset(String num) {
+    MediaAsset tempMA = null;
+    try {
+      tempMA = ((MediaAsset) (pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempMA;
   }
 
   public Workspace getWorkspace(int id) {
