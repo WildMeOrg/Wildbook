@@ -334,6 +334,16 @@ public class Shepherd {
     return tempEnc;
   }
 
+  public MediaAsset getMediaAsset(String num) {
+    MediaAsset tempMA = null;
+    try {
+      tempMA = ((MediaAsset) (pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempMA;
+  }
+
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
     try {

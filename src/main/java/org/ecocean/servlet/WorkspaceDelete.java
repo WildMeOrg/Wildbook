@@ -59,6 +59,7 @@ public class WorkspaceDelete extends HttpServlet {
 
     String owner="";
     String id="";
+    String originalWorkspaceQuery="";
 
     try {
 
@@ -67,6 +68,7 @@ public class WorkspaceDelete extends HttpServlet {
       Workspace work = myShepherd.getWorkspaceForUser(id, owner);
 
       if (work!=null) {
+        originalWorkspaceQuery=work.getArgs();
         myShepherd.beginDBTransaction();
         myShepherd.throwAwayWorkspace(work);
       }
@@ -86,10 +88,8 @@ public class WorkspaceDelete extends HttpServlet {
       //log it
       Logger log = LoggerFactory.getLogger(EncounterDelete.class);
 
-      out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Success:</strong> I have removed Workspace " + id + " owned by user " + owner + " from the database.");
+      out.println("{status: deleted, originalWorkspaceQuery: "+originalWorkspaceQuery+"}");
 
-      out.println(ServletUtilities.getFooter(context));
     }
 
     out.close();
