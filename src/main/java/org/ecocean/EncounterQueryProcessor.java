@@ -611,14 +611,14 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //hasPhoto filters-------------------------------------------------
     if(request.getParameter("hasPhoto")!=null){
-          prettyPrint.append("Has at least one photo.");
+          prettyPrint.append("Has at least one MediaAsset.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(dce15)";}
-            else if (filter.indexOf("images.contains(dce15)")==-1){filter+=(" && images.contains(dce15) ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="annotations.contains(dce15) && dce15.mediaAsset != null";}
+            else if (filter.indexOf("annotations.contains(dce15)")==-1){filter+=(" && annotations.contains(dce15) && dce15.mediaAsset != null");}
 
             prettyPrint.append("<br />");
-            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo dce15";}
-            else if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo dce15")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo dce15";}
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation dce15";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation dce15")){jdoqlVariableDeclaration+=";org.ecocean.Annotation dce15";}
 
     }
     //end hasPhoto filters-----------------------------------------------

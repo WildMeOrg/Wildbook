@@ -598,12 +598,12 @@ public class IndividualQueryProcessor {
     if(request.getParameter("hasPhoto")!=null){
           prettyPrint.append("Has at least one photo.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc464) && enc464.images.contains(photo2)";}
-            else if (filter.indexOf("enc464.images.contains(photo2)")==-1){filter+=(" && encounters.contains(enc464) && enc464.images.contains(photo2) ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc464) && enc464.annotations.contains(photo2) && photo2.mediaAsset != null ";}
+            else if (filter.indexOf("enc464.annotations.contains(photo2)")==-1){filter+=(" && encounters.contains(enc464) && enc464.annotations.contains(photo2) && photo2.mediaAsset != null ");}
 
             prettyPrint.append("<br />");
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc464")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc464";}
-            if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo2")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo photo2";}
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo2")){jdoqlVariableDeclaration+=";org.ecocean.Annotation photo2";}
 
     }
     //end hasPhoto filters-----------------------------------------------
