@@ -241,6 +241,10 @@ public class Shepherd {
     pm.deletePersistent(enc);
   }
 
+  public void throwAwayWorkspace(Workspace wSpace) {
+    pm.deletePersistent(wSpace);
+  }
+
   public void throwAwayTissueSample(TissueSample genSample) {
     //String removedParameters = genSample.getHTMLString();
     //List<GeneticAnalysis> list=genSample.getGeneticAnalyses();
