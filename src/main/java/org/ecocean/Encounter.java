@@ -2375,6 +2375,16 @@ throw new Exception();
             return returnEnc;
         }
 
+        public static List<Encounter> findAllByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
+            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+            Encounter returnEnc=null;
+            Query query = myShepherd.getPM().newQuery(queryString);
+            List<Encounter> results = (List<Encounter>)query.execute();
+            query.closeAll();
+            return results;
+        }
+
+
         public static Encounter findByAnnotation(Annotation annot, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.id =='" + annot.getId() + "'";
             Encounter returnEnc=null;
