@@ -25,6 +25,7 @@ public class Annotation implements java.io.Serializable {
     private String id;  //TODO java.util.UUID ?
     private String species;
     private String name;
+    private boolean isExemplar = false;
     private ArrayList<Feature> features;
 
 ////// these will go away after transition to Features
@@ -190,7 +191,7 @@ public class Annotation implements java.io.Serializable {
             System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
             return __getMediaAsset();
         }
-        return fts.get(0).getMediaAsset();
+        return fts.get(0).getMediaAsset();  //should this instead return first feature *that has a MediaAsset* ??
     }
 /*  deprecated
     public void setMediaAsset(MediaAsset ma) {
@@ -226,6 +227,12 @@ public class Annotation implements java.io.Serializable {
         name = n;
     }
 
+    public boolean getIsExemplar() {
+        return isExemplar;
+    }
+    public void setIsExemplar(boolean b) {
+        isExemplar = b;
+    }
 
     public int[] getBbox() {
         int[] bbox = new int[4];
@@ -288,8 +295,15 @@ public class Annotation implements java.io.Serializable {
                                                                         boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
             org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
             jobj.put("id", id);
-            //really we only "care" about MediaAsset -- for now?
-            if (this.getMediaAsset() != null) jobj.put("mediaAsset", this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess));  //"should never" be null anyway
+            jobj.put("isExemplar", this.getIsExemplar());
+            if (this.getFeatures() != null) {
+                org.datanucleus.api.rest.orgjson.JSONArray feats = new org.datanucleus.api.rest.orgjson.JSONArray();
+                for (Feature f : this.getFeatures()) {
+                    if (f == null) continue;
+                    feats.put(f.sanitizeJson(request, fullAccess));
+                }
+                jobj.put("features", feats);
+            }
             return jobj;
         }
 
@@ -298,6 +312,7 @@ public class Annotation implements java.io.Serializable {
             return this.sanitizeJson(request, false);
         }
 
+///////////////////// TODO fix this for Feature upgrade ////////////////////////
         /**
         * returns only the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
         * all they want in return are MediaAssets
