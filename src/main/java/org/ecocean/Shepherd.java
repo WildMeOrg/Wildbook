@@ -1945,7 +1945,7 @@ public class Shepherd {
   public Iterator getAllWorkspaces() {
     Extent allWorkspaces = null;
     try {
-      allWorkspaces = pm.getExtent(MarkedIndividual.class, true);
+      allWorkspaces = pm.getExtent(Workspace.class, true);
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
     }
