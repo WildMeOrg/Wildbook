@@ -68,7 +68,7 @@ public class WorkspaceMetadata extends HttpServlet {
     res.put("numEncs", encounters.size());
     for (Encounter enc: encounters) {
       JSONObject encJson = new JSONObject();
-      encs.put(enc.getCatalogNumber(), enc.sanitizeJson(request, new JSONObject()));
+      encs.put(enc.getCatalogNumber(), enc.uiJson(request));
       if (enc.getIndividualID()!=null && !enc.getIndividualID().equals("")) {
         individualIDs.add(enc.getIndividualID());
       }
@@ -79,7 +79,7 @@ public class WorkspaceMetadata extends HttpServlet {
     for (String indID : individualIDs) {
       MarkedIndividual indie = myShepherd.getMarkedIndividual(indID);
       if (indie!=null) {
-        inds.put(id, indie.uiJson(request));
+        inds.put(indID, indie.uiJson(request));
       }
     }
     res.put("MarkedIndividuals", inds);
