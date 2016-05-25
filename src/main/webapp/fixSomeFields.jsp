@@ -50,7 +50,6 @@ try {
 
   while(allSpaces.hasNext()){
 
-  	MarkedIndividual mark=(MarkedIndividual)allIndividuals.next();
     Workspace wSpace=(Workspace)allSpaces.next()
 
     %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
