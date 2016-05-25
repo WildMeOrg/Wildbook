@@ -22,6 +22,7 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -2376,12 +2377,18 @@ throw new Exception();
         }
 
         public static List<Encounter> findAllByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
-            String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
-            Encounter returnEnc=null;
-            Query query = myShepherd.getPM().newQuery(queryString);
-            List<Encounter> results = (List<Encounter>)query.execute();
-            query.closeAll();
-            return results;
+            List<Encounter> returnEncs = new ArrayList<Encounter>();
+            try {
+                String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+                Query query = myShepherd.getPM().newQuery(queryString);
+                Collection results = (Collection) query.execute();
+                returnEncs = new ArrayList<Encounter>(results);
+                query.closeAll();
+            }
+            catch (Exception e) {
+
+            }
+            return returnEncs;
         }
 
 
