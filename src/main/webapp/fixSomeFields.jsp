@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Spurious encounters to remove.</p>
+<p>Removing all workspaces.</p>
 <ul>
 <%
 
@@ -38,36 +38,21 @@ myShepherd.beginDBTransaction();
 
 int numFixes=0;
 
-String nameWithMostPictures="";
-int maxPictures=0;
-
 try {
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-  Iterator allIndividuals=myShepherd.getAllMarkedIndividuals();
+  Iterator allSpaces=myShepherd.getAllWorkspaces();
 
   boolean committing=false;
 
 
-  while(allIndividuals.hasNext()){
+  while(allSpaces.hasNext()){
 
-  	MarkedIndividual mark=(MarkedIndividual)allIndividuals.next();
-    Encounter[] encounters = mark.getDateSortedEncounters();
-    int numEncs = encounters.length;
-    int numPics = 0;
+    Workspace wSpace=(Workspace)allSpaces.next();
 
-    for (Encounter enc : encounters) {
-      numPics += enc.getMedia().size();
-    }
-
-    if (numPics>maxPictures && numPics<20) {
-      maxPictures=numPics;
-      nameWithMostPictures=mark.getName();
-    }
-
-    %><p>Individual <%=mark.getName()%> has <%=numEncs%> encounters and <%=numPics%> pictures</p><%
+    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
 
   	numFixes++;
 
@@ -93,7 +78,6 @@ finally{
 %>
 
 </ul>
-<p>Done successfully: <%=numFixes %></p>
-<p>Most photographed individual <%=nameWithMostPictures %> had <%=maxPictures%> pictures.</p>
+<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
 </body>
 </html>
