@@ -192,6 +192,15 @@ public class CommonConfiguration {
     return getProperty("sizelim",context).trim();
   }
 
+    public static String getUploadTmpDir(String context) {
+        String dir = getProperty("uploadTmpDir", context);
+        if (dir == null) {
+            dir = System.getProperty("java.io.tmpdir");
+            System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
+        }
+        return dir.trim();
+    }
+
   public static String getMaxTriangleRotation(String context) {
     return getProperty("maxTriangleRotation",context).trim();
   }
