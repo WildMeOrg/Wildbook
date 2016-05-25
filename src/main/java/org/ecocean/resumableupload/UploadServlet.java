@@ -22,6 +22,9 @@ import ec.com.mapache.ngflow.upload.FlowInfo;
 import ec.com.mapache.ngflow.upload.FlowInfoStorage;
 import ec.com.mapache.ngflow.upload.HttpUtils;
 
+import org.ecocean.CommonConfiguration;
+import org.ecocean.servlet.ServletUtilities;
+
 /**
  *
  * This is a servlet demo, for using Flow.js to upload files.
@@ -203,7 +206,7 @@ System.out.println("flowChunkNumber " + flowChunkNumber);
         }
 
 	private String getUploadDir(HttpServletRequest request) {
-            return "/tmp/resumableUpload";
+            return CommonConfiguration.getUploadTmpDir(ServletUtilities.getContext(request));
         }
 
 	private FlowInfo getFlowInfo(List<FileItem> parts, HttpServletRequest request) throws ServletException {
