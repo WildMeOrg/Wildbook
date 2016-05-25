@@ -1730,7 +1730,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   public JSONObject uiJson(HttpServletRequest request) throws JSONException {
     JSONObject jobj = new JSONObject();
     jobj.put("individualID", this.getIndividualID());
-    jobj.put("url", "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID());
+    jobj.put("url", this.getUrl(request));
     jobj.put("sex", this.getSex());
     jobj.put("nickname", this.nickName);
 
@@ -1740,6 +1740,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
     jobj.put("encounterIDs", encIDs.toArray());
     return sanitizeJson(request, jobj);
+  }
+
+  public String getUrl(HttpServletRequest request) {
+    return "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID();
   }
 
 

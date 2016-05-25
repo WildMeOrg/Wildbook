@@ -2242,7 +2242,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         public JSONObject uiJson(HttpServletRequest request) throws JSONException {
           JSONObject jobj = new JSONObject();
           jobj.put("individualID", this.getIndividualID());
-          jobj.put("url", "http://" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+this.getCatalogNumber());
+          jobj.put("url", this.getUrl(request));
           jobj.put("year", this.getYear());
           jobj.put("month", this.getMonth());
           jobj.put("day", this.getDay());
@@ -2255,6 +2255,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
           // we don't want annotations, which are added by sanitizeJson
           jobj.remove("annotations");
           return jobj;
+        }
+
+        public String getUrl(HttpServletRequest request) {
+          return "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
         }
 
         /**
