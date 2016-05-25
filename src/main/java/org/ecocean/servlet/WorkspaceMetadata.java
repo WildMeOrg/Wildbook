@@ -97,6 +97,7 @@ public class WorkspaceMetadata extends HttpServlet {
   } catch (JSONException jsoe) {
     // curse datanucleus for demanding we handle this exception
   } catch (Exception e) {
+    out.println(e.getMessage());
   }
 
   }
