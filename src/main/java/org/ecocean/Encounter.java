@@ -2239,6 +2239,21 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
             return jobj;
         }
 
+        public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+          JSONObject jobj = new JSONObject();
+          jobj.put("individualID", this.getIndividualID());
+          jobj.put("url", "http://" + CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+this.getCatalogNumber());
+          jobj.put("year", this.getYear());
+          jobj.put("month", this.getMonth());
+          jobj.put("day", this.getDay());
+          jobj.put("gpsLatitude", this.getGPSLatitude());
+          jobj.put("gpsLongitude", this.getGPSLongitude());
+          jobj.put("location", this.getLocation());
+          jobj.put("locationID", this.getLocationID());
+
+          return sanitizeJson(request, jobj);
+        }
+
         /**
         * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
         * all they want in return are MediaAssets
@@ -2380,6 +2395,7 @@ throw new Exception();
             List<Encounter> returnEncs = new ArrayList<Encounter>();
             try {
                 String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+                //String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(mAsset) && mAsset.id ==" + ma.getId();
                 Query query = myShepherd.getPM().newQuery(queryString);
                 Collection results = (Collection) query.execute();
                 returnEncs = new ArrayList<Encounter>(results);
