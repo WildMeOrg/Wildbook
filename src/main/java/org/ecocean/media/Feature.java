@@ -188,5 +188,19 @@ public class Feature implements java.io.Serializable {
     }
 
 
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+                                                                    boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+        org.datanucleus.api.rest.orgjson.JSONObject jobj = new org.datanucleus.api.rest.orgjson.JSONObject();
+        jobj.put("id", id);
+        if (this.getType() != null) jobj.put("type", this.getType().getId());
+        if (this.getParameters() != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(getParameters().toString()));
+        if (this.getMediaAsset() != null) jobj.put("mediaAsset", this.getMediaAsset().sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess));  //"should never" be null anyway
+        return jobj;
+    }
+
+    //default behavior is limited access
+    public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+        return this.sanitizeJson(request, false);
+    }
 
 }
