@@ -45,7 +45,7 @@ try {
 
   Iterator allSpaces=myShepherd.getAllWorkspaces();
 
-  boolean committing=false;
+  boolean committing=true;
 
 
   while(allSpaces.hasNext()){
@@ -57,6 +57,7 @@ try {
   	numFixes++;
 
     if (committing) {
+      myShepherd.throwAwayWorkspace(wSpace);
   		myShepherd.commitDBTransaction();
   		myShepherd.beginDBTransaction();
     }
