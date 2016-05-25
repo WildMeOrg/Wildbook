@@ -158,7 +158,7 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setId(int i) {
         id = i;
-    }   
+    }
 
     //this is for Annotation mostly?  provides are reproducible uuid based on the MediaAsset id
     public String getUUID() {
@@ -439,7 +439,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
     //TODO check if it is already here?  maybe?
     public Annotation addTrivialAnnotation(String species) {
-        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well 
+        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well
         String newId = generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID relative to our ID  An___
         if (newId != null) ann.setId(newId);
         return ann;
@@ -483,7 +483,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
      * asset is not web-accessible.
      */
     public URL webURL() {
-      
+
         if (store == null) {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
@@ -757,7 +757,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     public List<Keyword> getKeywords() {
         return new ArrayList<Keyword>();
     }
- 
+
 
     //if we dont have the Annotation... which kinda sucks but okay
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
@@ -806,4 +806,3 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
 
 }
-
