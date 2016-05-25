@@ -2251,7 +2251,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
           jobj.put("location", this.getLocation());
           jobj.put("locationID", this.getLocationID());
 
-          return sanitizeJson(request, jobj);
+          jobj = sanitizeJson(request, jobj);
+          // we don't want annotations, which are added by sanitizeJson
+          jobj.remove("annotations");
+          return jobj;
         }
 
         /**
