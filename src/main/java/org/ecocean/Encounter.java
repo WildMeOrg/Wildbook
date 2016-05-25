@@ -2394,8 +2394,8 @@ throw new Exception();
         public static List<Encounter> findAllByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             List<Encounter> returnEncs = new ArrayList<Encounter>();
             try {
-                String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
-                //String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.feat.mediaAsset.id ==" + ma.getId();
+                //String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
+                String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.features.contains(mAsset) && mAsset.id ==" + ma.getId();
                 Query query = myShepherd.getPM().newQuery(queryString);
                 Collection results = (Collection) query.execute();
                 returnEncs = new ArrayList<Encounter>(results);
