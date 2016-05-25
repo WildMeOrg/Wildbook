@@ -65,6 +65,7 @@ public class WorkspaceMetadata extends HttpServlet {
     JSONObject encs = new JSONObject();
     HashSet<String> individualIDs = new HashSet<String>();
     List<Encounter> encounters = Encounter.findAllByMediaAsset(mAsset,myShepherd);
+    res.put("numEncs", encounters.size());
     for (Encounter enc: encounters) {
       encs.put(enc.getCatalogNumber(), enc.sanitizeJson(request, new JSONObject()));
       if (enc.getIndividualID()!=null && !enc.getIndividualID().equals("")) {
@@ -96,6 +97,7 @@ public class WorkspaceMetadata extends HttpServlet {
   } catch (JSONException jsoe) {
     // curse datanucleus for demanding we handle this exception
   } catch (Exception e) {
+    out.println(e.getMessage());
   }
 
   }
