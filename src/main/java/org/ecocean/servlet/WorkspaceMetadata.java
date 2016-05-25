@@ -1,6 +1,7 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.ecocean.media.*;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -11,13 +12,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
@@ -37,24 +39,59 @@ public class WorkspaceMetadata extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+    String owner = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "testUser";
+    if (request.getParameter("id")==null) throw new IOException("WorkspaceServer requires an \"id\" argument");
+    String id = request.getParameter("id");
+    String context="context0";
+    context=ServletUtilities.getContext(request);
+    Shepherd myShepherd = new Shepherd(context);
+
+
     try {
+
+    MediaAsset mAsset = myShepherd.getMediaAsset(id);
+    if (mAsset==null) {
+      throw new IOException("No MediaAsset in DB with id="+id);
+    } else {
+      System.out.println("WorkspaceMetadata successfully grabbed MediaAsset with id="+id);
+    }
+
     //
     JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
 
-    JSONArray encs = new JSONArray();
-    // get attached Encounters
+    JSONObject encs = new JSONObject();
+    HashSet<String> individualIDs = new HashSet<String>();
+    List<Encounter> encounters = Encounter.findAllByMediaAsset(mAsset,myShepherd);
+    for (Encounter enc: encounters) {
+      encs.put(enc.getCatalogNumber(), enc.sanitizeJson(request, new JSONObject()));
+      if (enc.getIndividualID()!=null && !enc.getIndividualID().equals("")) {
+        individualIDs.add(enc.getIndividualID());
+      }
+    }
     res.put("Encounters", encs);
 
-    JSONArray inds = new JSONArray();
-    // get attached MarkedIndividuals
+    JSONObject inds = new JSONObject();
+    for (String indID : individualIDs) {
+      MarkedIndividual indie = myShepherd.getMarkedIndividual(indID);
+      if (indie!=null) {
+        inds.put(id, indie.sanitizeJson(request, new JSONObject()));
+      }
+    }
     res.put("MarkedIndividuals", inds);
 
-    JSONArray anns = new JSONArray();
+
+    JSONObject anns = new JSONObject();
+    ArrayList<Annotation> annotations = mAsset.findAnnotations(myShepherd);
+    for(Annotation ann : annotations) {
+      anns.put(ann.getId(),ann.sanitizeJson(request));
+    }
     // get attached Annotations
     res.put("Annotations", anns);
 
-  } catch (JSONException e) {
+  } catch (JSONException jsoe) {
     // curse datanucleus for demanding we handle this exception
+  } catch (Exception e) {
   }
 
   }
