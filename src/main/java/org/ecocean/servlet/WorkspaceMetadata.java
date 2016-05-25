@@ -46,6 +46,8 @@ public class WorkspaceMetadata extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    PrintWriter out = response.getWriter();
+
 
 
     try {
@@ -88,6 +90,8 @@ public class WorkspaceMetadata extends HttpServlet {
     }
     // get attached Annotations
     res.put("Annotations", anns);
+
+    out.println(res);
 
   } catch (JSONException jsoe) {
     // curse datanucleus for demanding we handle this exception
