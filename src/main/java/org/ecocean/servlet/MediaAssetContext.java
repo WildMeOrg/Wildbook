@@ -26,7 +26,7 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 
-public class WorkspaceMetadata extends HttpServlet {
+public class MediaAssetContext extends HttpServlet {
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
