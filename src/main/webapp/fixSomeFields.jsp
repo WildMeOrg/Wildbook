@@ -50,7 +50,7 @@ try {
 
   while(allSpaces.hasNext()){
 
-    Workspace wSpace=(Workspace)allSpaces.next()
+    Workspace wSpace=(Workspace)allSpaces.next();
 
     %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
 
