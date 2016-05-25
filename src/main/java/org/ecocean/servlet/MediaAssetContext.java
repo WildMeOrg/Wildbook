@@ -26,7 +26,7 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 
-public class WorkspaceMetadata extends HttpServlet {
+public class MediaAssetContext extends HttpServlet {
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -67,7 +67,8 @@ public class WorkspaceMetadata extends HttpServlet {
     List<Encounter> encounters = Encounter.findAllByMediaAsset(mAsset,myShepherd);
     res.put("numEncs", encounters.size());
     for (Encounter enc: encounters) {
-      encs.put(enc.getCatalogNumber(), enc.sanitizeJson(request, new JSONObject()));
+      JSONObject encJson = new JSONObject();
+      encs.put(enc.getCatalogNumber(), enc.uiJson(request));
       if (enc.getIndividualID()!=null && !enc.getIndividualID().equals("")) {
         individualIDs.add(enc.getIndividualID());
       }
@@ -78,7 +79,7 @@ public class WorkspaceMetadata extends HttpServlet {
     for (String indID : individualIDs) {
       MarkedIndividual indie = myShepherd.getMarkedIndividual(indID);
       if (indie!=null) {
-        inds.put(id, indie.sanitizeJson(request, new JSONObject()));
+        inds.put(indID, indie.uiJson(request));
       }
     }
     res.put("MarkedIndividuals", inds);
