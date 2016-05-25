@@ -1726,6 +1726,23 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             return jobj;
         }
 
+  // Returns a somewhat rest-like JSON object containing the metadata
+  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+    JSONObject jobj = new JSONObject();
+    jobj.put("individualID", this.getIndividualID());
+    jobj.put("url", "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID());
+    jobj.put("sex", this.getSex());
+    jobj.put("nickname", this.nickName);
+
+    Vector<String> encIDs = new Vector<String>();
+    for (Encounter enc : this.encounters) {
+      encIDs.add(enc.getCatalogNumber());
+    }
+    jobj.put("encounterIDs", encIDs.toArray());
+    return sanitizeJson(request, jobj);
+  }
+
+
   /**
   * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
   * all they want in return are MediaAssets
