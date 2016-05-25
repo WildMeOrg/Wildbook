@@ -60,7 +60,7 @@ public class WorkspaceMetadata extends HttpServlet {
     }
 
     //
-    JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
+    JSONObject res = new JSONObject("{id:"+mAsset.getId()+"}");
 
     JSONObject encs = new JSONObject();
     HashSet<String> individualIDs = new HashSet<String>();
