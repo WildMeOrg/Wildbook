@@ -1942,6 +1942,21 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator getAllWorkspaces() {
+    Extent allWorkspaces = null;
+    try {
+      allWorkspaces = pm.getExtent(Workspace.class, true);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+    }
+    Query spaces = pm.newQuery(allWorkspaces);
+    Collection c = (Collection) (spaces.execute());
+    ArrayList list = new ArrayList(c);
+    Iterator it = list.iterator();
+    return it;
+  }
+
+
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
     Extent allSharks = null;
     try {
