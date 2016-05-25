@@ -1042,8 +1042,8 @@
   </servlet>
 
   <servlet>
-    <servlet-name>WorkspaceMetadata</servlet-name>
-    <servlet-class>org.ecocean.servlet.WorkspaceMetadata</servlet-class>
+    <servlet-name>MediaAssetContext</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetContext</servlet-class>
   </servlet>
 
 
@@ -1076,8 +1076,8 @@
 </servlet-mapping>
 
 <servlet-mapping>
-  <servlet-name>WorkspaceMetadata</servlet-name>
-  <url-pattern>/WorkspaceMetadata</url-pattern>
+  <servlet-name>MediaAssetContext</servlet-name>
+  <url-pattern>/MediaAssetContext</url-pattern>
 </servlet-mapping>
 
 
