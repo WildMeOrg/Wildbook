@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Calendar;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -190,12 +191,12 @@ public class IdentityServiceLog implements java.io.Serializable {
     }
 
 
-    //loads only most recent task's worth of log items (note that it first finds task-for-object, then uses that task id)
+    //loads only most recent task's worth of log items (note: it is in timestamp DESC order, unlike most)
     public static ArrayList<IdentityServiceLog> loadMostRecentByObjectID(String serviceName, String objectID, Shepherd myShepherd) {
 //System.out.println("serviceName=(" + serviceName + ") serviceJobID=(" + serviceJobID + ")");
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\"");
-        qry.setOrdering("timestamp");
+        qry.setOrdering("timestamp DESC");
         String activeTaskId = null;
         ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
@@ -281,6 +282,16 @@ public class IdentityServiceLog implements java.io.Serializable {
     }
 */
 
+    public JSONObject toJSONObject() {
+        JSONObject j = new JSONObject();
+        j.put("serviceName", this.getServiceName());
+        j.put("serviceJobId", this.getServiceJobID());
+        j.put("taskId", this.getTaskID());
+        j.put("timestamp", this.getTimestamp());
+        if (this.getObjectIDs() != null) j.put("objectIds", new JSONArray(this.getObjectIDs()));
+        j.put("status", this.getStatusJson());
+        return j;
+    }
 
     //probably (?) we will standardize on  "status" actually being a json object, so this will likely be the main constructor
     public String toString() {
