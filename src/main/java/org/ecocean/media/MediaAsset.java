@@ -22,9 +22,11 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
+import org.ecocean.AccessControl;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
+import org.ecocean.identity.IdentityServiceLog;
 //import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
@@ -78,6 +80,8 @@ public class MediaAsset implements java.io.Serializable {
     protected Integer parentId;
 
     protected long revision;
+
+    protected AccessControl accessControl = null;
 
     protected JSONObject derivationMethod = null;
 
@@ -134,6 +138,16 @@ public class MediaAsset implements java.io.Serializable {
         this.setHashCode();
     }
 
+
+    public AccessControl getAccessControl() {
+        return accessControl;
+    }
+    public void setAccessControl(AccessControl ac) {
+        accessControl = ac;
+    }
+    public void setAccessControl(HttpServletRequest request) {
+        this.setAccessControl(new AccessControl(request));
+    }
 
     private URL getUrl(final AssetStore store, final Path path) {
         if (store == null) {
@@ -414,14 +428,11 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return f;
     }
 
-    public ArrayList<Annotation> findAnnotations(Shepherd myShepherd) {
-        String queryString = "SELECT FROM org.ecocean.Annotation WHERE mediaAsset.id == " + this.getId();
-        Query query = myShepherd.getPM().newQuery(queryString);
-        List results = (List)query.execute();
-        if (results.size() < 1) return null;
+    public ArrayList<Annotation> getAnnotations() {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
-        for (Object r : results) {
-            anns.add((Annotation)r);
+        if ((this.getFeatures() == null) || (this.getFeatures().size() < 1)) return anns;
+        for (Feature f : this.getFeatures()) {
+            if (f.getAnnotation() != null) anns.add(f.getAnnotation());
         }
         return anns;
     }
@@ -607,7 +618,6 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
-              //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
@@ -624,15 +634,15 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                     jf.put("id", ft.getId());
                     jf.put("type", ft.getType());
                     JSONObject p = ft.getParameters();
-                    if (p != null) jf.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(p.toString()));
+                    if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
                     jarr.put(jf);
                 }
                 jobj.put("features", jarr);
             }
             jobj.put("url", webURLString());
             if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
-                //hactacular, but if it works....
-                jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
+                //jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
+                jobj.put("metadata", Util.toggleJSONObject(getMetadata().getData().getJSONObject("attributes")));
             }
             DateTime dt = getDateTime();
             if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
@@ -802,6 +812,33 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         metadata.getData().put("height", height);
         metadata.getData().put("contentType", contentType);
         return metadata;
+    }
+
+
+    public JSONObject getIAStatus(Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+
+        //first we do this MediaAsset which will be referenced by its id (i.e. detection)
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", Integer.toString(this.getId()), myShepherd);
+        if ((logs != null) && (logs.size() > 0)) {
+            JSONObject j = new JSONObject();
+            j.put("_log", logs.get(0).toJSONObject());
+            rtn.put("detection", j);
+        }
+
+        //now the annotations associated with this (i.e. identification)
+        for (Annotation ann : this.getAnnotations()) {
+            JSONObject as = new JSONObject();
+            logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
+            if ((logs != null) && (logs.size() > 0)) {
+                JSONObject j = new JSONObject();
+                j.put("_log", logs.get(0).toJSONObject());
+                as.put(ann.getId(), j);
+            }
+            if (as.length() > 0) rtn.put("identification", as);
+        }
+
+        return rtn;
     }
 
 
