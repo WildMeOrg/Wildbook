@@ -149,10 +149,10 @@ public class EncounterDelete extends HttpServlet {
           List<String> linkParams = new ArrayList<>();
           Map<String, String> states = CommonConfiguration.getIndexedValuesMap("encounterState", context);
           for (Map.Entry<String, String> me : states.entrySet()) {
-            linkParams.add(mapI18n.get(me.getKey()));
+            linkParams.add(mapI18n.get(me.getValue()));
             linkParams.add(String.format("encounters/searchResults.jsp?state=%s", me.getValue()));
           }
-          actionResult.setLink("#").setLinkOverrideKey("delete").setLinkParams(linkParams);
+          actionResult.setLink("#").setLinkOverrideKey("delete").setLinkParams(linkParams.toArray());
 
           // Notify new-submissions address
           Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, enc2trash);
