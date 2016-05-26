@@ -409,4 +409,14 @@ public class Util {
       return jsonObj;
     }
 
+    public static org.datanucleus.api.rest.orgjson.JSONObject toggleJSONObject(JSONObject jin) {
+        if (jin == null) return null;
+        return stringToDatanucleusJSONObject(jin.toString());
+    }
+    public static JSONObject toggleJSONObject(org.datanucleus.api.rest.orgjson.JSONObject jin) {
+        if (jin == null) return null;
+        return stringToJSONObject(jin.toString());
+    }
+
+
 }
