@@ -91,7 +91,7 @@ public class MediaAssetContext extends HttpServlet {
 
 
     JSONObject anns = new JSONObject();
-    ArrayList<Annotation> annotations = mAsset.findAnnotations(myShepherd);
+    ArrayList<Annotation> annotations = mAsset.getAnnotations();
     for(Annotation ann : annotations) {
       anns.put(ann.getId(),ann.sanitizeJson(request));
     }
@@ -107,6 +107,7 @@ public class MediaAssetContext extends HttpServlet {
     }
     res.put("Occurrences", occs);
 
+    res.put("IAStatus", Util.toggleJSONObject(mAsset.getIAStatus(myShepherd)));
     out.println(res);
 
   } catch (JSONException jsoe) {
