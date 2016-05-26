@@ -14,7 +14,7 @@ public class AccessControl implements java.io.Serializable {
     }
 
     public AccessControl(final String username) {
-        this(-1, username);
+        this.username = username;
     }
 
     public AccessControl(final int id, final String username) {
@@ -22,8 +22,7 @@ public class AccessControl implements java.io.Serializable {
         this.username = username;
     }
 
-    public static AccessControl fromRequest(HttpServletRequest request) {
-        if (request.getUserPrincipal() == null) return new AccessControl();
-        return new AccessControl(request.getUserPrincipal().getName());
+    public AccessControl(final HttpServletRequest request) {
+        this.username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
 }
