@@ -1236,6 +1236,8 @@ if(enc.getLocation()!=null){
     }
 		Map<String, String> mapI18n = Util.getIndexedValuesMap(cciProps, "locationID");
 		String locID = mapI18n.get("locationID" + CommonConfiguration.getIndexNumberForValue("locationID", enc.getLocationID(), context));
+		if (locID == null)
+			locID = encprops.getProperty("unassigned");
   %>
 <br /><em><%=encprops.getProperty("locationID") %></em>: <%=locID%>
   <%
@@ -3303,6 +3305,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       <td>
         <form name="setAcousticTag" method="post" action="../EncounterSetTags">
         <input type="hidden" name="encounter" value="${num}"/>
+
         <input type="hidden" name="tagType" value="acousticTag"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
         <table>

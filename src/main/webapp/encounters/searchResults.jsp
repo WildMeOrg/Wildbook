@@ -618,7 +618,9 @@ function _colNumberLocations(o) {
 
 // Function to map LocationIDs to i18n versions.
 function i18nLocationID(id) {
-	var enID = wildbookGlobals.properties.lang.commonCoreInternational.locationID_en;
+//	var enID = wildbookGlobals.properties.lang.commonCoreInternational.locationID_en;
+	// Ideally use above line, but for backward-compatibility with hard-coded stuff, use line below instead.
+	var enID = wildbookGlobals.properties.lang.commonConfiguration.locationID;
 	var locID = wildbookGlobals.properties.lang.commonCoreInternational.locationID;
 	return locID[enID.indexOf(id)];
 }

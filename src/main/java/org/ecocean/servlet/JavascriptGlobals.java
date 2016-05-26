@@ -74,6 +74,10 @@ public class JavascriptGlobals extends HttpServlet {
     cci.put("locationID", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonCoreInternational.properties", langCode, context), "locationID").values().toArray());
     lang.put("commonCoreInternational", cci);
 
+    HashMap cc = new LinkedHashMap();
+    cc.put("locationID", Util.getIndexedValuesMap(ShepherdProperties.getProperties("commonConfiguration.properties", "", context), "locationID").values().toArray());
+    lang.put("commonConfiguration", cc);
+
 		lang.put("visualMatcher", ShepherdProperties.getProperties("visualMatcher.properties", langCode, context));
 		lang.put("collaboration", ShepherdProperties.getProperties("collaboration.properties", langCode, context));
 
