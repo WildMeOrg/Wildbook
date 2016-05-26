@@ -823,6 +823,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         if ((logs != null) && (logs.size() > 0)) {
             JSONObject j = new JSONObject();
             j.put("_log", logs.get(0).toJSONObject());
+            j.put("status", "error");
+            j.put("description", "error: not yet implemented");
             rtn.put("detection", j);
         }
 
@@ -835,7 +837,11 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 j.put("_log", logs.get(0).toJSONObject());
                 as.put(ann.getId(), j);
             }
-            if (as.length() > 0) rtn.put("identification", as);
+            JSONObject ji = new JSONObject();
+            if (as.length() > 0) ji.put("annotations", as);
+            ji.put("status", "error");
+            ji.put("description", "error: not yet implemented");
+            rtn.put("identification", ji);
         }
 
         return rtn;
