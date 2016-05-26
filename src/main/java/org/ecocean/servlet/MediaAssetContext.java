@@ -64,6 +64,7 @@ public class MediaAssetContext extends HttpServlet {
 
     JSONObject encs = new JSONObject();
     HashSet<String> individualIDs = new HashSet<String>();
+    HashSet<String> occurrenceIDs = new HashSet<String>();
     List<Encounter> encounters = Encounter.findAllByMediaAsset(mAsset,myShepherd);
     res.put("numEncs", encounters.size());
     for (Encounter enc: encounters) {
@@ -72,6 +73,10 @@ public class MediaAssetContext extends HttpServlet {
       if (enc.getIndividualID()!=null && !enc.getIndividualID().equals("")) {
         individualIDs.add(enc.getIndividualID());
       }
+      if (enc.getOccurrenceID()!=null && !enc.getOccurrenceID().equals("")) {
+        occurrenceIDs.add(enc.getOccurrenceID());
+      }
+
     }
     res.put("Encounters", encs);
 
@@ -92,6 +97,15 @@ public class MediaAssetContext extends HttpServlet {
     }
     // get attached Annotations
     res.put("Annotations", anns);
+
+    JSONObject occs = new JSONObject();
+    for (String occID : occurrenceIDs) {
+      Occurrence occie = myShepherd.getOccurrence(occID);
+      if (occie!=null) {
+        occs.put(occID, occie.uiJson(request));
+      }
+    }
+    res.put("Occurrences", occs);
 
     out.println(res);
 
