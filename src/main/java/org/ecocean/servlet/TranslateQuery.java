@@ -97,6 +97,9 @@ public class TranslateQuery extends HttpServlet {
 
       // attempt to return the query's text
       resultMetadata.put("TranslateQueryArgs", json);
+      // this will change if isImageSet becomes a field
+      boolean isImageSet = ("org.ecocean.media.MediaAssetSet".equals(json.optString("class")));
+      resultMetadata.put("isImageSet", isImageSet);
 
 
       System.out.println("Starting TranslateQuery with request-as-JSON= "+json.toString());

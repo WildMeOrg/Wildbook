@@ -37,6 +37,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.datanucleus.api.rest.orgjson.JSONException;
+
+
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
  * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
@@ -126,11 +129,28 @@ public class Shepherd {
     return (uniqueID);
   }
 
+  public String storeNewAnnotation(Annotation enc) {
+    //enc.setOccurrenceID(uniqueID);
+    beginDBTransaction();
+    try {
+      pm.makePersistent(enc);
+      commitDBTransaction();
+      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    }
+    return (enc.getId());
+}
+
   public String storeNewWorkspace(Workspace wSpace) {
     beginDBTransaction();
     try {
       pm.makePersistent(wSpace);
       commitDBTransaction();
+      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
@@ -156,6 +176,9 @@ public class Shepherd {
       }
 
   }
+
+
+
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
@@ -355,10 +378,8 @@ public class Shepherd {
   }
   // finds the workspace that user 'owner' created and named 'name'
   public Workspace getWorkspaceForUser(String name, String owner) {
-    String filter = "this.name == \""+name+"\" && this.owner == \""+owner+"\"";
-    if (owner==null) {
-      filter = "this.name == \""+name+"\" && this.owner == null";
-    }
+    String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\"");
+    String filter = "this.name == \""+name+"\" && this.owner == "+quotedOwner;
     Extent allWorkspaces = pm.getExtent(Workspace.class, true);
     Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
     Collection results = (Collection) (workspaceQuery.execute());
@@ -392,6 +413,40 @@ public class Shepherd {
     }
   }
 
+  // like above but filters on Workspace.isImageSet
+  /*
+  public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) {
+    String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\'");
+
+    String isImageSetBit = isImageSet ? "1" : "0";
+
+    String filter = "this.owner == "+quotedOwner+" && this.isImageSet == "+isImageSetBit;
+
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    workspaceQuery.setOrdering("accessed descending");
+
+    try {
+      Collection results = (Collection) (workspaceQuery.execute());
+      ArrayList<Workspace> resultList = new ArrayList<Workspace>();
+      if (results!=null) {
+        resultList = new ArrayList<Workspace>(results);
+      }
+      workspaceQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }*/
+  public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) throws JSONException {
+    ArrayList<Workspace> unfilteredSpaces = getWorkspacesForUser(owner);
+    ArrayList<Workspace> filteredSpaces = new ArrayList<Workspace>();
+    for (Workspace wSpace : unfilteredSpaces) {
+      if (wSpace!=null && (wSpace.computeIsImageSet() == isImageSet)) {filteredSpaces.add(wSpace);}
+    }
+    return filteredSpaces;
+  }
 
   public Relationship getRelationship(String type, String indie1,String indie2) {
     Relationship tempRel = null;
@@ -1074,6 +1129,19 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator getAllAnnotationsNoQuery() {
+    try {
+      Extent annClass = pm.getExtent(Annotation.class, true);
+      Iterator it = annClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllAnnotationsNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public Iterator getAllMediaAssets() {
     try {
