@@ -88,7 +88,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
       } catch (Exception le) {
         locked = true;
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
 
       if (!locked) {
@@ -118,7 +118,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
 
     }
     out.close();
-    myShepherd.rollbackDBTransaction();
+    //myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
   }
 
