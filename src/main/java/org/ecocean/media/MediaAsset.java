@@ -854,50 +854,6 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         j = new JSONObject();
         j.put("status", getIdentificationStatus());
         rtn.put("identification", j);
-
-/*
-        //first we do this MediaAsset which will be referenced by its id (i.e. detection)
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", Integer.toString(this.getId()), myShepherd);
-        if ((logs != null) && (logs.size() > 0)) {
-            JSONObject j = new JSONObject();
-            j.put("_log", logs.get(0).toJSONObject());
-            j.put("status", "error");
-            j.put("description", "error: not yet implemented");
-            rtn.put("detection", j);
-
-            // consistency check and update this.detectionStatus if necessary
-            if (!j.getString("status").equals(this.getDetectionStatus())) {
-              System.out.println("MediaAsset.getIAStatus found an inconsistency in the detection status of asset #"+this.id+".");
-              System.out.println("Was cached as \""+this.getDetectionStatus()+"\", now updated to the correct value \""+j.getString("status")+"\".");
-              this.setDetectionStatus(j.getString("status"));
-            }
-        }
-
-        //now the annotations associated with this (i.e. identification)
-        for (Annotation ann : this.getAnnotations()) {
-            JSONObject as = new JSONObject();
-            logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
-            if ((logs != null) && (logs.size() > 0)) {
-                JSONObject j = new JSONObject();
-                j.put("_log", logs.get(0).toJSONObject());
-                as.put(ann.getId(), j);
-            }
-            JSONObject ji = new JSONObject();
-            if (as.length() > 0) ji.put("annotations", as);
-            ji.put("status", "error");
-            ji.put("description", "error: not yet implemented");
-            rtn.put("identification", ji);
-
-            // consistency check and update this.identificationStatus if necessary
-            if (!ji.getString("status").equals(this.getIdentificationStatus())) {
-              System.out.println("MediaAsset.getIAStatus found an inconsistency in the identification status of asset #"+this.id+".");
-              System.out.println("Was cached as \""+this.getIdentificationStatus()+"\", now updated to the correct value \""+ji.getString("status")+"\".");
-              this.setIdentificationStatus(ji.getString("status"));
-            }
-
-        }
-*/
-
         return rtn;
     }
 
