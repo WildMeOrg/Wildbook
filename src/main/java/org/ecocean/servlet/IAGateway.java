@@ -188,11 +188,13 @@ System.out.println(id);
             if (id < 1) continue;
             MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
             if (ma != null) {
+                ma.setDetectionStatus("processing");
                 mas.add(ma);
                 validIds.add(Integer.toString(id));
             }
         }
         if (mas.size() > 0) {
+            boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
                 res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas));
@@ -204,7 +206,13 @@ System.out.println(id);
                 res.put("jobId", jobId);
                 IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
             } catch (Exception ex) {
+                success = false;
                 throw new IOException(ex.toString());
+            }
+            if (!success) {
+                for (MediaAsset ma : mas) {
+                    ma.setDetectionStatus("error");
+                }
             }
         }
     }

@@ -27,6 +27,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
+import org.ecocean.identity.IBEISIA;
 //import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
@@ -830,9 +831,31 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
-    public JSONObject getIAStatus(Shepherd myShepherd) {
+    public void refreshIAStatus(Shepherd myShepherd) {
+        String s = IBEISIA.parseDetectionStatus(Integer.toString(this.getId()), myShepherd);
+        if (s != null) this.setDetectionStatus(s);
+
+        String cumulative = null;
+        for (Annotation ann : this.getAnnotations()) {
+            s = IBEISIA.parseIdentificationStatus(ann.getId(), myShepherd);
+            if ((s != null) && ((cumulative == null) || !s.equals("complete"))) cumulative = s;
+        }
+        if (cumulative != null) this.setIdentificationStatus(cumulative);
+    }
+
+
+    public JSONObject getIAStatus() {
         JSONObject rtn = new JSONObject();
 
+        JSONObject j = new JSONObject();
+        j.put("status", getDetectionStatus());
+        rtn.put("detection", j);
+
+        j = new JSONObject();
+        j.put("status", getIdentificationStatus());
+        rtn.put("identification", j);
+
+/*
         //first we do this MediaAsset which will be referenced by its id (i.e. detection)
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", Integer.toString(this.getId()), myShepherd);
         if ((logs != null) && (logs.size() > 0)) {
@@ -873,6 +896,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             }
 
         }
+*/
 
         return rtn;
     }

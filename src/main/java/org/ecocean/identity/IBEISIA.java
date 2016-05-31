@@ -812,7 +812,12 @@ System.out.println("* CREATED " + ann);
                         newAnns.put(ann.getId());
                         numCreated++;
                     }
-                    if (needsReview) needReview.put(i);
+                    if (needsReview) {
+                        needReview.put(asset.getId());
+                        asset.setDetectionStatus("pending");
+                    } else {
+                        asset.setDetectionStatus("complete");
+                    }
                     if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
                 }
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
@@ -838,6 +843,62 @@ System.out.println("* CREATED " + ann);
     private static double getIdentificationCutoffValue() {
         return 0.8;
     }
+
+    public static String parseDetectionStatus(String maId, Shepherd myShepherd) {
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", maId, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) return null;
+        for (IdentityServiceLog log : logs) {
+            String s = _parseDetection(maId, log);
+            if (s != null) return s;
+        }
+        System.out.println("WARNING: parseDetectionStatus(" + maId + ") fell through; returning error.");
+        return "error";
+    }
+    //basically returning null means nothing parsable/usable/interesting found
+    private static String _parseDetection(String maId, IdentityServiceLog log) {
+        JSONObject status = log.getStatusJson();
+        if (status == null) return null;
+        String action = status.optString("_action", null);
+        if (action == null) return null;
+        if (action.equals("processedCallbackDetection")) {
+            JSONArray need = status.optJSONArray("needReview");
+            if ((need == null) || (need.length() < 1)) return "complete";
+            for (int i = 0 ; i < need.length() ; i++) {
+                if (maId.equals(need.optString(i))) return "pending";
+            }
+            return "complete";
+        }
+System.out.println("detection most recent action found is " + action);
+        return "processing";
+    }
+
+    public static String parseIdentificationStatus(String annId, Shepherd myShepherd) {
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) return null;
+        for (IdentityServiceLog log : logs) {
+            String s = _parseIdentification(log);
+            if (s != null) return s;
+        }
+        System.out.println("WARNING: parseIdentificationStatus(" + annId + ") fell through; returning error.");
+        return "error";
+    }
+    //basically returning null means nothing parsable/usable/interesting found
+    private static String _parseIdentification(IdentityServiceLog log) {
+        JSONObject status = log.getStatusJson();
+        if (status == null) return null;
+        String action = status.optString("_action", null);
+        if (action == null) return null;
+/*
+        if (action.equals("processedCallbackDetection")) {
+            JSONArray need = stats.optJSONArray("needReview");
+            if ((need == null) || (need.length() < 1)) return "complete";
+            return "pending";
+        }
+*/
+System.out.println("identification most recent action found is " + action);
+        return "processing";
+    }
+
 
 }
 
