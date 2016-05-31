@@ -93,6 +93,9 @@ public class MediaAsset implements java.io.Serializable {
 
     protected String hashCode;
 
+    protected String detectionStatus;
+    protected String identificationStatus;
+
     //protected MediaAssetType type;
     //protected Integer submitterid;
 
@@ -138,7 +141,6 @@ public class MediaAsset implements java.io.Serializable {
         this.setHashCode();
     }
 
-
     public AccessControl getAccessControl() {
         return accessControl;
     }
@@ -172,6 +174,19 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setId(int i) {
         id = i;
+    }
+
+    public String getDetectionStatus() {
+      return this.detectionStatus;
+    }
+    public void setDetectionStatus(String status) {
+      this.detectionStatus = status;
+    }
+    public String getIdentificationStatus() {
+      return this.identificationStatus;
+    }
+    public void setIdentificationStatus(String status) {
+      this.identificationStatus = status;
     }
 
     //this is for Annotation mostly?  provides are reproducible uuid based on the MediaAsset id
@@ -826,6 +841,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             j.put("status", "error");
             j.put("description", "error: not yet implemented");
             rtn.put("detection", j);
+
+            // consistency check and update this.detectionStatus if necessary
+            if (!j.getString("status").equals(this.getDetectionStatus())) {
+              System.out.println("MediaAsset.getIAStatus found an inconsistency in the detection status of asset #"+this.id+".");
+              System.out.println("Was cached as \""+this.getDetectionStatus()+"\", now updated to the correct value \""+j.getString("status")+"\".");
+              this.setDetectionStatus(j.getString("status"));
+            }
         }
 
         //now the annotations associated with this (i.e. identification)
@@ -842,10 +864,20 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             ji.put("status", "error");
             ji.put("description", "error: not yet implemented");
             rtn.put("identification", ji);
+
+            // consistency check and update this.identificationStatus if necessary
+            if (!ji.getString("status").equals(this.getIdentificationStatus())) {
+              System.out.println("MediaAsset.getIAStatus found an inconsistency in the identification status of asset #"+this.id+".");
+              System.out.println("Was cached as \""+this.getIdentificationStatus()+"\", now updated to the correct value \""+ji.getString("status")+"\".");
+              this.setIdentificationStatus(ji.getString("status"));
+            }
+
         }
 
         return rtn;
     }
+
+
 
 
 }
