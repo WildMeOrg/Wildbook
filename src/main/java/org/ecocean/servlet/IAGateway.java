@@ -72,24 +72,30 @@ public class IAGateway extends HttpServlet {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskID = request.getParameter("getJobResultFromTaskID");
-        String jobID = IBEISIA.findJobIDFromTaskID(taskID, myShepherd);
-        //String jobID = null;
-        //String qannID = null;
-/*
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
-        for (IdentityServiceLog l : logs) {
-            if (l.getServiceJobID() != null) jobID = l.getServiceJobID();
-            if (l.getObjectID() != null) qannID = l.getObjectID();
-        }
-*/
-        if (jobID == null) {
-            res.put("error", "could not find jobID for taskID=" + taskID);
+
+
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        if ((logs == null) || (logs.size() < 1)) {
+            res.put("error", "could not find any record for task ID = " + taskID);
+
         } else {
+            JSONObject last = logs.get(logs.size() - 1).getStatusJson();
+            res.put("_debug", last);
+// note: jobstatus == completed seems to be the thing we want
+            if ("getJobStatus".equals(last.getString("_action")) && "unknown".equals(last.getJSONObject("_response").getJSONObject("response").getString("jobstatus"))) {
+                res.put("details", last.get("_response"));
+                res.put("error", "final log for task " + taskID + " was an unknown jobstatus, so results were not obtained");
+
+            } else if (last.getString("_action").equals("getJobResult") && (last.optJSONObject("_response") != null)) {
+                res = last.getJSONObject("_response");
+
+/*  this gets results live from IA - problematic cuz of reboots and it resets jobs.  :(
             try {
                 res = IBEISIA.getJobResult(jobID);
             } catch (Exception ex) {
                 throw new IOException(ex.toString());
             }
+*/
 
             if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
                 JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
@@ -111,6 +117,8 @@ System.out.println("firstResult -> " + firstResult.toString());
                     res.put("matchAnnotations", mout);
                 }
             }
+            }
+
         }
 
         response.setContentType("text/plain");
