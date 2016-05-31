@@ -36,16 +36,19 @@ import java.io.*;
 
 public class MediaAssetCreate extends HttpServlet {
 
-
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
 
 
+    public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        ServletUtilities.doOptions(request, response);
+    }
 
     //this is a little hacky, but it is a way for the browser/client to request a MediaAssetSet with which to associate MediaAssets
     //  i guess we should *enforce* (require) this to have some sort of sanity around preventing backdoors to overwriting MediaAssets or whatever
     public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         if (request.getParameter("requestMediaAssetSet") == null) throw new IOException("invalid GET parameters");
 
         String context = "context0";
@@ -77,6 +80,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
             "setId" : "xxx",
             "assetStoreId" : 4,  ///DISABLED FOR NOW (TODO enable later if we need it?? how to handle security? need valid targets)
             "assets" : [
+                { "filename" : "foo.jpg" },   //this should live in uploadTmpDir (see below) on local drive
                 { "bucket" : "A", "key" : "xxx/B" },
                 { "bucket" : "Y", "key" : "xxx/Z" },
 ....
@@ -88,6 +92,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 }
 */
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
         String context="context0";
         //context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -97,7 +102,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         PrintWriter out = response.getWriter();
 
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd);
+        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
         myShepherd.commitDBTransaction();
         out.println(res.toString());
         out.close();
@@ -105,23 +110,29 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 
 
     //TODO could also return failures? errors?
-    private JSONObject createMediaAssets(JSONArray jarr, Shepherd myShepherd) throws IOException {
+    private JSONObject createMediaAssets(JSONArray jarr, Shepherd myShepherd, HttpServletRequest request) throws IOException {
         String context = myShepherd.getContext();
         JSONObject rtn = new JSONObject();
         if (jarr == null) return rtn;
 
-//TODO handle other types of "sources" -- like file uploads (to server) -- for now we are assuming source is a **TEMPORARY** S3, so we must copy to a real location
-
+/*
+    NOTE: for now we dont allow user to set AssetStore, so we have some "hard-coded" ways to deal with:
+    - S3 (via CommonConfiguration settings)
+    - local (via CommonConfiguration tmp dir and "filename" value)
+*/
+        String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
+        S3AssetStore sourceStoreS3 = null;
         String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
-        if (s3key == null) throw new IOException("s3upload_ properties not set; no source AssetStore possible in createMediaAssets()");
-        JSONObject s3j = new JSONObject();
-        s3j.put("AWSAccessKeyId", s3key);
-        s3j.put("AWSSecretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
-        s3j.put("bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
-        AssetStoreConfig cfg = new AssetStoreConfig(s3j.toString());
+        if (s3key != null) {
+            JSONObject s3j = new JSONObject();
+            s3j.put("AWSAccessKeyId", s3key);
+            s3j.put("AWSSecretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
+            s3j.put("bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
+            AssetStoreConfig cfg = new AssetStoreConfig(s3j.toString());
 System.out.println("source config -> " + cfg.toString());
-        //note: sourceStore (and any MediaAssets created on it) should remain *temporary* and not be persisted!
-        S3AssetStore sourceStore = new S3AssetStore("temporary upload s3", cfg, false);
+            //note: sourceStore (and any MediaAssets created on it) should remain *temporary* and not be persisted!
+            sourceStoreS3 = new S3AssetStore("temporary upload s3", cfg, false);
+        }
 
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
@@ -167,30 +178,50 @@ System.out.println("source config -> " + cfg.toString());
             }
 
             for (int j = 0 ; j < assets.length() ; j++) {
-                JSONObject params = assets.optJSONObject(j);  //TODO sanitize
-                if (params == null) continue;
-                //key must begin with "SETID/" otherwise it fails security sanity check
-                if (params.optString("key", "FAIL").indexOf(setId + "/") != 0) {
-                    System.out.println("WARNING createMediaAssets() asset params=" + params.toString() + " failed key value for setId=" + setId + "; skipping");
-                    continue;
-                }
-                MediaAsset sourceMA = sourceStore.create(params);
-
-                File fakeFile = new File(params.get("key").toString());
-                params = targetStore.createParameters(fakeFile); //really just use bucket here
-                params.put("key", Util.hashDirectories(setId, "/") + "/" + fakeFile.getName());
-System.out.println(i + ") params -> " + params.toString());
-
-                MediaAsset targetMA = targetStore.create(params);
                 boolean success = true;
-                try {
-                    // we cannot use sourceMA.copyAssetTo(targetMA) as that uses aws credentials of the source AssetStore; we are assuming the target
-                    //   is stronger (since it is not the temporary store)
-                    targetStore.copyAsset(sourceMA, targetMA);
-                } catch (Exception ex) {
-                    System.out.println("WARNING: MediaAssetCreate failed to copy " + sourceMA + " to " + targetMA + ": " + ex.toString());
-                    success = false;
+                MediaAsset targetMA = null;
+                JSONObject params = assets.optJSONObject(j);  //TODO sanitize
+
+                if (params == null) continue;
+
+                //TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
+                String fname = params.optString("filename", null);
+                if (fname != null) {  //this is local
+                    if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
+                    File inFile = new File(uploadTmpDir, fname);
+                    params = targetStore.createParameters(inFile);
+                    targetMA = targetStore.create(params);
+                    try {
+                        targetMA.copyIn(inFile);
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: MediaAssetCreate failed to copyIn " + inFile + " to " + targetMA + ": " + ex.toString());
+                        success = false;
+                    }
+
+                } else {  //if we fall thru, then we are going to assume S3
+                    if (sourceStoreS3 == null) throw new IOException("s3upload_ properties not set; no source S3 AssetStore possible in createMediaAssets()");
+                    //key must begin with "SETID/" otherwise it fails security sanity check
+                    if (params.optString("key", "FAIL").indexOf(setId + "/") != 0) {
+                        System.out.println("WARNING createMediaAssets() asset params=" + params.toString() + " failed key value for setId=" + setId + "; skipping");
+                        continue;
+                    }
+                    MediaAsset sourceMA = sourceStoreS3.create(params);
+
+                    File fakeFile = new File(params.get("key").toString());
+                    params = targetStore.createParameters(fakeFile); //really just use bucket here
+                    params.put("key", Util.hashDirectories(setId, "/") + "/" + fakeFile.getName());
+System.out.println(i + ") params -> " + params.toString());
+                    targetMA = targetStore.create(params);
+                    try {
+                        // we cannot use sourceMA.copyAssetTo(targetMA) as that uses aws credentials of the source AssetStore; we are assuming the target
+                        //   is stronger (since it is not the temporary store)
+                        targetStore.copyAsset(sourceMA, targetMA);
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: MediaAssetCreate failed to copy " + sourceMA + " to " + targetMA + ": " + ex.toString());
+                        success = false;
+                    }
                 }
+
                 if (success) {
 /*
    TODO  when annotation-building no longer needs dimensions, technically this Metadata building will not be required. however, we likely will need to
@@ -202,6 +233,7 @@ System.out.println(i + ") params -> " + params.toString());
 */
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
+                    ////targetMA.setAccessControl(request);  //TODO not in this branch yet!
                     MediaAssetFactory.save(targetMA, myShepherd);
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                     sets.get(setId).addMediaAsset(targetMA);
