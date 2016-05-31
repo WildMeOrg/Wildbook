@@ -166,11 +166,21 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
   var watermarkUrl = maLib.getChildUrl('_watermark');
 
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" class="col-md-'+colSize+'"/>');
+
+
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
       mkImg(maJson)
     )
   );
+
+  // make sure half-width images aren't more than 1/4 height of screen
+  /*
+  if (colSize==3) {
+    fig.find("img").css("max-height","140px");
+  }*/
+
+
   var caption = maCaptionFunction(maJson);
   fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
 
