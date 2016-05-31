@@ -102,7 +102,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         PrintWriter out = response.getWriter();
 
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd);
+        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
         myShepherd.commitDBTransaction();
         out.println(res.toString());
         out.close();
@@ -110,7 +110,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
 
 
     //TODO could also return failures? errors?
-    private JSONObject createMediaAssets(JSONArray jarr, Shepherd myShepherd) throws IOException {
+    private JSONObject createMediaAssets(JSONArray jarr, Shepherd myShepherd, HttpServletRequest request) throws IOException {
         String context = myShepherd.getContext();
         JSONObject rtn = new JSONObject();
         if (jarr == null) return rtn;
@@ -233,6 +233,7 @@ System.out.println(i + ") params -> " + params.toString());
 */
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
+                    targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                     sets.get(setId).addMediaAsset(targetMA);

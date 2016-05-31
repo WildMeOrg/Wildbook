@@ -55,7 +55,10 @@ public class Annotation implements java.io.Serializable {
 
     //single feature convenience constructor
     public Annotation(String species, Feature f) {
-        this(species, (ArrayList)Arrays.asList(f));
+        this.id = Util.generateUUID();
+        this.species = species;
+        this.features = new ArrayList<Feature>();
+        this.features.add(f);
     }
 
     public Annotation(String species, ArrayList<Feature> f) {

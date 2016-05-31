@@ -119,7 +119,8 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
- System.out.println("whoops got exception: " + ex.toString());
+	System.out.println("whoops got exception: " + ex.toString());
+	ex.printStackTrace();
 }
 
 	all.put("_timestamp", System.currentTimeMillis());

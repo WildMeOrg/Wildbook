@@ -259,7 +259,10 @@ System.out.println("NEW (transformed) spotMA created -> " + spotMA);
 */
 
 
-    if (spotMAisNew) MediaAssetFactory.save(spotMA, myShepherd);
+    if (spotMAisNew) {
+        spotMA.setAccessControl(request);
+        MediaAssetFactory.save(spotMA, myShepherd);
+    }
 
     myShepherd.commitDBTransaction();
     
