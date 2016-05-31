@@ -136,6 +136,7 @@ System.out.println("source config -> " + cfg.toString());
 
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
+        ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -153,18 +154,15 @@ System.out.println("source config -> " + cfg.toString());
             }
 */
 
-            String setId = st.optString("setId");
-            if (setId == null) {
-                System.out.println("WARNING createMediaAssets() setId is required; skipping");
-                continue;
-            }
-            if (sets.get(setId) == null) {
+            String setId = st.optString("setId", null);
+            //attempt to validate setId (if we have one)
+            if ((setId != null) && (sets.get(setId) == null)) {
                 MediaAssetSet s = null;
                 try {
                     s = ((MediaAssetSet) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAssetSet.class, setId), true)));
                 } catch (Exception ex) { } //usually(?) not found :)
                 if (s == null) {
-                    System.out.println("WARNING createMediaAssets() could not find MediaAssetSet id=" + setId + "; skipping");
+                    System.out.println("WARNING createMediaAssets() could not find MediaAssetSet id=" + setId + "; skipping");  //invalid, so fail!
                     continue;
                 } else {
                     sets.put(setId, s);
@@ -201,7 +199,7 @@ System.out.println("source config -> " + cfg.toString());
                 } else {  //if we fall thru, then we are going to assume S3
                     if (sourceStoreS3 == null) throw new IOException("s3upload_ properties not set; no source S3 AssetStore possible in createMediaAssets()");
                     //key must begin with "SETID/" otherwise it fails security sanity check
-                    if (params.optString("key", "FAIL").indexOf(setId + "/") != 0) {
+                    if ((setId != null) && (params.optString("key", "FAIL").indexOf(setId + "/") != 0)) {
                         System.out.println("WARNING createMediaAssets() asset params=" + params.toString() + " failed key value for setId=" + setId + "; skipping");
                         continue;
                     }
@@ -209,7 +207,9 @@ System.out.println("source config -> " + cfg.toString());
 
                     File fakeFile = new File(params.get("key").toString());
                     params = targetStore.createParameters(fakeFile); //really just use bucket here
-                    params.put("key", Util.hashDirectories(setId, "/") + "/" + fakeFile.getName());
+                    String dirId = setId;
+                    if (dirId == null) dirId = Util.generateUUID();
+                    params.put("key", Util.hashDirectories(dirId, "/") + "/" + fakeFile.getName());
 System.out.println(i + ") params -> " + params.toString());
                     targetMA = targetStore.create(params);
                     try {
@@ -235,9 +235,14 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     ////targetMA.setAccessControl(request);  //TODO not in this branch yet!
                     MediaAssetFactory.save(targetMA, myShepherd);
+                    if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
-                    sets.get(setId).addMediaAsset(targetMA);
-                    sets.get(setId).setStatus("active");
+                        sets.get(setId).addMediaAsset(targetMA);
+                        sets.get(setId).setStatus("active");
+                    } else {
+System.out.println("no MediaAssetSet; created " + targetMA);
+                        haveNoSet.add(targetMA);
+                    }
                 }
             }
         }
@@ -258,6 +263,20 @@ System.out.println("MediaAssetSet " + setId + " created " + targetMA);
             if (jmas.length() > 0) js.put(s.getId(), jmas);
         }
         rtn.put("sets", js);
+
+        if (haveNoSet.size() > 0) {
+            JSONArray jmas = new JSONArray();
+            for (MediaAsset ma : haveNoSet) {
+                JSONObject jma = new JSONObject();
+                jma.put("id", ma.getId());
+                jma.put("_debug", ma.toString());
+                jma.put("_params", ma.getParameters().toString());
+                jma.put("_url", ma.webURL());
+                jmas.put(jma);
+            }
+            rtn.put("withoutSet", jmas);
+        }
+
         rtn.put("success", true);
         return rtn;
     }
