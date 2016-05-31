@@ -107,7 +107,7 @@ public class MediaAssetContext extends HttpServlet {
     }
     res.put("Occurrences", occs);
 
-    res.put("IAStatus", Util.toggleJSONObject(mAsset.getIAStatus(myShepherd)));
+    res.put("IAStatus", Util.toggleJSONObject(mAsset.getIAStatus()));
     out.println(res);
 
   } catch (JSONException jsoe) {
