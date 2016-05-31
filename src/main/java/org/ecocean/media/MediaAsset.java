@@ -88,6 +88,8 @@ public class MediaAsset implements java.io.Serializable {
 
     protected ArrayList<Feature> features;
 
+    protected ArrayList<Keyword> keywords;
+
     protected String hashCode;
 
     //protected MediaAssetType type;
@@ -701,9 +703,17 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return mas;
     }
 
-    //TODO until we get keywords migrated to MediaAsset
-    public List<Keyword> getKeywords() {
-        return new ArrayList<Keyword>();
+
+    public void setKeywords(ArrayList<Keyword> kws) {
+        keywords = kws;
+    }
+    public ArrayList<Keyword> addKeyword(Keyword k) {
+        if (keywords == null) keywords = new ArrayList<Keyword>();
+        if (!keywords.contains(k)) keywords.add(k);
+        return keywords;
+    }
+    public ArrayList<Keyword> getKeywords() {
+        return keywords;
     }
  
 
