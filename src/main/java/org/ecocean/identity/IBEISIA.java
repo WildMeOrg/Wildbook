@@ -767,7 +767,7 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
             JSONArray rlist = j.optJSONArray("results_list");
             JSONArray ilist = j.optJSONArray("image_uuid_list");
 /* TODO lots to consider here:
-    1. how do we determine where the cutoff is for auto-creating the annotation?
+    --1. how do we determine where the cutoff is for auto-creating the annotation?-- made some methods for this
     2. if we do create (or dont!) how do we denote this for the sake of the user/ui querying status?
     3. do we first clear out existing annotations?
     4. do we allow duplicate (identical) annoations?  if not, do we block that at the level where we attach to encounter? or globally?
@@ -776,6 +776,8 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
     7.  etc???
 */
             if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
+                FeatureType.initAll(myShepherd);
+                JSONArray needReview = new JSONArray();
                 JSONObject amap = new JSONObject();
                 for (int i = 0 ; i < rlist.length() ; i++) {
                     JSONArray janns = rlist.optJSONArray(i);
@@ -794,11 +796,15 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
                         System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
                         continue;
                     }
+                    boolean needsReview = false;
                     JSONArray newAnns = new JSONArray();
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence") < 0.001) continue; //TODO real confidence value here
+                        if (jann.optDouble("confidence") < getDetectionCutoffValue()) {
+                            needsReview = true;
+                            continue;
+                        }
                         Annotation ann = convertAnnotation(asset, jann);
                         if (ann == null) continue;
                         myShepherd.getPM().makePersistent(ann);
@@ -806,13 +812,15 @@ System.out.println("* CREATED " + ann);
                         newAnns.put(ann.getId());
                         numCreated++;
                     }
-                    amap.put(Integer.toString(asset.getId()), newAnns);
+                    if (needsReview) needReview.put(i);
+                    if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
                 }
                 rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
                 rtn.put("success", true);
                 JSONObject jlog = new JSONObject();
-                jlog.put("_action", "generatedAnnotations");
-                jlog.put("annotations", amap);
+                jlog.put("_action", "processedCallbackDetection");
+                if (amap.length() > 0) jlog.put("annotations", amap);
+                if (needReview.length() > 0) jlog.put("needReview", needReview);
                 log(taskID, null, jlog, "context0");
                 
             } else {
@@ -821,6 +829,14 @@ System.out.println("* CREATED " + ann);
         }
         
         return rtn;
+    }
+
+    //scores < these will require human review (otherwise they carry on automatically)
+    private static double getDetectionCutoffValue() {
+        return 0.8;
+    }
+    private static double getIdentificationCutoffValue() {
+        return 0.8;
     }
 
 }

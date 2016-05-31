@@ -191,24 +191,28 @@ public class IdentityServiceLog implements java.io.Serializable {
     }
 
 
-    //loads only most recent task's worth of log items (note: it is in timestamp DESC order, unlike most)
+    //loads only most recent task's worth of log items; note: it is in newest-first order (unlike most log returns)
     public static ArrayList<IdentityServiceLog> loadMostRecentByObjectID(String serviceName, String objectID, Shepherd myShepherd) {
 //System.out.println("serviceName=(" + serviceName + ") serviceJobID=(" + serviceJobID + ")");
         Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.serviceName == \"" + serviceName + "\"");
         qry.setOrdering("timestamp DESC");
-        String activeTaskId = null;
+        String recentTaskId = null;
         ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
         try {
             Collection coll = (Collection) (qry.execute());
             for (Object c : coll) {
                 IdentityServiceLog l = (IdentityServiceLog)c;
-                if ((activeTaskId != null) && !activeTaskId.equals(l.getTaskID())) continue;
-                if ((activeTaskId == null) && !l.hasObjectID(objectID)) continue;
-                activeTaskId = l.getTaskID();
-                log.add(l);
+                if (l.hasObjectID(objectID)) {
+                    recentTaskId = l.getTaskID();
+                    break;
+                }
             }
-            //log=new ArrayList<IdentityServiceLog>(coll);
+            if (recentTaskId == null) return null;
+            for (Object c : coll) {
+                IdentityServiceLog l = (IdentityServiceLog)c;
+                if (recentTaskId.equals(l.getTaskID())) log.add(l);
+            }
         } 
         catch (Exception ex) {
             //return new ArrayList<IdentityServiceLog>();
