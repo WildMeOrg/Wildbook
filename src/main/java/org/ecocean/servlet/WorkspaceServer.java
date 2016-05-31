@@ -108,7 +108,7 @@ public class WorkspaceServer extends HttpServlet {
       String id = request.getParameter("id");
       boolean overwrite = (request.getParameter("overwrite")!=null && request.getParameter("overwrite").equalsIgnoreCase("true"));
 
-      Workspace wSpace = myShepherd.getWorkspaceForUser(id, owner);
+      Workspace wSpace = null;//myShepherd.getWorkspaceForUser(id, owner);
       boolean inDB = (wSpace!=null);
       out.println("inDB = "+inDB);
 

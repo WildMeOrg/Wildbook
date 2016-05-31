@@ -54,6 +54,10 @@ public class Workspace implements java.io.Serializable {
   public Date modified;
   public Date accessed;
 
+  // workspaces associated with particular MediaAssetSets might need to be
+  // treated differently by the UI. We want that to be jdo-queryable. Hence,
+  //private boolean isImageSet = false;
+
   /**
    * empty constructor used by JDO Enhancer - DO NOT USE
    */
@@ -69,6 +73,8 @@ public class Workspace implements java.io.Serializable {
     this.created = new Date();
     this.modified = new Date();
     this.accessed = new Date();
+
+    //this.isImageSet = "org.ecocean.media.MediaAssetSet".equals(this.queryArg.optString("class"));
   }
 
   public int getID() {
@@ -84,8 +90,13 @@ public class Workspace implements java.io.Serializable {
   public void setArg(JSONObject arg) {
     this.queryArg = arg;
     this.queryAsString = this.queryArg.toString();
+    //this.isImageSet = "org.ecocean.media.MediaAssetSet".equals(this.queryArg.optString("class"));
   }
-  
+
+  public JSONObject getArgJson() throws JSONException {
+    return new JSONObject(this.queryAsString);
+  }
+
   public String getArgs() {
     return this.queryAsString;
   }
@@ -113,6 +124,15 @@ public class Workspace implements java.io.Serializable {
   public Date getAccessed() {
     return this.accessed;
   }
-
+/*
+  public boolean getIsImageSet() {
+    return this.isImageSet;
+  }
+*/
+  public boolean computeIsImageSet() throws JSONException {
+    //this.isImageSet = "org.ecocean.media.MediaAssetSet".equals(this.queryArg.optString("class"));
+    JSONObject json = this.getArgJson();
+    return (json!=null && json.optString("class").equals("org.ecocean.media.MediaAssetSet"));
+  }
 
 }

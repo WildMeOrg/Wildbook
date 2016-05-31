@@ -59,7 +59,16 @@ public class WorkspacesForUser extends HttpServlet {
     try {
       // args is either a) a singleton argument that's a stringified JSONObject, or b) constructed with requestParamsToJSON
 
-      ArrayList<Workspace> wSpaces = myShepherd.getWorkspacesForUser(owner);
+      //ArrayList<Workspace> wSpaces = myShepherd.getWorkspacesForUser(owner);
+
+      ArrayList<Workspace> wSpaces = new ArrayList<Workspace>();
+      if (request.getParameter("isImageSet")!=null) {
+        boolean isImageSet = Boolean.parseBoolean(request.getParameter("isImageSet"));
+        wSpaces = myShepherd.getWorkspacesForUser(owner, isImageSet);
+      } else {
+        wSpaces = myShepherd.getWorkspacesForUser(owner);
+      }
+
 
       int maxSpaces = 1000;
       for (int i=0;i<wSpaces.size() && i<maxSpaces;i++) {
@@ -70,7 +79,8 @@ public class WorkspacesForUser extends HttpServlet {
       System.out.println("WorkspacesForUser for user "+owner+" is returning workspace IDs: "+wSpaceIDs.toString());
 
     } catch(Exception e) {
-      throw new IOException(e.toString());
+      //throw new IOException(e.toString());
+      e.printStackTrace(out);
     } finally {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
