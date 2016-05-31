@@ -31,6 +31,7 @@ public class IBEISIA {
         speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
     }
 
+    private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
     private static String SERVICE_NAME = "IBEISIA";
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
@@ -869,6 +870,10 @@ System.out.println("* CREATED " + ann);
             return "complete";
         }
 System.out.println("detection most recent action found is " + action);
+        if ((System.currentTimeMillis() - log.getTimestamp()) > TIMEOUT_DETECTION) {
+            System.out.println("WARNING: detection processing timeout for " + log.toString() + "; returning error detection status");
+            return "error";
+        }
         return "processing";
     }
 
