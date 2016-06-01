@@ -1046,6 +1046,11 @@
     <servlet-class>org.ecocean.servlet.MediaAssetContext</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>MediaAssetModify</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetModify</servlet-class>
+  </servlet>
+
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1080,6 +1085,10 @@
   <url-pattern>/MediaAssetContext</url-pattern>
 </servlet-mapping>
 
+<servlet-mapping>
+  <servlet-name>MediaAssetModify</servlet-name>
+  <url-pattern>/MediaAssetModify</url-pattern>
+</servlet-mapping>
 
 
   <servlet-mapping>
