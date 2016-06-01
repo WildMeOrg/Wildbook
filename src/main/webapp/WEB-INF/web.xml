@@ -994,6 +994,12 @@
     <servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>IAGlobals</servlet-name>
+    <servlet-class>org.ecocean.servlet.IAGlobals</servlet-class>
+  </servlet>
+
+
 <!--  disabling!  plz now use only org.ecocean.servlet.RestServlet (as it supports silo security)
   <servlet>
     <servlet-name>DataNucleus</servlet-name>
@@ -1806,6 +1812,11 @@
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
     <url-pattern>/ia</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IAGlobals</servlet-name>
+    <url-pattern>/IAGlobals</url-pattern>
   </servlet-mapping>
 
 
