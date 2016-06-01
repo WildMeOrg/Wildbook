@@ -703,9 +703,9 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             }
 
             if (fullAccess) {
-              jobj.put("latitude",this.getLatitude());
-              jobj.put("longitude",this.getLongitude());
-              jobj.put("datetime",this.getDateTime());
+              jobj.put("userLatitude",this.getLatitude());
+              jobj.put("userLongitude",this.getLongitude());
+              jobj.put("userDateTime",this.getDateTime());
             }
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
