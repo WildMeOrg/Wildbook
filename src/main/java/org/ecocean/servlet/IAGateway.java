@@ -43,6 +43,10 @@ import java.security.InvalidKeyException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+
+import javax.jdo.Query;
 
 import java.io.InputStream;
 
@@ -86,43 +90,25 @@ public class IAGateway extends HttpServlet {
             throw new IOException(ex.toString());
         }
 System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
-        if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
-            getOut = "<div class=\"response-error\">invalid job ID " + jobID + "</div>";
-            System.out.println("ERROR: invalid jobid for res(" + jobID + "[" + offset + "]) -> " + res);
+        getOut = _detectionHtmlFromResult(res, request, offset, null);
+
+    } else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
+        if ((mas == null) || (mas.size() < 1)) {
+            getOut = "<div>no detections needing review</div>";
         } else {
-            JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
-            JSONArray ilist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("image_uuid_list");
-            if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
-            if (offset > ilist.length() - 1) offset = 0;
-            String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
-            if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
-            url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
-            url += "result_list=" + rlist.getJSONArray(offset).toString() + "&";
-            try {
-                url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FdetectionReviewPost&callback_method=POST";
-System.out.println("url --> " + url);
-                URL u = new URL(url);
-                JSONObject rtn = RestClient.get(u);
-                if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
-                    !rtn.getJSONObject("status").optBoolean("success", false)) {
-                    getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
-                } else {
-                    getOut = rtn.getString("response");
-                    if (request.getParameter("test") != null) {
-                        getOut = "<html><head><script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js\"></script></head><body>" + getOut + "</body></html>";
-                    }
-                }
-            } catch (Exception ex) {
-                getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
+            MediaAsset ma = mas.get((int)(Math.random() * mas.size()));
+            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", Integer.toString(ma.getId()), myShepherd);
+            JSONObject res = null;
+            for (IdentityServiceLog log : logs) {
+                if ((log.getStatusJson() == null) || !log.getStatusJson().optString("_action", "FAIL").equals("getJobResult")) continue;
+                res = log.getStatusJson().optJSONObject("_response");
+                if (res != null) break;
             }
-
-/*
-    public static JSONObject getJobResult(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", "context0");
-            getOut = "(url -> " + url + ")";
-        }
-*/
-
+    System.out.println("res(" + ma.toString() + ") -> " + res);
+            getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
         }
     }
 
@@ -224,6 +210,74 @@ System.out.println(id);
     out.close();
     //myShepherd.closeDBTransaction();
   }
+
+
+    private String _detectionHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String maUUID) throws IOException {
+        String getOut = "";
+        if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
+            getOut = "<div class=\"response-error\">unable to obtain detection interface</div>";
+            System.out.println("ERROR: invalid res for _detectionHtmlFromResult: " + res);
+        } else {
+            JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
+            JSONArray ilist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("image_uuid_list");
+            if (maUUID != null) {
+                offset = -1;
+                for (int i = 0 ; i < ilist.length() ; i++) {
+                    if (maUUID.equals(IBEISIA.fromFancyUUID(ilist.getJSONObject(i)))) {
+                        offset = i;
+                        break;
+                    }
+                }
+                if (offset < 0) {
+                    System.out.println("ERROR: could not find uuid " + maUUID + " in res: " + res.toString());
+                    return "<div class=\"response-error\">unable to find MediaAsset for detection</div>";
+                }
+            }
+            if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
+            if (offset > ilist.length() - 1) offset = 0;
+            String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
+            if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
+            url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
+            url += "result_list=" + rlist.getJSONArray(offset).toString() + "&";
+            try {
+                url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FdetectionReviewPost&callback_method=POST";
+System.out.println("url --> " + url);
+                URL u = new URL(url);
+                JSONObject rtn = RestClient.get(u);
+                if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
+                    !rtn.getJSONObject("status").optBoolean("success", false)) {
+                    getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                } else {
+                    getOut = rtn.getString("response");
+                    if (request.getParameter("test") != null) {
+                        getOut = "<html><head><script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js\"></script></head><body>" + getOut + "</body></html>";
+                    }
+                }
+            } catch (Exception ex) {
+                getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
+            }
+        }
+        return getOut;
+    }
+
+
+    private ArrayList<MediaAsset> mineNeedingDetectionReview(HttpServletRequest request, Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
+        String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        if (username != null) {
+            filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
+        }
+System.out.println("filter => " + filter);
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            mas.add((MediaAsset)it.next());
+        }
+        query.closeAll();
+        return mas;
+    }
 
 }
   
