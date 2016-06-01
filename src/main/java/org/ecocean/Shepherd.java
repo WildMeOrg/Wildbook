@@ -313,6 +313,15 @@ public class Shepherd {
     return tempEnc;
   }
 
+  public MediaAsset getMediaAsset(String num) {
+    MediaAsset tempEnc = null;
+    try {
+      tempEnc = ((MediaAsset) (pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
 
 
   public Relationship getRelationship(String type, String indie1,String indie2) {
@@ -3099,7 +3108,7 @@ public class Shepherd {
 
     return roles;
   }
-  
+
   public ArrayList<Relationship> getAllRelationshipsForCommunity(String commName){
     //ArrayList<Relationship> relies=new ArrayList<Relationship>();
     Extent encClass = pm.getExtent(Relationship.class, true);
