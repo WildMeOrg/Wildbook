@@ -83,7 +83,7 @@ public class MediaAssetModify extends HttpServlet {
           res.put("setLongitude",Double.valueOf(request.getParameter("long")));
         }
 
-        if (request.getParameter("DateTime")!=null) {
+        if (request.getParameter("datetime")!=null) {
           ma.setUserDateTime(DateTime.parse(request.getParameter("datetime")));
           res.put("setDateTime",DateTime.parse(request.getParameter("datetime")).toString());
         }
