@@ -422,6 +422,10 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
       this.userDateTime = dt;
     }
 
+    public DateTime getUserDateTime() {
+      return this.userDateTime;
+    }
+
     /**
       like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
     */
@@ -705,7 +709,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             if (fullAccess) {
               jobj.put("userLatitude",this.getLatitude());
               jobj.put("userLongitude",this.getLongitude());
-              jobj.put("userDateTime",this.getDateTime());
+              jobj.put("userDateTime",this.getUserDateTime());
             }
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
