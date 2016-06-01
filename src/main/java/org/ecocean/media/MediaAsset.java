@@ -96,6 +96,14 @@ public class MediaAsset implements java.io.Serializable {
     protected String detectionStatus;
     protected String identificationStatus;
 
+    protected Double userLatitude;
+    protected Double userLongitude;
+
+    protected DateTime userDateTime;
+
+
+
+
     //protected MediaAssetType type;
     //protected Integer submitterid;
 
@@ -380,6 +388,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
+
+
     /**
      this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
@@ -387,6 +397,9 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
               then (b) crawl metadata.exif for something date-y
     */
     public DateTime getDateTime() {
+
+        if (this.userDateTime != null) return this.userDateTime;
+
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
@@ -405,14 +418,27 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return new DateTime(dt);
     }
 
+    public void setUserDateTime(DateTime dt) {
+      this.userDateTime = dt;
+    }
+
     /**
       like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
     */
     public Double getLatitude() {
-        return null;
+        return this.userLatitude;
     }
+
+    public void setUserLatitude(Double lat) {
+      this.userLatitude = lat;
+    }
+
     public Double getLongitude() {
-        return null;
+        return this.userLongitude;
+    }
+
+    public void setUserLongitude(Double lon) {
+      this.userLongitude = lon;
     }
 
     //note: default behavior will add this to the features on this MediaAsset -- can pass false to disable
@@ -674,6 +700,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                     k.put(kid.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), fullAccess));
                 }
                 jobj.put("children", k);
+            }
+
+            if (fullAccess) {
+              jobj.put("latitude",this.getLatitude());
+              jobj.put("longitude",this.getLongitude());
+              jobj.put("datetime",this.getDateTime());
             }
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
