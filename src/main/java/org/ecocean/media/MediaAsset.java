@@ -652,7 +652,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-            return sanitizeJson(request, jobj, false);
+            return sanitizeJson(request, jobj, true);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
