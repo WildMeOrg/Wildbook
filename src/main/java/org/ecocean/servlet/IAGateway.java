@@ -267,7 +267,6 @@ System.out.println("url --> " + url);
         if (username != null) {
             filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
         }
-System.out.println("filter => " + filter);
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
