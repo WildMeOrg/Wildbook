@@ -140,6 +140,8 @@
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
+				/individualSearchResults.jsp = authc
+				/individuals.jsp = authc
 				/individualSearchResultsExport.jsp = authc, roles[researcher]
 				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 				/encounters/searchComparison.jsp = authc, roles[researcher]
