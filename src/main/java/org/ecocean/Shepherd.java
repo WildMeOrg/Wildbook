@@ -1508,7 +1508,7 @@ public class Shepherd {
     query.closeAll();
     return null;
   }
-  
+
   //
 
 
@@ -1647,10 +1647,10 @@ public class Shepherd {
 	    samples.closeAll();
 	    return myArray;
 	  }
-  
-  
+
+
   public ArrayList<MarkedIndividual> getAllMarkedIndividualsSightedAtLocationID(String locationID){
-    ArrayList<MarkedIndividual> myArray=ArrayList<MarkedIndividual>();
+    ArrayList<MarkedIndividual> myArray=new ArrayList<MarkedIndividual>();
     String keywordQueryString="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ( enc.locationID == \""+locationID+"\" ) VARIABLES org.ecocean.Encounter enc";
     Query samples = pm.newQuery(keywordQueryString);
     Collection c = (Collection) (samples.execute());
@@ -1664,7 +1664,7 @@ public class Shepherd {
   public int getNumMarkedIndividualsSightedAtLocationID(String locationID){
     return getAllMarkedIndividualsSightedAtLocationID(locationID).size();
   }
- 
+
   public ArrayList<Encounter> getAllEncountersForSpecies(String genus, String specificEpithet) {
     String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE genus == '"+genus+"' && specificEpithet == '"+specificEpithet+"'";
       Query samples = pm.newQuery(keywordQueryString);
