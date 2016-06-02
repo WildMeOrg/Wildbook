@@ -34,12 +34,22 @@ public class MediaAssetModify extends HttpServlet {
     super.init(config);
   }
 
+  public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      response.setHeader("Access-Control-Allow-Origin", "*");
+      response.setHeader("Access-Control-Allow-Methods", "GET, POST");
+      if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
+      //response.setContentType("text/plain");
+  }
+
+
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
+
     String context="context0";
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
