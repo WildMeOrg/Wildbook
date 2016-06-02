@@ -15,6 +15,8 @@ import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 
@@ -335,6 +337,25 @@ public class Annotation implements java.io.Serializable {
           return this.sanitizeMedia(request, false);
         }
 
+
+    static public ArrayList<Annotation> getExemplars(String species, Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar && species == \"" + species + "\"";
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            anns.add((Annotation)it.next());
+        }
+        query.closeAll();
+        return anns;
+    }
+
+    public String findIndividualId(Shepherd myShepherd) {
+        Encounter enc = Encounter.findByAnnotation(this, myShepherd);
+        if (enc == null) return null;
+        return enc.getIndividualID();  //is this one of those things that can be "None" ?
+    }
 
 
 /*  deprecated, maybe?
