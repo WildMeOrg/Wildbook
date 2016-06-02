@@ -471,7 +471,7 @@ finally{
     <div class="container-fluid relative">
         <div class="col-lg-12 bc4">
             <!--<h1 class="hidden">Wildbook</h1>-->
-            <h2 class="jumboesque">Kuvasitko <br/> Saimannorpan?</h2>
+            <h2 class="jumboesque">Kuvasitko <br/> Saimaannorpan?</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -559,8 +559,6 @@ finally{
 
 
       <ol>
-
-
         <%
         List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
         int numLocIDs = locs2.size();
@@ -571,11 +569,11 @@ finally{
         try{
     	 		for(int i=0;i<numLocationIDs;i++){
             String locID = locs2.get(i);
-            int numSightings = myShepherd.getNumEncounters(locID);
+            int numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
             %>
             <!-- TODO: double check this link (need to clean locID?)-->
             <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>
-              <p><%=numSightings%> kuvattua norppaa</p>
+              <p><%=numSightings%> tunnistettu norppaa</p>
             </li>
             <%
           }
