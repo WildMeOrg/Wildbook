@@ -131,6 +131,15 @@ if (rIndividuals.size() < listNum) {
   .gallery-unit .crop img {
     }
 
+  p.image-copyright {
+    	text-align: right;
+    	position: absolute;
+    	top: 5px;
+    	right: 25px;
+    	color: #fff;
+    	font-size: 0.8rem;
+  }
+
   }
 
   .gallery-inner span.Myh2 {
@@ -240,6 +249,12 @@ myShepherd.beginDBTransaction();
         for (int j=0; j<2; j++) {
           MarkedIndividual indie = pair[j];
           JSONObject maJson = indie.getExemplarImage(request);
+          String copyright = indie.getExemplarPhotographer();
+          if (!copyright.equals("")) {
+            copyright =  "&copy; " +copyright+" / WWF";
+          } else {
+            copyright = "&copy; WWF";
+          }
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
@@ -249,7 +264,7 @@ myShepherd.beginDBTransaction();
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
               <div class="crop" title="<%=pairName[j]%>">
                 <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-
+                <p class="image-copyright"> <%=copyright%> </p>
               </div>
 
               <p><strong><%=pairNickname[j]%></strong></p>
