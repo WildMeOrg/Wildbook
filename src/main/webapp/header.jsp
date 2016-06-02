@@ -105,6 +105,25 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       <%
 	                      if(request.getUserPrincipal()!=null){
 		                  %>
+
+                      <style>
+                      @media (min-width: 53.75em) {
+                          .navbar-default .navbar-nav>li>a {
+                          font-size: 12px;
+                          font-size: 0.8rem
+                        }
+                      }
+                      @media (min-width: 63.9em) {
+                        .navbar-default .navbar-nav>li>a {
+                          font-size: 14px;
+                          font-size: 1rem;
+                        }
+                      }
+
+                      </style>
+
+
+
   		                  <li class="loginout"><a href="<%=urlLoc %>/myAccount.jsp" title="Your Account"><%=props.getProperty("myAccount")%> </a></li>
   		             			<li class="loginout"><a href="<%=urlLoc %>/logout.jsp" ><%=props.getProperty("logout") %></a></li>
 		                  <%
