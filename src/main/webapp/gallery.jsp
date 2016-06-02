@@ -195,7 +195,7 @@ myShepherd.beginDBTransaction();
   <div class="container-fluid">
     <button type="button" class="btn-link">Uusimmat havainnot</button>
 
-    <button type="button" class="btn-link">Havainnot aleuittan</button>
+    <button type="button" class="btn-link">Havainnot alueittain</button>
 
     <button type="button" class="btn-link">Parhaiten tunnetut yksil&ouml;t</button>
 
@@ -236,7 +236,7 @@ myShepherd.beginDBTransaction();
             console.log('Individual '+'<%=indie.getIndividualID()%>'+' has id <%=i%>');
           </script>
 
-          <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> <%=isFirst ? "active" : ""%> " style="display:<%=isFirst ? "block" : "none" %>;"></div>
+          <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
           <%
         }
         %>
@@ -247,7 +247,7 @@ myShepherd.beginDBTransaction();
         for (int j=0; j<2; j++) {
           Boolean isFirst = (i==0)&&(j==0);
           %>
-          <div class="col-sm-12 gallery-info <%=isFirst ? "active" : ""%>" id="ginfo<%=i*2+j%>" style="display:<%=((i==0)&&(j==0)) ? "block" : "none" %>;">
+          <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
 
 
             <div class="gallery-inner">
