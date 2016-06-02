@@ -621,12 +621,12 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class=" form-group form-inline">
         <div class="col-xs-12 col-sm-6">
           <label class="control-label pull-left"><%=props.getProperty("submit_gpslatitude")%></label>
-          <input class="form-control" name="lat" type="text" id="lat"> &deg;
+          &nbsp;<input class="form-control" name="lat" type="text" id="lat">&deg;
         </div>
 
         <div class="col-xs-12 col-sm-6">
           <label class="control-label  pull-left"><%=props.getProperty("submit_gpslongitude")%></label>
-          <input class="form-control" name="longitude" type="text" id="longitude"> &deg;
+          &nbsp;<input class="form-control" name="longitude" type="text" id="longitude">&deg;
         </div>
       </div>
 
@@ -734,12 +734,20 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
           </div>
         </div>
+        
+        
+	
       </div>
-
+      <div class="col-xs-12 col-lg-6">
+      <a class="help-block" href="privacy.jsp"><%=props.getProperty("privacy") %></a>
+  	</div>
+  
     </div>
-  </fielset>
-
-  <hr/>
+    
+   
+      
+  </fieldset>
+   <hr/>
 
   <fieldset>
     <div class="form-group">
@@ -771,7 +779,9 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     </div>
   </fieldset>
 
-
+<%
+if(request.getRemoteUser()!=null){
+%>
 
 
   <h4 class="accordion">
@@ -1082,8 +1092,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block"><%=props.getProperty("multipleEmailNote")%></p>
       </div>
+      
+      
       </div>
-
+<%
+}
+%>
 
          <%
          if(request.getRemoteUser()==null){
@@ -1144,9 +1158,8 @@ function sendButtonClicked() {
 
 
       <p class="text-center">
-        <button class="large" type="submit" onclick="return sendButtonClicked();">
+        <button class="btn btn-primary btn-large" style="background: #74d5f8;border-color: #74d5f8;color: #fff;font-family: 'open-sans',Helvetica,Arial,sans-serif;font-weight: lighter;text-transform: uppercase;border-radius:5px;font-size: 1.125rem;"  type="submit" onclick="return sendButtonClicked();">
           <%=props.getProperty("submit_send")%>
-          <span class="button-icon" aria-hidden="true" />
         </button>
       </p>
 
