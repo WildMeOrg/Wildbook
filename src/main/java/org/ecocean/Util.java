@@ -91,6 +91,7 @@ public class Util {
 	}
 
 	public static boolean isUUID(String s) {
+                if (s == null) return false;
 		boolean ok = true;
 		try {
 			UUID u = UUID.fromString(s);
