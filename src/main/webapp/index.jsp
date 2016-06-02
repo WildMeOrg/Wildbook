@@ -33,6 +33,10 @@ myShepherd=new Shepherd(context);
 
 <style type="text/css">
 
+  .saimaa-info {
+    padding-left: 40px;
+  }
+
   .container-fluid .row.saimaa-row {
     margin-left: 0;
     margin-right: 0;
@@ -44,23 +48,33 @@ myShepherd=new Shepherd(context);
   }
    .row.saimaa-row h2 {
     margin-bottom: 10px;
+    text-align: left;
     font-weight: 700;
     font-size: 36px;
-    line-height: 1.3em;
+    line-height: 2rem;
     color: #f7f7f7;
   }
  .row.saimaa-row h3, .main-section .row.saimaa-row a h3  {
-font-family: 'open-sans', Helvetica, Arial, sans-serif;
-font-size: 1.3em;
-margin-bottom: 0;
-color: #f7f7f7;
+  font-family: 'open-sans', Helvetica, Arial, sans-serif;
+  font-size: 1.4rem;
+  margin-bottom: 0;
+  color: #f7f7f7;
 }
  .row.saimaa-row a, .main-section .row.saimaa-row a:hover {
   color: #f7f7f7;
 }
 
-   .row.saimaa-row li p {
+  .row.saimaa-row ol {
+    padding-left:20px;
+    padding-top:20px;
+    font-size: 1.4rem;
+  }
+
+  .row.saimaa-row ol li p {
     color: #007476;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    margin-top: -5px;
   }
  .saimaa-map {
   background: url(cust/mantamatcher/img/wwf-saimaa.png);
@@ -453,7 +467,7 @@ finally{
 }
 %>
 
-<section class="hero container-fluid main-section relative">
+<section class="hero container-fluid main-section relative" title="&copy; Wild Wonders of Europe / Wildstrand / WWF">
     <div class="container-fluid relative">
         <div class="col-lg-12 bc4">
             <!--<h1 class="hidden">Wildbook</h1>-->
@@ -539,6 +553,7 @@ finally{
 
 
     <div class="col-xs-6 col-lg-6">
+      <div class="saimaa-info">
       <h2 class="section-header map-header">Kuvatut Norpat Alueittain<!--Encounters around the world--></h2>
 
 
@@ -575,6 +590,7 @@ finally{
       </ol>
 
     </div>
+  </div>
 
     <div class="col-xs-6 col-lg-6 saimaa-map">
     </div>

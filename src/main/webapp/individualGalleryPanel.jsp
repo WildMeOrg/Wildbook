@@ -86,7 +86,7 @@ finally{
 %>
 
 <div class="col-md-6">
-  <img src="<%=imgUrl%>" alt="<%=nickname%>"/>
+  <a href="<%=urlLoc%>/gallery.jsp"><img src="<%=imgUrl%>" alt="<%=nickname%>"/></a>
 </div>
 
 <div class="col-md-6 full-height">
