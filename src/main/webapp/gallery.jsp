@@ -125,10 +125,20 @@ if (rIndividuals.size() < listNum) {
     width:50%;
   }
 
+  .gallery-inner span.Myh2 {
+    color: #16696d;
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 1.3em;
+    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif;
+  }
+
 
   .gallery-inner {
     background: #fff;
-    padding: 5px;
+    padding: 10px;
+    margin-left: 75px;
+    margin-right: 75px;
   }
   .gallery-inner img {
     display: block;
@@ -156,7 +166,10 @@ if (rIndividuals.size() < listNum) {
   }
 
 
-
+  .gallery-unit {
+    cursor: pointer;
+    cursor: hand;
+  }
 
 </style>
 
@@ -219,7 +232,6 @@ myShepherd.beginDBTransaction();
         for (int j=0; j<2; j++) {
           MarkedIndividual indie = pair[j];
           JSONObject maJson = indie.getExemplarImage(request);
-          Boolean isFirst = (i==0)&&(j==0);
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
@@ -245,7 +257,6 @@ myShepherd.beginDBTransaction();
         <%
         // now a second row containing each individual's info panel (hidden at first)
         for (int j=0; j<2; j++) {
-          Boolean isFirst = (i==0)&&(j==0);
           %>
           <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
 
@@ -253,7 +264,12 @@ myShepherd.beginDBTransaction();
             <div class="gallery-inner">
               <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
 
-              <h2><%=pairNickname[j]%></h2>
+              <span class="Myh2"><%=pairNickname[j]%></span>
+              <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
+                <a href=#><i class="icon icon-facebook-btn" aria-hidden="true"></i></a>
+                <a href=#><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a href=#><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+              </span>
               <table><tr>
                 <td>
                   <ul>
@@ -275,9 +291,6 @@ myShepherd.beginDBTransaction();
                 <td>
                   <ul>
                     <li>
-                      <%=props.getProperty("location")%>: <%=org.apache.commons.lang3.StringUtils.join(pair[j].participatesInTheseLocationIDs(),", ")%>
-                    </li>
-                    <li>
                       <%
                       String timeOfBirth=props.getProperty("unknown");
                       //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
@@ -295,9 +308,11 @@ myShepherd.beginDBTransaction();
                 </td>
               </tr></table>
 
+              <% if(request.getUserPrincipal()!=null){ %>
               <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
                 To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
               </p>
+              <% } %>
 
             </div>
           </div>
@@ -309,16 +324,24 @@ myShepherd.beginDBTransaction();
       }
 
       %>
-      <div class="row grey-background">
-        <%
-        if (startNum>0) {
-          int newStart = Math.min(startNum-6,0);
-          %>
-          <span style="float: left"><a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <<< </a></span>
+      <div class="row" style="background:#e1e1e1;">
+
+        <p style="text-align:center">
+
           <%
-        }
-        %>
-        <span style="float:right"><a href="<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+6%>"> >>> </a></span>
+          if (startNum>0) {
+            int newStart = Math.min(startNum-6,0);
+            %>
+            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png">> </a>
+            <%
+          }
+          %>
+
+
+          Lataa lis&auml;&auml; norppia
+          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+        </p>
+
       </row>
 
   </section>
