@@ -25,6 +25,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.RestClient;
+import org.ecocean.Annotation;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -201,10 +202,68 @@ System.out.println(id);
                 }
             }
         }
+        res.put("success", true);
+
+    } else if (j.optJSONArray("identify") != null) {
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        JSONArray ids = j.getJSONArray("identify");
+        int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
+        ArrayList<String> validIds = new ArrayList<String>();
+        for (int i = 0 ; i < ids.length() ; i++) {
+            String id = ids.optString(i, null);
+System.out.println(id);
+            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, id), true)));
+            if (ann != null) {
+                ///////ma.setDetectionStatus("processing");  TODO ?????????
+                anns.add(ann);
+                validIds.add(id);
+            }
+        }
+        //TODO for now we only allow a single query annotation (see: IA team)
+        if (anns.size() > 1) {
+            res.put("_note", "currently allow only one query annotation; ignoring all but the first");
+            anns = new ArrayList(anns.subList(0, 1));
+        }
+        if (anns.size() > 0) {
+            //TODO how do we handle multiple species?  i guess we should just fail!
+            String species = anns.get(0).getSpecies();
+            if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + anns.get(0) + " invalid: " + species);
+            boolean success = true;
+            try {
+                String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+                ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
+                if (limitTargetSize > -1) {
+                    res.put("_limitTargetSize", limitTargetSize);
+                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
+                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                }
+                JSONObject sent = IBEISIA.beginIdentifyAnnotations(anns, exemplars, myShepherd, species, taskId, baseUrl, context);
+                res.put("beginIdentify", sent);
+                String jobId = null;
+                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
+                    jobId = sent.optString("response", null);
+                res.put("jobId", jobId);
+                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
+            } catch (Exception ex) {
+                success = false;
+                throw new IOException(ex.toString());
+            }
+/* TODO ?????????
+            if (!success) {
+                for (MediaAsset ma : mas) {
+                    ma.setDetectionStatus("error");
+                }
+            }
+*/
+        }
+        res.put("success", true);
+
+    } else {
+        res.put("error", "unknown POST command");
+        res.put("success", false);
     }
 
     res.put("_in", j);
-    res.put("success", true);
 
     out.println(res.toString());
     out.close();

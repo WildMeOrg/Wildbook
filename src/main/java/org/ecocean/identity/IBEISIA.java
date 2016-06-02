@@ -132,25 +132,52 @@ System.out.println("sendAnnotations(): sending " + ct);
         return res;
     }
 
+    //mostly used for very first iteration, when many values are not set
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return sendIdentify(qanns, tanns, new JSONObject(), new JSONArray(), new JSONObject(), baseUrl);
+    }
+
+    public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
+                                          JSONArray matchingStateList, JSONObject userConfidence, String baseUrl)
+                                          throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
+
+        Shepherd myShepherd = new Shepherd("context0");
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
         ArrayList<JSONObject> tlist = new ArrayList<JSONObject>();
+        ArrayList<Object> qnlist = new ArrayList<Object>();
+        ArrayList<Object> tnlist = new ArrayList<Object>();
 
+///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         for (Annotation ann : qanns) {
             qlist.add(toFancyUUID(ann.getUUID()));
+            //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
+            qnlist.add(toFancyUUID(Util.generateUUID()));
         }
         for (Annotation ann : tanns) {
             tlist.add(toFancyUUID(ann.getUUID()));
+            String indivId = ann.findIndividualId(myShepherd);
+            if (Util.isUUID(indivId)) {
+                tnlist.add(toFancyUUID(indivId));
+            } else if (indivId == null) {
+                tnlist.add(toFancyUUID(Util.generateUUID()));  //we must have one... meh?  TODO fix (and see above)
+            } else {
+                tnlist.add(indivId);
+            }
         }
-        map.put("qannot_uuid_list", qlist);
-        map.put("dannot_uuid_list", tlist);
+//query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+        map.put("query_annot_uuid_list", qlist);
+        map.put("database_annot_uuid_list", tlist);
+        map.put("query_annot_name_uuid_list", qnlist);
+        map.put("database_annot_name_uuid_list", tnlist);
+
+        
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
@@ -439,53 +466,55 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     }
 
 
-    //actually ties the whole thing together and starts a job with all the pieces needed
+    //like below, but you can pass Encounters (which will be mined for Annotations and passed along)
     public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        JSONObject results = new JSONObject();
+        results.put("success", false);  //pessimism!
+        if ((queryEncs == null) || (queryEncs.size() < 1)) {
+            results.put("error", "queryEncs is empty");
+            return results;
+        }
+        if ((targetEncs == null) || (targetEncs.size() < 1)) {
+            results.put("error", "targetEncs is empty");
+            return results;
+        }
+
+        ArrayList<Annotation> qanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
+        for (Encounter enc : queryEncs) {
+            if (enc.getAnnotations() != null) qanns.addAll(enc.getAnnotations());
+        }
+        for (Encounter enc : targetEncs) {
+            if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
+        }
+
+        return beginIdentifyAnnotations(qanns, tanns, myShepherd, species, taskID, baseUrl, context);
+    }
+
+    //actually ties the whole thing together and starts a job with all the pieces needed
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();  //0th item will have "query" encounter
-        ArrayList<Annotation> qanns = new ArrayList<Annotation>();
-        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
-
-        if (queryEncs.size() < 1) {
-            results.put("error", "queryEncs is empty");
-            return results;
-        }
-        if (targetEncs.size() < 1) {
-            results.put("error", "targetEncs is empty");
-            return results;
-        }
 
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
         try {
-            for (Encounter enc : queryEncs) {
-/*
-                //MediaAsset ma = enc.spotImageAsMediaAsset(baseDir, myShepherd);
-                MediaAsset ma = enc.findOneMediaByLabel(myShepherd, "_spot");
-System.out.println("find _spot on " + enc.getCatalogNumber() + " -> " + ma);
-*/
-                ArrayList<Annotation> annotations = enc.getAnnotations();
-                for (Annotation ann : annotations) {
-                    allAnns.add(ann);
-                    qanns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma != null) mas.add(ma);
-                }
+            for (Annotation ann : qanns) {
+                allAnns.add(ann);
+                MediaAsset ma = ann.getDerivedMediaAsset();
+                if (ma == null) ma = ann.getMediaAsset();
+                if (ma != null) mas.add(ma);
             }
-            for (Encounter enc : targetEncs) {
-                ArrayList<Annotation> annotations = enc.getAnnotations();
-                for (Annotation ann : annotations) {
-                    allAnns.add(ann);
-                    tanns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma != null) mas.add(ma);
-                }
+            
+            for (Annotation ann : tanns) {
+                allAnns.add(ann);
+                MediaAsset ma = ann.getDerivedMediaAsset();
+                if (ma == null) ma = ann.getMediaAsset();
+                if (ma != null) mas.add(ma);
             }
 
 /*
@@ -506,6 +535,7 @@ System.out.println(allAnns);
             }
             results.put("sendIdentify", identRtn);
 
+System.out.println("sendIdentify ---> " + identRtn);
             //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
 //########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
             if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
