@@ -1747,6 +1747,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     }
     return new JSONObject();
   }
+  // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
+  public String getExemplarPhotographer() {
+    for (Encounter enc : this.getDateSortedEncounters()) {
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        return enc.getPhotographerName();
+      }
+    }
+    return "";
+  }
 
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
