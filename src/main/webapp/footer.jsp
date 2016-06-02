@@ -18,6 +18,7 @@
 					background-position: center;
 					margin-left: 0;
 					margin-right: 0;
+					margin-top: 10px;
 				}
 
 				@media (min-width: 1100px) {
@@ -105,7 +106,7 @@
 							-->   <h2>
 											<a href="adoptanimal.jsp">
 													<!--<button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>-->
-													<button class="btn btn-primary btn-large">Liity Norppa-Kummiksi</button>
+													<button class="btn btn-primary">Liity Norppa-Kummiksi</button>
 											</a>
 										</h2>
 									</div>

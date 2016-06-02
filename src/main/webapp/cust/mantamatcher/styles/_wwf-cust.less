@@ -8,6 +8,23 @@
   z-index: 10;
 }
 
+@media (max-width: 480px) {
+  .navbar-brand {
+  background: url(../img/wwf-seal-logo-mobile.png);
+  position: absolute;
+  height: 119px;
+  width: 104px;
+  margin-left: 25px;
+  margin-top: -10px;
+  z-index: 10;
+  }
+}
+
+
+html {
+  font-size: 14px;
+}
+
 
 .hero, .data-section {
     background-position: 50% 39%;
@@ -102,6 +119,27 @@ body, body p, li.loginout>a, .main-text>div>p {
 }
 
 // navbar link styling
+@media (min-width: 53.75em) {
+    .navbar-default .navbar-nav>li>a {
+    font-size: 20px;
+    font-size: 1.25rem
+  }
+}
+@media (min-width: 63.9em) {
+  .navbar-default .navbar-nav>li>a {
+    font-size: 26px;
+    font-size: 1.625rem;
+  }
+}
+
+
+.navbar-default .navbar-nav>li input {
+  font-family: inherit;
+}
+
+
+
+
 .navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus .navbar-default .navbar.nav>li.donate>a.bc1-primary-bkg:hover {
     background-color: #ffab2e;
     color: #fff;
@@ -275,9 +313,14 @@ body {
 }
 
 .search-wrapper {
-  margin-top: 3px;
+  margin-top: 7px;
   margin-bottom: 3px;
 }
+
+.search-field-header input {
+  background: #272727;
+  }
+
 
 
 // gallery.jsp styles:
