@@ -125,6 +125,14 @@ if (rIndividuals.size() < listNum) {
     width:50%;
   }
 
+  .gallery-unit .crop {
+    text-align: center;
+  }
+  .gallery-unit .crop img {
+    }
+
+  }
+
   .gallery-inner span.Myh2 {
     color: #16696d;
     font-weight: 700;
@@ -239,7 +247,11 @@ myShepherd.beginDBTransaction();
           %>
           <div class="col-xs-6">
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
-              <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+              <div class="crop" title="<%=pairName[j]%>">
+                <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+
+              </div>
+
               <p><strong><%=pairNickname[j]%></strong></p>
             </div>
           </div>
@@ -262,7 +274,7 @@ myShepherd.beginDBTransaction();
 
 
             <div class="gallery-inner">
-              <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
 
               <span class="Myh2"><%=pairNickname[j]%></span>
               <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
