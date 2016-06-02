@@ -359,13 +359,13 @@ myShepherd.beginDBTransaction();
           if (startNum>0) {
             int newStart = Math.min(startNum-6,0);
             %>
-            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a>
+            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
           }
           %>
 
 
-          Lataa lis&auml;&auml; norppia
+          Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
           <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
