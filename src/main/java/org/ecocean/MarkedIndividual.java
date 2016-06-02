@@ -1729,19 +1729,21 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
     for (Encounter enc : this.getDateSortedEncounters()) {
-      ArrayList<Annotation> anns = enc.getAnnotations();
-      if ((anns == null) || (anns.size() < 1)) {
-        continue;
-      }
-      for (Annotation ann: anns) {
-        if (!ann.isTrivial()) continue;
-        MediaAsset ma = ann.getMediaAsset();
-        if (ma != null) {
-          //JSONObject j = new JSONObject();
-          JSONObject j = ma.sanitizeJson(req, new JSONObject());
-          if (j!=null) return j;
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        ArrayList<Annotation> anns = enc.getAnnotations();
+        if ((anns == null) || (anns.size() < 1)) {
+          continue;
         }
-      }
+        for (Annotation ann: anns) {
+          if (!ann.isTrivial()) continue;
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma != null) {
+            //JSONObject j = new JSONObject();
+            JSONObject j = ma.sanitizeJson(req, new JSONObject());
+            if (j!=null) return j;
+          }
+        }
+    }
     }
     return new JSONObject();
   }
