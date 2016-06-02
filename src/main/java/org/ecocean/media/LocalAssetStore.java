@@ -140,7 +140,7 @@ public class LocalAssetStore extends AssetStore {
      */
     @Override
     public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
-        Path subpath = pathFromParameters(params, true);  //check to see if path is legit
+        Path subpath = pathFromParameters(params, false);  //file can not exist (for sake of subsequent copyIn() being called) ... sorry?
         if (subpath == null) return null;
 /*
         Path root = root();
