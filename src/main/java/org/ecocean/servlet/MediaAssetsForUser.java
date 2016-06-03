@@ -61,8 +61,13 @@ public class MediaAssetsForUser extends HttpServlet {
       // args is either a) a singleton argument that's a stringified JSONObject, or b) constructed with requestParamsToJSON
 
       ArrayList<MediaAsset> mAssets = new ArrayList<MediaAsset>();
-      mAssets = myShepherd.getMediaAssetsForOwner(owner);
 
+      if (request.getParameter("detectionStatus")!=null) {
+        mAssets = myShepherd.getMediaAssetsForOwner(owner, request.getParameter("detectionStatus"));
+      } else {
+        mAssets = myShepherd.getMediaAssetsForOwner(owner);
+      }
+      
       String offsetStr = request.getParameter("offset");
       int offset = (offsetStr==null) ? 0 : Integer.parseInt(offsetStr);
       String rangeStr = request.getParameter("range");
