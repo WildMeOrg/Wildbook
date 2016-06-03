@@ -488,7 +488,7 @@ div.file-item div {
     console.log("EMG asset "+index+" id: "+assetId);
     maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
 
-    var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
+    var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
 
     $('#enc-gallery').append(removeAssetLink);
   });
