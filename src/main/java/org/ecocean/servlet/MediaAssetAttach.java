@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.ecocean.media.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,10 +27,7 @@ public class MediaAssetAttach extends HttpServlet {
   }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    response.setHeader("Access-Control-Allow-Origin", "*");
-
-    if (request.getParameter("MediaAssetID") == null || request.getParameter("EncounterID") == null) throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument.");
-
+    doPost(request, response);
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -37,10 +35,30 @@ public class MediaAssetAttach extends HttpServlet {
     JSONObject res = new JSONObject();
 
 
-    String encID = request.getParameter("EncounterID");
-    String maID = request.getParameter("MediaAssetID");
+    JSONObject args = new JSONObject();
 
-    if (encID == null || maID == null) throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument.");
+    try {
+      args = ServletUtilities.jsonFromHttpServletRequest(request);
+    }
+
+    catch (JSONException e){
+      // urgh... depending on if POSTing from Postman or $.ajax, parameters must be handled differently.
+      args.put("attach",request.getParameter("attach"));
+      args.put("detach",request.getParameter("detach"));
+      args.put("EncounterID", request.getParameter("EncounterID"));
+      args.put("MediaAssetID", request.getParameter("MediaAssetID"));
+    }
+
+    //String encID = request.getParameter("EncounterID");
+    //String maID = request.getParameter("MediaAssetID");
+    String encID = args.optString("EncounterID");
+    String maID = args.optString("MediaAssetID");
+
+    System.out.println("Servlet received maID="+maID+" and encID="+encID);
+
+    if (encID == null || maID == null) {
+      throw new IOException("MediaAssetAttach servlet requires both a \"MediaAssetID\" and an \"EncounterID\" argument. Servlet received maID="+maID+" and encID="+encID);
+    }
 
     String context = "context0";
     context = ServletUtilities.getContext(request);
@@ -61,7 +79,7 @@ public class MediaAssetAttach extends HttpServlet {
     res.put("alreadyAttached", alreadyAttached);
 
     // ATTACH MEDIAASSET TO ENCOUNTER
-    if (request.getParameter("attach")!=null && request.getParameter("attach").equals("true")) {
+    if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
       if (!alreadyAttached) {
         enc.addMediaAsset(ma, context);
         res.put("action","attach");
@@ -72,9 +90,13 @@ public class MediaAssetAttach extends HttpServlet {
       }
     }
 
-    else if (request.getParameter("detach")!=null && request.getParameter("detach").equals("true")) {
+    // DETACH MEDIAASSET FROM ENCOUNTER
+    else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
       if (alreadyAttached) {
         enc.removeMediaAsset(ma);
+        String undoLink = "http://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+maID;
+        String comments = "Detached MediaAsset " + maID + ". To undo this action, visit " + undoLink;
+        enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
         res.put("action","detach");
         res.put("success",true);
       }
@@ -82,7 +104,7 @@ public class MediaAssetAttach extends HttpServlet {
         throw new ServletException("Cannot remove MediaAsset "+maID+" from Encounter "+encID+". They were not attached in the first place.");
       }
     } else {
-      res.put("success",false);
+      res.put("args.optString",false);
     }
     myShepherd.commitDBTransaction();
 
