@@ -33,6 +33,7 @@ public class IBEISIA {
 
     private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
     private static String SERVICE_NAME = "IBEISIA";
+    private static String IA_UNKNOWN_NAME = "____";
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
@@ -150,22 +151,32 @@ System.out.println("sendAnnotations(): sending " + ct);
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
         ArrayList<JSONObject> tlist = new ArrayList<JSONObject>();
-        ArrayList<Object> qnlist = new ArrayList<Object>();
-        ArrayList<Object> tnlist = new ArrayList<Object>();
+        ArrayList<String> qnlist = new ArrayList<String>();
+        ArrayList<String> tnlist = new ArrayList<String>();
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
         for (Annotation ann : qanns) {
             qlist.add(toFancyUUID(ann.getUUID()));
+/* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
             qnlist.add(toFancyUUID(Util.generateUUID()));
+*/
+            qnlist.add(IA_UNKNOWN_NAME);
         }
         for (Annotation ann : tanns) {
             tlist.add(toFancyUUID(ann.getUUID()));
             String indivId = ann.findIndividualId(myShepherd);
+/*  see note above about names
             if (Util.isUUID(indivId)) {
                 tnlist.add(toFancyUUID(indivId));
             } else if (indivId == null) {
                 tnlist.add(toFancyUUID(Util.generateUUID()));  //we must have one... meh?  TODO fix (and see above)
+            } else {
+                tnlist.add(indivId);
+            }
+*/
+            if (indivId == null) {
+                tnlist.add(IA_UNKNOWN_NAME);
             } else {
                 tnlist.add(indivId);
             }
@@ -174,8 +185,8 @@ System.out.println("sendAnnotations(): sending " + ct);
 
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
-        map.put("query_annot_name_uuid_list", qnlist);
-        map.put("database_annot_name_uuid_list", tnlist);
+        map.put("query_annot_name_list", qnlist);
+        map.put("database_annot_name_list", tnlist);
 
         
 System.out.println("===================================== qlist & tlist =========================");
@@ -224,7 +235,7 @@ System.out.println("tlist.size()=" + tlist.size());
              json_result: "[{"qaid": 492, "daid_list": [493], "score_list": [1.5081310272216797], "qauuid": {"__UUID__": "f6b27df2-5d81-4e62-b770-b56fe1dcf5c2"}, "dauuid_list": [{"__UUID__": "d88c974b-c746-49db-8178-e7b7414708cf"}]}]"
        there would be one element for each queried annotation (492 here)... but we are FOR NOW always only sending one.  we should TODO adapt for many-to-many eventually?
     */
-    public static JSONObject getTaskResults(String taskID, Shepherd myShepherd) {
+    public static JSONObject OLDgetTaskResults(String taskID, Shepherd myShepherd) {
         JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
         if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
         JSONArray resOut = new JSONArray();
@@ -246,6 +257,36 @@ System.out.println("tlist.size()=" + tlist.size());
         rtn.put("results", resOut);
         rtn.remove("_json_result");
         return rtn;
+    }
+
+
+    //this is "new" identification results
+    public static JSONObject getTaskResults(String taskID, Shepherd myShepherd) {
+        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+        if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
+        JSONObject res = rtn.optJSONObject("_json_result");
+        rtn.put("results", res);
+        rtn.remove("_json_result");
+        return rtn;
+/*
+
+        for (int i = 0 ; i < res.length() ; i++) {
+            JSONObject el = new JSONObject();
+            el.put("score_list", res.getJSONObject(i).get("score_list"));
+            el.put("query_annot_uuid", fromFancyUUID(res.getJSONObject(i).getJSONObject("qauuid")));
+            JSONArray matches = new JSONArray();
+            JSONArray dlist = res.getJSONObject(i).getJSONArray("dauuid_list");
+            for (int d = 0 ; d < dlist.length() ; d++) {
+                matches.put(fromFancyUUID(dlist.getJSONObject(d)));
+            }
+            el.put("match_annot_list", matches);
+            resOut.put(el);
+        }
+
+        rtn.put("results", resOut);
+        rtn.remove("_json_result");
+        return rtn;
+*/
     }
 
 
