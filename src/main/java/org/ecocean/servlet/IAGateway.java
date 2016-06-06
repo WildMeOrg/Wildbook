@@ -111,6 +111,26 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
         }
+
+    //ugh, lets standardize on passing taskId, not jobid cuz jobid sucks
+    } else if (request.getParameter("getIdentificationReviewHtml") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskId = request.getParameter("getIdentificationReviewHtml");
+        int offset = 0;
+        if (request.getParameter("offset") != null) {
+            try {
+                offset = Integer.parseInt(request.getParameter("offset"));
+            } catch (NumberFormatException ex) {}
+        }
+        JSONObject res = null;
+        try {
+            res = IBEISIA.getTaskResults(taskId, myShepherd);
+        } catch (Exception ex) {
+            throw new IOException(ex.toString());
+        }
+System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
+        getOut = _identificationHtmlFromResult(res, request, offset, null);
     }
 
     PrintWriter out = response.getWriter();
@@ -127,7 +147,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
     String qstr = request.getQueryString();
     if ("detectionReviewPost".equals(qstr)) {
         String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
-        if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
+        if (url == null) throw new IOException("IBEISIARestUrlDetectReview url not set");
 System.out.println("attempting passthru to " + url);
         URL u = new URL(url);
         JSONObject rtn = new JSONObject("{\"success\": false}");
@@ -141,6 +161,25 @@ while ((i = is.read(buffer)) > 0) {
 }
 System.out.println("....after");
 */
+        try {
+            rtn = RestClient.postStream(u, request.getInputStream());
+        } catch (Exception ex) {
+            rtn.put("error", ex.toString());
+        }
+        response.setContentType("text/plain");
+        PrintWriter out = response.getWriter();
+        out.println(rtn.toString());
+        out.close();
+        return;
+    }
+
+
+    if ("identificationReviewPost".equals(qstr)) {
+        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
+        if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
+System.out.println("attempting passthru to " + url);
+        URL u = new URL(url);
+        JSONObject rtn = new JSONObject("{\"success\": false}");
         try {
             rtn = RestClient.postStream(u, request.getInputStream());
         } catch (Exception ex) {
@@ -319,6 +358,59 @@ System.out.println("url --> " + url);
         return getOut;
     }
 
+    private String _identificationHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String maUUID) throws IOException {
+        String getOut = "";
+        if ((res == null) || (res.optJSONObject("results") == null) || (res.getJSONObject("results").optJSONObject("inference_dict") == null) ||
+            (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
+            (res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list") == null)) {
+                getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
+                System.out.println("ERROR: invalid res for _identificationHtmlFromResult: " + res);
+                return getOut;
+        }
+
+        JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
+        if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
+
+        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
+        if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
+        url += "?query_config_dict=" + res.getJSONObject("results").optJSONObject("query_config_dict").toString() + "&";
+        url += "review_pair=" + rlist.getJSONObject(offset).toString() + "&";
+        String quuid = IBEISIA.fromFancyUUID(rlist.getJSONObject(offset).optJSONObject("annot_uuid_1"));
+        if (quuid == null) {
+            getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
+            System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
+            return getOut;
+        }
+        if ((res.getJSONObject("results").optJSONObject("cm_dict") == null) || (res.getJSONObject("results").getJSONObject("cm_dict").optJSONObject(quuid) == null)) {
+            getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
+            System.out.println("ERROR: could not determine cm_dict for quuid=" + quuid + " for _identificationHtmlFromResult: " + res);
+            return getOut;
+        }
+        url += "cm_dict=" + res.getJSONObject("results").getJSONObject("cm_dict").getJSONObject(quuid).toString() + "&";
+        url += "view_orientation=horizontal&";  //TODO set how?
+        url += "_internal_state=null&";  //"placeholder" according to docs
+
+        try {
+            url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FidentificationReviewPost&callback_method=POST";
+System.out.println("url --> " + url);
+getOut = "(( " + url + " ))";
+            URL u = new URL(url);
+            JSONObject rtn = RestClient.get(u);
+            if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
+                !rtn.getJSONObject("status").optBoolean("success", false)) {
+                getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+            } else {
+                getOut = rtn.getString("response");
+                if (request.getParameter("test") != null) {
+                    getOut = "<html><head><script src=\"https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js\"></script></head><body>" + getOut + "</body></html>";
+                }
+            }
+        } catch (Exception ex) {
+            getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
+        }
+
+        return getOut;
+    }
 
     private ArrayList<MediaAsset> mineNeedingDetectionReview(HttpServletRequest request, Shepherd myShepherd) {
         String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
@@ -332,7 +424,7 @@ System.out.println("url --> " + url);
         Iterator it = c.iterator();
         while (it.hasNext()) {
             mas.add((MediaAsset)it.next());
-        }
+        }    
         query.closeAll();
         return mas;
     }
