@@ -413,6 +413,54 @@ public class Shepherd {
     }
   }
 
+  // Returns all of a user's workspaces.
+  public ArrayList<MediaAsset> getMediaAssetsForOwner(String owner) {
+
+    String enquotedOwner = (owner==null || owner.equals("")) ? "null" : "\""+owner+"\"";
+    String filter = "accessControl.username == " + enquotedOwner;
+
+    Extent allMediaAssets = pm.getExtent(MediaAsset.class, true);
+    Query mediaAssetQuery = pm.newQuery(allMediaAssets, filter);
+
+    try {
+      Collection results = (Collection) (mediaAssetQuery.execute());
+      ArrayList<MediaAsset> resultList = new ArrayList<MediaAsset>();
+      if (results!=null) {
+        resultList = new ArrayList<MediaAsset>(results);
+      }
+      mediaAssetQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+  public ArrayList<MediaAsset> getMediaAssetsForOwner(String owner, String status) {
+
+    String enquotedOwner = (owner==null || owner.equals("")) ? "null" : "\""+owner+"\"";
+
+    String enquotedStatus = (status==null || status.equals("")) ? "null" : "\""+status+"\"";
+
+    String filter = "accessControl.username == " + enquotedOwner +" && detectionStatus == "+enquotedStatus;
+    Extent allMediaAssets = pm.getExtent(MediaAsset.class, true);
+    Query mediaAssetQuery = pm.newQuery(allMediaAssets, filter);
+
+    try {
+      Collection results = (Collection) (mediaAssetQuery.execute());
+      ArrayList<MediaAsset> resultList = new ArrayList<MediaAsset>();
+      if (results!=null) {
+        resultList = new ArrayList<MediaAsset>(results);
+      }
+      mediaAssetQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
   // like above but filters on Workspace.isImageSet
   /*
   public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) {

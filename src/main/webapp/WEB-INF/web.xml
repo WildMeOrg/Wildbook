@@ -488,9 +488,14 @@
         <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
   </servlet>
 
-      <servlet>
-        <servlet-name>MediaAssetCreate</servlet-name>
-        <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  <servlet>
+    <servlet-name>MediaAssetCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MediaAssetsForUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
 
   <servlet>
@@ -1186,10 +1191,16 @@
             <url-pattern>/UserInfo</url-pattern>
   </servlet-mapping>
 
-     <servlet-mapping>
-            <servlet-name>MediaAssetCreate</servlet-name>
-            <url-pattern>/MediaAssetCreate</url-pattern>
-  </servlet-mapping>
+    <servlet-mapping>
+      <servlet-name>MediaAssetCreate</servlet-name>
+      <url-pattern>/MediaAssetCreate</url-pattern>
+    </servlet-mapping>
+
+      <servlet-mapping>
+             <servlet-name>MediaAssetsForUser</servlet-name>
+             <url-pattern>/MediaAssetsForUser</url-pattern>
+      </servlet-mapping>
+
 
 
         <servlet-mapping>
