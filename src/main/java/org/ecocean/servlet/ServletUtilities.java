@@ -59,7 +59,7 @@ import java.util.Map;
 
 import org.ecocean.*;
 import org.apache.shiro.crypto.hash.*;
-import org.apache.shiro.util.*; 
+import org.apache.shiro.util.*;
 import org.apache.shiro.crypto.*;
 
 import java.util.Properties;
@@ -82,7 +82,7 @@ public class ServletUtilities {
       fileReader.close();
       buffread.close();
       templateFile = SBreader.toString();
-      
+
       String context=getContext(request);
 
       //process the CSS string
@@ -93,7 +93,7 @@ public class ServletUtilities {
 
       int end_header = templateFile.indexOf("INSERT_HERE");
       return (templateFile.substring(0, end_header));
-    } 
+    }
     catch (Exception e) {
       //out.println("I couldn't find the template file to read from.");
       e.printStackTrace();
@@ -217,7 +217,7 @@ public class ServletUtilities {
       fileReader.close();
       buffread.close();
       return line;
-        } 
+        }
         catch (Exception e) {
       e.printStackTrace();
       return "";
@@ -370,22 +370,22 @@ public class ServletUtilities {
     boolean isOwner = false;
     if (request.getUserPrincipal()!=null) {
       isOwner = true;
-    } 
+    }
     return isOwner;
   }
 
   public static boolean isUserAuthorizedForIndividual(MarkedIndividual sharky, HttpServletRequest request) {
     if (request.getUserPrincipal()!=null) {
       return true;
-    } 
+    }
     return false;
   }
-  
+
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
     if (request.getUserPrincipal()!=null) {
       return true;
-    } 
+    }
     return false;
   }
 
@@ -413,11 +413,11 @@ public class ServletUtilities {
 
   }
 
-  
+
   public static String cleanFileName(String myString){
     return myString.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
   }
-  
+
   /*public static String cleanFileName(String aTagFragment) {
     final StringBuffer result = new StringBuffer();
 
@@ -464,7 +464,7 @@ public class ServletUtilities {
     DateTimeFormatter fmt = ISODateTimeFormat.date();
     return (fmt.print(dt));
   }
-  
+
   public static Connection getConnection() throws SQLException {
 
     Connection conn = null;
@@ -472,11 +472,11 @@ public class ServletUtilities {
     connectionProps.put("user", CommonConfiguration.getProperty("datanucleus.ConnectionUserName","context0"));
     connectionProps.put("password", CommonConfiguration.getProperty("datanucleus.ConnectionPassword","context0"));
 
-    
+
     conn = DriverManager.getConnection(
            CommonConfiguration.getProperty("datanucleus.ConnectionURL","context0"),
            connectionProps);
-    
+
     System.out.println("Connected to database for authentication.");
     return conn;
 }
@@ -494,7 +494,7 @@ public static String getContext(HttpServletRequest request){
   if(ContextConfiguration.getDefaultContext()!=null){context=ContextConfiguration.getDefaultContext();}
   Properties contexts=ShepherdProperties.getContextsProperties();
   int numContexts=contexts.size();
-  
+
   //check the URL for the context attribute
   //this can be used for debugging and takes precedence
   if(request.getParameter("context")!=null){
@@ -505,7 +505,7 @@ public static String getContext(HttpServletRequest request){
       return request.getParameter("context");
     }
   }
-  
+
 
   //the request cookie is the next thing we check. this should be the primary means of figuring context out
   Cookie[] cookies = request.getCookies();
@@ -516,7 +516,7 @@ public static String getContext(HttpServletRequest request){
       }
     }
   }
-  
+
   //finally, we will check the URL vs values defined in context.properties to see if we can set the right context
   String currentURL=request.getServerName();
   for(int q=0;q<numContexts;q++){
@@ -524,40 +524,40 @@ public static String getContext(HttpServletRequest request){
     List<String> domainNames=ContextConfiguration.getContextDomainNames(thisContext);
     int numDomainNames=domainNames.size();
     for(int p=0;p<numDomainNames;p++){
-      
+
       if(currentURL.indexOf(domainNames.get(p))!=-1){return thisContext;}
-      
+
     }
-    
-    
+
+
   }
-  
+
   return context;
 }
 
 
 public static String getLanguageCode(HttpServletRequest request){
   String context=ServletUtilities.getContext(request);
-  
+
   //worst case scenario default to English
   String langCode="en";
-  
+
   //try to detect a default if defined
   if(CommonConfiguration.getProperty("defaultLanguage", context)!=null){
     langCode=CommonConfiguration.getProperty("defaultLanguage", context);
   }
 
-  
+
   List<String> supportedLanguages=new ArrayList<String>();
   if(CommonConfiguration.getIndexedPropertyValues("language", context)!=null){
     supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
-  }    
-      
+  }
+
   //if specified directly, always accept the override
   if(request.getParameter("langCode")!=null){
     if(supportedLanguages.contains(request.getParameter("langCode"))){return request.getParameter("langCode");}
   }
-  
+
 
   //the request cookie is the next thing we check. this should be the primary means of figuring langCode out
   Cookie[] cookies = request.getCookies();
@@ -568,10 +568,10 @@ public static String getLanguageCode(HttpServletRequest request){
       }
     }
   }
-  
+
   //finally, we will check the URL vs values defined in context.properties to see if we can set the right context
   //TBD - future - detect browser supported language codes and locale from the HTTPServletRequest object
-  
+
   return langCode;
 }
 
@@ -601,7 +601,7 @@ String rootWebappPath = "xxxxxx";
 	}
 */
 
-	
+
   private static String loadOverrideText(String shepherdDataDir, String fileName, String langCode) {
     //System.out.println("Starting loadOverrideProps");
     StringBuffer myText=new StringBuffer("");
@@ -624,18 +624,18 @@ String rootWebappPath = "xxxxxx";
       FileInputStream fileInputStream = null;
       try {
         fileInputStream = new FileInputStream(configFile);
-        
-        
+
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(fileInputStream));
         StringBuilder out = new StringBuilder();
         String line;
         while ((line = reader.readLine()) != null) {
             myText.append(line);
         }
-        
-        
-        
-        
+
+
+
+
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -651,12 +651,12 @@ String rootWebappPath = "xxxxxx";
     }
     return myText.toString();
   }
-  
+
   public static String handleNullString(Object obj){
     if(obj==null){return "";}
     return obj.toString();
   }
-  
+
 
     public static JSONObject jsonFromHttpServletRequest(HttpServletRequest request) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -671,6 +671,15 @@ String rootWebappPath = "xxxxxx";
         }
 //ParseException
         return new JSONObject(sb.toString());
+    }
+
+
+    public static String getParameterOrAttribute(String name, HttpServletRequest request) {
+      String result = request.getParameter(name);
+      if (name != null) {
+        result = (String) request.getAttribute(name);
+      }
+      return result;
     }
 
     //handy "let anyone do anything (?) cors stuff
