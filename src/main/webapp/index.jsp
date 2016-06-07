@@ -468,27 +468,20 @@ finally{
 %>
 
 <section class="hero container-fluid main-section relative" title="&copy; Wild Wonders of Europe / Wildstrand / WWF">
-    <div class="container-fluid relative">
-        <div class="col-lg-12 bc4">
-            <!--<h1 class="hidden">Wildbook</h1>-->
-            <h2 class="jumboesque">Kuvasitko <br/> Saimaannorpan?</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-    -->   <h2>
-            <a href="submit.jsp">
-                <!--<button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>-->
-                <button class="btn btn-primary btn-large">Ilmoita havainto</button>
-            </a>
-          </h2>
-        </div>
+  <div class="container-fluid relative">
+    <div class="col-lg-12 bc4">
+      <h2 class="jumboesque">Kuvasitko <br/> Saimaannorpan?</h2>
+      <h2>
+        <a href="submit.jsp">
+          <button class="btn btn-primary btn-large">Ilmoita havainto</button>
+        </a>
+      </h2>
+    </div>
 
 	</div>
-	 <div class="video-wrapper">
+	<div class="video-wrapper">
 		<div class="embed-container">
-			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
+			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo"  frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
 		</div>
 	</div>
 
@@ -518,7 +511,7 @@ finally{
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery">
-    <div class="row">
+    <div class="row grey-outline">
 
       <jsp:include page="individualGalleryPanel.jsp" flush="true">
         <jsp:param name="individualID" value="Phs002" />
@@ -572,8 +565,9 @@ finally{
             int numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
             %>
             <!-- TODO: double check this link (need to clean locID?)-->
-            <li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>
-              <p><%=numSightings%> tunnistettu norppaa</p>
+            <!--<li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>-->
+            <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=locID%></h3></a>
+              <p><%=numSightings%> tunnistettua norppaa</p>
             </li>
             <%
           }
@@ -587,96 +581,13 @@ finally{
 
       </ol>
 
+      </div>
+    </div>
+      <div class="col-xs-6 col-lg-6 saimaa-map">
     </div>
   </div>
 
-    <div class="col-xs-6 col-lg-6 saimaa-map">
-    </div>
-
-
-
-
-
-      <!--<div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
-      -->
-      </div>
-
 </div>
-
-<!--
-<div class="container-fluid">
-    <section class="container main-section">
-        <h2 class="section-header">How can I help?</h2>
-        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
-
-        <section class="adopt-section row">
-            <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3 class="uppercase">Adopt an animal</h3>
-                <ul>
-                    <li>Support individual research programs in different regions</li>
-					<li>Receive email updates when we resight your adopted animal</li>
-					<li>Display your photo and a quote on the animal's page in our database</li>
-</ul>
-                <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
-            </div>
-            <%
-            myShepherd.beginDBTransaction();
-            try{
-	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
-	            if(adopt!=null){
-	            %>
-	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
-		                <div class="focusbox-inner" style="overflow: hidden;">
-		                	<%
-		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-
-		                	%>
-		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
-		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
-		                    <%
-		                    if(adopt.getAdopterQuote()!=null){
-		                    %>
-			                    <blockquote>
-			                        <%=adopt.getAdopterQuote() %>
-			                    </blockquote>
-		                    <%
-		                    }
-		                    %>
-		                </div>
-		            </div>
-
-	            <%
-				}
-            }
-            catch(Exception e){e.printStackTrace();}
-            finally{myShepherd.rollbackDBTransaction();}
-
-            %>
-
-
-        </section>
-
-
-        <hr />
-        <section class="donate-section">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
-                <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
-            </div>
-            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptananimal.jsp">
-	                <button class="large contrast">
-	                    Donate
-	                    <span class="button-icon" aria-hidden="true">
-	                </button>
-                </a>
-            </div>
-        </section>
-
-    </section>
-</div>
--->
 
 <jsp:include page="footer.jsp" flush="true"/>
 
