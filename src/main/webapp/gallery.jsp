@@ -101,41 +101,6 @@ if (rIndividuals.size() < listNum) {
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
-<script>
-  // crop seal pics
-  var galFuncs = {};
-
-  var cropPics = function(selector, ratio) {
-
-
-  var image_width = $( selector ).parent().width();
-  var desired_height = image_width * 1.0/ratio;
-  $( selector ).height(desired_height);
-  $( selector+' img').css('min-height', desired_height.toString()+'px');
-
-  // center image vertically
-  $( selector+' img').each(function(index, value) {
-    var vertical_offset = ($(this).height() - desired_height)/2.0;
-    $(this).css('margin-top','-'+vertical_offset.toString()+'px');
-  });
-
-  $( selector+' img').width('100%');
-
-  };
-
-  var cropSealPics = function() {
-    cropPics('.gallery-unit .crop', 16.0/9);
-    //cropPics('.super-crop .crop', 4.0/3);
-  };
-  $( document ).ready(function() {
-    cropSealPics()
-  });
-  $( window ).resize(function(){
-    cropSealPics();
-  });
-
-
-</script>
 
 <style>
   section.main-section.galleria div.row.gunit-row {
@@ -161,16 +126,9 @@ if (rIndividuals.size() < listNum) {
     width:50%;
   }
 
-  .gallery-unit .crop {
+  .gallery-unit .crop, .gallery-inner .crop {
     text-align: center;
-  }
-  @media (min-width: 970px) {
-  .gallery-unit .crop {
     overflow: hidden;
-    }
-    .gallery-unit .crop img {
-      //min-height: 320px;
-    }
   }
 
   p.image-copyright {
@@ -181,6 +139,19 @@ if (rIndividuals.size() < listNum) {
     	color: #fff;
     	font-size: 0.8rem;
   }
+  .gallery-inner p.image-copyright {
+    top: 30px;
+    right: 110px;
+  }
+  @media(max-width: 768px) {
+    .gallery-unit p.image-copyright {
+      display: none;
+    }
+    .gallery-inner p.image-copyright {
+      right: 35px;
+    }
+  }
+
 
   .galleryh2 {
     color: #16696d !important;
@@ -194,9 +165,15 @@ if (rIndividuals.size() < listNum) {
   .gallery-inner {
     background: #fff;
     padding: 10px;
-    margin-left: 75px;
-    margin-right: 75px;
   }
+
+  @media(min-width: 768px) {
+    .gallery-inner {
+      margin-left: 75px;
+      margin-right: 75px;
+    }
+  }
+
   .gallery-inner img {
     display: block;
     margin: auto;
@@ -302,15 +279,16 @@ myShepherd.beginDBTransaction();
         String[] pairUrl = new String[2];
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
+        String[] pairCopyright = new String[2];
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
           MarkedIndividual indie = pair[j];
           JSONObject maJson = indie.getExemplarImage(request);
-          String copyright = indie.getExemplarPhotographer();
-          if (!copyright.equals("")) {
-            copyright =  "&copy; " +copyright+" / WWF";
+          pairCopyright[j] = indie.getExemplarPhotographer();
+          if (!pairCopyright[j].equals("")) {
+            pairCopyright[j] =  "&copy; " +pairCopyright[j]+" / WWF";
           } else {
-            copyright = "&copy; WWF";
+            pairCopyright[j] = "&copy; WWF";
           }
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
@@ -321,17 +299,12 @@ myShepherd.beginDBTransaction();
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
               <div class="crop" title="<%=pairName[j]%>">
                 <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                <p class="image-copyright"> <%=copyright%> </p>
+                <p class="image-copyright"> <%=pairCopyright[j]%> </p>
               </div>
 
               <p><strong><%=pairNickname[j]%></strong></p>
             </div>
           </div>
-
-          <script>
-            console.log('Individual '+'<%=indie.getIndividualID()%>'+' has id <%=i%>');
-          </script>
-
           <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
           <%
         }
@@ -349,6 +322,7 @@ myShepherd.beginDBTransaction();
               <div class="super-crop">
                 <div class="crop">
                   <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                  <p class="image-copyright"> <%=pairCopyright[j]%> </p>
                 </div>
               </div>
 
@@ -444,6 +418,43 @@ myShepherd=null;
 
 <script>
 
+  // little namespace for gallery funcs
+  var galFunc = {};
+
+  galFunc.cropPics = function(selector, ratio) {
+    var image_width = $( selector ).parent().width();
+    var desired_height = image_width * 1.0/ratio;
+    $( selector ).height(desired_height);
+    $( selector+' img').css('min-height', desired_height.toString()+'px');
+
+    // center image vertically
+    $( selector+' img').each(function(index, value) {
+      var vertical_offset = ($(this).height() - desired_height)/2.0;
+      $(this).css('margin-top','-'+vertical_offset.toString()+'px');
+    });
+
+    $( selector+' img').width('100%');
+  };
+
+  galFunc.cropInnerPics = function() {
+    galFunc.cropPics('.gallery-info.active .gallery-inner .crop', 16.0/9);
+  };
+
+
+  galFunc.cropGridPics = function() {
+    galFunc.cropPics('.gallery-unit .crop', 16.0/9);
+  };
+
+
+  $( document ).ready(function() {
+    galFunc.cropGridPics();
+  });
+  $( window ).resize(function(){
+    galFunc.cropGridPics();
+    galFunc.cropInnerPics();
+  });
+
+  // handles gallery-info hiding/showing
   $('.gallery-unit').click( function() {
     var thisId = this.id.split('gunit')[1];
     var target = '#ginfo'+thisId;
@@ -468,6 +479,7 @@ myShepherd=null;
         $(targetArrow).addClass('active');
         $(target).slideToggle(800);
         $(target).addClass('active');
+        galFunc.cropInnerPics();
       })
     }
   });
