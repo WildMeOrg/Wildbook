@@ -218,7 +218,7 @@ $(function() {
     $( "#releasedatepicker" ).datepicker( "option", "maxDate", "+1d" );
 });
 
-var center = new google.maps.LatLng(10.8, 160.8);
+var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
 
 var map;
 
@@ -242,12 +242,12 @@ function placeMarker(location) {
     }
 
   function initialize() {
-    var mapZoom = 3;
-    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    var mapZoom = 6;
+    if($("#map_canvas").hasClass("full_screen_map")){mapZoom=6;}
 
 
     if(marker!=null){
-        center = new google.maps.LatLng(10.8, 160.8);
+        center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
     }
 
     map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -734,18 +734,18 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <input class="form-control" name="photographerEmail" type="text" id="photographerEmail" size="24">
           </div>
         </div>
-        
-        
-	
+
+
+
       </div>
       <div class="col-xs-12 col-lg-6">
       <a class="help-block" href="privacy.jsp"><%=props.getProperty("privacy") %></a>
   	</div>
-  
+
     </div>
-    
-   
-      
+
+
+
   </fieldset>
    <hr/>
 
@@ -1092,8 +1092,8 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block"><%=props.getProperty("multipleEmailNote")%></p>
       </div>
-      
-      
+
+
       </div>
 <%
 }
