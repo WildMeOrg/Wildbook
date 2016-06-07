@@ -85,6 +85,10 @@ public class IndividualQueryProcessor {
     //------------------------------------------------------------------
     //locationID filters-------------------------------------------------
     String[] locCodes=request.getParameterValues("locationCodeField");
+    if (locCodes==null && ServletUtilities.getParameterOrAttribute("locationCodeField",request)!=null) {
+      // allow for singleton passing from other servlets
+      locCodes = new String[]{ ServletUtilities.getParameterOrAttribute("locationCodeField",request) };
+    };
     if((locCodes!=null)&&(!locCodes[0].equals("None"))){
           prettyPrint.append("Sighted in at least one of the following locationsIDs: ");
           int kwLength=locCodes.length;
