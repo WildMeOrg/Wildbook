@@ -77,11 +77,12 @@ myShepherd=new Shepherd(context);
     margin-top: -5px;
   }
  .saimaa-map {
-  background: url(cust/mantamatcher/img/wwf-saimaa.png);
-  background-size: contain;
-  background-repeat: no-repeat;
-  min-height: 618px;
-}
+    background: url(cust/mantamatcher/img/wwf-saimaa.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-height: 618px;
+  }
   .saimaa-row .section-header.map-header {
    background: #3ac6f7;
    color: #f7f7f7
@@ -545,7 +546,7 @@ finally{
     <div class="row saimaa-row">
 
 
-    <div class="col-xs-6 col-lg-6">
+    <div class="col-sm-6">
       <div class="saimaa-info">
       <h2 class="section-header map-header">Kuvatut Norpat Alueittain<!--Encounters around the world--></h2>
 
@@ -583,10 +584,9 @@ finally{
 
       </div>
     </div>
-      <div class="col-xs-6 col-lg-6 saimaa-map">
+    <div class="col-sm-6 saimaa-map">
     </div>
   </div>
-
 </div>
 
 <jsp:include page="footer.jsp" flush="true"/>
