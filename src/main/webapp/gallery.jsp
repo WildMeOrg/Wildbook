@@ -101,6 +101,42 @@ if (rIndividuals.size() < listNum) {
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
 <script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
 
+<script>
+  // crop seal pics
+  var galFuncs = {};
+
+  var cropPics = function(selector, ratio) {
+
+
+  var image_width = $( selector ).parent().width();
+  var desired_height = image_width * 1.0/ratio;
+  $( selector ).height(desired_height);
+  $( selector+' img').css('min-height', desired_height.toString()+'px');
+
+  // center image vertically
+  $( selector+' img').each(function(index, value) {
+    var vertical_offset = ($(this).height() - desired_height)/2.0;
+    $(this).css('margin-top','-'+vertical_offset.toString()+'px');
+  });
+
+  $( selector+' img').width('100%');
+
+  };
+
+  var cropSealPics = function() {
+    cropPics('.gallery-unit .crop', 16.0/9);
+    //cropPics('.super-crop .crop', 4.0/3);
+  };
+  $( document ).ready(function() {
+    cropSealPics()
+  });
+  $( window ).resize(function(){
+    cropSealPics();
+  });
+
+
+</script>
+
 <style>
   section.main-section.galleria div.row.gunit-row {
     background:#e1e1e1;
@@ -128,8 +164,14 @@ if (rIndividuals.size() < listNum) {
   .gallery-unit .crop {
     text-align: center;
   }
-  .gallery-unit .crop img {
+  @media (min-width: 970px) {
+  .gallery-unit .crop {
+    overflow: hidden;
     }
+    .gallery-unit .crop img {
+      //min-height: 320px;
+    }
+  }
 
   p.image-copyright {
     	text-align: right;
@@ -140,14 +182,12 @@ if (rIndividuals.size() < listNum) {
     	font-size: 0.8rem;
   }
 
-  }
-
-  .gallery-inner span.Myh2 {
-    color: #16696d;
-    font-weight: 700;
-    font-size: 36px;
-    line-height: 1.3em;
-    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif;
+  .galleryh2 {
+    color: #16696d !important;
+    font-weight: 700 !important;
+    font-size: 36px !important;
+    line-height: 1.3em !important;
+    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
   }
 
 
@@ -235,6 +275,23 @@ myShepherd.beginDBTransaction();
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
 
+    <% if(request.getParameter("locationCodeField")!=null) {%>
+
+      <style>
+        .row#location-header {
+          padding: 15px 15px 0px 15px;
+          background: #e1e1e1;
+        }
+        .row#location-header h2 {
+          margin-bottom: 0px;
+        }
+      </style>
+
+      <div class="row" id="location-header">
+        <h2><%=request.getParameter("locationCodeField")%></h2>
+      </div>
+    <% } %>
+
       <%
       int maxRows=5;
       for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
@@ -289,9 +346,14 @@ myShepherd.beginDBTransaction();
 
 
             <div class="gallery-inner">
-                <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+              <div class="super-crop">
+                <div class="crop">
+                  <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                </div>
+              </div>
 
-              <span class="Myh2"><%=pairNickname[j]%></span>
+
+              <span class="galleryh2"><%=pairNickname[j]%></span>
               <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
                 <a href=#><i class="icon icon-facebook-btn" aria-hidden="true"></i></a>
                 <a href=#><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
