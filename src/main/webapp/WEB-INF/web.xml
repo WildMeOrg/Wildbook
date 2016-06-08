@@ -1062,6 +1062,11 @@
     <servlet-class>org.ecocean.servlet.MediaAssetModify</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>OccurrenceClusterMASet</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
+  </servlet>
+
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1090,6 +1095,12 @@
   <servlet-name>WorkspaceDelete</servlet-name>
   <url-pattern>/WorkspaceDelete</url-pattern>
 </servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>OccurrenceClusterMASet</servlet-name>
+  <url-pattern>/OccurrenceClusterMASet</url-pattern>
+</servlet-mapping>
+
 
 <servlet-mapping>
   <servlet-name>MediaAssetContext</servlet-name>
