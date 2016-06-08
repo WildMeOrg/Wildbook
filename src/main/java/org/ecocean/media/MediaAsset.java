@@ -751,6 +751,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
               jobj.put("userDateTime",this.getUserDateTime());
             }
 
+            jobj.put("occurrenceID",this.getOccurrenceID());
+
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
             return jobj;
         }
