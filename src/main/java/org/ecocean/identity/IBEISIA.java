@@ -322,15 +322,26 @@ System.out.println("tlist.size()=" + tlist.size());
     public static JSONObject getTaskResultsBasic(String taskID, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+System.out.println("getTaskResultsBasic logs -->\n" + logs);
         if ((logs == null) || (logs.size() < 1)) {
             rtn.put("success", false);
             rtn.put("error", "could not find any log of task ID = " + taskID);
             return rtn;
         }
-        JSONObject last = logs.get(logs.size() - 1).getStatusJson();
+
+        //we have to walk through (newest to oldest) and find the (first) one with _action == 'getJobResult' ... but we should also stop on getJobStatus
+        // if we see that first -- it means we sent a job and are awaiting results.
+        JSONObject last = logs.get(logs.size() - 1).getStatusJson();  //just start with something (most recent at all)
+        for (int i = logs.size() - 1 ; i >= 0 ; i--) {
+            JSONObject j = logs.get(i).getStatusJson();
+            if (j.optString("_action").equals("getJobResult") || j.optString("_action").equals("getJobStatus")) {
+                last = j;
+                break;
+            }
+        }
 
 // note: jobstatus == completed seems to be the thing we want
-        if ("getJobStatus".equals(last.getString("_action")) && "unknown".equals(last.getJSONObject("_response").getJSONObject("response").getString("jobstatus"))) {
+        if ("getJobStatus".equals(last.optString("_action")) && "unknown".equals(last.getJSONObject("_response").getJSONObject("response").getString("jobstatus"))) {
             rtn.put("success", false);
             rtn.put("details", last.get("_response"));
             rtn.put("error", "final log for task " + taskID + " was an unknown jobstatus, so results were not obtained");
