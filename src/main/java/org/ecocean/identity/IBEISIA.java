@@ -37,6 +37,7 @@ public class IBEISIA {
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
+    private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
@@ -646,7 +647,8 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
     // IBEIS-IA wants a uuid as a single-key json object like: {"__UUID__": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxx"} so we use these to go back and forth
     public static String fromFancyUUID(JSONObject u) {
-        return u.getString("__UUID__");
+        if (u == null) return null;
+        return u.optString("__UUID__", null);
     }
     public static JSONObject toFancyUUID(String u) {
         JSONObject j = new JSONObject();
@@ -1120,6 +1122,23 @@ System.out.println("identification most recent action found is " + action);
         return "processing";
     }
 
+    public static void updateIdentificationMatchingState(String ann1Id, String ann2Id, String state) {
+        String pairKey = identificationPairKey(ann1Id, ann2Id);
+        if (pairKey == null) return;
+        identificationMatchingState.put(pairKey, state);
+System.out.println("# # # # # updateIdentificationMatchingState(" + pairKey + ") -> " + state + "\n" + identificationMatchingState.toString());
+    }
+    public static String getIdentificationMatchingState(String ann1Id, String ann2Id) {
+        String pairKey = identificationPairKey(ann1Id, ann2Id);
+        if (pairKey == null) return null;
+        return identificationMatchingState.get(pairKey);
+    }
+
+    //useful to combine two annot ids into one string
+    public static String identificationPairKey(String ann1Id, String ann2Id) {
+        if ((ann1Id == null) || (ann2Id == null)) return null;
+        return ann1Id + "\t" + ann2Id;
+    }
 
 }
 
