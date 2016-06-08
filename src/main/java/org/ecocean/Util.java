@@ -419,5 +419,20 @@ public class Util {
         return stringToJSONObject(jin.toString());
     }
 
+    // transforms a string such as "90.1334" or "46″ N 79°" into a decimal value
+    // TODO: parse second type of input string
+    public static Double getDecimalCoordFromString(String latOrLong) {
+
+      try {
+        return Double.valueOf(latOrLong);
+      }
+      catch (NumberFormatException nfe) {
+        System.out.println("ERROR: could not parse decimal coordinate from string "+latOrLong);
+        nfe.printStackTrace();
+      }
+      return null;
+
+    }
+
 
 }
