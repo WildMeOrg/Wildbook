@@ -347,10 +347,30 @@ public class Occurrence implements java.io.Serializable{
       encounterInfo.put(enc.getCatalogNumber(), new JSONObject("{url: "+enc.getUrl(request)+"}"));
     }
     jobj.put("encounters", encounterInfo);
+    jobj.put("assets", this.assets);
 
     jobj.put("groupBehavior", this.getGroupBehavior());
     return jobj;
 
   }
+
+  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+                org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
+            return sanitizeJson(request, jobj, true);
+        }
+
+  public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
+    jobj.put("occurrenceID", this.occurrenceID);
+    jobj.put("encounters", this.encounters);
+    int[] assetIds = new int[this.assets.size()];
+    for (int i=0; i<this.assets.size(); i++) {
+      if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
+    }
+
+    jobj.put("assets", assetIds);
+    return jobj;
+
+  }
+
 
 }
