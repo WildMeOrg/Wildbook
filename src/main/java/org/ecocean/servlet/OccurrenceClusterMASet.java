@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -56,7 +57,7 @@ public class OccurrenceClusterMASet extends HttpServlet {
       if (set!=null) {
         int n = 1;
         String[] occIDs = Cluster.makeNOccurrences(1, set.getMediaAssets(), myShepherd);
-        out.println("Made "+n+" occurrences. IDs: "+occIDs.toString());
+        out.println("Made "+n+" occurrences. IDs: "+Arrays.toString(occIDs));
       }
 
     } catch (Exception edel) {
