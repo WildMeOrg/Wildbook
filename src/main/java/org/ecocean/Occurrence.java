@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import javax.servlet.http.HttpServletRequest;
 
@@ -312,5 +313,9 @@ public class Occurrence implements java.io.Serializable{
     return jobj;
 
   }
+
+    public ArrayList<MediaAsset> getAssets() {
+        return null;
+    }
 
 }
