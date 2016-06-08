@@ -367,7 +367,6 @@ public class Occurrence implements java.io.Serializable{
     for (int i=0; i<this.assets.size(); i++) {
       if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
     }
-
     jobj.put("assets", assetIds);
     return jobj;
 

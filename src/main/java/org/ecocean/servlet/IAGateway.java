@@ -45,6 +45,7 @@ import java.security.InvalidKeyException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -303,7 +304,7 @@ System.out.println(id);
                 if (oid == null) continue;
                 Occurrence occ = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
                 if (occ == null) continue;
-                ArrayList<MediaAsset> mas = occ.getAssets();
+                List<MediaAsset> mas = occ.getAssets();
                 if ((mas == null) || (mas.size() < 1)) continue;
                 for (MediaAsset ma : mas) {
                     ArrayList<Annotation> maAnns = ma.getAnnotations();
