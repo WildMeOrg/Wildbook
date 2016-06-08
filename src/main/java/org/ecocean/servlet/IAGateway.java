@@ -207,6 +207,15 @@ System.out.println("attempting passthru to " + url);
         } catch (Exception ex) {
             rtn.put("error", ex.toString());
         }
+        if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false)) {
+            JSONArray match = rtn.optJSONArray("response");
+            if ((match != null) && (match.optJSONObject(0) != null) && (match.optJSONObject(1) != null)) {
+                String a1 = IBEISIA.fromFancyUUID(match.optJSONObject(0));
+                String a2 = IBEISIA.fromFancyUUID(match.optJSONObject(1));
+                IBEISIA.updateIdentificationMatchingState(a1, a2, match.optString(2, "UNKNOWN_MATCH_STATE"));
+                checkIdentificationIterationStatus(a1);
+            }
+        }
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
@@ -385,31 +394,28 @@ System.out.println("url --> " + url);
         if ((res == null) || (res.optJSONObject("results") == null) || (res.getJSONObject("results").optJSONObject("inference_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list") == null)) {
-                getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
                 System.out.println("ERROR: invalid res for _identificationHtmlFromResult: " + res);
-                return getOut;
+                return "<div class=\"response-error\">unable to obtain identification interface</div>";
         }
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
-        if ((offset < 0) && (annId != null)) {  //we want to review something related to Annotation, so lets find it
-            for (int i = 0 ; i < rlist.length() ; i++) {
-                if (annId.equals(IBEISIA.fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1")))) {
-                    offset = i;
-                    break;
-                }
-            }
-            if (offset < 0) {  //"should never happen"
-                System.out.println("WARNING: could not find review_pair for Annotation " + annId + "; falling back to offset=0");
-                offset = 0;
-            }
+        JSONObject rpair = null;
+        if (offset >= 0) {
+            if (offset > rlist.length() - 1) offset = 0;
+            rpair = rlist.optJSONObject(offset);
+        } else {
+            rpair = getAvailableIdentificationReviewPair(rlist, annId);
         }
-        if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
+        if (rpair == null) {
+            System.out.println("ERROR: could not determine rpair from " + rlist.toString());
+            return "<div class=\"response-error\">unable to obtain identification interface</div>";
+        }
 
         String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
         if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
         url += "?query_config_dict=" + res.getJSONObject("results").optJSONObject("query_config_dict").toString() + "&";
-        url += "review_pair=" + rlist.getJSONObject(offset).toString() + "&";
-        String quuid = IBEISIA.fromFancyUUID(rlist.getJSONObject(offset).optJSONObject("annot_uuid_1"));
+        url += "review_pair=" + rpair.toString() + "&";
+        String quuid = IBEISIA.fromFancyUUID(rpair.optJSONObject("annot_uuid_1"));
         if (quuid == null) {
             getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
@@ -446,6 +452,19 @@ getOut = "(( " + url + " ))";
         return getOut;
     }
 
+    private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId) {
+        if ((rlist == null) || (rlist.length() < 1)) return null;
+        for (int i = 0 ; i < rlist.length() ; i++) {
+            JSONObject rp = rlist.optJSONObject(i);
+            if (rp == null) continue;
+            String a1 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_1"));
+            if (!annId.equals(a1)) continue;
+            String a2 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_2"));
+            if (IBEISIA.getIdentificationMatchingState(a1, a2) == null) return rp;
+        }
+        return null;
+    }
+
     private ArrayList<MediaAsset> mineNeedingDetectionReview(HttpServletRequest request, Shepherd myShepherd) {
         String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
         String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
@@ -480,6 +499,15 @@ getOut = "(( " + url + " ))";
         }    
         query.closeAll();
         return anns;
+    }
+
+    private void checkIdentificationIterationStatus(String annId) {
+        if (annId == null) return;
+/*
+        Shepherd myShepherd = new Shepherd("context0");
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
+///////TODO once more on the rodeo?
+*/
     }
 
 }
