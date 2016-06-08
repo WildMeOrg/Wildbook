@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
@@ -7,6 +8,7 @@ import java.util.Vector;
 import java.util.Arrays;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
+import org.ecocean.media.MediaAsset;
 import javax.servlet.http.HttpServletRequest;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
@@ -31,6 +33,7 @@ public class Occurrence implements java.io.Serializable{
    */
   private static final long serialVersionUID = -7545783883959073726L;
   private ArrayList<Encounter> encounters;
+  private List<MediaAsset> assets;
   private String occurrenceID;
   private Integer individualCount;
   private String groupBehavior;
@@ -55,10 +58,20 @@ public class Occurrence implements java.io.Serializable{
     this.occurrenceID=occurrenceID;
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
+    assets = new ArrayList<MediaAsset>();
 
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
-
   }
+
+  public Occurrence(List<MediaAsset> assets){
+    this.encounters = new ArrayList<Encounter>();
+    this.assets = assets;
+    this.occurrenceID = Util.generateUUID();
+
+
+    //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+  }
+
 
   public boolean addEncounter(Encounter enc){
     if(encounters==null){encounters=new ArrayList<Encounter>();}
@@ -81,6 +94,33 @@ public class Occurrence implements java.io.Serializable{
 
   public ArrayList<Encounter> getEncounters(){
     return encounters;
+  }
+
+  public boolean addAsset(MediaAsset ma){
+    if(assets==null){assets=new ArrayList<MediaAsset>();}
+
+    //prevent duplicate addition
+    boolean isNew=true;
+    for(int i=0;i<assets.size();i++) {
+      MediaAsset tempAss=(MediaAsset)assets.get(i);
+      if(tempAss.getId() == ma.getId()) {
+        isNew=false;
+      }
+    }
+
+    if(isNew){assets.add(ma);}
+
+    //if((locationID!=null) && (enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
+    return isNew;
+
+  }
+
+  public void setAssets(List<MediaAsset> assets) {
+    this.assets = assets;
+  }
+
+  public List<MediaAsset> getAssets(){
+    return assets;
   }
 
   public void removeEncounter(Encounter enc){
