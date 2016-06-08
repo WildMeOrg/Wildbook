@@ -22,6 +22,8 @@
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
 
+    <field name="occurrence"/>
+
 <!--
 		<field name="annotations" mapped-by="mediaAsset">
 			<collection element-type="org.ecocean.Annotation"/>
