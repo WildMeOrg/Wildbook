@@ -165,6 +165,25 @@ public class TranslateQuery extends HttpServlet {
           break;
       } // end switch(queryClass)
 
+
+      // now comb all occurrenceIDs from resultArray
+      JSONObject occurrences = new JSONObject();
+      for (int i=0;i<resultArray.length();i++) {
+        JSONObject maJson = resultArray.getJSONObject(i);
+        int id = maJson.getInt("id");
+        String occId = maJson.optString("occurrenceID");
+        if (occId==null || occId.equals("")) continue;
+        if (occurrences.optJSONArray(occId)==null) {
+          JSONArray newArr = new JSONArray();
+          newArr.put(id);
+          occurrences.put(occId, newArr);
+        } else {
+          occurrences.getJSONArray(occId).put(id);
+        }
+      }
+      resultMetadata.put("occurrences", occurrences);
+
+
       org.datanucleus.api.rest.orgjson.JSONObject fullResults = new org.datanucleus.api.rest.orgjson.JSONObject();
       fullResults.put("assets", resultArray);
       fullResults.put("metadata", resultMetadata);
