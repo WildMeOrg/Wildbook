@@ -28,6 +28,7 @@ public class Annotation implements java.io.Serializable {
     private String species;
     private String name;
     private boolean isExemplar = false;
+    protected String identificationStatus;
     private ArrayList<Feature> features;
 
 ////// these will go away after transition to Features
@@ -237,6 +238,13 @@ public class Annotation implements java.io.Serializable {
     }
     public void setIsExemplar(boolean b) {
         isExemplar = b;
+    }
+
+    public String getIdentificationStatus() {
+      return this.identificationStatus;
+    }
+    public void setIdentificationStatus(String status) {
+      this.identificationStatus = status;
     }
 
     public int[] getBbox() {

@@ -131,6 +131,28 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         }
 System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         getOut = _identificationHtmlFromResult(res, request, offset, null);
+
+    } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
+        if ((anns == null) || (anns.size() < 1)) {
+            getOut = "<div>no identifications needing review</div>";
+        } else {
+            Annotation ann = anns.get((int)(Math.random() * anns.size()));
+            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
+            JSONObject res = null;
+            for (IdentityServiceLog log : logs) {
+                if ((log.getStatusJson() == null) || !log.getStatusJson().optString("_action", "FAIL").equals("getJobResult")) continue;
+                res = log.getStatusJson().optJSONObject("_response");
+                if (res != null) break;
+            }
+            //this is to munge the format into that of getTaskResults() as above non-Next version
+            if ((res != null) && (res.optJSONObject("results") == null) && (res.optJSONObject("response") != null))
+                res.put("results", res.getJSONObject("response").optJSONObject("json_result"));
+    System.out.println("res(" + ann.toString() + ") -> " + res);
+            getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
+        }
     }
 
     PrintWriter out = response.getWriter();
@@ -358,7 +380,7 @@ System.out.println("url --> " + url);
         return getOut;
     }
 
-    private String _identificationHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String maUUID) throws IOException {
+    private String _identificationHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String annId) throws IOException {
         String getOut = "";
         if ((res == null) || (res.optJSONObject("results") == null) || (res.getJSONObject("results").optJSONObject("inference_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
@@ -369,6 +391,18 @@ System.out.println("url --> " + url);
         }
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
+        if ((offset < 0) && (annId != null)) {  //we want to review something related to Annotation, so lets find it
+            for (int i = 0 ; i < rlist.length() ; i++) {
+                if (annId.equals(IBEISIA.fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1")))) {
+                    offset = i;
+                    break;
+                }
+            }
+            if (offset < 0) {  //"should never happen"
+                System.out.println("WARNING: could not find review_pair for Annotation " + annId + "; falling back to offset=0");
+                offset = 0;
+            }
+        }
         if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
 
         String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
@@ -427,6 +461,25 @@ getOut = "(( " + url + " ))";
         }    
         query.closeAll();
         return mas;
+    }
+
+    private ArrayList<Annotation> mineNeedingIdentificationReview(HttpServletRequest request, Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
+/*
+        String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        if (username != null) {
+            filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
+        }
+*/
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            anns.add((Annotation)it.next());
+        }    
+        query.closeAll();
+        return anns;
     }
 
 }
