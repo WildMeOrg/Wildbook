@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Arrays;
@@ -56,7 +57,16 @@ public class OccurrenceClusterMASet extends HttpServlet {
 
       if (set!=null) {
         int n = 1;
-        String[] occIDs = Cluster.makeNOccurrences(1, set.getMediaAssets(), myShepherd);
+        //String[] occIDs = Cluster.makeNOccurrences(1, set.getMediaAssets(), myShepherd);
+        List<Occurrence> occurrences = Cluster.defaultCluster(set.getMediaAssets(), myShepherd);
+        String[] occIDs = new String[occurrences.size()];
+        for (int i=0;i<occurrences.size();i++) {
+          if (occurrences.get(i)!=null) {
+            occIDs[i] = occurrences.get(i).getOccurrenceID();
+            n++;
+          }
+        }
+
         out.println("Made "+n+" occurrences. IDs: "+Arrays.toString(occIDs));
       }
 

@@ -30,18 +30,22 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 
 public class Cluster {
 
-  public static String[] makeNOccurrences(int n, List<MediaAsset> assets, Shepherd myShepherd) {
-    ArrayList<String> occurrenceIDs = new ArrayList<String>();
+  public static List<Occurrence> makeNOccurrences(int n, List<MediaAsset> assets, Shepherd myShepherd) {
+    ArrayList<Occurrence> occurrences = new ArrayList<Occurrence>();
     double hop_size = assets.size() / (double) n;
     for (int i=0; i<n; i++) {
       int start_index = (int) Math.round(i*hop_size);
       int end_index = (int) Math.round((i+1)*hop_size);
       List<MediaAsset> subList = assets.subList(start_index, end_index);
-      Occurrence occ = new Occurrence(subList);
+      Occurrence occ = new Occurrence(subList, myShepherd);
       if (myShepherd!= null) myShepherd.storeNewOccurrence(occ);
-      occurrenceIDs.add(occ.getOccurrenceID());
+      occurrences.add(occ);
     }
-    return occurrenceIDs.toArray(new String[occurrenceIDs.size()]);
+    return occurrences;
+  }
+
+  public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) {
+    return makeNOccurrences(10, assets, myShepherd);
   }
 
 
