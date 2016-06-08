@@ -1,5 +1,6 @@
 package org.ecocean;
 
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Properties;
@@ -31,7 +32,7 @@ public class Occurrence implements java.io.Serializable{
    */
   private static final long serialVersionUID = -7545783883959073726L;
   private ArrayList<Encounter> encounters;
-  private ArrayList<MediaAsset> assets;
+  private List<MediaAsset> assets;
   private String occurrenceID;
   private Integer individualCount;
   private String groupBehavior;
@@ -61,7 +62,7 @@ public class Occurrence implements java.io.Serializable{
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
-  public Occurrence(ArrayList<MediaAsset> assets){
+  public Occurrence(List<MediaAsset> assets){
     this.encounters = new ArrayList<Encounter>();
     this.assets = assets;
     this.occurrenceID = Util.generateUUID();
@@ -113,11 +114,11 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
-  public void setAssets(ArrayList<MediaAsset> assets) {
+  public void setAssets(List<MediaAsset> assets) {
     this.assets = assets;
   }
 
-  public ArrayList<MediaAsset> getAssets(){
+  public List<MediaAsset> getAssets(){
     return assets;
   }
 
