@@ -36,6 +36,7 @@ public class Cluster {
     for (int i=0; i<n; i++) {
       int start_index = (int) Math.round(i*hop_size);
       int end_index = (int) Math.round((i+1)*hop_size);
+      if (end_index-start_index < 1) continue;
       List<MediaAsset> subList = assets.subList(start_index, end_index);
       Occurrence occ = new Occurrence(subList, myShepherd);
       if (myShepherd!= null) myShepherd.storeNewOccurrence(occ);
