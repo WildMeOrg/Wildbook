@@ -41,7 +41,7 @@ public class Cluster {
       if (myShepherd!= null) myShepherd.storeNewOccurrence(occ);
       occurrenceIDs.add(occ.getOccurrenceID());
     }
-    return (String[]) occurrenceIDs.toArray();
+    return occurrenceIDs.toArray(new String[occurrenceIDs.size()]);
   }
 
 
