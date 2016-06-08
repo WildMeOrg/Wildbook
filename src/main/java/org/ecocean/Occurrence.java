@@ -354,8 +354,5 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
-    public ArrayList<MediaAsset> getAssets() {
-        return null;
-    }
 
 }
