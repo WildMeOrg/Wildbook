@@ -18,6 +18,7 @@
 
 package org.ecocean.media;
 
+import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
@@ -77,6 +78,8 @@ public class MediaAsset implements java.io.Serializable {
     protected AssetStore store;
     protected String parametersAsString;
     protected JSONObject parameters;
+
+    protected Occurrence occurrence;
 
     protected Integer parentId;
 
@@ -183,6 +186,19 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setId(int i) {
         id = i;
+    }
+
+    public Occurrence getOccurrence() {
+      return this.occurrence;
+    }
+
+    public String getOccurrenceID() {
+      if (this.occurrence == null) return null;
+      return this.occurrence.getOccurrenceID();
+    }
+
+    public void setOccurrence(Occurrence occ) {
+      this.occurrence = occ;
     }
 
     public String getDetectionStatus() {
@@ -430,17 +446,39 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     /**
       like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
     */
-    public Double getLatitude() {
+    public Double getUserLatitude() {
         return this.userLatitude;
     }
+
+    public Double getLatitude() {
+
+        if (this.userLatitude != null) return this.userLatitude;
+        if (getMetadata() == null) return null;
+        String lat = getMetadata().getAttributes().optString("latitude", null);
+        if (lat != null) return Util.getDecimalCoordFromString(lat);
+        return null;
+
+    }
+
 
     public void setUserLatitude(Double lat) {
       this.userLatitude = lat;
     }
 
-    public Double getLongitude() {
+    public Double getUserLongitude() {
         return this.userLongitude;
     }
+
+    public Double getLongitude() {
+
+        if (this.userLongitude != null) return this.userLongitude;
+        if (getMetadata() == null) return null;
+        String lon = getMetadata().getAttributes().optString("longitude", null);
+        if (lon != null) return Util.getDecimalCoordFromString(lon);
+        return null;
+
+    }
+
 
     public void setUserLongitude(Double lon) {
       this.userLongitude = lon;
