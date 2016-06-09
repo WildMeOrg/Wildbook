@@ -768,6 +768,11 @@ function dataTypes(obj, fieldName) {
 
 %>
 
+<div class="row">
+    <div class="col-sm-6">
+    
+  
+
 <h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps %> <%=sharky.getIndividualID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  
@@ -1125,6 +1130,34 @@ $("a#deathdate").click(function() {
 
   }
 %>
+</div>
+
+    
+    
+<%
+  if (CommonConfiguration.allowAdoptions(context)) {
+%>
+<div class="col-sm-6">
+<div id="rightcol" style="vertical-align: top;">
+  <div id="menu" style="vertical-align: top;">
+
+
+    <div class="module">
+      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+        <jsp:param name="name" value="<%=name%>"/>
+      </jsp:include>
+    </div>
+
+
+  </div><!-- end menu -->
+  </div><!-- end rightcol -->
+</div>
+  <%
+   }
+%>
+
+</div>
+
 <table id="encounter_report" width="100%">
 <tr>
 
@@ -2472,27 +2505,6 @@ else {
 </tr>
 </table>
 
-<%
-  if (CommonConfiguration.allowAdoptions(context)) {
-%>
-
-<div id="rightcol" style="vertical-align: top;">
-  <div id="menu" style="vertical-align: top;">
-
-
-    <div class="module">
-      <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-        <jsp:param name="name" value="<%=name%>"/>
-      </jsp:include>
-    </div>
-
-
-  </div><!-- end menu -->
-  </div><!-- end rightcol -->
-
-  <%
-   }
-%>
 
 <br /><br />
 <table>
