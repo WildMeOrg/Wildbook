@@ -5,7 +5,9 @@ import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
+import org.ecocean.Occurrence;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
@@ -224,11 +226,29 @@ System.out.println("tlist.size()=" + tlist.size());
         return RestClient.get(url);
     }
 
+    //note: this passes directly to IA so can be problematic! (ia down? and more importantly: ia restarted so job # is diff and old job is gone!)
+    //  better(?) to use getJobResultLogged() below!
     public static JSONObject getJobResult(String jobID) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlGetJobResult", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlGetJobResult is not set");
         URL url = new URL(u + "?jobid=" + jobID);
         return RestClient.get(url);
+    }
+
+    public static JSONObject getJobResultLogged(String jobID, Shepherd myShepherd) {
+        String taskId = findTaskIDFromJobID(jobID, myShepherd);
+        if (taskId == null) {
+            System.out.println("getJobResultLogged(" + jobID + ") could not find taskId for this job");
+            return null;
+        }
+System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
+        //note: this is a little(!) in that it relies on the "raw" results living in "_debug" from getTaskResults so we can reconstruct it to be the output
+        //  that getJobResult() above gives.  :/
+        JSONObject tr = getTaskResults(taskId, myShepherd);
+        if ((tr == null) || (tr.optJSONObject("_debug") == null) || (tr.getJSONObject("_debug").optJSONObject("_response") == null)) return null;
+        if (tr.optJSONArray("_objectIds") != null)  //if we have this, lets bubble it up as part of this return
+            tr.getJSONObject("_debug").getJSONObject("_response").put("_objectIds", tr.getJSONArray("_objectIds"));
+        return tr.getJSONObject("_debug").getJSONObject("_response");
     }
 
 
@@ -324,12 +344,16 @@ System.out.println("tlist.size()=" + tlist.size());
     public static JSONObject getTaskResultsBasic(String taskID, Shepherd myShepherd) {
         JSONObject rtn = new JSONObject();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
-System.out.println("getTaskResultsBasic logs -->\n" + logs);
+///System.out.println("getTaskResultsBasic logs -->\n" + logs);
         if ((logs == null) || (logs.size() < 1)) {
             rtn.put("success", false);
             rtn.put("error", "could not find any log of task ID = " + taskID);
             return rtn;
         }
+
+        //since "we can", lets also get the object ids here....
+        String[] objIds = IdentityServiceLog.findObjectIDs(logs);
+//System.out.println("objIds -> " + objIds);
 
         //we have to walk through (newest to oldest) and find the (first) one with _action == 'getJobResult' ... but we should also stop on getJobStatus
         // if we see that first -- it means we sent a job and are awaiting results.
@@ -386,6 +410,9 @@ System.out.println("getTaskResultsBasic logs -->\n" + logs);
                 rtn.put("details", last.get("_response"));
                 rtn.put("success", false);
             }
+
+//System.out.println("objIds ??? " + objIds);
+            if ((objIds != null) && (objIds.length > 0)) rtn.put("_objectIds", new JSONArray(Arrays.asList(objIds)));
             return rtn;
         }
 
@@ -647,12 +674,12 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     }
 
 
-    //this finds the taskID associated with this IBEIS-IA jobID
+    //this finds the *most recent* taskID associated with this IBEIS-IA jobID
     public static String findTaskIDFromJobID(String jobID, Shepherd myShepherd) {
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
         if (logs == null) return null;
-        for (IdentityServiceLog l : logs) {
-            if (l.getTaskID() != null) return l.getTaskID();  //get first one we find. too bad!
+        for (int i = logs.size() - 1 ; i >= 0 ; i--) {
+            if (logs.get(i).getTaskID() != null) return logs.get(i).getTaskID();  //get first one we find. too bad!
         }
         return null;
     }
