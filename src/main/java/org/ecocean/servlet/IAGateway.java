@@ -27,6 +27,7 @@ import org.ecocean.Util;
 import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
+import org.ecocean.Cluster;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -239,6 +240,7 @@ System.out.println("attempting passthru to " + url);
 
     if (j.optJSONArray("detect") != null) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
         JSONArray ids = j.getJSONArray("detect");
         ArrayList<String> validIds = new ArrayList<String>();
         for (int i = 0 ; i < ids.length() ; i++) {
@@ -250,9 +252,15 @@ System.out.println(id);
                 ma.setDetectionStatus("processing");
                 mas.add(ma);
                 validIds.add(Integer.toString(id));
+                if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
         }
         if (mas.size() > 0) {
+            if (needOccurrences.size() > 0) {  //first we make occurrences where needed
+                List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
+                res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
+            }
+
             boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -303,13 +311,16 @@ System.out.println(id);
                 String oid = olist.optString(i, null);
                 if (oid == null) continue;
                 Occurrence occ = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
+//System.out.println("occ -> " + occ);
                 if (occ == null) continue;
                 List<MediaAsset> mas = occ.getAssets();
+//System.out.println("mas -> " + mas);
                 if ((mas == null) || (mas.size() < 1)) continue;
                 for (MediaAsset ma : mas) {
                     ArrayList<Annotation> maAnns = ma.getAnnotations();
+//System.out.println("maAnns -> " + maAnns);
                     if ((maAnns == null) || (maAnns.size() < 1)) continue;
-                    for (Annotation ann : anns) {
+                    for (Annotation ann : maAnns) {
                         if (validIds.contains(ann.getId())) continue;
                         anns.add(ann);
                         validIds.add(ann.getId());
@@ -317,6 +328,7 @@ System.out.println(id);
                 }
             }
         }
+System.out.println("anns -> " + anns);
 
         JSONArray taskList = new JSONArray();
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
@@ -335,7 +347,7 @@ System.out.println(id);
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
                 //TODO we might want to cache this examplars list (per species) yes?
                 ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
-                if (limitTargetSize > -1) {
+                if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
                     res.put("_limitTargetSize", limitTargetSize);
                     System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
                     exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
