@@ -795,7 +795,7 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
     public static String[] convertSpecies(String iaClassLabel) {
         if (iaClassLabel == null) return null;
         if (speciesMap.containsKey(iaClassLabel)) return speciesMap.get(iaClassLabel);
-        return iaClassLabel.split("_");
+        return iaClassLabel.split("_| ");
     }
 
     public static String getTaskType(ArrayList<IdentityServiceLog> logs) {
@@ -892,8 +892,20 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
                         }
                         Annotation ann = convertAnnotation(asset, jann);
                         if (ann == null) continue;
+                        Encounter enc = new Encounter(ann);
+                        String[] sp = convertSpecies(ann.getSpecies());
+                        if (sp.length > 0) enc.setGenus(sp[0]);
+                        if (sp.length > 1) enc.setSpecificEpithet(sp[1]);
+//TODO other fields on encounter!!  (esp. dates etc)
+                        Occurrence occ = asset.getOccurrence();
+                        if (occ != null) {
+                            enc.setOccurrenceID(occ.getOccurrenceID());
+                            occ.addEncounter(enc);
+                        }
                         myShepherd.getPM().makePersistent(ann);
-System.out.println("* CREATED " + ann);
+                        myShepherd.getPM().makePersistent(enc);
+                        if (occ != null) myShepherd.getPM().makePersistent(occ);
+System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber());
                         newAnns.put(ann.getId());
                         numCreated++;
                     }
