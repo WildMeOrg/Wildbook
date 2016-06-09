@@ -7,6 +7,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONObject;
@@ -243,6 +244,8 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
         //  that getJobResult() above gives.  :/
         JSONObject tr = getTaskResults(taskId, myShepherd);
         if ((tr == null) || (tr.optJSONObject("_debug") == null) || (tr.getJSONObject("_debug").optJSONObject("_response") == null)) return null;
+        if (tr.optJSONArray("_objectIds") != null)  //if we have this, lets bubble it up as part of this return
+            tr.getJSONObject("_debug").getJSONObject("_response").put("_objectIds", tr.getJSONArray("_objectIds"));
         return tr.getJSONObject("_debug").getJSONObject("_response");
     }
 
@@ -346,6 +349,10 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
             return rtn;
         }
 
+        //since "we can", lets also get the object ids here....
+        String[] objIds = IdentityServiceLog.findObjectIDs(logs);
+//System.out.println("objIds -> " + objIds);
+
         //we have to walk through (newest to oldest) and find the (first) one with _action == 'getJobResult' ... but we should also stop on getJobStatus
         // if we see that first -- it means we sent a job and are awaiting results.
         JSONObject last = logs.get(logs.size() - 1).getStatusJson();  //just start with something (most recent at all)
@@ -401,6 +408,9 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
                 rtn.put("details", last.get("_response"));
                 rtn.put("success", false);
             }
+
+//System.out.println("objIds ??? " + objIds);
+            if ((objIds != null) && (objIds.length > 0)) rtn.put("_objectIds", new JSONArray(Arrays.asList(objIds)));
             return rtn;
         }
 

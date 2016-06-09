@@ -53,6 +53,7 @@ import java.util.Iterator;
 import javax.jdo.Query;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
 
@@ -79,8 +80,10 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = res.toString();
 
-    } else if (request.getParameter("getDetectReviewHtml") != null) {
-        String jobID = request.getParameter("getDetectReviewHtml");
+    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
             try {
@@ -89,7 +92,7 @@ public class IAGateway extends HttpServlet {
         }
         JSONObject res = null;
         try {
-            res = IBEISIA.getJobResult(jobID);
+            res = IBEISIA.getJobResultLogged(jobID, myShepherd);
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
@@ -111,6 +114,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
                 res = log.getStatusJson().optJSONObject("_response");
                 if (res != null) break;
             }
+            if (res != null) res.put("_mediaAssetId", ma.getId());
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
         }
@@ -415,6 +419,20 @@ System.out.println("anns -> " + anns);
             }
             if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
             if (offset > ilist.length() - 1) offset = 0;
+
+            int mediaAssetId = res.optInt("_mediaAssetId", -1);
+            if ((mediaAssetId < 0) && (res.optJSONArray("_objectIds") != null)) {
+                JSONArray jobj = res.getJSONArray("_objectIds");
+                for (int i = 0 ; i < jobj.length() ; i++) {
+                    int mid = jobj.optInt(i, -1);
+                    if (mid < 0) continue;
+                    if (IBEISIA.fromFancyUUID(ilist.getJSONObject(offset)).equals(mediaAssetIdToUUID(mid))) {
+                        mediaAssetId = mid;
+                        break;
+                    }
+                }
+            }
+            
             String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
             if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
             url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
@@ -436,6 +454,8 @@ System.out.println("url --> " + url);
             } catch (Exception ex) {
                 getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
             }
+
+            if (mediaAssetId >= 0) getOut += "<input type=\"hidden\" name=\"mediaasset-id\" value=\"" + mediaAssetId + "\" />";
         }
         return getOut;
     }
@@ -559,6 +579,21 @@ getOut = "(( " + url + " ))";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
 ///////TODO once more on the rodeo?
 */
+    }
+
+
+    //yeah maybe this should be merged into MediaAsset duh
+    private String mediaAssetIdToUUID(int id) {
+        byte b1 = (byte)77;
+        byte b2 = (byte)97;
+        byte[] b = new byte[6];
+        b[0] = b1;
+        b[1] = b2;
+        b[2] = (byte) (id >> 24);
+        b[3] = (byte) (id >> 16);
+        b[4] = (byte) (id >> 8);
+        b[5] = (byte) (id >> 0);
+        return UUID.nameUUIDFromBytes(b).toString();
     }
 
 }
