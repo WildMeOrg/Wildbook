@@ -22,6 +22,7 @@ package org.ecocean;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -267,6 +268,15 @@ public class Encounter implements java.io.Serializable {
 
     resetDateInMilliseconds();
   }
+
+
+    public Encounter(Annotation ann) {
+        this(new ArrayList<Annotation>(Arrays.asList(ann)));
+    }
+    public Encounter(ArrayList<Annotation> anns) {
+        this.catalogNumber = Util.generateUUID();
+        this.annotations = anns;
+    }
 
 
   /**
