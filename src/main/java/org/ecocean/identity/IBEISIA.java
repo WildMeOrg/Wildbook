@@ -20,6 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
+import javax.servlet.http.HttpServletRequest;
 
 
 public class IBEISIA {
@@ -38,6 +39,7 @@ public class IBEISIA {
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
     private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
+    private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
@@ -1161,6 +1163,22 @@ System.out.println("# # # # # updateIdentificationMatchingState(" + pairKey + ")
     public static String identificationPairKey(String ann1Id, String ann2Id) {
         if ((ann1Id == null) || (ann2Id == null)) return null;
         return ann1Id + "\t" + ann2Id;
+    }
+
+    public static String getActiveTaskId(HttpServletRequest request) {
+        if (request.getUserPrincipal() == null) return null;
+        String uname = request.getUserPrincipal().getName();
+        return identificationUserActiveTaskId.get(uname);
+    }
+
+    public static void setActiveTaskId(HttpServletRequest request, String taskId) {
+        if (request.getUserPrincipal() == null) return;
+        String uname = request.getUserPrincipal().getName();
+        if (taskId == null) {
+            identificationUserActiveTaskId.remove(uname);
+        } else {
+            identificationUserActiveTaskId.put(uname, taskId);
+        }
     }
 
 }

@@ -133,9 +133,42 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
             throw new IOException(ex.toString());
         }
 System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
+        IBEISIA.setActiveTaskId(request, taskId);
         getOut = _identificationHtmlFromResult(res, request, offset, null);
 
     } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskId = IBEISIA.getActiveTaskId(request);
+        if (taskId == null) {
+            ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
+            if ((anns != null) && (anns.size() > 1)) {
+                Annotation ann = anns.get((int)(Math.random() * anns.size()));
+System.out.println("INFO: could not find activeTaskId, so finding taskId for " + ann);
+                ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
+                for (IdentityServiceLog l : logs) {
+                    if (l.getTaskID() != null) {
+                        taskId = l.getTaskID();
+                        break;
+                    }
+                }
+            }
+        }
+        if (taskId == null) {
+            getOut = "<div class=\"no-identification-reviews\">no identifications needing review</div>";
+        } else {
+            JSONObject res = null;
+            try {
+                res = IBEISIA.getTaskResults(taskId, myShepherd);
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
+            IBEISIA.setActiveTaskId(request, taskId);
+            getOut = _identificationHtmlFromResult(res, request, offset, null);
+        }
+/*
+    } else if (request.getParameter("getIdentificationReviewHtmlNextOLD") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
@@ -156,6 +189,7 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
     System.out.println("res(" + ann.toString() + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
+*/
     }
 
     PrintWriter out = response.getWriter();
