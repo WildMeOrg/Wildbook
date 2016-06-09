@@ -144,9 +144,11 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         String taskId = IBEISIA.getActiveTaskId(request);
+System.out.println("getIdentificationReviewHtmlNext -> taskId = " + taskId);
         if (taskId == null) {
             ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
-            if ((anns != null) && (anns.size() > 1)) {
+System.out.println("anns -> " + anns);
+            if ((anns != null) && (anns.size() > 0)) {
                 Annotation ann = anns.get((int)(Math.random() * anns.size()));
 System.out.println("INFO: could not find activeTaskId, so finding taskId for " + ann);
                 ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
@@ -167,9 +169,9 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
             } catch (Exception ex) {
                 throw new IOException(ex.toString());
             }
-System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
-            IBEISIA.setActiveTaskId(request, taskId);
-            getOut = _identificationHtmlFromResult(res, request, offset, null);
+System.out.println("Next: res(" + taskId + ") -> " + res);
+        IBEISIA.setActiveTaskId(request, taskId);
+        getOut = _identificationHtmlFromResult(res, request, -1, null);
         }
 /*
     } else if (request.getParameter("getIdentificationReviewHtmlNextOLD") != null) {
@@ -510,6 +512,7 @@ System.out.println("url --> " + url);
             rpair = rlist.optJSONObject(offset);
         } else {
             rpair = getAvailableIdentificationReviewPair(rlist, annId);
+System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + rpair);
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
@@ -557,13 +560,14 @@ getOut = "(( " + url + " ))";
         return getOut;
     }
 
+    //note: if we pass annId==null then we dont really care *which* pair we get, we just want one that is available for review (regardless of qannot)
     private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId) {
         if ((rlist == null) || (rlist.length() < 1)) return null;
         for (int i = 0 ; i < rlist.length() ; i++) {
             JSONObject rp = rlist.optJSONObject(i);
             if (rp == null) continue;
             String a1 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_1"));
-            if (!annId.equals(a1)) continue;
+            if ((annId != null) && !annId.equals(a1)) continue;
             String a2 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_2"));
             if (IBEISIA.getIdentificationMatchingState(a1, a2) == null) return rp;
         }
