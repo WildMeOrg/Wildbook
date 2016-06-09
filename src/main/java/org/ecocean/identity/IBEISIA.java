@@ -1193,19 +1193,24 @@ System.out.println("# # # # # updateIdentificationMatchingState(" + pairKey + ")
     }
 
     public static String getActiveTaskId(HttpServletRequest request) {
-        if (request.getUserPrincipal() == null) return null;
-        String uname = request.getUserPrincipal().getName();
+        String uname = userKey(request);
+        if (uname == null) return null;
         return identificationUserActiveTaskId.get(uname);
     }
 
     public static void setActiveTaskId(HttpServletRequest request, String taskId) {
-        if (request.getUserPrincipal() == null) return;
-        String uname = request.getUserPrincipal().getName();
+        String uname = userKey(request);
+        if (uname == null) return;
         if (taskId == null) {
             identificationUserActiveTaskId.remove(uname);
         } else {
             identificationUserActiveTaskId.put(uname, taskId);
         }
+    }
+    private static String userKey(HttpServletRequest request) {
+        //if (request.getUserPrincipal() == null) return null;
+        if (request.getUserPrincipal() == null) return "__ANONYMOUS__";
+        return request.getUserPrincipal().getName();
     }
 
 }
