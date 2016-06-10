@@ -377,7 +377,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
 
   }
 
-  public static List<Occurrence> runJonsClusterer(List<MediaAsset> assets, Shepherd myShepherd) {
+  public static List<Occurrence> runJonsClusterer(List<MediaAsset> assets, Shepherd myShepherd) throws IOException {
     List<List<MediaAsset>> groupedAssets = groupAssetsByValidity(assets);
     List<MediaAsset> validAssets = groupedAssets.get(0);
     List<MediaAsset> invalidAssets = groupedAssets.get(1);
@@ -388,12 +388,12 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
 
     List<List<MediaAsset>> occurrenceGroups = groupAssetsByJonsOutput(validAssets, occNums);
 
-    List<Occurrence> occurrences = putAssetsInOccs(occurrenceGroups);
+    List<Occurrence> occurrences = putAssetsInOccs(occurrenceGroups, myShepherd);
 
     // final occurrence contains all invalid (ie no timeplace) MediaAssets
     if (invalidAssets.size()>0) {
       Occurrence leftovers = new Occurrence(invalidAssets, myShepherd);
-      occurrences.put(leftovers);
+      occurrences.add(leftovers);
       myShepherd.storeNewOccurrence(leftovers);
     }
 
