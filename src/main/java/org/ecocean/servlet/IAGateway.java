@@ -204,6 +204,10 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
 */
+
+    } else {
+        response.sendError(501, "Unknown command");
+        getOut = "Unknown command";
     }
 
     PrintWriter out = response.getWriter();
