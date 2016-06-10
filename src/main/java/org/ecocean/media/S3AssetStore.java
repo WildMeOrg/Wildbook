@@ -247,6 +247,15 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
     }
 
     @Override
+    public String getFilename(MediaAsset ma) {
+        JSONObject params = ma.getParameters();
+        if (params == null) return null;
+        Object kp = getParameter(params, "key");
+        if (kp == null) return null;
+        return kp.toString();
+    }
+
+    @Override
     public String hashCode(JSONObject params) {
         if (params == null) return null;
         Object bp = getParameter(params, "bucket");
