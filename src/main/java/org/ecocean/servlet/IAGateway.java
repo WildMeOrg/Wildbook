@@ -98,12 +98,14 @@ public class IAGateway extends HttpServlet {
         }
 System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         getOut = _detectionHtmlFromResult(res, request, offset, null);
+        setErrorCode(response, getOut);
 
     } else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
+            response.sendError(204, "No detection reviews pending");
             getOut = "<div>no detections needing review</div>";
         } else {
             MediaAsset ma = mas.get((int)(Math.random() * mas.size()));
@@ -117,6 +119,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
             if (res != null) res.put("_mediaAssetId", ma.getId());
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
+            setErrorCode(response, getOut);
         }
 
     //ugh, lets standardize on passing taskId, not jobid cuz jobid sucks
@@ -139,6 +142,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
 System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         IBEISIA.setActiveTaskId(request, taskId);
         getOut = _identificationHtmlFromResult(res, request, offset, null);
+        setErrorCode(response, getOut);
 
     } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
@@ -161,6 +165,7 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
             }
         }
         if (taskId == null) {
+            response.sendError(204, "No identificatoin reviews pending");
             getOut = "<div class=\"no-identification-reviews\">no identifications needing review</div>";
         } else {
             JSONObject res = null;
@@ -170,8 +175,9 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
                 throw new IOException(ex.toString());
             }
 System.out.println("Next: res(" + taskId + ") -> " + res);
-        IBEISIA.setActiveTaskId(request, taskId);
-        getOut = _identificationHtmlFromResult(res, request, -1, null);
+            IBEISIA.setActiveTaskId(request, taskId);
+            getOut = _identificationHtmlFromResult(res, request, -1, null);
+            setErrorCode(response, getOut);
         }
 /*
     } else if (request.getParameter("getIdentificationReviewHtmlNextOLD") != null) {
@@ -435,7 +441,7 @@ System.out.println("anns -> " + anns);
     private String _detectionHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String maUUID) throws IOException {
         String getOut = "";
         if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
-            getOut = "<div class=\"response-error\">unable to obtain detection interface</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain detection interface</div>";
             System.out.println("ERROR: invalid res for _detectionHtmlFromResult: " + res);
         } else {
             JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
@@ -450,7 +456,7 @@ System.out.println("anns -> " + anns);
                 }
                 if (offset < 0) {
                     System.out.println("ERROR: could not find uuid " + maUUID + " in res: " + res.toString());
-                    return "<div class=\"response-error\">unable to find MediaAsset for detection</div>";
+                    return "<div error-code=\"500\" class=\"response-error\">unable to find MediaAsset for detection</div>";
                 }
             }
             if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
@@ -480,7 +486,7 @@ System.out.println("url --> " + url);
                 JSONObject rtn = RestClient.get(u);
                 if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                     !rtn.getJSONObject("status").optBoolean("success", false)) {
-                    getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                    getOut = "<div error-code=\"500\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
                 } else {
                     getOut = rtn.getString("response");
                     if (request.getParameter("test") != null) {
@@ -488,7 +494,7 @@ System.out.println("url --> " + url);
                     }
                 }
             } catch (Exception ex) {
-                getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
+                getOut = "<div error-code=\"500\" class=\"response-error\">Error: " + ex.toString() + "</div>";
             }
 
             if (mediaAssetId >= 0) getOut += "<input type=\"hidden\" name=\"mediaasset-id\" value=\"" + mediaAssetId + "\" />";
@@ -502,7 +508,7 @@ System.out.println("url --> " + url);
             (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list") == null)) {
                 System.out.println("ERROR: invalid res for _identificationHtmlFromResult: " + res);
-                return "<div class=\"response-error\">unable to obtain identification interface</div>";
+                return "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
         }
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
@@ -516,7 +522,7 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
-            return "<div class=\"response-error\">unable to obtain identification interface</div>";
+            return "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
         }
 
         String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
@@ -525,12 +531,12 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         url += "review_pair=" + rpair.toString() + "&";
         String quuid = IBEISIA.fromFancyUUID(rpair.optJSONObject("annot_uuid_1"));
         if (quuid == null) {
-            getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
             return getOut;
         }
         if ((res.getJSONObject("results").optJSONObject("cm_dict") == null) || (res.getJSONObject("results").getJSONObject("cm_dict").optJSONObject(quuid) == null)) {
-            getOut = "<div class=\"response-error\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine cm_dict for quuid=" + quuid + " for _identificationHtmlFromResult: " + res);
             return getOut;
         }
@@ -546,7 +552,7 @@ getOut = "(( " + url + " ))";
             JSONObject rtn = RestClient.get(u);
             if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                 !rtn.getJSONObject("status").optBoolean("success", false)) {
-                getOut = "<div class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                getOut = "<div error-code=\"500\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
             } else {
                 getOut = rtn.getString("response");
                 if (request.getParameter("test") != null) {
@@ -554,7 +560,7 @@ getOut = "(( " + url + " ))";
                 }
             }
         } catch (Exception ex) {
-            getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\">Error: " + ex.toString() + "</div>";
         }
 
         return getOut;
@@ -632,6 +638,30 @@ getOut = "(( " + url + " ))";
         b[4] = (byte) (id >> 8);
         b[5] = (byte) (id >> 0);
         return UUID.nameUUIDFromBytes(b).toString();
+    }
+
+    //parse whether the html returned means we need to adjust the http header return code
+    private void setErrorCode(HttpServletResponse response, String html) throws IOException {
+        if (html == null) return;
+        int code = 500;
+        int a = html.indexOf("error-code=");
+        int b = html.indexOf("class=\"response-error");
+        if ((a < 0) && (b < 0)) return;  //must have at least one
+        if (a > -1) {
+            try {
+                code = Integer.parseInt(html.substring(18,21));
+            } catch (NumberFormatException ex) {}
+        }
+        String msg = "unknown error";
+        int m = html.indexOf(">");
+        if (m > -1) {
+            msg = html.substring(m + 1);
+            m = msg.indexOf("<");
+            if (m > -1) {
+                msg = msg.substring(0, m);
+            }
+        }
+        response.sendError(code, msg);
     }
 
 }
