@@ -170,10 +170,31 @@ System.out.println("dateAttribute -> " + dateAttribute);
                                     }
                                     break;
                                 case "habitat":
-                                    //occ.setHabitat(getValueString(ael));
+                                    occ.setHabitat(getValueString(ael));
                                     break;
                                 case "bearing":
-                                    //getValueDouble(ael)
+                                    occ.setBearing(getValueDouble(ael));
+                                    break;
+                                case "groupsize":
+                                    occ.setGroupSize(getValueDoubleAsInt(ael));
+                                    break;
+                                case "noofbm":
+                                    occ.setNumBachMales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "nooftm":
+                                    occ.setNumTerMales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "distancem":
+                                    occ.setDistance(getValueDouble(ael));
+                                    break;
+                                case "noofnlf":
+                                    occ.setNumNonLactFemales(getValueDoubleAsInt(ael));
+                                    break;
+                                case "nooflf":
+                                    occ.setNumLactFemales(getValueDoublegetValueDoubleAsInt(ael));
+                                    break;
+                                case "numberof612monthsfemales":
+                                    //
                                     break;
                             }
 
@@ -244,6 +265,13 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
             return null;
         }
     }
+
+    private static Integer getValueDoubleAsInt(Element el) {
+        Double doubleVal = getValueDouble(el);
+        if (doubleVale == null) return null;
+        return ((Integer) doubleVal.intValue());
+    }
+
     private static String getValueString(Element el) {
         return getValue(el, "itemKey");
     }
