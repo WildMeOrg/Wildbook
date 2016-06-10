@@ -15,6 +15,8 @@ import java.io.IOException;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.Comparator;
 
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
@@ -74,6 +76,7 @@ public class Cluster {
 
 
         List<MediaAsset> sortedAssets = sortAssets(assets);
+//for (MediaAsset ma : sortedAssets) { System.out.println(ma.getFilename()); }
         List<Occurrence> occs = new ArrayList<Occurrence>();
         //we need to build the list of photoOffsets as we go thru xml, then dish out assets at the very end accordingly
         List<Integer> photoOffsets = new ArrayList<Integer>();
@@ -252,8 +255,16 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         return list.item(0).getTextContent();
     }
 
-    private static List<MediaAsset> sortAssets(List<MediaAsset> assets) {
-        //TODO do.   asset.getFilename()
+    private static List<MediaAsset> sortAssets(final List<MediaAsset> assets) {
+        Collections.sort(assets, new Comparator<MediaAsset>() {
+            public int compare(MediaAsset m1, MediaAsset m2) {
+                if ((m1 == null) || (m2 == null)) return 0;
+                String n1 = m1.getFilename();
+                String n2 = m2.getFilename();
+                if ((n1 == null) || (n2 == null)) return 0;
+                return n1.compareTo(n2);
+            }
+        });
         return assets;
     }
 
