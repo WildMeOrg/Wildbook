@@ -57,6 +57,8 @@ import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
 
+    private static final int ERROR_CODE_NO_REVIEWS = 410;
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -105,7 +107,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
-            response.sendError(204, "No detection reviews pending");
+            response.sendError(ERROR_CODE_NO_REVIEWS, "No detection reviews pending");
             getOut = "<div>no detections needing review</div>";
         } else {
             MediaAsset ma = mas.get((int)(Math.random() * mas.size()));
@@ -165,7 +167,7 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
             }
         }
         if (taskId == null) {
-            response.sendError(204, "No identificatoin reviews pending");
+            response.sendError(ERROR_CODE_NO_REVIEWS, "No identification reviews pending");
             getOut = "<div class=\"no-identification-reviews\">no identifications needing review</div>";
         } else {
             JSONObject res = null;
