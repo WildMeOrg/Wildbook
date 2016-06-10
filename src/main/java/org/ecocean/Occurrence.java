@@ -10,6 +10,7 @@ import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONException;
@@ -72,7 +73,6 @@ public class Occurrence implements java.io.Serializable{
       ma.setOccurrence(this);
       myShepherd.getPM().makePersistent(ma);
     }
-
 
 
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
@@ -155,6 +155,10 @@ public class Occurrence implements java.io.Serializable{
     catch(Exception e){e.printStackTrace();}
     return names;
   }
+
+    public void setOccurrenceID(String id) {
+        occurrenceID = id;
+    }
 
   public String getOccurrenceID(){return occurrenceID;}
 
@@ -377,5 +381,13 @@ public class Occurrence implements java.io.Serializable{
     return jobj;
 
   }
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", occurrenceID)
+                .toString();
+    }
+
 
 }
