@@ -331,6 +331,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
     }
 
+    //this is store-specific, and null should be interpreted to mean "i guess i dont really have one"
+    // in some cases, this might be some sort of unique-ish identifier (e.g. youtube id), so ymmv
+    public String getFilename() {
+        if (store == null) return null;
+        return store.getFilename(this);
+    }
+
     public ArrayList<String> getLabels() {
         return labels;
     }

@@ -27,6 +27,7 @@ import org.ecocean.Util;
 import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
+import org.ecocean.Cluster;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -52,6 +53,7 @@ import java.util.Iterator;
 import javax.jdo.Query;
 
 import java.io.InputStream;
+import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
 
@@ -78,8 +80,10 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = res.toString();
 
-    } else if (request.getParameter("getDetectReviewHtml") != null) {
-        String jobID = request.getParameter("getDetectReviewHtml");
+    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
             try {
@@ -88,7 +92,7 @@ public class IAGateway extends HttpServlet {
         }
         JSONObject res = null;
         try {
-            res = IBEISIA.getJobResult(jobID);
+            res = IBEISIA.getJobResultLogged(jobID, myShepherd);
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
@@ -110,6 +114,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
                 res = log.getStatusJson().optJSONObject("_response");
                 if (res != null) break;
             }
+            if (res != null) res.put("_mediaAssetId", ma.getId());
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
         }
@@ -132,9 +137,44 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
             throw new IOException(ex.toString());
         }
 System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
+        IBEISIA.setActiveTaskId(request, taskId);
         getOut = _identificationHtmlFromResult(res, request, offset, null);
 
     } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String taskId = IBEISIA.getActiveTaskId(request);
+System.out.println("getIdentificationReviewHtmlNext -> taskId = " + taskId);
+        if (taskId == null) {
+            ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
+System.out.println("anns -> " + anns);
+            if ((anns != null) && (anns.size() > 0)) {
+                Annotation ann = anns.get((int)(Math.random() * anns.size()));
+System.out.println("INFO: could not find activeTaskId, so finding taskId for " + ann);
+                ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", ann.getId(), myShepherd);
+                for (IdentityServiceLog l : logs) {
+                    if (l.getTaskID() != null) {
+                        taskId = l.getTaskID();
+                        break;
+                    }
+                }
+            }
+        }
+        if (taskId == null) {
+            getOut = "<div class=\"no-identification-reviews\">no identifications needing review</div>";
+        } else {
+            JSONObject res = null;
+            try {
+                res = IBEISIA.getTaskResults(taskId, myShepherd);
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+System.out.println("Next: res(" + taskId + ") -> " + res);
+        IBEISIA.setActiveTaskId(request, taskId);
+        getOut = _identificationHtmlFromResult(res, request, -1, null);
+        }
+/*
+    } else if (request.getParameter("getIdentificationReviewHtmlNextOLD") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<Annotation> anns = mineNeedingIdentificationReview(request, myShepherd);
@@ -155,6 +195,7 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
     System.out.println("res(" + ann.toString() + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
+*/
     }
 
     PrintWriter out = response.getWriter();
@@ -239,6 +280,7 @@ System.out.println("attempting passthru to " + url);
 
     if (j.optJSONArray("detect") != null) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
         JSONArray ids = j.getJSONArray("detect");
         ArrayList<String> validIds = new ArrayList<String>();
         for (int i = 0 ; i < ids.length() ; i++) {
@@ -250,9 +292,15 @@ System.out.println(id);
                 ma.setDetectionStatus("processing");
                 mas.add(ma);
                 validIds.add(Integer.toString(id));
+                if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
         }
         if (mas.size() > 0) {
+            if (needOccurrences.size() > 0) {  //first we make occurrences where needed
+                List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
+                res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
+            }
+
             boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -303,13 +351,16 @@ System.out.println(id);
                 String oid = olist.optString(i, null);
                 if (oid == null) continue;
                 Occurrence occ = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
+//System.out.println("occ -> " + occ);
                 if (occ == null) continue;
                 List<MediaAsset> mas = occ.getAssets();
+//System.out.println("mas -> " + mas);
                 if ((mas == null) || (mas.size() < 1)) continue;
                 for (MediaAsset ma : mas) {
                     ArrayList<Annotation> maAnns = ma.getAnnotations();
+//System.out.println("maAnns -> " + maAnns);
                     if ((maAnns == null) || (maAnns.size() < 1)) continue;
-                    for (Annotation ann : anns) {
+                    for (Annotation ann : maAnns) {
                         if (validIds.contains(ann.getId())) continue;
                         anns.add(ann);
                         validIds.add(ann.getId());
@@ -317,6 +368,7 @@ System.out.println(id);
                 }
             }
         }
+System.out.println("anns -> " + anns);
 
         JSONArray taskList = new JSONArray();
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
@@ -335,7 +387,7 @@ System.out.println(id);
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
                 //TODO we might want to cache this examplars list (per species) yes?
                 ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
-                if (limitTargetSize > -1) {
+                if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
                     res.put("_limitTargetSize", limitTargetSize);
                     System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
                     exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
@@ -403,6 +455,20 @@ System.out.println(id);
             }
             if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
             if (offset > ilist.length() - 1) offset = 0;
+
+            int mediaAssetId = res.optInt("_mediaAssetId", -1);
+            if ((mediaAssetId < 0) && (res.optJSONArray("_objectIds") != null)) {
+                JSONArray jobj = res.getJSONArray("_objectIds");
+                for (int i = 0 ; i < jobj.length() ; i++) {
+                    int mid = jobj.optInt(i, -1);
+                    if (mid < 0) continue;
+                    if (IBEISIA.fromFancyUUID(ilist.getJSONObject(offset)).equals(mediaAssetIdToUUID(mid))) {
+                        mediaAssetId = mid;
+                        break;
+                    }
+                }
+            }
+            
             String url = CommonConfiguration.getProperty("IBEISIARestUrlDetectReview", "context0");
             if (url == null) throw new IOException("IBEISIARestUrlDetectionReview url not set");
             url += "?image_uuid=" + ilist.getJSONObject(offset).toString() + "&";
@@ -424,6 +490,8 @@ System.out.println("url --> " + url);
             } catch (Exception ex) {
                 getOut = "<div class=\"response-error\">Error: " + ex.toString() + "</div>";
             }
+
+            if (mediaAssetId >= 0) getOut += "<input type=\"hidden\" name=\"mediaasset-id\" value=\"" + mediaAssetId + "\" />";
         }
         return getOut;
     }
@@ -444,6 +512,7 @@ System.out.println("url --> " + url);
             rpair = rlist.optJSONObject(offset);
         } else {
             rpair = getAvailableIdentificationReviewPair(rlist, annId);
+System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + rpair);
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
@@ -491,13 +560,14 @@ getOut = "(( " + url + " ))";
         return getOut;
     }
 
+    //note: if we pass annId==null then we dont really care *which* pair we get, we just want one that is available for review (regardless of qannot)
     private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId) {
         if ((rlist == null) || (rlist.length() < 1)) return null;
         for (int i = 0 ; i < rlist.length() ; i++) {
             JSONObject rp = rlist.optJSONObject(i);
             if (rp == null) continue;
             String a1 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_1"));
-            if (!annId.equals(a1)) continue;
+            if ((annId != null) && !annId.equals(a1)) continue;
             String a2 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_2"));
             if (IBEISIA.getIdentificationMatchingState(a1, a2) == null) return rp;
         }
@@ -547,6 +617,21 @@ getOut = "(( " + url + " ))";
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
 ///////TODO once more on the rodeo?
 */
+    }
+
+
+    //yeah maybe this should be merged into MediaAsset duh
+    private String mediaAssetIdToUUID(int id) {
+        byte b1 = (byte)77;
+        byte b2 = (byte)97;
+        byte[] b = new byte[6];
+        b[0] = b1;
+        b[1] = b2;
+        b[2] = (byte) (id >> 24);
+        b[3] = (byte) (id >> 16);
+        b[4] = (byte) (id >> 8);
+        b[5] = (byte) (id >> 0);
+        return UUID.nameUUIDFromBytes(b).toString();
     }
 
 }
