@@ -7,6 +7,9 @@
 
 	<class name="MediaAsset" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="uuid">
+			<index name="MEDIAASSET_UUID_INDEX" unique="true" />
+		</field>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
 		<field name="parentId" persistence-modifier="persistent">
 			<column jdbc-type="INT" allows-null="true"/>

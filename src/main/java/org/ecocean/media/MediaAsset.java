@@ -75,6 +75,8 @@ public class MediaAsset implements java.io.Serializable {
     static final long serialVersionUID = 8844223450447974780L;
     protected int id = MediaAssetFactory.NOT_SAVED;
 
+    protected String uuid = null;
+
     protected AssetStore store;
     protected String parametersAsString;
     protected JSONObject parameters;
@@ -146,6 +148,7 @@ public class MediaAsset implements java.io.Serializable {
                       final JSONObject params)
     {
         this.id = id;
+        this.setUUID();  //will be based on the above id, but may be overwritten "later"
         this.store = store;
         this.parameters = params;
         if (params != null) this.parametersAsString = params.toString();
@@ -216,12 +219,24 @@ public class MediaAsset implements java.io.Serializable {
 
     //this is for Annotation mostly?  provides are reproducible uuid based on the MediaAsset id
     public String getUUID() {
+        if (uuid != null) return uuid;
         //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "Ma____" where "____" is the int id
-        return generateUUIDv3((byte)77, (byte)97);
+        return generateUUIDFromId();
+    }
+    public void setUUID(String u) {
+        uuid = u;
+    }
+    private void setUUID() {
+        uuid = this.generateUUIDFromId();
     }
 
-    private String generateUUIDv3(byte b1, byte b2) {
+    public String generateUUIDFromId() {
+        return this.generateUUIDv3(this.id, (byte)77, (byte)97);
+    }
+
+    public static String generateUUIDv3(int id, byte b1, byte b2) {
         if (id == MediaAssetFactory.NOT_SAVED) return null;
+        if (id < 0) return null;
         byte[] b = new byte[6];
         b[0] = b1;
         b[1] = b2;
