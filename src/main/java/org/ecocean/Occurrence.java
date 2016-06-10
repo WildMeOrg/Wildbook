@@ -73,9 +73,6 @@ public class Occurrence implements java.io.Serializable{
       ma.setOccurrence(this);
       myShepherd.getPM().makePersistent(ma);
     }
-
-
-    //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
 
