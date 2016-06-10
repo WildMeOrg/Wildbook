@@ -160,6 +160,8 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract URL webURL(MediaAsset ma);
 
+    public abstract String getFilename(MediaAsset ma);  //this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
+
     public abstract MediaAsset create(JSONObject params);
 
     //this should be unique (as possible) for a combination of params -- used for searching, see find()
