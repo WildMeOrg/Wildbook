@@ -94,7 +94,22 @@ System.out.println("dateAttribute -> " + dateAttribute);
                 Node wnode = wlist.item(w);
                 if (wnode.getNodeType() != Node.ELEMENT_NODE) continue;
                 Element wel = (Element)wnode;   // <waypoints id="4" x="37.4676312262241" y="0.278523922074831" time="11:00:40">
-///////TODO pre-process vals for lat/lon/time
+///////TODO verify that this produces correct output
+
+                String x = wel.getAttribute("x");
+                Double decimalLongitude = strToDoubleNoExceptions(x);
+
+                String y = wel.getAttribute("y");
+                Double decimalLatitude = strToDoubleNoExceptions(y);
+
+                String timeStr = wel.getAttribute("time");
+                DateTime dateTime = null;
+                try {
+                  dateTime = DateTime.parse(timeStr);
+                } catch (Exception e) {
+                }
+
+
                 NodeList olist = wel.getElementsByTagName("observations");   //these will map to separate Occurrences, so kind of "inherit" the above from waypoint. :/
                 if (olist.getLength() < 1) continue;
                 for (int o = 0 ; o < olist.getLength() ; o++) {
@@ -150,6 +165,10 @@ System.out.println("dateAttribute -> " + dateAttribute);
 */
                     Occurrence occ = new Occurrence();
                     occ.setOccurrenceID(Util.generateUUID());
+                    occ.setDecimalLatitude(decimalLatitude);
+                    occ.setDecimalLongitude(decimalLongitude);
+                    occ.setDateTime(dateTime);
+
                     Integer photoOffset = null;
                     NodeList alist = oel.getElementsByTagName("attributes");
                     //TODO this is where we would build out the Occurrence
@@ -191,7 +210,7 @@ System.out.println("dateAttribute -> " + dateAttribute);
                                     occ.setNumNonLactFemales(getValueDoubleAsInt(ael));
                                     break;
                                 case "nooflf":
-                                    occ.setNumLactFemales(getValueDoublegetValueDoubleAsInt(ael));
+                                    occ.setNumLactFemales(getValueDoubleAsInt(ael));
                                     break;
                                 case "numberof612monthsfemales":
                                     //
@@ -247,6 +266,16 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         return occs;
     }
 
+    private static Double strToDoubleNoExceptions(String str) {
+      Double out = null;
+      try {
+        out = Double.parseDouble(str);
+      } catch (NullPointerException npe) {
+      } catch (NumberFormatException nfe) {
+      }
+      return out;
+    }
+
     private static Integer getValueInteger(Element el) {
         String val = getValue(el, "sValue");
         if (val == null) return null;
@@ -268,7 +297,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
 
     private static Integer getValueDoubleAsInt(Element el) {
         Double doubleVal = getValueDouble(el);
-        if (doubleVale == null) return null;
+        if (doubleVal == null) return null;
         return ((Integer) doubleVal.intValue());
     }
 
@@ -405,7 +434,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
 
   }
 
-  public static List<Occurrence> runJonsClusterer(List<MediaAsset> assets, Shepherd myShepherd) {
+  public static List<Occurrence> runJonsClusterer(List<MediaAsset> assets, Shepherd myShepherd) throws IOException {
     List<List<MediaAsset>> groupedAssets = groupAssetsByValidity(assets);
     List<MediaAsset> validAssets = groupedAssets.get(0);
     List<MediaAsset> invalidAssets = groupedAssets.get(1);
@@ -416,12 +445,12 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
 
     List<List<MediaAsset>> occurrenceGroups = groupAssetsByJonsOutput(validAssets, occNums);
 
-    List<Occurrence> occurrences = putAssetsInOccs(occurrenceGroups);
+    List<Occurrence> occurrences = putAssetsInOccs(occurrenceGroups, myShepherd);
 
     // final occurrence contains all invalid (ie no timeplace) MediaAssets
     if (invalidAssets.size()>0) {
       Occurrence leftovers = new Occurrence(invalidAssets, myShepherd);
-      occurrences.put(leftovers);
+      occurrences.add(leftovers);
       myShepherd.storeNewOccurrence(leftovers);
     }
 
