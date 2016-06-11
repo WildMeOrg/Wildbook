@@ -808,6 +808,28 @@ System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(
 System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
 
+
+//{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
+    public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd) {
+        Annotation ann = convertAnnotation(asset, jann);
+        if (ann == null) return null;
+        Encounter enc = new Encounter(ann);
+        String[] sp = convertSpecies(ann.getSpecies());
+        if (sp.length > 0) enc.setGenus(sp[0]);
+        if (sp.length > 1) enc.setSpecificEpithet(sp[1]);
+//TODO other fields on encounter!!  (esp. dates etc)
+        Occurrence occ = asset.getOccurrence();
+        if (occ != null) {
+            enc.setOccurrenceID(occ.getOccurrenceID());
+            occ.addEncounter(enc);
+        }
+        myShepherd.getPM().makePersistent(ann);
+        myShepherd.getPM().makePersistent(enc);
+        if (occ != null) myShepherd.getPM().makePersistent(occ);
+System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber());
+        return ann;
+    }
+
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
         if (iaResult == null) return null;
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
@@ -919,8 +941,14 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
                             needsReview = true;
                             continue;
                         }
-                        Annotation ann = convertAnnotation(asset, jann);
-                        if (ann == null) continue;
+                        //these are annotations we can make automatically from ia detection.  we also do the same upon review return
+                        //  note this creates other stuff too, like encounter
+                        Annotation ann = createAnnotationFromIAResult(jann, asset, myShepherd);
+                        if (ann == null) {
+                            System.out.println("WARNING: could not create Annotation from " + asset + " and " + jann);
+                            continue;
+                        }
+/*
                         Encounter enc = new Encounter(ann);
                         String[] sp = convertSpecies(ann.getSpecies());
                         if (sp.length > 0) enc.setGenus(sp[0]);
@@ -935,6 +963,7 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
                         myShepherd.getPM().makePersistent(enc);
                         if (occ != null) myShepherd.getPM().makePersistent(occ);
 System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber());
+*/
                         newAnns.put(ann.getId());
                         numCreated++;
                     }
@@ -1102,10 +1131,10 @@ System.out.println("* CREATED " + ann);
 
 
     //scores < these will require human review (otherwise they carry on automatically)
-    private static double getDetectionCutoffValue() {
+    public static double getDetectionCutoffValue() {
         return 0.8;
     }
-    private static double getIdentificationCutoffValue() {
+    public static double getIdentificationCutoffValue() {
         return 0.8;
     }
     //tests review_pair_list and confidence_list for element at i and determines if we need review
