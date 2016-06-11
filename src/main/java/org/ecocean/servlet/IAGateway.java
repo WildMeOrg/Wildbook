@@ -216,8 +216,6 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
   }
 
 
-
-
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
 
@@ -228,21 +226,47 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
 System.out.println("attempting passthru to " + url);
         URL u = new URL(url);
         JSONObject rtn = new JSONObject("{\"success\": false}");
-/*
-InputStream is = request.getInputStream();
-byte buffer[] = new byte[10240];
-int i;
-System.out.println("before....");
-while ((i = is.read(buffer)) > 0) {
-    System.out.write(buffer, 0, i);
-}
-System.out.println("....after");
-*/
         try {
             rtn = RestClient.postStream(u, request.getInputStream());
         } catch (Exception ex) {
             rtn.put("error", ex.toString());
         }
+
+System.out.println("############################ rtn -> \n" + rtn);
+        //this maybe should be broken out into a method?
+        if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            JSONArray slist = rtn.getJSONObject("response").optJSONArray("score_list");
+            JSONArray rlist = rtn.getJSONObject("response").optJSONArray("results_list");
+            JSONArray ilist = rtn.getJSONObject("response").optJSONArray("image_uuid_list");
+            if ((slist != null) && (rlist != null) && (ilist != null)) {
+                JSONObject annsMade = new JSONObject();
+                FeatureType.initAll(myShepherd);
+                for (int i = 0 ; i < slist.length() ; i++) {
+                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue()) continue;
+                    JSONArray alist = rlist.optJSONArray(i);
+                    if ((alist == null) || (alist.length() < 1)) continue;
+                    String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
+                    if (uuid == null) continue;
+System.out.println("i=" + i + "r[i] = " + alist.toString() + "; iuuid=" + uuid);
+                    MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+                    if (ma == null) continue;
+                    JSONArray thisAnns = new JSONArray();
+                    for (int a = 0 ; a < alist.length() ; a++) {
+                        JSONObject jann = alist.optJSONObject(a);
+                        if (jann == null) continue;
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd);
+                        if (ann == null) continue;
+                        myShepherd.getPM().makePersistent(ann);
+                        thisAnns.put(ann.getId());
+                    }
+                    if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
+                }
+                rtn.put("annotationsMade", annsMade);
+            }
+        }
+
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
