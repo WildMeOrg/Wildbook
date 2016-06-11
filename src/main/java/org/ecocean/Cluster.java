@@ -57,8 +57,9 @@ public class Cluster {
     return occurrences;
   }
 
-  public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) {
-    return makeNOccurrences(10, assets, myShepherd);
+  public static List<Occurrence> defaultCluster(List<MediaAsset> assets, Shepherd myShepherd) throws IOException {
+    //return makeNOccurrences(10, assets, myShepherd);
+    return runJonsClusterer(assets, myShepherd);
   }
 
 
@@ -324,33 +325,18 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         return assets;
     }
 
-  public static String buildCommand(List<MediaAsset> assets) {
+  public static String buildCommand(List<MediaAsset> validAssets) {
 
-    if (assets==null) {
+    if (validAssets==null) {
       return null;
     }
-
     List<TimePlace> inputData = new ArrayList<TimePlace>();
-    List<MediaAsset> validAssets = new ArrayList<MediaAsset>();
-    List<MediaAsset> invalidAssets = new ArrayList<MediaAsset>();
-
-    for (MediaAsset ma : assets) {
-      TimePlace datum = new TimePlace(ma);
-      if (datum.hasAllFields()) {
-        inputData.add(datum);
-        validAssets.add(ma);
-      } else {
-        invalidAssets.add(ma);
-      }
+    for (MediaAsset ma : validAssets) {
+      inputData.add(new TimePlace(ma));
     }
 
-    // TODO: deal with invalid assets
-    // TODO: handle case with NO valid assets
-
     String command =  buildConsoleCommand(inputData);
-
     return command;
-
 
   }
 
@@ -373,7 +359,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
     ArrayList<MediaAsset> invalid = new ArrayList<MediaAsset>();
 
     for (MediaAsset ma : assets) {
-      if (ma.getLatitude()==null || ma.getLongitude()==null || ma.getDateTime()==null) {
+      if (ma.getDateTime()==null) { // lat or lon can be set to -1 (for null values) with no issue
         invalid.add(ma);
       } else {
         valid.add(ma);
@@ -550,7 +536,7 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
   }
 }
 
-
+// this class is private to this file
 class TimePlace {
   public final DateTime datetime;
   public final Double lat;
@@ -558,14 +544,22 @@ class TimePlace {
 
   public TimePlace(DateTime datetime, Double lat, Double lon) {
     this.datetime = datetime;
-    this.lat = lat;
-    this.lon = lon;
+    this.lat = makeNullDefault(lat);
+    this.lon = makeNullDefault(lon);
   }
 
   public TimePlace(MediaAsset ma) {
     datetime = ma.getDateTime();
-    lat = ma.getLatitude();
-    lon = ma.getLongitude();
+    lat = makeNullDefault(ma.getLatitude());
+    lon = makeNullDefault(ma.getLongitude());
+  }
+
+  private Double defaultLatLon = -1.0;
+  private Double makeNullDefault(Double d) {
+    if (d==null) {
+      return defaultLatLon;
+    }
+    return d;
   }
 
   public long getDateTimeInSeconds() {
