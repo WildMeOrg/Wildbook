@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import org.joda.time.DateTime;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -44,6 +45,7 @@ public class Occurrence implements java.io.Serializable{
   //private String locationID;
   private String dateTimeCreated;
 
+
 	/* Rosemary meta-data for IBEIS */
 /*
 	private String sun = "";
@@ -64,6 +66,7 @@ public class Occurrence implements java.io.Serializable{
 	private Double decimalLongitude;
 
 /////Lewa-specifics
+  private DateTime dateTime;
 
 	private String habitat;
 	private Integer groupSize;
@@ -364,6 +367,14 @@ public class Occurrence implements java.io.Serializable{
 		this.otherSpecies = s;
 	}
 */
+
+  public DateTime getDateTime() {
+    return this.dateTime;
+  }
+
+  public void setDateTime(DateTime dt) {
+    this.dateTime = dt;
+  }
 
 	public Double getDistance() {
 		return this.distance;
