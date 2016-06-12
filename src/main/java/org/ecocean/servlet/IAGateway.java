@@ -57,6 +57,8 @@ import java.util.UUID;
 
 public class IAGateway extends HttpServlet {
 
+    private static final int ERROR_CODE_NO_REVIEWS = 410;
+
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -105,7 +107,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         Shepherd myShepherd = new Shepherd(context);
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
-            response.sendError(204, "No detection reviews pending");
+            response.sendError(ERROR_CODE_NO_REVIEWS, "No detection reviews pending");
             getOut = "<div>no detections needing review</div>";
         } else {
             MediaAsset ma = mas.get((int)(Math.random() * mas.size()));
@@ -165,7 +167,7 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
             }
         }
         if (taskId == null) {
-            response.sendError(204, "No identificatoin reviews pending");
+            response.sendError(ERROR_CODE_NO_REVIEWS, "No identification reviews pending");
             getOut = "<div class=\"no-identification-reviews\">no identifications needing review</div>";
         } else {
             JSONObject res = null;
@@ -202,14 +204,16 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
 */
+
+    } else {
+        response.sendError(501, "Unknown command");
+        getOut = "Unknown command";
     }
 
     PrintWriter out = response.getWriter();
     out.println(getOut);
     out.close();
   }
-
-
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -222,21 +226,47 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
 System.out.println("attempting passthru to " + url);
         URL u = new URL(url);
         JSONObject rtn = new JSONObject("{\"success\": false}");
-/*
-InputStream is = request.getInputStream();
-byte buffer[] = new byte[10240];
-int i;
-System.out.println("before....");
-while ((i = is.read(buffer)) > 0) {
-    System.out.write(buffer, 0, i);
-}
-System.out.println("....after");
-*/
         try {
             rtn = RestClient.postStream(u, request.getInputStream());
         } catch (Exception ex) {
             rtn.put("error", ex.toString());
         }
+
+System.out.println("############################ rtn -> \n" + rtn);
+        //this maybe should be broken out into a method?
+        if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            JSONArray slist = rtn.getJSONObject("response").optJSONArray("score_list");
+            JSONArray rlist = rtn.getJSONObject("response").optJSONArray("results_list");
+            JSONArray ilist = rtn.getJSONObject("response").optJSONArray("image_uuid_list");
+            if ((slist != null) && (rlist != null) && (ilist != null)) {
+                JSONObject annsMade = new JSONObject();
+                FeatureType.initAll(myShepherd);
+                for (int i = 0 ; i < slist.length() ; i++) {
+                    if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue()) continue;
+                    JSONArray alist = rlist.optJSONArray(i);
+                    if ((alist == null) || (alist.length() < 1)) continue;
+                    String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
+                    if (uuid == null) continue;
+System.out.println("i=" + i + "r[i] = " + alist.toString() + "; iuuid=" + uuid);
+                    MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+                    if (ma == null) continue;
+                    JSONArray thisAnns = new JSONArray();
+                    for (int a = 0 ; a < alist.length() ; a++) {
+                        JSONObject jann = alist.optJSONObject(a);
+                        if (jann == null) continue;
+                        Annotation ann = IBEISIA.createAnnotationFromIAResult(jann, ma, myShepherd);
+                        if (ann == null) continue;
+                        myShepherd.getPM().makePersistent(ann);
+                        thisAnns.put(ann.getId());
+                    }
+                    if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
+                }
+                rtn.put("annotationsMade", annsMade);
+            }
+        }
+
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
         out.println(rtn.toString());
