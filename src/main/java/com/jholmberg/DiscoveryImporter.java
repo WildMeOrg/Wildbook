@@ -43,7 +43,7 @@ public class DiscoveryImporter {
 	 * @param args
 	 */
 
-/*
+
   //TODO: fix encounter directory path for file copy
 
 	public static void main(String[] args) {
@@ -165,7 +165,7 @@ public class DiscoveryImporter {
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing Mother by nickname: "+momValue);
 
-                        MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
+                        MarkedIndividual mom=(MarkedIndividual)myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
                         if(myShepherd.getRelationship("familial", mom.getIndividualID(), individualID)==null){
 
                           org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
@@ -218,7 +218,7 @@ public class DiscoveryImporter {
                             myShepherd.beginDBTransaction();
                           }
                           else if(myShepherd.getMarkedIndividualsByNickname(pupName).size()>0){
-                            MarkedIndividual puppy=myShepherd.getMarkedIndividualsByNickname(pupName).get(0);
+                            MarkedIndividual puppy=(MarkedIndividual)myShepherd.getMarkedIndividualsByNickname(pupName).get(0);
 
                             if(myShepherd.getRelationship("familial", puppy.getIndividualID(), individualID)==null){
                               org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,puppy.getIndividualID(),"mother","pup");
@@ -492,7 +492,7 @@ public class DiscoveryImporter {
             }
             }
             */
-/*
+
             //now add it to the encounter
             myShepherd.beginDBTransaction();
             AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -513,7 +513,7 @@ public class DiscoveryImporter {
                 myShepherd.beginDBTransaction();
 
 
-                Annotation annot=new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()));
+                Annotation annot=new Annotation(Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()), ma);
                 myShepherd.getPM().makePersistent(annot);
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
@@ -758,6 +758,6 @@ public static String getExactFileName(File f) {
   }
   return returnVal;
 }
-*/
+
 
 }
