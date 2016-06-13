@@ -148,7 +148,7 @@ public class MediaAsset implements java.io.Serializable {
                       final JSONObject params)
     {
         this.id = id;
-        this.setUUID();  //will be based on the above id, but may be overwritten "later"
+        this.setUUID();
         this.store = store;
         this.parameters = params;
         if (params != null) this.parametersAsString = params.toString();
@@ -226,11 +226,18 @@ public class MediaAsset implements java.io.Serializable {
     public void setUUID(String u) {
         uuid = u;
     }
+    /* note: this is used for *new* MediaAssets (via constructor), so we want it to *always* give us something.
+       this we try to get a value no matter what.  in 99% of the cases, a new MediaAsset will have id = -1, so generateUUIDv3() will fail.
+       thus this essentially will almost always use a v4 uuid (random).  so be it! */
     private void setUUID() {
         uuid = this.generateUUIDFromId();
+        if (uuid == null) uuid = Util.generateUUID();
     }
 
+    //note this function will not allow "invalid" (< 0) ids... so see above for hack for new MediaAssets
     public String generateUUIDFromId() {
+        if (this.id == MediaAssetFactory.NOT_SAVED) return null;
+        if (this.id < 0) return null;
         return this.generateUUIDv3(this.id, (byte)77, (byte)97);
     }
 

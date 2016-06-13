@@ -1058,7 +1058,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
         log(taskID, null, jlog, "context0");
 
-///////
+///////  NOTE: this is copied for detection just for a sort of template!  plz ignore.
 /* TODO lots to consider here:
     --1. how do we determine where the cutoff is for auto-creating the annotation?-- made some methods for this
     2. if we do create (or dont!) how do we denote this for the sake of the user/ui querying status?

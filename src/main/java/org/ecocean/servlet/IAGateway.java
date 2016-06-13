@@ -244,13 +244,18 @@ System.out.println("############################ rtn -> \n" + rtn);
                 JSONObject annsMade = new JSONObject();
                 FeatureType.initAll(myShepherd);
                 for (int i = 0 ; i < slist.length() ; i++) {
+                    int stillNeedingReview = rlist.length();
                     if (slist.optDouble(i, -1.0) < IBEISIA.getDetectionCutoffValue()) continue;
+                    /* decrementing this here, which may be "unwise" since this can "fail" in a bunch of ways (below); however, most of them
+                       are error-like in nature, and should be dealt with in ways which i feel arent handled well yet.  this likely needs
+                       to be reconsidered at some point... sigh.  -jon 20160613    TODO */
+                    stillNeedingReview--;
                     JSONArray alist = rlist.optJSONArray(i);
                     if ((alist == null) || (alist.length() < 1)) continue;
                     String uuid = IBEISIA.fromFancyUUID(ilist.optJSONObject(i));
                     if (uuid == null) continue;
-System.out.println("i=" + i + "r[i] = " + alist.toString() + "; iuuid=" + uuid);
                     MediaAsset ma = MediaAssetFactory.loadByUuid(uuid, myShepherd);
+System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid + " -> ma:" + ma);
                     if (ma == null) continue;
                     JSONArray thisAnns = new JSONArray();
                     for (int a = 0 ; a < alist.length() ; a++) {
@@ -262,6 +267,7 @@ System.out.println("i=" + i + "r[i] = " + alist.toString() + "; iuuid=" + uuid);
                         thisAnns.put(ann.getId());
                     }
                     if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
+                    if (stillNeedingReview < 1) ma.setDetectionStatus("complete");
                 }
                 rtn.put("annotationsMade", annsMade);
             }
