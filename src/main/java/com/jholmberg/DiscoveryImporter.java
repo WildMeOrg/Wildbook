@@ -43,7 +43,7 @@ public class DiscoveryImporter {
 	 * @param args
 	 */
 
-
+/*
   //TODO: fix encounter directory path for file copy
 
 	public static void main(String[] args) {
@@ -151,7 +151,7 @@ public class DiscoveryImporter {
                       if(myShepherd.getMarkedIndividual(momValue)!=null){
 
                         if(myShepherd.getRelationship("familial", momValue, individualID)==null){
-                          
+
                           System.out.println("......referencing Mother by individualID: "+individualID);
                           //MarkedIndividual mom=myShepherd.getMarkedIndividual(momValue);
                           org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,momValue,"pup","mother");
@@ -164,16 +164,16 @@ public class DiscoveryImporter {
                       }
                       else if(myShepherd.getMarkedIndividualsByNickname(momValue).size()>0){
                         System.out.println("......referencing Mother by nickname: "+momValue);
-                        
+
                         MarkedIndividual mom=myShepherd.getMarkedIndividualsByNickname(momValue).get(0);
                         if(myShepherd.getRelationship("familial", mom.getIndividualID(), individualID)==null){
-                            
+
                           org.ecocean.social.Relationship myRel=new org.ecocean.social.Relationship("familial",individualID,mom.getIndividualID(),"pup","mother");
                           myShepherd.getPM().makePersistent(myRel);
                           myShepherd.commitDBTransaction();
                           myShepherd.beginDBTransaction();
                         }
-                        
+
                       }
 
                   }
@@ -182,7 +182,7 @@ public class DiscoveryImporter {
                   //pups
                   for(int w=1;w<4;w++){
                     String pupString="Pup"+w;
-                    
+
                     if(thisFeatureRow.get(pupString)!=null){
                       System.out.println("......looking at "+pupString);
                       String pupValue=((String)thisFeatureRow.get(pupString)).trim();
@@ -258,7 +258,7 @@ public class DiscoveryImporter {
 
 		myShepherd.rollbackDBTransaction();
 		myShepherd.closeDBTransaction();
-		
+
 		System.out.println("!!!DONE!!!");
 
 	}
@@ -395,8 +395,8 @@ public class DiscoveryImporter {
     if(thisRow.get("PHOTOGRAPHER")!=null){
       enc.setPhotographerName((String)thisRow.get("PHOTOGRAPHER"));
     }
-    
-    
+
+
     //get lat and long
     if(thisRow.get("LATITUDE")!=null){
       enc.setDecimalLatitude((Double)thisRow.get("LATITUDE"));
@@ -492,7 +492,7 @@ public class DiscoveryImporter {
             }
             }
             */
-
+/*
             //now add it to the encounter
             myShepherd.beginDBTransaction();
             AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -501,7 +501,7 @@ public class DiscoveryImporter {
             MediaAsset ma = new MediaAsset(astore, sp);
             myShepherd.getPM().makePersistent(ma);
 
-                
+
               //copy in the file
               ma.addLabel("_original");
                 try{
@@ -511,8 +511,8 @@ public class DiscoveryImporter {
                 catch(Exception io){io.printStackTrace();}
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
-                
-                
+
+
                 Annotation annot=new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()));
                 myShepherd.getPM().makePersistent(annot);
                 myShepherd.commitDBTransaction();
@@ -611,7 +611,7 @@ public class DiscoveryImporter {
                   newWhale.setSex(thisSex);
                   System.out.println("...set indy sex: "+thisSex);
                 }
-                
+
                 //dead
                 if(thisFeatureRow.get("Dead")!=null){
                   String thisDead=((String)thisFeatureRow.get("Dead")).toLowerCase().replaceAll("yes", "").trim();
@@ -621,7 +621,7 @@ public class DiscoveryImporter {
                   newWhale.setTimeOfDeath(milliseconds);
                   System.out.println("...set dead year: "+thisDead);
                 }
-                
+
 
                 if((String)thisFeatureRow.get("Name")!=null){
                   String thisNickname=(String)thisFeatureRow.get("Name");
@@ -649,7 +649,7 @@ public class DiscoveryImporter {
                   if(newWhale.getAlternateID()!=null)altID=newWhale.getAlternateID();
                   String tagNumber=(String)thisFeatureRow.get("Tagnumber");
                   newWhale.setAlternateID(altID+(tagNumber).toLowerCase());
-                  
+
                   myShepherd.commitDBTransaction();
                   myShepherd.beginDBTransaction();
                   System.out.println("...set alternateID: "+altID);
@@ -758,6 +758,6 @@ public static String getExactFileName(File f) {
   }
   return returnVal;
 }
-
+*/
 
 }
