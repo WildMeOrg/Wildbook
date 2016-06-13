@@ -568,6 +568,38 @@ $(document).ready( function() {
 	wildbook.init(function() { doTable(); });
 
   $("#cooccurrenceTable").hide();
+  $("#communityDiagram").hide();
+  $("#communityTable").hide();
+
+  $("#familyDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").show();
+    $("#communityDiagram").hide();
+    $("#communityTable").hide();
+    $("#familyDiagramTab").addClass("active");
+    $("#communityDiagramTab").removeClass("active");
+    $("#communityTableTab").removeClass("active");
+  });
+
+  $("#communityDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").hide();
+    $("#communityDiagram").show();
+    $("#communityTable").hide();
+    $("#familyDiagramTab").removeClass("active");
+    $("#communityDiagramTab").addClass("active");
+    $("#communityTableTab").removeClass("active");
+  });
+
+  $("#communityTableTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").hide();
+    $("#communityDiagram").hide();
+    $("#communityTable").show);
+    $("#familyDiagramTab").removeClass("active");
+    $("#communityDiagramTab").removeClass("active");
+    $("#communityTableTab").addClass("active");
+  });
 
   $("#cooccurrenceDiagramTab").click(function (e) {
     e.preventDefault()
@@ -2321,105 +2353,200 @@ dlgRel.dialog("open");
   if(relationships.size()>0){
   %>
 
+<div class="familyCommunityRelationships">
+  <ul class="nav nav-tabs">
+    <li id="familyDiagramTab">
+      <a href="#familyDiagram">Familial Diagram</a>
+    </li>
+    <li id="communityDiagramTab">
+      <a href="#communityDiagram"><%=props.getProperty("social")%> Diagram</a>
+    </li>
+    <li id="communityTableTab">
+      <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
+    </li>
+  </ul>
 
-<table width="100%" class="tissueSample">
-<th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
-<%
-	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<th><%=props.getProperty("numSightingsTogether")%></th>
-<th><strong><%=props.getProperty("edit")%></strong></th><th><strong><%=props.getProperty("remove")%></strong></th>
-<%
-	}
-%>
+  <div class="diagramContainer">
+    <div id="familyDiagram">
+      <style>
+        .node {
+          cursor: pointer;
+        }
 
-</tr>
-<%
-	int numRels=relationships.size();
-for(int f=0;f<numRels;f++){
-	Relationship myRel=relationships.get(f);
-	String indieName1=myRel.getMarkedIndividualName1();
-	String indieName2=myRel.getMarkedIndividualName2();
-	String otherIndyName=indieName2;
-	String thisIndyRole="";
-	String otherIndyRole="";
-	if(myRel.getMarkedIndividualRole1()!=null){thisIndyRole=myRel.getMarkedIndividualRole1();}
-	if(myRel.getMarkedIndividualRole2()!=null){otherIndyRole=myRel.getMarkedIndividualRole2();}
-	if(otherIndyName.equals(sharky.getIndividualID())){
-		otherIndyName=indieName1;
-		thisIndyRole=myRel.getMarkedIndividualRole2();
-		otherIndyRole=myRel.getMarkedIndividualRole1();
-	}
-	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
-	String type="";
-	if(myRel.getType()!=null){type=myRel.getType();}
+        .node circle {
+          fill: #fff;
+          stroke: steelblue;
+          stroke-width: 2px;
+        }
 
-	String community="";
-	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
-%>
-	<tr>
-	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
-	<td>
-	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
-		<%
-		if(otherIndy.getNickName()!=null){
-		%>
-		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
-		<%
-		}
-		if(otherIndy.getAlternateID()!=null){
-		%>
-		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
-		<%
-		}
-		if(otherIndy.getSex()!=null){
-		%>
-			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
-		<%
-		}
+        .node text {
+          font: 12px sans-serif;
+        }
 
-		if(otherIndy.getHaplotype()!=null){
-		%>
-			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
-		<%
-		}
-		%>
-	</td>
-	<td><%=type %></td>
-	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
+        /*lines between the nodes*/
+        .link {
+          fill: none;
+          stroke: steelblue;
+          stroke-width: 2px;
+        }
 
-	<%
-	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+        /*hover tool tip*/
+        .d3-tip {
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-size: 14px;
+          font-style: normal;
+          font-weight: normal;
+          max-width: 200px;
+          padding: 12px;
+          background-color: #fff;
+          border-radius: 2px;
+          border: 1px solid #ccc;
+          border: 1px solid rgba(0, 0, 0, .2);
+          border-radius: 6px;
+          -webkit-box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+                  box-shadow: 0 5px 10px rgba(0, 0, 0, .2);
+          line-height: 1.42857143;
+          text-align: left;
+        }
 
-		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
+        /* Creates a small triangle extender for the tooltip */
+        .d3-tip:after {
+          box-sizing: border-box;
+          display: inline;
+          font-size: 12px;
+          width: 100%;
+          line-height: 1;
+          color: #fff;
+          content: "\25BC";
+          position: absolute;
+          text-align: center;
+          padding-bottom: 5px;
+        }
 
-		//int bracketLocation=persistenceID.indexOf("[");
-		//persistenceID=persistenceID.substring(0,bracketLocation);
+        /* Style northward tooltips differently */
+        .d3-tip.n:after {
+          margin: -1px 0 0 0;
+          top: 100%;
+          left: 0;
+        }
 
-	%>
-	<td>
-	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
+        #resetButton {
+          margin: 20px 10px 10px 20px;
+        }
+      </style>
+      <button class="btn btn-default" id="resetButton">Reset Tree</button>
+      <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+      <script src="javascript/relationshipDiagrams/familyTreeScript.js"></script>
+    </div>
 
-	</td>
+    <div id="communityDiagram">
+      <h3>This is where the community diagram will go</h3>
+    </div>
 
-	<td>
-		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
-	</td>
-	<td>
-		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
-	</td>
-	<%
-	}
-	%>
+    <div id="communityTable">
+      <table width="100%" class="tissueSample">
+      <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
+      <%
+      	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+      %>
+      <th><%=props.getProperty("numSightingsTogether")%></th>
+      <th><strong><%=props.getProperty("edit")%></strong></th><th><strong><%=props.getProperty("remove")%></strong></th>
+      <%
+      	}
+      %>
 
-	</tr>
-<%
+      </tr>
+      <%
+      	int numRels=relationships.size();
+      for(int f=0;f<numRels;f++){
+      	Relationship myRel=relationships.get(f);
+      	String indieName1=myRel.getMarkedIndividualName1();
+      	String indieName2=myRel.getMarkedIndividualName2();
+      	String otherIndyName=indieName2;
+      	String thisIndyRole="";
+      	String otherIndyRole="";
+      	if(myRel.getMarkedIndividualRole1()!=null){thisIndyRole=myRel.getMarkedIndividualRole1();}
+      	if(myRel.getMarkedIndividualRole2()!=null){otherIndyRole=myRel.getMarkedIndividualRole2();}
+      	if(otherIndyName.equals(sharky.getIndividualID())){
+      		otherIndyName=indieName1;
+      		thisIndyRole=myRel.getMarkedIndividualRole2();
+      		otherIndyRole=myRel.getMarkedIndividualRole1();
+      	}
+      	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
+      	String type="";
+      	if(myRel.getType()!=null){type=myRel.getType();}
+
+      	String community="";
+      	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
+      %>
+      	<tr>
+      	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
+      	<td>
+      	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
+      		<%
+      		if(otherIndy.getNickName()!=null){
+      		%>
+      		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
+      		<%
+      		}
+      		if(otherIndy.getAlternateID()!=null){
+      		%>
+      		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
+      		<%
+      		}
+      		if(otherIndy.getSex()!=null){
+      		%>
+      			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
+      		<%
+      		}
+
+      		if(otherIndy.getHaplotype()!=null){
+      		%>
+      			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
+      		<%
+      		}
+      		%>
+      	</td>
+      	<td><%=type %></td>
+      	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
+
+      	<%
+      	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+
+      		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
+
+      		//int bracketLocation=persistenceID.indexOf("[");
+      		//persistenceID=persistenceID.substring(0,bracketLocation);
+
+      	%>
+      	<td>
+      	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
+
+      	</td>
+
+      	<td>
+      		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
+      	</td>
+      	<td>
+      		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
+      	</td>
+      	<%
+      	}
+      	%>
+
+      	</tr>
+      <%
 
 
-}
-%>
+      }
+      %>
 
-</table>
+      </table>
+    </div>
+  </div>
+
+
+</div>
 <br/>
 <%
 }
