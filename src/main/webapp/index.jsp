@@ -386,7 +386,7 @@ finally{
 <section class="hero container-fluid main-section relative">
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
-            <h1 class="hidden">Flukebook</h1>
+            <h1 class="hidden">Wildbook</h1>
             <h2>Wildbook helps you study identify, and protect wildlife populations!</h2>
             <!--
             <button id="watch-movie" class="large light">
@@ -400,12 +400,6 @@ finally{
         </div>
 
 	</div>
-	 <div class="video-wrapper">
-		<div class="embed-container">
-			<iframe id="herovideo" src="http://player.vimeo.com/video/123083341?api=1&amp;player_id=herovideo" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>
-		</div>
-	</div>
-
 </section>
 
 <section class="container text-center main-section">
@@ -425,7 +419,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph the ID area</h3>
 					<p class="lead">
-						Trailing edges of flukes and dorsal fins are primarily used to ID whales and dolphins. Get an image of the flukes or fins and you can match that pattern to others already in the database. Who knows your animal might be completely new to the database!
+						Animals with patterned features can often be identified uniquely. By taking a picture, you can match that pattern to others already in the database. Your animal might be new to the database, or it might be a new sighting of one we have seen before!
 					</p>
 
 				</div>
@@ -459,7 +453,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching process</h3>
 					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for whale flukes.
+						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for animals.
 						</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -470,7 +464,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching Results</h3>
 					<p class="lead">
-						Flukebook uses multiple algorithms to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
+						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -658,8 +652,7 @@ finally{
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
-                        <p class="lead">
-                            <i>&ldquo;Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily.&rdquo;</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
+                        <p class="lead">Place an inspirational quote here.</p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>
