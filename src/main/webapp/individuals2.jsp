@@ -2434,14 +2434,7 @@ else {
 
 
 
-<ul class="nav nav-tabs">
-  <li id="cooccurrenceDiagramTab">
-    <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
-  </li>
-  <li id="cooccurrenceTableTab">
-    <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
-  </li>
-</ul>
+
 
 <%-- <a name="cooccurrence"></a>
 <p><strong><%=props.getProperty("cooccurrence")%></strong></p> --%>
@@ -2466,39 +2459,65 @@ if(otherIndies.size()>0){
 <script src="javascript/bubbleDiagram/d3-transform.js"></script>
 <script src="javascript/bubbleDiagram/lines.js"></script>
 
-<style>
+<style type="text/css">
 .co-occurrences {
-width: 900px;
-height: 400px;
-border-radius: 5px;
+  width: 850px;
+  height: 400px;
+  border-radius: 5px;
 }
 
 .bubbleChart {
-min-width: 100px;
-max-width: 0 auto;
-height: 350px;
-margin: 0;
+  min-width: 100px;
+  max-width: 0 auto;
+  height: 350px;
+  background: #373F51;
+  border-radius: 5px;
 }
+
 .bubbleChart svg{
-background: #373F51;
-border-radius: 5px;
+  background: #373F51;
+  border-radius: 5px;
+  width: 850;
 }
 
 a:hover{
-color: navy;
-cursor: pointer;
+  color: navy;
+  cursor: pointer;
 }
 
-.bubbles {
-display: flex;
-flex-direction: row;
-align-items: flex-start;
+.diagramContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  background: #373F51;
+  border-radius: 5px;
+  height: 350px;
+}
+
+.mygrid-wrapper-div {
+  overflow: scroll;
+  height: 350px;
+}
+
+#zoomIn, #zoomOut, #reset {
+  margin-right: 10px;
+  background: #FFFFFF;
+  color: navy;
 }
 </style>
 
-<div class="cooccurences">  
+<div class="cooccurences">
+  <ul class="nav nav-tabs">
+    <li id="cooccurrenceDiagramTab">
+      <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
+    </li>
+    <li id="cooccurrenceTableTab">
+      <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
+    </li>
+  </ul>
+
   <div id="cooccurrenceDiagram">
-    <div class="bubbles">
+    <div class="diagramContainer">
       <div class="bubbleChart"></div>
       <div id="buttons" class="btn-group-vertical">
         <button type="button" class="btn btn-sm btn-default" name="button" id="zoomIn">+ Zoom In</button>
@@ -2508,7 +2527,7 @@ align-items: flex-start;
     </div>
   </div>
 
-  <div id="cooccurrenceTable">
+  <div id="cooccurrenceTable" class="mygrid-wrapper-div diagramContainer">
     <table width="100%" class="tissueSample" >
       <th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
       <%
