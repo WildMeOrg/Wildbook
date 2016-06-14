@@ -595,7 +595,7 @@ $(document).ready( function() {
     e.preventDefault()
     $("#familyDiagram").hide();
     $("#communityDiagram").hide();
-    $("#communityTable").show);
+    $("#communityTable").show();
     $("#familyDiagramTab").removeClass("active");
     $("#communityDiagramTab").removeClass("active");
     $("#communityTableTab").addClass("active");
@@ -2353,6 +2353,21 @@ dlgRel.dialog("open");
   if(relationships.size()>0){
   %>
 
+
+  <script src="http://phuonghuynh.github.io/js/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+
+  <%-- <script src="http://phuonghuynh.github.io/js/bower_components/d3/d3.min.js"></script> --%>
+  <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
+  <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
+  <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
+  <script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+  <script src="javascript/bubbleDiagram/index.js"></script>
+  <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
+  <script src="javascript/bubbleDiagram/central-click.js"></script>
+  <script src="javascript/bubbleDiagram/d3-transform.js"></script>
+  <script src="javascript/bubbleDiagram/lines.js"></script>
+
 <div class="familyCommunityRelationships">
   <ul class="nav nav-tabs">
     <li id="familyDiagramTab">
@@ -2439,11 +2454,11 @@ dlgRel.dialog("open");
       <script src="javascript/relationshipDiagrams/familyTreeScript.js"></script>
     </div>
 
-    <div id="communityDiagram">
+    <div id="communityDiagram" class="diagramContainer">
       <h3>This is where the community diagram will go</h3>
     </div>
 
-    <div id="communityTable">
+    <div id="communityTable" class="mygrid-wrapper-div diagramContainer">
       <table width="100%" class="tissueSample">
       <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
       <%
@@ -2574,17 +2589,7 @@ if(otherIndies.size()>0){
 //ok, let's iterate the social relationships
 %>
 
-<script src="http://phuonghuynh.github.io/js/bower_components/jquery/dist/jquery.min.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/d3/d3.min.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
-<script src="javascript/bubbleDiagram/index.js"></script>
-<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/bubbleDiagram/central-click.js"></script>
-<script src="javascript/bubbleDiagram/d3-transform.js"></script>
-<script src="javascript/bubbleDiagram/lines.js"></script>
+
 
 <style type="text/css">
 .co-occurrences {
@@ -2616,7 +2621,6 @@ a:hover{
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  background: #373F51;
   border-radius: 5px;
   height: 350px;
 }
@@ -2626,7 +2630,7 @@ a:hover{
   height: 350px;
 }
 
-#zoomIn, #zoomOut, #reset {
+#zoomIn, #zoomOut, #reset, #resetButton {
   margin-right: 10px;
   background: #FFFFFF;
   color: navy;
