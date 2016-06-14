@@ -2353,11 +2353,9 @@ dlgRel.dialog("open");
   if(relationships.size()>0){
   %>
 
-
+  <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
   <script src="http://phuonghuynh.github.io/js/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="http://d3js.org/d3.v3.min.js"></script>
-
-  <%-- <script src="http://phuonghuynh.github.io/js/bower_components/d3/d3.min.js"></script> --%>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
@@ -2592,24 +2590,8 @@ if(otherIndies.size()>0){
 
 
 <style type="text/css">
-.co-occurrences {
-  width: 850px;
-  height: 400px;
-  border-radius: 5px;
-}
-
-.bubbleChart {
-  min-width: 100px;
-  max-width: 0 auto;
-  height: 350px;
-  background: #373F51;
-  border-radius: 5px;
-}
-
-.bubbleChart svg{
-  background: #373F51;
-  border-radius: 5px;
-  width: 850;
+body {
+  background: #FFFFFF;
 }
 
 a:hover{
@@ -2617,12 +2599,26 @@ a:hover{
   cursor: pointer;
 }
 
-.diagramContainer {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
+.co-occurrences {
+  width: 850px;
+  height: 400px;
   border-radius: 5px;
+}
+
+.bubbleChart {
+  width: auto;
   height: 350px;
+}
+
+.bubbleChart svg{
+  background: #373F51;
+  border-radius: 5px;
+  width: 100%;
+}
+
+
+.btn-group {
+  position: absolute;
 }
 
 .mygrid-wrapper-div {
@@ -2631,15 +2627,34 @@ a:hover{
 }
 
 #zoomIn, #zoomOut, #reset, #resetButton {
-  margin-right: 10px;
   background: #FFFFFF;
   color: navy;
+}
+
+button#zoomIn.btn.btn-default{
+  padding-top: 8px;
+  padding-bottom: 14px;
+}
+
+button#zoomOut.btn.btn-default{
+  padding-top: 8px;
+  padding-bottom: 14px;
+}
+
+button {
+  margin-right: 0px;
+  margin-top: 0px;
+}
+
+.node circle {
+  stroke: none;
+
 }
 </style>
 
 <div class="cooccurences">
   <ul class="nav nav-tabs">
-    <li id="cooccurrenceDiagramTab">
+    <li id="cooccurrenceDiagramTab" class="active">
       <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
     </li>
     <li id="cooccurrenceTableTab">
@@ -2649,12 +2664,13 @@ a:hover{
 
   <div id="cooccurrenceDiagram">
     <div class="diagramContainer">
-      <div class="bubbleChart"></div>
-      <div id="buttons" class="btn-group-vertical">
-        <button type="button" class="btn btn-sm btn-default" name="button" id="zoomIn">+ Zoom In</button>
-        <button type="button" class="btn btn-sm btn-default" name="button" id="zoomOut">- Zoom Out</button>
-        <button type="button" class="btn btn-sm btn-default" name="button" id="reset">Reset</button>
-      </div>
+      <div class="bubbleChart">
+          <div id="buttons" class="btn-group btn-group-md" role="group">
+            <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+            <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+            <button type="button" class="btn btn-default" id="reset">Reset</button>
+          </div>
+        </div>
     </div>
   </div>
 
