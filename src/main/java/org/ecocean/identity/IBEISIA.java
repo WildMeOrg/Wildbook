@@ -40,7 +40,7 @@ public class IBEISIA {
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
-    private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
+    //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
@@ -1211,26 +1211,13 @@ System.out.println("identification most recent action found is " + action);
         return "processing";
     }
 
-    public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state) {
-        String pairKey = identificationPairKey(ann1Id, ann2Id);
-        if (pairKey == null) return;
-        if (state == null) {
-            identificationMatchingState.remove(pairKey);
-        } else {
-            identificationMatchingState.put(pairKey, state);
-        }
-System.out.println("# # # # # setIdentificationMatchingState(" + pairKey + ") -> " + state + "\n" + identificationMatchingState.toString());
+    public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state, Shepherd myShepherd) {
+        IBEISIAIdentificationMatchingState.set(ann1Id, ann2Id, state, myShepherd);
     }
-    public static String getIdentificationMatchingState(String ann1Id, String ann2Id) {
-        String pairKey = identificationPairKey(ann1Id, ann2Id);
-        if (pairKey == null) return null;
-        return identificationMatchingState.get(pairKey);
-    }
-
-    //useful to combine two annot ids into one string
-    public static String identificationPairKey(String ann1Id, String ann2Id) {
-        if ((ann1Id == null) || (ann2Id == null)) return null;
-        return ann1Id + "\t" + ann2Id;
+    public static String getIdentificationMatchingState(String ann1Id, String ann2Id, Shepherd myShepherd) {
+        IBEISIAIdentificationMatchingState m = IBEISIAIdentificationMatchingState.load(ann1Id, ann2Id, myShepherd);
+        if (m == null) return null;
+        return m.getState();
     }
 
     public static String getActiveTaskId(HttpServletRequest request) {
@@ -1255,4 +1242,5 @@ System.out.println("# # # # # setIdentificationMatchingState(" + pairKey + ") ->
     }
 
 }
+
 
