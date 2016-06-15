@@ -138,11 +138,6 @@ System.out.println("sendAnnotations(): sending " + ct);
         return res;
     }
 
-    //mostly used for very first iteration, when many values are not set
-    public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return sendIdentify(qanns, tanns, new JSONObject(), new JSONArray(), new JSONObject(), baseUrl);
-    }
-
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                           JSONArray matchingStateList, JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -154,6 +149,10 @@ System.out.println("sendAnnotations(): sending " + ct);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+        if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
+        if (matchingStateList != null) map.put("matching_state_list", matchingStateList);
+        if (userConfidence != null) map.put("user_confidence", userConfidence);
+
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
         ArrayList<JSONObject> tlist = new ArrayList<JSONObject>();
         ArrayList<String> qnlist = new ArrayList<String>();
@@ -180,7 +179,8 @@ System.out.println("sendAnnotations(): sending " + ct);
                 tnlist.add(indivId);
             }
 */
-            if (indivId == null) {
+            //argh we need to standardize this and/or have a method. :/
+            if ((indivId == null) || (indivId.toLowerCase().equals("unassigned"))) {
                 tnlist.add(IA_UNKNOWN_NAME);
             } else {
                 tnlist.add(indivId);
@@ -197,6 +197,7 @@ System.out.println("sendAnnotations(): sending " + ct);
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
+System.out.println(map);
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -342,8 +343,13 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
 
 
     public static JSONObject getTaskResultsBasic(String taskID, Shepherd myShepherd) {
-        JSONObject rtn = new JSONObject();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+        return getTaskResultsBasic(taskID, logs);
+    }
+
+    //note: log must be in chrono order by timestamp ASC
+    public static JSONObject getTaskResultsBasic(String taskID, ArrayList<IdentityServiceLog> logs) {
+        JSONObject rtn = new JSONObject();
 ///System.out.println("getTaskResultsBasic logs -->\n" + logs);
         if ((logs == null) || (logs.size() < 1)) {
             rtn.put("success", false);
@@ -373,6 +379,7 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
             rtn.put("error", "final log for task " + taskID + " was an unknown jobstatus, so results were not obtained");
             return rtn;
         }
+System.out.println("-------------\n" + last.toString() + "\n----------");
 
         if (last.getString("_action").equals("getJobResult")) {
             if (last.getJSONObject("_response").getJSONObject("status").getBoolean("success") && "ok".equals(last.getJSONObject("_response").getJSONObject("response").getString("status"))) {
@@ -570,11 +577,12 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        return beginIdentifyAnnotations(qanns, tanns, myShepherd, species, taskID, baseUrl, context);
+        return beginIdentifyAnnotations(qanns, tanns, null, null, null, myShepherd, species, taskID, baseUrl, context);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONArray matchingStateList,
+                                                      JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
@@ -612,7 +620,7 @@ System.out.println(allAnns);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, baseUrl);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, matchingStateList, userConfidence, baseUrl);
                 tryAgain = iaCheckMissing(identRtn);
             }
             results.put("sendIdentify", identRtn);
@@ -1058,7 +1066,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
         log(taskID, null, jlog, "context0");
 
-///////
+///////  NOTE: this is copied for detection just for a sort of template!  plz ignore.
 /* TODO lots to consider here:
     --1. how do we determine where the cutoff is for auto-creating the annotation?-- made some methods for this
     2. if we do create (or dont!) how do we denote this for the sake of the user/ui querying status?
@@ -1203,11 +1211,15 @@ System.out.println("identification most recent action found is " + action);
         return "processing";
     }
 
-    public static void updateIdentificationMatchingState(String ann1Id, String ann2Id, String state) {
+    public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state) {
         String pairKey = identificationPairKey(ann1Id, ann2Id);
         if (pairKey == null) return;
-        identificationMatchingState.put(pairKey, state);
-System.out.println("# # # # # updateIdentificationMatchingState(" + pairKey + ") -> " + state + "\n" + identificationMatchingState.toString());
+        if (state == null) {
+            identificationMatchingState.remove(pairKey);
+        } else {
+            identificationMatchingState.put(pairKey, state);
+        }
+System.out.println("# # # # # setIdentificationMatchingState(" + pairKey + ") -> " + state + "\n" + identificationMatchingState.toString());
     }
     public static String getIdentificationMatchingState(String ann1Id, String ann2Id) {
         String pairKey = identificationPairKey(ann1Id, ann2Id);
