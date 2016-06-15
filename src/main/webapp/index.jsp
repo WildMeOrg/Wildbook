@@ -529,14 +529,14 @@ finally{
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
                 <p class="brand-primary"><span class="massive"><%=numMarkedIndividuals %></span>
-                Identified individuals</p>
+                Tunnistettua saimaannorppaa</p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><span class="massive"><%=numEncounters %></span> Reported encounters</p>
+                <p class="brand-primary"><span class="massive"><%=numEncounters %></span> Norppahavaintoa</p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><span class="massive"><%=numDataContributors %></span> contributors</p>
+                <p class="brand-primary"><span class="massive"><%=numDataContributors %></span> Osallistujaa</p>
             </section>
         </div>
     </section>
