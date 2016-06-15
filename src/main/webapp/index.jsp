@@ -567,7 +567,20 @@ finally{
             %>
             <!-- TODO: double check this link (need to clean locID?)-->
             <!--<li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>-->
-            <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=locID%></h3></a>
+            <%
+            String actualName=locID.replaceAll("PS","Pohjois-Saimaa")
+        	   		.replaceAll("HV","Haukivesi")
+                    .replaceAll("JV","Joutenvesi")
+               		.replaceAll("PEV","Pyyvesi - Enonvesi")
+  					.replaceAll("KV","Kolovesi")
+ 					.replaceAll("PV","Pihlajavesi")
+					.replaceAll("PUV","Puruvesi")
+						.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+   					.replaceAll("LL","Luonteri – Lietvesi")
+   					.replaceAll("ES","Etel&auml; Saimaa");
+            
+            %>
+            <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=actualName%></h3></a>
               <p><%=numSightings%> tunnistettua norppaa</p>
             </li>
             <%

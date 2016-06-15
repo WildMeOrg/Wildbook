@@ -373,6 +373,17 @@ myShepherd.beginDBTransaction();
                       %>
                       <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
+                      <li>
+                      <%
+                      String timeOfDeath=props.getProperty("unknown");
+                      //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
+                      if(pair[j].getTimeofDeath()>0){
+                      	String timeOfDeathFormat="yyyy-MM-d";
+                      	timeOfDeath=(new DateTime(pair[j].getTimeofDeath())).toString(timeOfDeathFormat);
+                      }
+                      %>
+                      <%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
+                    </li>
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>

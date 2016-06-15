@@ -11,11 +11,8 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-	Shepherd myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 
-// pg_dump -Ft sharks > sharks.out
-
-//pg_restore -d sharks2 /home/webadmin/sharks.out
 
 
 %>
@@ -28,160 +25,48 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Spurious encounters to remove.</p>
+
 <ul>
 <%
 
-
-
-//build queries
+myShepherd.beginDBTransaction();
 
 int numFixes=0;
 
-String nameWithMostPictures="";
-int maxPictures=0;
-
-try {
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-<<<<<<< HEAD
-	
-	
-	
+try{
 
 	Iterator allEncs=myShepherd.getAllEncounters();
 	
 
 
-while(allEncs.hasNext()){
-	
-	myShepherd.beginDBTransaction();
-	Encounter enc2remove=(Encounter)allEncs.next();
-	boolean locked=false;
+	while(allEncs.hasNext()){
+		
+		myShepherd.beginDBTransaction();
+		Encounter enc=(Encounter)allEncs.next();
+		if((enc.getPhotographerName()==null)||(enc.getPhotographerName().trim().equals(""))){
+			enc.setPhotographerName("UEF");
+			myShepherd.commitDBTransaction();
+			myShepherd.beginDBTransaction();
+			numFixes++;
+		}
+		
 
-	if((enc2remove.getIndividualID()==null)||(enc2remove.getIndividualID().toLowerCase().trim().equals("unassigned"))){
-		numFixes++;
-		
-		
-		///START
-		
-		
-      	if (myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber())!=null) {
-	        String old_name = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber()).getOccurrenceID();
-	        boolean wasRemoved = false;
-	        String name_s = "";
-	        try {
-	          Occurrence removeFromMe = myShepherd.getOccurrenceForEncounter(enc2remove.getCatalogNumber());
-	          name_s = removeFromMe.getOccurrenceID();
-	          while (removeFromMe.getEncounters().contains(enc2remove)) {
-	            removeFromMe.removeEncounter(enc2remove);
-	          }
-	
-	
-	          enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from occurrence " + old_name + ".</p>");
-	          removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter " + request.getParameter("number") + ".</p>");
-	          enc2remove.setOccurrenceID(null);
-	          
-	          if (removeFromMe.getEncounters().size() == 0) {
-	            myShepherd.throwAwayOccurrence(removeFromMe);
-	            wasRemoved = true;
-	          }
-	
-	        } 
-	        catch (java.lang.NullPointerException npe) {
-	          npe.printStackTrace();
-	          locked = true;
-	          //myShepherd.rollbackDBTransaction();
-	
-	        } 
-	        catch (Exception le) {
-	          le.printStackTrace();
-	          locked = true;
-	          //myShepherd.rollbackDBTransaction();
-	
-	        }
-	        if(!locked){myShepherd.commitDBTransaction();}
-	        else{myShepherd.rollbackDBTransaction();}
-	        myShepherd.beginDBTransaction();
-	
-			
-			//END
-			
-			
-		
+
 	}
-		
-		myShepherd.throwAwayEncounter(enc2remove);
-		myShepherd.commitDBTransaction();
-		
-	
-} //end if
-else{myShepherd.rollbackDBTransaction();}
-	
-	
-} //end while
-
-} //end try
-catch(Exception e){e.printStackTrace();}
-
-myShepherd.closeDBTransaction();
-
-%>
-=======
-
-  Iterator allIndividuals=myShepherd.getAllMarkedIndividuals();
-
-  boolean committing=false;
-
-
-  while(allIndividuals.hasNext()){
-
-  	MarkedIndividual mark=(MarkedIndividual)allIndividuals.next();
-    Encounter[] encounters = mark.getDateSortedEncounters();
-    int numEncs = encounters.length;
-    int numPics = 0;
-
-    for (Encounter enc : encounters) {
-      numPics += enc.getMedia().size();
-    }
-
-    if (numPics>maxPictures && numPics<20) {
-      maxPictures=numPics;
-      nameWithMostPictures=mark.getName();
-    }
-
-    %><p>Individual <%=mark.getName()%> has <%=numEncs%> encounters and <%=numPics%> pictures</p><%
-
-  	numFixes++;
-
-    if (committing) {
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
+	myShepherd.commitDBTransaction();
 }
-catch (Exception ex) {
->>>>>>> feature/spring-break
-
-
-
-<<<<<<< HEAD
-
-</ul>
-<p>Done successfully: <%=numFixes %> encounters deleted</p>
-=======
+catch(Exception e){
+	myShepherd.rollbackDBTransaction();
 }
 finally{
-
 	myShepherd.closeDBTransaction();
-	myShepherd=null;
+
 }
+
 %>
 
 </ul>
 <p>Done successfully: <%=numFixes %></p>
-<p>Most photographed individual <%=nameWithMostPictures %> had <%=maxPictures%> pictures.</p>
->>>>>>> feature/spring-break
+
 </body>
 </html>

@@ -547,9 +547,25 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
                          while(hasMoreLocationsIDs){
                                String currentLocationID = "locationID"+locNum;
                                if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
+                                   String locationID=CommonConfiguration.getProperty(currentLocationID,context);
+                            	   String locationIDValue=locationID
+                            			 .replaceAll("PS","Pohjois-Saimaa")
+                            	   		.replaceAll("HV","Haukivesi")
+	                                    .replaceAll("JV","Joutenvesi")
+                                   		.replaceAll("PEV","Pyyvesi - Enonvesi")
+                      					.replaceAll("KV","Kolovesi")
+                     					.replaceAll("PV","Pihlajavesi")
+                    					.replaceAll("PUV","Puruvesi")
+                   						.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+	                   					.replaceAll("LL","Luonteri – Lietvesi")
+	                   					.replaceAll("ES","Etel&auml; Saimaa");
+	                   					
+                              		 
+                                   
+                                   
                                    %>
 
-                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
+                                     <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=locationIDValue%></option>
                                    <%
                                  locNum++;
                             }
