@@ -769,9 +769,8 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
             JSONObject jlog = new JSONObject("{\"_action\": \"identificationIterate\"}");
             jlog.put("newTaskId", newTaskId);
             jlog.put("previousTaskId", taskId);
-            IBEISIA.log(taskId, annId, null, jlog, context);
+            IBEISIA.log(taskId, null, null, jlog, context); //note: do not set annId here, as it will show up newer than ident task started above
         }
-//System.out.println("[taskId=" + taskId + "]++++++++++++++++++++++++ >>>>>  checkIdentificationIterationStatus:\n" + res + "\n <<< +++++++++");
     }
 
 
