@@ -24,6 +24,7 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
     }
 
     public static IBEISIAIdentificationMatchingState set(String a1, String a2, String state, Shepherd myShepherd) {
+        if ((a1 == null) || (a2 == null)) return null;
         IBEISIAIdentificationMatchingState m = load(a1, a2, myShepherd);
         if ((m != null) && m.state.equals(state)) return m;
         if (m == null) {
@@ -36,6 +37,7 @@ public class IBEISIAIdentificationMatchingState implements java.io.Serializable 
     }
 
     public static IBEISIAIdentificationMatchingState load(String a1, String a2, Shepherd myShepherd) {
+        if ((a1 == null) || (a2 == null)) return null;
         Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.identity.IBEISIAIdentificationMatchingState WHERE annId1 == \"" + a1 + "\" && annId2 == \"" + a2 + "\"");
         query.setUnique(true);
         IBEISIAIdentificationMatchingState s = (IBEISIAIdentificationMatchingState)(query.execute());
