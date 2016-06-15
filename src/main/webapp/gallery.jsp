@@ -87,12 +87,12 @@ MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShe
 
 rIndividuals = result.getResult();
 
+//handle any null errors better
+if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
-
-//check for and inject a default user 'tomcat' if none exists
 
 
 %>
@@ -275,17 +275,25 @@ myShepherd.beginDBTransaction();
         %>
         <div class="row gunit-row">
         <%
-        MarkedIndividual[] pair = {rIndividuals.get(i*2), rIndividuals.get(i*2+1)};
+        MarkedIndividual[] pair = new MarkedIndividual[2];
+        if(rIndividuals.get(i*2)!=null){
+        	pair[0]=rIndividuals.get(i*2);
+        }
+        if(rIndividuals.get(i*2)!=null){
+        	pair[1]=rIndividuals.get(i*2+1);
+        }
+
         String[] pairUrl = new String[2];
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
+        	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
           JSONObject maJson = indie.getExemplarImage(request);
           pairCopyright[j] = indie.getExemplarPhotographer();
-          if (!pairCopyright[j].equals("")) {
+          if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
             pairCopyright[j] =  "&copy; " +pairCopyright[j]+" / WWF";
           } else {
             pairCopyright[j] = "&copy; WWF";
@@ -307,6 +315,7 @@ myShepherd.beginDBTransaction();
           </div>
           <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
           <%
+        }
         }
         %>
         </div>
