@@ -270,7 +270,7 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                         thisAnns.put(ann.getId());
                     }
                     if (thisAnns.length() > 0) annsMade.put(Integer.toString(ma.getId()), thisAnns);
-                    if (stillNeedingReview < 1) ma.setDetectionStatus("complete");
+                    if (stillNeedingReview < 1) ma.setDetectionStatus(IBEISIA.STATUS_COMPLETE);
                 }
                 rtn.put("annotationsMade", annsMade);
             }
@@ -341,7 +341,7 @@ System.out.println(id);
             if (id < 1) continue;
             MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
             if (ma != null) {
-                ma.setDetectionStatus("processing");
+                ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
                 mas.add(ma);
                 validIds.add(Integer.toString(id));
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
@@ -370,7 +370,7 @@ System.out.println(id);
             }
             if (!success) {
                 for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus("error");
+                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 }
             }
         }
@@ -465,7 +465,7 @@ System.out.println("anns -> " + anns);
 /* TODO ?????????
             if (!success) {
                 for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus("error");
+                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 }
             }
 */
@@ -515,6 +515,7 @@ System.out.println("anns -> " + anns);
             qanns.add(ann);
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
+            ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
             if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
@@ -529,7 +530,7 @@ System.out.println("anns -> " + anns);
 /* TODO ?????????
             if (!success) {
                 for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus("error");
+                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 }
             }
 */
@@ -605,8 +606,8 @@ System.out.println("url --> " + url);
         if ((res == null) || (res.optJSONObject("results") == null) || (res.getJSONObject("results").optJSONObject("inference_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list") == null)) {
-                System.out.println("ERROR: invalid res for _identificationHtmlFromResult: " + res);
-                return "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
+                System.out.println("ERROR: (no review_pair_list?) invalid res for _identificationHtmlFromResult: " + res);
+                return "<div error-code=\"500\" title=\"error 1\" class=\"response-error\">unable to obtain identification interface</div>";
         }
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
@@ -622,7 +623,7 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
-            return "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
+            return "<div error-code=\"500\" class=\"response-error\" title=\"error 2\">unable to obtain identification interface</div>";
         }
 
         String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
@@ -631,12 +632,12 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         url += "review_pair=" + rpair.toString() + "&";
         String quuid = IBEISIA.fromFancyUUID(rpair.optJSONObject("annot_uuid_1"));
         if (quuid == null) {
-            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\" title=\"error 3\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
             return getOut;
         }
         if ((res.getJSONObject("results").optJSONObject("cm_dict") == null) || (res.getJSONObject("results").getJSONObject("cm_dict").optJSONObject(quuid) == null)) {
-            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"500\" class=\"response-error\" title=\"error 4\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine cm_dict for quuid=" + quuid + " for _identificationHtmlFromResult: " + res);
             return getOut;
         }
@@ -719,6 +720,14 @@ getOut = "(( " + url + " ))";
 /*
 {"_action":"getJobResult","_response":{"response":{"json_result":{"query_annot_uuid_list":[{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}],"query_config_dict":{},"inference_dict":{"annot_pair_dict":{"review_pair_list":[{"prior_matching_state":{"p_match":0.4737890251600697,"p_nomatch":0.5262109748399303,"p_notcomp":0},"annot_uuid_2":{"__UUID__":"6d328175-3180-4ea9-8160-80e6aee586ec"},"annot_uuid_1":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"},"annot_uuid_key":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}},{"prior_matching_state":{"p_match":0.632309908395664,"p_nomatch":0.36769009160433597,"p_notcomp":0},"annot_uuid_2":{"__UUID__":"15d5a7ec-6113-4f6e-a572-8787b5727f5b"},"annot_uuid_1":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"},"annot_uuid_key":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}},{"prior_matching_state":{"p_match":0.7422175273580092,"p_nomatch":0.25778247264199083,"p_notcomp":0},"annot_uuid_2":{"__UUID__":"5f46e85e-4f0f-45ba-a713-13aef6a9d48d"},"annot_uuid_1":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"},"annot_uuid_key":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}},{"prior_matching_state":{"p_match":0.8296040477990491,"p_nomatch":0.17039595220095094,"p_notcomp":0},"annot_uuid_2":{"__UUID__":"c33706a2-4bab-4a36-8b15-3ba129407855"},"annot_uuid_1":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"},"annot_uuid_key":{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}}],"confidence_list":[0.002748060808237835,0.07002364743867603,0.23467732223771168,0.43455531330207126]},"_internal_state":null,"cluster_dict":{"exemplar_flag_list":[true],"orig_name_uuid_list":[-2229],"annot_uuid_list":[{"__UUID__":"637ecc22-7f84-460d-84ab-fe4a9e277dd4"}],"error_flag_list":[["merge"]],"new_name_uuid_list":[9001]}},"cm_dict":{"637ecc22-7f84-460d-84ab-fe4a9e277dd4":{"dannot_uuid_list":[{"__UUID__":"6d328175-3180-4ea9-8160-80e6aee586ec"},{"__UUID__":"c33706a2-4bab-4a36-8b15-3ba129407855"},{"__UUID__":"5f46e85e-4f0f-45ba-a713-13aef6a9d48d"},{"__UUID__":"00ae1179-e934-4b11-9353-bb1944f311e2"},{"__UUID__"
 */
+
+    /*
+        checked here after every ident review submission form comes back from IA.  essentially: do we kick to outer loop?
+
+        note: kinda feel like taskId is redundant here -- loadMostRecentByObjectID() should only give one task.....
+        really the question is: do we want the most recent ident result for this annot? or the result from this task?
+        they most(?) often will be the same, yet can not be.  ???
+    */
     private void checkIdentificationIterationStatus(String annId, String taskId, HttpServletRequest request) throws IOException {
         if (annId == null) return;
         String context = ServletUtilities.getContext(request);
@@ -752,7 +761,15 @@ System.out.println("((((( once more thru the outer loop )))))");
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
             if (ann == null) return;
             JSONObject rtn = _sendIdentificationTask(ann, request, null, null, -1);
+            /////// at this point, we can consider this current task done
+            IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
+            ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
 System.out.println(" _sendIdentificationTask ----> " + rtn);
+            String newTaskId = rtn.optString("taskId", null);
+            JSONObject jlog = new JSONObject("{\"_action\": \"identificationIterate\"}");
+            jlog.put("newTaskId", newTaskId);
+            jlog.put("previousTaskId", taskId);
+            IBEISIA.log(taskId, annId, null, jlog, context);
         }
 //System.out.println("[taskId=" + taskId + "]++++++++++++++++++++++++ >>>>>  checkIdentificationIterationStatus:\n" + res + "\n <<< +++++++++");
     }

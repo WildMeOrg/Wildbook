@@ -34,6 +34,11 @@ public class IBEISIA {
         speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
     }
 
+    public static String STATUS_PENDING = "pending";  //pending review (needs action by user)
+    public static String STATUS_COMPLETE = "complete";  //process is done
+    public static String STATUS_PROCESSING = "processing";  //off at IA, awaiting results
+    public static String STATUS_ERROR = "error";
+
     private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
     private static String SERVICE_NAME = "IBEISIA";
     private static String IA_UNKNOWN_NAME = "____";
@@ -977,9 +982,9 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
                     }
                     if (needsReview) {
                         needReview.put(asset.getId());
-                        asset.setDetectionStatus("pending");
+                        asset.setDetectionStatus(STATUS_PENDING);
                     } else {
-                        asset.setDetectionStatus("complete");
+                        asset.setDetectionStatus(STATUS_COMPLETE);
                     }
                     if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
                 }
@@ -1055,7 +1060,7 @@ System.out.println("**** " + ann);
                 if (!anns.containsKey(id)) {
                     System.out.println("WARNING: processCallbackIdentify() unable to load Annotation " + id + " to set identificationStatus");
                 } else {
-                    anns.get(id).setIdentificationStatus("pending");
+                    anns.get(id).setIdentificationStatus(STATUS_PENDING);
                 }
             }
         } else {
@@ -1114,9 +1119,9 @@ System.out.println("* CREATED " + ann);
                     }
                     if (needsReview) {
                         needReview.put(asset.getId());
-                        asset.setDetectionStatus("pending");
+                        asset.setDetectionStatus(STATUS_PENDING);
                     } else {
-                        asset.setDetectionStatus("complete");
+                        asset.setDetectionStatus(STATUS_COMPLETE);
                     }
                     if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
                 }
