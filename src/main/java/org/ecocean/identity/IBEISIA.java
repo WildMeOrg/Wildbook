@@ -139,7 +139,7 @@ System.out.println("sendAnnotations(): sending " + ct);
     }
 
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONArray matchingStateList, JSONObject userConfidence, String baseUrl)
+                                          JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
@@ -150,7 +150,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
-        if (matchingStateList != null) map.put("matching_state_list", matchingStateList);
+        map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
 
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
@@ -577,11 +577,11 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        return beginIdentifyAnnotations(qanns, tanns, null, null, null, myShepherd, species, taskID, baseUrl, context);
+        return beginIdentifyAnnotations(qanns, tanns, null, null, myShepherd, species, taskID, baseUrl, context);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONArray matchingStateList,
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -620,7 +620,7 @@ System.out.println(allAnns);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, matchingStateList, userConfidence, baseUrl);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl);
                 tryAgain = iaCheckMissing(identRtn);
             }
             results.put("sendIdentify", identRtn);
