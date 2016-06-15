@@ -49,7 +49,7 @@ try {
 
   Iterator allMedia=myShepherd.getAllMediaAssets();
 
-  boolean committing=false;
+  boolean committing = true;
 
   JSONArray originalIDsForReference = new JSONArray();
 
@@ -157,7 +157,7 @@ finally{
 	public static String iaURLBase = "http://52.37.240.178:5000";
 
 	public static Annotation tryMakingAnnotation(String maUUID, String annId, Shepherd myShepherd) {
-		System.out.println("TRYING ################    " + maUUID + " ------> " + annId);
+		System.out.println("################  ma=" + maUUID + " ------> ann=" + annId);
 		try {
                 	Annotation exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
 			if (exist != null) {
@@ -234,6 +234,7 @@ finally{
 		}
 
 		//now we need to find out what encounter to attach annot to, based on filename + indivId
+System.out.println("(looking for indivId " + indivId + ")");
 		Encounter enc = null;
         	//Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.SinglePhotoVideo WHERE filename.startsWith(\"" + maUUID + ".\")");
         	Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE images.contains(spv) && spv.filename.startsWith(\"" + maUUID + ".\")");
@@ -241,9 +242,18 @@ finally{
         	Iterator it = c.iterator();
         	while (it.hasNext()) {
             		Encounter e = (Encounter)it.next();
-System.out.println(" -----ENC----> " + e.getCatalogNumber());
+System.out.println(" -----ENC----> " + e.getCatalogNumber() + " > " + e.getIndividualID());
+			if ((indivId == null) || indivId.equals(e.getIndividualID())) {  //if we have no indivId coming in, we are kinda outta luck so just take first?
+				enc = e;
+				break;
+			}
         	}    
         	query.closeAll();
+		if (enc == null) {
+			System.out.println("* unable to find an Encounter matching image/indivId :(");
+		} else {
+			System.out.println("+ found encounter " + enc.getCatalogNumber() + " matching image/indivId!");
+		}
 if (ann != null) return null;
 
 		ma.addFeature(ft);
