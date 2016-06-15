@@ -3,15 +3,15 @@ $(document).ready(function() {
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
     container: ".bubbleChart",
-    size: 450,
-    //viewBoxSize: => use @default
-    innerRadius: 180,
+    size: 900,
+    viewBoxSize: 500,
+    innerRadius: 170,
     outerRadius: 1600,
     radiusMin: 8.5,
     radiusMax: 80,
     intersectDelta: 0,
     intersectInc: 2,
-    //circleColor: use @default
+
     data: {
       items: [
         {text: "SCAR", count: "100"},
