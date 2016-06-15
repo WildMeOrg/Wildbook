@@ -50,7 +50,7 @@ try {
   else {
   	for (Annotation ann : anns) {
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
-  		if (!ann.isTrivial()) continue;
+  		//if (!ann.isTrivial()) continue;  //ok, i lied... we have to let them thru now cuz IA makes non-trivial annotations... way TODO
 
   		MediaAsset ma = ann.getMediaAsset();
   		if (ma != null) {
