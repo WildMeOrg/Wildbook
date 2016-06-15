@@ -426,7 +426,7 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
-            JSONObject taskRes = _sendIdentificationTask(ann, request, null, null, null, limitTargetSize);
+            JSONObject taskRes = _sendIdentificationTask(ann, request, null, null, limitTargetSize);
 /*
             String species = ann.getSpecies();
             if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
@@ -488,7 +488,7 @@ System.out.println("anns -> " + anns);
   }
 
 
-    private JSONObject _sendIdentificationTask(Annotation ann, HttpServletRequest request, JSONObject queryConfigDict, JSONArray matchingStateList,
+    private JSONObject _sendIdentificationTask(Annotation ann, HttpServletRequest request, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize) throws IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -513,7 +513,7 @@ System.out.println("anns -> " + anns);
             taskRes.put("exemplarsSize", exemplars.size());
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
-            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, matchingStateList, userConfidence,
+            JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -751,7 +751,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
 System.out.println("((((( once more thru the outer loop )))))");
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
             if (ann == null) return;
-            JSONObject rtn = _sendIdentificationTask(ann, request, null, matchingStateList, null, -1);
+            JSONObject rtn = _sendIdentificationTask(ann, request, null, null, -1);
 System.out.println(" _sendIdentificationTask ----> " + rtn);
         }
 //System.out.println("[taskId=" + taskId + "]++++++++++++++++++++++++ >>>>>  checkIdentificationIterationStatus:\n" + res + "\n <<< +++++++++");
