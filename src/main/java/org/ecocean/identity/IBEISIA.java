@@ -34,13 +34,18 @@ public class IBEISIA {
         speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
     }
 
+    public static String STATUS_PENDING = "pending";  //pending review (needs action by user)
+    public static String STATUS_COMPLETE = "complete";  //process is done
+    public static String STATUS_PROCESSING = "processing";  //off at IA, awaiting results
+    public static String STATUS_ERROR = "error";
+
     private static long TIMEOUT_DETECTION = 20 * 60 * 1000;   //in milliseconds
     private static String SERVICE_NAME = "IBEISIA";
     private static String IA_UNKNOWN_NAME = "____";
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
-    private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
+    //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
@@ -139,7 +144,7 @@ System.out.println("sendAnnotations(): sending " + ct);
     }
 
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONArray matchingStateList, JSONObject userConfidence, String baseUrl)
+                                          JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
@@ -150,7 +155,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
-        if (matchingStateList != null) map.put("matching_state_list", matchingStateList);
+        map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
         if (userConfidence != null) map.put("user_confidence", userConfidence);
 
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
@@ -577,11 +582,11 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        return beginIdentifyAnnotations(qanns, tanns, null, null, null, myShepherd, species, taskID, baseUrl, context);
+        return beginIdentifyAnnotations(qanns, tanns, null, null, myShepherd, species, taskID, baseUrl, context);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
-    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict, JSONArray matchingStateList,
+    public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -620,7 +625,7 @@ System.out.println(allAnns);
             boolean tryAgain = true;
             JSONObject identRtn = null;
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, matchingStateList, userConfidence, baseUrl);
+                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl);
                 tryAgain = iaCheckMissing(identRtn);
             }
             results.put("sendIdentify", identRtn);
@@ -977,9 +982,9 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
                     }
                     if (needsReview) {
                         needReview.put(asset.getId());
-                        asset.setDetectionStatus("pending");
+                        asset.setDetectionStatus(STATUS_PENDING);
                     } else {
-                        asset.setDetectionStatus("complete");
+                        asset.setDetectionStatus(STATUS_COMPLETE);
                     }
                     if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
                 }
@@ -1036,7 +1041,7 @@ System.out.println("**** " + ann);
                 //note: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it?
                 String annId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
                 if (!needReviewMap.containsKey(annId)) needReviewMap.put(annId, false); //only set first, so if set true it stays true
-                if (needIdentificationReview(rlist, clist, i)) {
+                if (needIdentificationReview(rlist, clist, i, myShepherd)) {
                     needReview = true;
                     needReviewMap.put(annId, true);
                 }
@@ -1055,86 +1060,27 @@ System.out.println("**** " + ann);
                 if (!anns.containsKey(id)) {
                     System.out.println("WARNING: processCallbackIdentify() unable to load Annotation " + id + " to set identificationStatus");
                 } else {
-                    anns.get(id).setIdentificationStatus("pending");
+                    anns.get(id).setIdentificationStatus(STATUS_PENDING);
                 }
             }
+
         } else {
-System.out.println("*****************\nhey i think we are happy with these annotations!\n*********************\n" + infDict);
-            //here we can use cluster_dict to find out what to create/persist on our side
-            // and set identificationStatus complete??
+            for (String aid : anns.keySet()) {
+                anns.get(aid).setIdentificationStatus(STATUS_COMPLETE);
+            }
+            jlog.put("loopComplete", true);
+            rtn.put("loopComplete", true);
+            jlog.put("_infDict", infDict);
+            exitIdentificationLoop(infDict, myShepherd);
         }
 
         log(taskID, null, jlog, "context0");
-
-///////  NOTE: this is copied for detection just for a sort of template!  plz ignore.
-/* TODO lots to consider here:
-    --1. how do we determine where the cutoff is for auto-creating the annotation?-- made some methods for this
-    2. if we do create (or dont!) how do we denote this for the sake of the user/ui querying status?
-    3. do we first clear out existing annotations?
-    4. do we allow duplicate (identical) annoations?  if not, do we block that at the level where we attach to encounter? or globally?
-    5. do we have to tell IA when we auto-approve (i.e. no user review) results?
-    6. how do (when do) we kick off *identification* on an annotation? and what are the target annotations?
-    7.  etc???
-            if ((rlist != null) && (rlist.length() > 0) && (ilist != null) && (ilist.length() == rlist.length())) {
-                FeatureType.initAll(myShepherd);
-                JSONArray needReview = new JSONArray();
-                JSONObject amap = new JSONObject();
-                for (int i = 0 ; i < rlist.length() ; i++) {
-                    JSONArray janns = rlist.optJSONArray(i);
-                    if (janns == null) continue;
-                    JSONObject jiuuid = ilist.optJSONObject(i);
-                    if (jiuuid == null) continue;
-                    String iuuid = fromFancyUUID(jiuuid);
-                    MediaAsset asset = null;
-                    for (MediaAsset ma : mas) {
-                        if (ma.getUUID().equals(iuuid)) {
-                            asset = ma;
-                            break;
-                        }
-                    }
-                    if (asset == null) {
-                        System.out.println("WARN: could not find MediaAsset for " + iuuid + " in detection results for task " + taskID);
-                        continue;
-                    }
-                    boolean needsReview = false;
-                    JSONArray newAnns = new JSONArray();
-                    for (int a = 0 ; a < janns.length() ; a++) {
-                        JSONObject jann = janns.optJSONObject(a);
-                        if (jann == null) continue;
-                        if (jann.optDouble("confidence") < getDetectionCutoffValue()) {
-                            needsReview = true;
-                            continue;
-                        }
-                        Annotation ann = convertAnnotation(asset, jann);
-                        if (ann == null) continue;
-                        myShepherd.getPM().makePersistent(ann);
-System.out.println("* CREATED " + ann);
-                        newAnns.put(ann.getId());
-                        numCreated++;
-                    }
-                    if (needsReview) {
-                        needReview.put(asset.getId());
-                        asset.setDetectionStatus("pending");
-                    } else {
-                        asset.setDetectionStatus("complete");
-                    }
-                    if (newAnns.length() > 0) amap.put(Integer.toString(asset.getId()), newAnns);
-                }
-                rtn.put("_note", "created " + numCreated + " annotations for " + rlist.length() + " images");
-                rtn.put("success", true);
-                JSONObject jlog = new JSONObject();
-                jlog.put("_action", "processedCallbackDetect");
-                if (amap.length() > 0) jlog.put("annotations", amap);
-                if (needReview.length() > 0) jlog.put("needReview", needReview);
-                log(taskID, null, jlog, "context0");
-                
-            } else {
-                rtn.put("error", "results_list is empty");
-            }
-        }
-*/
-        
         return rtn;
+    }
+
+    private static void exitIdentificationLoop(JSONObject infDict, Shepherd myShepherd) {
+System.out.println("*****************\nhey i think we are happy with these annotations!\n*********************\n" + infDict);
+            //here we can use cluster_dict to find out what to create/persist on our side
     }
 
 
@@ -1146,9 +1092,18 @@ System.out.println("* CREATED " + ann);
         return 0.8;
     }
     //tests review_pair_list and confidence_list for element at i and determines if we need review
-    private static boolean needIdentificationReview(JSONArray rlist, JSONArray clist, int i) {
+    private static boolean needIdentificationReview(JSONArray rlist, JSONArray clist, int i, Shepherd myShepherd) {
         if ((rlist == null) || (clist == null) || (i < 0) || (rlist.length() == 0) || (clist.length() == 0) ||
             (rlist.length() != clist.length()) || (i >= rlist.length())) return false;
+
+////TODO work is still out if we need to ignore based on our own matchingState!!!  for now we skip review if we already did it
+            if (rlist.optJSONObject(i) == null) return false;
+            String ms = getIdentificationMatchingState(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_1")),
+                                                       fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")), myShepherd);
+System.out.println("needIdentificationReview() got matching_state --------------------------> " + ms);
+            if (ms != null) return false;
+//////
+
             return (clist.optDouble(i, -99.0) < getIdentificationCutoffValue());
     }
 
@@ -1211,26 +1166,13 @@ System.out.println("identification most recent action found is " + action);
         return "processing";
     }
 
-    public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state) {
-        String pairKey = identificationPairKey(ann1Id, ann2Id);
-        if (pairKey == null) return;
-        if (state == null) {
-            identificationMatchingState.remove(pairKey);
-        } else {
-            identificationMatchingState.put(pairKey, state);
-        }
-System.out.println("# # # # # setIdentificationMatchingState(" + pairKey + ") -> " + state + "\n" + identificationMatchingState.toString());
+    public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state, Shepherd myShepherd) {
+        IBEISIAIdentificationMatchingState.set(ann1Id, ann2Id, state, myShepherd);
     }
-    public static String getIdentificationMatchingState(String ann1Id, String ann2Id) {
-        String pairKey = identificationPairKey(ann1Id, ann2Id);
-        if (pairKey == null) return null;
-        return identificationMatchingState.get(pairKey);
-    }
-
-    //useful to combine two annot ids into one string
-    public static String identificationPairKey(String ann1Id, String ann2Id) {
-        if ((ann1Id == null) || (ann2Id == null)) return null;
-        return ann1Id + "\t" + ann2Id;
+    public static String getIdentificationMatchingState(String ann1Id, String ann2Id, Shepherd myShepherd) {
+        IBEISIAIdentificationMatchingState m = IBEISIAIdentificationMatchingState.load(ann1Id, ann2Id, myShepherd);
+        if (m == null) return null;
+        return m.getState();
     }
 
     public static String getActiveTaskId(HttpServletRequest request) {
@@ -1255,4 +1197,5 @@ System.out.println("# # # # # setIdentificationMatchingState(" + pairKey + ") ->
     }
 
 }
+
 
