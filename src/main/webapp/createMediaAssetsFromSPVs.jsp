@@ -82,6 +82,7 @@ for (Object o : allSPV) {
 	ma.addLabel("_original");
 	ma.updateMetadata();
 	MediaAssetFactory.save(ma, myShepherd);
+    	ma.updateStandardChildren(myShepherd);
 out.println("<div>" + uuid + " -> " + fpath + " -> " + ma + "</div>");
 	System.out.println(count + ") " + uuid + " -> " + ma.getId());
 
