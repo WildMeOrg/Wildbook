@@ -2632,13 +2632,8 @@ a:hover{
 }
 
 button#zoomIn.btn.btn-default{
-  padding-top: 8px;
-  padding-bottom: 14px;
-}
-
-button#zoomOut.btn.btn-default{
-  padding-top: 8px;
-  padding-bottom: 14px;
+  padding-top: 6px;
+  padding-bottom: 10px;
 }
 
 button {
@@ -2665,7 +2660,7 @@ button {
   <div id="cooccurrenceDiagram">
     <div class="diagramContainer">
       <div class="bubbleChart">
-          <div id="buttons" class="btn-group btn-group-md" role="group">
+          <div id="buttons" class="btn-group btn-group-sm" role="group">
             <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
             <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
             <button type="button" class="btn btn-default" id="reset">Reset</button>
