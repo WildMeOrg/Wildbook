@@ -17,6 +17,28 @@
 		</field>
 	</class>
 
+<!--
+	<class name="IBEISIAIdentificationMatchingStateIdKey">
+       		<field name="annId1">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
+       		<field name="annId2">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
+	</class>
+
+	<class name="IBEISIAIdentificationMatchingState" objectid-class="IBEISIAIdentificationMatchingStateIdKey" >
+-->
+
+	<class name="IBEISIAIdentificationMatchingState">
+       		<field name="annId1">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
+       		<field name="annId2">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
+            <field name="state" />
+	</class>
 
 
     </package>

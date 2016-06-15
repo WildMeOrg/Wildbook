@@ -285,8 +285,9 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
 
 
     if ((qstr != null) && (qstr.indexOf("identificationReviewPost") > -1)) {
+        String context = ServletUtilities.getContext(request);
         String taskId = qstr.substring(25);
-        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
+        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", context);
         if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
 System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         URL u = new URL(url);
@@ -299,13 +300,13 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false)) {
             JSONArray match = rtn.optJSONArray("response");
             if ((match != null) && (match.optJSONObject(0) != null) && (match.optJSONObject(1) != null)) {
+                Shepherd myShepherd = new Shepherd(context);
                 String a1 = IBEISIA.fromFancyUUID(match.optJSONObject(0));
                 String a2 = IBEISIA.fromFancyUUID(match.optJSONObject(1));
                 String state = match.optString(2, "UNKNOWN_MATCH_STATE");
-                IBEISIA.setIdentificationMatchingState(a1, a2, state);
+                IBEISIA.setIdentificationMatchingState(a1, a2, state, myShepherd);
                 JSONObject jlog = new JSONObject("{\"_action\": \"identificationReviewPost\"}");
                 jlog.put("state", new JSONArray(new String[]{a1, a2, state}));
-                String context = ServletUtilities.getContext(request);
                 IBEISIA.log(taskId, a1, null, jlog, context);
                 checkIdentificationIterationStatus(a1, taskId, request);
             }
@@ -614,7 +615,9 @@ System.out.println("url --> " + url);
             if (offset > rlist.length() - 1) offset = 0;
             rpair = rlist.optJSONObject(offset);
         } else {
-            rpair = getAvailableIdentificationReviewPair(rlist, annId);
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            rpair = getAvailableIdentificationReviewPair(rlist, annId, myShepherd);
 System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + rpair);
         }
         if (rpair == null) {
@@ -664,7 +667,7 @@ getOut = "(( " + url + " ))";
     }
 
     //note: if we pass annId==null then we dont really care *which* pair we get, we just want one that is available for review (regardless of qannot)
-    private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId) {
+    private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId, Shepherd myShepherd) {
         if ((rlist == null) || (rlist.length() < 1)) return null;
         for (int i = 0 ; i < rlist.length() ; i++) {
             JSONObject rp = rlist.optJSONObject(i);
@@ -672,7 +675,7 @@ getOut = "(( " + url + " ))";
             String a1 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_1"));
             if ((annId != null) && !annId.equals(a1)) continue;
             String a2 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_2"));
-            if (IBEISIA.getIdentificationMatchingState(a1, a2) == null) return rp;
+            if (IBEISIA.getIdentificationMatchingState(a1, a2, myShepherd) == null) return rp;
         }
         return null;
     }
@@ -739,7 +742,7 @@ System.out.println(">> checkIdentificationIterationStatus(" + annId + ", " + tas
             if (rlist.optJSONObject(i) == null) continue;
             String a1 = IBEISIA.fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_1"));
             String a2 = IBEISIA.fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2"));
-            String state = IBEISIA.getIdentificationMatchingState(a1, a2);
+            String state = IBEISIA.getIdentificationMatchingState(a1, a2, myShepherd);
 System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (state != null) matchingStateList.put(new JSONArray(new String[]{a1, a2, state}));
         }
