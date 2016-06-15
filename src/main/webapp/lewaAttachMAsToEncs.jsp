@@ -34,10 +34,13 @@ context=ServletUtilities.getContext(request);
 
 myShepherd.beginDBTransaction();
 
+
+FeatureType.initAll(myShepherd);
+
 //build queries
 
 int numFixes=0;
-String iaURLBase="http://52.37.240.178:5000";
+//String iaURLBase="http://52.37.240.178:5000";
 
 try {
 
@@ -51,10 +54,10 @@ try {
   JSONArray originalIDsForReference = new JSONArray();
 
 // This outer loop just prevents us from sending enormous GETs to IA
-int maxPerLoop = 100;
+int maxPerLoop = 3;
 while (allMedia.hasNext()) {
 
-  int count = 0
+  int count = 0;
   JSONArray fancyIDsForIA = new JSONArray();
 
   // build call to get annotations from IA
@@ -67,19 +70,43 @@ while (allMedia.hasNext()) {
   	numFixes++;
   }
 
-  URL iaAnnotsGet = new URL(iaURLBase+"/api/image/annot/uuids/json/?image_uuid_list="+theseFancyIDs.toString());
+  URL iaAnnotsGet = new URL(iaURLBase+"/api/image/annot/uuids/json/?image_uuid_list=" + fancyIDsForIA.toString());
   JSONObject fromIA = RestClient.get(iaAnnotsGet);
+	if ((fromIA == null) || (fromIA.optJSONArray("response") == null)) {
+		out.println("empty response from annots/uuids/json for " + fancyIDsForIA);
+		continue;
+	}
 
+	JSONArray alist = fromIA.getJSONArray("response");
+out.println(alist);
+	for (int i = 0 ; i < alist.length() ; i++) {
+		JSONArray alist2 = alist.optJSONArray(i);
+		if ((alist2 == null) || (alist2.length() < 1)) {
+			out.println(fancyIDsForIA.getJSONObject(i) + " empty array of annots; skipping");
+			continue;
+		}
+		for (int a = 0 ; a < alist2.length() ; a++) {
+			String annId = IBEISIA.fromFancyUUID(alist2.optJSONObject(a));
+			out.println(fancyIDsForIA.getJSONObject(i) + " ------> " + annId);
+			tryMakingAnnotation(IBEISIA.fromFancyUUID(fancyIDsForIA.getJSONObject(i)), annId, myShepherd);
+		}
+	}
+if (fromIA != null) {
+	//out.println(fromIA.toString());
+	return;
+}
+
+/*
   // list of lists of annotation UUIDs (parallel list to fancyIDsForIA)
-  List<List<String>> annotsPerMA = new List<List<String>>(); //TODO: parse fromIA to make annotsPerMA;
+  List<List<String>> annotsPerMA = new ArrayList<List<String>>(); //TODO: parse fromIA to make annotsPerMA;
 
-  for (int i=0; i<fancyIDsForIA.length(), i++) {
+  for (int i=0; i<fancyIDsForIA.length() ; i++) {
     String maUUID = fancyIDsForIA.getJSONObject(i).getString("__UUID__");
     MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
 
     for (String annotUUID : annotsPerMA.get(i)) {
       // get annotation info from IA.
-      String idSuffix = "?__UUID__="annotUUID;// TODO: check that this specifies the annotation correctly to IA
+      String idSuffix = "?annot_uuid_list
 
       URL isExemplarServlet = new URL(iaURLBase + "/api/annot/exemplar/flags/json/"+idSuffix);
       JSONObject isExemplarJSON = RestClient.get(isExemplarServlet);
@@ -95,6 +122,9 @@ while (allMedia.hasNext()) {
     }
 
   }
+*/
+
+
 }
 
   if (committing) {
@@ -124,16 +154,112 @@ finally{
 </html>
 
 <%!
+	public static String iaURLBase = "http://52.37.240.178:5000";
+
+	public static Annotation tryMakingAnnotation(String maUUID, String annId, Shepherd myShepherd) {
+		System.out.println("TRYING ################    " + maUUID + " ------> " + annId);
+		try {
+                	Annotation exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+			if (exist != null) {
+				System.out.println(" - " + exist + " already exists; skipping creation");
+				return null;
+			}
+		} catch (Exception ex) { }
+      		String idSuffix = "?annot_uuid_list=[" + IBEISIA.toFancyUUID(annId) + "]";
+
+    		MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
+		if (ma == null) {
+			System.out.println(" - could not load MediaAsset with uuid=" + maUUID + "; skipping");
+			return null;
+		}
+		System.out.println(ma);
+
+		//now we need the bbox to make the Feature
+		Feature ft = null;
+		String speciesString = null;
+		String indivId = null;
+		try {
+			JSONObject rtn = RestClient.get(new URL(iaURLBase + "/api/annot/bboxes/json/" + idSuffix));
+			if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) {
+				System.out.println("- could not get bbox; skipping");
+				return null;
+			}
+			JSONArray jbb = rtn.getJSONArray("response").getJSONArray(0);
+			//System.out.println(" bbox -----------> " + jbb);
+			JSONObject fparams = new JSONObject();
+			fparams.put("x", jbb.optInt(0, 0));
+			fparams.put("y", jbb.optInt(1, 0));
+			fparams.put("width", jbb.optInt(2, -1));
+			fparams.put("height", jbb.optInt(3, -1));
+			ft = new Feature("org.ecocean.boundingBox", fparams);
+
+			rtn = RestClient.get(new URL(iaURLBase + "/api/annot/name/texts/json/" + idSuffix));
+			if ((rtn == null) || (rtn.optJSONArray("response") == null)) {
+				System.out.println("- could not get name; skipping");
+				return null;
+			}
+			indivId = rtn.getJSONArray("response").optString(0, null);  //i guess we let null stand here?
+			//if ("None".equals(indivId)) indivId = null;   // ???????????
+
+			//rtn = RestClient.get(new URL(iaURLBase + "/api/annot/species/texts/json/" + idSuffix));  //seems to be the same as below?
+			rtn = RestClient.get(new URL(iaURLBase + "/api/annot/species/json/" + idSuffix));
+			if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) {
+				System.out.println("- could not get species; skipping");
+				return null;
+			}
+			speciesString = rtn.getJSONArray("response").getString(0);
+		} catch (Exception ex) {
+			System.out.println("- caught exception: " + ex.toString());
+		}
+
+		if (ft == null) {
+			System.out.println("- could not make Feature; skipping");
+			return null;
+		}
+		if (speciesString == null) {
+			System.out.println("- could not get species; skipping");
+			return null;
+		}
+
+		Annotation ann = new Annotation(speciesString, ft);
+		try {
+			JSONObject rtn = RestClient.get(new URL(iaURLBase + "/api/annot/exemplar/flags/json/" + idSuffix));
+			if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
+				boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
+				ann.setIsExemplar(exemplar);
+			}
+			System.out.println(" - ???? should create one");
+		} catch (Exception ex) {
+			System.out.println("caught exception: " + ex.toString());
+		}
+
+		//now we need to find out what encounter to attach annot to, based on filename + indivId
+		Encounter enc = null;
+        	//Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.SinglePhotoVideo WHERE filename.startsWith(\"" + maUUID + ".\")");
+        	Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE images.contains(spv) && spv.filename.startsWith(\"" + maUUID + ".\")");
+        	Collection c = (Collection) (query.execute());
+        	Iterator it = c.iterator();
+        	while (it.hasNext()) {
+            		Encounter e = (Encounter)it.next();
+System.out.println(" -----ENC----> " + e.getCatalogNumber());
+        	}    
+        	query.closeAll();
+if (ann != null) return null;
+
+		ma.addFeature(ft);
+		System.out.println(" - created " + ann + " connected to " + ma + " by " + ft + " with indivId " + indivId);
+
+		return ann;
+	}
+
   // functions to be used in this .jsp
   public static JSONObject toFancyUUID(String uuid) {
     return IBEISIA.toFancyUUID(uuid);
   }
 
-  public static
 
-
-  List<JSONArray> splitJSONArray(JSONArray jarr, int maxItemsPerArray) {
-    if (maxItemsPerArray < 1) return new List<JSONArray>(); // no possibility of inifinite loop
+  public static List<JSONArray> splitJSONArray(JSONArray jarr, int maxItemsPerArray) {
+    if (maxItemsPerArray < 1) return new ArrayList<JSONArray>(); // no possibility of inifinite loop
     List<JSONArray> out = new ArrayList<JSONArray>();
     int i=0;
     int total = jarr.length();
