@@ -155,9 +155,9 @@
 								</div>
 
                 <div class="row grey-background very-footer">
+				
                   <p class="col-sm-8 col-md-8 col-lg-8">
-                    <small>This software is distributed under the GPL v3 license and is intended to support mark-recapture field studies.
-                  <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
+                     <a href="http://www.wildbook.org" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
                   <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
                      <img src="<%=urlLoc %>/images/logo_wildbook.png" alt=" logo" class="pull-right" />
