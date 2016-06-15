@@ -42,19 +42,21 @@ FeatureType.initAll(myShepherd);
 int numFixes=0;
 //String iaURLBase="http://52.37.240.178:5000";
 
-try {
+//try {
 
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
   Iterator allMedia=myShepherd.getAllMediaAssets();
 
-  boolean committing = true;
+  //boolean committing = true;
 
   JSONArray originalIDsForReference = new JSONArray();
 
 // This outer loop just prevents us from sending enormous GETs to IA
 int maxPerLoop = 3;
+int totalCount = 0;
+
 while (allMedia.hasNext()) {
 
   int count = 0;
@@ -67,7 +69,7 @@ while (allMedia.hasNext()) {
     JSONObject fancyID = toFancyUUID(ma.getUUID());
     fancyIDsForIA.put(fancyID);
     originalIDsForReference.put(ma.getUUID());
-  	numFixes++;
+	numFixes++;
   }
 
   URL iaAnnotsGet = new URL(iaURLBase+"/api/image/annot/uuids/json/?image_uuid_list=" + fancyIDsForIA.toString());
@@ -88,49 +90,28 @@ out.println(alist);
 		for (int a = 0 ; a < alist2.length() ; a++) {
 			String annId = IBEISIA.fromFancyUUID(alist2.optJSONObject(a));
 			out.println(fancyIDsForIA.getJSONObject(i) + " ------> " + annId);
-			tryMakingAnnotation(IBEISIA.fromFancyUUID(fancyIDsForIA.getJSONObject(i)), annId, myShepherd);
+			Annotation ann = tryMakingAnnotation(IBEISIA.fromFancyUUID(fancyIDsForIA.getJSONObject(i)), annId, myShepherd);
+			if (ann == null) {
+				System.out.println("FINAL: image/" + IBEISIA.fromFancyUUID(fancyIDsForIA.getJSONObject(i)) + " failed to create Annotation " + annId);
+			} else {
+				totalCount++;
+				System.out.println("FINAL: [" + totalCount + "] image/" + IBEISIA.fromFancyUUID(fancyIDsForIA.getJSONObject(i)) + " successfully created Annotation " + annId);
+			}
 		}
 	}
-if (fromIA != null) {
-	//out.println(fromIA.toString());
-	return;
+
+	if (totalCount > 4) {
+		System.out.println("max count reached.... bailing");
+		break;
+	}
 }
 
 /*
-  // list of lists of annotation UUIDs (parallel list to fancyIDsForIA)
-  List<List<String>> annotsPerMA = new ArrayList<List<String>>(); //TODO: parse fromIA to make annotsPerMA;
-
-  for (int i=0; i<fancyIDsForIA.length() ; i++) {
-    String maUUID = fancyIDsForIA.getJSONObject(i).getString("__UUID__");
-    MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
-
-    for (String annotUUID : annotsPerMA.get(i)) {
-      // get annotation info from IA.
-      String idSuffix = "?annot_uuid_list
-
-      URL isExemplarServlet = new URL(iaURLBase + "/api/annot/exemplar/flags/json/"+idSuffix);
-      JSONObject isExemplarJSON = RestClient.get(isExemplarServlet);
-      boolean isExemplar = false; // TODO: parse return of above servlet
-
-      URL bBoxServlet = new URL(iaURLBase + "/api/annot/bboxes/json/"+idSuffix);
-      JSONObject bBoxJSON = RestClient.get(isExemplarServlet);
-      // TODO: parse bounding box info
-
-
-
-
-    }
-
-  }
-*/
-
-
-}
-
   if (committing) {
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
   }
+
 }
 catch (Exception ex) {
 
@@ -145,6 +126,11 @@ finally{
 	myShepherd.closeDBTransaction();
 	myShepherd=null;
 }
+*/
+
+
+myShepherd.closeDBTransaction();
+
 %>
 
 
@@ -200,6 +186,7 @@ finally{
 			}
 			indivId = rtn.getJSONArray("response").optString(0, null);  //i guess we let null stand here?
 			//if ("None".equals(indivId)) indivId = null;   // ???????????
+			if ("____".equals(indivId)) indivId = null;
 
 			//rtn = RestClient.get(new URL(iaURLBase + "/api/annot/species/texts/json/" + idSuffix));  //seems to be the same as below?
 			rtn = RestClient.get(new URL(iaURLBase + "/api/annot/species/json/" + idSuffix));
@@ -222,26 +209,31 @@ finally{
 		}
 
 		Annotation ann = new Annotation(speciesString, ft);
+		ann.setId(annId);  //nope we dont want random uuid, silly
 		try {
 			JSONObject rtn = RestClient.get(new URL(iaURLBase + "/api/annot/exemplar/flags/json/" + idSuffix));
 			if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
 				boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
 				ann.setIsExemplar(exemplar);
 			}
-			System.out.println(" - ???? should create one");
 		} catch (Exception ex) {
 			System.out.println("caught exception: " + ex.toString());
 		}
 
 		//now we need to find out what encounter to attach annot to, based on filename + indivId
-System.out.println("(looking for indivId " + indivId + ")");
+System.out.println("(wanting to match indivId " + indivId + ")");
+                Encounter enc = ((Encounter) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Encounter.class, annId), true)));
+
+/********   HOLY $$#@! i cleverly gave Encounters the catalog number of the IA annot_uuid.  what luck/brilliance!!!   i can skip all this nonsense and use above.
 		Encounter enc = null;
         	//Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.SinglePhotoVideo WHERE filename.startsWith(\"" + maUUID + ".\")");
         	Query query = myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE images.contains(spv) && spv.filename.startsWith(\"" + maUUID + ".\")");
         	Collection c = (Collection) (query.execute());
         	Iterator it = c.iterator();
+		Encounter backup = null;
         	while (it.hasNext()) {
             		Encounter e = (Encounter)it.next();
+			backup = e;
 System.out.println(" -----ENC----> " + e.getCatalogNumber() + " > " + e.getIndividualID());
 			if ((indivId == null) || indivId.equals(e.getIndividualID())) {  //if we have no indivId coming in, we are kinda outta luck so just take first?
 				enc = e;
@@ -249,14 +241,34 @@ System.out.println(" -----ENC----> " + e.getCatalogNumber() + " > " + e.getIndiv
 			}
         	}    
         	query.closeAll();
-		if (enc == null) {
-			System.out.println("* unable to find an Encounter matching image/indivId :(");
-		} else {
+		if (enc != null) {
 			System.out.println("+ found encounter " + enc.getCatalogNumber() + " matching image/indivId!");
+		} else if (backup == null) {
+			System.out.println("* unable to find an Encounter matching image/indivId :(");
+			return null;
+		} else {
+			enc = backup;
+			System.out.println("- found image match in Encounter " + enc.getCatalogNumber() + ", but mismatch on indivId=" + indivId + " (enc has " + enc.getIndividualID() + "); using anyway");
 		}
-if (ann != null) return null;
+**********/
+		if (enc != null) {
+			System.out.println("+ found encounter " + enc.getCatalogNumber() + " matching image/indivId!");
+		} else {
+			System.out.println("* unable to find an Encounter matching annId " + annId + " :(");
+			return null;
+		}
+
+		String encInd = enc.getIndividualID();
+		if ((encInd != null) && encInd.toLowerCase().equals("unassigned")) encInd = null;
+
+		if (((encInd != null) && (indivId == null)) || ((encInd == null) && (indivId != null)) ||
+                    ((encInd != null) && (indivId != null) && !encInd.equals(indivId))) {
+			System.out.println("- found Encounter " + enc.getCatalogNumber() + ", but mismatch on indivId=" + indivId + " (enc has " + encInd + "); using anyway");
+		}
 
 		ma.addFeature(ft);
+		myShepherd.getPM().makePersistent(ann);
+		enc.addAnnotation(ann);
 		System.out.println(" - created " + ann + " connected to " + ma + " by " + ft + " with indivId " + indivId);
 
 		return ann;
