@@ -100,7 +100,7 @@ out.println(alist);
 		}
 	}
 
-	if (totalCount > 4) {
+	if (totalCount > 100) {
 		System.out.println("max count reached.... bailing");
 		break;
 	}
@@ -129,6 +129,7 @@ finally{
 */
 
 
+myShepherd.commitDBTransaction();
 myShepherd.closeDBTransaction();
 
 %>
