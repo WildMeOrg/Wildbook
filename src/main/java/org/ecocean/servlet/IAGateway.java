@@ -285,9 +285,8 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
 
 
     if ((qstr != null) && (qstr.indexOf("identificationReviewPost") > -1)) {
-        String context = ServletUtilities.getContext(request);
         String taskId = qstr.substring(25);
-        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", context);
+        String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0"); //note: cant set context above, cuz getContext() messes up postStream()!
         if (url == null) throw new IOException("IBEISIARestUrlIdentifyReview url not set");
 System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         URL u = new URL(url);
@@ -297,6 +296,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         } catch (Exception ex) {
             rtn.put("error", ex.toString());
         }
+        String context = ServletUtilities.getContext(request);
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false)) {
             JSONArray match = rtn.optJSONArray("response");
             if ((match != null) && (match.optJSONObject(0) != null) && (match.optJSONObject(1) != null)) {
