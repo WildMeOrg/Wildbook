@@ -127,8 +127,8 @@
       var zoom = d3.behavior.zoom().scaleExtent([0.6, 10]).on("zoom", zoomed);
 
       self.svg = d3.select(options.container).append("svg")
-      .attr({preserveAspectRatio: "xMidYMid", width: 900, height: 1000, class: "bubbleChart"})
-      .attr("viewBox", function (d) {return ["0 0", options.viewBoxSize, options.viewBoxSize].join(" ")})
+      .attr({preserveAspectRatio: "xMidYMid", width: options.size, height: options.size, class: "bubbleChart"})
+      .attr("viewBox", function (d) {return [options.viewBoxSize/2 - 20, options.viewBoxSize/2 - 20, options.viewBoxSize - 10, options.viewBoxSize].join(" ")})
       .call(zoom)
       .append("g");
 
