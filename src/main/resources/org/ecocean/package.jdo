@@ -606,5 +606,15 @@
       <field name="username"/>
     </class>
 
+	<class name="Resolver">
+		<field name="id" primary-key="true" />
+		<field name="type" />
+		<field name="modified" />
+		<field name="parameters" />
+		<field name="results" />
+		<field name="status" />
+		<field name="resultObjects" persistence-modifier="none"/>
+	</class>
+
   </package>
 </jdo>
