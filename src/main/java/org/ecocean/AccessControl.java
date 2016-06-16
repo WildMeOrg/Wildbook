@@ -27,10 +27,15 @@ public class AccessControl implements java.io.Serializable {
     }
 
     public AccessControl(final HttpServletRequest request) {
-        this.username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        this.username = simpleUserString(request);
     }
 
     public boolean isAnonymous() {
         return (username == null);
+    }
+
+    //null when not logged in
+    public static String simpleUserString(final HttpServletRequest request) {
+        return ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
 }
