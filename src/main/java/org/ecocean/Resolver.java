@@ -5,17 +5,18 @@ import java.util.List;
 import java.util.ArrayList;
 import org.json.JSONObject;
 import org.json.JSONArray;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.servlet.http.HttpServletRequest;
 
 public class Resolver implements java.io.Serializable {
-    protected static String STATUS_PENDING = "pending";  //needs review
-    protected static String STATUS_APPROVED = "approved";
-    protected static String STATUS_ERROR = "error";
+    public static String STATUS_PENDING = "pending";  //needs review
+    public static String STATUS_APPROVED = "approved";
+    public static String STATUS_ERROR = "error";
 
-    protected static String TYPE_RETIRE = "retire";
-    protected static String TYPE_SPLIT = "split";
-    protected static String TYPE_MERGE = "merge";
-    protected static String TYPE_NEW = "new";
+    public static String TYPE_RETIRE = "retire";
+    public static String TYPE_SPLIT = "split";
+    public static String TYPE_MERGE = "merge";
+    public static String TYPE_NEW = "new";
 
     private int id;
     private long modified;
@@ -23,7 +24,13 @@ public class Resolver implements java.io.Serializable {
     private String results;
     private String status;
     private String type;
+
+    private Resolver parent;
+    private List<Resolver> children;
+
     private List<Object> resultObjects;
+
+
 
     public Resolver() { }
 
@@ -65,6 +72,27 @@ public class Resolver implements java.io.Serializable {
     }
     public JSONObject getResults() {
         return Util.stringToJSONObject(this.results);
+    }
+
+    public Resolver getParent() {
+        return parent;
+    }
+    public void setParent(Resolver r) {
+        parent = r;
+    }
+    public List<Resolver> getChildren() {
+        return children;
+    }
+    public void setChildren(List<Resolver> c) {
+        children = c;
+    }
+    public List<Resolver> addChild(Resolver c) {
+        if (children == null) children = new ArrayList<Resolver>();
+        if (!children.contains(c)) {
+            children.add(c);
+            c.setParent(this);
+        }
+        return children;
     }
 
     public List<Object> addResultObject(Object obj) {
@@ -137,6 +165,18 @@ public class Resolver implements java.io.Serializable {
         JSONObject snap = new JSONObject();
         snap.put("timestamp", System.currentTimeMillis());
         return snap;
+    }
+
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("id", id)
+                .append("type", type)
+                .append("parent", ((parent == null) ? "" : parent.getId()))
+                .append("status", status)
+                .append("modified", modified)
+                .toString();
     }
 
 }
