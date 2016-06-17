@@ -820,55 +820,228 @@ function dataTypes(obj, fieldName) {
   <div class="row">
     <%-- Main Left Column --%>
     <div class="col-sm-8">
-      <%
-      if (CommonConfiguration.allowNicknames(context)) {
+      <%-- Descriptions --%>
+      <div class="row">
+        <div class="col-md-4">
+          <%
+          if (CommonConfiguration.allowNicknames(context)) {
 
-        String myNickname = "";
-        if (sharky.getNickName() != null) {
-          myNickname = sharky.getNickName();
-        }
-        String myNicknamer = "";
-        if (sharky.getNickNamer() != null) {
-          myNicknamer = sharky.getNickNamer();
-        }
-        %>
+            String myNickname = "";
+            if (sharky.getNickName() != null) {
+              myNickname = sharky.getNickName();
+            }
+            String myNicknamer = "";
+            if (sharky.getNickNamer() != null) {
+              myNicknamer = sharky.getNickNamer();
+            }
+            %>
 
-        <p><%=nickname %>: <%=myNickname%></p>
-        <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-        <p><%=nicknamer %>: <%=myNicknamer%></p>
-        <%
-      }
-      %>
-      <!-- Now prep the nickname popup dialog -->
-      <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
-      <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+            <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p>
 
-        <tr>
-          <td align="left" valign="top">
-            <form name="nameShark" method="post" action="IndividualSetNickName">
-              <input name="individual" type="hidden"
-                value="<%=request.getParameter("number")%>"> <%=nickname %>:
-                <input name="nickname" type="text" id="nickname" size="15"
-                  maxlength="50"><br> <%=nicknamer %>: <input name="namer" type="text" id="namer" size="15" maxlength="50"><br> <input
-                  name="Name" type="submit" id="Name" value="<%=update %>"></form>
+            <p><%=nicknamer %>: <%=myNicknamer%></p>
+            <%
+          }
+          %>
+          <!-- Now prep the nickname popup dialog -->
+          <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
+          <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+            <tr>
+              <td align="left" valign="top">
+                <form name="nameShark" method="post" action="IndividualSetNickName">
+                  <input name="individual" type="hidden"
+                    value="<%=request.getParameter("number")%>"> <%=nickname %>:
+                    <input name="nickname" type="text" id="nickname" size="15"
+                      maxlength="50"><br> <%=nicknamer %>: <input name="namer" type="text" id="namer" size="15" maxlength="50"><br> <input
+                      name="Name" type="submit" id="Name" value="<%=update %>"></form>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!-- nickname popup dialog script -->
+              <script>
+              var dlgNick = $("#dialogNickname").dialog({
+                autoOpen: false,
+                draggable: false,
+                resizable: false,
+                width: 500
+              });
+
+              $("a#nickname").click(function() {
+                dlgNick.dialog("open");
+              });
+              </script>
+        </div>
+        <div class="col-md-4">
+            <%
+              String sexValue="";
+              if(sharky.getSex()!=null){sexValue=sharky.getSex();}
+              %>
+              <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+              <%
+                //edit sex
+                if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
+
+                <!-- Now prep the sex popup dialog -->
+                <div id="dialogSex" title="<%=setsex %>" style="display:none">
+                <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+                  <tr>
+                    <td align="left" valign="top">
+                      <form name="setxsexshark" action="IndividualSetSex" method="post">
+
+                        <select name="selectSex" size="1" id="selectSex">
+                          <option value="unknown"><%=props.getProperty("unknown") %></option>
+                          <option value="male"><%=props.getProperty("male") %></option>
+                          <option value="female"><%=props.getProperty("female") %></option>
+                        </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
+                        <input name="Add" type="submit" id="Add" value="<%=update %>" />
+                      </form>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <!-- sex popup dialog script -->
+              <script>
+                var dlgSex = $("#dialogSex").dialog({
+                autoOpen: false,
+                draggable: false,
+                resizable: false,
+                width: 500
+                });
+
+                $("a#sex").click(function() {
+                dlgSex.dialog("open");
+                });
+              </script>
+              <%}%>
+            </p>
+
+            <!-- start birth date -->
+            <a name="birthdate"></a>
+            <%
+              String timeOfBirth="";
+              //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
+              if(sharky.getTimeOfBirth()>0){
+              String timeOfBirthFormat="yyyy-MM-d";
+              if(props.getProperty("birthdateJodaFormat")!=null){
+              timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
+              }
+              timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
+              }
+
+              String displayTimeOfBirth=timeOfBirth;
+              //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
+
+              %>
+              <p><%=props.getProperty("birthdate")  %>:
+              <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+            </p>
+
+            <!-- Now prep the birth date popup dialog -->
+            <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
+            <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+              <tr><td align="left" valign="top">
+                <strong>
+                  <font color="#990000"> <%=props.getProperty("clickDate")%>
+                </font>
+              </strong>
+              <br /><%=props.getProperty("dateFormat")%>
+              <br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+            </td></tr>
+
+            <tr>
+              <td align="left" valign="top">
+                <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+
+                  <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+                  <%=props.getProperty("birthdate")  %>:
+                  <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
+
+                  <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
                 </td>
               </tr>
             </table>
+
           </div>
-          <!-- nickname popup dialog script -->
+          <!-- birth date popup dialog script -->
           <script>
-          var dlgNick = $("#dialogNickname").dialog({
+            var dlgBirthDate = $("#dialogBirthDate").dialog({
             autoOpen: false,
             draggable: false,
             resizable: false,
-            width: 500
+            width: 600
+            });
+
+            $("a#birthdate").click(function() {
+            dlgBirthDate.dialog("open");
+            });
+          </script>
+          </p>
+          <!-- end birth date -->
+
+          <!-- start death date -->
+          <a name="deathdate"></a>
+          <%
+          String timeOfDeath="";
+          if(sharky.getTimeofDeath()>0){
+          String timeOfDeathFormat="yyyy-MM-d";
+          if(props.getProperty("deathdateJodaFormat")!=null){
+          timeOfDeathFormat=props.getProperty("deathdateJodaFormat");
+          }
+          timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString(timeOfDeathFormat);
+          }
+          String displayTimeOfDeath=timeOfDeath;
+          //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
+
+          %>
+          <p><%=props.getProperty("deathdate")  %>:
+          <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+          </p>
+
+          <!-- Now prep the death date popup dialog -->
+          <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
+          <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+          <tr><td align="left" valign="top">
+            <strong>
+              <font color="#990000"> <%=props.getProperty("clickDate")%>
+            </font>
+          </strong>
+          <br /><%=props.getProperty("dateFormat")%>
+          <br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
+
+          </td></tr>
+
+          <tr>
+          <td align="left" valign="top">
+            <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
+              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <%=props.getProperty("deathdate")  %>:
+              <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
+            </td>
+          </tr>
+          </table>
+
+          </div>
+          <!-- death date popup dialog script -->
+          <script>
+          var dlgDeathDate = $("#dialogDeathDate").dialog({
+          autoOpen: false,
+          draggable: false,
+          resizable: false,
+          width: 600
           });
 
-          $("a#nickname").click(function() {
-            dlgNick.dialog("open");
+          $("a#deathdate").click(function() {
+          dlgDeathDate.dialog("open");
           });
           </script>
-
+          </p>
+          <!-- end death date -->
+        </div>
+        <div class="col-md-4">
           <a name="alternateid"></a>
           <%
           String altID="";
@@ -921,174 +1094,15 @@ function dataTypes(obj, fieldName) {
         }
         %>
 
-
-        <%
-          String sexValue="";
-          if(sharky.getSex()!=null){sexValue=sharky.getSex();}
-          %>
-          <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
-          <%
-            //edit sex
-            if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
-
-            <!-- Now prep the sex popup dialog -->
-            <div id="dialogSex" title="<%=setsex %>" style="display:none">
-            <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-              <tr>
-                <td align="left" valign="top">
-                  <form name="setxsexshark" action="IndividualSetSex" method="post">
-
-                    <select name="selectSex" size="1" id="selectSex">
-                      <option value="unknown"><%=props.getProperty("unknown") %></option>
-                      <option value="male"><%=props.getProperty("male") %></option>
-                      <option value="female"><%=props.getProperty("female") %></option>
-                    </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
-                    <input name="Add" type="submit" id="Add" value="<%=update %>" />
-                  </form>
-                </td>
-              </tr>
-            </table>
-          </div>
-          <!-- sex popup dialog script -->
-          <script>
-            var dlgSex = $("#dialogSex").dialog({
-            autoOpen: false,
-            draggable: false,
-            resizable: false,
-            width: 500
-            });
-
-            $("a#sex").click(function() {
-            dlgSex.dialog("open");
-            });
-          </script>
-          <%}%>
-        </p>
-
-        <!-- start birth date -->
-        <a name="birthdate"></a>
-        <%
-          String timeOfBirth="";
-          //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
-          if(sharky.getTimeOfBirth()>0){
-          String timeOfBirthFormat="yyyy-MM-d";
-          if(props.getProperty("birthdateJodaFormat")!=null){
-          timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
-          }
-          timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
-          }
-
-          String displayTimeOfBirth=timeOfBirth;
-          //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
-
-          %>
-          <p><%=props.getProperty("birthdate")  %>:
-          <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-        </p>
-
-        <!-- Now prep the birth date popup dialog -->
-        <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
-        <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-          <tr><td align="left" valign="top">
-            <strong>
-              <font color="#990000"> <%=props.getProperty("clickDate")%>
-            </font>
-          </strong>
-          <br /><%=props.getProperty("dateFormat")%>
-          <br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
-        </td></tr>
-
-        <tr>
-          <td align="left" valign="top">
-            <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
-
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-              <%=props.getProperty("birthdate")  %>:
-              <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
-
-              <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
-            </td>
-          </tr>
-        </table>
+        </div>
 
       </div>
-      <!-- birth date popup dialog script -->
-      <script>
-        var dlgBirthDate = $("#dialogBirthDate").dialog({
-        autoOpen: false,
-        draggable: false,
-        resizable: false,
-        width: 600
-        });
+      <%-- End Descriptions --%>
 
-        $("a#birthdate").click(function() {
-        dlgBirthDate.dialog("open");
-        });
-      </script>
-      </p>
-      <!-- end birth date -->
 
-      <!-- start death date -->
-      <a name="deathdate"></a>
-      <%
-      String timeOfDeath="";
-      if(sharky.getTimeofDeath()>0){
-      String timeOfDeathFormat="yyyy-MM-d";
-      if(props.getProperty("deathdateJodaFormat")!=null){
-      timeOfDeathFormat=props.getProperty("deathdateJodaFormat");
-      }
-      timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString(timeOfDeathFormat);
-      }
-      String displayTimeOfDeath=timeOfDeath;
-      //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
 
-      %>
-      <p><%=props.getProperty("deathdate")  %>:
-      <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-      </p>
 
-      <!-- Now prep the death date popup dialog -->
-      <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
-      <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-      <tr><td align="left" valign="top">
-        <strong>
-          <font color="#990000"> <%=props.getProperty("clickDate")%>
-        </font>
-      </strong>
-      <br /><%=props.getProperty("dateFormat")%>
-      <br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
-
-      </td></tr>
-
-      <tr>
-      <td align="left" valign="top">
-        <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
-          <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-          <%=props.getProperty("deathdate")  %>:
-          <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
-        </td>
-      </tr>
-      </table>
-
-      </div>
-      <!-- death date popup dialog script -->
-      <script>
-      var dlgDeathDate = $("#dialogDeathDate").dialog({
-      autoOpen: false,
-      draggable: false,
-      resizable: false,
-      width: 600
-      });
-
-      $("a#deathdate").click(function() {
-      dlgDeathDate.dialog("open");
-      });
-      </script>
-      </p>
-      <!-- end death date -->
 
       <%-- TODO does this vv go here? --%>
       <%
