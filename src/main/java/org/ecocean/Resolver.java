@@ -1,8 +1,11 @@
+/* note: the first iteration of Resolver will *intentionally* make attempts to auto-resolve any choices during splits and merges.
+   good luck with that!   later we will investigate review workflows etc.  */
 
 package org.ecocean;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -10,7 +13,9 @@ import javax.servlet.http.HttpServletRequest;
 
 public class Resolver implements java.io.Serializable {
     public static String STATUS_PENDING = "pending";  //needs review
-    public static String STATUS_APPROVED = "approved";
+    public static String STATUS_APPROVED = "approved";  //approved, but not complete
+    public static String STATUS_AUTO = "auto";  //approval not necessary; but not complete
+    public static String STATUS_COMPLETE = "complete";
     public static String STATUS_ERROR = "error";
 
     public static String TYPE_RETIRE = "retire";
@@ -45,6 +50,12 @@ public class Resolver implements java.io.Serializable {
     }
     public void setId(int i) {
         id = i;
+    }
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String s) {
+        status = s;
     }
     public void setParameters(String p) {
         parameters = p;
@@ -133,7 +144,7 @@ public class Resolver implements java.io.Serializable {
 
         JSONObject jp = new JSONObject();
         jp.put("individualId", indiv.getIndividualID());
-        jp.put("user", AccessControl.simpleUserString(request));
+        jp.put("user", AccessControl.userAsJSONObject(request));
         res.setParameters(jp);
 
         JSONObject jr = new JSONObject();
@@ -154,9 +165,82 @@ public class Resolver implements java.io.Serializable {
         return res;
     }
 
-    public static Resolver addNewMarkedIndividuals(MarkedIndividual indiv, HttpServletRequest request, Shepherd myShepherd) {
+    public static Resolver addNewMarkedIndividuals(List<Annotation> anns, HttpServletRequest request, Shepherd myShepherd) {
         Resolver res = new Resolver(TYPE_NEW);
+
+        JSONObject jp = new JSONObject();
+        JSONArray aarr = new JSONArray();
+        for (Annotation ann : anns) {
+            aarr.put(ann.getId());
+        }
+        jp.put("annotations", aarr);
+        jp.put("user", AccessControl.userAsJSONObject(request));
+        res.setParameters(jp);
+
+        boolean needsReview = false;
+        JSONArray issues = new JSONArray();
+
+        ArrayList<Encounter> encs = new ArrayList<Encounter>();
+        for (Annotation ann : anns) {
+            Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
+            if ((enc == null) || encs.contains(enc)) continue;
+            if (enc.hasMarkedIndividual()) {
+                needsReview = true;
+                JSONObject iss = new JSONObject();
+                iss.put("message", "Encounter " + enc.getCatalogNumber() + " is already assigned " + enc.getIndividualID());
+                iss.put("encId", enc.getCatalogNumber());
+                issues.put(iss);
+            }
+            encs.add(enc);
+        }
+
+        JSONObject jr = new JSONObject();
+        if (encs.size() < 1) {
+            JSONArray e = new JSONArray();
+            e.put("no Encounters found containing any of the Annotations");
+            jr.put("errors", e);
+            res.setResults(jr);
+            res.setStatus(STATUS_ERROR);
+            return res;
+        }
+
+        if (issues.length() > 0) jr.put("reviewIssues", issues);
+        boolean execute = false;
+        if (needsReview) {
+            res.setStatus(STATUS_PENDING);
+        } else {
+            res.setStatus(STATUS_AUTO);
+            execute = true;
+        }
+
+        res.setResults(jr);
+        myShepherd.getPM().makePersistent(res);  //save it in this state before execute....
+
+        if (execute) {
+            MarkedIndividual indiv = new MarkedIndividual(Util.generateUUID(), encs.get(0));
+            //jr.set(___, exec results) ????
+            // res.setResults(jr);
+            //res.setStatus(STATUS_COMPLETE);
+            myShepherd.getPM().makePersistent(res);  //save it in this state before execute....
+        }
+
         return res;
+    }
+
+
+    public static JSONObject processAPIJSONObject(JSONObject jin, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject("{\"success\": true}");
+        Iterator it = jin.keys();
+        while (it.hasNext()) {
+            String type = (String)it.next();
+            if (!validType(type)) {
+                rtn.put("success", false);
+                rtn.put(type, "error: invalid type " + type);
+            } else {
+                rtn.put(type, "not yet supported");
+            }
+        }
+        return rtn;
     }
 
 
