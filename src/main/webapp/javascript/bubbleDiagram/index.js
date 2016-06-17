@@ -1,43 +1,21 @@
-$(document).ready(function() {
+var makeChart = function(items) {
 
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
     container: ".bubbleChart",
-    size: 900,
-    viewBoxSize: 500,
-    innerRadius: 170,
-    outerRadius: 1600,
-    radiusMin: 8.5,
-    radiusMax: 80,
-    intersectDelta: 0,
-    intersectInc: 2,
-
+    size: 500,
+    supportResponsive: true,
+      container: ".bubbleChart",
+      size: 900,
+      viewBoxSize: 400,
+      innerRadius: 150,
+      outerRadius: 1600,
+      radiusMin: 8.5,
+      radiusMax: 80,
+      intersectDelta: 0,
+      intersectInc: 2,
     data: {
-      items: [
-        {text: "SCAR", count: "100"},
-        {text: "5560", count: "91"},
-        {text: "5561", count: "75"},
-        {text: "5722", count: "63"},
-        {text: "6070", count: "45"},
-        {text: "6068", count: "35"},
-        {text: "5703", count: "33"},
-        {text: "5562", count: "19"},
-        {text: "5988", count: "13"},
-        {text: "5151", count: "13"},
-        {text: "6035", count: "12"},
-        {text: "5563", count: "6"},
-        {text: "5130", count: "4"},
-        {text: "6094", count: "2"},
-        {text: "5940", count: "1"},
-        {text: "5944", count: "1"},
-        {text: "5981", count: "1"},
-        {text: "5733", count: "1"},
-        {text: "5759", count: "1"},
-        {text: "5742", count: "1"},
-        {text: "5707", count: "1"},
-        {text: "5706", count: "1"},
-        {text: "5732", count: "1"},
-      ],
+      items,
       eval: function (item) {return item.count;},
       classed: function (item) {return item.text.split(" ").join("");}
     },
@@ -107,5 +85,66 @@ $(document).ready(function() {
           ]
         }
       }]
+    });
+}
+
+var getData = function() {
+    var items = [];
+    var encounterArray = [];
+    var occurrenceArray = [];
+    var dataObject = {};
+    var individualID = 5727;
+
+     d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+      for(var i=0; i < jsonData.length; i++) {
+        var encounterSize = jsonData[i].encounters.length;
+        for(var j=0; j < encounterSize; j++) {
+          if(encounterArray.includes(jsonData[i].encounters[j].individualID)) {
+          } else {
+            encounterArray.push(jsonData[i].encounters[j].individualID);
+          }
+        }
+        occurrenceArray = occurrenceArray.concat(encounterArray);
+        encounterArray = [];
+      }
+
+      for(var i = 0; i < occurrenceArray.length; ++i) {
+        if(!dataObject[occurrenceArray[i]])
+        dataObject[occurrenceArray[i]] = 0;
+        ++dataObject[occurrenceArray[i]];
+      }
+      for (var prop in dataObject) {
+        var whale = new Object();
+        whale = {text:prop, count:dataObject[prop]};
+        items.push(whale);
+      }
+      console.log(items.length);
+      return makeChart(items);
+    });
+  };
+
+
+$(document).ready(function() {
+  getData();
+  $("#cooccurrenceTable").hide();
+
+  $("#cooccurrenceDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#cooccurrenceDiagram").show();
+    $("#cooccurrenceTable").hide();
+    $("#cooccurrenceDiagramTab").addClass("active");
+    $("#cooccurrenceTableTab").removeClass("active");
+  });
+
+  $("#cooccurrenceTableTab").click(function (e) {
+    e.preventDefault()
+    $("#cooccurrenceTable").show();
+    $("#cooccurrenceDiagram").hide();
+    $("#cooccurrenceTableTab").addClass("active");
+    $("#cooccurrenceDiagramTab").removeClass("active");
   });
 });

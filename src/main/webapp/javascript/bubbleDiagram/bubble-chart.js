@@ -64,7 +64,8 @@
       var circles = [];
       var interval = 0;
       var options = self.options;
-      while (circles.length < self.items.length && ++interval < self.intervalMax) {
+      console.log(self.options.data.items.length);
+      while (circles.length < self.options.data.items.length && ++interval < self.intervalMax) {
         var val = self.values[circles.length];
         var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
         var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
@@ -106,132 +107,128 @@
       return values;
     },
 
-
-
     setup: function () {
-      var self = this;
-      var options = self.options;
-
-
-      self.innerRadius = options.innerRadius;
-      self.outerRadius = options.outerRadius;
-      self.centralPoint = options.size / 2;
-      self.intervalMax = options.size * options.size;
-      self.items = options.data.items;
-      self.values = self.getValues();
-      self.valueMax = Math.max.apply(null, self.values);
-      var width = 900,
-          height = 900;
-
-
-      var zoom = d3.behavior.zoom().scaleExtent([0.6, 10]).on("zoom", zoomed);
-
-      self.svg = d3.select(options.container).append("svg")
-      .attr({preserveAspectRatio: "xMidYMid", width: options.size, height: options.size, class: "bubbleChart"})
-      .attr("viewBox", function (d) {return [options.viewBoxSize/2 - 20, options.viewBoxSize/2 - 20, options.viewBoxSize - 10, options.viewBoxSize].join(" ")})
-      .call(zoom)
-      .append("g");
-
-
-      function zoomed() {
-        self.svg.attr("transform",
-            "translate(" + zoom.translate() + ")" +
-            "scale(" + zoom.scale() + ")"
-        );
-      }
-
-    function interpolateZoom (translate, scale) {
-
         var self = this;
-        return d3.transition().duration(350).tween("zoom", function () {
-            var iTranslate = d3.interpolate(zoom.translate(), translate),
-                iScale = d3.interpolate(zoom.scale(), scale);
-            return function (t) {
-                zoom
-                    .scale(iScale(t))
-                    .translate(iTranslate(t));
-                zoomed();
-            };
-        });
-    }
+        var options = self.options;
+        self.innerRadius = options.innerRadius;
+        self.outerRadius = options.outerRadius;
+        self.centralPoint = options.size / 2;
+        self.intervalMax = options.size * options.size;
+        self.items = options.data.items;
+        self.values = self.getValues();
+        self.valueMax = Math.max.apply(null, self.values);
+        var width = 900,
+            height = 900;
 
-    function zoomClick() {
-        var clicked = d3.event.target,
-            direction = 0.5,
-            factor = 0.2,
-            target_zoom = 1,
-            center = [width / 2, height / 2],
-            extent = zoom.scaleExtent(),
-            translate = zoom.translate(),
-            translate0 = [],
-            l = [],
-            view = {x: translate[0], y: translate[1], k: zoom.scale()};
 
-        d3.event.preventDefault();
-        direction = (this.id === 'zoomIn') ? 1 : -1;
-        target_zoom = zoom.scale() * (1 + factor * direction);
+        var zoom = d3.behavior.zoom().scaleExtent([0.6, 10]).on("zoom", zoomed);
 
-        if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+        self.svg = d3.select(options.container).append("svg")
+        .attr({preserveAspectRatio: "xMidYMid", width: options.size, height: options.size, class: "bubbleChart"})
+        .attr("viewBox", function (d) {return [options.viewBoxSize/2 + 10, options.viewBoxSize/2 + 55, options.viewBoxSize+100, options.viewBoxSize].join(" ")})
+        .call(zoom)
+        .append("g");
 
-        translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
-        view.k = target_zoom;
-        l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
 
-        view.x += center[0] - l[0];
-        view.y += center[1] - l[1];
+        function zoomed() {
+          self.svg.attr("transform",
+              "translate(" + zoom.translate() + ")" +
+              "scale(" + zoom.scale() + ")"
+          );
+        }
 
-        interpolateZoom([view.x, view.y], view.k);
+      function interpolateZoom (translate, scale) {
+
+          var self = this;
+          return d3.transition().duration(350).tween("zoom", function () {
+              var iTranslate = d3.interpolate(zoom.translate(), translate),
+                  iScale = d3.interpolate(zoom.scale(), scale);
+              return function (t) {
+                  zoom
+                      .scale(iScale(t))
+                      .translate(iTranslate(t));
+                  zoomed();
+              };
+          });
       }
 
-      d3.selectAll('button').on('click', zoomClick);
+      function zoomClick() {
+          var clicked = d3.event.target,
+              direction = 0.5,
+              factor = 0.2,
+              target_zoom = 1,
+              center = [width / 2, height / 2],
+              extent = zoom.scaleExtent(),
+              translate = zoom.translate(),
+              translate0 = [],
+              l = [],
+              view = {x: translate[0], y: translate[1], k: zoom.scale()};
 
-      var x = d3.scale.linear()
-          .domain([-width / 2, width / 2])
-          .range([0, width]);
+          d3.event.preventDefault();
+          direction = (this.id === 'zoomIn') ? 1 : -1;
+          target_zoom = zoom.scale() * (1 + factor * direction);
 
-      var y = d3.scale.linear()
-          .domain([-height / 2, height / 2])
-          .range([height, 0]);
+          if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
 
-      function reset() {
-        self.svg.call(zoom
-            .x(x.domain([-width / 2, width / 2]))
-            .y(y.domain([-height / 2, height / 2]))
-            .event);
-      }
+          translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+          view.k = target_zoom;
+          l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
 
-      d3.selectAll('#reset').on('click', reset);
+          view.x += center[0] - l[0];
+          view.y += center[1] - l[1];
+
+          interpolateZoom([view.x, view.y], view.k);
+        }
+
+        d3.selectAll('button').on('click', zoomClick);
+
+        var x = d3.scale.linear()
+            .domain([-width / 2, width / 2])
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .domain([-height / 2, height / 2])
+            .range([height, 0]);
+
+        function reset() {
+          self.svg.call(zoom
+              .x(x.domain([-width / 2, width / 2]))
+              .y(y.domain([-height / 2, height / 2]))
+              .event);
+        }
+
+        d3.selectAll('#reset').on('click', reset);
 
 
-      self.circlePositions = self.randomCirclesPositions(options.intersectDelta);
+        self.circlePositions = self.randomCirclesPositions(options.intersectDelta);
 
-      var node = self.svg.selectAll(".node")
-        .data(self.circlePositions)
-        .enter().append("g")
-        .attr("class", function (d) {return ["node", options.data.classed(d.item)].join(" ");});
+        var node = self.svg.selectAll(".node")
+          .data(self.circlePositions)
+          .enter().append("g")
+          .attr("class", function (d) {return ["node", options.data.classed(d.item)].join(" ");});
 
-      var fnColor = d3.scale.category20();
+        var fnColor = d3.scale.category20();
 
-      node.append("circle")
-        .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
-        .style("fill", function (d) {
-          return options.data.color !== undefined ? options.data.color(d.item) : fnColor(d.item.text);
-        })
-        .attr("opacity", "0.8");
-      node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
+        node.append("circle")
+          .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
+          .style("fill", function (d) {
+            return options.data.color !== undefined ? options.data.color(d.item) : fnColor(d.item.text);
+          })
+          .attr("opacity", "0.8");
+        node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
 
-      self.transition = {};
-      self.event = $.microObserver.get($.misc.uuid());
+        self.transition = {};
+        self.event = $.microObserver.get($.misc.uuid());
 
-      if (options.supportResponsive) {
-        $(window).resize(function() {
-          var width = $(options.container).width();
-          self.svg.attr("width", width);
-          self.svg.attr("height", width);
-        });
-        $(window).resize();
-      }
-    },
+        if (options.supportResponsive) {
+          $(window).resize(function() {
+            var width = $(options.container).width();
+            self.svg.attr("width", width);
+            self.svg.attr("height", width);
+          });
+          $(window).resize();
+        }
+      },
 
     getCirclePositions: function () {
       return this.circlePositions;
@@ -302,43 +299,3 @@
 
   return d3.svg.BubbleChart;
 }));
-/**
- * Settings of bubble chart
- *
- * @typedef {object} settings
- *
- * @param {(object[]|string[])} plugins - Array of plugin [microplugin](https://github.com/brianreavis/microplugin.js|microplugin)
- * @param {string} [container=".bubbleChart"] - Jquery selector which will contain the chart
- * @param {number} size - Size of the chart, in pixel
- * @param {number} [viewBoxSize=size] - Size of the viewport of the chart, in pixel [ViewBoxAttribute](http://www.w3.org/TR/SVG/coords.html#ViewBoxAttribute)
- * @param {number} [innerRadius=size/3] - Radius of the Inner Circle, in pixel
- * @param {number} [outerRadius=size/2] - Radius of the Outer Circle, in pixel
- * @param {number} [radiusMin=size/10] - Minimum radius, in pixel
- * @param {number} [radiusMax=(outerRadius  innerRadius)/2] - Maximum radius, in pixel
- * @param {number} [intersectDelta=0] - Intersection between circles, in pixel
- * @param {number} [intersectInc=intersectDelta] - Increment of settings.intersectDelta, in pixel
- * @param {number} [transitDuration=1000] - Duration of transition when do animations, in mili-seconds
- * @param {data} data - Data information
- */
-
-/**
- * Data information
- *
- * @typedef {object} data
- * @param {object[]} items - Array of items <br/> ex:
- * ```js
- * data.items = [{number: 179, label: "something"}, {number: 220, label: "everything"}]
- * ```
- * @param {function} eval - Function should return a number used to evaluate an item <br/> ex:
- * ```js
- * data.eval = function(d){
- *   return d.number;
- * }
- * ```
- * @param {function} [color=d3.scale.category20] - Function should return a string used to fill bubbles <br/>ex:
- * ```js
- * data.color = function(d){
- *   return "white";
- * }
- * ```
- */
