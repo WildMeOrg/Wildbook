@@ -2314,6 +2314,8 @@ dlgRel.dialog("open");
   <script src="javascript/bubbleDiagram/central-click.js"></script>
   <script src="javascript/bubbleDiagram/d3-transform.js"></script>
   <script src="javascript/bubbleDiagram/lines.js"></script>
+  <script src="javascript/bubbleDiagram/cooccurrenceApiCall.js"></script>
+
 
 <div class="familyCommunityRelationships">
   <ul class="nav nav-tabs">
@@ -2483,6 +2485,8 @@ dlgRel.dialog("open");
       	%>
       	<td>
       	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
+
+
 
       	</td>
 
