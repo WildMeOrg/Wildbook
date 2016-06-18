@@ -18,6 +18,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -1260,6 +1261,7 @@ System.out.println("identification most recent action found is " + action);
             fparams.put("width", jbb.optInt(2, -1));
             fparams.put("height", jbb.optInt(3, -1));
             Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+            ma.addFeature(ft);
 
             rtn = RestClient.get(iaURL(context, "/api/annot/species/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
@@ -1272,6 +1274,7 @@ System.out.println("identification most recent action found is " + action);
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
             }
+            System.out.println("INFO: " + ann + " pulled from IA");
             return ann;
 
         } catch (Exception ex) {
@@ -1282,11 +1285,28 @@ System.out.println("identification most recent action found is " + action);
     public static MediaAsset grabMediaAsset(String maUUID, Shepherd myShepherd) {
         MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
         if (ma != null) return ma;
-        return getMediaAssetFromIA(maUUID);
+        return getMediaAssetFromIA(maUUID, myShepherd);
     }
 
-    public static MediaAsset getMediaAssetFromIA(String maUUID) {
-        return null;
+    public static MediaAsset getMediaAssetFromIA(String maUUID, Shepherd myShepherd) {
+        File file = new File(maUUID + ".jpg"); //how do we get real extension?
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        JSONObject params = astore.createParameters(file);
+        MediaAsset ma = new MediaAsset(astore, params);
+        ma.setUUID(maUUID);
+        try {
+            //grab the url to our localPath for convenience (e.g. child assets to be created from)
+            file = ma.localPath().toFile();
+            RestClient.writeToFile(iaURL("context0", "/api/image/src/5/"), file);  //placeholder til uuids work  FIXME
+            ma.copyIn(file);
+            ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
+            ma.updateMetadata();
+        } catch (IOException ioe) {
+            throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
+        }
+        ma.addLabel("_original");
+        System.out.println("INFO: " + ma + " pulled from IA");
+        return ma;
     }
 
 }

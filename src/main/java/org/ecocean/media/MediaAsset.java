@@ -379,7 +379,10 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
     public void addFeature(Feature f) {
         if (features == null) features = new ArrayList<Feature>();
-        if (!features.contains(f)) features.add(f);
+        if (!features.contains(f)) {
+            features.add(f);
+            f.asset = this;
+        }
     }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
