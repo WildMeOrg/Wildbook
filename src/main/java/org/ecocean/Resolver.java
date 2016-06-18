@@ -183,8 +183,12 @@ public class Resolver implements java.io.Serializable {
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         for (Annotation ann : anns) {
             Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
-            if ((enc == null) || encs.contains(enc)) continue;
-            if (enc.hasMarkedIndividual()) {
+            if (encs.contains(enc)) continue;
+            if (enc == null) {  //we need an encounter to hold this annotation
+                enc = new Encounter(ann);
+                System.out.println("INFO: new encounter " + enc.getCatalogNumber());
+
+            } else if (enc.hasMarkedIndividual()) {
                 needsReview = true;
                 JSONObject iss = new JSONObject();
                 iss.put("message", "Encounter " + enc.getCatalogNumber() + " is already assigned " + enc.getIndividualID());
@@ -195,6 +199,7 @@ public class Resolver implements java.io.Serializable {
         }
 
         JSONObject jr = new JSONObject();
+/*  this should never happen now, since we create encounters
         if (encs.size() < 1) {
             JSONArray e = new JSONArray();
             e.put("no Encounters found containing any of the Annotations");
@@ -203,26 +208,29 @@ public class Resolver implements java.io.Serializable {
             res.setStatus(STATUS_ERROR);
             return res;
         }
+*/
 
         if (issues.length() > 0) jr.put("reviewIssues", issues);
-        boolean execute = false;
+needsReview = false;  // we are only full-auto now!
         if (needsReview) {
             res.setStatus(STATUS_PENDING);
         } else {
             res.setStatus(STATUS_AUTO);
-            execute = true;
         }
 
+        //res.setResults(jr);
+        //myShepherd.getPM().makePersistent(res);  //save it in this state before execute....
+
+        MarkedIndividual indiv = new MarkedIndividual(Util.generateUUID(), encs.get(0));
+        for (int i = 1 ; i < encs.size() ; i++) {
+            indiv.addEncounter(encs.get(i), "context0");
+        }
+
+        res.addResultObject(indiv);
+        jr.put("newMarkedIndividual", indiv.getIndividualID());
         res.setResults(jr);
-        myShepherd.getPM().makePersistent(res);  //save it in this state before execute....
-
-        if (execute) {
-            MarkedIndividual indiv = new MarkedIndividual(Util.generateUUID(), encs.get(0));
-            //jr.set(___, exec results) ????
-            // res.setResults(jr);
-            //res.setStatus(STATUS_COMPLETE);
-            myShepherd.getPM().makePersistent(res);  //save it in this state before execute....
-        }
+        res.setStatus(STATUS_COMPLETE);
+        myShepherd.getPM().makePersistent(res);
 
         return res;
     }
