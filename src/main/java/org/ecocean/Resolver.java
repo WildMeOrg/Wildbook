@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.servlet.http.HttpServletRequest;
+import org.ecocean.identity.IBEISIA;
 
 public class Resolver implements java.io.Serializable {
     public static String STATUS_PENDING = "pending";  //needs review
@@ -241,7 +242,14 @@ needsReview = false;  // we are only full-auto now!
         Iterator it = jin.keys();
         while (it.hasNext()) {
             String type = (String)it.next();
-            if (!validType(type)) {
+            if (type.equals("fromIAImageSet")){
+                try {
+                    JSONObject res = IBEISIA.mergeIAImageSet(jin.optInt(type), myShepherd); //currently just a single int id is passed
+                } catch (Exception ex) {  //pokemon!
+                    ex.printStackTrace();
+                    throw new RuntimeException("mergeIAImageSet() failed! " + ex.toString());
+                }
+            } else if (!validType(type)) {
                 rtn.put("success", false);
                 rtn.put(type, "error: invalid type " + type);
             } else {
