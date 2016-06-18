@@ -1309,6 +1309,107 @@ System.out.println("identification most recent action found is " + action);
         return ma;
     }
 
+/*
+from that you can grab all the images in the image set
+then you get all the annotations from the imagse
+then you grab the names of the annotations
+then you can grab all annotations from each name
+the annotations in that set that are not in the occurrence set are the ones that may potentially be merged
+I think that is the general walk that needs to happen
+*/
+
+    /* generally two things are done here: (1) the setId is made into an Occurrence and the Annotations are added to it (by way of Encounters); and
+       (2) a name check is done to possibly merge other Annotations to this indiv  */
+    public static JSONObject mergeIAImageSet(int setId, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
+        if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+        JSONArray aids = res.getJSONArray("response").getJSONArray(0);
+System.out.println("aids = " + aids);
+        JSONArray nameIds = iaAnnotationNameIdsFromIds(aids);
+System.out.println("nameIds = " + nameIds);
+        List<Integer> unids = new ArrayList<Integer>();
+        for (int i = 0 ; i < nameIds.length() ; i++) {
+            int n = nameIds.optInt(i, -1);
+            if ((n < 0) || unids.contains(n)) continue;
+            unids.add(n);
+        }
+        JSONArray jall = iaAnnotationIdsFromNameIds(new JSONArray(unids));
+        if (jall.length() != unids.size()) throw new RuntimeException("mergeIAImageSet() annots from name size discrepancy");
+System.out.println("jall = " + jall);
+
+        HashMap<Integer,String> nameMap = iaNameMapIdToString(new JSONArray(unids));
+System.out.println("nameMap = " + nameMap);
+
+        //now we walk through and resolve groups of annotations which must be (re)named....
+        for (int i = 0 ; i < jall.length() ; i++) {
+            JSONArray aidSet = jall.optJSONArray(i);
+            if ((aidSet == null) || (aidSet.length() < 1)) continue;
+            JSONArray au = iaAnnotationUUIDsFromIds(aidSet);
+            List<String> auList = new ArrayList<String>();
+            for (int j = 0 ; j < au.length() ; j++) {
+                auList.add(fromFancyUUID(au.optJSONObject(j)));
+            }
+            assignFromIA(nameMap.get(unids.get(i)), auList);
+        }
+
+        //at this point we should have "everything" in wb that "we need".... so we push the relative Encounters into this Occurrence
+/////////////////////////
+
+/*
+        JSONArray auuids = iaAnnotationUUIDsFromIds(aids);
+System.out.println("auuids = " + auuids);
+*/
+/*
+        for (int i = 0 ; i < aids.length() ; i++) {
+            String auuid = iaAnnotationUUIDFromId(aid);
+            if (auuid == null) throw new RuntimeException("could not get uuid from aid=" + aid);
+*/
+        return null;
+    }
+
+
+    public static JSONArray assignFromIA(String individualId, List<String> annUUIDs) {
+System.out.println("##############    ################   ##############\nindividualId=" + individualId + "\n assign to --> " + annUUIDs);
+        return null;
+    }
+
+    public static JSONArray iaAnnotationUUIDsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/uuids/?aid_list=" + aids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
+        return rtn.getJSONArray("response");
+    }
+    public static JSONArray iaAnnotationNameIdsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/nids/?aid_list=" + aids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
+        return rtn.getJSONArray("response");
+    }
+    public static JSONArray iaAnnotationNamesFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/names/?aid_list=" + aids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
+        return rtn.getJSONArray("response");
+    }
+//http://52.37.240.178:5000/api/name/aids/?nid_list=[5]
+    public static JSONArray iaAnnotationIdsFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/aids/?nid_list=" + nids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot ids from nids=" + nids);
+        return rtn.getJSONArray("response");
+    }
+//http://52.37.240.178:5000/api/name/texts/?name_rowid_list=[5,21]&__format__=True
+    public static JSONArray iaNamesFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/texts/?name_rowid_list=" + nids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from nids=" + nids);
+        return rtn.getJSONArray("response");
+    }
+    public static HashMap<Integer,String> iaNameMapIdToString(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        HashMap<Integer,String> map = new HashMap<Integer,String>();
+        JSONArray names = iaNamesFromNameIds(nids);
+        if (nids.length() != names.length()) throw new RuntimeException("iaNameMapIdToString() arrays have different lengths");
+        for (int i = 0 ; i < names.length() ; i++) {
+            map.put(nids.optInt(i, -1), names.optString(i, null));
+        }
+        return map;
+    }
 }
 
 
