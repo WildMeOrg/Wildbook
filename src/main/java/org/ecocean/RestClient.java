@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.io.UnsupportedEncodingException;
@@ -230,4 +232,18 @@ System.out.println("======================== postStream -> " + jtext);
 //////System.out.println("------- getPostDataString=(\n" + result.toString() + "\n)--------\n");
         return result.toString();
     }
+
+
+    public static void writeToFile(URL url, File file) throws IOException {
+        InputStream is = url.openStream();
+        OutputStream os = new FileOutputStream(file);
+        byte[] b = new byte[2048];
+        int length;
+        while ((length = is.read(b)) != -1) {
+            os.write(b, 0, length);
+        }
+        is.close();
+        os.close();
+    }
+
 }

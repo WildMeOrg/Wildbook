@@ -28,6 +28,7 @@ import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
 import org.ecocean.Cluster;
+import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -474,6 +475,10 @@ System.out.println("anns -> " + anns);
         if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
         res.put("tasks", taskList);
         res.put("success", true);
+
+
+    } else if (j.optJSONObject("resolver") != null) {
+        res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
 
     } else {
         res.put("error", "unknown POST command");

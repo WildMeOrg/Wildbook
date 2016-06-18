@@ -6,6 +6,7 @@ import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.media.*;
 import org.ecocean.RestClient;
 import java.io.IOException;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
@@ -47,6 +49,8 @@ public class IBEISIA {
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
     //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
+
+    private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
@@ -1194,6 +1198,115 @@ System.out.println("identification most recent action found is " + action);
         //if (request.getUserPrincipal() == null) return null;
         if (request.getUserPrincipal() == null) return "__ANONYMOUS__";
         return request.getUserPrincipal().getName();
+    }
+
+
+    //builds urls for IA, based on just one.  kinda hacky (as opposed to per-endpoint setting in CommonConfiguration); but can be useful
+    public static URL iaURL(String context, String urlSuffix) {
+        if (iaBaseURL == null) {
+            String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+            if (u == null) throw new RuntimeException("configuration value IBEISIARestUrlAddAnnotations is not set");
+            int i = u.indexOf("/", 9);  //9 should get us past "http://" to get to post-hostname /
+            if (i < -1) throw new RuntimeException("could not parse IBEISIARestUrlAddAnnotations for iaBaseURL");
+            iaBaseURL = u.substring(0,i+1);  //will include trailing slash
+            System.out.println("INFO: setting iaBaseURL=" + iaBaseURL);
+        }
+        String ustr = iaBaseURL;
+        if (urlSuffix != null) {
+            if (urlSuffix.indexOf("/") == 0) urlSuffix = urlSuffix.substring(1);  //get rid of leading /
+            ustr += urlSuffix;
+        }
+        try {
+            return new URL(ustr);
+        } catch (Exception ex) {
+            throw new RuntimeException("iaURL() could not parse URL");
+        }
+    }
+
+    ////note: we *could* try to grab these as lists from IA, but that is more complicated so lets iterate for now...
+    public static List<Annotation> grabAnnotations(List<String> annIds, Shepherd myShepherd) {
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (String annId : annIds) {
+            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+            //TODO do we need to verify MediaAsset has been retreived?  for now, lets assume that happend during creation
+            if (ann != null) {
+                anns.add(ann);
+                continue;
+            }
+            ann = getAnnotationFromIA(annId, myShepherd);
+            if (ann == null) throw new RuntimeException("Could not getAnnotationFromIA(" + annId + ")");
+            anns.add(ann);
+        }
+        return anns;
+    }
+
+    public static Annotation getAnnotationFromIA(String annId, Shepherd myShepherd) {
+        String context = "context0";
+
+        try {
+            String idSuffix = "?annot_uuid_list=[" + toFancyUUID(annId) + "]";
+            JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/uuids/json/" + idSuffix));
+            if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONObject(0) == null)) throw new RuntimeException("could not get image uuid");
+            String imageUUID = fromFancyUUID(rtn.getJSONArray("response").getJSONObject(0));
+            MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
+            if (ma == null) throw new RuntimeException("could not find MediaAsset " + imageUUID);
+
+            //now we need the bbox to make the Feature
+            rtn = RestClient.get(iaURL(context, "/api/annot/bboxes/json/" + idSuffix));
+            if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get annot bbox");
+            JSONArray jbb = rtn.getJSONArray("response").getJSONArray(0);
+            JSONObject fparams = new JSONObject();
+            fparams.put("x", jbb.optInt(0, 0));
+            fparams.put("y", jbb.optInt(1, 0));
+            fparams.put("width", jbb.optInt(2, -1));
+            fparams.put("height", jbb.optInt(3, -1));
+            Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+            ma.addFeature(ft);
+
+            rtn = RestClient.get(iaURL(context, "/api/annot/species/json/" + idSuffix));
+            if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optString(0, null) == null)) throw new RuntimeException("could not get annot species");
+            String speciesString = rtn.getJSONArray("response").getString(0);
+
+            Annotation ann = new Annotation(speciesString, ft);
+            ann.setId(annId);  //nope we dont want random uuid, silly
+            rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/flags/json/" + idSuffix));
+            if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
+                boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
+                ann.setIsExemplar(exemplar);
+            }
+            System.out.println("INFO: " + ann + " pulled from IA");
+            return ann;
+
+        } catch (Exception ex) {
+            throw new RuntimeException("getAnnotationFromIA(" + annId + ") error " + ex.toString());
+        }
+    }
+
+    public static MediaAsset grabMediaAsset(String maUUID, Shepherd myShepherd) {
+        MediaAsset ma = MediaAssetFactory.loadByUuid(maUUID, myShepherd);
+        if (ma != null) return ma;
+        return getMediaAssetFromIA(maUUID, myShepherd);
+    }
+
+    public static MediaAsset getMediaAssetFromIA(String maUUID, Shepherd myShepherd) {
+        File file = new File(maUUID + ".jpg"); //how do we get real extension?
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        JSONObject params = astore.createParameters(file);
+        MediaAsset ma = new MediaAsset(astore, params);
+        ma.setUUID(maUUID);
+        try {
+            //grab the url to our localPath for convenience (e.g. child assets to be created from)
+            file = ma.localPath().toFile();
+            RestClient.writeToFile(iaURL("context0", "/api/image/src/5/"), file);  //placeholder til uuids work  FIXME
+            ma.copyIn(file);
+            ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
+            ma.updateMetadata();
+        } catch (IOException ioe) {
+            throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
+        }
+        ma.addLabel("_original");
+        System.out.println("INFO: " + ma + " pulled from IA");
+        return ma;
     }
 
 }
