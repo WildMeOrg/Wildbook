@@ -373,7 +373,7 @@ myShepherd.beginDBTransaction();
                         String sexValue = pair[j].getSex();
                         if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
                       %>
-                      <%=props.getProperty("sex")%>: <%=sexValue%>
+                      <%=props.getProperty("sex")%> <%=sexValue%>
                     </li>
                   </ul>
                 </td>
