@@ -64,8 +64,12 @@ while (allMedia.hasNext()) {
 
   // build call to get annotations from IA
   while(allMedia.hasNext() && count < maxPerLoop){
-    count++;
     MediaAsset ma = (MediaAsset) allMedia.next();
+	if (ma.getParentId() != null) {
+		System.out.println(" - - - - skipping " + ma + " as it seems to be a child MediaAsset");
+		continue;
+	}
+    count++;
     JSONObject fancyID = toFancyUUID(ma.getUUID());
     fancyIDsForIA.put(fancyID);
     originalIDsForReference.put(ma.getUUID());
