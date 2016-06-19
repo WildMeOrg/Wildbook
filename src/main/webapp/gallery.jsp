@@ -37,8 +37,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
+
+int numIndividualsOnPage=18;
+
 int startNum = 0;
-int endNum = 6;
+int endNum = numIndividualsOnPage;
 try {
   if (request.getParameter("startNum") != null) {
     startNum = (new Integer(request.getParameter("startNum"))).intValue();
@@ -48,7 +51,7 @@ try {
   }
 } catch (NumberFormatException nfe) {
   startNum = 0;
-  endNum = 6;
+  endNum = numIndividualsOnPage;
 }
 
 int listNum = endNum;
@@ -265,12 +268,26 @@ myShepherd.beginDBTransaction();
       </style>
 
       <div class="row" id="location-header">
-        <h2><%=request.getParameter("locationCodeField")%></h2>
+      <%
+      String locCode=request.getParameter("locationCodeField")
+       		.replaceAll("PS","Pohjois-Saimaa")
+  	   		.replaceAll("HV","Haukivesi")
+            .replaceAll("JV","Joutenvesi")
+         	.replaceAll("PEV","Pyyvesi - Enonvesi")
+			.replaceAll("KV","Kulovesi")
+			.replaceAll("PV","Pihlajavesi")
+			.replaceAll("PUV","Puruvesi")
+			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+			.replaceAll("LL","Luonteri – Lietvesi")
+			.replaceAll("ES","Etel&auml;-Saimaa");
+      %>
+      
+        <h2><%=locCode %></h2>
       </div>
     <% } %>
 
       <%
-      int maxRows=5;
+      int maxRows=(int)numIndividualsOnPage/2;
       for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
         %>
         <div class="row gunit-row">
@@ -413,16 +430,16 @@ myShepherd.beginDBTransaction();
 
           <%
           if (startNum>0) {
-            int newStart = Math.min(startNum-6,0);
+            int newStart = Math.min(startNum-numIndividualsOnPage,0);
             %>
-            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
           }
           %>
 
 
           Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
-          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+6%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
       </row>

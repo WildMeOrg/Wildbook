@@ -766,20 +766,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </fieldset>
    <br/>
 
-  <fieldset>
 
-
-    <div class="form-group">
-      <div class="col-xs-6 col-md-4">
-        <label class="control-label"><%=props.getProperty("submitterProject")%></label>
-      </div>
-      <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
-      </div>
-    </div>
-
-
-  </fieldset>
 
 <%
 if(request.getRemoteUser()!=null){
