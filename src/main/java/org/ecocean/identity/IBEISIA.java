@@ -6,6 +6,7 @@ import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
+import org.ecocean.MarkedIndividual;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1227,7 +1228,14 @@ System.out.println("identification most recent action found is " + action);
     public static List<Annotation> grabAnnotations(List<String> annIds, Shepherd myShepherd) {
         List<Annotation> anns = new ArrayList<Annotation>();
         for (String annId : annIds) {
-            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+            Annotation ann = null;
+            try {
+                ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
+            } catch (org.datanucleus.exceptions.NucleusObjectNotFoundException ex) {
+                //System.out.println("NOTE: grabAnnotations(" + annId + ") swallowed " + ex.toString());
+            } catch (javax.jdo.JDOObjectNotFoundException ex) {
+                //System.out.println("NOTE: grabAnnotations(" + annId + ") swallowed " + ex.toString());
+            }
             //TODO do we need to verify MediaAsset has been retreived?  for now, lets assume that happend during creation
             if (ann != null) {
                 anns.add(ann);
@@ -1342,6 +1350,8 @@ System.out.println("jall = " + jall);
 System.out.println("nameMap = " + nameMap);
 
         //now we walk through and resolve groups of annotations which must be (re)named....
+        List<Annotation> anns = new ArrayList<Annotation>();
+        List<MarkedIndividual> newIndivs = new ArrayList<MarkedIndividual>();
         for (int i = 0 ; i < jall.length() ; i++) {
             JSONArray aidSet = jall.optJSONArray(i);
             if ((aidSet == null) || (aidSet.length() < 1)) continue;
@@ -1350,28 +1360,93 @@ System.out.println("nameMap = " + nameMap);
             for (int j = 0 ; j < au.length() ; j++) {
                 auList.add(fromFancyUUID(au.optJSONObject(j)));
             }
-            assignFromIA(nameMap.get(unids.get(i)), auList);
+            HashMap<String,Object> done = assignFromIA(nameMap.get(unids.get(i)), auList, myShepherd);
+            anns.addAll((List<Annotation>)done.get("annotations"));
+            if (done.get("newMarkedIndividual") != null) {
+                MarkedIndividual newIndiv = (MarkedIndividual)done.get("newMarkedIndividual");
+                System.out.println(" +++ seems we have a new " + newIndiv);
+                newIndivs.add(newIndiv);
+            }
         }
 
+System.out.println("_++++++++++++++++++++++++++++++ anns ->\n" + anns);
         //at this point we should have "everything" in wb that "we need".... so we push the relative Encounters into this Occurrence
 /////////////////////////
 
-/*
-        JSONArray auuids = iaAnnotationUUIDsFromIds(aids);
-System.out.println("auuids = " + auuids);
-*/
-/*
-        for (int i = 0 ; i < aids.length() ; i++) {
-            String auuid = iaAnnotationUUIDFromId(aid);
-            if (auuid == null) throw new RuntimeException("could not get uuid from aid=" + aid);
-*/
         return null;
     }
 
 
-    public static JSONArray assignFromIA(String individualId, List<String> annUUIDs) {
+    //we make an assumption here that if there are orphaned annotations (not in Encounters already) they should be grouped
+    //  together into one (new) Encounter, since annUUIDs is assumed to be coming from an Occurrence.  be warned!
+    public static HashMap<String,Object> assignFromIA(String individualId, List<String> annUUIDs, Shepherd myShepherd) {
 System.out.println("##############    ################   ##############\nindividualId=" + individualId + "\n assign to --> " + annUUIDs);
-        return null;
+        HashMap<String,Object> rtn = new HashMap<String,Object>();
+        List<Annotation> anns = grabAnnotations(annUUIDs, myShepherd);
+        if (anns.size() != annUUIDs.size()) throw new RuntimeException("assignFromIA() grabbed annots differ in size from passed uuids");
+System.out.println(anns);
+        List<Encounter> encs = new ArrayList<Encounter>();
+        ArrayList<Annotation> needEnc = new ArrayList<Annotation>();
+
+        for (Annotation ann : anns) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (enc == null) {
+                needEnc.add(ann);
+                continue;
+            }
+            // now we have to deal with an existing encounter that contains this annot.... if it has sibling annots in the encounter
+            //  we have to consider whether they too are getting renamed.  if they are, easy; if not... :( we have to split up this encounter
+            ArrayList<Annotation> staying = new ArrayList<Annotation>();
+            ArrayList<Annotation> going = new ArrayList<Annotation>();
+            for (Annotation eann : enc.getAnnotations()) {
+                //we are just going to compare ids, since i dont trust Annotation equivalence
+                if (annUUIDs.contains(eann.getId())) {
+                    going.add(eann);
+                } else {
+                    staying.add(eann);
+                }
+                if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
+                    encs.add(enc);
+                } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
+                    Encounter newEnc = enc.cloneWithoutAnnotations();
+                    System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
+                    enc.setAnnotations(staying);
+                    newEnc.setAnnotations(going);
+                    encs.add(newEnc);
+                }
+            }
+
+        }
+
+System.out.println("---------------------------------------------\n encs? " + encs);
+System.out.println("---------------------------------------------\n needEnc? " + needEnc);
+
+        if (needEnc.size() > 0) {
+            Encounter newEnc = new Encounter(needEnc);
+            System.out.println("INFO: assignFromIA() created " + newEnc + " for " + needEnc.size() + " annots");
+            encs.add(newEnc);
+        }
+
+        for (Encounter enc : encs) {
+            if (enc.hasMarkedIndividual()) {
+                System.out.println("WARNING: assignFromIA() assigning indiv " + individualId + " to " + enc + " which will replace " + enc.getIndividualID());
+            }
+        }
+
+        MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(individualId);
+        int startE = 0;
+        if (indiv == null) {
+            indiv = new MarkedIndividual(individualId, encs.get(0));
+            startE = 1;
+            System.out.println("INFO: assignFromIA() created " + indiv);
+            rtn.put("newMarkedIndividual", indiv);
+        }
+        for (int i = startE ; i < encs.size() ; i++) {
+            indiv.addEncounter(encs.get(i), "context0");
+        }
+
+        rtn.put("annotations", anns);
+        return rtn;
     }
 
     public static JSONArray iaAnnotationUUIDsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
