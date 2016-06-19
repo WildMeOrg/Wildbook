@@ -140,7 +140,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                     </ul>
 
                   </div>
-                  <a class="navbar-brand" target="_blank" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
+                  <a class="navbar-brand" href="<%=urlLoc %>">Wildbook for Mark-Recapture Studies</a>
                 </div>
               </div>
 
@@ -342,7 +342,10 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                           <li><a href="#">Tee kertalahjoitus</a></li>
                         </ul>
                       </li>
-
+                      
+					 <%
+	                 if(request.getUserPrincipal()!=null){
+		             %>
                       <li class="pull-right">
                         <div class="search-wrapper">
                           <label class="search-field-header">
@@ -354,7 +357,9 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                           </label>
                         </div>
                       </li>
-
+					<%
+	                 }
+					%>
 
                     </ul>
                  
