@@ -312,6 +312,9 @@
         <column length="36"/>
       </field>
 		<field name="isExemplar">
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+			<column default-value="0" />
+-->
 			<column default-value="false" />
 		</field>
 
