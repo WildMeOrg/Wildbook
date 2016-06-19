@@ -317,9 +317,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       </li>
                       <% }  else { %> <!-- end if user logged in -->
 
-                      <li>
-                        <a href="submit.jsp">ILMOITA HAVAINTO</a>
-                      </li>
+                      
 
                       <li>
                         <a href="#">T&Auml;ST&Auml; ON KYSE</a>
