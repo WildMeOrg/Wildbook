@@ -35,6 +35,7 @@ import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
 import javax.jdo.Query;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -44,7 +45,7 @@ import org.ecocean.tag.MetalTag;
 import org.ecocean.tag.SatelliteTag;
 import org.ecocean.Util;
 import org.ecocean.servlet.ServletUtilities;
-
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.media.*;
 
 
@@ -52,6 +53,7 @@ import javax.servlet.http.HttpServletRequest;
 
 
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -276,6 +278,8 @@ public class Encounter implements java.io.Serializable {
     public Encounter(ArrayList<Annotation> anns) {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
+        this.setDateFromAssets();
+        this.setSpeciesFromAssets();
     }
 
 
@@ -1750,6 +1754,29 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public String getPatterningCode(){ return patterningCode;}
   public void setPatterningCode(String newCode){this.patterningCode=newCode;}
 
+
+    //crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
+    public void setDateFromAssets() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        MediaAsset ma = annotations.get(0).getMediaAsset();
+        if (ma == null) return;
+        DateTime dt = ma.getDateTime();
+        if (dt == null) return;
+        year = dt.getYear();
+        month = dt.getMonthOfYear();
+        day = dt.getDayOfMonth();
+        hour = dt.getHourOfDay();
+        minutes = Integer.toString(dt.getMinuteOfHour());  //wtf is minute a string??
+        resetDateInMilliseconds();
+    }
+
+    public void setSpeciesFromAssets() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        if (sp.length > 0) this.setGenus(sp[0]);
+        if (sp.length > 1) this.setSpecificEpithet(sp[1]);
+    }
+
   public void resetDateInMilliseconds(){
     if(year>0){
       int localMonth=0;
@@ -2430,8 +2457,9 @@ throw new Exception();
             Encounter returnEnc=null;
             Query query = myShepherd.getPM().newQuery(queryString);
             List results = (List)query.execute();
-            if ((results!=null)&&(results.size() >= 1)) {
-              returnEnc=(Encounter)results.get(0);
+            if ((results!=null) && (results.size() >= 1)) {
+                if (results.size() > 1) System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() + " Encounters that contain Annotation " + annot.getId());
+                returnEnc = (Encounter)results.get(0);
             }
             query.closeAll();
             return returnEnc;
@@ -2515,6 +2543,24 @@ throw new Exception();
             }
         }
         return new ArrayList<SuperSpot>();
+    }
+
+
+    public Encounter cloneWithoutAnnotations() {
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        enc.setCatalogNumber(Util.generateUUID());
+        return enc;
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("catalogNumber", catalogNumber)
+                .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("species", getTaxonomyString())
+                .append("sex", getSex())
+                .append("shortDate", getShortDate())
+                .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
+                .toString();
     }
 
 }

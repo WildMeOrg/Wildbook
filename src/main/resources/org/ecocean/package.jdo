@@ -606,5 +606,25 @@
       <field name="username"/>
     </class>
 
+	<class name="Resolver" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity">
+			<column name="ID" />
+		</field>
+		<field name="type" />
+		<field name="modified" />
+		<field name="parameters" />
+		<field name="results" />
+		<field name="status" />
+		<field name="resultObjects" persistence-modifier="none"/>
+
+		<field name="children" mapped-by="parent">
+			<collection element-type="org.ecocean.Resolver" />
+		</field>
+		<field name="parent">
+			<column name="PARENT_ID" />
+		</field>
+
+	</class>
+
   </package>
 </jdo>
