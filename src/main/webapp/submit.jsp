@@ -468,19 +468,20 @@ function showUploadBox() {
 
 </fieldset>
 
-<hr />
+<br>
 
 <fieldset>
 <h3><%=props.getProperty("dateAndLocation")%></h3>
 
-<div class="form-group required">
+
 
     <div class="form-group required">
 
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
+      
         <label class="control-label text-danger"><%=props.getProperty("submit_date")%></label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
-</div>
+	  </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <p class="help-block">
@@ -511,7 +512,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 
 </fieldset>
 
-<hr />
+<br />
 
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
@@ -675,7 +676,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 %>
 
 </fieldset>
-<hr />
+<br />
 
 
     <%
@@ -763,7 +764,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
   </fieldset>
-   <hr/>
+   <br/>
 
   <fieldset>
 
@@ -816,7 +817,7 @@ if(request.getRemoteUser()!=null){
           </div>
         </div>
         </fieldset>
-        <hr>
+        <br>
         <fieldset>
 <%
 
@@ -956,7 +957,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
 %>
 <c:if test="${showMeasurements}">
-<hr>
+<br>
  <fieldset>
 <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
@@ -997,7 +998,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 
 
-      <hr/>
+      <br/>
 
        <fieldset>
         <h3>Tags</h3>
@@ -1086,7 +1087,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
       </fieldset>
 
-<hr/>
+<br/>
 
       <div class="form-group">
         <label class="control-label"><%=props.getProperty("otherEmails")%></label>
