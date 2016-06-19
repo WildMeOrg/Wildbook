@@ -27,6 +27,7 @@ import org.ecocean.social.Relationship;
 import org.ecocean.security.Collaboration;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.text.DecimalFormat;
 
@@ -1801,5 +1802,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshThumbnailUrl(context);
 	}
 
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("individualID", individualID)
+                .append("species", getGenusSpecies())
+                .append("sex", getSex())
+                .append("numEncounters", numberEncounters)
+                .append("numLocations", numberLocations)
+                .toString();
+    }
 
 }
