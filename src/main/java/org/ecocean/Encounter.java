@@ -35,6 +35,7 @@ import java.lang.Math;
 import java.io.*;
 import java.lang.reflect.Field;
 import javax.jdo.Query;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -2456,8 +2457,9 @@ throw new Exception();
             Encounter returnEnc=null;
             Query query = myShepherd.getPM().newQuery(queryString);
             List results = (List)query.execute();
-            if ((results!=null)&&(results.size() >= 1)) {
-              returnEnc=(Encounter)results.get(0);
+            if ((results!=null) && (results.size() >= 1)) {
+                if (results.size() > 1) System.out.println("WARNING: Encounter.findByAnnotation() found " + results.size() + " Encounters that contain Annotation " + annot.getId());
+                returnEnc = (Encounter)results.get(0);
             }
             query.closeAll();
             return returnEnc;
@@ -2541,6 +2543,24 @@ throw new Exception();
             }
         }
         return new ArrayList<SuperSpot>();
+    }
+
+
+    public Encounter cloneWithoutAnnotations() {
+        Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
+        enc.setCatalogNumber(Util.generateUUID());
+        return enc;
+    }
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("catalogNumber", catalogNumber)
+                .append("individualID", (hasMarkedIndividual() ? individualID : null))
+                .append("species", getTaxonomyString())
+                .append("sex", getSex())
+                .append("shortDate", getShortDate())
+                .append("numAnnotations", ((annotations == null) ? 0 : annotations.size()))
+                .toString();
     }
 
 }
