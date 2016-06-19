@@ -97,6 +97,6 @@ finally{
     Lorem ipsum on 1500-luvulta l&auml;htien olemassa ollut t&auml;yteteksti, jota k&auml;ytet&auml;&auml;n usein ulkoasun testaamiseen graafisessa suunnittelussa, kun mit&auml;&auml;n oikeata sis&auml;lt&ouml;&auml; ei viel&auml; ole. Lorem ipsumia k&auml;ytet&auml;&auml;n n&auml;ytt&auml;m&auml;&auml;n, milt&auml; esimerkiksi kirjasin tai julkaisun tekstin asettelu n&auml;ytt&auml;v&auml;t
   </p>
   <p class=pfooter-link>
-    <a href="<%=urlLoc%>/gallery.jsp">Lis&auml;&auml; norppia >></a>
+    <a href="<%=urlLoc%>/gallery.jsp">Siirry galleriaan >></a>
   </p>
 </div>
