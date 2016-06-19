@@ -1296,6 +1296,9 @@ System.out.println("identification most recent action found is " + action);
         return getMediaAssetFromIA(maUUID, myShepherd);
     }
 
+//http://52.37.240.178:5000/api/image/src/json/cb2e67a4-7094-d971-c5c6-3b5bed251fec/
+    //making a decision to persist these upon creation... there was a conflict cuz loadByUuid above failed on subsequent
+    //  iterations and this was created multiple times before saving
     public static MediaAsset getMediaAssetFromIA(String maUUID, Shepherd myShepherd) {
         File file = new File(maUUID + ".jpg"); //how do we get real extension?
         AssetStore astore = AssetStore.getDefault(myShepherd);
@@ -1305,7 +1308,7 @@ System.out.println("identification most recent action found is " + action);
         try {
             //grab the url to our localPath for convenience (e.g. child assets to be created from)
             file = ma.localPath().toFile();
-            RestClient.writeToFile(iaURL("context0", "/api/image/src/5/"), file);  //placeholder til uuids work  FIXME
+            RestClient.writeToFile(iaURL("context0", "/api/image/src/json/" + maUUID + "/"), file);
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
@@ -1313,7 +1316,8 @@ System.out.println("identification most recent action found is " + action);
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
         }
         ma.addLabel("_original");
-        System.out.println("INFO: " + ma + " pulled from IA");
+        myShepherd.getPM().makePersistent(ma);
+        System.out.println("INFO: " + ma + " pulled from IA (and persisted!)");
         return ma;
     }
 
@@ -1329,9 +1333,13 @@ I think that is the general walk that needs to happen
     /* generally two things are done here: (1) the setId is made into an Occurrence and the Annotations are added to it (by way of Encounters); and
        (2) a name check is done to possibly merge other Annotations to this indiv  */
     public static JSONObject mergeIAImageSet(int setId, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+//http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
+        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/uuids/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
         JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
         if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
         JSONObject rtn = new JSONObject("{\"success\": false}");
+
+        String setIdUUID = iaImageSetUUIDFromId(setId);
 
         JSONArray aids = res.getJSONArray("response").getJSONArray(0);
 System.out.println("aids = " + aids);
@@ -1399,6 +1407,7 @@ System.out.println(" >>>> " + ind);
         JSONArray je = new JSONArray();
         for (Encounter enc : encs) {
 System.out.println(" >>>> " + enc);
+System.out.println(" --------------------------_______________________________ " + enc.getIndividualID() + " +++++++++++++++++++++++++++++");
             myShepherd.getPM().makePersistent(enc);
             je.put(enc.getCatalogNumber());
             boolean addToOccurrence = false;
@@ -1410,7 +1419,8 @@ System.out.println(" >>>> " + enc);
             }
             if (addToOccurrence) {
                 if (occ == null) {
-                    occ = new Occurrence(Util.generateUUID(), enc);   //FIXME this should be setId if/when it is uuid!
+                    //TODO should we allow recycling an existing Occurrence?  (i.e. loading it here if it exists)
+                    occ = new Occurrence(setIdUUID, enc);
                 } else {
                     occ.addEncounter(enc);
                 }
@@ -1465,7 +1475,7 @@ System.out.println(anns);
                     staying.add(eann);
                 }
                 if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
-                    encs.add(enc);
+                    if (!encs.contains(enc)) encs.add(enc);
                 } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
                     Encounter newEnc = enc.cloneWithoutAnnotations();
                     System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
@@ -1496,6 +1506,7 @@ System.out.println("---------------------------------------------\n needEnc? " +
         int startE = 0;
         if (indiv == null) {
             indiv = new MarkedIndividual(individualId, encs.get(0));
+            encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIA() created " + indiv);
             rtn.put("newMarkedIndividual", indiv);
@@ -1545,6 +1556,12 @@ System.out.println("---------------------------------------------\n needEnc? " +
             map.put(nids.optInt(i, -1), names.optString(i, null));
         }
         return map;
+    }
+//http://52.37.240.178:5000/api/imageset/uuid/?imgsetid_list=[3]
+    public static String iaImageSetUUIDFromId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/uuid/?imgsetid_list=[" + setId + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set uuid from id=" + setId);
+        return fromFancyUUID(rtn.getJSONArray("response").optJSONObject(0));
     }
 }
 
