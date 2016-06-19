@@ -550,7 +550,19 @@ finally{
 
       <ol>
         <%
-        List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
+        //List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
+        ArrayList<String> locs2=new ArrayList<String>();
+        locs2.add("PS");
+        locs2.add("HV");
+        locs2.add("JV");
+        locs2.add("PEV");
+        locs2.add("KV");
+        locs2.add("PV");
+        locs2.add("PUV");
+        locs2.add("KS");
+        locs2.add("LL");
+        locs2.add("ES");
+        
         int numLocIDs = locs2.size();
         %>
         <script>console.log("numLocationIDs = <%=numLocationIDs%>");</script>
@@ -568,12 +580,15 @@ finally{
         	   		.replaceAll("HV","Haukivesi")
                     .replaceAll("JV","Joutenvesi")
                		.replaceAll("PEV","Pyyvesi - Enonvesi")
-  					.replaceAll("KV","Kolovesi")
+  					.replaceAll("KV","Kulovesi")
  					.replaceAll("PV","Pihlajavesi")
 					.replaceAll("PUV","Puruvesi")
 						.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
    					.replaceAll("LL","Luonteri – Lietvesi")
-   					.replaceAll("ES","Etel&auml; Saimaa");
+   					.replaceAll("ES","Etel&auml;-Saimaa");
+            
+
+            
             
             %>
             <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=actualName%></h3></a>
