@@ -1332,8 +1332,18 @@ I think that is the general walk that needs to happen
         JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
         if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
         JSONObject rtn = new JSONObject("{\"success\": false}");
+
         JSONArray aids = res.getJSONArray("response").getJSONArray(0);
 System.out.println("aids = " + aids);
+
+        //these will be used at the end to know what annots were original in the set (for Occurrence)
+        JSONArray oau = iaAnnotationUUIDsFromIds(aids);
+        List<String> origAnnUUIDs = new ArrayList<String>();
+        for (int j = 0 ; j < oau.length() ; j++) {
+            origAnnUUIDs.add(fromFancyUUID(oau.optJSONObject(j)));
+        }
+System.out.println("origAnnUUIDs = " + origAnnUUIDs);
+        
         JSONArray nameIds = iaAnnotationNameIdsFromIds(aids);
 System.out.println("nameIds = " + nameIds);
         List<Integer> unids = new ArrayList<Integer>();
@@ -1351,6 +1361,7 @@ System.out.println("nameMap = " + nameMap);
 
         //now we walk through and resolve groups of annotations which must be (re)named....
         List<Annotation> anns = new ArrayList<Annotation>();
+        List<Encounter> encs = new ArrayList<Encounter>();
         List<MarkedIndividual> newIndivs = new ArrayList<MarkedIndividual>();
         for (int i = 0 ; i < jall.length() ; i++) {
             JSONArray aidSet = jall.optJSONArray(i);
@@ -1362,6 +1373,7 @@ System.out.println("nameMap = " + nameMap);
             }
             HashMap<String,Object> done = assignFromIA(nameMap.get(unids.get(i)), auList, myShepherd);
             anns.addAll((List<Annotation>)done.get("annotations"));
+            encs.addAll((List<Encounter>)done.get("encounters"));
             if (done.get("newMarkedIndividual") != null) {
                 MarkedIndividual newIndiv = (MarkedIndividual)done.get("newMarkedIndividual");
                 System.out.println(" +++ seems we have a new " + newIndiv);
@@ -1369,11 +1381,58 @@ System.out.println("nameMap = " + nameMap);
             }
         }
 
+        rtn.put("success", true);
 System.out.println("_++++++++++++++++++++++++++++++ anns ->\n" + anns);
-        //at this point we should have "everything" in wb that "we need".... so we push the relative Encounters into this Occurrence
-/////////////////////////
 
-        return null;
+
+        //at this point we should have "everything" in wb that "we need".... so we push the relative Encounters into this Occurrence
+        Occurrence occ = null;  //gets created when we have our first Annotation below
+
+        JSONArray ji = new JSONArray();
+        for (MarkedIndividual ind : newIndivs) {
+System.out.println(" >>>> " + ind);
+            myShepherd.getPM().makePersistent(ind);
+            ji.put(ind.getIndividualID());
+        }
+        if (ji.length() > 0) rtn.put("newMarkedIndividuals", ji);
+
+        JSONArray je = new JSONArray();
+        for (Encounter enc : encs) {
+System.out.println(" >>>> " + enc);
+            myShepherd.getPM().makePersistent(enc);
+            je.put(enc.getCatalogNumber());
+            boolean addToOccurrence = false;
+            for (Annotation ea : enc.getAnnotations()) {
+                if (origAnnUUIDs.contains(ea.getId())) {
+                    addToOccurrence = true;
+                    break;
+                }
+            }
+            if (addToOccurrence) {
+                if (occ == null) {
+                    occ = new Occurrence(Util.generateUUID(), enc);   //FIXME this should be setId if/when it is uuid!
+                } else {
+                    occ.addEncounter(enc);
+                }
+            }
+        }
+        if (je.length() > 0) rtn.put("encounters", je);
+
+        JSONArray ja = new JSONArray();
+        for (Annotation ann : anns) {
+System.out.println(" >>>> " + ann);
+            myShepherd.getPM().makePersistent(ann);
+            ja.put(ann.getId());
+        }
+        if (ja.length() > 0) rtn.put("annotations", ja);
+
+        if (occ != null) {  //would this ever be???
+            myShepherd.getPM().makePersistent(occ);
+            rtn.put("occurrenceId", occ.getOccurrenceID());
+System.out.println(" >>>>>>> " + occ.getOccurrenceID());
+        }
+
+        return rtn;
     }
 
 
@@ -1443,8 +1502,10 @@ System.out.println("---------------------------------------------\n needEnc? " +
         }
         for (int i = startE ; i < encs.size() ; i++) {
             indiv.addEncounter(encs.get(i), "context0");
+            encs.get(i).setIndividualID(individualId);
         }
 
+        rtn.put("encounters", encs);
         rtn.put("annotations", anns);
         return rtn;
     }
