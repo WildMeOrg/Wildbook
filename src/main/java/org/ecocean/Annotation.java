@@ -361,9 +361,14 @@ public class Annotation implements java.io.Serializable {
     }
 
     public String findIndividualId(Shepherd myShepherd) {
-        Encounter enc = Encounter.findByAnnotation(this, myShepherd);
+        Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
         return enc.getIndividualID();  //is this one of those things that can be "None" ?
+    }
+
+    //convenience!
+    public Encounter findEncounter(Shepherd myShepherd) {
+        return Encounter.findByAnnotation(this, myShepherd);
     }
 
 
