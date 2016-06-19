@@ -246,7 +246,7 @@ needsReview = false;  // we are only full-auto now!
             if (type.equals("fromIAImageSet")){
                 FeatureType.initAll(myShepherd);
                 try {
-                    rtn = IBEISIA.mergeIAImageSet(jin.optInt(type, -1), myShepherd); //currently just a single int id is passed
+                    rtn = IBEISIA.mergeIAImageSet(jin.optString(type, null), myShepherd);
                 } catch (Exception ex) {  //pokemon!
                     ex.printStackTrace();
                     throw new RuntimeException("mergeIAImageSet() failed! " + ex.toString());
