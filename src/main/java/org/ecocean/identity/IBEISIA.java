@@ -1332,14 +1332,15 @@ I think that is the general walk that needs to happen
 
     /* generally two things are done here: (1) the setId is made into an Occurrence and the Annotations are added to it (by way of Encounters); and
        (2) a name check is done to possibly merge other Annotations to this indiv  */
-    public static JSONObject mergeIAImageSet(int setId, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static JSONObject mergeIAImageSet(String setId, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+//http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
 //http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
-        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/uuids/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
-        JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
+        JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/aids/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
+        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
         if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
         JSONObject rtn = new JSONObject("{\"success\": false}");
 
-        String setIdUUID = iaImageSetUUIDFromId(setId);
+        //String setIdUUID = iaImageSetUUIDFromId(setId);
 
         JSONArray aids = res.getJSONArray("response").getJSONArray(0);
 System.out.println("aids = " + aids);
@@ -1435,7 +1436,7 @@ System.out.println(" --------------------------_______________________________ "
             if (addToOccurrence) {
                 if (occ == null) {
                     //TODO should we allow recycling an existing Occurrence?  (i.e. loading it here if it exists)
-                    occ = new Occurrence(setIdUUID, enc);
+                    occ = new Occurrence(setId, enc);
                 } else {
                     occ.addEncounter(enc);
                 }
@@ -1464,7 +1465,7 @@ System.out.println(" >>>>>>> " + occ.getOccurrenceID());
     //we make an assumption here that if there are orphaned annotations (not in Encounters already) they should be grouped
     //  together into one (new) Encounter, since annUUIDs is assumed to be coming from an Occurrence.  be warned!
     public static HashMap<String,Object> assignFromIA(String individualId, List<String> annUUIDs, Shepherd myShepherd) {
-System.out.println("##############    ################   ##############\nindividualId=" + individualId + "\n assign to --> " + annUUIDs);
+System.out.println("#############################################################################################\nindividualId=" + individualId + "\n assign to --> " + annUUIDs);
         HashMap<String,Object> rtn = new HashMap<String,Object>();
         List<Annotation> anns = grabAnnotations(annUUIDs, myShepherd);
         if (anns.size() != annUUIDs.size()) throw new RuntimeException("assignFromIA() grabbed annots differ in size from passed uuids");
