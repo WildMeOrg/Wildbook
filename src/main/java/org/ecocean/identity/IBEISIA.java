@@ -1377,7 +1377,22 @@ System.out.println("nameMap = " + nameMap);
             JSONArray au = iaAnnotationUUIDsFromIds(aidSet);
             List<String> auList = new ArrayList<String>();
             for (int j = 0 ; j < au.length() ; j++) {
-                auList.add(fromFancyUUID(au.optJSONObject(j)));
+                /* critical here is that we only pass on (for assignement) annots which (a) are new from the set, or (b) we already have in wb.
+                   not sure what to do of annotations we dont have yet -- they need their own encounters!! TODO FIXME */
+                String u = fromFancyUUID(au.optJSONObject(j));
+                if (origAnnUUIDs.contains(u)) {
+                    auList.add(u);
+                } else {
+                    Annotation ann = null;
+                    try {
+                        ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, u), true)));
+                    } catch (Exception ex) {}
+                    if (ann != null) {
+                        auList.add(u);
+                    } else {
+                        System.out.println("--- WARNING: Annotation " + u + " was not in original ImageSet but is not in WB so cannot assign name to Encounter");
+                    }
+                }
             }
             HashMap<String,Object> done = assignFromIA(nameMap.get(unids.get(i)), auList, myShepherd);
             anns.addAll((List<Annotation>)done.get("annotations"));

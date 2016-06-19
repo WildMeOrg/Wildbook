@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.servlet.http.HttpServletRequest;
 import org.ecocean.identity.IBEISIA;
+import org.ecocean.media.FeatureType;
 
 public class Resolver implements java.io.Serializable {
     public static String STATUS_PENDING = "pending";  //needs review
@@ -243,8 +244,9 @@ needsReview = false;  // we are only full-auto now!
         while (it.hasNext()) {
             String type = (String)it.next();
             if (type.equals("fromIAImageSet")){
+                FeatureType.initAll(myShepherd);
                 try {
-                    JSONObject res = IBEISIA.mergeIAImageSet(jin.optInt(type, -1), myShepherd); //currently just a single int id is passed
+                    rtn = IBEISIA.mergeIAImageSet(jin.optInt(type, -1), myShepherd); //currently just a single int id is passed
                 } catch (Exception ex) {  //pokemon!
                     ex.printStackTrace();
                     throw new RuntimeException("mergeIAImageSet() failed! " + ex.toString());
