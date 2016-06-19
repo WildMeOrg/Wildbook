@@ -1996,6 +1996,17 @@ public class Shepherd {
     return tempShark;
   }
 
+  public MarkedIndividual getMarkedIndividualQuiet(String name) {
+    MarkedIndividual indiv = null;
+    try {
+      indiv = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return indiv;
+  }
+
+
   public Occurrence getOccurrence(String id) {
     Occurrence tempShark = null;
     try {

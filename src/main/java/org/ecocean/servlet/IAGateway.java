@@ -28,6 +28,7 @@ import org.ecocean.RestClient;
 import org.ecocean.Annotation;
 import org.ecocean.Occurrence;
 import org.ecocean.Cluster;
+import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
 
@@ -475,6 +476,10 @@ System.out.println("anns -> " + anns);
         res.put("tasks", taskList);
         res.put("success", true);
 
+
+    } else if (j.optJSONObject("resolver") != null) {
+        res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
+
     } else {
         res.put("error", "unknown POST command");
         res.put("success", false);
@@ -540,7 +545,7 @@ System.out.println("anns -> " + anns);
     private String _detectionHtmlFromResult(JSONObject res, HttpServletRequest request, int offset, String maUUID) throws IOException {
         String getOut = "";
         if ((res == null) || (res.optJSONObject("response") == null) || (res.getJSONObject("response").optJSONObject("json_result") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("results_list") == null) || (res.getJSONObject("response").getJSONObject("json_result").optJSONArray("image_uuid_list") == null)) {
-            getOut = "<div error-code=\"500\" class=\"response-error\">unable to obtain detection interface</div>";
+            getOut = "<div error-code=\"557\" class=\"response-error\">unable to obtain detection interface</div>";
             System.out.println("ERROR: invalid res for _detectionHtmlFromResult: " + res);
         } else {
             JSONArray rlist = res.getJSONObject("response").getJSONObject("json_result").getJSONArray("results_list");
@@ -555,7 +560,7 @@ System.out.println("anns -> " + anns);
                 }
                 if (offset < 0) {
                     System.out.println("ERROR: could not find uuid " + maUUID + " in res: " + res.toString());
-                    return "<div error-code=\"500\" class=\"response-error\">unable to find MediaAsset for detection</div>";
+                    return "<div error-code=\"558\" class=\"response-error\">unable to find MediaAsset for detection</div>";
                 }
             }
             if ((offset > rlist.length() - 1) || (offset < 0)) offset = 0;
@@ -585,7 +590,7 @@ System.out.println("url --> " + url);
                 JSONObject rtn = RestClient.get(u);
                 if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                     !rtn.getJSONObject("status").optBoolean("success", false)) {
-                    getOut = "<div error-code=\"500\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                    getOut = "<div error-code=\"559\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
                 } else {
                     getOut = rtn.getString("response");
                     if (request.getParameter("test") != null) {
@@ -593,7 +598,7 @@ System.out.println("url --> " + url);
                     }
                 }
             } catch (Exception ex) {
-                getOut = "<div error-code=\"500\" class=\"response-error\">Error: " + ex.toString() + "</div>";
+                getOut = "<div error-code=\"560\" class=\"response-error\">Error: " + ex.toString() + "</div>";
             }
 
             if (mediaAssetId >= 0) getOut += "<input type=\"hidden\" name=\"mediaasset-id\" value=\"" + mediaAssetId + "\" />";
@@ -607,7 +612,7 @@ System.out.println("url --> " + url);
             (res.getJSONObject("results").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null) ||
             (res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list") == null)) {
                 System.out.println("ERROR: (no review_pair_list?) invalid res for _identificationHtmlFromResult: " + res);
-                return "<div error-code=\"500\" title=\"error 1\" class=\"response-error\">unable to obtain identification interface</div>";
+                return "<div error-code=\"551\" title=\"error 1\" class=\"response-error\">unable to obtain identification interface</div>";
         }
 
         JSONArray rlist = res.getJSONObject("results").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").getJSONArray("review_pair_list");
@@ -623,7 +628,7 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         }
         if (rpair == null) {
             System.out.println("ERROR: could not determine rpair from " + rlist.toString());
-            return "<div error-code=\"500\" class=\"response-error\" title=\"error 2\">unable to obtain identification interface</div>";
+            return "<div error-code=\"552\" class=\"response-error\" title=\"error 2\">unable to obtain identification interface</div>";
         }
 
         String url = CommonConfiguration.getProperty("IBEISIARestUrlIdentifyReview", "context0");
@@ -632,12 +637,12 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         url += "review_pair=" + rpair.toString() + "&";
         String quuid = IBEISIA.fromFancyUUID(rpair.optJSONObject("annot_uuid_1"));
         if (quuid == null) {
-            getOut = "<div error-code=\"500\" class=\"response-error\" title=\"error 3\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"553\" class=\"response-error\" title=\"error 3\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine query annotation uuid for _identificationHtmlFromResult: " + res);
             return getOut;
         }
         if ((res.getJSONObject("results").optJSONObject("cm_dict") == null) || (res.getJSONObject("results").getJSONObject("cm_dict").optJSONObject(quuid) == null)) {
-            getOut = "<div error-code=\"500\" class=\"response-error\" title=\"error 4\">unable to obtain identification interface</div>";
+            getOut = "<div error-code=\"554\" class=\"response-error\" title=\"error 4\">unable to obtain identification interface</div>";
             System.out.println("ERROR: could not determine cm_dict for quuid=" + quuid + " for _identificationHtmlFromResult: " + res);
             return getOut;
         }
@@ -653,7 +658,7 @@ getOut = "(( " + url + " ))";
             JSONObject rtn = RestClient.get(u);
             if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                 !rtn.getJSONObject("status").optBoolean("success", false)) {
-                getOut = "<div error-code=\"500\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
+                getOut = "<div error-code=\"555\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
             } else {
                 getOut = rtn.getString("response");
                 if (request.getParameter("test") != null) {
@@ -661,7 +666,7 @@ getOut = "(( " + url + " ))";
                 }
             }
         } catch (Exception ex) {
-            getOut = "<div error-code=\"500\" class=\"response-error\">Error: " + ex.toString() + "</div>";
+            getOut = "<div error-code=\"556\" class=\"response-error\">Error: " + ex.toString() + "</div>";
         }
 
         return getOut;
@@ -809,6 +814,7 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
                 msg = msg.substring(0, m);
             }
         }
+        System.out.println("ERROR: IAGateway.sendError() reporting " + code + ": " + msg);
         response.sendError(code, msg);
     }
 
