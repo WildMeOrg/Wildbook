@@ -1496,15 +1496,15 @@ System.out.println(anns);
                 } else {
                     staying.add(eann);
                 }
-                if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
-                    if (!encs.contains(enc)) encs.add(enc);
-                } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
-                    Encounter newEnc = enc.cloneWithoutAnnotations();
-                    System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
-                    enc.setAnnotations(staying);
-                    newEnc.setAnnotations(going);
-                    encs.add(newEnc);
-                }
+            }
+            if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
+                if (!encs.contains(enc)) encs.add(enc);
+            } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
+                Encounter newEnc = enc.cloneWithoutAnnotations();
+                System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
+                enc.setAnnotations(staying);
+                newEnc.setAnnotations(going);
+                encs.add(newEnc);
             }
 
         }
@@ -1547,6 +1547,145 @@ System.out.println("---------------------------------------------\n needEnc? " +
         return rtn;
     }
 
+    //this is a "simpler" assignment -- unlike above, it wont make anything new, but rather will only (re)assign if all is good
+    public static HashMap<String,Object> assignFromIANoCreation(String individualId, List<String> annUUIDs, Shepherd myShepherd) {
+System.out.println("#######(no create)###########################################################################\nindividualId=" + individualId + "\n assign to --> " + annUUIDs);
+        HashMap<String,Object> rtn = new HashMap<String,Object>();
+        List<Annotation> anns = new ArrayList<Annotation>();
+        for (String aid : annUUIDs) {
+            Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
+            if (ann == null) {
+                System.out.println("WARNING: assignFromIANoCreate() could not load annot id=" + aid);
+            } else {
+                anns.add(ann);
+            }
+        }
+        if (anns.size() != annUUIDs.size()) throw new RuntimeException("assignFromIANoCreation() could not find some annots from passed uuids");
+
+System.out.println(anns);
+        List<Encounter> encs = new ArrayList<Encounter>();
+        for (Annotation ann : anns) {
+            Encounter enc = ann.findEncounter(myShepherd);
+            if (enc == null) throw new RuntimeException("assignFromIANoCreation() could not find an encounter for annot " + ann.getId());
+            // now we have to deal with an existing encounter that contains this annot.... if it has sibling annots in the encounter
+            ArrayList<Annotation> staying = new ArrayList<Annotation>();
+            ArrayList<Annotation> going = new ArrayList<Annotation>();
+            for (Annotation eann : enc.getAnnotations()) {
+                if (annUUIDs.contains(eann.getId())) {
+                    going.add(eann);
+                } else {
+                    //lets see what IA says about this annot. with luck, it should get renamed too!
+                    String iaName = "__FAIL1__";
+                    try {
+                        JSONArray jn = iaNamesFromAnnotUUIDs(new JSONArray("[" + toFancyUUID(eann.getId()) + "]"));
+                        iaName = jn.optString(0, "__FAIL2__");
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: assignFromIANoCreation() faild name lookup - " + ex.toString());
+                    }
+                    if (individualId.equals(iaName)) {
+                        going.add(eann);
+                    } else {
+                        //staying.add(eann);
+                        System.out.println("CRITICAL: assignFromIANoCreation() " + enc + " requires split; IA reports " + eann + " ident is " + iaName);
+                        throw new RuntimeException("reassigning Annotation " + ann.getId() + " to " + individualId + " would cause split on Encounter " + enc.getCatalogNumber());
+                    }
+                }
+            }
+
+/* going to NOT do this for now and just throw exception (above)....  til we get a handle on how often this happens
+            if (staying.size() == 0) {  //we dont need a new encounter; we just modify the indiv on here
+                if (!encs.contains(enc)) encs.add(enc);
+            } else {  //we need to split up the encounter, with a newer one that gets the new indiv id
+                System.out.println("CRITICAL: assignFromIANoCreation() " + enc + " requires split - staying=" + staying + "; going=" + going);
+                throw new RuntimeException("reassigning Annotation " + ann.getId() + " to " + individualId + " would cause split on Encounter " + enc.getCatalogNumber());
+                Encounter newEnc = enc.cloneWithoutAnnotations();
+                System.out.println("INFO: assignFromIA() splitting " + enc + " - staying=" + staying + "; to " + newEnc + " going=" + going);
+                enc.setAnnotations(staying);
+                newEnc.setAnnotations(going);
+                encs.add(newEnc);
+            }
+*/
+
+            //right now if we get to here, this enc is good to be reassigned ... TODO logic here will change a bit when handling splits better
+            encs.add(enc);
+        }
+System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
+
+        MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(individualId);
+        int startE = 0;
+        if (indiv == null) {
+            indiv = new MarkedIndividual(individualId, encs.get(0));
+            encs.get(0).setIndividualID(individualId);
+            startE = 1;
+            System.out.println("INFO: assignFromIANoCreate() created " + indiv);
+            rtn.put("newMarkedIndividual", indiv);
+        }
+        for (int i = startE ; i < encs.size() ; i++) {
+            if (individualId.equals(encs.get(i).getIndividualID())) {
+                System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
+                continue;
+            }
+            indiv.addEncounter(encs.get(i), "context0");
+            encs.get(i).setIndividualID(individualId);
+        }
+
+        rtn.put("encounters", encs);
+        rtn.put("annotations", anns);
+        return rtn;
+    }
+
+    //a sort of wrapper to the above from the point of view of an api (does saving, json stuff etc)
+    public static JSONObject assignFromIASimple(JSONObject arg, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+        if (arg == null) {
+            rtn.put("error", "invalid parameters passed. should be { name: N, annotationIds: [a1,a2,a3] }");
+            return rtn;
+        }
+        String indivId = arg.optString("name", null);
+        JSONArray annIds = arg.optJSONArray("annotationIds");
+        if ((indivId == null) || (annIds == null) || (annIds.length() < 1)) {
+            rtn.put("error", "invalid parameters passed. should be { name: N, annotationIds: [a1,a2,a3] }");
+            return rtn;
+        }
+        List<String> al = new ArrayList<String>();
+        for (int i = 0 ; i < annIds.length() ; i++) {
+            String a = annIds.optString(i, null);
+            if (a != null) al.add(a);
+        }
+        HashMap<String,Object> res = assignFromIANoCreation(indivId, al, myShepherd);
+
+        rtn.put("success", true);
+        myShepherd.beginDBTransaction();
+        if (res.get("newMarkedIndividual") != null) {
+            MarkedIndividual ind = (MarkedIndividual)res.get("newMarkedIndividual");
+            myShepherd.getPM().makePersistent(ind);
+            rtn.put("newMarkedIndividual", ind.getIndividualID());
+        }
+        if (res.get("encounters") != null) {
+            JSONArray je = new JSONArray();
+            List<Encounter> encs = (List<Encounter>)res.get("encounters");
+            for (Encounter enc : encs) {
+                myShepherd.getPM().makePersistent(enc);
+                je.put(enc.getCatalogNumber());
+            }
+            rtn.put("encounters", je);
+        }
+        if (res.get("annotations") != null) {
+            JSONArray ja = new JSONArray();
+            List<Annotation> anns = (List<Annotation>)res.get("annotations");
+            for (Annotation ann : anns) {
+                ja.put(ann.getId());
+            }
+            rtn.put("annotations", ja);
+        }
+        myShepherd.commitDBTransaction();
+        return rtn;
+    }
+
+/*
+    these are mostly utility functions to fetch stuff from IA ... some of these may be unused currently but got made during chaostime
+*/
+
     public static JSONArray iaAnnotationUUIDsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/uuids/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
@@ -1572,6 +1711,12 @@ System.out.println("---------------------------------------------\n needEnc? " +
     public static JSONArray iaNamesFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/texts/?name_rowid_list=" + nids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from nids=" + nids);
+        return rtn.getJSONArray("response");
+    }
+//http://52.37.240.178:5000/api/annot/name/texts/json/?annot_uuid_list=[{%22__UUID__%22:%20%22deee5d41-c264-4179-aa6c-5b735975cbc9%22}]&__format__=True
+    public static JSONArray iaNamesFromAnnotUUIDs(JSONArray auuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/texts/json/?annot_uuid_list=" + auuids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from auuids=" + auuids);
         return rtn.getJSONArray("response");
     }
     public static HashMap<Integer,String> iaNameMapIdToString(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
