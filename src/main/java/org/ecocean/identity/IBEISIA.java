@@ -1338,6 +1338,11 @@ I think that is the general walk that needs to happen
             existingOccurrence = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, setId), true)));
         } catch (Exception ex) {}  //this just means not found... which is good!
         if (existingOccurrence != null) throw new RuntimeException("An Occurrence with id " + setId + " already exists.");
+/*  these are really only for lewa branch
+        int setIdInt = iaImageSetIdFromUUID(setId);
+//iaSmartXmlFromSetId
+//iaSmartXmlWaypointIdFromSetId
+*/
 
 //http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
 //http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
@@ -1719,6 +1724,18 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from auuids=" + auuids);
         return rtn.getJSONArray("response");
     }
+//http://52.37.240.178:5000/api/imageset/smart_xml_contents/?imageset_rowid_list=[65]
+    public static String iaSmartXmlFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart_xml_contents/?imageset_rowid_list=[" + setId + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml from set id=" + setId);
+        return rtn.getJSONArray("response").optString(0, null);
+    }
+//http://52.37.240.178:5000/api/imageset/smart_waypoint_ids/?imageset_rowid_list=[55]
+    public static int iaSmartXmlWaypointIdFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart_waypoint_ids/?imageset_rowid_list=[" + setId + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml waypoint id from set id=" + setId);
+        return rtn.getJSONArray("response").optInt(0, -1);
+    }
     public static HashMap<Integer,String> iaNameMapIdToString(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HashMap<Integer,String> map = new HashMap<Integer,String>();
         JSONArray names = iaNamesFromNameIds(nids);
@@ -1733,6 +1750,12 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/uuid/?imgsetid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set uuid from id=" + setId);
         return fromFancyUUID(rtn.getJSONArray("response").optJSONObject(0));
+    }
+//http://52.37.240.178:5000/api/imageset/imgsetids_from_uuid/?uuid_list=[%7B%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22%7D]
+    public static int iaImageSetIdFromUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/imgsetids_from_uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
+        return rtn.getJSONArray("response").optInt(0, -1);
     }
 }
 
