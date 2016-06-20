@@ -27,6 +27,15 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
+// for the smartXml parse, may it some day rip
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.xml.sax.InputSource;
+import java.io.StringReader;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class IBEISIA {
 
@@ -1338,11 +1347,6 @@ I think that is the general walk that needs to happen
             existingOccurrence = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, setId), true)));
         } catch (Exception ex) {}  //this just means not found... which is good!
         if (existingOccurrence != null) throw new RuntimeException("An Occurrence with id " + setId + " already exists.");
-/*  these are really only for lewa branch
-        int setIdInt = iaImageSetIdFromUUID(setId);
-//iaSmartXmlFromSetId
-//iaSmartXmlWaypointIdFromSetId
-*/
 
 //http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
 //http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
@@ -1423,6 +1427,19 @@ System.out.println("_++++++++++++++++++++++++++++++ anns ->\n" + anns);
         //at this point we should have "everything" in wb that "we need".... so we push the relative Encounters into this Occurrence
         Occurrence occ = null;  //gets created when we have our first Annotation below
 
+        //lets grab stuff from the SmartXML file ... sure...
+        int setIdInt = iaImageSetIdFromUUID(setId);
+        String smartXml = iaSmartXmlFromSetId(setIdInt);
+        int smartWaypointId = iaSmartXmlWaypointIdFromSetId(setIdInt);
+        HashMap smartMap = null;
+        if ((smartXml == null) || (smartWaypointId < 0)) {
+            System.out.println("WARNING: could not discover smartXml or smartXmlWaypointId; no xml metadata!");
+        } else {
+            smartMap = parseSmartXml(Integer.toString(smartWaypointId), smartXml);
+        }
+        Double metaLatitude = metaXmlDouble(smartMap, "decimalLatitude", null);
+        Double metaLongitude = metaXmlDouble(smartMap, "decimalLongitude", null);
+
         JSONArray ji = new JSONArray();
         for (MarkedIndividual ind : newIndivs) {
 System.out.println(" >>>> " + ind);
@@ -1435,8 +1452,6 @@ System.out.println(" >>>> " + ind);
         for (Encounter enc : encs) {
 System.out.println(" >>>> " + enc);
 System.out.println(" --------------------------_______________________________ " + enc.getIndividualID() + " +++++++++++++++++++++++++++++");
-            myShepherd.getPM().makePersistent(enc);
-            je.put(enc.getCatalogNumber());
             boolean addToOccurrence = false;
             for (Annotation ea : enc.getAnnotations()) {
                 if (origAnnUUIDs.contains(ea.getId())) {
@@ -1444,6 +1459,28 @@ System.out.println(" --------------------------_______________________________ "
                     break;
                 }
             }
+
+            if (addToOccurrence) {  //set these things for encounters under this occurrence
+                enc.setState("approved");
+                //TODO make this not hard-coded.  passed from ibeis-image?
+                enc.setLocationID("Lewa");
+                enc.setCountry("Kenya");
+                enc.setIdentificationRemarks("IBEIS-IA");
+
+                if (metaLatitude != null) {
+                    enc.setDecimalLatitude(metaLatitude);
+                    enc.setGPSLatitude(metaLatitude.toString());
+                }
+                if (metaLongitude != null) {
+                    enc.setDecimalLongitude(metaLongitude);
+                    enc.setGPSLongitude(metaLongitude.toString());
+                }
+                enc.setOccurrenceID(setId);
+            }
+
+            myShepherd.getPM().makePersistent(enc);
+            je.put(enc.getCatalogNumber());
+
             if (addToOccurrence) {
                 if (occ == null) {
                     //TODO should we allow recycling an existing Occurrence?  (i.e. loading it here if it exists)
@@ -1464,6 +1501,16 @@ System.out.println(" >>>> " + ann);
         if (ja.length() > 0) rtn.put("annotations", ja);
 
         if (occ != null) {  //would this ever be???
+            occ.setDecimalLatitude(metaLatitude);
+            occ.setDecimalLongitude(metaLongitude);
+            occ.setHabitat(metaXmlString(smartMap, "habitat", null));
+            occ.setGroupSize(metaXmlInteger(smartMap, "groupsize", 0));
+            occ.setNumBachMales(metaXmlInteger(smartMap, "noofbm", 0));
+            occ.setNumTerMales(metaXmlInteger(smartMap, "nooftm", 0));
+            occ.setNumLactFemales(metaXmlInteger(smartMap, "nooflf", 0));
+            occ.setNumNonLactFemales(metaXmlInteger(smartMap, "noofnlf", 0));
+            occ.setDistance(metaXmlDouble(smartMap, "distancem", null));
+            occ.setBearing(metaXmlDouble(smartMap, "bearing", null));
             myShepherd.getPM().makePersistent(occ);
             rtn.put("occurrenceId", occ.getOccurrenceID());
 System.out.println(" >>>>>>> " + occ.getOccurrenceID());
@@ -1756,6 +1803,78 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/imgsetids_from_uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
         return rtn.getJSONArray("response").optInt(0, -1);
+    }
+
+
+    public static Double metaXmlDouble(HashMap metaFromXml, String prop, Double fallback) {
+        if (metaFromXml == null) return fallback;
+        if (metaFromXml.get(prop) == null) return fallback;
+        try {
+            Double d = Double.parseDouble(metaFromXml.get(prop).toString());
+            return d;
+        } catch (Exception ex) {}
+        return fallback;
+    }
+    public static Integer metaXmlInteger(HashMap metaFromXml, String prop, Integer fallback) {
+        if (metaFromXml == null) return fallback;
+        if (metaFromXml.get(prop) == null) return fallback;
+        try {
+            Double d = Double.parseDouble(metaFromXml.get(prop).toString());  //they are often stored as doubles but should be treated as int
+            return new Integer(d.intValue());
+        } catch (Exception ex) {}
+        return fallback;
+    }
+    public static String metaXmlString(HashMap metaFromXml, String prop, String fallback) {
+        if (metaFromXml == null) return fallback;
+        if (metaFromXml.get(prop) == null) return fallback;
+        return metaFromXml.get(prop).toString();
+    }
+
+    public static HashMap parseSmartXml(String waypointId, String xmlIn) {
+        if ((waypointId == null) || (xmlIn == null)) return null;
+        Document xdoc = null;
+        HashMap val = new HashMap();
+        ////File xfile = new File("/tmp/test.xml");  //debug only
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            //xdoc = dBuilder.parse(xfile);  //debug only
+            InputSource is = new InputSource(new StringReader(xmlIn));
+            xdoc = dBuilder.parse(is);
+            xdoc.getDocumentElement().normalize();
+        } catch (Exception ex) {
+            //System.out.println("could not read " + xfile.toString() + ": " + ex.toString());
+            System.out.println("could not parse xmlIn: " + ex.toString() + "; raw xml ->\n" + xmlIn);
+            return null;
+        }
+
+        NodeList nlist = xdoc.getDocumentElement().getElementsByTagName("waypoints");
+        if (nlist.getLength() < 1) return null;
+        for (int i = 0 ; i < nlist.getLength() ; i++) {
+            Node n = nlist.item(i);
+            if (n.getNodeType() != Node.ELEMENT_NODE) continue;
+            Element el = (Element) n;
+System.out.println("- waypoint id=" + el.getAttribute("id"));
+            if (!el.getAttribute("id").equals(waypointId)) continue;  //nope
+System.out.println("+ found our target waypoint " + waypointId);
+            val.put("decimalLongitude", el.getAttribute("x"));
+            val.put("decimalLatitude", el.getAttribute("y"));
+            val.put("time", el.getAttribute("time"));
+            NodeList anlist = el.getElementsByTagName("attributes");
+            for (int j = 0 ; j < anlist.getLength() ; j++) {
+                Node an = anlist.item(j);
+                if (an.getNodeType() != Node.ELEMENT_NODE) continue;
+                Element ael = (Element) an;
+                String aval = "";
+                NodeList vl = ael.getElementsByTagName("dValue");  //numeric
+                if (vl.getLength() < 1) vl = ael.getElementsByTagName("itemKey");  //string
+                if (vl.getLength() > 0) aval = vl.item(0).getTextContent();
+System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
+                val.put(ael.getAttribute("attributeKey"), aval);
+            }
+        }
+        
+        return val;
     }
 }
 
