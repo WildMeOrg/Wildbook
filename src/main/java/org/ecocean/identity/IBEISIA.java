@@ -1513,7 +1513,7 @@ System.out.println("---------------------------------------------\n needEnc? " +
         }
 
         for (Encounter enc : encs) {
-            if (enc.hasMarkedIndividual()) {
+            if (enc.hasMarkedIndividual() && !enc.getIndividualID().equals(individualId)) {
                 System.out.println("WARNING: assignFromIA() assigning indiv " + individualId + " to " + enc + " which will replace " + enc.getIndividualID());
             }
         }
@@ -1528,6 +1528,10 @@ System.out.println("---------------------------------------------\n needEnc? " +
             rtn.put("newMarkedIndividual", indiv);
         }
         for (int i = startE ; i < encs.size() ; i++) {
+            if (individualId.equals(encs.get(i).getIndividualID())) {
+                System.out.println("INFO: " + encs.get(i) + " already was assigned to indiv; skipping");
+                continue;
+            }
             indiv.addEncounter(encs.get(i), "context0");
             encs.get(i).setIndividualID(individualId);
         }
