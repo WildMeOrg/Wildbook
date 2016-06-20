@@ -1333,6 +1333,11 @@ I think that is the general walk that needs to happen
     /* generally two things are done here: (1) the setId is made into an Occurrence and the Annotations are added to it (by way of Encounters); and
        (2) a name check is done to possibly merge other Annotations to this indiv  */
     public static JSONObject mergeIAImageSet(String setId, Shepherd myShepherd) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        try {
+            Occurrence exist = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, setId), true)));
+            if (exist != null) throw new RuntimeException("An Occurrence with id " + setId + " already exists.");
+        } catch (Exception ex) {}  //this just means not found... which is good!
+
 //http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
 //http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
         JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/aids/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
