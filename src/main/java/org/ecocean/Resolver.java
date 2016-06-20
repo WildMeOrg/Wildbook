@@ -251,6 +251,9 @@ needsReview = false;  // we are only full-auto now!
                     ex.printStackTrace();
                     throw new RuntimeException("mergeIAImageSet() failed! " + ex.toString());
                 }
+            } else if (type.equals("assignNameToAnnotations")){
+                FeatureType.initAll(myShepherd);
+                rtn = IBEISIA.assignFromIASimple(jin.optJSONObject(type), myShepherd);
             } else if (!validType(type)) {
                 rtn.put("success", false);
                 rtn.put(type, "error: invalid type " + type);
