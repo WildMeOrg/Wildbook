@@ -333,7 +333,7 @@
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+"-thumb.jpg";
 										video=false;
 									}
 									else{
@@ -571,26 +571,17 @@
                         <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
-                        //while (allKeywords2.hasNext()) {
-                          //Keyword word = allKeywords2.next();
-                          
-                          
-                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-						  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-                        	  
-                            //String renderMe = word.getReadableName();
+                      
 							List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-							int myWordsSize=myWords.size();
-                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-                              //String kwParam = keywords[kwIter];
-                              //if (kwParam.equals(word.getIndexname())) {
-                              //  renderMe = "<strong>" + renderMe + "</strong>";
-                              //}
-                      		 	%>
- 								<br/><%=myWords.get(kwIter).getReadableName()%>
- 								<%
-                            }
+							if(myWords!=null){				
+								int myWordsSize=myWords.size();
+	                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+	                              
+	                      		 	%>
+	 								<br/><%=myWords.get(kwIter).getReadableName()%>
+	 								<%
+	                            }
+							}
 
 
 
@@ -784,27 +775,16 @@
   <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-									          //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
-					                        //while (allKeywords2.hasNext()) {
-					                          //Keyword word = allKeywords2.next();
-					                          
-					                          
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
-					                            //String renderMe = word.getReadableName();
-												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
-					 								<br/><%=myWords.get(kwIter).getReadableName() %>
-					 								<%
-					                            }
+                        						List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												if(myWords!=null){
+													int myWordsSize=myWords.size();
+						                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+						                              
+						                      		 	%>
+						 								<br/><%=myWords.get(kwIter).getReadableName() %>
+						 								<%
+						                            }
+												}
 
 
 
