@@ -2,13 +2,16 @@ package org.ecocean.servlet.importer;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
-import org.ecocean.identity.*;
+import org.ecocean.identity.IBEISIA;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONObject;
+import org.json.JSONArray;
 
 import java.io.*;
 
@@ -27,16 +30,11 @@ public class ImportIA extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
-    System.out.println("\n\nStarting ImportIA servlet...");
+    out.println("\n\nStarting ImportIA servlet...");
 
-    //setup data dir
-    String rootWebappPath = getServletContext().getRealPath("/");
-    File webappsDir = new File(rootWebappPath).getParentFile();
-    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-    if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
-    File tempSubdir = new File(webappsDir, "temp");
-    if(!tempSubdir.exists()){tempSubdir.mkdirs();}
-    System.out.println("\n\n     Finished directory creation...");
+    JSONObject imageSetRes = IBEISIA.iaUrl(context, "/api/imageset/json/");
+    out.println(imageSetRes);
+
 
   }
 }
