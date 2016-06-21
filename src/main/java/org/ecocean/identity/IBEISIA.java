@@ -7,6 +7,7 @@ import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
 import org.ecocean.Occurrence;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.servlet.ServletUtilities;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1390,7 +1391,8 @@ System.out.println("nameMap = " + nameMap);
             List<String> auList = new ArrayList<String>();
             for (int j = 0 ; j < au.length() ; j++) {
                 /* critical here is that we only pass on (for assignement) annots which (a) are new from the set, or (b) we already have in wb.
-                   not sure what to do of annotations we dont have yet -- they need their own encounters!! TODO FIXME */
+                   not sure what to do of annotations we dont have yet -- they need their own encounters!! TODO FIXME
+                   we kind of decided ignore what we dont have yet.... (?) i think. */
                 String u = fromFancyUUID(au.optJSONObject(j));
                 if (origAnnUUIDs.contains(u)) {
                     auList.add(u);
@@ -1757,6 +1759,25 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
         return rtn.getJSONArray("response").optInt(0, -1);
     }
+
+    public static JSONObject iaStatus(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        JSONObject rtn = new JSONObject();
+        URL iau = iaURL(context, "");
+        if (iau == null) {
+            rtn.put("iaURL", (String)null);
+            rtn.put("iaEnabled", false);
+        } else {
+            rtn.put("iaURL", iau.toString());
+            rtn.put("iaEnabled", true);
+        }
+        JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
+        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
+        rtn.put("settings", settings);
+        rtn.put("timestamp", System.currentTimeMillis());
+        return rtn;
+    }
+
 }
 
 
