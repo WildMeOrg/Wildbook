@@ -30,10 +30,12 @@ public class ImportIA extends HttpServlet {
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
+/*
     out.println("\n\nStarting ImportIA servlet...");
 
-    JSONObject imageSetRes = IBEISIA.iaUrl(context, "/api/imageset/json/");
+    JSONObject imageSetRes = IBEISIA.iaURL(context, "/api/imageset/json/");
     out.println(imageSetRes);
+*/
 
 
   }
