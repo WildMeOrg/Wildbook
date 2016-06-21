@@ -837,11 +837,6 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
-<h2>Under Construction:</h2>
-<p>
-
-</p>
-
 <div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
