@@ -60,9 +60,10 @@ public class ImportIA extends HttpServlet {
     JSONObject imageSetRes = getFromIA("/api/imageset/json/", context, out);
     JSONArray fancyImageSetUUIDS = imageSetRes.optJSONArray("response");
 
-    int testingLimit = 10;
+    //int testingLimit = 10;
 
-    for (int i = 0; i < fancyImageSetUUIDS.length() && i < testingLimit; i++) {
+    //for (int i = 0; i < fancyImageSetUUIDS.length() && i < testingLimit; i++) {
+    for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
       JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
       String occID = IBEISIA.fromFancyUUID(fancyID);
 
