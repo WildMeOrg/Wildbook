@@ -11,7 +11,6 @@
 }(this, function (MicroPlugin) {
   var pi2 = Math.PI * 2;
 
-
   d3.svg.BubbleChart = function (settings) {
     var self = this;
     var defaultViewBoxSize = settings.size;
