@@ -74,7 +74,7 @@
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
-    if (request.getParameter("noQuery") == null) {
+    //if (request.getParameter("noQuery") == null) {
     	
     	
     	String jdoqlQueryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
@@ -89,12 +89,15 @@
 	  //queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	
     rEncounters=myShepherd.getThumbnails(myShepherd, request, enclist, startNum, endNum, keywords);
+    /*
     }
     else{
-    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.Annotation WHERE id != null");    	
     	allQuery.setRange(startNum, endNum);
-    	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
+    	ArrayList<Annotation> al=new ArrayList<Annotation>((Collection<Annotation>)allQuery.execute());
+    	rEncounters
    }
+    */
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
