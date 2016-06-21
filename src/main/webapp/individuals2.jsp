@@ -2305,16 +2305,15 @@ dlgRel.dialog("open");
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
   <script src="http://phuonghuynh.github.io/js/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="javascript/bubbleDiagram/d3-transform.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
   <script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
-  <script src="javascript/bubbleDiagram/index.js"></script>
   <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
   <script src="javascript/bubbleDiagram/central-click.js"></script>
-  <script src="javascript/bubbleDiagram/d3-transform.js"></script>
   <script src="javascript/bubbleDiagram/lines.js"></script>
-  <script src="javascript/bubbleDiagram/cooccurrenceApiCall.js"></script>
+  <script src="javascript/bubbleDiagram/index.js"></script>
 
 
 <div class="familyCommunityRelationships">
