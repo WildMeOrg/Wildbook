@@ -23,18 +23,15 @@ var makeChart = function(items) {
       {
         name: "central-click",
         options: {
-          text: "(See more detail)",
           style: {
             "font-size": "12px",
             "font-style": "italic",
             "font-family": "Source Sans Pro, sans-serif",
-            //"font-weight": "700",
             "text-anchor": "middle",
             "fill": "white"
           },
           attr: {dy: "65px"},
           centralClick: function() {
-            alert("Here is more details!!");
           }
         }
       },
@@ -42,7 +39,7 @@ var makeChart = function(items) {
         name: "lines",
         options: {
           format: [
-            {// Line #0
+            {
               textField: "count",
               classed: {count: true},
               style: {
@@ -57,7 +54,7 @@ var makeChart = function(items) {
                 y: function (d) {return d.cy;}
               }
             },
-            {// Line #1
+            {
               textField: "text",
               classed: {text: true},
               style: {
@@ -88,14 +85,13 @@ var makeChart = function(items) {
     });
 }
 
-var getData = function() {
+var getData = function(individualID) {
     var items = [];
     var encounterArray = [];
     var occurrenceArray = [];
     var dataObject = {};
-    var individualID = 5727;
 
-     d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
+     d3.json('http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20"' + individualID + '"%20VARIABLES%20org.ecocean.Encounter%20enc', function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -126,25 +122,3 @@ var getData = function() {
       return makeChart(items);
     });
   };
-
-
-$(document).ready(function() {
-  getData();
-  $("#cooccurrenceTable").hide();
-
-  $("#cooccurrenceDiagramTab").click(function (e) {
-    e.preventDefault()
-    $("#cooccurrenceDiagram").show();
-    $("#cooccurrenceTable").hide();
-    $("#cooccurrenceDiagramTab").addClass("active");
-    $("#cooccurrenceTableTab").removeClass("active");
-  });
-
-  $("#cooccurrenceTableTab").click(function (e) {
-    e.preventDefault()
-    $("#cooccurrenceTable").show();
-    $("#cooccurrenceDiagram").hide();
-    $("#cooccurrenceTableTab").addClass("active");
-    $("#cooccurrenceDiagramTab").removeClass("active");
-  });
-});

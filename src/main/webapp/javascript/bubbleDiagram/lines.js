@@ -1,33 +1,4 @@
-/**
- * Text lines
- *
- * @module
- *
- * @param {object} options - setting of text lines
- * @param {object[]} options.format - n-th object is used to format n-th line
- * @param {string} options.format.textField - name of property will be used in function text()
- * @param {string} options.format.classed - classes used to apply to [text](http://www.w3.org/TR/SVG/text.html#TextElement)
- * @param {string} options.format.style - style used to apply to [text](http://www.w3.org/TR/SVG/text.html#TextElement)
- * @param {string} options.format.attr - attribute used to apply to [text](http://www.w3.org/TR/SVG/text.html#TextElement)
- * @param {object[]} options.centralFormat - like #format but used to format central-bubble
- */
 d3.svg.BubbleChart.define("lines", function (options) {
-  /*
-   * @param
-   *  options = {
-   *    format: [ //n-th object is used to format n-th line
-   *      {
-   *        textField: #string, name of property will be used in function text(), @link
-   *        classed: #object, @link
-   *        style: #object, @link
-   *        attr: #object, @link
-   *      }
-   *    ],
-   *    centralFormat: [ //@see #format, but used to format central-bubble
-   *    ]
-   *  }
-   * */
-
   var self = this;
 
   self.setup = (function () {

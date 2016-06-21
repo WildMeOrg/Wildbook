@@ -331,6 +331,19 @@ table.tissueSample td {
 }
 </style>
 
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="javascript/bubbleDiagram/d3-transform.js"></script>
+<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
+<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
+<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
+<script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+<script src="javascript/bubbleDiagram/bubble-chart.js"></script>
+<script src="javascript/bubbleDiagram/central-click.js"></script>
+<script src="javascript/bubbleDiagram/lines.js"></script>
+<script src="javascript/bubbleDiagram/index.js"></script>
+<link rel="stylesheet" href="css/bubbleDiagram.css">
+
 <script type="text/javascript">
 
 var testColumns = {
@@ -553,11 +566,63 @@ function tableUp() {
 	show();
 }
 
-
-
 ////////
+
+
+$("#communityTable").hide();
+$("#familyTable").hide();
+$("#cooccurrenceTable").hide();
+
 $(document).ready( function() {
+
 	wildbook.init(function() { doTable(); });
+
+  $("#familyDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").show();
+    $("#communityDiagram").hide();
+    $("#communityTable").hide();
+    $("#familyDiagramTab").addClass("active");
+    $("#communityDiagramTab").removeClass("active");
+    $("#communityTableTab").removeClass("active");
+  });
+
+  $("#communityDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").hide();
+    $("#communityDiagram").show();
+    $("#communityTable").hide();
+    $("#familyDiagramTab").removeClass("active");
+    $("#communityDiagramTab").addClass("active");
+    $("#communityTableTab").removeClass("active");
+  });
+
+  $("#communityTableTab").click(function (e) {
+    e.preventDefault()
+    $("#familyDiagram").hide();
+    $("#communityDiagram").hide();
+    $("#communityTable").show();
+    $("#familyDiagramTab").removeClass("active");
+    $("#communityDiagramTab").removeClass("active");
+    $("#communityTableTab").addClass("active");
+  });
+
+  $("#cooccurrenceDiagramTab").click(function (e) {
+    e.preventDefault()
+    $("#cooccurrenceDiagram").show();
+    $("#cooccurrenceTable").hide();
+    $("#cooccurrenceDiagramTab").addClass("active");
+    $("#cooccurrenceTableTab").removeClass("active");
+  });
+
+  $("#cooccurrenceTableTab").click(function (e) {
+    e.preventDefault()
+    $("#cooccurrenceTable").show();
+    $("#cooccurrenceDiagram").hide();
+    $("#cooccurrenceTableTab").addClass("active");
+    $("#cooccurrenceDiagramTab").removeClass("active");
+  });
+
 });
 
 
@@ -1460,7 +1525,25 @@ function dataTypes(obj, fieldName) {
           if(relationships.size()>0){
           %>
 
+      <div>
+        <ul class="nav nav-tabs">
+          <li id="familyDiagramTab"  class="active">
+            <a href="#familyDiagram">Familial Diagram</a>
+          </li>
+          <li id="communityDiagramTab">
+            <a href="#communityDiagram"><%=props.getProperty("social")%> Diagram</a>
+          </li>
+          <li id="communityTableTab">
+            <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
+          </li>
+        </ul>
+      </div>
 
+      <div id="familyDiagram">
+        <h2>Family Diagram Goes Here</h2>
+      </div>
+
+      <div id="communityTable" class="mygrid-wrapper-div diagramContainer">
         <table width="100%" class="tissueSample">
         <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
         <%
@@ -1541,6 +1624,8 @@ function dataTypes(obj, fieldName) {
 
         	</td>
 
+
+
         	<td>
         		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
         	</td>
@@ -1559,6 +1644,7 @@ function dataTypes(obj, fieldName) {
         %>
 
         </table>
+      </div>
         <br/>
         <%
         }
@@ -1573,9 +1659,38 @@ function dataTypes(obj, fieldName) {
 
 
 
-        <%-- TODO new table starts here --%>
+        <%-- TODO cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
         <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+        <div class="cooccurrences">
+          <% String individualID = sharky.getIndividualID();%>
+          <script type="text/javascript">
+
+          getData(<%=individualID%>);
+          </script>
+
+          <ul class="nav nav-tabs">
+            <li id="cooccurrenceDiagramTab" class="active">
+              <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
+            </li>
+            <li id="cooccurrenceTableTab">
+              <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
+            </li>
+          </ul>
+
+          <div id="cooccurrenceDiagram">
+            <div class="diagramContainer">
+              <div class="bubbleChart">
+                <div id="buttons" class="btn-group btn-group-sm" role="group">
+                  <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
+                  <button type="button" class="btn btn-default" id="zoomOut"><span class="glyphicon glyphicon-minus"></span></button>
+                  <button type="button" class="btn btn-default" id="reset">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
 
         <%
         List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
@@ -1586,6 +1701,7 @@ function dataTypes(obj, fieldName) {
         %>
 
 
+      <div id="cooccurrenceTable" class="mygrid-wrapper-div diagramContainer">
         <table width="100%" class="tissueSample">
         <th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
         <%
@@ -1616,6 +1732,7 @@ function dataTypes(obj, fieldName) {
         }
         %>
         </table>
+      </div>
         <%
         }
         else {

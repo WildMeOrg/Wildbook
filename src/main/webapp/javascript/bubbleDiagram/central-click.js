@@ -1,6 +1,3 @@
-/**
- * central-click.js
- */
 d3.svg.BubbleChart.define("central-click", function (options) {
   var self = this;
 
@@ -10,7 +7,7 @@ d3.svg.BubbleChart.define("central-click", function (options) {
       var fn = original.apply(this, arguments);
       self.event.on("click", function(node) {
         if (node.selectAll("text.central-click")[0].length === 1) {
-          alert("Hello there!\nCentral bubble is clicked.");
+
         }
       });
       return fn;
