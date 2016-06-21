@@ -1630,12 +1630,19 @@ public class Shepherd {
 
 
   public List<SinglePhotoVideo> getAllSinglePhotoVideosForEncounter(String encNum) {
-    String filter = "correspondingEncounterNumber == \""+encNum+"\"";
-    Extent encClass = pm.getExtent(SinglePhotoVideo.class, true);
-    Query samples = pm.newQuery(encClass, filter);
-    Collection c = (Collection) (samples.execute());
-    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>(c);
-    samples.closeAll();
+    ArrayList<Annotation> al=getAnnotationsForEncounter(encNum);
+    int numAnnots=al.size();
+    ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
+    for(int i=0;i<numAnnots;i++){
+      MediaAsset ma=al.get(i).getMediaAsset();
+      AssetStore as=ma.getStore();
+      String fullFileSystemPath=as.localPath(ma).toString();
+      String webURL=ma.webURLString();
+      int lastIndex=webURL.lastIndexOf("/")+1;
+      String filename=webURL.substring(lastIndex);
+      SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
+      myArray.add(spv);
+    }
     return myArray;
   }
 
@@ -2448,7 +2455,7 @@ public class Shepherd {
     while((count<=endNum)&&(encIter<numEncs)){
 
       String nextCatalogNumber=encList.get(encIter);
-      int numImages=getNumSinglePhotoVideosForEncounter(nextCatalogNumber);
+      int numImages=getNumAnnotationsForEncounter(nextCatalogNumber);
 
 
       if ((count + numImages) >= startNum) {
@@ -3299,6 +3306,20 @@ public class Shepherd {
     }
     q.closeAll();
     return null;
+  }
+  
+  public int getNumAnnotationsForEncounter(String encounterID){
+    ArrayList<Annotation> al=getAnnotationsForEncounter(encounterID);
+    return al.size();
+  }
+  
+  public ArrayList<Annotation> getAnnotationsForEncounter(String encounterID){
+    String filter="SELECT FROM org.ecocean.Annotation WHERE enc.catalogNumber == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
+    Query query=getPM().newQuery(filter);
+    Collection c = (Collection) (query.execute());
+    ArrayList<Annotation> al=new ArrayList<Annotation>(c);
+    query.closeAll();
+    return al;
   }
 
 
