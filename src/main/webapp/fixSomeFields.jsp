@@ -43,17 +43,12 @@ try{
 		
 		myShepherd.beginDBTransaction();
 		Encounter enc=(Encounter)allEncs.next();
-		if((enc.getPhotographerName()==null)||(enc.getPhotographerName().trim().equals(""))){
-			enc.setPhotographerName("UEF");
-			myShepherd.commitDBTransaction();
-			myShepherd.beginDBTransaction();
-			numFixes++;
-		}
-		
-
+		%>
+		<li><%=enc.getCatalogNumber() %>,<%=enc.getDecimalLatitude() %>,<%=enc.getDecimalLongitude() %></li>
+		<%
 
 	}
-	myShepherd.commitDBTransaction();
+	myShepherd.rollbackDBTransaction();
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
