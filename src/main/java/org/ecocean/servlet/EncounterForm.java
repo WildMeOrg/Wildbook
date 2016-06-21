@@ -665,36 +665,21 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
-/*
-got regular field (measurement(weight))=(111)
-got regular field (measurement(weightunits))=(kilograms)
-got regular field (measurement(weightsamplingProtocol))=(samplingProtocol1)
-got regular field (measurement(length))=(222)
-got regular field (measurement(lengthunits))=(meters)
-got regular field (measurement(lengthsamplingProtocol))=(samplingProtocol0)
-got regular field (measurement(height))=(333)
-got regular field (measurement(heightunits))=(meters)
-got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
-      Map<String, Object> measurements = theForm.getMeasurements();
-      for (String key : measurements.keySet()) {
-        if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
-          String value = ((String) measurements.get(key)).trim();
-          if (value.length() > 0) {
-            try {
-              Double doubleVal = Double.valueOf(value);
-              String units = (String) measurements.get(key + "units");
-              String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
-              Measurement measurement = new Measurement(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
-              enc.addMeasurement(measurement);
-            }
-            catch(Exception ex) {
-              enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
-            }
-          }
-        }
+      //add WWF-specific fields for data and photographer privacy
+      if (fv.get("showPicture") != null) {
+        enc.setDynamicProperty("PublicView","Yes");
       }
-*/
+      else{
+        enc.setDynamicProperty("PublicView","No");
+      }
+      if (fv.get("showPhotographerName") != null) {
+        enc.setDynamicProperty("ShowPhotographer","Yes");
+      }
+      else{
+        enc.setDynamicProperty("ShowPhotographer","No");
+      }
+      //end WWF privacy fields
 
       List<MetalTag> metalTags = getMetalTags(fv);
       for (MetalTag metalTag : metalTags) {
