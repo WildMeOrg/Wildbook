@@ -175,11 +175,11 @@
 
 
 #candidate-full-zoom {
-	position: fixed;
-	top: 0;
+	position: relative;
+	top: 150px;
 	left: 0;
 	width: 98%;
-	z-index: 200;
+	z-index: 99999;
 	border: solid 4px black;
 	padding: 5px;
 	background: #88A url(../images/wait.gif) no-repeat 75% 20%;

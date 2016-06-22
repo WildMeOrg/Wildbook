@@ -128,156 +128,10 @@
   pageContext.setAttribute("set", encprops.getProperty("set"));
 %>
 
-<html>
-
-<head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle(context) %> - <%=vmProps.getProperty("vmTitle")%> - <%=encprops.getProperty("encounter") %> <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  
-  
-<!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-
-<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-<%
-if (request.getParameter("number")!=null) {
-	
-		if(myShepherd.isEncounter(num)){
-			Encounter metaEnc = myShepherd.getEncounter(num);
-			int numImgs=metaEnc.getImages().size();
-			if((metaEnc.getImages()!=null)&&(numImgs>0)){
-				for(int b=0;b<numImgs;b++){
-				SinglePhotoVideo metaSPV=metaEnc.getImages().get(b);
-//File encounterDir = new File(imageEnc.dir(baseDir));
-%>
-<meta property="og:image" content="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" />
-<link rel="image_src" href="http://<%=CommonConfiguration.getURLLocation(request) %>/<%=(metaEnc.dir(baseDir)+"/"+metaSPV.getFilename())%>" / >
-<%
-			}
-		}
-		}
-}
-%>
-
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-
-<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
 
 
-<meta property="og:type" content="website" />
+<jsp:include page="../header.jsp" flush="true"/>
 
-<!-- social meta end -->
-
-  
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request, context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-  <style type="text/css">
-    <!--
-
-    .style2 {
-      color: #000000;
-      font-size: small;
-    }
-
-    .style3 {
-      font-weight: bold
-    }
-
-    .style4 {
-      color: #000000
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-    -->
-
-
-
-
-th.measurement{
-	 font-size: 0.9em;
-	 font-weight: normal;
-	 font-style:italic;
-}
-
-td.measurement{
-	 font-size: 0.9em;
-	 font-weight: normal;
-}
-
-</style>
-
-
-
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-
-  .ui-dialog-titlebar-close { display: none; }
-  code { font-size: 2em; }
-
-</style>
-
-
-
-
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" />
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js"></script>
 
 <link href="../css/encounterVM.css" rel="stylesheet" type="text/css" />
 <script src="../javascript/encounterVM.js"></script>
@@ -306,28 +160,11 @@ margin-bottom: 8px !important;
 	});
 </script>
 
+<br />
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+<br />
 
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
 
-<body>
 <div id="candidate-full-zoom"></div>
 
 	<div id="wrapper">
@@ -414,16 +251,6 @@ catch(Exception e){
 
 <jsp:include page="../footer.jsp" flush="true"/>
 
-</div>
-<!-- end page -->
 
-</div>
-
-<!--end wrapper -->
-
-
-
-</body>
-</html>
 
 
