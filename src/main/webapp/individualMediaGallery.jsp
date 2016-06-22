@@ -3,7 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.api.rest.orgjson.JSONArray,
+org.datanucleus.api.rest.orgjson.JSONArray,org.datanucleus.api.rest.orgjson.JSONException,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
@@ -66,16 +66,41 @@ try {
   		}
   	}
   	// out.println("var assets = " + all.toString() + ";");
-    System.out.println("All media assets as an array: "+all.toString());
 
 }
 }
+
+System.out.println("individualMediaGallery: All media assets as an array: "+all.toString());
+%> <script>console.log('all MAs: <%=all.toString() %>'); </script> <%
+
+
+// IF we have at least 4 images, we need to make sure image 2 has a SMALLER height than image 3, or else image 4 will go under 3, not 2.
+
+if (all.length()>3) {
+
+  try {
+    
+    int height1 = all.getJSONObject(1).getJSONObject("metadata").getInt("height");
+    int height2 = all.getJSONObject(2).getJSONObject("metadata").getInt("height");
+    if (height1 > height2) {
+      JSONObject temp = all.getJSONObject(1);
+      all.put(1,all.getJSONObject(2));
+      all.put(2, temp);
+      System.out.println("flipped images!");
+    }
+
+  }
+  catch (JSONException e) {
+    e.printStackTrace();
+  }
+}
+
 
 }
 catch(Exception e){e.printStackTrace();}
 finally{
 	imageShepherd.rollbackDBTransaction();
-	imageShepherd.commitDBTransaction();
+	imageShepherd.closeDBTransaction();
 }
 
 %>

@@ -28,12 +28,12 @@ public class IndividualQueryProcessor {
   private static final String SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE = "SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && ";
   private static final String VARIABLES_STATEMENT = " VARIABLES org.ecocean.Encounter enc";
 
-  
+
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
 
     String parameterDeclaration = "";
-    
+
     String context="context0";
     context=ServletUtilities.getContext(request);
 
@@ -46,7 +46,7 @@ public class IndividualQueryProcessor {
     try{year2=(new Integer(request.getParameter("year2"))).intValue();} catch(Exception nfe) {}
     try{day1=(new Integer(request.getParameter("day1"))).intValue();} catch(Exception nfe) {}
     try{day2=(new Integer(request.getParameter("day2"))).intValue();} catch(Exception nfe) {}
-    
+
     int DOBday1=1, DOBday2=31, DOBmonth1=1, DOBmonth2=12, DOByear1=0, DOByear2=3000;
     try{DOBmonth1=(new Integer(request.getParameter("DOBmonth1"))).intValue();} catch(Exception nfe) {}
     try{DOBmonth2=(new Integer(request.getParameter("DOBmonth2"))).intValue();} catch(Exception nfe) {}
@@ -63,7 +63,7 @@ public class IndividualQueryProcessor {
     try{DODday1=(new Integer(request.getParameter("DODday1"))).intValue();} catch(Exception nfe) {}
     try{DODday2=(new Integer(request.getParameter("DODday2"))).intValue();} catch(Exception nfe) {}
 
-    
+
     String filter= SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE;
     String jdoqlVariableDeclaration = VARIABLES_STATEMENT;
 
@@ -120,7 +120,7 @@ public class IndividualQueryProcessor {
             String locIDFilter="(";
             for(int kwIter=0;kwIter<kwLength;kwIter++) {
               String kwParamMaster=individualID[kwIter].replaceAll("%20", " ").trim();
-              
+
               StringTokenizer str=new StringTokenizer(kwParamMaster,",");
               int numTokens=str.countTokens();
               for(int k=0;k<numTokens;k++){
@@ -134,9 +134,9 @@ public class IndividualQueryProcessor {
                   }
                   prettyPrint.append(kwParam+" ");
                 }
-              
+
               }
-              
+
             }
             locIDFilter+=" )";
             if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+=locIDFilter;}
@@ -144,9 +144,9 @@ public class IndividualQueryProcessor {
             prettyPrint.append("<br />");
     }
     //end individualID filters-----------------------------------------------
-    
-    
-    
+
+
+
   //------------------------------------------------------------------
     //patterningCode filters-------------------------------------------------
     String[] patterningCodes=request.getParameterValues("patterningCodeField");
@@ -205,9 +205,9 @@ public class IndividualQueryProcessor {
     }
     //end haplotype filters-----------------------------------------------
 
-    
-    
-    
+
+
+
       //------------------------------------------------------------------
 	    //username filters-------------------------------------------------
 	    String[] usernames=request.getParameterValues("username");
@@ -488,7 +488,7 @@ public class IndividualQueryProcessor {
         if (!filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)) {
           filter += " && ";
         }
-        filter += "(enc13.releaseDate >= releaseDateFrom)"; 
+        filter += "(enc13.releaseDate >= releaseDateFrom)";
         filter += " && encounters.contains(enc13) ";
         parameterDeclaration = updateParametersDeclaration(parameterDeclaration, "java.util.Date releaseDateFrom");
         jdoqlVariableDeclaration = updateJdoqlVariableDeclaration(jdoqlVariableDeclaration, "org.ecocean.Encounter enc13");
@@ -610,7 +610,7 @@ public class IndividualQueryProcessor {
     }
     //end hasPhoto filters-----------------------------------------------
 
-    
+
     //------------------------------------------------------------------
     //hasSpots filters-------------------------------------------------
     if(request.getParameter("hasSpots")!=null){
@@ -621,11 +621,11 @@ public class IndividualQueryProcessor {
 
             prettyPrint.append("<br />");
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc413")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc413";}
-            
+
     }
     //end hasSpots filters-----------------------------------------------
 
-    
+
     //------------------------------------------------------------------
     //hasNoSpots filters-------------------------------------------------
     if(request.getParameter("hasNoSpots")!=null){
@@ -636,7 +636,7 @@ public class IndividualQueryProcessor {
 
             prettyPrint.append("<br />");
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc414")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc414";}
-            
+
     }
     //end hasNoSpots filters-----------------------------------------------
 
@@ -826,7 +826,7 @@ public class IndividualQueryProcessor {
 
       prettyPrint.append("nickName field contains \""+nickName+"\".<br />");
     }
-    
+
 
     //------------------------------------------------------------------
     //haplotype filters-------------------------------------------------
@@ -1011,15 +1011,15 @@ public class IndividualQueryProcessor {
 
 
     //start DOB filter----------------------------
-    if((request.getParameter("DOBstart")!=null)&&(request.getParameter("DOBend")!=null)&&(!request.getParameter("DOBstart").equals(""))&&(!request.getParameter("DOBend").equals(""))){ 
-      
+    if((request.getParameter("DOBstart")!=null)&&(request.getParameter("DOBend")!=null)&&(!request.getParameter("DOBstart").equals(""))&&(!request.getParameter("DOBend").equals(""))){
+
       try{
 
-        
+
         DateTime gcMin=new DateTime(request.getParameter("DOBstart"));
         DateTime gcMax=new DateTime(request.getParameter("DOBend"));
-        
-        
+
+
 
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
           filter+="((timeOfBirth >= "+gcMin.getMillis()+") && (timeOfBirth <= "+gcMax.getMillis()+"))";
@@ -1030,22 +1030,22 @@ public class IndividualQueryProcessor {
         prettyPrint.append("Date of birth between: "+request.getParameter("DOBstart")+" and "+request.getParameter("DOBend")+"<br />");
 
 
-      } 
+      }
       catch(Exception nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
       }
     }
     //end DOB filter ----------------------------------------
-    
-    
-    
+
+
+
     //start DOD filter----------------------------
-    if((request.getParameter("DODstart")!=null)&&(request.getParameter("DODend")!=null)&&(!request.getParameter("DODstart").equals(""))&&(!request.getParameter("DODend").equals(""))){ 
-      
+    if((request.getParameter("DODstart")!=null)&&(request.getParameter("DODend")!=null)&&(!request.getParameter("DODstart").equals(""))&&(!request.getParameter("DODend").equals(""))){
+
       try{
 
-        
+
         DateTime gcMin=new DateTime(request.getParameter("DODstart"));
         DateTime gcMax=new DateTime(request.getParameter("DODend"));
 
@@ -1057,16 +1057,16 @@ public class IndividualQueryProcessor {
         }
         prettyPrint.append("Date of death between: "+request.getParameter("DODstart")+" and "+request.getParameter("DODend")+"<br />");
 
-        
-      } 
+
+      }
       catch(Exception nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
       }
     }
     //end DOD filter ----------------------------------------
-    
-    
+
+
     //start date filter----------------------------
     if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
       try{
@@ -1112,17 +1112,17 @@ public class IndividualQueryProcessor {
 
     //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
     //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-    
+
     //let's do some month and day checking to avoid exceptions
     org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
-    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
+    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();
     org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
     if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
-    
+
     org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
     org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-    
-    
+
+
     if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
       filter+="((enc.dateInMilliseconds >= "+gcMin.getMillis()+") && (enc.dateInMilliseconds <= "+gcMax.getMillis()+"))";
     }
@@ -1310,6 +1310,21 @@ public class IndividualQueryProcessor {
         query.setOrdering(order);
       }
       try{
+
+        //range: can be passed as parameter (from user) or attribute (from other servlet)
+        int rangeStart = -1;
+        int rangeEnd = -1;
+        try {
+          if (request.getParameter("rangeStart")!=null) {rangeStart=Integer.parseInt(request.getParameter("rangeStart"));}
+          else if (request.getAttribute("rangeStart")!=null) {rangeStart=(Integer)request.getAttribute("rangeStart");}
+          if (request.getParameter("rangeEnd")!=null) {rangeEnd=Integer.parseInt(request.getParameter("rangeEnd"));}
+          else if (request.getAttribute("rangeEnd")!=null) {rangeEnd=(Integer)request.getAttribute("rangeEnd");}
+        } catch (NumberFormatException nfe) {}
+
+        if (rangeStart!=-1 && rangeEnd!=-1) {
+          query.setRange(rangeStart, rangeEnd);
+        }
+
         if(request.getParameter("sort")!=null) {
           if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending", paramMap);}
           else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);}
@@ -1332,6 +1347,7 @@ public class IndividualQueryProcessor {
       }
       catch(NullPointerException npe){}
 
+
       //community search
       if(request.getParameterValues("community")!=null){
         String[] communities=request.getParameterValues("community");
@@ -1346,10 +1362,10 @@ public class IndividualQueryProcessor {
               q--;
             }
           }
-        }  
+        }
         prettyPrint.append("<br />");
       }
-      
+
       //role search
       if(request.getParameterValues("role")!=null){
         boolean orRoles=true;
@@ -1365,16 +1381,16 @@ public class IndividualQueryProcessor {
         for(int h=0;h<numRoles;h++){
           prettyPrint.append(roles[h]+"&nbsp;");
         }
-        
-        
-          
+
+
+
           //logical OR the roles
             for (int q = 0; q<rIndividuals.size(); q++) {
               MarkedIndividual tShark = (MarkedIndividual) rIndividuals.get(q);
               List<String> myRoles=myShepherd.getAllRoleNamesForMarkedIndividual(tShark.getIndividualID());
-              
+
               if(orRoles){
-                
+
                 //logical OR the role
                 boolean hasRole=false;
                 int f=0;
@@ -1385,10 +1401,10 @@ public class IndividualQueryProcessor {
                 if(!hasRole) {
                    rIndividuals.remove(q);
                    q--;
-                }              
+                }
               }
               else{
-                
+
                 //logical AND the roles
                 boolean hasRole=true;
                 int f=0;
@@ -1399,21 +1415,21 @@ public class IndividualQueryProcessor {
                 if(!hasRole) {
                    rIndividuals.remove(q);
                    q--;
-                }  
-                
-                
+                }
+
+
               }
-              
-         
+
+
         }
-        
-        
-        
+
+
+
         prettyPrint.append("<br />");
       }
-      
-      
-      
+
+
+
 
     //min number of resights
     if ((request.getParameter("numResights") != null) && (!request.getParameter("numResights").equals("")) && (request.getParameter("numResightsOperator") != null)) {
