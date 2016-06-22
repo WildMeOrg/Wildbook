@@ -552,16 +552,18 @@ finally{
         <%
         //List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
         ArrayList<String> locs2=new ArrayList<String>();
-        locs2.add("PS");
+        locs2.add("ES");
         locs2.add("HV");
         locs2.add("JV");
-        locs2.add("PEV");
-        locs2.add("KV");
-        locs2.add("PV");
-        locs2.add("PUV");
         locs2.add("KS");
+        locs2.add("PEV");
+        locs2.add("PUV");
+        locs2.add("PV");
+        locs2.add("PS");
         locs2.add("LL");
-        locs2.add("ES");
+        locs2.add("KV");
+        
+    
         
         int numLocIDs = locs2.size();
         %>
