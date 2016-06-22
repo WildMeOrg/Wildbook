@@ -48,7 +48,7 @@
 
     myShepherd.beginDBTransaction();
 
-    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
 
     String[] keywords = request.getParameterValues("keyword");
