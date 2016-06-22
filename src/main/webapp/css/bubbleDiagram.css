@@ -53,3 +53,23 @@ button {
   stroke: none;
 
 }
+
+#innerEncountersTable {
+  display: none;
+}
+
+#encountersTable {
+  display: none;
+}
+
+#communityTable {
+  display: none;
+}
+
+#familyTable {
+  display: none;
+}
+
+#cooccurrenceTable {
+  display: none;
+}

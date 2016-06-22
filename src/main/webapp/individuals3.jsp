@@ -291,6 +291,7 @@ table.tissueSample td {
       }
     });
 
+
   </script>
 
 <!--  FACEBOOK SHARE BUTTON -->
@@ -570,12 +571,6 @@ function tableUp() {
 
 ////////
 
-
-$("#communityTable").hide();
-$("#familyTable").hide();
-$("#cooccurrenceTable").hide();
-$("#encountersTable").hide();
-$("#innerEncountersTable").hide();
 
 $(document).ready( function() {
 	wildbook.init(function() { doTable(); });
