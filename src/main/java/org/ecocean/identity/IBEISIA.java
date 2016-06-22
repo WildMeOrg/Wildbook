@@ -1397,11 +1397,13 @@ System.out.println("identification most recent action found is " + action);
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
         }
         ma.addLabel("_original");
+/*
         DateTime dt = null;
         try {
             dt = iaDateTimeFromImageUUID(maUUID);
         } catch (Exception ex) {}
         if (dt != null) ma.setUserDateTime(dt);
+*/
         //TODO:
         //ma.setUserLatitude();
         //ma.setUserLongitude();
@@ -1609,6 +1611,12 @@ System.out.println("---------------------------------------------\n needEnc? " +
 
         if (needEnc.size() > 0) {
             Encounter newEnc = new Encounter(needEnc);
+            DateTime dt = null;
+            try {
+                dt = iaDateTimeFromAnnotUUID(needEnc.get(0).getId());
+            } catch (Exception ex) {}
+            if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
+System.out.println(" ============ dt millis = " + dt);
             System.out.println("INFO: assignFromIA() created " + newEnc + " for " + needEnc.size() + " annots");
             encs.add(newEnc);
         }
@@ -1854,6 +1862,15 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
     }
 //  this --> is from annot uuid  (note returns in seconds, not milli)
 //http://52.37.240.178:5000/api/annot/image/unixtimes/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
+    public static DateTime iaDateTimeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtimes/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
+        long t = rtn.getJSONArray("response").optLong(0, -1);
+        if (t == -1) return null;
+        return new DateTime(t * 1000);  //IA returns secs not millisecs
+    }
+
+///TODO
     public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return null;
     }
