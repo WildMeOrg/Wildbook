@@ -86,6 +86,10 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = res.toString();
 
+    } else if (request.getParameter("status") != null) {
+        response.setContentType("text/plain");
+        getOut = IBEISIA.iaStatus(request).toString();
+
     } else if (request.getParameter("getDetectionReviewHtml") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
