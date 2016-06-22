@@ -26,7 +26,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Calendar;
 import java.util.StringTokenizer;
+import java.text.SimpleDateFormat;
 import java.util.TreeMap;
 import java.util.Vector;
 import java.util.HashMap;
@@ -267,19 +269,23 @@ public class Encounter implements java.io.Serializable {
     this.minutes = minutes;
     this.size_guess = size_guess;
     this.individualID = "Unassigned";
-
-    resetDateInMilliseconds();
+    this.setDWCDateAdded();
+    this.setDWCDateLastModified();
+    this.resetDateInMilliseconds();
   }
-
 
     public Encounter(Annotation ann) {
         this(new ArrayList<Annotation>(Arrays.asList(ann)));
     }
+
     public Encounter(ArrayList<Annotation> anns) {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
         this.setSpeciesFromAssets();
+        this.setDWCDateAdded();
+        this.setDWCDateLastModified();
+        this.resetDateInMilliseconds();
     }
 
 
@@ -1394,6 +1400,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setDWCDateLastModified(String lastModified) {
     modified = lastModified;
   }
+    public void setDWCDateLastModified() {
+        modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
 
   public String getDWCDateAdded() {
     return dwcDateAdded;
@@ -1406,6 +1415,9 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setDWCDateAdded(String m_dateAdded) {
     dwcDateAdded = m_dateAdded;
   }
+    public void setDWCDateAdded() {
+        dwcDateAdded = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
 
 
  public void setDWCDateAdded(Long m_dateAdded) {
@@ -1757,17 +1769,13 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 
     //crawls thru assets and sets date.. in an ideal world would do some kinda avg or whatever if more than one  TODO?
     public void setDateFromAssets() {
+        //FIXME if you dare.  i can *promise you* there are some timezone problems here.  ymmv.
         if ((annotations == null) || (annotations.size() < 1)) return;
         MediaAsset ma = annotations.get(0).getMediaAsset();
         if (ma == null) return;
         DateTime dt = ma.getDateTime();
         if (dt == null) return;
-        year = dt.getYear();
-        month = dt.getMonthOfYear();
-        day = dt.getDayOfMonth();
-        hour = dt.getHourOfDay();
-        minutes = Integer.toString(dt.getMinuteOfHour());  //wtf is minute a string??
-        resetDateInMilliseconds();
+        setDateInMilliseconds(dt.getMillis());
     }
 
     public void setSpeciesFromAssets() {
@@ -1795,6 +1803,19 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public java.lang.Long getDateInMilliseconds(){return dateInMilliseconds;}
+
+    // this will set all date stuff based on ms since epoch
+    public void setDateInMilliseconds(long ms) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(ms);
+        this.year = cal.get(Calendar.YEAR);
+        this.month = cal.get(Calendar.MONTH) + 1;
+        this.day = cal.get(Calendar.DAY_OF_MONTH);
+        this.hour = cal.get(Calendar.HOUR);
+        this.minutes = Integer.toString(cal.get(Calendar.MINUTE));
+        if (this.minutes.length() == 1) this.minutes = "0" + this.minutes;
+        this.dateInMilliseconds = ms;
+    }
 
 
   public String getDecimalLatitude(){

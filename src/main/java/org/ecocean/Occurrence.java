@@ -7,6 +7,7 @@ import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
 import org.joda.time.DateTime;
+import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -92,7 +93,8 @@ public class Occurrence implements java.io.Serializable{
     encounters=new ArrayList<Encounter>();
     encounters.add(enc);
     assets = new ArrayList<MediaAsset>();
-
+    setDWCDateLastModified();
+    setDateTimeCreated();
     //if((enc.getLocationID()!=null)&&(!enc.getLocationID().equals("None"))){this.locationID=enc.getLocationID();}
   }
 
@@ -105,6 +107,8 @@ public class Occurrence implements java.io.Serializable{
       ma.setOccurrence(this);
       myShepherd.getPM().makePersistent(ma);
     }
+    setDWCDateLastModified();
+    setDateTimeCreated();
   }
 
 
@@ -472,6 +476,10 @@ public class Occurrence implements java.io.Serializable{
     modified = lastModified;
   }
 
+    public void setDWCDateLastModified() {
+        modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+    }
+
   /**
    * This method simply iterates through the encounters for the occurrence and returns the first Encounter.locationID that it finds or returns null.
    *
@@ -498,6 +506,10 @@ public class Occurrence implements java.io.Serializable{
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
+
+    public void setDateTimeCreated() {
+        dateTimeCreated = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+    }
 
   public ArrayList<String> getCorrespondingHaplotypePairsForMarkedIndividuals(Shepherd myShepherd){
     ArrayList<String> pairs = new ArrayList<String>();
