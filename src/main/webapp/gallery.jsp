@@ -225,22 +225,10 @@ myShepherd.beginDBTransaction();
 
 %>
 
-<section class="gallery hero container-fluid main-section relative">
-    <div class="container-fluid relative">
-        <div class="col-lg-12 bc4">
-            <!--<h1 class="hidden">Wildbook</h1>-->
-            <h2 class="jumboesque">Tutustu Terttuun<br/> Ja Muihin Norppiin</h2>
-            <!--
-            <button id="watch-movie" class="large light">
-				Watch the movie
-				<span class="button-icon" aria-hidden="true">
-			</button>
-    -->
-        </div>
 
-	</div>
 
-</section>
+<div class="container maincontent">
+<h1><%=props.getProperty("gallery") %></h1>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
     <button type="button" class="btn-link">Uusimmat havainnot</button>
@@ -252,8 +240,8 @@ myShepherd.beginDBTransaction();
   </div>
 </nav>
 
-<div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
+
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -437,12 +425,10 @@ myShepherd.beginDBTransaction();
           }
           %>
 
-
-          Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
           <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
-      </row>
+      </div>
 
   </section>
 </div>
