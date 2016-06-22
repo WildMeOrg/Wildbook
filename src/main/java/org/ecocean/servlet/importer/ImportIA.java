@@ -101,6 +101,13 @@ public class ImportIA extends HttpServlet {
         myShepherd.beginDBTransaction();
 
         Encounter enc = new Encounter(annotGroups.get(name));
+        /*
+            note: this constructor will set the date/time on the Encounter "based upon the Annotations"
+            (which currently means the .getDateTime() of the first MediaAsset -- but this algorithm may change).
+            not sure if this is the desirable end result here, since we can also pull the Annotation times from IA as well.
+            (see IBEISIA.iaDateTimeFromAnnotUUID() )  -- we might want to do that or fall back to that if the constructor
+            fails to set something.
+        */
         myShepherd.storeNewEncounter(enc, Util.generateUUID());
         if (myShepherd.isMarkedIndividual(name)) {
           MarkedIndividual ind = myShepherd.getMarkedIndividual(name);

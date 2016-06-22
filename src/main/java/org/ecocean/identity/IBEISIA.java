@@ -1397,13 +1397,11 @@ System.out.println("identification most recent action found is " + action);
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
         }
         ma.addLabel("_original");
-/*
         DateTime dt = null;
         try {
             dt = iaDateTimeFromImageUUID(maUUID);
         } catch (Exception ex) {}
         if (dt != null) ma.setUserDateTime(dt);
-*/
         //TODO:
         //ma.setUserLatitude();
         //ma.setUserLongitude();
@@ -1869,10 +1867,20 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
-
-///TODO
+//http://52.37.240.178:5000/api/annot/image/gps/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
+    public Double[] iaLatLonFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
+        JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
+        return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+    }
+//http://52.37.240.178:5000/api/image/unixtimes/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        return null;
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/unixtimes/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from image uuid=" + uuid);
+        long t = rtn.getJSONArray("response").optLong(0, -1);
+        if (t == -1) return null;
+        return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
