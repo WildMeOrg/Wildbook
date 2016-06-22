@@ -59,6 +59,9 @@ public class MarkedIndividual implements java.io.Serializable {
   //sex of the MarkedIndividual
   private String sex = "unknown";
 
+  private String genus = "";
+  private String specificEpithet;
+
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
 
@@ -118,6 +121,8 @@ public class MarkedIndividual implements java.io.Serializable {
       this.sex = enc.getSex();
     }
     //numUnidentifiableEncounters = 0;
+    setTaxonomyFromEncounters();
+    setSexFromEncounters();
     maxYearsBetweenResightings=0;
   }
 
@@ -155,6 +160,8 @@ public class MarkedIndividual implements java.io.Serializable {
         numberEncounters++;
         refreshDependentProperties(context);
       }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
       return isNew;
 
  }
@@ -659,6 +666,60 @@ public class MarkedIndividual implements java.io.Serializable {
 
   }
 
+    public String getGenus() {
+        return genus;
+    }
+
+    public void setGenus(String newGenus) {
+        genus = newGenus;
+    }
+
+    public String getSpecificEpithet() {
+        return specificEpithet;
+    }
+
+    public void setSpecificEpithet(String newEpithet) {
+        specificEpithet = newEpithet;
+    }
+
+    public String getTaxonomyString() {
+        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    }
+
+    ///this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
+    /// therefore we dont allow that unless you pass boolean true to force it
+    ///  TODO we only pick first one - perhaps smarter would be to check all encounters and pick dominant one?
+    public String setTaxonomyFromEncounters(boolean force) {
+        if (!force && ((genus != null) || (specificEpithet != null))) return getTaxonomyString();
+        if ((encounters == null) || (encounters.size() < 1)) return getTaxonomyString();
+        for (Encounter enc : encounters) {
+            if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
+                genus = enc.getGenus();
+                specificEpithet = enc.getSpecificEpithet();
+                return getTaxonomyString();
+            }
+        }
+        return getTaxonomyString();
+    }
+    public String setTaxonomyFromEncounters() {
+        return setTaxonomyFromEncounters(false);
+    }
+
+    //similar to above
+    public String setSexFromEncounters(boolean force) {
+        if (!force && (sex != null)) return getSex();
+        if ((encounters == null) || (encounters.size() < 1)) return getSex();
+        for (Encounter enc : encounters) {
+            if (enc.getSex() != null) {
+                sex = enc.getSex();
+                return getSex();
+            }
+        }
+        return getSex();
+    }
+    public String setSexFromEncounters() {
+        return setSexFromEncounters(false);
+    }
 
   public double getLastEstimatedSize() {
     double lastSize = 0;
@@ -1325,19 +1386,11 @@ public class MarkedIndividual implements java.io.Serializable {
       return "0";
     }
   }
-/**
-Returns the first genus-species pair found in the Encounter objects for this MarkedIndividual.
-@return a String if found or null if no genus-species pair is found
-*/
-public String getGenusSpecies(){
-	    for (int c = 0; c < encounters.size(); c++) {
-	      	Encounter temp = (Encounter) encounters.get(c);
-			if((temp.getGenus()!=null)&&(temp.getSpecificEpithet()!=null)){return (temp.getGenus()+" "+temp.getSpecificEpithet());}
 
-    	}
-		return null;
+    public String getGenusSpecies(){
+        return getTaxonomyString();
+    }
 
-}
 
 /**
 Returns the first haplotype found in the Encounter objects for this MarkedIndividual.

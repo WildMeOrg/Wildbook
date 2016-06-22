@@ -106,14 +106,34 @@ public class ImportIA extends HttpServlet {
             (which currently means the .getDateTime() of the first MediaAsset -- but this algorithm may change).
             not sure if this is the desirable end result here, since we can also pull the Annotation times from IA as well.
             (see IBEISIA.iaDateTimeFromAnnotUUID() )  -- we might want to do that or fall back to that if the constructor
-            fails to set something.
+            fails to set something.  tho... i think jasonp said annot times just come from images, so.
+
+            Similarly, it should also get lat/lon and species based upon IA values (if they have some).  note that IA also has sex, however,
+            it is stored on the "names" (i.e. individuals) so is not sighting-based ... so only useful to us if it is a new individual.
+
+            Age, however, we dont store anywhere "lower", so we need to get that explicitly ... however IA has that on each Annotation,
+            so we just ... um.. i guess take the first one we can find?
+
+            note also that adding encounters to individuals should(!) gracefully adjust the individual accordingly (set sex/taxonomy *if unset*)
         */
+        String sex = null;
+        try {
+          sex = IBEISIA.iaSexFromName(name);
+        } catch (Exception ex) {}
+        Double age = null;
+        try {
+            //guess this assumes we have at least one annot and it has age; could walk thru if not?
+            age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId());
+        } catch (Exception ex) {}
+        if (age != null) enc.setAge(age);
         myShepherd.storeNewEncounter(enc, Util.generateUUID());
         if (myShepherd.isMarkedIndividual(name)) {
           MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
+          if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
           ind.addEncounter(enc, context);
         } else {
           MarkedIndividual ind = new MarkedIndividual(name, enc);
+          if (sex != null) ind.setSex(sex);
           myShepherd.storeNewMarkedIndividual(ind);
           myShepherd.commitDBTransaction();
           myShepherd.beginDBTransaction();
