@@ -5,6 +5,7 @@
 #familyDiagram svg {
   margin-top: 32px;
   border: 1px solid #aaa;
+  border-radius: 5px;
 }
 .individual rect {
   fill: #fff;
