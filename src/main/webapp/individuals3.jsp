@@ -342,6 +342,8 @@ table.tissueSample td {
 <script src="javascript/bubbleDiagram/central-click.js"></script>
 <script src="javascript/bubbleDiagram/lines.js"></script>
 <script src="javascript/bubbleDiagram/index.js"></script>
+<script src="javascript/relationshipDiagrams/familyTree.js"></script>
+<link rel="stylesheet" href="css/familyTree.css">
 <link rel="stylesheet" href="css/bubbleDiagram.css">
 
 <script type="text/javascript">
@@ -1558,8 +1560,12 @@ function dataTypes(obj, fieldName) {
         </ul>
       </div>
 
-      <div id="familyDiagram">
-        <h2>Family Diagram Goes Here</h2>
+      <div id="familyDiagram" class="diagramContainer">
+        <% String individualID = sharky.getIndividualID();%>
+        <script type="text/javascript">
+
+        setupFamilyTree(<%=individualID%>);
+        </script>
       </div>
 
       <div id="communityTable" class="mygrid-wrapper-div diagramContainer">
