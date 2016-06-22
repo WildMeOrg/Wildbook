@@ -434,5 +434,11 @@ public class Util {
 
     }
 
+    //whatever a string of this should look like.  apparently we want a string version on encounter for example. (?)
+    public static String decimalLatLonToString(Double ll) {
+        if (ll == null) return null;
+        return ll.toString();
+    }
+
 
 }
