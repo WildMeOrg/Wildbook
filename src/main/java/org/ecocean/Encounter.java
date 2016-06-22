@@ -130,6 +130,9 @@ public class Encounter implements java.io.Serializable {
   //Currently supported values are: "alive" and "dead".
   private String livingStatus;
 
+    //observed age (if any) via IBEIS zebra projects
+    private Double age;
+
   //Date the encounter was added to the library.
   private String dwcDateAdded;
   private Long dwcDateAddedLong;
@@ -252,8 +255,10 @@ public class Encounter implements java.io.Serializable {
    * Use this constructor to add the minimum level of information for a new encounter
    * The Vector <code>additionalImages</code> must be a Vector of Blob objects
    *
+   * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
+    System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -283,6 +288,7 @@ public class Encounter implements java.io.Serializable {
         this.annotations = anns;
         this.setDateFromAssets();
         this.setSpeciesFromAssets();
+        this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
         this.resetDateInMilliseconds();
@@ -1561,11 +1567,22 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.individualID = indy;
   }
 
+/* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
+some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
+the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
   public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
-  public void setDecimalLatitude(Double lat){this.decimalLatitude=lat;}
+
+    public void setDecimalLatitude(Double lat){
+        this.decimalLatitude = lat;
+        gpsLatitude = Util.decimalLatLonToString(lat);
+     }
 
   public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
-  public void setDecimalLongitude(Double longy){this.decimalLongitude=longy;}
+
+    public void setDecimalLongitude(Double lon) {
+        this.decimalLongitude = lon;
+        gpsLongitude = Util.decimalLatLonToString(lon);
+    }
 
 
   public String getOccurrenceRemarks() {
@@ -1600,6 +1617,12 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     this.livingStatus = status;
   }
 
+    public void setAge(Double a) {
+        age = a;
+    }
+    public Double getAge() {
+        return age;
+    }
 
   public String getBehavior() {
     return behavior;
@@ -1784,6 +1807,17 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
         if (sp.length > 0) this.setGenus(sp[0]);
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
+
+    public void setLatLonFromAssets() {
+        if ((annotations == null) || (annotations.size() < 1)) return;
+        MediaAsset ma = annotations.get(0).getMediaAsset();
+        if (ma == null) return;
+        Double lat = ma.getLatitude();
+        if (lat != null) this.setDecimalLatitude(lat);
+        Double lon = ma.getLongitude();
+        if (lon != null) this.setDecimalLongitude(lon);
+    }
+
 
   public void resetDateInMilliseconds(){
     if(year>0){

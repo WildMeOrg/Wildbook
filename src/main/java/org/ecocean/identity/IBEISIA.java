@@ -1285,6 +1285,14 @@ System.out.println("identification most recent action found is " + action);
             MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
             if (ma == null) throw new RuntimeException("could not find MediaAsset " + imageUUID);
 
+//////// FIXME this is placeholder until we have this on getMediaAssetFromIA()
+Double[] ll = iaLatLonFromAnnotUUID(annId);
+if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
+    ma.setUserLatitude(ll[0]);
+    ma.setUserLongitude(ll[1]);
+}
+/////////
+
             //now we need the bbox to make the Feature
             rtn = RestClient.get(iaURL(context, "/api/annot/bboxes/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get annot bbox");
@@ -1868,11 +1876,20 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
 //http://52.37.240.178:5000/api/annot/image/gps/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
-    public Double[] iaLatLonFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+    public static Double[] iaLatLonFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+    }
+    public static Double[] iaLatLonFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+/*
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
+        JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
+        return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
+*/
+        return null;
     }
 //http://52.37.240.178:5000/api/image/unixtimes/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -1881,6 +1898,20 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
+    }
+    public static String iaSexFromName(String name) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+/*
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtimes/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
+        long t = rtn.getJSONArray("response").optLong(0, -1);
+        if (t == -1) return null;
+*/
+        return null;
+    }
+    public static Double iaAgeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        return rtn.getJSONArray("response").optDouble(0, (Double)null);
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
