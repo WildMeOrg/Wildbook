@@ -272,7 +272,7 @@
       d3.selectAll(".node:not(.active) circle").style("fill", function (d) {
         return self.options.data.color !== undefined ? self.options.data.color(d.item) : fnColor(d.item.text);
       });
-      // d3.select(".w" + individualID + " circle").style("fill", "#0CED6E");
+      d3.selectAll("circle").filter(function(d) {return d.r == 90;}).style("fill", "#0CED6E");
     },
 
     registerClickEvent: function (node) {
