@@ -1,10 +1,8 @@
 package org.ecocean;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -1308,7 +1306,9 @@ public class IndividualQueryProcessor {
 
       //query.setFilter(filter);
       Query query=myShepherd.getPM().newQuery(filter);
-
+      if((order!=null)&&(!order.trim().equals(""))){
+        query.setOrdering(order);
+      }
       try{
 
         //range: can be passed as parameter (from user) or attribute (from other servlet)
