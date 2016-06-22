@@ -139,6 +139,8 @@ if (request.getParameter("number")!=null) {
 		myShepherd.rollbackDBTransaction();
 }
 %>
+<jsp:include page="header.jsp" flush="true"/>
+
 
   <style type="text/css">
     <!--
@@ -236,7 +238,6 @@ table.tissueSample td {
   </style>
 
 
-    <jsp:include page="header.jsp" flush="true"/>
 
 <!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
@@ -732,8 +733,8 @@ function dataTypes(obj, fieldName) {
 
 
 
-<div class="container maincontent">
-
+<div class="container-fluid maincontent">
+<div class="row">
 <%=blocker%>
 
 <%
@@ -782,6 +783,9 @@ if(sharky.getAlternateID()!=null){
 }
 
 %>
+
+</div>
+
 <div id="just-a-big-temp-photoswipe-containing-workarea">
 <%
 
@@ -812,6 +816,7 @@ if (galleryEncs.length>0) {
 %>
 </div>
 
+<div class="row">
 <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
   <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 
@@ -2277,6 +2282,7 @@ else {
 
 
 %>
+</div>
 </div>
 
 <!--db: These are the necessary tools for photoswipe.-->

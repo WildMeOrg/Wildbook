@@ -102,6 +102,7 @@ maLib.cascadiaCaptionFunction = function(maJson) {
  */
 maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
   caption = caption || '';
 
@@ -127,7 +128,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
       mkImg(maJson)
     )
   );
-  fig.append('<figcaption itemprop="caption description">'+maCaptionFunction(maJson)+caption+'</figcaption>');
+  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
 
 
   intoElem.append(fig);
@@ -165,11 +166,21 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
   var watermarkUrl = maLib.getChildUrl('_watermark');
 
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" class="col-md-'+colSize+'"/>');
+
+
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
       mkImg(maJson)
     )
   );
+
+  // make sure half-width images aren't more than 1/4 height of screen
+  /*
+  if (colSize==3) {
+    fig.find("img").css("max-height","140px");
+  }*/
+
+
   var caption = maCaptionFunction(maJson);
   fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
 

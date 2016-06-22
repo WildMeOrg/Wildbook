@@ -456,7 +456,7 @@
     <servlet-name>BatchUpload</servlet-name>
     <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
-  
+
     <servlet-mapping>
     <servlet-name>IAGateway</servlet-name>
     <url-pattern>/ia</url-pattern>
@@ -502,6 +502,11 @@
         <servlet-name>MediaAssetCreate</servlet-name>
         <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>MediaAssetAttach</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
+</servlet>
+
 
   <servlet>
     <servlet-name>EncounterResetDate</servlet-name>
@@ -675,7 +680,7 @@
       <servlet-name>OccurrenceRemoveEncounter</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
   </servlet>
-  
+
           <servlet>
         <servlet-name>CRCExportReport</servlet-name>
         <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
@@ -1034,13 +1039,13 @@
 				<param-value>ShepherdPMF</param-value>
 		</init-param>
 	</servlet>
-	
-	
+
+
 	<servlet>
 		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
 		<servlet-class>org.ecocean.servlet.PrimeIBEISImageAnalysisForSpecies</servlet-class>
 	</servlet>
-	
+
 	<servlet-mapping>
 		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
 		<url-pattern>/PrimeIBEISImageAnalysisForSpecies</url-pattern>
@@ -1063,7 +1068,7 @@
         <servlet-name>CRCExportReport</servlet-name>
         <url-pattern>/CRCExportReport</url-pattern>
   </servlet-mapping>
-  
+
 
 <servlet-mapping>
   <servlet-name>TranslateQuery</servlet-name>
@@ -1165,6 +1170,10 @@
             <url-pattern>/MediaAssetCreate</url-pattern>
   </servlet-mapping>
 
+      <servlet-mapping>
+         <servlet-name>MediaAssetAttach</servlet-name>
+         <url-pattern>/MediaAssetAttach</url-pattern>
+      </servlet-mapping>
 
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>

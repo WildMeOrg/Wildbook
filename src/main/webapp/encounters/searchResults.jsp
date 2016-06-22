@@ -219,7 +219,7 @@ td.tdw:hover div {
 
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
@@ -349,7 +349,7 @@ var colDefn = [
 	},
   {
     key: 'otherCatalogNumbers',
-    label: 'Alternate ID',
+    label: '<%=encprops.getProperty("alternateID")%>'//'Alternate ID',
   },
   {
     key: 'filename',
@@ -358,27 +358,27 @@ var colDefn = [
   },
 	{
 		key: 'date',
-		label: 'Date',
+		label: '<%=encprops.getProperty("date")%>',
 		value: _colEncDate,
 		sortValue: _colEncDateSort,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'verbatimLocality',
-		label: 'Location',
+		label: '<%=encprops.getProperty("location")%>',
 	},
 	{
 		key: 'locationID',
-		label: 'Location ID',
+		label: '<%=encprops.getProperty("locationID")%>',
 	},
 	{
 		key: 'taxonomy',
-		label: 'Taxonomy',
+		label: '<%=encprops.getProperty("taxonomy")%>',
 		value: _colTaxonomy,
 	},
 	{
 		key: 'submitterID',
-		label: 'User',
+		label: '<%=encprops.getProperty("submitterName")%>',
 	},
 	{
 		key: 'creationDate',
@@ -518,7 +518,7 @@ function updateIAResults(d) {
 	if (d.error || !d.success || !d.taskSummary) {
 		if (!d.error) d.error = 'unknown';
 		alert('error getting IA results: ' + d.error);
-		return;	
+		return;
 	}
 	var needUpdating = [];
 	var foundAnns = [];
@@ -1066,7 +1066,7 @@ function _colAnnIASummary(annId, sum) {
 
 
 function _colIASort(o) {
-//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults'))); 
+//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults')));
 	if (o.get('_sortWeight')) return o.get('_sortWeight');
 	if (!o.get('_iaResults')) return 1000;
 	return 0;
@@ -1135,7 +1135,7 @@ console.log(t);
 
 </script>
 
-<p>
+<p class="table-filter-text">
 <input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
 <input type="button" value="filter" />
 <input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
