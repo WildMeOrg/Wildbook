@@ -1343,7 +1343,7 @@ function dataTypes(obj, fieldName) {
     <tr valign="top">
    <td>
    <!-- HTML Codes by Quackit.com -->
-  <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+  <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll">
 
         <%
         						while(countMe<numThumbs){
@@ -2769,21 +2769,23 @@ if(isOwner){
 %>
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
 
-<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
 	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
 </div>
 <%
   if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
 %>
 <p>
-	<form action="IndividualAddComment" method="post" name="addComments">
-  		<input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
-  		<input name="action" type="hidden" value="comments" id="action">
+  <div class="form-group">
+    <form action="IndividualAddComment" method="post" name="addComments">
+      <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
+      <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+      <input name="action" type="hidden" value="comments" id="action">
 
-  		<p><textarea name="comments" cols="60" id="comments"></textarea> <br />
-    			<input name="Submit" type="submit" value="<%=addComments %>">
-	</form>
+        <p><textarea class="form-control" name="comments" cols="60" id="comments" rows="3" style="width: 100%"></textarea> <br />
+        <input name="Submit" type="submit" value="<%=addComments %>">
+      </form>
+  </div>
 </p>
 <%
     } //if isEditable

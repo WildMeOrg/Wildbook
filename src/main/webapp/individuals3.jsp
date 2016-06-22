@@ -572,9 +572,9 @@ function tableUp() {
 $("#communityTable").hide();
 $("#familyTable").hide();
 $("#cooccurrenceTable").hide();
+$("#encountersTable").hide();
 
 $(document).ready( function() {
-
 	wildbook.init(function() { doTable(); });
 
   $("#familyDiagramTab").click(function (e) {
@@ -621,6 +621,22 @@ $(document).ready( function() {
     $("#cooccurrenceDiagram").hide();
     $("#cooccurrenceTableTab").addClass("active");
     $("#cooccurrenceDiagramTab").removeClass("active");
+  });
+
+  $("#bioSamplesTableTab").click(function (e) {
+    e.preventDefault()
+    $("#bioSamplesTable").show();
+    $("#encountersTable").hide();
+    $("#bioSamplesTableTab").addClass("active");
+    $("#encountersTableTab").removeClass("active");
+  });
+
+  $("#encountersTableTab").click(function (e) {
+    e.preventDefault()
+    $("#encountersTable").show();
+    $("#bioSamplesTable").hide();
+    $("#encountersTableTab").addClass("active");
+    $("#bioSamplesTableTab").removeClass("active");
   });
 
 });
@@ -1812,248 +1828,260 @@ function dataTypes(obj, fieldName) {
       <%-- End of Relationship Graphs --%>
 
       <%-- Start Encounter Table --%>
-      <div>
-        <table id="encounter_report" width="100%">
-        <tr>
-        <td align="left" valign="top">
+      <div class="encountersBioSamples">
+        <ul class="nav nav-tabs">
+          <li id="bioSamplesTableTab" class="active">
+            <a href="#bioSammplesTable"><%=props.getProperty("tissueSamples") %></a>
+          </li>
+          <li id="encountersTableTab">
+            <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
+          </li>
+        </ul>
 
-        <p><strong><%=sharky.totalEncounters()%>
-        </strong>
-          <%=numencounters %>
-        </p>
+        <div id="encountersTable">
+          <table id="encounter_report" width="100%">
+            <tr>
+              <td align="left" valign="top">
+
+                <p><strong><%=sharky.totalEncounters()%>
+              </strong>
+              <%=numencounters %>
+            </p>
 
 
-          <%
+            <%
             Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
 
-        			ArrayList<HashMap> myEncs = new ArrayList<HashMap>();
+            ArrayList<HashMap> myEncs = new ArrayList<HashMap>();
 
             int total = dateSortedEncs.length;
             for (int i = 0; i < total; i++) {
-        	HashMap henc = new HashMap();
+              HashMap henc = new HashMap();
               Encounter enc = dateSortedEncs[i];
 
-        				boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
-                Vector encImages = enc.getAdditionalImageNames();
-                String imgName = "";
+              boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
+              Vector encImages = enc.getAdditionalImageNames();
+              String imgName = "";
 
-        							//String encSubdir = thisEnc.subdir();
-                  imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
+              //String encSubdir = thisEnc.subdir();
+              imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
 
-        	henc.put("visible", visible);
-                henc.put("thumbUrl", imgName);
-        	henc.put("date", enc.getDate());
-            	henc.put("location", enc.getLocation());
-        	if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
-           	if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
+              henc.put("visible", visible);
+              henc.put("thumbUrl", imgName);
+              henc.put("date", enc.getDate());
+              henc.put("location", enc.getLocation());
+              if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
+              if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
 
-           	//if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
-           	if ((myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasMeasurements", true);
+              //if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
+              if ((myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasMeasurements", true);
 
-           	henc.put("catalogNumber", enc.getEncounterNumber());
-         	henc.put("alternateID", enc.getAlternateID());
-        	henc.put("sex", enc.getSex());
+              henc.put("catalogNumber", enc.getEncounterNumber());
+              henc.put("alternateID", enc.getAlternateID());
+              henc.put("sex", enc.getSex());
 
-        /*
+              /*
               if (CommonConfiguration.useSpotPatternRecognition(context)) {
-            %>
-            <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-            <td class="lineitem">&nbsp;</td>
-            <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-            <td class="lineitem">LR</td>
-            <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-            <td class="lineitem">L</td>
-            <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-            <td class="lineitem">R</td>
-            <%
-                }
+              %>
+              <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
+              <td class="lineitem">&nbsp;</td>
+              <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
+              <td class="lineitem">LR</td>
+              <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
+              <td class="lineitem">L</td>
+              <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
+              <td class="lineitem">R</td>
+              <%
+              }
               }
 
-        */
+              */
 
-        	ArrayList<String> occ = new ArrayList<String>();
-            if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-            	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-            	ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-            	if(otherOccurs!=null){
-            		int numOtherOccurs=otherOccurs.size();
-            		for(int j=0;j<numOtherOccurs;j++){
-            			String thisName=otherOccurs.get(j);
-            			if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
-            		}
-            	}
-            }
+              ArrayList<String> occ = new ArrayList<String>();
+              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+              ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+              if(otherOccurs!=null){
+              int numOtherOccurs=otherOccurs.size();
+              for(int j=0;j<numOtherOccurs;j++){
+              String thisName=otherOccurs.get(j);
+              if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
+              }
+              }
+              }
 
-        	henc.put("occurrences", occ);
+              henc.put("occurrences", occ);
 
-        	henc.put("behavior", enc.getBehavior());
-        /*
-            if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-            	Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-            	if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
-           		 %>
-            	<br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
-            	<%
-            	}
-            }
-        */
+              henc.put("behavior", enc.getBehavior());
+              /*
+              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+              if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
+              %>
+              <br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
+              <%
+              }
+              }
+              */
 
-        System.out.println(henc);
-        	myEncs.add(henc);
+              System.out.println(henc);
+              myEncs.add(henc);
 
-            } //end for
+              } //end for
 
-            	//String encsJson = new Gson().toJson(myEncs);
-            	String encsJson = "[\n";
-                ExecutionContext ec = ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext();
-            	for (int i = 0; i < total; i++) {
-              		Encounter enc = dateSortedEncs[i];
-        		//myEncs.get(i);  //HashMap
-                	JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(enc, ec);
-        		jobj.put("date", enc.getDate());
-        		jobj = enc.sanitizeJson(request, jobj);
+              //String encsJson = new Gson().toJson(myEncs);
+              String encsJson = "[\n";
+              ExecutionContext ec = ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext();
+              for (int i = 0; i < total; i++) {
+              Encounter enc = dateSortedEncs[i];
+              //myEncs.get(i);  //HashMap
+              JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(enc, ec);
+              jobj.put("date", enc.getDate());
+              jobj = enc.sanitizeJson(request, jobj);
 
-        		ArrayList<String> occ = new ArrayList<String>();
-            		if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-            			Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-            			ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-            			if(otherOccurs!=null){
-            				int numOtherOccurs=otherOccurs.size();
-            				for(int j=0;j<numOtherOccurs;j++){
-            					String thisName=otherOccurs.get(j);
-        System.out.println("name -> "+thisName);
-            					if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
-            				}
-            			}
-            		}
-        		jobj.put("occurrences", occ);
+              ArrayList<String> occ = new ArrayList<String>();
+              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
+              ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
+              if(otherOccurs!=null){
+              int numOtherOccurs=otherOccurs.size();
+              for(int j=0;j<numOtherOccurs;j++){
+              String thisName=otherOccurs.get(j);
+              System.out.println("name -> "+thisName);
+              if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
+              }
+              }
+              }
+              jobj.put("occurrences", occ);
 
-        		encsJson += jobj.toString() + ",\n";
-        	}
-        	encsJson += "\n]";
-        //encsJson = "[]";
+              encsJson += jobj.toString() + ",\n";
+              }
+              encsJson += "\n]";
+              //encsJson = "[]";
 
-          %>
+              %>
 
-        <div class="pageableTable-wrapper">
-        	<div id="progress">Generating encounters table</div>
-        	<table id="results-table"></table>
-        	<div id="results-slider"></div>
-        </div>
+              <div class="pageableTable-wrapper mygrid-wrapper-div">
+                <div id="progress">Generating encounters table</div>
+                <table id="results-table"></table>
+                <div id="results-slider"></div>
+              </div>
 
-        </table>
+            </table>
 
-        <script>
-        var searchResults = <%=encsJson%>;
-        </script>
+            <script>
+              var searchResults = <%=encsJson%>;
+            </script>
+          </div>
+          <%-- End Encounter Table --%>
+
+          <!-- Start genetics -->
+          <div id="bioSamplesTable">
+            <a name="tissueSamples"></a>
+            <p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
+            <p>
+              <%
+              List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
+
+              int numTissueSamples=tissueSamples.size();
+              if(numTissueSamples>0){
+                %>
+                <table width="100%" class="tissueSample">
+                  <tr>
+                    <th><strong><%=props.getProperty("sampleID") %></strong></th>
+                    <th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
+                    <th><strong><%=props.getProperty("values") %></strong></th>
+                    <th><strong><%=props.getProperty("analyses") %></strong></th></tr>
+                    <%
+                    for(int j=0;j<numTissueSamples;j++){
+                      TissueSample thisSample=tissueSamples.get(j);
+                      %>
+                      <tr>
+                        <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
+                        <td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
+                        <td><span class="caption"><%=thisSample.getHTMLString() %></span>
+                      </td>
+
+                      <td><table>
+                        <%
+                        int numAnalyses=thisSample.getNumAnalyses();
+                        List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
+                        for(int g=0;g<numAnalyses;g++){
+                          GeneticAnalysis ga = gAnalyses.get(g);
+                          if(ga.getAnalysisType().equals("MitochondrialDNA")){
+                            MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
+                            %>
+                            <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
+                            <%
+                          }
+                          else if(ga.getAnalysisType().equals("SexAnalysis")){
+                            SexAnalysis mito=(SexAnalysis)ga;
+                            %>
+                            <tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
+                            <%
+                          }
+                          else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
+                            MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
+
+                            %>
+                            <tr>
+                              <td style="border-style: none;">
+                                <p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
+                                <%
+                                  if(request.getUserPrincipal()!=null){
+                                  %>
+                                  <a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
+                                  <%
+                                    }
+                                    %>
+                                  </p>
+                                  <span class="caption"><%=mito.getAllelesHTMLString() %></span>
+                                </td>
+                              </tr></li>
+
+                              <%
+                                }
+                                else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
+                                BiologicalMeasurement mito=(BiologicalMeasurement)ga;
+                                %>
+                                <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+                                <%
+                                  if(!mito.getSuperHTMLString().equals("")){
+                                  %>
+                                  <em>
+                                    <br /><%=props.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
+                                    <br /><%=mito.getSuperHTMLString()%>
+                                  </em>
+                                  <%
+                                    }
+                                    %>
+                                  </span></td></tr></li>
+                                  <%
+                                    }
+                                    }
+                                    %>
+                                  </table>
+
+                                </td>
+
+
+                              </tr>
+                              <%
+                                }
+                                %>
+                              </table>
+                            </p>
+                            <%
+                              }
+                              else {
+                              %>
+                              <p class="para"><%=props.getProperty("noTissueSamples") %></p>
+                              <%
+                                }
+                                %>
+                              </div>
+                              <!-- End genetics -->
       </div>
-      <%-- End Encounter Table --%>
-      <!-- Start genetics -->
-      <div>
-        <a name="tissueSamples"></a>
-        <p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
-        <p>
-        <%
-        List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
-
-        int numTissueSamples=tissueSamples.size();
-        if(numTissueSamples>0){
-        %>
-        <table width="100%" class="tissueSample">
-        <tr>
-        	<th><strong><%=props.getProperty("sampleID") %></strong></th>
-        	<th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
-        	<th><strong><%=props.getProperty("values") %></strong></th>
-        	<th><strong><%=props.getProperty("analyses") %></strong></th></tr>
-        <%
-        for(int j=0;j<numTissueSamples;j++){
-        	TissueSample thisSample=tissueSamples.get(j);
-        	%>
-        	<tr>
-        		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getSampleID()%></a></span></td>
-        		<td><span class="caption"><a href="encounters/encounter.jsp?number=<%=thisSample.getCorrespondingEncounterNumber() %>#tissueSamples"><%=thisSample.getCorrespondingEncounterNumber()%></a></span></td>
-        		<td><span class="caption"><%=thisSample.getHTMLString() %></span>
-        		</td>
-
-        	<td><table>
-        		<%
-        		int numAnalyses=thisSample.getNumAnalyses();
-        		List<GeneticAnalysis> gAnalyses = thisSample.getGeneticAnalyses();
-        		for(int g=0;g<numAnalyses;g++){
-        			GeneticAnalysis ga = gAnalyses.get(g);
-        			if(ga.getAnalysisType().equals("MitochondrialDNA")){
-        				MitochondrialDNAAnalysis mito=(MitochondrialDNAAnalysis)ga;
-        				%>
-        				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("haplotype") %></strong></span></strong>: <span class="caption"><%=mito.getHaplotype() %></span></td></tr></li>
-        			<%
-        			}
-        			else if(ga.getAnalysisType().equals("SexAnalysis")){
-        				SexAnalysis mito=(SexAnalysis)ga;
-        				%>
-        				<tr><td style="border-style: none;"><strong><span class="caption"><%=props.getProperty("geneticSex") %></strong></span></strong>: <span class="caption"><%=mito.getSex() %></span></td></tr></li>
-        			<%
-        			}
-        			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
-        				MicrosatelliteMarkersAnalysis mito=(MicrosatelliteMarkersAnalysis)ga;
-
-        			%>
-        			<tr>
-        				<td style="border-style: none;">
-        					<p><span class="caption"><strong><%=props.getProperty("msMarkers") %></strong></span>&nbsp;
-        					<%
-        					if(request.getUserPrincipal()!=null){
-        					%>
-        					<a href="individualSearch.jsp?individualDistanceSearch=<%=sharky.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="images/Crystal_Clear_app_xmag.png"></img></a>
-        					<%
-        					}
-        					%>
-        					</p>
-        					<span class="caption"><%=mito.getAllelesHTMLString() %></span>
-        				</td>
-        				</tr></li>
-
-        			<%
-        			}
-        			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
-        				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
-        				%>
-        				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
-        				<%
-        				if(!mito.getSuperHTMLString().equals("")){
-        				%>
-        				<em>
-        				<br /><%=props.getProperty("analysisID")%>: <%=mito.getAnalysisID()%>
-        				<br /><%=mito.getSuperHTMLString()%>
-        				</em>
-        				<%
-        				}
-        				%>
-        				</span></td></tr></li>
-        			<%
-        			}
-        		}
-        		%>
-        		</table>
-
-        	</td>
-
-
-        	</tr>
-        	<%
-        }
-        %>
-        </table>
-        </p>
-        <%
-        }
-        else {
-        %>
-        	<p class="para"><%=props.getProperty("noTissueSamples") %></p>
-        <%
-        }
-        %>
-      </div>
-      <!-- End genetics -->
       <%-- Start Adoption --%>
       <div>
         <%
@@ -2146,7 +2174,7 @@ function dataTypes(obj, fieldName) {
           <tr valign="top">
          <td>
          <!-- HTML Codes by Quackit.com -->
-        <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+        <div style="text-align:left;border:1px solid lightgray;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
 
               <%
               						while(countMe<numThumbs){
@@ -2666,7 +2694,7 @@ function dataTypes(obj, fieldName) {
         %>
         <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
 
-        <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
+        <div style="text-align:left;border:1px solid lightgray;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
         	<p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
         </div>
         <%
