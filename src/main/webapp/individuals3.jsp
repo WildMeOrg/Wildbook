@@ -573,6 +573,7 @@ $("#communityTable").hide();
 $("#familyTable").hide();
 $("#cooccurrenceTable").hide();
 $("#encountersTable").hide();
+$("#innerEncountersTable").hide();
 
 $(document).ready( function() {
 	wildbook.init(function() { doTable(); });
@@ -627,6 +628,7 @@ $(document).ready( function() {
     e.preventDefault()
     $("#bioSamplesTable").show();
     $("#encountersTable").hide();
+    $("#innerEncountersTable").hide();
     $("#bioSamplesTableTab").addClass("active");
     $("#encountersTableTab").removeClass("active");
   });
@@ -634,6 +636,7 @@ $(document).ready( function() {
   $("#encountersTableTab").click(function (e) {
     e.preventDefault()
     $("#encountersTable").show();
+    $("#innerEncountersTable").show();
     $("#bioSamplesTable").hide();
     $("#encountersTableTab").addClass("active");
     $("#bioSamplesTableTab").removeClass("active");
@@ -1718,7 +1721,7 @@ function dataTypes(obj, fieldName) {
 
 
       <div id="cooccurrenceTable" class="mygrid-wrapper-div diagramContainer">
-        <table width="100%" class="tissueSample">
+        <table width="100%" class="tissueSample table">
         <th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
         <%
 
@@ -1961,7 +1964,7 @@ function dataTypes(obj, fieldName) {
 
               %>
 
-              <div class="pageableTable-wrapper mygrid-wrapper-div">
+              <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
                 <div id="progress">Generating encounters table</div>
                 <table id="results-table"></table>
                 <div id="results-slider"></div>
@@ -2216,8 +2219,8 @@ function dataTypes(obj, fieldName) {
 
 
 
-              <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%">
-                <tr>
+              <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%" margin="0 auto">
+                <tr align="center">
                   <td valign="top">
 
                       <%
@@ -2706,7 +2709,7 @@ function dataTypes(obj, fieldName) {
           		<input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
           		<input name="action" type="hidden" value="comments" id="action">
 
-          		<p><textarea name="comments" cols="60" id="comments"></textarea> <br />
+          		<p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
             			<input name="Submit" type="submit" value="<%=addComments %>">
         	</form>
         </p>
