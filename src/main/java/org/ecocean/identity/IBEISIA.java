@@ -1376,7 +1376,8 @@ System.out.println("identification most recent action found is " + action);
     //making a decision to persist these upon creation... there was a conflict cuz loadByUuid above failed on subsequent
     //  iterations and this was created multiple times before saving
     public static MediaAsset getMediaAssetFromIA(String maUUID, Shepherd myShepherd) {
-        File file = new File(maUUID + ".jpg"); //how do we get real extension?
+        //note: we add /fakedir/ cuz the file doesnt need to exist there; we just want to force a hashed subdir to be created in params
+        File file = new File("/fakedir/" + maUUID + ".jpg"); //how do we get real extension?
         AssetStore astore = AssetStore.getDefault(myShepherd);
         JSONObject params = astore.createParameters(file);
         MediaAsset ma = new MediaAsset(astore, params);
@@ -1384,14 +1385,26 @@ System.out.println("identification most recent action found is " + action);
         try {
             //grab the url to our localPath for convenience (e.g. child assets to be created from)
             file = ma.localPath().toFile();
+            File dir = file.getParentFile();
+            if (!dir.exists()) dir.mkdirs();
+            //TODO we actually need to handle bad maUUID better.  :( (returns
             RestClient.writeToFile(iaURL("context0", "/api/image/src/json/" + maUUID + "/"), file);
             ma.copyIn(file);
             ma.addDerivationMethod("pulledFromIA", System.currentTimeMillis());
             ma.updateMetadata();
+            ma.updateStandardChildren(myShepherd);
         } catch (IOException ioe) {
             throw new RuntimeException("getMediaAssetFromIA " + ioe.toString());
         }
         ma.addLabel("_original");
+        DateTime dt = null;
+        try {
+            dt = iaDateTimeFromImageUUID(maUUID);
+        } catch (Exception ex) {}
+        if (dt != null) ma.setUserDateTime(dt);
+        //TODO:
+        //ma.setUserLatitude();
+        //ma.setUserLongitude();
         myShepherd.getPM().makePersistent(ma);
         System.out.println("INFO: " + ma + " pulled from IA (and persisted!)");
         return ma;
@@ -1838,6 +1851,11 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/imgsetids_from_uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
         return rtn.getJSONArray("response").optInt(0, -1);
+    }
+//  this --> is from annot uuid  (note returns in seconds, not milli)
+//http://52.37.240.178:5000/api/annot/image/unixtimes/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
+    public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        return null;
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {
