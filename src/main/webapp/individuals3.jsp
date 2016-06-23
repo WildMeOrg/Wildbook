@@ -636,10 +636,6 @@ $(document).ready( function() {
     $("#encountersTableTab").addClass("active");
     $("#bioSamplesTableTab").removeClass("active");
     });
-
-  $(".thumbnail").click(function() {
-    $(this).find(".researcherInfo").toggle();
-  });
 });
 
 
@@ -1214,7 +1210,6 @@ function dataTypes(obj, fieldName) {
       }
       %>
 
-      <%-- TODO RELATIONSHIP GRAPHS --%>
       <div>
         <a name="socialRelationships"></a>
         <p><strong><%=props.getProperty("social")%></strong></p>
@@ -1679,8 +1674,8 @@ function dataTypes(obj, fieldName) {
         %>
 
 
-
-        <%-- TODO cooccurrence table starts here --%>
+        <br>
+        <%-- Cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
         <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
         <div class="cooccurrences">
@@ -1833,7 +1828,7 @@ function dataTypes(obj, fieldName) {
         </table>
       </div>
       <%-- End of Relationship Graphs --%>
-
+      <br><br>
       <%-- Start Encounter Table --%>
       <div class="encountersBioSamples">
         <div role="navigation">
@@ -1987,7 +1982,6 @@ function dataTypes(obj, fieldName) {
           <!-- Start genetics -->
           <div id="bioSamplesTable">
             <a name="tissueSamples"></a>
-            <p><img align="absmiddle" src="images/microscope.gif" /><strong><%=props.getProperty("tissueSamples") %></strong></p>
             <p>
               <%
               List<TissueSample> tissueSamples=myShepherd.getAllTissueSamplesForMarkedIndividual(sharky);
@@ -2559,7 +2553,8 @@ function dataTypes(obj, fieldName) {
         %>
       </div>
       <!-- End thumbnail gallery -->
-
+      <br>
+      <br>
       <%-- Start Collaborators --%>
       <div>
         <%
@@ -2568,7 +2563,7 @@ function dataTypes(obj, fieldName) {
         	userShepherd.beginDBTransaction();
         %>
         <p>
-          <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
+          <strong><%=props.getProperty("collaboratingResearchers") %></strong>
         </p>
         <%
         //myShepherd.beginDBTransaction();
@@ -2577,6 +2572,7 @@ function dataTypes(obj, fieldName) {
         List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
         int numUsers=relatedUsers.size();
         if(numUsers>0){
+        %><div id="researchers"><%
         for(int userNum=0;userNum<numUsers;userNum++){
           User thisUser=relatedUsers.get(userNum);
           String username=thisUser.getUsername();
@@ -2628,7 +2624,7 @@ function dataTypes(obj, fieldName) {
 
         <%
         } //end for loop of users
-
+        %></div><%
         } //end if loop if there are any users
          else{
         %>
@@ -2648,6 +2644,8 @@ function dataTypes(obj, fieldName) {
           %>
       </div>
       <%-- End Collaborators --%>
+
+      <br><br>
       <%-- Comments --%>
       <div>
         <%
