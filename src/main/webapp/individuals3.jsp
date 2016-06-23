@@ -291,6 +291,7 @@ table.tissueSample td {
       }
     });
 
+
   </script>
 
 <!--  FACEBOOK SHARE BUTTON -->
@@ -2625,22 +2626,18 @@ function dataTypes(obj, fieldName) {
 
           </div>
 
-               		<%
-               	} //end for loop of users
+        <%
+        } //end for loop of users
 
-               } //end if loop if there are any users
-               else{
-              %>
+        } //end if loop if there are any users
+         else{
+        %>
 
-              	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
-              <%
-               }
+        	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
+        <%
+         }
 
-              %>
-              </td>
-
-
-            </tr></table></p>
+        %>
           <%
           userShepherd.rollbackDBTransaction();
           userShepherd.closeDBTransaction();
