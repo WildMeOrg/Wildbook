@@ -330,6 +330,7 @@ table.tissueSample td {
 	width: 100px;
 }
 </style>
+<link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -343,8 +344,6 @@ table.tissueSample td {
 <script src="javascript/bubbleDiagram/lines.js"></script>
 <script src="javascript/bubbleDiagram/index.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
-<link rel="stylesheet" href="css/familyTree.css">
-<link rel="stylesheet" href="css/bubbleDiagram.css">
 
 <script type="text/javascript">
 
@@ -571,15 +570,8 @@ function tableUp() {
 ////////
 
 
-$("#communityTable").hide();
-$("#familyTable").hide();
-$("#cooccurrenceTable").hide();
-$("#encountersTable").hide();
-$("#innerEncountersTable").hide();
-
 $(document).ready( function() {
 	wildbook.init(function() { doTable(); });
-
   $("#familyDiagramTab").click(function (e) {
     e.preventDefault()
     $("#familyDiagram").show();
@@ -633,7 +625,7 @@ $(document).ready( function() {
     $("#innerEncountersTable").hide();
     $("#bioSamplesTableTab").addClass("active");
     $("#encountersTableTab").removeClass("active");
-  });
+    });
 
   $("#encountersTableTab").click(function (e) {
     e.preventDefault()
@@ -642,8 +634,11 @@ $(document).ready( function() {
     $("#bioSamplesTable").hide();
     $("#encountersTableTab").addClass("active");
     $("#bioSamplesTableTab").removeClass("active");
-  });
+    });
 
+  $(".thumbnail").click(function() {
+    $(this).find(".researcherInfo").toggle();
+  });
 });
 
 
@@ -1546,7 +1541,7 @@ function dataTypes(obj, fieldName) {
           if(relationships.size()>0){
           %>
 
-      <div>
+      <div role="navigation">
         <ul class="nav nav-tabs">
           <li id="familyDiagramTab"  class="active">
             <a href="#familyDiagram">Familial Diagram</a>
@@ -1694,14 +1689,16 @@ function dataTypes(obj, fieldName) {
           getData(<%=individualID%>);
           </script>
 
-          <ul class="nav nav-tabs">
-            <li id="cooccurrenceDiagramTab" class="active">
-              <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
-            </li>
-            <li id="cooccurrenceTableTab">
-              <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
-            </li>
-          </ul>
+          <div role="navigation">
+            <ul class="nav nav-tabs">
+              <li id="cooccurrenceDiagramTab" class="active">
+                <a href="#cooccurrenceDiagram"><%=props.getProperty("cooccurrence")%> Diagram</a>
+              </li>
+              <li id="cooccurrenceTableTab">
+                <a href="#cooccurrenceTable"><%=props.getProperty("cooccurrence")%> Table</a>
+              </li>
+            </ul>
+          </div>
 
           <div id="cooccurrenceDiagram">
             <div class="diagramContainer">
@@ -1838,14 +1835,16 @@ function dataTypes(obj, fieldName) {
 
       <%-- Start Encounter Table --%>
       <div class="encountersBioSamples">
-        <ul class="nav nav-tabs">
-          <li id="bioSamplesTableTab" class="active">
-            <a href="#bioSammplesTable"><%=props.getProperty("tissueSamples") %></a>
-          </li>
-          <li id="encountersTableTab">
-            <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
-          </li>
-        </ul>
+        <div role="navigation">
+          <ul class="nav nav-tabs">
+            <li id="bioSamplesTableTab" class="active">
+              <a href="#bioSamplesTable"><%=props.getProperty("tissueSamples") %></a>
+            </li>
+            <li id="encountersTableTab">
+              <a href="#encountersTable"><%=sharky.totalEncounters()%> <%=numencounters %></a>
+            </li>
+          </ul>
+        </div>
 
         <div id="encountersTable">
           <table id="encounter_report" width="100%">
@@ -2156,7 +2155,7 @@ function dataTypes(obj, fieldName) {
         			//Vector thumbLocs=new Vector();
         			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 
-        			int  numColumns=3;
+        			int  numColumns=2;
         			int numThumbs=0;
         			  if (CommonConfiguration.allowAdoptions(context)) {
         				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
@@ -2564,125 +2563,81 @@ function dataTypes(obj, fieldName) {
       <div>
         <%
         if(CommonConfiguration.showUsersToPublic(context)){
-
-
         	Shepherd userShepherd=new Shepherd("context0");
         	userShepherd.beginDBTransaction();
-
         %>
         <p>
           <strong><%=props.getProperty("collaboratingResearchers") %></strong> (click each to learn more)
         </p>
+        <%
+        //myShepherd.beginDBTransaction();
 
-             <p class="para">
-            <table >
-             <tr>
-             <td>
+        //loop through users to display photos
+        List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
+        int numUsers=relatedUsers.size();
+        if(numUsers>0){
+        for(int userNum=0;userNum<numUsers;userNum++){
+          User thisUser=relatedUsers.get(userNum);
+          String username=thisUser.getUsername();
+          String profilePhotoURL="images/empty_profile.jpg";
+          if(thisUser.getUserImage()!=null){
+            profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+          }
+          %>
+          <div class="researcherPhotoContainer thumbnail">
+            <%
+            String displayName="";
+            if(thisUser.getFullName()!=null) {
+              displayName=thisUser.getFullName();
+            %>
+            <div class="caption researcherName">
+              <p><%=displayName%></p>
+            </div>
+            <%
+            }
+            %>
+            <img src="<%=profilePhotoURL%>" class="researcherPhoto">
 
+            <div class="researcherInfo" id="info<%=userNum%>">
+            <%
+            if(thisUser.getAffiliation()!=null){
+              %>
+              <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+              <%
+            }
+            if(thisUser.getUserProject()!=null){
+              %>
+              <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+              <%
+            }
+            if(thisUser.getUserURL()!=null){
+              %>
+              <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><p>
+              <%
+            }
+            if(thisUser.getUserStatement()!=null){
+              %>
+              <p><em>"<%=thisUser.getUserStatement() %>"</em></p>
+              <%
+            }
+            %>
+            </div>
 
-                                 <%
-                                 //myShepherd.beginDBTransaction();
+          </div>
 
-                                 List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
-                                 int numUsers=relatedUsers.size();
-                                 if(numUsers>0){
-                                 for(int userNum=0;userNum<numUsers;userNum++){
+               		<%
+               	} //end for loop of users
 
-                                	 User thisUser=relatedUsers.get(userNum);
-                                	 String username=thisUser.getUsername();
-                                 	 %>
+               } //end if loop if there are any users
+               else{
+              %>
 
-                                        <table align="left">
-                                        	<%
+              	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
+              <%
+               }
 
-
-                                        	String profilePhotoURL="images/empty_profile.jpg";
-
-                                 		if(thisUser.getUserImage()!=null){
-                                 			profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-
-                                 		}
-                                 		%>
-                             			<tr><td><center><div style="height: 50px">
-        						<a style="color:blue;cursor: pointer;" id="username<%=userNum%>"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
-        					</div></center></td></tr>
-                             			<%
-                                 		String displayName="";
-                                 		if(thisUser.getFullName()!=null){
-                                 			displayName=thisUser.getFullName();
-
-                                 		%>
-                                 		<tr><td style="border:none"><center><a style="color:blue;cursor: pointer;" id="username<%=userNum%>" style="font-weight:normal;border:none"><%=displayName %></a></center></td></tr>
-                                 		<%
-                                 		}
-
-                                 		%>
-                                 	</table>
-
-                                 		<!-- Now prep the popup dialog -->
-                                 		<div id="dialog<%=userNum%>" title="<%=displayName %>" style="display:none">
-                                 			<table cellpadding="3px"><tr><td>
-                                 			<div style="height: 150px"><img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
-                                 			</td>
-                                 			<td><p>
-                                 			<%
-                                 			if(thisUser.getAffiliation()!=null){
-                                 			%>
-                                 			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
-                                 			<%
-                                 			}
-
-                                 			if(thisUser.getUserProject()!=null){
-                                 			%>
-                                 			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
-                                 			<%
-                                 			}
-
-                                 			if(thisUser.getUserURL()!=null){
-                                     			%>
-                                     			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
-                                     			<%
-                                     			}
-
-                                 			if(thisUser.getUserStatement()!=null){
-                                     			%>
-                                     			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
-                                     			<%
-                                     			}
-                                 			%>
-                                      </div>
-                                 			</p>
-                                 			</td></tr></table>
-                                 		</div>
-                                 		<!-- popup dialog script -->
-
-        					<script>
-        					    var dlg<%=userNum%> = $("#dialog<%=userNum%>").dialog({
-        					      autoOpen: false,
-        					      draggable: false,
-        					      resizable: false,
-        					      width: 500
-        					    });
-
-        					    $("a#username<%=userNum%>").click(function() {
-        					      dlg<%=userNum%>.dialog("open");
-        					    });
-        					</script>
-
-
-                                 		<%
-                                 	} //end for loop of users
-
-                                 } //end if loop if there are any users
-                                 else{
-                                %>
-
-                                	 <p><%=props.getProperty("noCollaboratingResearchers") %></p>
-                                <%
-                                 }
-
-                                %>
-                                </td>
+              %>
+              </td>
 
 
             </tr></table></p>
