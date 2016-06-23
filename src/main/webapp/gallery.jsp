@@ -83,6 +83,9 @@ int numResults = 0;
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
 String order ="";
+//if(request.getParameter("sort")!=null){
+//	order=request.getParameter("sort");
+//}
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
@@ -231,11 +234,11 @@ myShepherd.beginDBTransaction();
 <h1><%=props.getProperty("gallery") %></h1>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a></button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting"><%=props.getProperty("recentSightings") %></a></button>
 
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a></button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
 
-    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a></button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
   </div>
 </nav>
