@@ -35,20 +35,20 @@ int numFixes=0;
 
 try{
 
-	Iterator allEncs=myShepherd.getAllEncounters();
+	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
 	
 
 
 	while(allEncs.hasNext()){
 		
+		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
+		enc.refreshDependentProperties(context);
+		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		Encounter enc=(Encounter)allEncs.next();
-		%>
-		<li><%=enc.getCatalogNumber() %>,<%=enc.getDecimalLatitude() %>,<%=enc.getDecimalLongitude() %></li>
-		<%
 
 	}
 	myShepherd.rollbackDBTransaction();
+	
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();

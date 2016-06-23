@@ -243,11 +243,11 @@ myShepherd.beginDBTransaction();
 </section>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link">Uusimmat havainnot</button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a></button>
 
-    <button type="button" class="btn-link">Havainnot alueittain</button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a></button>
 
-    <button type="button" class="btn-link">Parhaiten tunnetut yksil&ouml;t</button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a></button>
 
   </div>
 </nav>
