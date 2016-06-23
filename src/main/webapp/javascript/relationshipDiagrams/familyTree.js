@@ -23,47 +23,6 @@ var parents = [];
 var role;
 
 function setupFamilyTree(individualID) {
-  // Setup zoom and pan
-  var zoom = d3.behavior.zoom()
-    .scaleExtent([.1,1])
-    .on('zoom', function(){
-      svg.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
-    })
-    // Offset so that first pan and zoom does not jump back to the origin
-    .translate([400, 200]);
-
-  var svg = d3.select("#familyDiagram").append("svg")
-    .attr('width', "100%")
-    .attr('height', "50%")
-    .call(zoom)
-    .append('g')
-
-    // Left padding of tree so that the whole root node is on the screen.
-    // TODO: find a better way
-    .attr("transform", "translate(400,200)");
-
-
-  // One tree to display the ancestors
-  var ancestorTree = new Tree(svg, 'ancestor', -1);
-  ancestorTree.children(function(individual){
-    // If the individual is collapsed then tell d3
-    // that they don't have any ancestors.
-    if(individual.collapsed){
-      return;
-    } else {
-      return individual._parents;
-    }
-  });
-
-  // Use a separate tree to display the descendants
-  var descendantsTree = new Tree(svg, 'descendant', 1);
-  descendantsTree.children(function(individual){
-    if(individual.collapsed){
-      return;
-    } else {
-      return individual._children;
-    }
-  });
 
   d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.social.Relationship%20WHERE%20(this.type%20==%22Familial%22)%20&&%20(this.markedIndividualName1%20==%20%22" + individualID + "%22%20||%20this.markedIndividualName2%20==%20%22" + individualID + "%22)", function(error, json){
 
@@ -71,33 +30,91 @@ function setupFamilyTree(individualID) {
       return console.error(error);
     }
 
-    // D3 modifies the objects by setting properties such as
-    // coordinates, parent, and children. Thus the same node
-    // node can't exist in two trees. But we need the root to
-    // be in both so we create proxy nodes for the root only.
-    findChildren(json, individualID);
-    findParents(json, individualID);
-    var ancestorRoot = rootProxy(json, individualID);
-    var descendantRoot = rootProxy(json, individualID);
+    if(json.length < 1) {
+      //If there are no familial relationships, show social relationships table instead
+      $("#familyDiagram").hide();
+      $("#communityDiagram").hide();
+      $("#communityTable").show();
+      $("#familyDiagramTab").removeClass("active");
+      $("#communityDiagramTab").removeClass("active");
+      $("#communityTableTab").addClass("active");
+      showIncompleteInformationMessage();
 
-    // Start with only the first few generations of ancestors showing
-    // ancestorRoot._parents.forEach(function(parents){
-    //   parents._parents.forEach(collapse);
-    // });
+    } else if(json.length >= 1) {
+      // Setup zoom and pan
+      var zoom = d3.behavior.zoom()
+      .scaleExtent([.1,1])
+      .on('zoom', function(){
+        svg.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
+      })
+      // Offset so that first pan and zoom does not jump back to the origin
+      .translate([400, 200]);
 
-   // Start with only one generation of descendants showing
-  //  descendantRoot._children.forEach(collapse)
+      var svg = d3.select("#familyDiagram").append("svg")
+      .attr('width', "100%")
+      .attr('height', "50%")
+      .call(zoom)
+      .append('g')
 
-    // Set the root nodes
-    ancestorTree.data(ancestorRoot);
-    descendantsTree.data(descendantRoot);
+      // Left padding of tree so that the whole root node is on the screen.
+      // TODO: find a better way
+      .attr("transform", "translate(400,200)");
 
-    // Draw the tree
-    ancestorTree.draw(ancestorRoot);
-    descendantsTree.draw(descendantRoot);
+
+      // One tree to display the ancestors
+      var ancestorTree = new Tree(svg, 'ancestor', -1);
+      ancestorTree.children(function(individual){
+        // If the individual is collapsed then tell d3
+        // that they don't have any ancestors.
+        if(individual.collapsed){
+          return;
+        } else {
+          return individual._parents;
+        }
+      });
+
+      // Use a separate tree to display the descendants
+      var descendantsTree = new Tree(svg, 'descendant', 1);
+      descendantsTree.children(function(individual){
+        if(individual.collapsed){
+          return;
+        } else {
+          return individual._children;
+        }
+      });
+      // D3 modifies the objects by setting properties such as
+      // coordinates, parent, and children. Thus the same node
+      // node can't exist in two trees. But we need the root to
+      // be in both so we create proxy nodes for the root only.
+      findChildren(json, individualID);
+      findParents(json, individualID);
+      var ancestorRoot = rootProxy(json, individualID);
+      var descendantRoot = rootProxy(json, individualID);
+
+      // Start with only the first few generations of ancestors showing
+      // ancestorRoot._parents.forEach(function(parents){
+      //   parents._parents.forEach(collapse);
+      // });
+
+      // Start with only one generation of descendants showing
+      //  descendantRoot._children.forEach(collapse)
+
+      // Set the root nodes
+      ancestorTree.data(ancestorRoot);
+      descendantsTree.data(descendantRoot);
+
+      // Draw the tree
+      ancestorTree.draw(ancestorRoot);
+      descendantsTree.draw(descendantRoot);
+    }
+
 
   });
 }
+
+var showIncompleteInformationMessage = function() {
+  $("#familyDiagram").html("<h4>There are currently no known familial relationships for this Marked Individual</h4>")
+};
 
 
 var findChildren = function(root, individualID) {
