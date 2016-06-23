@@ -1,3 +1,8 @@
+.maincontent {
+  padding-left: 2.5%;
+}
+
+
 /*Hide Diagram Tab Content*/
 #communityDiagram, #communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
   display: none;
@@ -29,14 +34,6 @@
 
 /*Bubble Diagram Styles*/
 
-/*body {
-  background: #FFFFFF;
-}*/
-
-/*a:hover{
-  color: navy;
-  cursor: pointer;
-}*/
 
 .co-occurrences {
   width: 850px;
@@ -89,17 +86,12 @@ button {
   text-align: center;
 }
 
-.researcherName:hover {
-  color: navy;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
 .researcherPhotoContainer {
   border: 1px solid gray;
   width: 100%;
 }
 
-.researcherInfo {
-  display: none;
+#researchers {
+  overflow: scroll;
+  max-height: 700px;
 }
