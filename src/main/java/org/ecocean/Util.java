@@ -355,6 +355,15 @@ public class Util {
     }
 
 
+    public static org.datanucleus.api.rest.orgjson.JSONObject toggleJSONObject(JSONObject jin) {
+        if (jin == null) return null;
+        return stringToDatanucleusJSONObject(jin.toString());
+    }
+    public static JSONObject toggleJSONObject(org.datanucleus.api.rest.orgjson.JSONObject jin) {
+        if (jin == null) return null;
+        return stringToJSONObject(jin.toString());
+    }
+
     //this basically just swallows exceptions in parsing and returns a null if failure
     public static JSONObject stringToJSONObject(String s) {
         JSONObject j = null;
