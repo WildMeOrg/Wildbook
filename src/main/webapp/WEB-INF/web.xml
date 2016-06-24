@@ -369,6 +369,11 @@
     <servlet-name>KeywordHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
+  
+    <servlet>
+     <servlet-name>RestKeyword</servlet-name>
+     <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
+   </servlet>
 
 
     <servlet>
@@ -1280,6 +1285,11 @@
             <servlet-name>ImportSRGD</servlet-name>
             <url-pattern>/ImportSRGD</url-pattern>
   </servlet-mapping>
+  
+     <servlet-mapping>
+     <servlet-name>RestKeyword</servlet-name>
+     <url-pattern>/RestKeyword</url-pattern>
+   </servlet-mapping>
 
 
     <servlet-mapping>
