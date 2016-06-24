@@ -90,8 +90,25 @@ MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShe
 
 rIndividuals = result.getResult();
 
+
+
+
 //handle any null errors better
 if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+
+//if not logged in, filter out animals that have PublicView=no on all encounters
+if(request.getUserPrincipal()==null){
+	for(int q=0;q<rIndividuals.size();q++){
+		MarkedIndividual indy=rIndividuals.get(q);
+		boolean ok2Include=false;
+		for (Encounter enc : indy.getDateSortedEncounters()) {
+		      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+		    	  ok2Include=true;
+		      }
+		}
+		if(!ok2Include){rIndividuals.remove(q);q--;}
+	}
+}
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
