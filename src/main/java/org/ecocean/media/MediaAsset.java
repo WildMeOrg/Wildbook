@@ -35,6 +35,7 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
@@ -452,6 +453,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
+
+        try {
+            int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
+            if (i == 0) return new URL(store.getUsage().substring(16));
+        } catch (java.net.MalformedURLException ex) {}
+
         return store.webURL(this);
     }
 
@@ -602,6 +609,18 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             }
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
+
+            if ((this.getKeywords() != null) && (this.getKeywords().size() > 0)) {
+                JSONArray ka = new JSONArray();
+                for (Keyword kw : this.getKeywords()) {
+                    JSONObject kj = new JSONObject();
+                    kj.put("indexname", kw.getIndexname());
+                    kj.put("readableName", kw.getReadableName());
+                    ka.put(kj);
+                }
+                jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
+            }
+
             return jobj;
         }
 

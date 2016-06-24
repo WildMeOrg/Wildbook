@@ -510,14 +510,17 @@ jQuery(document).ready(function() {
             ['replace this image', function(enh) {
             }],
 */
-		['start new matching scan', function(enh) {
+	];
+
+	if (wildbook.iaEnabled()) {
+		opt.menu.push(['start new matching scan', function(enh) {
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
 console.log('%o ?????', mid);
 			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
-		}],
-        ];
+		}]);
+	}
 
 	var ct = 1;
 	for (var annId in iaTasks) {
@@ -546,6 +549,7 @@ console.log('%o ?????', mid);
             opt.menu.push(['set image as encounter thumbnail', function(enh) {
             }]);
         }
+*/
 
         opt.init = [
             function(el, enh) {
@@ -553,7 +557,7 @@ console.info(' ===========>   %o %o', el, enh);
 		imageLayerKeywords(el, enh);
             },
         ];
-*/
+
     }
 
     imageEnhancer.applyTo('figure img', opt);
@@ -561,29 +565,153 @@ console.info(' ===========>   %o %o', el, enh);
 
 
 
+var popupStartTime = 0;
+function addNewKeyword(el) {
+	console.warn(el);
+	var jel = $(el);
+	var wrapper = jel.closest('.image-enhancer-wrapper');
+	if (!wrapper.length) {
+		console.error("could not find MediaAsset id from closest wrapper");
+		return;
+	}
+	var mid = wrapper.prop('id').substring(23);
+	if (!assetById(mid)) {
+		console.error("could not find MediaAsset byId(%o)", mid);
+		return;
+	}
+
+	var val = jel.val();
+
+	var data = { onMediaAssets: { assetIds: [ mid ] } };
+
+	if (el.id == 'keyword-new') {
+		if (val == '') return;
+		imageEnhancer.popup('Adding new keyword <b>' + val + '</b> to this image.');
+		data.onMediaAssets.newAdd = [ val ];
+	} else if (jel.hasClass('iek-remove')) {
+		var kid = jel.parent().prop('id').substring(8);
+		imageEnhancer.popup('Removing keyword <b>' + wildbookGlobals.keywords[kid] + '</b> from this image.');
+		data.onMediaAssets.remove = [ kid ];
+	} else {
+		var name = wildbookGlobals.keywords[val] || '';
+		imageEnhancer.popup('Adding keyword <b>' + name + '</b> to this image.');
+		data.onMediaAssets.add = [ val ];
+	}
+console.info(data);
+
+	popupStartTime = new Date().getTime();
+	$.ajax({
+		url: wildbookGlobals.baseUrl + '/RestKeyword',
+		data: JSON.stringify(data),
+		contentType: 'application/javascript',
+		success: function(d) {
+console.info(d);
+			if (d.success) {
+				var elapsed = new Date().getTime() - popupStartTime;
+				if (elapsed > 6000) {
+					$('.image-enhancer-popup').remove();
+				} else {
+					window.setTimeout(function() { $('.image-enhancer-popup').remove(); }, 6000 - elapsed);
+				}
+				if (d.newKeywords) {
+					for (var id in d.newKeywords) {
+						wildbookGlobals.keywords[id] = d.newKeywords[id];
+					}
+				}
+				//the reality is we prob only have one, mid so we save that to update the menu of
+				var mainMid = false;
+				if (d.results) {
+					for (var mid in d.results) {
+						if (!mainMid) mainMid = mid;
+						assetById(mid).keywords = [];
+						for (var id in d.results[mid]) {
+							assetById(mid).keywords.push({
+								indexname: id,
+								readableName: d.results[mid][id]
+							});
+						}
+					}
+				}
+				if (mainMid) {
+					$('#image-enhancer-wrapper-' + mainMid + ' .image-enhancer-keyword-wrapper').remove();
+					imageLayerKeywords($('#image-enhancer-wrapper-' + mainMid), { _mid: mainMid });
+				}
+			} else {
+				var msg = d.error || 'ERROR could not make change';
+				$('.popup-content').append('<p class="error">' + msg + '</p>');
+			}
+		},
+		error: function(x,a,b) {
+			console.error('%o %o %o', x, a, b);
+			$('.popup-content').append('<p class="error">ERROR making change: ' + b + '</p>');
+		},
+		type: 'POST',
+		dataType: 'json'
+	});
+	return false;
+//.image-enhancer-popup
+//.popup-content
+}
+
+/*
+{
+    "success": true,
+    "newKeywords": {
+        "ff808181557f843f01557f843f280000": "foo"
+    },
+    "results": {
+        "82091": {
+            "518aca4e5113bfc8015113bfe77b000e": "2A",
+            "518aca4e5113bfc8015113bfe4fd000b": "2C",
+            "518aca4e46618bcd0146915d7a120016": "Left-Dorsal",
+            "518aca4e430bec5501430bf2fc190001": "fluke",
+            "ff808181557f843f01557f843f280000": "foo"
+        }
+    }
+}
+*/
+
 function imageLayerKeywords(el, opt) {
-	var mid = el.context.id.substring(11);
+	var mid;
+	if (opt && opt._mid) {  //hack!
+		mid = opt._mid;
+	} else {
+ 		mid = el.context.id.substring(11);
+	}
 	var ma = assetById(mid);
 console.info("############## mid=%s -> %o", mid, ma);
 	if (!ma) return;
-ma.xeywords = [
-	{readableName: "fubar", indexname: "xxx"},
-	{readableName: "fubar", indexname: "yyy"},
-	{readableName: "fubar", indexname: "zzz"}
-	];
 
 	if (!ma.keywords) ma.keywords = [];
+	var thisHas = [];
 	var h = '<div class="image-enhancer-keyword-wrapper">';
 	for (var i = 0 ; i < ma.keywords.length ; i++) {
+		thisHas.push(ma.keywords[i].indexname);
+//console.info('keyword = %o', ma.keywords[i]);
 		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
 
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">Add new keyword <div class="iek-new-form">';
-h += '(form)';
+	if (wildbookGlobals.keywords) {
+		var hasSome = false;
+		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" id="keyword-selector"><option value="">select keyword</option>';
+		for (var j in wildbookGlobals.keywords) {
+			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
+			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
+			hasSome = true;
+		}
+		mh += '</select>';
+		if (hasSome) h += mh;
+	}
+	h += '<br /><input placeholder="or enter new" id="keyword-new" type="text" style="" onChange="return addNewKeyword(this);" />';
 	h += '</div></div>';
 
 	h += '</div>';
 	el.append(h);
+	el.find('.iek-remove').on('click', function(ev) {
+		ev.stopPropagation();
+		addNewKeyword(ev.target);
+	});
 }
 
 function imagePopupInfo(obj) {

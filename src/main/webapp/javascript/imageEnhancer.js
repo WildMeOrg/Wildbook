@@ -1,8 +1,20 @@
 
 var imageEnhancer = {
     applyTo: function(selector, opt) {
+/*
+        jQuery(selector).on('load', function(ev) {
+console.log('=============???? %o', ev);
+        });
+*/
         jQuery(selector).each(function(i, el) {
-            imageEnhancer.apply(el, opt);
+            if (el.complete) {
+                imageEnhancer.apply(el, opt);
+            } else {
+                $(el).on('load', function(ev) {
+console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ?????????? %o', ev);
+                    imageEnhancer.apply(ev.target, opt);
+                });
+            }
         });
     },
 
@@ -50,6 +62,9 @@ console.info('assigning event %s', e);
     wrapperSizeSetFromImg: function(el) {
         var img = el.find('img');
         var w = el.find('.image-enhancer-wrapper');
+console.log('img = %o / w = %o', img, w);
+console.log('img.length -----> %o', img.length);
+console.log(' .complete? %o', img.prop('complete'));
         if (!img.length || !w.length) return;
 //console.warn('img => %o', img);
 //console.warn('%d x %d', img.width(), img.height());

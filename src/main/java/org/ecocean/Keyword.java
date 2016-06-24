@@ -20,6 +20,7 @@
 package org.ecocean;
 
 import java.util.Vector;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class Keyword {
 
@@ -108,4 +109,13 @@ public class Keyword {
     return photos;
   }
 */
+
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append(indexname)
+                .append(readableName)
+                .toString();
+    }
+
 }

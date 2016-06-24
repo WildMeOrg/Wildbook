@@ -140,8 +140,6 @@
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
-				/individualSearchResults.jsp = authc
-				/individuals.jsp = authc
 				/individualSearchResultsExport.jsp = authc, roles[researcher]
 				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 				/encounters/searchComparison.jsp = authc, roles[researcher]
@@ -370,6 +368,10 @@
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>RestKeyword</servlet-name>
+    <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
+  </servlet>
 
     <servlet>
       <servlet-name>ImportSRGD</servlet-name>
@@ -1658,6 +1660,11 @@
   <servlet-mapping>
     <servlet-name>KeywordHandler</servlet-name>
     <url-pattern>/KeywordHandler</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>RestKeyword</servlet-name>
+    <url-pattern>/RestKeyword</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

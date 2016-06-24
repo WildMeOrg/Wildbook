@@ -107,6 +107,7 @@
     cursor: pointer;
     position: absolute;
     right: 2px;
+    top: 1px;
     background-color: red;
     width: 1.4em;
     height: 1.4em;
