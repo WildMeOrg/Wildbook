@@ -21,7 +21,7 @@
     max-width: 40px;
     background: url(../images/hamburger-menu.svg) no-repeat;
     background-size: 100% auto;
-    opacity: 0.3;
+    opacity: 0.4;
     cursor: pointer;
 }
 
@@ -87,7 +87,7 @@
     border-radius: 3px;
     padding: 1px 5px;
     margin: 3px 0;
-    background-color: rgba(255,255,255,0.4);
+    background-color: rgba(255,255,255,0.6);
     font-size: 0.8em;
     position: relative;
     height: 2.0em;
@@ -100,6 +100,7 @@
     background-color: #FF4;
     border: solid 1px #333;
     height: auto !important;
+    padding-bottom: 7px;
 }
 
 .iek-remove {
