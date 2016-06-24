@@ -5,6 +5,7 @@ import org.ecocean.Annotation;
 import org.ecocean.Util;
 import org.ecocean.Shepherd;
 import org.ecocean.Encounter;
+import org.ecocean.servlet.ServletUtilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,6 +21,7 @@ import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.InvalidKeyException;
 import org.joda.time.DateTime;
+import javax.servlet.http.HttpServletRequest;
 
 
 public class IBEISIA {
@@ -808,4 +810,14 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return results;
     }
     
+
+//placeholder for the real thing...
+    public static JSONObject iaStatus(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        JSONObject rtn = new JSONObject();
+        rtn.put("iaEnabled", (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) == null));
+        rtn.put("timestamp", System.currentTimeMillis());
+        return rtn;
+    }
+
 }
