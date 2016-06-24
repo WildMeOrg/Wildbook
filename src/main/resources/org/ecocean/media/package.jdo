@@ -40,8 +40,8 @@
                 	<join />
             	</field>
 
-            	<field name="keywords" persistence-modifier="persistent" default-fetch-group="false">
-                	<collection element-type="org.ecocean.Keyword" dependent-element="true" />
+            	<field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
+                	<collection element-type="org.ecocean.Keyword" dependent-element="false" />
                 	<join />
             	</field>
 	</class>
