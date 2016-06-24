@@ -34,6 +34,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.security.SocialAuth;
+import org.ecocean.identity.IBEISIA;
 
 import org.w3c.dom.Document;
 import com.google.gson.Gson;
@@ -137,6 +138,8 @@ public class JavascriptGlobals extends HttpServlet {
         kw.put(k.getIndexname(), k.getReadableName());
     }
     rtn.put("keywords", kw);
+
+    rtn.put("iaStatus", IBEISIA.iaStatus(request));
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
