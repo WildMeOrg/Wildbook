@@ -71,6 +71,9 @@
 		        <field name="dateTimeCreated" persistence-modifier="persistent" >
 				            		<column jdbc-type="LONGVARCHAR" />
 		        </field>
+				<field name="dateTimeLatestSighting" persistence-modifier="persistent" >
+				            		<column length="100"/>
+		        </field>
 		        <field name="alternateid" persistence-modifier="persistent">
 				<column length="512"/>
 			</field>
