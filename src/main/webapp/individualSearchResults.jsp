@@ -139,7 +139,7 @@
 <script src="javascript/tsrt.js"></script>
 
 
-<div class="container-fluid maincontent">
+<div class="container maincontent">
 
 
       <h1 class="intro">

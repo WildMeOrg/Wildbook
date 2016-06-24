@@ -94,6 +94,8 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
+  
+  private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
   private String localHaplotypeReflection;
@@ -217,6 +219,15 @@ public class MarkedIndividual implements java.io.Serializable {
 		this.dateFirstIdentified = d;
 		return d;
 	}
+	
+	 public String refreshDateLastestSighting() {
+	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    if (sorted.length < 1) return null;
+	    Encounter last = sorted[0];
+	    if (last.getYear() < 1) return null;
+	    this.dateTimeLatestSighting=last.getDate();
+	    return last.getDate();
+	  }
 
 
 	public String refreshThumbnailUrl(String context) {
@@ -1076,9 +1087,20 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return "";
   }
+  
+  public String getDateLatestSighting() {
+    if (dateTimeLatestSighting != null) {
+      return dateTimeLatestSighting;
+    }
+    return "";
+  }
 
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
+  }
+  
+  public void setDateTimeLatestSighting(String time) {
+    dateTimeLatestSighting = time;
   }
 
   public void setAlternateID(String newID) {
@@ -1288,6 +1310,8 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     maxYearsBetweenResightings=maxYears;
     }
+  
+
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
     int endYear = m_endYear;
@@ -1798,6 +1822,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.resetMaxNumYearsBetweenSightings();
 		this.refreshDateFirstIdentified();
 		this.refreshThumbnailUrl(context);
+		this.refreshDateLastestSighting();
 	}
 
 

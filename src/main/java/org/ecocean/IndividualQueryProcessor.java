@@ -1329,6 +1329,9 @@ public class IndividualQueryProcessor {
           if(request.getParameter("sort").equals("sex")){allSharks=myShepherd.getAllMarkedIndividuals(query, "sex ascending", paramMap);}
           else if(request.getParameter("sort").equals("name")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);}
           else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending", paramMap);}
+          else if(request.getParameter("sort").equals("numberLocations")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);}
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
+          
           else{
             allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           }
