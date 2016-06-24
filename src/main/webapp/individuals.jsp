@@ -733,7 +733,7 @@ function dataTypes(obj, fieldName) {
 
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 <div class="row">
 <%=blocker%>
 
