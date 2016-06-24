@@ -510,14 +510,17 @@ jQuery(document).ready(function() {
             ['replace this image', function(enh) {
             }],
 */
-		['start new matching scan', function(enh) {
+	];
+
+	if (wildbook.iaEnabled()) {
+		opt.menu.push(['start new matching scan', function(enh) {
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
 console.log('%o ?????', mid);
 			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
-		}],
-        ];
+		}]);
+	}
 
 	var ct = 1;
 	for (var annId in iaTasks) {
