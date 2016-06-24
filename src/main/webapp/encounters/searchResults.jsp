@@ -219,7 +219,7 @@ td.tdw:hover div {
 
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 
 
       <h1 class="intro"><%=encprops.getProperty("title")%>

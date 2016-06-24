@@ -406,7 +406,7 @@ margin-bottom: 8px !important;
 
 
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 
 <div class="row">
 

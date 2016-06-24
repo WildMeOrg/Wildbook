@@ -99,7 +99,7 @@ margin-bottom: 8px !important;
   }
 </script>
 
-<div class="container maincontent">
+<div class="container-fluid maincontent">
 <table width="720">
 <tr>
 <td>
