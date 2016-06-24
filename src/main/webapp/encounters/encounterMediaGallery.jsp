@@ -565,6 +565,7 @@ console.info(' ===========>   %o %o', el, enh);
 
 
 
+var popupStartTime = 0;
 function addNewKeyword(el) {
 	console.warn(el);
 	var jel = $(el);
@@ -598,6 +599,7 @@ function addNewKeyword(el) {
 	}
 console.info(data);
 
+	popupStartTime = new Date().getTime();
 	$.ajax({
 		url: wildbookGlobals.baseUrl + '/RestKeyword',
 		data: JSON.stringify(data),
@@ -605,7 +607,12 @@ console.info(data);
 		success: function(d) {
 console.info(d);
 			if (d.success) {
-				$('.image-enhancer-popup').remove();
+				var elapsed = new Date().getTime() - popupStartTime;
+				if (elapsed > 6000) {
+					$('.image-enhancer-popup').remove();
+				} else {
+					window.setTimeout(function() { $('.image-enhancer-popup').remove(); }, 6000 - elapsed);
+				}
 				if (d.newKeywords) {
 					for (var id in d.newKeywords) {
 						wildbookGlobals.keywords[id] = d.newKeywords[id];
