@@ -6,18 +6,25 @@ var imageEnhancer = {
 console.log('=============???? %o', ev);
         });
 */
+        if (!opt) opt = {};
+        opt._count = jQuery(selector).length;
         jQuery(selector).each(function(i, el) {
             if (el.complete) {
                 imageEnhancer.apply(el, opt);
+                opt._count--;
+                if (opt.callback && (opt._count < 1)) opt.callback();
             } else {
                 $(el).on('load', function(ev) {
 console.log('?????????????????????????????????????????????? DELAYED IMG LOAD ?????????? %o', ev);
                     imageEnhancer.apply(ev.target, opt);
+                    opt._count--;
+                    if (opt.callback && (opt._count < 1)) opt.callback();
                 });
             }
         });
     },
 
+    //el is expected to be completely loaded (e.g. img) right now fwiw
     apply: function(el, opt) {
         var jel = jQuery(el);
         var mid = jel.data('enh-mediaassetid');

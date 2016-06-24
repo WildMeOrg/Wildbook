@@ -153,6 +153,15 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 
 <style>
+.image-enhancer-wrapper {
+	cursor: -webkit-zoom-in;
+	cursor: -moz-zoom-in;
+}
+
+.image-enhancer-wrapper div {
+	cursor: auto;
+}
+
 	.match-tools {
 		padding: 5px 15px;
 		background-color: #DDD;
@@ -470,9 +479,12 @@ div.file-item div {
         data: JSON.stringify({"detach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId}),
         success: function(d) {
           console.info("I detached MediaAsset "+maId+" from encounter <%=encNum%>");
+          $('#image-enhancer-wrapper-' + maId).closest('figure').remove();
+/*
           $('#remove'+maId).prev('figure').remove();
           $('#remove'+maId).after('<p style=\"text-align:center;\"><i>Image removed from encounter.</i></p>');
           $('#remove'+maId).remove();
+*/
         },
         error: function(x,y,z) {
           console.warn("failed to MediaAssetDetach");
@@ -488,9 +500,11 @@ div.file-item div {
     console.log("EMG asset "+index+" id: "+assetId);
     maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
 
+/*   now added to image hamburger menu
     var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
 
     $('#enc-gallery').append(removeAssetLink);
+*/
   });
 
 
@@ -504,9 +518,10 @@ jQuery(document).ready(function() {
     if (loggedIn) {
         opt.debug = false;
         opt.menu = [
-/*
             ['remove this image', function(enh) {
+		removeAsset(enh.imgEl.prop('id').substring(11));
             }],
+/*
             ['replace this image', function(enh) {
             }],
 */
@@ -559,6 +574,10 @@ console.info(' ===========>   %o %o', el, enh);
         ];
 
     }
+
+	opt.callback = function() {
+		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
+	};
 
     imageEnhancer.applyTo('figure img', opt);
 });
@@ -694,7 +713,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">Add new keyword <div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
 		var hasSome = false;
-		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" id="keyword-selector"><option value="">select keyword</option>';
+		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
 		for (var j in wildbookGlobals.keywords) {
 			if (thisHas.indexOf(j) >= 0) continue; //dont list ones we have
 			mh += '<option value="' + j + '">' + wildbookGlobals.keywords[j] + '</option>';
