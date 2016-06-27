@@ -71,11 +71,11 @@ var makeChart = function(items) {
             }
           ],
           centralFormat: [
-            {// Line #0
+            {
               style: {"font-size": "50px"},
               attr: {}
             },
-            {// Line #1
+            {
               style: {"font-size": "30px"},
               attr: {dy: "40px"}
             }
@@ -85,8 +85,8 @@ var makeChart = function(items) {
     });
 }
 
+var items = [];
 var getData = function(individualID) {
-    var items = [];
     var encounterArray = [];
     var occurrenceArray = [];
     var dataObject = {};
@@ -118,7 +118,85 @@ var getData = function(individualID) {
         whale = {text:prop, count:dataObject[prop]};
         items.push(whale);
       }
-      console.log(items.length);
-      return makeChart(items);
+      makeChart(items);
     });
   };
+
+  var getTableData = function(individualID) {
+    d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+      for(var i=0; i < jsonData.length; i++) {
+        var result = items.filter(function(obj) {
+          return obj.text === jsonData[i].individualID
+        })[0];
+        result.sex = jsonData[i].sex;
+        result.haplotype = jsonData[i].localHaplotypeReflection;
+      }
+      makeTable(items, "#coHead", "#coBody");
+    });
+  };
+
+  var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
+  var previousSort = null;
+  refreshTable(null);
+
+  function refreshTable(sortOn) {
+    var thead = d3.select(tableHeadLocation).selectAll("th")
+    .data(d3.keys(items[0]))
+    .enter().append("th").text(function(d){
+      if(d === "text") {
+        return "Occuring With";
+      } if (d === "count"){
+        return "# Co-occurrences";
+      } if (d === "sex") {
+        return "Sex";
+      } if (d === "haplotype") {
+        return "Haplotype";
+      } if (d === "location") {
+        return "Location";
+      } if (d === "dataTypes") {
+        return "Data Types";
+      } if (d === "date"); {
+        return "Date";
+      };
+    })
+    .on("click", function(d){ return refreshTable(d) ;});
+
+    var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
+    tr.enter().append("tr");
+
+    var td = tr.selectAll("td").data(function(d){return d3.values(d);});
+    td.enter().append("td")
+    .text(function(d) {return d;});
+
+    if(sortOn !== null) {
+      if(sortOn != previousSort){
+        tr.sort(function(a,b){return sort(a[sortOn], b[sortOn]);});
+        previousSort = sortOn;
+      } else {
+        tr.sort(function(a,b){return sort(b[sortOn], a[sortOn]);});
+        previousSort = null;
+      }
+      td.text(function(d) {return d;});
+    }
+  }
+
+  function sort(a,b) {
+    if(typeof a == "string"){
+      var parseA = parseInt(a);
+      if(parseA) {
+        var whaleA = parseA;
+        var whaleB = parseInt(b);
+        return whaleA > whaleB ? 1 : whaleA == whaleB ? 0 : -1;
+      } else
+        return a.localeCompare(b);
+    } else if(typeof a == "number") {
+      return a > b ? 1 : a == b ? 0 : -1;
+    } else if(typeof a == "boolean") {
+      return b ? 1 : a ? -1 : 0;
+    }
+  }
+};
