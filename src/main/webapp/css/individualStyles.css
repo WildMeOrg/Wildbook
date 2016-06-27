@@ -1,7 +1,7 @@
-.maincontent {
-  padding-left: 2.5%;
+.container {
+  padding-left: 5%;
+  padding-right: 5%;
 }
-
 
 /*Hide Diagram Tab Content*/
 #communityDiagram, #communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
@@ -87,11 +87,20 @@ button {
 }
 
 .researcherPhotoContainer {
-  border: 1px solid gray;
-  width: 100%;
+  max-width: 100%;
+  padding: 5%;
+  word-wrap: break-word;
 }
 
 #researchers {
   overflow: scroll;
-  max-height: 700px;
+  max-height: 600px;
+}
+
+/*Media Queries*/
+@media screen and (min-width: 400px) and (max-width: 990px) {
+  .researcherPhotoContainer {
+    max-width: 50%;
+    float: left;
+  }
 }
