@@ -52,13 +52,13 @@ function setupFamilyTree(individualID) {
 
       var svg = d3.select("#familyDiagram").append("svg")
       .attr('width', "100%")
-      .attr('height', "50%")
+      .attr('height', "40%")
       .call(zoom)
       .append('g')
 
       // Left padding of tree so that the whole root node is on the screen.
       // TODO: find a better way
-      .attr("transform", "translate(400,200)");
+      .attr("transform", "translate(300, 150)");
 
 
       // One tree to display the ancestors
