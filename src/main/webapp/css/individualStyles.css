@@ -80,6 +80,16 @@ button {
   stroke: none;
 }
 
+/*Co-occurrence Table Style*/
+
+th {
+  padding: 10px;
+  background: #005589;
+  color: #FFFFFF;
+  border: 1px solid white;
+  text-align: center;
+}
+
 /*Collaborating Researcher Styles*/
 
 .researcherName {

@@ -1551,7 +1551,7 @@ function dataTypes(obj, fieldName) {
         </ul>
       </div>
 
-      <div id="familyDiagram" class="diagramContainer">
+      <div id="familyDiagram">
         <% String individualID = sharky.getIndividualID();%>
         <script type="text/javascript">
 
@@ -1559,7 +1559,7 @@ function dataTypes(obj, fieldName) {
         </script>
       </div>
 
-      <div id="communityTable" class="mygrid-wrapper-div diagramContainer">
+      <div id="communityTable" class="mygrid-wrapper-div">
         <table width="100%" class="tissueSample">
         <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
         <%
@@ -1683,6 +1683,7 @@ function dataTypes(obj, fieldName) {
           <script type="text/javascript">
 
           getData(<%=individualID%>);
+          getTableData(<%=individualID%>);
           </script>
 
           <div role="navigation">
@@ -1697,7 +1698,6 @@ function dataTypes(obj, fieldName) {
           </div>
 
           <div id="cooccurrenceDiagram">
-            <div class="diagramContainer">
               <div class="bubbleChart">
                 <div id="buttons" class="btn-group btn-group-sm" role="group">
                   <button type="button" class="btn btn-default" id="zoomIn"><span class="glyphicon glyphicon-plus"></span></button>
@@ -1705,7 +1705,15 @@ function dataTypes(obj, fieldName) {
                   <button type="button" class="btn btn-default" id="reset">Reset</button>
                 </div>
               </div>
-            </div>
+          </div>
+
+          <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
+            <p>Click the table header to sort data according to that column</p>
+
+            <table id="coTable" class="table table-striped table-bordered table-sm">
+                <thead id="coHead"></thead>
+                <tbody id="coBody"></tbody>
+            </table>
           </div>
         </div>
 
@@ -1719,7 +1727,7 @@ function dataTypes(obj, fieldName) {
         %>
 
 
-      <div id="cooccurrenceTable" class="mygrid-wrapper-div diagramContainer">
+      <%-- <div id="cooccurrenceTable" class="mygrid-wrapper-div">
         <table width="100%" class="tissueSample table">
         <th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
         <%
@@ -1750,7 +1758,7 @@ function dataTypes(obj, fieldName) {
         }
         %>
         </table>
-      </div>
+      </div> --%>
         <%
         }
         else {
