@@ -856,7 +856,7 @@ function dataTypes(obj, fieldName) {
 </script>
 
 <%-- Main Div --%>
-<div class="container row maincontent">
+<div class="container row">
   <%=blocker%>
   <%-- Header Row --%>
   <div class="jumbotron">
@@ -897,7 +897,7 @@ function dataTypes(obj, fieldName) {
   <%-- Body Row --%>
   <div class="row">
     <%-- Main Left Column --%>
-    <div class="col-sm-8">
+    <div class="col-md-8">
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-md-4">
@@ -2111,17 +2111,11 @@ function dataTypes(obj, fieldName) {
       </div>
       <%-- End Adoption --%>
       <%-- Map --%>
+      <br><br>
       <div>
-        <table>
-        <tr>
-        <td>
-
-              <jsp:include page="individualMapEmbed.jsp" flush="true">
-                <jsp:param name="name" value="<%=name%>"/>
-              </jsp:include>
-        </td>
-        </tr>
-        </table>
+        <jsp:include page="individualMapEmbed.jsp" flush="true">
+          <jsp:param name="name" value="<%=name%>"/>
+        </jsp:include>
       </div>
 
 
@@ -2129,7 +2123,7 @@ function dataTypes(obj, fieldName) {
     </div>
 
     <%-- Main Right Column --%>
-    <div class="col-sm-4">
+    <div class="col-md-4">
       <!-- Start thumbnail gallery -->
       <div>
         <p>
@@ -2619,12 +2613,10 @@ function dataTypes(obj, fieldName) {
             }
             %>
             </div>
-
           </div>
-
         <%
         } //end for loop of users
-        %></div><%
+
         } //end if loop if there are any users
          else{
         %>
@@ -2642,6 +2634,7 @@ function dataTypes(obj, fieldName) {
         //myShepherd.beginDBTransaction();
 
           %>
+        </div>
       </div>
       <%-- End Collaborators --%>
 
