@@ -705,8 +705,6 @@ $(function() {
   									if(enc.getIndividualID()==null){
   									%>
 
-  									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
-  									%>
 
   									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
     									<tr>
@@ -778,9 +776,6 @@ $(function() {
 									<%
    									}
 									if(enc.getIndividualID()==null){
-									%>
-
-									if((enc.isAssignedToMarkedIndividual()==null)||(enc.isAssignedToMarkedIndividual().equals("Unassigned"))){
 									%>
 
 									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
