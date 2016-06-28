@@ -492,9 +492,7 @@ finally{
     <div class="col-md-6 col-md-offset-3">
 
       <p>
-        Mik&auml; ihmeen Lorem ipsum?
-
-        Lorem ipsum on 1500-luvulta l&auml;htien olemassa ollut t&auml;yteteksti, jota k&auml;ytet&auml;&auml;n usein ulkoasun testaamiseen graafisessa suunnittelussa, kun mit&auml;&auml;n oikeata sis&auml;lt&ouml;&auml; ei viel&auml; ole. Lorem ipsumia k&auml;ytet&auml;&auml;n n&auml;ytt&auml;m&auml;&auml;n, milt&auml; esimerkiksi kirjasin tai julkaisun tekstin asettelu n&auml;ytt&auml;v&auml;t
+        Saimaassa uiskentelee noin 320 norppaa. Tavoitteenamme on tunnistaa niist&auml; mahdollisimman moni. Siihen tarvitsemme myös sinun apuasi! Otamme ilolla vastaan kuvia saimaannorpista, ja jo tunnistettuihin viiksiniekkoihin p&auml;&auml;set tutustumaan galleriassa. Kuvien lis&auml;ksi olemme kiinnostuneita myös n&auml;köhavainnoista, sill&auml; nekin auttavat t&auml;m&auml;n eritt&auml;in uhanalaisen hylkeen suojelussa.
       </p>
       <p style="font-size:2em;color:#999">
         <i class="icon icon-facebook-btn" aria-hidden="true"></i>
@@ -511,7 +509,7 @@ finally{
     <div class="row grey-outline">
 
       <jsp:include page="individualGalleryPanel.jsp" flush="true">
-        <jsp:param name="individualID" value="Phs002" />
+        <jsp:param name="individualID" value="Phs106" />
       </jsp:include>
 
     </div>
