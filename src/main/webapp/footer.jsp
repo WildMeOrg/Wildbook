@@ -10,19 +10,35 @@
         <!-- footer -->
 
 				<style type="text/css">
-				.container-fluid.main-section .row.donate-row {
-					width: 100%;
+
+				.page-footer .container-fluid .main-secion .row.donate-row {
+					margin-top: 10px;
+				}
+
+				.row.donate-row .col-xs-6 {
+					padding-left: 0;
+					padding-right: 0;
+				}
+
+				footer.page-footer .row.donate-row {
+					margin-left: 0px;
+					margin-right: 0px;
+					margin-top: 10px;
+					min-height: 240px;
+				}
+
+				.container-fluid.main-section .row.donate-row .seal-pic {
 					min-height: 240px;
 					background: url('<%=urlLoc%>/cust/mantamatcher/img/wwf-join-banner.jpg');
 					background-repeat: no-repeat;
 					background-position: center;
 					margin-left: 0;
 					margin-right: 0;
-					margin-top: 10px;
 				}
 
+
 				@media (min-width: 1100px) {
-					.container-fluid.main-section .row.donate-row {
+					.container-fluid.main-section .row.donate-row .seal-pic {
 						background: url('<%=urlLoc%>/cust/mantamatcher/img/wwf-join-banner-large.jpg');
 						background-repeat: no-repeat;
 						background-position: center;
@@ -38,6 +54,13 @@
 				}
 				.row.donate-row .donate-zone h2 {
 					text-align: center;
+				}
+
+				.row.donate-row .donate-zone {
+					background-color: #dff2f1;
+					min-height: 240px;
+					height: 100%;
+					padding-left: 0;
 				}
 
 				footer.page-footer div.row.collaborators-row {
@@ -110,6 +133,9 @@
 											</a>
 										</h2>
 									</div>
+									<div class="col-xs-6 bc4 seal-pic">
+									</div>
+
 
 								</div>
 
@@ -155,7 +181,7 @@
 								</div>
 
                 <div class="row grey-background very-footer">
-				
+
                   <p class="col-sm-8 col-md-8 col-lg-8">
                      <a href="http://www.wildbook.org" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
