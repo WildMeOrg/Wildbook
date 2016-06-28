@@ -143,7 +143,6 @@ function buildDeck() {
 			deck.push([assetRefs[r], assetTests[t]]);
 		}
 	}
-	deck = deck.slice(0,5);
 }
 
 function setupForm() {
