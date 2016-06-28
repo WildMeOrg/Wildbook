@@ -354,7 +354,8 @@ myShepherd.beginDBTransaction();
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
-          pairCopyright[j] = indie.getExemplarPhotographer();
+          pairCopyright[j] =
+          maJson.optString("photographer");
           if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
             pairCopyright[j] =  "&copy; " +pairCopyright[j]+" / WWF";
           } else {
@@ -402,11 +403,21 @@ myShepherd.beginDBTransaction();
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
                 String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+
+                String copyright = newMaJson.optString("photographer");
+                if ((copyright!=null)&&!copyright.equals("")) {
+                  copyright =  "&copy; " +copyright+" / WWF";
+                } else {
+                  copyright = "&copy; WWF";
+                }
+
+
+
                 %>
                 <div class="super-crop seal-gallery-pic">
                   <div class="crop">
                     <img src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                    <p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                    <p class="image-copyright"> <%=copyright%> </p>
                     <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
                   </div>
                 </div>
