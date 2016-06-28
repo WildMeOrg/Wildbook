@@ -153,6 +153,29 @@ if (rIndividuals.size() < listNum) {
     overflow: hidden;
   }
 
+  // seal-scrolling css
+  .gallery-inner {
+    position: relative;
+  }
+  .seal-scroll {
+    cursor:pointer;
+    position: absolute;
+    top: 40%;
+  }
+  .seal-scroll.scroll-fwd {
+    right: 10%;
+  }
+  .seal-scroll.scroll-back {
+    left: 10%;
+  }
+
+  .super-crop.seal-gallery-pic {
+    display: none;
+  }
+  .super-crop.seal-gallery-pic.active {
+    display: block;
+  }
+
   p.image-copyright {
     	text-align: right;
     	position: absolute;
@@ -301,7 +324,7 @@ myShepherd.beginDBTransaction();
 			.replaceAll("LL","Luonteri – Lietvesi")
 			.replaceAll("ES","Etel&auml;-Saimaa");
       %>
-      
+
         <h2><%=locCode %></h2>
       </div>
     <% } %>
@@ -348,7 +371,6 @@ myShepherd.beginDBTransaction();
                 <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                 <p class="image-copyright"> <%=pairCopyright[j]%> </p>
               </div>
-
               <p><strong><%=pairNickname[j]%></strong></p>
             </div>
           </div>
@@ -367,12 +389,38 @@ myShepherd.beginDBTransaction();
 
 
             <div class="gallery-inner">
-              <div class="super-crop">
+              <div class="super-crop seal-gallery-pic active">
                 <div class="crop">
                   <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                   <p class="image-copyright"> <%=pairCopyright[j]%> </p>
                 </div>
               </div>
+              <%
+              // display=none copies of the above for each additional image
+              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
+                JSONObject newMaJson = new JSONObject();
+                newMaJson = al.get(extraImgNo);
+                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+                %>
+                <div class="super-crop seal-gallery-pic">
+                  <div class="crop">
+                    <img src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                    <p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                    <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
+                  </div>
+                </div>
+                <%
+              }
+              %>
+
+              <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
+
+              <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
+
+
+
+
 
 
               <span class="galleryh2"><%=pairNickname[j]%></span>
@@ -459,8 +507,8 @@ myShepherd.beginDBTransaction();
           }
           %>
 
-
           Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
+
           <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
@@ -513,6 +561,22 @@ myShepherd=null;
     galFunc.cropInnerPics();
   });
 
+  // basic functions inspired by https://www.darklaunch.com/2013/08/06/jquery-next-prev-with-wrapping
+  galFunc.nextWrap = function( $elem, selector ) {
+      var $next = $elem.next( selector );
+      if ( ! $next.length ) {
+          $next = $elem.parent().children( selector ).first();
+      }
+      return $next;
+  };
+  galFunc.prevWrap = function( $elem, selector ) {
+      var $prev = $elem.prev( selector );
+      if ( ! $prev.length ) {
+          $prev = $elem.parent().children( selector ).last();
+      }
+      return $prev;
+  };
+
   // handles gallery-info hiding/showing
   $('.gallery-unit').click( function() {
     var thisId = this.id.split('gunit')[1];
@@ -542,6 +606,32 @@ myShepherd=null;
       })
     }
   });
+
+  $('.seal-scroll.scroll-fwd').click( function() {
+    console.log('beginning scroll logic');
+    var $active = $(this).siblings('.seal-gallery-pic.active');
+    var $next = galFunc.nextWrap($active, '.seal-gallery-pic');
+    $active.toggle(0);
+    $next.toggle(0, function () {
+      console.log("next is toggled!");
+      $active.removeClass('active');
+      $next.addClass('active');
+    });
+  });
+
+  $('.seal-scroll.scroll-back').click( function() {
+    console.log('beginning scroll logic');
+    var $active = $(this).siblings('.seal-gallery-pic.active');
+    var $prev = galFunc.prevWrap($active, '.seal-gallery-pic');
+    $active.toggle(0);
+    $prev.toggle(0, function () {
+      console.log("next is toggled!");
+      $active.removeClass('active');
+      $prev.addClass('active');
+    });
+  })
+
+
 
   // a little namespace for gallery functions
   var gallery = {};
