@@ -179,6 +179,7 @@ if (rIndividuals.size() < listNum) {
     font-size: 36px !important;
     line-height: 1.3em !important;
     font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
+    padding: 27px;
   }
 
 
