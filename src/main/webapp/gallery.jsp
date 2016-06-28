@@ -317,7 +317,7 @@ myShepherd.beginDBTransaction();
   	   		.replaceAll("HV","Haukivesi")
             .replaceAll("JV","Joutenvesi")
          	.replaceAll("PEV","Pyyvesi - Enonvesi")
-			.replaceAll("KV","Kulovesi")
+			.replaceAll("KV","Kolovesi")
 			.replaceAll("PV","Pihlajavesi")
 			.replaceAll("PUV","Puruvesi")
 			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
