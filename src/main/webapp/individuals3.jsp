@@ -856,7 +856,7 @@ function dataTypes(obj, fieldName) {
 </script>
 
 <%-- Main Div --%>
-<div class="container row">
+<div class="container row maincontent maincontainer">
   <%=blocker%>
   <%-- Header Row --%>
   <div class="jumbotron">
@@ -2118,13 +2118,6 @@ function dataTypes(obj, fieldName) {
         %>
       </div>
       <%-- End Adoption --%>
-      <%-- Map --%>
-      <br><br>
-      <div>
-        <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
-        </jsp:include>
-      </div>
 
 
     <%-- End of Main Left Column --%>
@@ -2688,6 +2681,16 @@ function dataTypes(obj, fieldName) {
   <%-- End of Body Row --%>
   </div>
 
+  <%-- Map Row --%>
+  <div class="row container">
+    <%-- Map --%>
+    <div>
+      <jsp:include page="individualMapEmbed.jsp" flush="true">
+        <jsp:param name="name" value="<%=name%>"/>
+      </jsp:include>
+    </div>
+  </div>
+  <%-- End of Map Row --%>
 
 <%-- End of Main Div --%>
 </div>
