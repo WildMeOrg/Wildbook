@@ -544,7 +544,7 @@ finally{
 
     <div class="col-sm-6">
       <div class="saimaa-info">
-      <h2 class="section-header map-header">Kuvatut Norpat Alueittain<!--Encounters around the world--></h2>
+      <h2 class="section-header map-header">Tunnistetut Norpat Alueittain<!--Encounters around the world--></h2>
 
 
 
@@ -552,16 +552,19 @@ finally{
         <%
         //List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
         ArrayList<String> locs2=new ArrayList<String>();
-        locs2.add("ES");
-        locs2.add("HV");
-        locs2.add("JV");
-        locs2.add("KS");
-        locs2.add("PEV");
-        locs2.add("PUV");
-        locs2.add("PV");
         locs2.add("PS");
-        locs2.add("LL");
+        locs2.add("HV");      
+        locs2.add("JV");
+        locs2.add("PEV");
         locs2.add("KV");
+        locs2.add("PV");
+        locs2.add("PUV");
+        
+        locs2.add("KS");
+        locs2.add("LL");
+        locs2.add("ES");
+        
+        
         
     
         
@@ -585,7 +588,7 @@ finally{
   					.replaceAll("KV","Kolovesi")
  					.replaceAll("PV","Pihlajavesi")
 					.replaceAll("PUV","Puruvesi")
-						.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+						.replaceAll("KS","Lepist&ouml;nselk&auml; - Haapaselk&auml;")
    					.replaceAll("LL","Luonteri – Lietvesi")
    					.replaceAll("ES","Etel&auml;-Saimaa");
             
