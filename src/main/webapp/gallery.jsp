@@ -302,9 +302,7 @@ myShepherd.beginDBTransaction();
           JSONObject maJson = indie.getExemplarImage(request);
           pairCopyright[j] = indie.getExemplarPhotographer();
           if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
-            pairCopyright[j] =  "&copy; " +pairCopyright[j]+" / WWF";
-          } else {
-            pairCopyright[j] = "&copy; WWF";
+            pairCopyright[j] =  "&copy; " +pairCopyright[j];
           }
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
