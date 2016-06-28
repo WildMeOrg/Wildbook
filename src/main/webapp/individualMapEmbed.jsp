@@ -106,11 +106,12 @@ context=ServletUtilities.getContext(request);
 position: absolute !important;
 top: 0px !important;
 left: 0px !important;
-z-index: 1 !imporant;
+z-index: 1 !important;
 width: 100% !important;
 height: 100% !important;
 margin-top: 0px !important;
 margin-bottom: 8px !important;
+}
 </style>
 
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
@@ -128,20 +129,21 @@ margin-bottom: 8px !important;
       function initialize() {
         var center = new google.maps.LatLng(0,0);
         var mapZoom = 1;
-    	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+    	// if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
     	var bounds = new google.maps.LatLngBounds();
 
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
+          fullscreenControl: true,
           center: center,
           mapTypeId: google.maps.MapTypeId.HYBRID
         });
-
+        //Full screen control is available automatically through google maps, old full screen functions are commented out
     	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+    	  // var fsControlDiv = document.createElement('DIV');
+    	  // var fsControl = new FSControl(fsControlDiv, map);
+    	  // fsControlDiv.index = 1;
+    	  // map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(fsControlDiv);
 
 
         var markers = [];
@@ -393,55 +395,55 @@ String lastLatLong="";
     	}
 
 
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
-    	    } else {
-    	      controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
+    	// //making the exit fullscreen button
+    	// function FSControl(controlDiv, map) {
+      //
+    	//   // Set CSS styles for the DIV containing the control
+    	//   // Setting padding to 5 px will offset the control
+    	//   // from the edge of the map
+    	//   controlDiv.style.padding = '5px';
+      //
+    	//   // Set CSS for the control border
+    	//   var controlUI = document.createElement('DIV');
+    	//   controlUI.style.backgroundColor = '#f8f8f8';
+    	//   controlUI.style.borderStyle = 'solid';
+    	//   controlUI.style.borderWidth = '1px';
+    	//   controlUI.style.borderColor = '#a9bbdf';;
+    	//   controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
+    	//   controlUI.style.cursor = 'pointer';
+    	//   controlUI.style.textAlign = 'center';
+    	//   controlUI.title = 'Toggle the fullscreen mode';
+    	//   controlDiv.appendChild(controlUI);
+      //
+    	//   // Set CSS for the control interior
+    	//   var controlText = document.createElement('DIV');
+    	//   controlText.style.fontSize = '12px';
+    	//   controlText.style.fontWeight = 'bold';
+    	//   controlText.style.color = '#000000';
+    	//   controlText.style.paddingLeft = '4px';
+    	//   controlText.style.paddingRight = '4px';
+    	//   controlText.style.paddingTop = '3px';
+    	//   controlText.style.paddingBottom = '2px';
+    	//   controlUI.appendChild(controlText);
+    	//   //toggle the text of the button
+    	//    if($("#map_canvas").hasClass("full_screen_map")){
+    	//       controlText.innerHTML = '<%=props.getProperty("exitFullscreen")%>';
+    	//     } else {
+    	//       controlText.innerHTML = '<%=props.getProperty("fullscreen")%>';
+    	//     }
+      //
+    	//   // Setup the click event listeners: toggle the full screen
+      //
+    	//   google.maps.event.addDomListener(controlUI, 'click', function() {
+      //
+    	//    if($("#map_canvas").hasClass("full_screen_map")){
+    	//     exitFullScreen();
+    	//     } else {
+    	//     fullScreen();
+    	//     }
+    	//   });
+      //
+    	// }
 
 
 
