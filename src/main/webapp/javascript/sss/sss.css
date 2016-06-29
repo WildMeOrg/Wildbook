@@ -1,0 +1,60 @@
+.sss {
+	height: 0;
+	margin: 0; 
+	padding: 0;
+	position: relative;
+	display: block;
+	overflow: hidden;
+}
+
+.ssslide {
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	display: none;
+	overflow: hidden;
+}
+
+.ssslide img {
+	max-width: 100%;
+	height: auto;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	display: block;
+}
+
+.sssprev {
+	width: 25px;
+	height: 100%;
+	margin: 0;
+	position: absolute;
+	top: 0;
+	background: url('images/wwf-blue-arrow-left.png') no-repeat;	
+}
+
+.sssnext {
+	width: 25px;
+	height: 100%;
+	margin: 0;
+	position: absolute;
+	top: 0;
+	background: url('images/wwf-blue-arrow-right.png') no-repeat;	
+}
+
+.sssprev {
+	left: 1%;
+	background-position: 50%;
+}
+
+.sssnext {
+	right: 1%;
+	background-position: 50%;
+}
+
+.sssprev:hover, .sssnext:hover {
+	cursor: pointer;
+}
