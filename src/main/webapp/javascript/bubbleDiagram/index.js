@@ -200,3 +200,50 @@ var getData = function(individualID) {
     }
   }
 };
+
+var getTableData = function(individualID) {
+    d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+      for(var i=0; i < jsonData.length; i++) {
+        var result = items.filter(function(obj) {
+          return obj.text === jsonData[i].individualID
+        })[0];
+        result.sex = jsonData[i].sex;
+        result.haplotype = jsonData[i].localHaplotypeReflection;
+      }
+      makeTable(items, "#coHead", "#coBody");
+    });
+  };
+
+  var encounterData = [];
+  var occuringWith = [];
+  var date;
+
+  var getEncounterTableData = function(individualID) {
+    d3.json("http://www.flukebook.org/api/org.ecocean.MarkedIndividual/" + individualID + "", function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+      for(var i=0; i < jsonData.encounters.length; i++) {
+        var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
+        if(dateInMilliseconds > 0) {
+          date = dateInMilliseconds.toISOString().substring(0, 10);
+        } else {
+          date = "Unknown";
+        };
+        var location = jsonData.encounters[i].verbatimLocality;
+
+        var dataTypes = jsonData.encounters[i].catalogNumber;
+        var sex = jsonData.encounters[i].sex;
+
+        var encounter = new Object();
+        encounter = {date: date, location: location, dataTypes: dataTypes, sex: sex};
+        encounterData.push(encounter);
+      }
+      makeTable(encounterData, "#encountHead", "#encountBody");
+    });
+  };
