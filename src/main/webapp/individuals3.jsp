@@ -1678,9 +1678,19 @@ function dataTypes(obj, fieldName) {
         <%-- Cooccurrence table starts here --%>
         <a name="cooccurrence"></a>
         <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
+
+
+
+        <%
+        List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+
+        if(otherIndies.size()>0){
+
+        //ok, let's iterate the social relationships
+        %>
         <div class="cooccurrences">
-          <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
+          <% String individualID = sharky.getIndividualID();%>
 
           getData(<%=individualID%>);
           getTableData(<%=individualID%>);
@@ -1716,16 +1726,6 @@ function dataTypes(obj, fieldName) {
             </table>
           </div>
         </div>
-
-
-        <%
-        List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
-
-        if(otherIndies.size()>0){
-
-        //ok, let's iterate the social relationships
-        %>
-
 
       <%-- <div id="cooccurrenceTable" class="mygrid-wrapper-div">
         <table width="100%" class="tissueSample table">
@@ -1853,6 +1853,7 @@ function dataTypes(obj, fieldName) {
 
         <div id="encountersTable" class="mygrid-wrapper-div">
           <script type="text/javascript">
+          <% String individualID = sharky.getIndividualID();%>
             getEncounterTableData(<%=individualID%>);
           </script>
 
@@ -2098,6 +2099,13 @@ function dataTypes(obj, fieldName) {
                               }
                               else {
                               %>
+                              <script>
+                              $("#encountersTable").show();
+                              $("#innerEncountersTable").show();
+                              $("#bioSamplesTable").hide();
+                              $("#encountersTableTab").addClass("active");
+                              $("#bioSamplesTableTab").removeClass("active");
+                              </script>
                               <p class="para"><%=props.getProperty("noTissueSamples") %></p>
                               <%
                                 }
@@ -2694,6 +2702,7 @@ function dataTypes(obj, fieldName) {
   </div>
 
   <%-- Map Row --%>
+  <br><br>
   <div class="row container">
     <%-- Map --%>
     <div>
