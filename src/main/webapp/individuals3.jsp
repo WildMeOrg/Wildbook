@@ -1850,8 +1850,19 @@ function dataTypes(obj, fieldName) {
           </ul>
         </div>
 
-        <div id="encountersTable">
-          <table id="encounter_report" width="100%">
+        <div id="encountersTable" class="mygrid-wrapper-div">
+          <script type="text/javascript">
+            getEncounterTableData(<%=individualID%>);
+          </script>
+
+          <table id="encountTable" class="table table-bordered table-sm">
+            <thead id="encountHead"></thead>
+            <tbody id="encountBody"></tbody>
+          </table>
+
+
+
+          <%-- <table id="encounter_report" width="100%">
             <tr>
               <td align="left" valign="top">
 
@@ -1979,11 +1990,11 @@ function dataTypes(obj, fieldName) {
                 <div id="results-slider"></div>
               </div>
 
-            </table>
+            </table> --%>
 
-            <script>
+            <%-- <script>
               var searchResults = <%=encsJson%>;
-            </script>
+            </script> --%>
           </div>
           <%-- End Encounter Table --%>
 
