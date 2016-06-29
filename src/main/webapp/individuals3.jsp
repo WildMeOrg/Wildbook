@@ -333,7 +333,7 @@ table.tissueSample td {
 </style>
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic&subset=latin,vietnamese' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="javascript/bubbleDiagram/d3-transform.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
@@ -1838,6 +1838,7 @@ function dataTypes(obj, fieldName) {
       <%-- End of Relationship Graphs --%>
       <br><br>
       <%-- Start Encounter Table --%>
+      <p><strong><%=props.getProperty("tissueSamples") %> &amp; <%=numencounters %></strong></p>
       <div class="encountersBioSamples">
         <div role="navigation">
           <ul class="nav nav-tabs">

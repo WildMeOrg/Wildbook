@@ -8,6 +8,24 @@
   display: none;
 }
 
+/*Nav-tab styling*/
+li.active{
+  background-color: #FFFFFF;
+}
+
+.nav-tabs>li>a {
+  background-color: #7997a1;
+  color: white;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  border-right: 1px solid white;
+  border-left: 1px solid white;
+}
+
+.nav-tabs>li>a:hover {
+  background-color: #8aacb8;
+}
+
 /* Family Tree Styles */
 
 #familyDiagram {
@@ -67,23 +85,6 @@
   color: navy;
 }
 
-li.active{
-  background-color: #FFFFFF;
-}
-
-.nav-tabs>li>a {
-  background-color: #7997a1;
-  color: white;
-  border-top-right-radius: 5px;
-  border-top-left-radius: 5px;
-  border-right: 1px solid white;
-  border-left: 1px solid white;
-}
-
-.nav-tabs>li>a:hover {
-  background-color: #8aacb8;
-}
-
 button#zoomIn.btn.btn-default{
   padding-top: 6px;
   padding-bottom: 10px;
@@ -107,10 +108,16 @@ button {
 
 th {
   padding: 10px;
-  background: #005589;
+  background: #566c73;
   color: #FFFFFF;
   border: 1px solid white;
   text-align: center;
+  font-weight: normal;
+}
+
+td {
+  font-family: sans-serif;
+  font-size: 14px;
 }
 
 /*Collaborating Researcher Styles*/
