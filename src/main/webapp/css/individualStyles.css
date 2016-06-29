@@ -16,6 +16,7 @@
 
 #familyDiagram svg {
   border: 1px solid #aaa;
+  border-radius: 5px;
 }
 .individual rect {
   fill: #fff;
@@ -66,9 +67,31 @@
   color: navy;
 }
 
+li.active{
+  background-color: #FFFFFF;
+}
+
+.nav-tabs>li>a {
+  background-color: #7997a1;
+  color: white;
+  border-top-right-radius: 5px;
+  border-top-left-radius: 5px;
+  border-right: 1px solid white;
+  border-left: 1px solid white;
+}
+
+.nav-tabs>li>a:hover {
+  background-color: #8aacb8;
+}
+
 button#zoomIn.btn.btn-default{
   padding-top: 6px;
   padding-bottom: 10px;
+}
+
+button#zoomOut.btn.btn-default{
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 button {
