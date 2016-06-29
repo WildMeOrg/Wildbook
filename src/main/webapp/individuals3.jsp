@@ -1560,13 +1560,13 @@ function dataTypes(obj, fieldName) {
       </div>
 
       <div id="communityTable" class="mygrid-wrapper-div">
-        <table width="100%" class="tissueSample">
-        <th><strong><%=props.getProperty("roles")%></strong></th><th><strong><%=props.get("relationshipWith")%></strong></th><th><strong><%=props.getProperty("type")%></strong></th><th><strong><%=props.getProperty("community")%></strong></th>
+        <table width="100%" class="table table-bordered table-sm">
+        <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
         <%
         	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
         <th><%=props.getProperty("numSightingsTogether")%></th>
-        <th><strong><%=props.getProperty("edit")%></strong></th><th><strong><%=props.getProperty("remove")%></strong></th>
+        <th><%=props.getProperty("edit")%></th><th><%=props.getProperty("remove")%></th>
         <%
         	}
         %>
@@ -2009,12 +2009,12 @@ function dataTypes(obj, fieldName) {
               int numTissueSamples=tissueSamples.size();
               if(numTissueSamples>0){
                 %>
-                <table width="100%" class="tissueSample">
+                <table width="100%" class="table table-bordered table-sm">
                   <tr>
-                    <th><strong><%=props.getProperty("sampleID") %></strong></th>
-                    <th><strong><%=props.getProperty("correspondingEncounterNumber") %></strong></th>
-                    <th><strong><%=props.getProperty("values") %></strong></th>
-                    <th><strong><%=props.getProperty("analyses") %></strong></th></tr>
+                    <th><%=props.getProperty("sampleID") %></th>
+                    <th><%=props.getProperty("correspondingEncounterNumber") %></th>
+                    <th><%=props.getProperty("values") %></th>
+                    <th><%=props.getProperty("analyses") %></th></tr>
                     <%
                     for(int j=0;j<numTissueSamples;j++){
                       TissueSample thisSample=tissueSamples.get(j);
