@@ -483,6 +483,9 @@ jQuery(function($) {
 	});
 });
 
+</script>
+
+
 <section class="hero container-fluid main-section relative" title="&copy; Juha Taskinen / WWF">
   <div class="container-fluid relative">
     <div class="col-lg-12 bc4">
