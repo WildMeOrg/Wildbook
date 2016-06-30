@@ -106,8 +106,8 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
   	    		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
   	    		<meta property="og:image:width" content="1082" />
 				<meta property="og:image:height" content="722" />
-  	    		
-  	    	<%	
+
+  	    	<%
   	    	}
   	}
   	else{
@@ -115,11 +115,11 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
   		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
   		<meta property="og:image:width" content="1082" />
 				<meta property="og:image:height" content="722" />
-  	<%	
+  	<%
   	}
-  	
+
   	%>
-  	
+
   	<!-- End Open Graph Tags -->
 
     </head>
@@ -365,7 +365,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       <% } %>
 
 
-                      <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="#6" itemprop="url">Liity ja lahjoita</a>
+                      <li class="donate pull-right"><a class="bc1-primary-bkg donate-link" href="http://wwf.fi/norppakummiksi/" itemprop="url">Liity ja lahjoita</a>
                         <ul class="nav-donate" itemscope="" itemtype="http://www.schema.org/SiteNavigationElement">
                           <li><a href="#">Liity kummiksi</a></li>
                           <li><a href="#">Tee kertalahjoitus</a></li>
