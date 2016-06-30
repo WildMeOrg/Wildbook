@@ -139,7 +139,7 @@ var getData = function(individualID) {
     });
   };
 
-  var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
+var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
   var previousSort = null;
   refreshTable(null);
 
@@ -151,6 +151,10 @@ var getData = function(individualID) {
         return "Occuring With";
       } if (d === "count"){
         return "# Co-occurrences";
+      } if(d === "alternateID") {
+        return "Alt ID";
+      } if (d === "behavior") {
+        return "Behavior";
       } if (d === "sex") {
         return "Sex";
       } if (d === "haplotype") {
@@ -170,7 +174,12 @@ var getData = function(individualID) {
 
     var td = tr.selectAll("td").data(function(d){return d3.values(d);});
     td.enter().append("td")
-    .text(function(d) {return d;});
+    .text(function(d) {
+      if(d === "TissueSample") {
+        return "Tissue Sample";
+      }
+      return d;
+    });
 
     if(sortOn !== null) {
       if(sortOn != previousSort){
@@ -180,7 +189,14 @@ var getData = function(individualID) {
         tr.sort(function(a,b){return sort(b[sortOn], a[sortOn]);});
         previousSort = null;
       }
-      td.text(function(d) {return d;});
+      td.text(function(d) {
+        if(d === "TissueSample") {
+          return "Tissue Sample";
+        }
+        return d;
+
+      });
+      $("td:contains('Tissue Sample')").append("<img src='images/microscope.gif'/>");
     }
   }
 
@@ -228,6 +244,7 @@ var getTableData = function(individualID) {
         console.log("error")
       }
       jsonData = json;
+      console.log("encounter table", jsonData);
       for(var i=0; i < jsonData.encounters.length; i++) {
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
@@ -236,12 +253,18 @@ var getTableData = function(individualID) {
           date = "Unknown";
         };
         var location = jsonData.encounters[i].verbatimLocality;
+        var catalogNumber = jsonData.encounters[i].catalogNumber;
+        if(jsonData.encounters[i].tissueSamples.length > 0) {
 
-        var dataTypes = jsonData.encounters[i].catalogNumber;
+          var tissueSamples = jsonData.encounters[i].tissueSamples[0].type;
+        } else {
+          var tissueSamples = "";
+        }
         var sex = jsonData.encounters[i].sex;
-
+        var behavior = jsonData.encounters[i].behavior;
+        var alternateID = jsonData.encounters[i].alternateid;
         var encounter = new Object();
-        encounter = {date: date, location: location, dataTypes: dataTypes, sex: sex};
+        encounter = {date: date, location: location, dataTypes: tissueSamples, sex: sex, behavior: behavior, alternateID: alternateID};
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody");

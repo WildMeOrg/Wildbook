@@ -636,6 +636,10 @@ $(document).ready( function() {
     $("#encountersTableTab").addClass("active");
     $("#bioSamplesTableTab").removeClass("active");
     });
+
+    setTimeout(function() {
+      $("td:contains('Tissue Sample')").append("<img src='images/microscope.gif'/>");
+  }, 5000);
 });
 
 
@@ -1235,7 +1239,7 @@ function dataTypes(obj, fieldName) {
         <div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">
 
         <form id="setRelationship" action="RelationshipCreate" method="post">
-        <table cellspacing="2" bordercolor="#FFFFFF" >
+        <table cellspacing="2" bordercolor="#FFFFFF">
 
         <%
         	String markedIndividual1Name="";
@@ -1560,7 +1564,7 @@ function dataTypes(obj, fieldName) {
       </div>
 
       <div id="communityTable" class="mygrid-wrapper-div">
-        <table width="100%" class="table table-bordered table-sm">
+        <table width="100%" class="table table-striped table-bordered table-sm">
         <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
         <%
         	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -1857,7 +1861,7 @@ function dataTypes(obj, fieldName) {
             getEncounterTableData(<%=individualID%>);
           </script>
 
-          <table id="encountTable" class="table table-bordered table-sm">
+          <table id="encountTable" class="table table-bordered table-striped table-sm">
             <thead id="encountHead"></thead>
             <tbody id="encountBody"></tbody>
           </table>
@@ -1879,7 +1883,7 @@ function dataTypes(obj, fieldName) {
 
             ArrayList<HashMap> myEncs = new ArrayList<HashMap>();
 
-            int total = dateSortedEncs.length;
+            <%-- int total = dateSortedEncs.length;
             for (int i = 0; i < total; i++) {
               HashMap henc = new HashMap();
               Encounter enc = dateSortedEncs[i];
@@ -1984,7 +1988,7 @@ function dataTypes(obj, fieldName) {
               encsJson += "\n]";
               //encsJson = "[]";
 
-              %>
+              %> --%>
 
               <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
                 <div id="progress">Generating encounters table</div>
@@ -2010,7 +2014,7 @@ function dataTypes(obj, fieldName) {
               int numTissueSamples=tissueSamples.size();
               if(numTissueSamples>0){
                 %>
-                <table width="100%" class="table table-bordered table-sm">
+                <table width="100%" class="table table-striped table-bordered table-sm">
                   <tr>
                     <th><%=props.getProperty("sampleID") %></th>
                     <th><%=props.getProperty("correspondingEncounterNumber") %></th>
