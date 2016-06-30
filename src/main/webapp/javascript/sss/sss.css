@@ -1,6 +1,6 @@
 .sss {
 	height: 0;
-	margin: 0; 
+	margin: 0;
 	padding: 0;
 	position: relative;
 	display: block;
@@ -33,7 +33,7 @@
 	margin: 0;
 	position: absolute;
 	top: 0;
-	background: url('images/wwf-blue-arrow-left.png') no-repeat;	
+	background: url('images/wwf-blue-arrow-left.png') no-repeat;
 }
 
 .sssnext {
@@ -42,7 +42,7 @@
 	margin: 0;
 	position: absolute;
 	top: 0;
-	background: url('images/wwf-blue-arrow-right.png') no-repeat;	
+	background: url('images/wwf-blue-arrow-right.png') no-repeat;
 }
 
 .sssprev {
@@ -54,6 +54,16 @@
 	right: 1%;
 	background-position: 50%;
 }
+
+@media (max-width: 768px) {
+	.sssprev, .sssnext {
+		top: -36.5%;
+	}
+
+
+}
+
+
 
 .sssprev:hover, .sssnext:hover {
 	cursor: pointer;
