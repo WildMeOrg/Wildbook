@@ -35,15 +35,19 @@ int numFixes=0;
 
 try{
 
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
+	Iterator allEncs=myShepherd.getAllEncounters();
 	
 
 
 	while(allEncs.hasNext()){
 		
-		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
+		Encounter enc=(Encounter)allEncs.next();
+		if((enc.getHour()==0)||(enc.getHour()==24)){
+			enc.setHour(12);
+		}
+		enc.resetDateInMilliseconds();
 		myShepherd.commitDBTransaction();
+		numFixes++;
 		myShepherd.beginDBTransaction();
 
 	}
