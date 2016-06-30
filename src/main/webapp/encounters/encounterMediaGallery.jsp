@@ -509,8 +509,24 @@ div.file-item div {
 
 
 
+// h/t https://stackoverflow.com/a/12692647
+$(window).resize(function() {
+	if (this.resizeTO) clearTimeout(this.resizeTO);
+        this.resizeTO = setTimeout(function() {
+            $(this).trigger('resizeEnd');
+        }, 500);
+});
+
+$(window).on('resizeEnd', function(ev) {
+	checkImageEnhancerResize();
+});
+
 //initializes image enhancement (layers)
 jQuery(document).ready(function() {
+	doImageEnhancer('figure img');
+});
+
+function doImageEnhancer(sel) {
     var loggedIn = wildbookGlobals.username && (wildbookGlobals.username != "");
     var opt = {
     };
@@ -579,9 +595,20 @@ console.info(' ===========>   %o %o', el, enh);
 		$('.image-enhancer-keyword-wrapper').on('click', function(ev) { ev.stopPropagation(); });
 	};
 
-    imageEnhancer.applyTo('figure img', opt);
-});
+    imageEnhancer.applyTo(sel, opt);
+}
 
+
+function checkImageEnhancerResize() {
+	var needUpdate = false;
+	$('.image-enhancer-wrapper').each(function(i,el) {
+		var imgW = $('#figure-img-' + el.id.substring(23)).width();
+		var wrapW = $(el).width();
+//console.warn('%o -> %o vs %o', el.id, imgW, wrapW);
+		if (imgW && wrapW && (imgW != wrapW)) needUpdate = true;
+	});
+	if (needUpdate) doImageEnhancer('figure img');
+}
 
 
 var popupStartTime = 0;
