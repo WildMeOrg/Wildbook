@@ -472,16 +472,15 @@ finally{
 <link rel="stylesheet" href="javascript/sss/sss.css" type="text/css" media="all">
 
 <script>
-jQuery(function($) {
-$('.slider').sss();
-});
 
-$('.slider').sss({
-	slideShow : false, // Set to false to prevent SSS from automatically animating.
-	startOn : 0, // Slide to display first. Uses array notation (0 = first slide).
-	transition : 400, // Length (in milliseconds) of the fade transition.
-	speed : 35000, // Slideshow speed in milliseconds.
-	showNav : true // Set to false to hide navigation arrows.
+jQuery(function($) {
+	$('.slider').sss({
+		slideShow : false, // Set to false to prevent SSS from automatically animating.
+		startOn : 0, // Slide to display first. Uses array notation (0 = first slide).
+		transition : 400, // Length (in milliseconds) of the fade transition.
+		speed : 350000, // Slideshow speed in milliseconds.
+		showNav : true // Set to false to hide navigation arrows.
+	});
 });
 
 </script>
