@@ -1990,7 +1990,7 @@ function dataTypes(obj, fieldName) {
 
               %> --%>
 
-              <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
+              <%-- <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
                 <div id="progress">Generating encounters table</div>
                 <table id="results-table"></table>
                 <div id="results-slider"></div>
