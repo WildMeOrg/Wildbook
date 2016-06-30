@@ -1279,7 +1279,7 @@ System.out.println("identification most recent action found is " + action);
 
         try {
             String idSuffix = "?annot_uuid_list=[" + toFancyUUID(annId) + "]";
-            JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/uuids/json/" + idSuffix));
+            JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/uuid/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONObject(0) == null)) throw new RuntimeException("could not get image uuid");
             String imageUUID = fromFancyUUID(rtn.getJSONArray("response").getJSONObject(0));
             MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
@@ -1294,7 +1294,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
 /////////
 
             //now we need the bbox to make the Feature
-            rtn = RestClient.get(iaURL(context, "/api/annot/bboxes/json/" + idSuffix));
+            rtn = RestClient.get(iaURL(context, "/api/annot/bbox/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get annot bbox");
             JSONArray jbb = rtn.getJSONArray("response").getJSONArray(0);
             JSONObject fparams = new JSONObject();
@@ -1311,7 +1311,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
 
             Annotation ann = new Annotation(speciesString, ft);
             ann.setId(annId);  //nope we dont want random uuid, silly
-            rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/flags/json/" + idSuffix));
+            rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/json/" + idSuffix));
             if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
@@ -1330,7 +1330,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
         try {
             out.println(1);
             String idSuffix = "?annot_uuid_list=[" + toFancyUUID(annId) + "]";
-            JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/uuids/json/" + idSuffix));
+            JSONObject rtn = RestClient.get(iaURL(context, "/api/annot/image/uuid/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONObject(0) == null)) throw new RuntimeException("could not get image uuid");
             String imageUUID = fromFancyUUID(rtn.getJSONArray("response").getJSONObject(0));
             MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
@@ -1338,7 +1338,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
             out.println(2);
 
             //now we need the bbox to make the Feature
-            rtn = RestClient.get(iaURL(context, "/api/annot/bboxes/json/" + idSuffix));
+            rtn = RestClient.get(iaURL(context, "/api/annot/bbox/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get annot bbox");
             JSONArray jbb = rtn.getJSONArray("response").getJSONArray(0);
             JSONObject fparams = new JSONObject();
@@ -1357,7 +1357,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
 
             Annotation ann = new Annotation(speciesString, ft);
             ann.setId(annId);  //nope we dont want random uuid, silly
-            rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/flags/json/" + idSuffix));
+            rtn = RestClient.get(iaURL(context, "/api/annot/exemplar/json/" + idSuffix));
             if ((rtn != null) && (rtn.optJSONArray("response") != null)) {
                 boolean exemplar = (rtn.getJSONArray("response").optInt(0, 0) == 1);
                 ann.setIsExemplar(exemplar);
@@ -1442,9 +1442,9 @@ I think that is the general walk that needs to happen
         */
 
         //http://52.37.240.178:5000/api/imageset/annot/aids/json/?imageset_uuid_list=[%7B%22__UUID__%22:%228655a73d-749b-4f23-af92-0b07157c0455%22%7D]
-        //http://52.37.240.178:5000/api/imageset/annot/uuids/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
+        //http://52.37.240.178:5000/api/imageset/annot/uuid/json/?imageset_uuid_list=[{%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22}]
         JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/aids/json/?imageset_uuid_list=[" + toFancyUUID(setId) + "]"));
-        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/aids/?imgsetid_list=[" + setId + "]"));
+        //JSONObject res = RestClient.get(iaURL("context0", "/api/imageset/annot/rowid/?imgsetid_list=[" + setId + "]"));
         if ((res == null) || (res.optJSONArray("response") == null) || (res.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get list of annot ids from setId=" + setId);
         JSONObject rtn = new JSONObject("{\"success\": false}");
 
@@ -1796,52 +1796,52 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
 */
 
     public static JSONArray iaAnnotationUUIDsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/uuids/?aid_list=" + aids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/uuid/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
     public static JSONArray iaAnnotationNameIdsFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/nids/?aid_list=" + aids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/rowid/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
     public static JSONArray iaAnnotationNameIdsFromUUIDs(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/nids/?uuid_list=" + aids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/rowid/?uuid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
     public static JSONArray iaAnnotationNamesFromIds(JSONArray aids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/names/?aid_list=" + aids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/?aid_list=" + aids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot uuid from aids=" + aids);
         return rtn.getJSONArray("response");
     }
-//http://52.37.240.178:5000/api/name/aids/?nid_list=[5]
+//http://52.37.240.178:5000/api/name/annot/rowid/?nid_list=[5]
     public static JSONArray iaAnnotationIdsFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/aids/?nid_list=" + nids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/annot/rowid/?nid_list=" + nids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot ids from nids=" + nids);
         return rtn.getJSONArray("response");
     }
-//http://52.37.240.178:5000/api/name/texts/?name_rowid_list=[5,21]&__format__=True
+//http://52.37.240.178:5000/api/name/text/?name_rowid_list=[5,21]&__format__=True
     public static JSONArray iaNamesFromNameIds(JSONArray nids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/texts/?name_rowid_list=" + nids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/name/text/?name_rowid_list=" + nids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from nids=" + nids);
         return rtn.getJSONArray("response");
     }
-//http://52.37.240.178:5000/api/annot/name/texts/json/?annot_uuid_list=[{%22__UUID__%22:%20%22deee5d41-c264-4179-aa6c-5b735975cbc9%22}]&__format__=True
+//http://52.37.240.178:5000/api/annot/name/text/json/?annot_uuid_list=[{%22__UUID__%22:%20%22deee5d41-c264-4179-aa6c-5b735975cbc9%22}]&__format__=True
     public static JSONArray iaNamesFromAnnotUUIDs(JSONArray auuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/texts/json/?annot_uuid_list=" + auuids.toString()));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/text/json/?annot_uuid_list=" + auuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get names from auuids=" + auuids);
         return rtn.getJSONArray("response");
     }
-//http://52.37.240.178:5000/api/imageset/smart_xml_contents/?imageset_rowid_list=[65]
+//http://52.37.240.178:5000/api/imageset/smart/xml/file/content/?imageset_rowid_list=[65]
     public static String iaSmartXmlFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart_xml_contents/?imageset_rowid_list=[" + setId + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart/xml/file/content/?imageset_rowid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml from set id=" + setId);
         return rtn.getJSONArray("response").optString(0, null);
     }
-//http://52.37.240.178:5000/api/imageset/smart_waypoint_ids/?imageset_rowid_list=[55]
+//http://52.37.240.178:5000/api/imageset/smart/waypoint/?imageset_rowid_list=[55]
     public static int iaSmartXmlWaypointIdFromSetId(int setId) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart_waypoint_ids/?imageset_rowid_list=[" + setId + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/smart/waypoint/?imageset_rowid_list=[" + setId + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set smartXml waypoint id from set id=" + setId);
         return rtn.getJSONArray("response").optInt(0, -1);
     }
@@ -1860,16 +1860,16 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set uuid from id=" + setId);
         return fromFancyUUID(rtn.getJSONArray("response").optJSONObject(0));
     }
-//http://52.37.240.178:5000/api/imageset/imgsetids_from_uuid/?uuid_list=[%7B%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22%7D]
+//http://52.37.240.178:5000/api/imageset/rowid/uuid/?uuid_list=[%7B%22__UUID__%22:%228e0850a7-7b29-4150-aedb-8bafb5149757%22%7D]
     public static int iaImageSetIdFromUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/imgsetids_from_uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/imageset/rowid/uuid/?uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get set id from uuid=" + uuid);
         return rtn.getJSONArray("response").optInt(0, -1);
     }
 //  this --> is from annot uuid  (note returns in seconds, not milli)
-//http://52.37.240.178:5000/api/annot/image/unixtimes/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
+//http://52.37.240.178:5000/api/annot/image/unixtime/json/?annot_uuid_list=[{%22__UUID__%22:%20%22e95f6af3-4b7a-4d29-822f-5074d5d91c9c%22}]
     public static DateTime iaDateTimeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtimes/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtime/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
@@ -1891,9 +1891,9 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
 */
         return null;
     }
-//http://52.37.240.178:5000/api/image/unixtimes/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
+//http://52.37.240.178:5000/api/image/unixtime/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/unixtimes/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/unixtime/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from image uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
@@ -1901,7 +1901,7 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
     }
     public static String iaSexFromName(String name) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
 /*
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtimes/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtime/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
