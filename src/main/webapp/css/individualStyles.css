@@ -1,4 +1,9 @@
 .maincontainer {
+  margin-left: 3%;
+  margin-right: 3%;
+}
+
+.mainColumn {
   padding-left: 3%;
   padding-right: 3%;
 }
@@ -125,6 +130,15 @@ td {
 
 .researcherName {
   text-align: center;
+  font-weight: bold;
+}
+
+.researcherPhoto {
+  width: 75%;
+  height: auto;
+  margin-left: 12.5%;
+  margin-right: 12.5%;
+  border: 1px solid lightgray;
 }
 
 .researcherPhotoContainer {
@@ -135,7 +149,9 @@ td {
 
 #researchers {
   overflow: scroll;
-  max-height: 600px;
+  max-height: 500px;
+  border: 1px solid lightgray;
+  border-radius: 1%;
 }
 
 /*Media Queries*/
