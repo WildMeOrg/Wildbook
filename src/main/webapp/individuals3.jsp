@@ -1734,8 +1734,6 @@ function dataTypes(obj, fieldName) {
           </div>
 
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
-            <p>Click the table header to sort data according to that column</p>
-
             <table id="coTable" class="table table-striped table-bordered table-sm table-hover">
                 <thead id="coHead"></thead>
                 <tbody id="coBody"></tbody>
