@@ -483,10 +483,7 @@ jQuery(function($) {
 	});
 });
 
-</script>
-
-
-<section class="hero container-fluid main-section relative" title="&copy; Wild Wonders of Europe / Wildstrand / WWF">
+<section class="hero container-fluid main-section relative" title="&copy; Juha Taskinen / WWF">
   <div class="container-fluid relative">
     <div class="col-lg-12 bc4">
       <h2 class="jumboesque">Kuvasitko <br/> Saimaannorpan?</h2>
@@ -504,7 +501,7 @@ jQuery(function($) {
 
 <section class="container-fluid text-center main-section main-text grey-background">
 
-	<h2 class="section-header">Tavoitteena kaikkien norppien tunnistaminen</h2>
+	<h2 class="section-header">Tavoitteena norppien tunnistaminen</h2>
 
 	<div class="row">
     <div class="col-md-6 col-md-offset-3">
@@ -541,7 +538,7 @@ jQuery(function($) {
 		  </p>
 		</div>
 	</div>
-	
+
 	<div class="row grey-outline">
 
 <div class="col-md-6">
@@ -561,7 +558,7 @@ jQuery(function($) {
 	<div class="col-md-6">
 	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="Terttu"/></a>
 	</div>
-	
+
 	<div class="col-md-6 full-height">
 	  <h2 class="greenish">Terttu</h2>
 	  <p>Haukivedell&auml; vuonna 2008 syntyneen Tertun el&auml;m&auml;n alkutaivalta seurattiin tarkasti sen karvaan kiinnitetyn radiol&auml;hettimen avulla. L&auml;hetin putosi kuitenkin seuraavana vuonna Tertun kyydist&auml;, sill&auml; norpat vaihtavat karvansa s&auml;&auml;nn&ouml;llisesti. Seuraavaa havaintoa saatiin odottaa muutaman vuoden ajan. Sen j&auml;lkeen Terttu on n&auml;hty vuosittain, aina alle seitsem&auml;n kilometrin p&auml;&auml;ss&auml; syntym&auml;paikastaan. Vuonna 2015 saatiin iloisia perheuutisia, kun Terttu synnytti poikasen.</p>
@@ -575,7 +572,7 @@ jQuery(function($) {
 	<div class="col-md-6">
 	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="Teemu"/></a>
 	</div>
-	
+
 	<div class="col-md-6 full-height">
 	  <h2 class="greenish">Teemu</h2>
 	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&ouml;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&ouml;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
@@ -589,7 +586,7 @@ jQuery(function($) {
 	<div class="col-md-6">
 	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="Ritva"/></a>
 	</div>
-	
+
 	<div class="col-md-6 full-height">
 	  <h2 class="greenish">Ritva</h2>
 	  <p>Ritva alkaa olla kunnioitettavassa i&auml;ss&auml;, ja se onkin pisimp&auml;&auml;n tunnettu saimaannorppa. Ensimm&auml;isen kerran Ritva havaittiin vuonna 1998 Haukivedell&auml;, jolloin tutkijat seurasivat sen liikkeit&auml; radiol&auml;hettimen avulla. Ritva on naaraaksi varsin suuri. Se painoi vuonna 1998 per&auml;ti 95 kiloa. Vuonna 1999 Ritva synnytti kuutin, mink&auml; j&auml;lkeen sit&auml; ei n&auml;hty pitk&auml;&auml;n aikaan. Viime vuosina Ritvasta on kuitenkin lukuisia havaintoja, kaikki alle nelj&auml;n kilometrin s&auml;teell&auml; toisistaan.</p>
@@ -602,7 +599,7 @@ jQuery(function($) {
 	<div class="col-md-6">
 	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="Arka"/></a>
 	</div>
-	
+
 	<div class="col-md-6 full-height">
 	  <h2 class="greenish">Arka</h2>
 	  <p>Arka-norpasta erityisen tekev&auml;t sen perhesiteet. Arka on nimitt&auml;in toinen ensimm&auml;isist&auml; varmistetuista norppakaksosista. Kaksoset syntyiv&auml;t vuonna 2009 Pihlajavedell&auml;, ja Arka-naaraasta on lukuisia havaintoja vuosien varrelta. Vuonna 2015 se kuvattiin j&auml;&auml;ll&auml; poikasen kanssa. Samana kes&auml;n&auml; Arka jakoi lepopaikan toisen aikuisen norpan kanssa. Kyseess&auml; ei kuitenkaan ollut sen kaksonen Parka, josta ei valitettavasti ole tehty havaintoja vuoden 2009 j&auml;lkeen.</p>
@@ -612,12 +609,12 @@ jQuery(function($) {
 	</div>
 </div>
 
-	
+
 <div class="row grey-outline">
 	<div class="col-md-6">
 	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="Mitro"/></a>
 	</div>
-	
+
 	<div class="col-md-6 full-height">
 	  <h2 class="greenish">Mitro</h2>
 	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&ouml;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&ouml;s GPS- seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&ouml;ll&ouml;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&ouml;s makoilemasta rantaruohikolla.</p>
@@ -630,9 +627,9 @@ jQuery(function($) {
 
 
 
- </div>   
-    
-    
+ </div>
+
+
   </section>
 </div>
 
@@ -671,21 +668,21 @@ jQuery(function($) {
         //List<String> locs2=CommonConfiguration.getIndexedPropertyValues("locationID", context);
         ArrayList<String> locs2=new ArrayList<String>();
         locs2.add("PS");
-        locs2.add("HV");      
+        locs2.add("HV");
         locs2.add("JV");
         locs2.add("PEV");
         locs2.add("KV");
         locs2.add("PV");
         locs2.add("PUV");
-        
+
         locs2.add("KS");
         locs2.add("LL");
         locs2.add("ES");
-        
-        
-        
-    
-        
+
+
+
+
+
         int numLocIDs = locs2.size();
         %>
         <script>console.log("numLocationIDs = <%=numLocationIDs%>");</script>
@@ -709,10 +706,10 @@ jQuery(function($) {
 					.replaceAll("KS","Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;")
    					.replaceAll("LL","Luonteri – Lietvesi")
    					.replaceAll("ES","Etel&auml;-Saimaa");
-            
 
-            
-            
+
+
+
             %>
             <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=actualName%></h3></a>
               <p><%=numSightings%> tunnistettua norppaa</p>
