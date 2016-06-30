@@ -127,9 +127,9 @@ th {
   background-position: right;
 }
 
-/*#encountTable, #coTable th:hover {
+#encountTable th:hover, #coTable th:hover {
   cursor: pointer;
-}*/
+}
 
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #7997a1;
