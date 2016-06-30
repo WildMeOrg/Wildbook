@@ -22,6 +22,8 @@
 
 <%
 
+
+
 // All this fuss before the html is from individualSearchResults
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -317,7 +319,7 @@ myShepherd.beginDBTransaction();
   	   		.replaceAll("HV","Haukivesi")
             .replaceAll("JV","Joutenvesi")
          	.replaceAll("PEV","Pyyvesi - Enonvesi")
-			.replaceAll("KV","Kulovesi")
+			.replaceAll("KV","Kolovesi")
 			.replaceAll("PV","Pihlajavesi")
 			.replaceAll("PUV","Puruvesi")
 			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
@@ -347,6 +349,7 @@ myShepherd.beginDBTransaction();
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
+        String[] pairMediaAssetID = new String[2];
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
@@ -361,6 +364,7 @@ myShepherd.beginDBTransaction();
           } else {
             pairCopyright[j] = "&copy; WWF";
           }
+          pairMediaAssetID[j]=maJson.optString("id");
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
@@ -436,9 +440,17 @@ myShepherd.beginDBTransaction();
 
               <span class="galleryh2"><%=pairNickname[j]%></span>
               <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
-                <a href=#><i class="icon icon-facebook-btn" aria-hidden="true"></i></a>
-                <a href=#><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a href=#><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+                <%
+                String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
+                String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
+                %>
+                
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=imageURL %>&title=<%=shareTitle %>&endorseimage=<%=pairMediaAssetID[j] %>" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
+                </a>
+                
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=imageURL %>"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=imageURL %>"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
                 <td>

@@ -30,7 +30,8 @@
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
              org.ecocean.security.Collaboration,
-             org.ecocean.ContextConfiguration
+             org.ecocean.ContextConfiguration,
+             org.ecocean.media.*
               "
 %>
 
@@ -83,11 +84,42 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
-     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>
   	<script src="<%=urlLoc %>/cust/mantamatcher/js/___behaviour.js"></script>
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<%
+  //find the endorseImage if set
+  	if((request.getParameter("endorseimage")!=null)&&(!request.getParameter("endorseimage").trim().equals(""))){
+  		Shepherd myShepherd=new Shepherd(context);
+  		myShepherd.beginDBTransaction();
+  		if(myShepherd.getMediaAsset(request.getParameter("endorseimage"))!=null){
+  			MediaAsset ma=myShepherd.getMediaAsset(request.getParameter("endorseimage"));
+  			%>
+	    		<meta property="og:image" content="<%=ma.webURLString().replaceAll("52.40.15.8", "norppagalleria.wwf.fi") %>" />
+	    		<meta property="og:image:width" content="<%=(int)ma.getWidth() %>" />
+				<meta property="og:image:height" content="<%=(int)ma.getHeight() %>" />
+	    	<%
+  		}
+  	  	else{
+  	    	%>
+  	    		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
+  	    		<meta property="og:image:width" content="1082" />
+				<meta property="og:image:height" content="722" />
+  	    		
+  	    	<%	
+  	    	}
+  	}
+  	else{
+  	%>
+  		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
+  		<meta property="og:image:width" content="1082" />
+				<meta property="og:image:height" content="722" />
+  	<%	
+  	}
+  	
+  	%>
+  	
   	<!-- End Open Graph Tags -->
 
     </head>
