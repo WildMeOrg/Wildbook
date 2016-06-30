@@ -67,7 +67,7 @@ public class ImportIA extends HttpServlet {
       JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
       String occID = IBEISIA.fromFancyUUID(fancyID);
 
-      JSONObject annotRes = getFromIA("/api/imageset/annot/uuids/json/?imageset_uuid_list=[" + fancyID + "]", context, out);
+      JSONObject annotRes = getFromIA("/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + fancyID + "]", context, out);
       // it's a singleton list, hence [0]
       JSONArray annotFancyUUIDs = annotRes.getJSONArray("response").getJSONArray(0);
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
