@@ -638,7 +638,19 @@ $(document).ready( function() {
     });
 
     setTimeout(function() {
-      $("td:contains('Tissue Sample')").append("<img src='images/microscope.gif'/>");
+    $("td:contains('Tissue Sample')").html("<img src='images/microscope.gif'/>");
+    $('#encountTable tr').click(function() {
+      selectedWhale = ($(this).attr("class"));
+      goToEncounterURL(selectedWhale);
+    });
+
+    $('#cooccurrenceTable tr').click(function() {
+      selectedWhale = ($(this).attr("class"));
+      goToWhaleURL(selectedWhale);
+    });
+    $("#encountTable td:nth-child(1)").attr("class", "hide");
+    $("#encountTable th:nth-child(1)").attr("class", "hide");
+
   }, 5000);
 });
 
@@ -1724,7 +1736,7 @@ function dataTypes(obj, fieldName) {
           <div id="cooccurrenceTable" class="table-responsive mygrid-wrapper-div">
             <p>Click the table header to sort data according to that column</p>
 
-            <table id="coTable" class="table table-striped table-bordered table-sm">
+            <table id="coTable" class="table table-striped table-bordered table-sm table-hover">
                 <thead id="coHead"></thead>
                 <tbody id="coBody"></tbody>
             </table>
@@ -1856,12 +1868,12 @@ function dataTypes(obj, fieldName) {
         </div>
 
         <div id="encountersTable" class="mygrid-wrapper-div">
-          <script type="text/javascript">
+          <%-- <script type="text/javascript">
           <% String individualID = sharky.getIndividualID();%>
             getEncounterTableData(<%=individualID%>);
-          </script>
+          </script> --%>
 
-          <table id="encountTable" class="table table-bordered table-striped table-sm">
+          <table id="encountTable" class="table table-bordered table-striped table-sm table-hover">
             <thead id="encountHead"></thead>
             <tbody id="encountBody"></tbody>
           </table>

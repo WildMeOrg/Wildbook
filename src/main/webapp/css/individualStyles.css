@@ -112,12 +112,33 @@ button {
 /*Co-occurrence Table Style*/
 
 th {
-  padding: 10px;
-  background: #566c73;
-  color: #FFFFFF;
+  background-color: #566c73;
+  font-weight: lighter;
+  color: white;
   border: 1px solid white;
   text-align: center;
-  font-weight: normal;
+  width: 400px;
+  padding: 10px;
+}
+
+#encountTable th, #coTable th {
+  background-image: url("/images/upDownArrows.png");
+  background-repeat: no-repeat;
+  background-position: right;
+}
+
+/*#encountTable, #coTable th:hover {
+  cursor: pointer;
+}*/
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+  background-color: #7997a1;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.hide {
+  display: none;
 }
 
 td {

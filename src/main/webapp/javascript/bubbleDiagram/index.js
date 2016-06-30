@@ -1,5 +1,4 @@
 var makeChart = function(items) {
-
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
     container: ".bubbleChart",
@@ -83,15 +82,17 @@ var makeChart = function(items) {
         }
       }]
     });
-}
+};
 
 var items = [];
+var occurrenceObjectArray = [];
+
 var getData = function(individualID) {
     var encounterArray = [];
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json('http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20"' + individualID + '"%20VARIABLES%20org.ecocean.Encounter%20enc', function(error, json) {
+     d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -105,6 +106,14 @@ var getData = function(individualID) {
           }
         }
         occurrenceArray = occurrenceArray.concat(encounterArray);
+        var occurrenceID = jsonData[i].encounters[0].occurrenceID;
+        var index = encounterArray.indexOf(individualID.toString());
+        if (~index) {
+            encounterArray[index] = "";
+        }
+        var occurrenceObject = new Object();
+        occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
+        occurrenceObjectArray.push(occurrenceObject);
         encounterArray = [];
       }
 
@@ -115,10 +124,11 @@ var getData = function(individualID) {
       }
       for (var prop in dataObject) {
         var whale = new Object();
-        whale = {text:prop, count:dataObject[prop]};
+        whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
         items.push(whale);
       }
       makeChart(items);
+      getEncounterTableData(occurrenceObjectArray, individualID);
     });
   };
 
@@ -148,14 +158,14 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
     .data(d3.keys(items[0]))
     .enter().append("th").text(function(d){
       if(d === "text") {
-        return "Occuring With";
+      return "Occurring With";
       } if (d === "count"){
         return "# Co-occurrences";
-      } if(d === "alternateID") {
-        return "Alt ID";
       } if (d === "behavior") {
         return "Behavior";
-      } if (d === "sex") {
+      } if(d === "alternateID") {
+        return "Alt ID";
+      }if (d === "sex") {
         return "Sex";
       } if (d === "haplotype") {
         return "Haplotype";
@@ -163,14 +173,18 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
         return "Location";
       } if (d === "dataTypes") {
         return "Data Types";
-      } if (d === "date"); {
+      } if (d === "date") {
         return "Date";
-      };
+      } if(d === "occurringWith") {
+        return "Occurring With";
+      } if(d === "catalogNumber") {
+        return "Catalog Number";
+      }
     })
     .on("click", function(d){ return refreshTable(d) ;});
 
     var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
-    tr.enter().append("tr");
+    tr.enter().append("tr").attr("class", function(d){return d3.values(d)[0];});
 
     var td = tr.selectAll("td").data(function(d){return d3.values(d);});
     td.enter().append("td")
@@ -196,7 +210,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
         return d;
 
       });
-      $("td:contains('Tissue Sample')").append("<img src='images/microscope.gif'/>");
+      $("td:contains('Tissue Sample')").html("<img src='images/microscope.gif'/>");
     }
   }
 
@@ -238,14 +252,22 @@ var getTableData = function(individualID) {
   var occuringWith = [];
   var date;
 
-  var getEncounterTableData = function(individualID) {
+var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     d3.json("http://www.flukebook.org/api/org.ecocean.MarkedIndividual/" + individualID + "", function(error, json) {
       if(error) {
         console.log("error")
       }
       jsonData = json;
-      console.log("encounter table", jsonData);
       for(var i=0; i < jsonData.encounters.length; i++) {
+
+        for(var j = 0; j < occurrenceObjectArray.length; j++) {
+          if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
+            if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
+            } else {
+               var occurringWith = occurrenceObjectArray[j].occurringWith;
+            }
+          }
+        }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
           date = dateInMilliseconds.toISOString().substring(0, 10);
@@ -253,9 +275,8 @@ var getTableData = function(individualID) {
           date = "Unknown";
         };
         var location = jsonData.encounters[i].verbatimLocality;
-        var catalogNumber = jsonData.encounters[i].catalogNumber;
+        catalogNumber = jsonData.encounters[i].catalogNumber;
         if(jsonData.encounters[i].tissueSamples.length > 0) {
-
           var tissueSamples = jsonData.encounters[i].tissueSamples[0].type;
         } else {
           var tissueSamples = "";
@@ -264,9 +285,17 @@ var getTableData = function(individualID) {
         var behavior = jsonData.encounters[i].behavior;
         var alternateID = jsonData.encounters[i].alternateid;
         var encounter = new Object();
-        encounter = {date: date, location: location, dataTypes: tissueSamples, sex: sex, behavior: behavior, alternateID: alternateID};
+        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: tissueSamples, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody");
     });
-  };
+  }
+
+  var goToEncounterURL = function(selectedWhale) {
+    window.open("http://flukebook.org/encounters/encounter.jsp?number=" + selectedWhale);
+  }
+
+  var goToWhaleURL = function(selectedWhale) {
+    window.open("http://flukebook.org/individuals.jsp?number=" + selectedWhale);
+  }
