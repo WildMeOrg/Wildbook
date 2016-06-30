@@ -901,7 +901,7 @@ function dataTypes(obj, fieldName) {
   <%-- Body Row --%>
   <div class="row">
     <%-- Main Left Column --%>
-    <div class="col-md-8">
+    <div class="col-md-8 mainColumn">
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-md-4">
@@ -1840,7 +1840,7 @@ function dataTypes(obj, fieldName) {
         </table>
       </div>
       <%-- End of Relationship Graphs --%>
-      <br><br>
+      <br>
       <%-- Start Encounter Table --%>
       <p><strong><%=props.getProperty("tissueSamples") %> &amp; <%=numencounters %></strong></p>
       <div class="encountersBioSamples">
@@ -1990,7 +1990,7 @@ function dataTypes(obj, fieldName) {
 
               %> --%>
 
-              <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
+              <%-- <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
                 <div id="progress">Generating encounters table</div>
                 <table id="results-table"></table>
                 <div id="results-slider"></div>
@@ -2148,7 +2148,7 @@ function dataTypes(obj, fieldName) {
     </div>
 
     <%-- Main Right Column --%>
-    <div class="col-md-4">
+    <div class="col-md-4 mainColumn">
       <!-- Start thumbnail gallery -->
       <div>
         <p>
@@ -2706,7 +2706,7 @@ function dataTypes(obj, fieldName) {
   </div>
 
   <%-- Map Row --%>
-  <br><br>
+  <br>
   <div class="row container">
     <%-- Map --%>
     <div>
