@@ -118,6 +118,7 @@ th {
 td {
   font-family: sans-serif;
   font-size: 14px;
+  vertical-align: middle;
 }
 
 /*Collaborating Researcher Styles*/
