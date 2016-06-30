@@ -102,6 +102,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                 <!--<a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>-->
                   <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
+
                       <%
 	                      if(request.getUserPrincipal()!=null){
 		                  %>
@@ -130,6 +131,8 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 	                      }
 	                      else{
 	                      %>
+                        <li class="loginout"> <a href="http://www.wwf.fi" > WWF Kotisivulle</a> </li>
+
 	                       <li class="loginout"><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login")%></a></li>
 	                      <%
 	                      }
@@ -317,7 +320,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       </li>
                       <% }  else { %> <!-- end if user logged in -->
 
-                      
+
 
                       <li>
                         <a href="#">T&Auml;ST&Auml; ON KYSE</a>
@@ -325,10 +328,6 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 
                       <li>
                         <a href="gallery.jsp">GALLERIA</a>
-                      </li>
-                      
-                      <li>
-                        <a href="http://www.wwf.fi">WWF kotisivulle</a>
                       </li>
 
                       <% } %>
@@ -340,7 +339,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                           <li><a href="#">Tee kertalahjoitus</a></li>
                         </ul>
                       </li>
-                      
+
 					 <%
 	                 if(request.getUserPrincipal()!=null){
 		             %>
@@ -360,7 +359,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 					%>
 
                     </ul>
-                 
+
 
 
 
