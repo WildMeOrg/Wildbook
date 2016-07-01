@@ -464,7 +464,7 @@ myShepherd.beginDBTransaction();
                     <li>
                       <%
                         String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
+                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
                       %>
                       <%=props.getProperty("sex")%> <%=sexValue%>
                     </li>
@@ -483,17 +483,21 @@ myShepherd.beginDBTransaction();
                       %>
                       <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
-                      <li>
+                     
                       <%
                       String timeOfDeath=props.getProperty("unknown");
                       //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
                       if(pair[j].getTimeofDeath()>0){
                       	String timeOfDeathFormat="yyyy-MM-d";
                       	timeOfDeath=(new DateTime(pair[j].getTimeofDeath())).toString(timeOfDeathFormat);
+                      	%>
+                      	<li>
+                      		<%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
+                    	</li>
+                      	<%
                       }
                       %>
-                      <%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
-                    </li>
+                       
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
