@@ -527,7 +527,7 @@ myShepherd.beginDBTransaction();
 
           <%
           if (startNum>0) {
-            int newStart = Math.min(startNum-numIndividualsOnPage,0);
+            int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
             <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
