@@ -1,4 +1,4 @@
-var makeChart = function(items) {
+var makeCooccurrenceChart = function(items) {
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
     container: ".bubbleChart",
@@ -84,10 +84,10 @@ var makeChart = function(items) {
     });
 };
 
-var items = [];
-var occurrenceObjectArray = [];
-
 var getData = function(individualID) {
+    individualID.toString();
+    var occurrenceObjectArray = [];
+    var items = [];
     var encounterArray = [];
     var occurrenceArray = [];
     var dataObject = {};
@@ -96,7 +96,7 @@ var getData = function(individualID) {
       if(error) {
         console.log("error")
       }
-      jsonData = json;
+      var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
         var encounterSize = jsonData[i].encounters.length;
         for(var j=0; j < encounterSize; j++) {
@@ -112,7 +112,11 @@ var getData = function(individualID) {
             encounterArray[index] = "";
         }
         var occurrenceObject = new Object();
-        occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
+        if(encounterArray.length > 0) {
+          occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
+        } else {
+          occurrenceObject = {occurrenceID: "", occurringWith: ""};
+        }
         occurrenceObjectArray.push(occurrenceObject);
         encounterArray = [];
       }
@@ -127,27 +131,30 @@ var getData = function(individualID) {
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
         items.push(whale);
       }
-      makeChart(items);
+      if (items.length > 0) {
+        makeCooccurrenceChart(items);
+        getSexHaploData(individualID, items);
+      }
       getEncounterTableData(occurrenceObjectArray, individualID);
     });
   };
 
-  var getTableData = function(individualID) {
-    d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
-      if(error) {
-        console.log("error")
-      }
-      jsonData = json;
-      for(var i=0; i < jsonData.length; i++) {
-        var result = items.filter(function(obj) {
-          return obj.text === jsonData[i].individualID
-        })[0];
-        result.sex = jsonData[i].sex;
-        result.haplotype = jsonData[i].localHaplotypeReflection;
-      }
-      makeTable(items, "#coHead", "#coBody");
-    });
-  };
+var getSexHaploData = function(individualID, items) {
+  d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
+    if(error) {
+      console.log("error")
+    }
+    jsonData = json;
+    for(var i=0; i < jsonData.length; i++) {
+      var result = items.filter(function(obj) {
+        return obj.text === jsonData[i].individualID
+      })[0];
+      result.sex = jsonData[i].sex;
+      result.haplotype = jsonData[i].localHaplotypeReflection;
+    }
+    makeTable(items, "#coHead", "#coBody");
+  });
+};
 
 var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
   var previousSort = null;
@@ -231,29 +238,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
   }
 };
 
-var getTableData = function(individualID) {
-    d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
-      if(error) {
-        console.log("error")
-      }
-      jsonData = json;
-      for(var i=0; i < jsonData.length; i++) {
-        var result = items.filter(function(obj) {
-          return obj.text === jsonData[i].individualID
-        })[0];
-        result.sex = jsonData[i].sex;
-        result.haplotype = jsonData[i].localHaplotypeReflection;
-      }
-      makeTable(items, "#coHead", "#coBody");
-    });
-  };
-
-  var encounterData = [];
-  var occuringWith = [];
-  var date;
 
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
-    d3.json("http://www.flukebook.org/api/org.ecocean.MarkedIndividual/" + individualID + "", function(error, json) {
+  var encounterData = [];
+  var occurringWith = "";
+    d3.json("http://www.flukebook.org/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -264,18 +253,18 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
             } else {
-               var occurringWith = occurrenceObjectArray[j].occurringWith;
+               occurringWith = occurrenceObjectArray[j].occurringWith;
             }
           }
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-          date = dateInMilliseconds.toISOString().substring(0, 10);
+          var date = dateInMilliseconds.toISOString().substring(0, 10);
         } else {
-          date = "Unknown";
+          var date = "Unknown";
         };
         var location = jsonData.encounters[i].verbatimLocality;
-        catalogNumber = jsonData.encounters[i].catalogNumber;
+        var catalogNumber = jsonData.encounters[i].catalogNumber;
         if(jsonData.encounters[i].tissueSamples.length > 0) {
           var tissueSamples = jsonData.encounters[i].tissueSamples[0].type;
         } else {
