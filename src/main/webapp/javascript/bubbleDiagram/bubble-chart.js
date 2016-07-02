@@ -1,3 +1,43 @@
+//d3-transform
+(function() {
+  d3.svg.transform = function(chain) {
+    var transforms = [];
+    if (chain !== undefined) { transforms.push(chain) }
+
+    function push(kind, args) {
+      var n = args.length;
+
+      transforms.push(function() {
+        return kind + '(' + (n == 1 && typeof args[0] == 'function'
+            ? args[0].apply(this, arr(arguments)) : args) + ')';
+      });
+    };
+
+    function arr(args) {
+      return Array.prototype.slice.call(args);
+    }
+
+    var my = function() {
+      var that = this,
+          args = arr(arguments);
+
+      return transforms.map(function(f) {
+        return f.apply(that, args);
+      }).join(' ');
+    };
+
+    ['translate', 'rotate', 'scale', 'matrix', 'skewX', 'skewY'].forEach(function(t) {
+      my[t] = function() {
+        push(t, arr(arguments));
+        return my;
+      };
+    });
+
+    return my;
+  };
+})();
+
+//bubble-chart
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
     define(['microplugin'], factory);
@@ -302,3 +342,100 @@
 
   return d3.svg.BubbleChart;
 }));
+
+//central-click
+d3.svg.BubbleChart.define("central-click", function (options) {
+  var self = this;
+
+  self.setup = (function (node) {
+    var original = self.setup;
+    return function (node) {
+      var fn = original.apply(this, arguments);
+      self.event.on("click", function(node) {
+        if (node.selectAll("text.central-click")[0].length === 1) {
+
+        }
+      });
+      return fn;
+    };
+  })();
+
+  self.reset = (function (node) {
+    var original = self.reset;
+    return function (node) {
+      var fn = original.apply(this, arguments);
+      node.select("text.central-click").remove();
+      return fn;
+    };
+  })();
+
+  self.moveToCentral = (function (node) {
+    var original = self.moveToCentral;
+    return function (node) {
+      var fn = original.apply(this, arguments);
+      var transition = self.getTransition().centralNode;
+      transition.each("end", function() {
+        node.append("text").classed({"central-click": true})
+          .attr(options.attr)
+          .style(options.style)
+          .attr("x", function (d) {return d.cx;})
+          .attr("y", function (d) {return d.cy;})
+          .text(options.text)
+          .style("opacity", 0).transition().duration(self.getOptions().transitDuration / 2).style("opacity", "0.8");
+      });
+      return fn;
+    };
+  })();
+});
+
+//lines
+d3.svg.BubbleChart.define("lines", function (options) {
+  var self = this;
+
+  self.setup = (function () {
+    var original = self.setup;
+    return function () {
+      var fn = original.apply(this, arguments);
+      var node = self.getNodes();
+      $.each(options.format, function (i, f) {
+        node.append("text")
+          .classed(f.classed)
+          .style(f.style)
+          .attr(f.attr)
+          .text(function (d) {return d.item[f.textField];});
+      });
+      return fn;
+    };
+  })();
+
+  self.reset = (function (node) {
+    var original = self.reset;
+    return function (node) {
+      var fn = original.apply(this, arguments);
+      $.each(options.format, function (i, f) {
+        var tNode = d3.select(node.selectAll("text")[0][i]);
+        tNode.classed(f.classed).text(function (d) {return d.item[f.textField];})
+          .transition().duration(self.getOptions().transitDuration)
+          .style(f.style)
+          .attr(f.attr);
+      });
+      return fn;
+    };
+  })();
+
+  self.moveToCentral = (function (node) {
+    var original = self.moveToCentral;
+    return function (node) {
+      var fn = original.apply(this, arguments);
+      $.each(options.centralFormat, function (i, f) {
+        var tNode = d3.select(node.selectAll("text")[0][i]);
+        tNode.transition().duration(self.getOptions().transitDuration)
+          .style(f.style)
+          .attr(f.attr);
+        f.classed !== undefined && tNode.classed(f.classed);
+        f.textField !== undefined && tNode.text(function (d) {return d.item[f.textField];});
+      });
+      return fn;
+    };
+  })();
+});
