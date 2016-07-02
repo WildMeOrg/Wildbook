@@ -335,15 +335,15 @@ table.tissueSample td {
 
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="javascript/bubbleDiagram/d3-transform.js"></script>
+<%-- <script src="javascript/bubbleDiagram/d3-transform.js"></script> --%>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/bubbleDiagram/central-click.js"></script>
-<script src="javascript/bubbleDiagram/lines.js"></script>
-<script src="javascript/bubbleDiagram/index.js"></script>
+<%-- <script src="javascript/bubbleDiagram/central-click.js"></script>
+<script src="javascript/bubbleDiagram/lines.js"></script> --%>
+<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
 <script type="text/javascript">
@@ -1696,6 +1696,11 @@ function dataTypes(obj, fieldName) {
         <p><strong><%=props.getProperty("cooccurrence")%></strong></p>
 
 
+        <script type="text/javascript">
+        // <% String individualID = sharky.getIndividualID();%>
+        getData("<%=individualID%>");
+        // getTableData(<%=individualID%>);
+        </script>
 
         <%
         List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
@@ -1705,12 +1710,6 @@ function dataTypes(obj, fieldName) {
         //ok, let's iterate the social relationships
         %>
         <div class="cooccurrences">
-          <script type="text/javascript">
-          <% String individualID = sharky.getIndividualID();%>
-
-          getData(<%=individualID%>);
-          getTableData(<%=individualID%>);
-          </script>
 
           <div role="navigation">
             <ul class="nav nav-tabs">
