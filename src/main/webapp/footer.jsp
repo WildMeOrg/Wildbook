@@ -59,7 +59,6 @@
 				.row.donate-row .donate-zone {
 					background-color: #dff2f1;
 					min-height: 240px;
-					height: 100%;
 					padding-left: 0;
 				}
 
@@ -79,10 +78,13 @@
 				.row.collaborators-row a img {
 					position: relative;
 					padding: 10px;
+					height: 180px;
 				}
 				.row.collaborators-row a img.second {
-					bottom: -1px;
+					bottom: 5px;
+					padding: 38px;
 				}
+
 				footer .container-fluid.main-section {
 					padding-top: 0;
 					padding-bottom: 0;
@@ -143,11 +145,8 @@
 									<p>Yhteisty&ouml;ss&auml;:</p>
 									</br>
 
-									<a href="">
-										<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png">
-									</a>
-									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-									<a href="">
+									<a href="http://www.uef.fi/web/norppa"><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png"></a>
+									<a href="http://www.metsa.fi/saimaannorppa">
 										<img class="second" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab2.png">
 									</a>
 								</div>

@@ -33,6 +33,28 @@ myShepherd=new Shepherd(context);
 
 <style type="text/css">
 
+  p.image-copyright {
+      text-align: right;
+      position: absolute;
+      top: 5px;
+      right: 25px;
+      color: #fff;
+      font-size: 0.8rem;
+  }
+
+  .crop-outer {
+    cursor: pointer;
+    width: auto;
+    overflow: hidden;
+  }
+
+  .crop-outer .crop {
+    text-align: center;
+    overflow: hidden;
+  }
+
+
+
   .saimaa-info {
     padding-left: 40px;
   }
@@ -475,7 +497,7 @@ finally{
 
 jQuery(function($) {
 	$('.slider').sss({
-		slideShow : false, // Set to false to prevent SSS from automatically animating.
+		slideShow : true, // Set to false to prevent SSS from automatically animating.
 		startOn : 0, // Slide to display first. Uses array notation (0 = first slide).
 		transition : 400, // Length (in milliseconds) of the fade transition.
 		speed : 350000, // Slideshow speed in milliseconds.
@@ -522,18 +544,24 @@ jQuery(function($) {
 
 </section>
 
+
 <div class="container-fluid">
-
-
-
   <section class="container-fluid main-section front-gallery">
 
 <div class="slider">
 	<div class="row grey-outline">
 		<div class="col-md-6">
-		  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2953/Phs106Phs106_130515_R.jpg" alt="Pullervo"/></a>
+      <!---->
+      <div class="crop-outer">
+        <div class="crop" title="&copy; K39 / WWF">
+		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2953/Phs106Phs106_130515_R.jpg" alt="&copy; K39 / WWF"/></a>
+          <!---->
+        </div>
+      </div>
+
+
 		</div>
-		<div class="col-md-6 full-height">
+		<div class="col-md-6 full-height per-seal-info">
 		  <h2 class="greenish">Pullervo</h2>
 		  <p>Pullervo on Suomen tunnetuin saimaannorppa. Se nousi koko kansan tietoisuuteen Norppaliven toisena p&auml;&auml;t&auml;hten&auml; toukokuussa 2016. Pullervo tunnettiin ennen koodinimell&auml; Phs106. Sen nime&auml;miseksi k&auml;ynnistettiin kilpailu, ja ehdotuksia nimeksi tuli yli 6 000. Pullervo on v&auml;ritykselt&auml;&auml;n erityisen vaalea ja isohko uros.</p>
 		  <p class=pfooter-link>
@@ -545,10 +573,14 @@ jQuery(function($) {
 	<div class="row grey-outline">
 
 <div class="col-md-6">
-  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2801/Phs142Phs142_200515_R.JPG" alt="Siiri"/></a>
+  <div class="crop-outer">
+    <div class="crop" title="&copy; UEF / WWF">
+      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2801/Phs142Phs142_200515_R.JPG" alt="&copy; UEF / WWF"/></a>
+    </div>
+  </div>
 </div>
 
-<div class="col-md-6 full-height">
+<div class="col-md-6 full-height per-seal-info">
   <h2 class="greenish">Siiri</h2>
   <p>Siiri oli toinen Norppalivess&auml; n&auml;hdyist&auml; saimaannorpista. Se on n&auml;hty samalla lepokivell&auml; jo kolmena per&auml;kk&auml;isen&auml; vuotena. Vuonna 2015 Siiri oli It&auml;-Suomen yliopiston tutkijoilla l&auml;hetinseurannassa, jolloin sen liikkeist&auml; saatiin t&auml;rke&auml;&auml; tietoa tutkimusk&auml;ytt&ouml;&ouml;n.</p>
   <p class=pfooter-link>
@@ -559,10 +591,14 @@ jQuery(function($) {
 
  <div class="row grey-outline">
 	<div class="col-md-6">
-	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="Terttu"/></a>
-	</div>
+    <div class="crop-outer">
+      <div class="crop" title="&copy; M. Auttila / WWF">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="&copy; M. Auttila / WWF"/></a>
+      </div>
+    </div>
+  </div>
 
-	<div class="col-md-6 full-height">
+	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Terttu</h2>
 	  <p>Haukivedell&auml; vuonna 2008 syntyneen Tertun el&auml;m&auml;n alkutaivalta seurattiin tarkasti sen karvaan kiinnitetyn radiol&auml;hettimen avulla. L&auml;hetin putosi kuitenkin seuraavana vuonna Tertun kyydist&auml;, sill&auml; norpat vaihtavat karvansa s&auml;&auml;nn&ouml;llisesti. Seuraavaa havaintoa saatiin odottaa muutaman vuoden ajan. Sen j&auml;lkeen Terttu on n&auml;hty vuosittain, aina alle seitsem&auml;n kilometrin p&auml;&auml;ss&auml; syntym&auml;paikastaan. Vuonna 2015 saatiin iloisia perheuutisia, kun Terttu synnytti poikasen.</p>
 	  <p class=pfooter-link>
@@ -573,10 +609,14 @@ jQuery(function($) {
 
 <div class="row grey-outline">
 	<div class="col-md-6">
-	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="Teemu"/></a>
-	</div>
+    <div class="crop-outer">
+      <div class="crop" title="&copy; Sanna Sihvonen / WWF">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
+      </div>
+    </div>
+  </div>
 
-	<div class="col-md-6 full-height">
+	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Teemu</h2>
 	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&ouml;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&ouml;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
 	  <p class=pfooter-link>
@@ -587,10 +627,14 @@ jQuery(function($) {
 
 <div class="row grey-outline">
 	<div class="col-md-6">
-	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="Ritva"/></a>
-	</div>
+    <div class="crop-outer">
+      <div class="crop" title="&copy; Kunnasranta / WWF">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="&copy; Kunnasranta / WWF"/></a>
+      </div>
+    </div>
+  </div>
 
-	<div class="col-md-6 full-height">
+	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Ritva</h2>
 	  <p>Ritva alkaa olla kunnioitettavassa i&auml;ss&auml;, ja se onkin pisimp&auml;&auml;n tunnettu saimaannorppa. Ensimm&auml;isen kerran Ritva havaittiin vuonna 1998 Haukivedell&auml;, jolloin tutkijat seurasivat sen liikkeit&auml; radiol&auml;hettimen avulla. Ritva on naaraaksi varsin suuri. Se painoi vuonna 1998 per&auml;ti 95 kiloa. Vuonna 1999 Ritva synnytti kuutin, mink&auml; j&auml;lkeen sit&auml; ei n&auml;hty pitk&auml;&auml;n aikaan. Viime vuosina Ritvasta on kuitenkin lukuisia havaintoja, kaikki alle nelj&auml;n kilometrin s&auml;teell&auml; toisistaan.</p>
 	  <p class=pfooter-link>
@@ -600,10 +644,14 @@ jQuery(function($) {
 </div>
 <div class="row grey-outline">
 	<div class="col-md-6">
-	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="Arka"/></a>
-	</div>
+    <div class="crop-outer">
+      <div class="crop" title="&copy; K39 / WWF">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="&copy; K39 / WWF"/></a>
+      </div>
+    </div>
+  </div>
 
-	<div class="col-md-6 full-height">
+	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Arka</h2>
 	  <p>Arka-norpasta erityisen tekev&auml;t sen perhesiteet. Arka on nimitt&auml;in toinen ensimm&auml;isist&auml; varmistetuista norppakaksosista. Kaksoset syntyiv&auml;t vuonna 2009 Pihlajavedell&auml;, ja Arka-naaraasta on lukuisia havaintoja vuosien varrelta. Vuonna 2015 se kuvattiin j&auml;&auml;ll&auml; poikasen kanssa. Samana kes&auml;n&auml; Arka jakoi lepopaikan toisen aikuisen norpan kanssa. Kyseess&auml; ei kuitenkaan ollut sen kaksonen Parka, josta ei valitettavasti ole tehty havaintoja vuoden 2009 j&auml;lkeen.</p>
 	  <p class=pfooter-link>
@@ -615,10 +663,14 @@ jQuery(function($) {
 
 <div class="row grey-outline">
 	<div class="col-md-6">
-	  <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="Mitro"/></a>
-	</div>
+    <div class="crop-outer">
+      <div class="crop" title="&copy; K53A / WWF">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="&copy; K53A / WWF"/></a>
+      </div>
+    </div>
+  </div>
 
-	<div class="col-md-6 full-height">
+	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Mitro</h2>
 	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&ouml;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&ouml;s GPS- seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&ouml;ll&ouml;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&ouml;s makoilemasta rantaruohikolla.</p>
 	  <p class=pfooter-link>
@@ -662,7 +714,7 @@ jQuery(function($) {
 
     <div class="col-sm-6">
       <div class="saimaa-info">
-      <h2 class="section-header map-header">Tunnistetut Norpat Alueittain<!--Encounters around the world--></h2>
+      <h2 class="section-header map-header">Selaa norppia alueittain<!--Encounters around the world--></h2>
 
 
 
@@ -700,19 +752,15 @@ jQuery(function($) {
             <!--<li><a href="<%=urlLoc %>/encounters/searchResults.jsp?locationCodeField=<%=locID %>"><h3><%=locID%></h3></a>-->
             <%
             String actualName=locID.replaceAll("PS","Pohjois-Saimaa")
-        	   		.replaceAll("HV","Haukivesi")
-                    .replaceAll("JV","Joutenvesi")
-               		.replaceAll("PEV","Pyyvesi – Enonvesi")
-  					.replaceAll("KV","Kolovesi")
- 					.replaceAll("PV","Pihlajavesi")
-					.replaceAll("PUV","Puruvesi")
-					.replaceAll("KS","Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;")
-   					.replaceAll("LL","Luonteri – Lietvesi")
-   					.replaceAll("ES","Etel&auml;-Saimaa");
-
-
-
-
+              .replaceAll("HV","Haukivesi")
+              .replaceAll("JV","Joutenvesi")
+              .replaceAll("PEV","Pyyvesi – Enonvesi")
+              .replaceAll("KV","Kolovesi")
+              .replaceAll("PV","Pihlajavesi")
+              .replaceAll("PUV","Puruvesi")
+              .replaceAll("KS","Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;")
+              .replaceAll("LL","Luonteri – Lietvesi")
+              .replaceAll("ES","Etel&auml;-Saimaa");
             %>
             <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=<%=locID%>"<h3><%=actualName%></h3></a>
               <p><%=numSightings%> tunnistettua norppaa</p>
@@ -744,6 +792,55 @@ google.maps.event.addDomListener(window, "resize", function() {
 	 google.maps.event.trigger(map, "resize");
 	 map.fitBounds(bounds);
 	});
+</script>
+
+<script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
+
+<script>
+var maxHeight = Math.max.apply(null, $("div.per-seal-info").map(function (){
+    return $(this).height();
+}).get());
+var maxWidth = Math.max.apply(null, $("div.per-seal-info").map(function (){
+    return $(this).width();
+}).get());
+
+console.log("maxHeight = "+maxHeight);
+$("div.per-seal-info").height(maxHeight);
+$('div.crop-outer').css('max-height',maxHeight+'px');
+
+var cropDesktopPics = function(maxHeight) {
+  $('.crop-outer .crop a img').each(function() {
+    var scaleRatio = maxHeight/$(this).height();
+    var newWidth = scaleRatio * $(this).width();
+    var horiz_offset = (newWidth - $(this).width())/2;
+    if (scaleRatio > 1) {
+      $(this).height(maxHeight);
+      $(this).css({"max-width":(newWidth)+"px"})
+      $(this).width('100%');
+      $(this).css('margin-left','-'+horiz_offset+'px');
+    }
+    else {
+      $(this).width('100%');
+      $(this).css('margin-left','-'+horiz_offset+'px');
+    }
+  });
+}
+cropDesktopPics(maxHeight);
+
+$( window ).resize(function(){
+  cropDesktopPics(maxHeight);
+});
+
+/*
+$('.crop-outer .crop a img').height(maxHeight);
+
+$('.crop-outer .crop a img').each(function() {
+  console.log("original height = "+$(this).height());
+  $(this).height(maxHeight);
+});
+
+*/
+
 </script>
 
 <%
