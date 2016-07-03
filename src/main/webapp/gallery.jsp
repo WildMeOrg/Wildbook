@@ -84,7 +84,7 @@ int numResults = 0;
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
-String order ="";
+String order ="nickName ASC NULLS LAST";
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
@@ -288,11 +288,20 @@ myShepherd.beginDBTransaction();
 </section>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a></button>
+    <a class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a></button>
+    <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a></button>
+   <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a>
 
   </div>
 </nav>
