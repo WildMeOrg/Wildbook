@@ -33,7 +33,7 @@ myShepherd=new Shepherd(context);
 
 <style type="text/css">
 
-<<<<<<< HEAD
+
   p.image-copyright {
       text-align: right;
       position: absolute;
@@ -43,8 +43,7 @@ myShepherd=new Shepherd(context);
       font-size: 0.8rem;
   }
 
-=======
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
   .crop-outer {
     cursor: pointer;
     width: auto;
@@ -556,13 +555,10 @@ jQuery(function($) {
 		<div class="col-md-6">
       <!---->
       <div class="crop-outer">
-<<<<<<< HEAD
+
         <div class="crop" title="&copy; K39 / WWF">
 		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2953/Phs106Phs106_130515_R.jpg" alt="&copy; K39 / WWF"/></a>
-=======
-        <div class="crop">
-		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2953/Phs106Phs106_130515_R.jpg" alt="Pullervo"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
           <!---->
         </div>
       </div>
@@ -582,13 +578,9 @@ jQuery(function($) {
 
 <div class="col-md-6">
   <div class="crop-outer">
-<<<<<<< HEAD
     <div class="crop" title="&copy; UEF / WWF">
       <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2801/Phs142Phs142_200515_R.JPG" alt="&copy; UEF / WWF"/></a>
-=======
-    <div class="crop">
-      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2801/Phs142Phs142_200515_R.JPG" alt="Siiri"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
     </div>
   </div>
 </div>
@@ -605,13 +597,10 @@ jQuery(function($) {
  <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-<<<<<<< HEAD
+
       <div class="crop" title="&copy; M. Auttila / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="&copy; M. Auttila / WWF"/></a>
-=======
-      <div class="crop">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="Terttu"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
       </div>
     </div>
   </div>
@@ -628,13 +617,10 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-<<<<<<< HEAD
+
       <div class="crop" title="&copy; Sanna Sihvonen / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
-=======
-      <div class="crop">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="Teemu"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
       </div>
     </div>
   </div>
@@ -651,13 +637,10 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-<<<<<<< HEAD
+
       <div class="crop" title="&copy; Kunnasranta / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="&copy; Kunnasranta / WWF"/></a>
-=======
-      <div class="crop">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="Ritva"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
       </div>
     </div>
   </div>
@@ -673,13 +656,10 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-<<<<<<< HEAD
+
       <div class="crop" title="&copy; K39 / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="&copy; K39 / WWF"/></a>
-=======
-      <div class="crop">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="Arka"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
       </div>
     </div>
   </div>
@@ -697,13 +677,10 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-<<<<<<< HEAD
+
       <div class="crop" title="&copy; K53A / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="&copy; K53A / WWF"/></a>
-=======
-      <div class="crop">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="Mitro"/></a>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
       </div>
     </div>
   </div>

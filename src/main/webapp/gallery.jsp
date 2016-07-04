@@ -560,11 +560,9 @@ myShepherd=null;
 
 
 
-<<<<<<< HEAD
-<script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
-=======
+
 <script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
->>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
+
 <script>
 
   $( window ).resize(function(){
