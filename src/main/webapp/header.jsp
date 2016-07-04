@@ -163,7 +163,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 	                      }
 	                      else{
 	                      %>
-                        <li class="loginout"> <a href="http://www.wwf.fi" > WWF Kotisivulle</a> </li>
+                        <li class="loginout"> <a href="http://www.wwf.fi" > WWF:n kotisivulle</a> </li>
 
 	                       <li class="loginout"><a href="<%=urlLoc %>/welcome.jsp" title=""><%=props.getProperty("login")%></a></li>
 	                      <%
