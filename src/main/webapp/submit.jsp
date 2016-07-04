@@ -675,7 +675,18 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 }
 %>
 
+
+
+
 </fieldset>
+<div class="form-group">
+      
+      <div class="col-md-12">
+      <label class="control-label">Lis&auml;tietoa</label>
+      <br>
+        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+      </div>
+    </div>
 <br />
 
 
@@ -1176,5 +1187,6 @@ else {%>
 </div>
 </div>
 </div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>
