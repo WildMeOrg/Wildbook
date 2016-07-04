@@ -106,16 +106,7 @@ context=ServletUtilities.getContext(request);
     animatedcollapse.init();
   </script>
 
- <%
- if(!langCode.equals("en")){
- %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
-
- <%
- }
- %>
 
 <script type="text/javascript">
 
