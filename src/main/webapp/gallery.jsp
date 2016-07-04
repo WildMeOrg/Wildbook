@@ -84,7 +84,7 @@ int numResults = 0;
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
-String order ="";
+String order ="nickName ASC NULLS LAST";
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
@@ -288,11 +288,20 @@ myShepherd.beginDBTransaction();
 </section>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a></button>
+    <a class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a></button>
+    <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a></button>
+   <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a>
 
   </div>
 </nav>
@@ -464,7 +473,7 @@ myShepherd.beginDBTransaction();
                     <li>
                       <%
                         String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
+                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
                       %>
                       <%=props.getProperty("sex")%> <%=sexValue%>
                     </li>
@@ -483,17 +492,21 @@ myShepherd.beginDBTransaction();
                       %>
                       <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
-                      <li>
+                     
                       <%
                       String timeOfDeath=props.getProperty("unknown");
                       //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
                       if(pair[j].getTimeofDeath()>0){
                       	String timeOfDeathFormat="yyyy-MM-d";
                       	timeOfDeath=(new DateTime(pair[j].getTimeofDeath())).toString(timeOfDeathFormat);
+                      	%>
+                      	<li>
+                      		<%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
+                    	</li>
+                      	<%
                       }
                       %>
-                      <%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
-                    </li>
+                       
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
@@ -523,7 +536,7 @@ myShepherd.beginDBTransaction();
 
           <%
           if (startNum>0) {
-            int newStart = Math.min(startNum-numIndividualsOnPage,0);
+            int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
             <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
@@ -547,7 +560,11 @@ myShepherd=null;
 
 
 
+<<<<<<< HEAD
 <script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
+=======
+<script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
+>>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
 <script>
 
   $( window ).resize(function(){

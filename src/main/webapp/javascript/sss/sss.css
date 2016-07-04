@@ -57,7 +57,11 @@
 
 @media (max-width: 768px) {
 	.sssprev, .sssnext {
+<<<<<<< HEAD
 		top: -25%;
+=======
+		top: -36.5%;
+>>>>>>> 6e4da83d17c6445170121aba6aaacf4b538044b2
 	}
 
 
