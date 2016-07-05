@@ -89,30 +89,38 @@ public class IndividualRemoveEncounter extends HttpServlet {
     if ((request.getParameter("number") != null)) {
       myShepherd.beginDBTransaction();
       Encounter enc2remove = myShepherd.getEncounter(request.getParameter("number"));
+    
       setDateLastModified(enc2remove);
+      myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
       if (enc2remove.getIndividualID()!=null) {
         String old_name = enc2remove.getIndividualID();
         boolean wasRemoved = false;
         String name_s = "";
         try {
           MarkedIndividual removeFromMe = myShepherd.getMarkedIndividual(old_name);
-          name_s = removeFromMe.getName();
-          while (removeFromMe.getEncounters().contains(enc2remove)) {
-            removeFromMe.removeEncounter(enc2remove, context);
+          
+          if(removeFromMe!=null){
+            name_s = removeFromMe.getName();
+            while (removeFromMe.getEncounters().contains(enc2remove)) {
+              removeFromMe.removeEncounter(enc2remove, context);
+            }
+            removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
+            if (removeFromMe.totalEncounters() == 0) {
+              myShepherd.throwAwayMarkedIndividual(removeFromMe);
+              wasRemoved = true;
+            }
           }
 
           //while (myShepherd.getUnidentifiableEncountersForMarkedIndividual(old_name).contains(enc2remove)) {
           //  removeFromMe.removeEncounter(enc2remove, context);
           //}
           enc2remove.setIndividualID(null);
+          enc2remove.setOccurrenceID(null);
 
           enc2remove.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed from " + old_name + ".</p>");
-          removeFromMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Removed encounter#" + request.getParameter("number") + ".</p>");
+          
 
-          if (removeFromMe.totalEncounters() == 0) {
-            myShepherd.throwAwayMarkedIndividual(removeFromMe);
-            wasRemoved = true;
-          }
 
         } catch (java.lang.NullPointerException npe) {
           npe.printStackTrace();

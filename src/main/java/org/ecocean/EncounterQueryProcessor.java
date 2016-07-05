@@ -611,14 +611,14 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //hasPhoto filters-------------------------------------------------
     if(request.getParameter("hasPhoto")!=null){
-          prettyPrint.append("Has at least one photo.");
+          prettyPrint.append("Has at least one MediaAsset.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(dce15)";}
-            else if (filter.indexOf("images.contains(dce15)")==-1){filter+=(" && images.contains(dce15) ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="annotations.contains(dce15) && dce15.mediaAsset != null";}
+            else if (filter.indexOf("annotations.contains(dce15)")==-1){filter+=(" && annotations.contains(dce15) && dce15.mediaAsset != null");}
 
             prettyPrint.append("<br />");
-            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo dce15";}
-            else if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo dce15")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo dce15";}
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation dce15";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation dce15")){jdoqlVariableDeclaration+=";org.ecocean.Annotation dce15";}
 
     }
     //end hasPhoto filters-----------------------------------------------
@@ -686,10 +686,10 @@ public class EncounterQueryProcessor {
       else{filter+=" && (";}
 
       if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){
-          prettyPrint.append("Photo/video keyword is any one of the following: ");
+          prettyPrint.append("MediaAsset keyword is any one of the following: ");
       }
       else{
-        prettyPrint.append("All of these photo/video keywords are applied: ");
+        prettyPrint.append("All of these MediaAsset keywords are applied: ");
       }
           int kwLength=keywords.length;
 
@@ -710,12 +710,12 @@ public class EncounterQueryProcessor {
 
 
 
-                if(filter.indexOf("images.contains(photo"+kwIter+")")==-1){
+                if(filter.indexOf("annotations.contains(photo"+kwIter+")")==-1){
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
-                  filter+=" ( images.contains(photo"+kwIter+")";
+                  filter+=" ( annotations.contains(photo"+kwIter+")";
                 }
 
-                if(filter.indexOf("photo"+kwIter+".keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".keywords.contains(word"+kwIter+")";}
+                if(filter.indexOf("photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
              // }
 
@@ -723,7 +723,7 @@ public class EncounterQueryProcessor {
 
                 if((kwIter==0)&&(jdoqlVariableDeclaration.equals(""))){jdoqlVariableDeclaration=" VARIABLES ";}
                 if(kwIter>0){jdoqlVariableDeclaration+=";";}
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo"+kwIter)){jdoqlVariableDeclaration+="org.ecocean.SinglePhotoVideo photo"+kwIter;}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+="org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
 
 

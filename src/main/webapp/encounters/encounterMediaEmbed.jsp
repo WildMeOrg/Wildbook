@@ -2,7 +2,8 @@
          import="org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 org.ecocean.*,
-org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
+org.ecocean.identity.IBEISIA,
+org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, org.datanucleus.api.rest.orgjson.JSONObject, org.datanucleus.api.rest.orgjson.JSONArray, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
@@ -31,7 +32,7 @@ context=ServletUtilities.getContext(request);
 
 //get the encounter number
 String imageEncNum = request.getParameter("encounterNumber");
-	
+
 //set up the JDO pieces and Shepherd
 Shepherd imageShepherd = new Shepherd(context);
 imageShepherd.beginDBTransaction();
@@ -69,6 +70,38 @@ Encounter imageEnc = imageShepherd.getEncounter(imageEncNum);
 
 
 %>
+
+<script>
+function startIdentify(el) {
+	var aid = el.getAttribute('data-id');
+	el.parentElement.innerHTML = '<i>starting identification</i>';
+	jQuery.ajax({
+		url: '/ia',
+		type: 'POST',
+		dataType: 'json',
+		contentType: 'application/javascript',
+		success: function(d) {
+			console.info('identify returned %o', d);
+			if (d.taskID) {
+				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+			} else {
+				alert('error starting identification');
+			}
+		},
+		error: function(x,y,z) {
+			alert('error starting identification');
+			console.warn('%o %o %o', x, y, z);
+		},
+		data: JSON.stringify({
+			identify: aid,
+			genus: '<%=imageEnc.getGenus()%>',
+			species: '<%=imageEnc.getSpecificEpithet()%>'
+		})
+	});
+}
+
+</script>
+
 <div id="media-div">
 <%
 
@@ -83,12 +116,45 @@ no media
 
 } else {
 
+  %>
+  <p>Here is the beginning of encounterMediaEmbed!</p>
+  <%
+
+
 
 
 	for (Annotation ann : anns) {
 ///SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW!   TODO
 		if (!ann.isTrivial()) continue;
 
+%>
+	<p style="display: none"><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+
+<style>
+	#match-tools {
+		padding: 5px 15px;
+		display: inline-block;
+		background-color: #DDD;
+		margin: 4px;
+		border-radius: 4px;
+	}
+	#match-tools a {
+		cursor: pointer;
+		display: block;
+	}
+</style>
+	<div id="match-tools">
+		<div><a data-id="<%=ann.getId()%>" onClick="startIdentify(this)">Match this image</a></div>
+<%
+	String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+	if ((tasks != null) && (tasks.length > 0)) {
+		for (int i = 0 ; i < tasks.length ; i++) {
+			out.println("<a target=\"_new\" href=\"matchResults.jsp?taskId=" + tasks[i] + "\">" + (i+1) + ") previous match results</a>");
+		}
+	}
+%>
+	</div>
+<%
 //hacky menu, for now.  TODO break this out as part of toHtmlElement so it is part of image suite
 		if (CommonConfiguration.useSpotPatternRecognition(context)) {
 			String isDorsalFin="";
@@ -100,10 +166,24 @@ no media
 			else if(genusSpecies.equals("Tursiopstruncatus")){
 				isDorsalFin="&isDorsalFin=true";
 			}
-%>
-	<p><a href="encounterSpotTool.jsp?imageID=<%=ann.getMediaAsset().getId()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a></p>
+      MediaAsset me = ann.getMediaAsset();
+      int meId = me.getId();
+      JSONObject j = me.sanitizeJson(request, new JSONObject());
+      System.out.println("JSON string: "+j.toString());
 
-<%
+      %>
+    	<p>< Media Asset Property Dump:
+        <ul>
+          <li> ID: <%=me.getId()%> </li>
+          <li> UUID: <%=me.getUUID()%></li>
+          <li> parametersAsString: <%=me.getParametersAsString()%></li>
+          <li> localPath: <%=me.localPath()%></li>
+          <li> width: <%=me.getWidth()%></li>
+          <li> height: <%=me.getHeight()%></li>
+          <li> JSON: <%=j%></li>
+        </ul>
+       <a href="encounterSpotTool.jsp?imageID=<%=me.getId()%><%=isDorsalFin %>"></br><%=encprops.getProperty("matchPattern") %></a></p></br></br></br>
+      <%
 		}
 
 		out.println(ann.toHtmlElement(request, imageShepherd));
