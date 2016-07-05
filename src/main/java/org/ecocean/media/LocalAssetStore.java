@@ -140,7 +140,7 @@ public class LocalAssetStore extends AssetStore {
      */
     @Override
     public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
-        Path subpath = pathFromParameters(params, true);  //check to see if path is legit
+        Path subpath = pathFromParameters(params, false);  //file can not exist (for sake of subsequent copyIn() being called) ... sorry?
         if (subpath == null) return null;
 /*
         Path root = root();
@@ -273,6 +273,17 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         return result;
     }
 
+    //a test for a Path to see if it exists under the Store's root or not
+    public boolean underRoot(final Path path) {
+        try {
+            Path ok = checkPath(root(), path);
+            if (ok != null) return true;
+        } catch (Exception ex) {
+            return false;
+        }
+        return false;
+    }
+
     /**
      * Like checkPath(), but throws an IllegalArgumentException if the
      * resulting file doesn't exist.
@@ -328,7 +339,13 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     @Override
     public JSONObject createParameters(File file) {
         JSONObject p = new JSONObject();
-        if (file != null) p.put("path", file.toPath());  //note: we could do better and create the "suggested" location within the root path (if file outside of it) TODO
+        if (file == null) return p;
+        if (underRoot(file.toPath())) {
+            p.put("path", file.toPath());
+        } else {  //must be just some file "elsewhere", so we store it in some unique dir
+            p.put("path", root().toString() + File.separator + Util.hashDirectories(Util.generateUUID(), File.separator) + File.separator + file.getName());
+        }
+//System.out.println("NOTE: LocalAssetStore.createParameters(" + file + ") -> " + p.toString());
         return p;
     }
 

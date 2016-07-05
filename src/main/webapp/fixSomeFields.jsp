@@ -11,11 +11,8 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-	Shepherd myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 
-// pg_dump -Ft sharks > sharks.out
-
-//pg_restore -d sharks2 /home/webadmin/sharks.out
 
 
 %>
@@ -28,70 +25,43 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
-<p>Spurious encounters to remove.</p>
+
 <ul>
 <%
 
 myShepherd.beginDBTransaction();
 
-//build queries
-
 int numFixes=0;
-
 
 try{
 
-
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-	
-	
-	
-
-	Iterator allEncs=myShepherd.getAllEncounters();
+	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
 	
 
 
-while(allEncs.hasNext()){
-	
-	Encounter enc=(Encounter)allEncs.next();
-
-	if((enc.getLocation()!=null)&&(enc.getLocation().equals("New York"))&&(enc.getState().equals("unapproved"))&&(enc.getSinglePhotoVideo()!=null)&&(enc.getSinglePhotoVideo().size()==0)){
-		numFixes++;
+	while(allEncs.hasNext()){
 		
-		myShepherd.getPM().deletePersistent(enc);
+		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
+		enc.refreshDependentProperties(context);
 		myShepherd.commitDBTransaction();
 		myShepherd.beginDBTransaction();
-		
+
 	}
+	myShepherd.rollbackDBTransaction();
 	
 }
-    
-
-
-%>
-
-
-
-
-<%
-} 
-catch(Exception ex) {
-
-	System.out.println("!!!An error occurred on page fixSomeFields.jsp. The error was:");
-	ex.printStackTrace();
+catch(Exception e){
 	myShepherd.rollbackDBTransaction();
-
-
 }
 finally{
-	
 	myShepherd.closeDBTransaction();
-	myShepherd=null;
+
 }
+
 %>
 
 </ul>
 <p>Done successfully: <%=numFixes %></p>
+
 </body>
 </html>

@@ -39,6 +39,11 @@
                 	<collection element-type="org.ecocean.identity.Feature" dependent-element="true" />
                 	<join />
             	</field>
+
+            	<field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
+                	<collection element-type="org.ecocean.Keyword" dependent-element="false" />
+                	<join />
+            	</field>
 	</class>
 
 

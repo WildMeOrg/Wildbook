@@ -48,7 +48,7 @@
 
     myShepherd.beginDBTransaction();
 
-    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
 
     String[] keywords = request.getParameterValues("keyword");
@@ -150,7 +150,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+    
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -328,7 +328,7 @@
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
 										video=false;
 									}
 									else{
@@ -455,12 +455,14 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                       						List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+											if(myWords!=null){	
 												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              %>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
+						                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+						                              %>
+						 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+						 								<%
+						                            }
+											}    
 
 
 
@@ -575,13 +577,15 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                          
-					                      		 	%>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
+												if(myWords!=null){		
+													int myWordsSize=myWords.size();
+							                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+							                          
+							                      		 	%>
+							 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+							 								<%
+							                            }
+												}
 
 
 
