@@ -313,7 +313,13 @@ myShepherd.beginDBTransaction();
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
               <div class="crop" title="<%=pairName[j]%>">
                 <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                <p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                <%
+                if(pairCopyright[j]!=null){
+               	%>
+                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                <%
+                }
+                %>
               </div>
 
               <p><strong><%=pairNickname[j]%></strong></p>
@@ -337,7 +343,13 @@ myShepherd.beginDBTransaction();
               <div class="super-crop">
                 <div class="crop">
                   <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
-                  <p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                  <%
+                  if(pairCopyright[j]!=null){
+               	  %>
+                	<p class="image-copyright"> <%=pairCopyright[j]%> </p>
+                  <%
+                  }
+                  %>
                 </div>
               </div>
 
@@ -368,28 +380,7 @@ myShepherd.beginDBTransaction();
                 </td>
                 <td>
                   <ul>
-                    <li>
-                      <%
-                      String timeOfBirth=props.getProperty("unknown");
-                      //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
-                      if(pair[j].getTimeOfBirth()>0){
-                      	String timeOfBirthFormat="yyyy-MM-d";
-                      	timeOfBirth=(new DateTime(pair[j].getTimeOfBirth())).toString(timeOfBirthFormat);
-                      }
-                      %>
-                      <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
-                    </li>
-                      <li>
-                      <%
-                      String timeOfDeath=props.getProperty("unknown");
-                      //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
-                      if(pair[j].getTimeofDeath()>0){
-                      	String timeOfDeathFormat="yyyy-MM-d";
-                      	timeOfDeath=(new DateTime(pair[j].getTimeofDeath())).toString(timeOfDeathFormat);
-                      }
-                      %>
-                      <%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
-                    </li>
+                    
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
@@ -397,11 +388,11 @@ myShepherd.beginDBTransaction();
                 </td>
               </tr></table>
 
-              <% if(request.getUserPrincipal()!=null){ %>
+             
               <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
                 To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
               </p>
-              <% } %>
+              
 
             </div>
           </div>
