@@ -78,6 +78,14 @@
     self.setup();
     self.registerClickEvent(self.getNodes());
     self.moveToCentral(d3.select(".node"));
+    function resetDiagram() {
+      d3.selectAll("svg").remove();
+      self.setup();
+      self.registerClickEvent(self.getNodes());
+      self.moveToCentral(d3.select(".node"));
+    }
+    d3.select("#reset").on('click', resetDiagram);
+
   };
 
 
@@ -189,82 +197,65 @@
       }
 
       function zoomClick() {
-          var clicked = d3.event.target,
-              direction = 0.5,
-              factor = 0.2,
-              target_zoom = 1,
-              center = [width / 2, height / 2],
-              extent = zoom.scaleExtent(),
-              translate = zoom.translate(),
-              translate0 = [],
-              l = [],
-              view = {x: translate[0], y: translate[1], k: zoom.scale()};
+        var clicked = d3.event.target,
+            direction = 0.5,
+            factor = 0.2,
+            target_zoom = 1,
+            center = [width / 2, height / 2],
+            extent = zoom.scaleExtent(),
+            translate = zoom.translate(),
+            translate0 = [],
+            l = [],
+            view = {x: translate[0], y: translate[1], k: zoom.scale()};
 
-          d3.event.preventDefault();
-          direction = (this.id === 'zoomIn') ? 1 : -1;
-          target_zoom = zoom.scale() * (1 + factor * direction);
+        d3.event.preventDefault();
+        direction = (this.id === 'zoomIn') ? 1 : -1;
+        target_zoom = zoom.scale() * (1 + factor * direction);
 
-          if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
+        if (target_zoom < extent[0] || target_zoom > extent[1]) { return false; }
 
-          translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
-          view.k = target_zoom;
-          l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
+        translate0 = [(center[0] - view.x) / view.k, (center[1] - view.y) / view.k];
+        view.k = target_zoom;
+        l = [translate0[0] * view.k + view.x, translate0[1] * view.k + view.y];
 
-          view.x += center[0] - l[0];
-          view.y += center[1] - l[1];
+        view.x += center[0] - l[0];
+        view.y += center[1] - l[1];
 
-          interpolateZoom([view.x, view.y], view.k);
+        interpolateZoom([view.x, view.y], view.k);
       }
 
-        d3.selectAll('button').on('click', zoomClick);
+      d3.select('#zoomIn').on('click', zoomClick);
+      d3.select('#zoomOut').on('click', zoomClick);
 
-        var x = d3.scale.linear()
-            .domain([-width / 2, width / 2])
-            .range([0, width]);
+      self.circlePositions = self.randomCirclesPositions(options.intersectDelta);
 
-        var y = d3.scale.linear()
-            .domain([-height / 2, height / 2])
-            .range([height, 0]);
+      var node = self.svg.selectAll(".node")
+        .data(self.circlePositions)
+        .enter().append("g")
+        .attr("class", function (d) {return ["node", options.data.classed(d.item)].join(" w");});
 
-        function reset() {
-          self.svg.call(zoom
-              .x(x.domain([-width / 2, width / 2]))
-              .y(y.domain([-height / 2, height / 2]))
-              .event);
-        }
+      var fnColor = d3.scale.category20();
 
-        d3.selectAll('#reset').on('click', reset);
+      node.append("circle")
+        .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
+        .style("fill", function (d) {
+          return options.data.color !== undefined ? options.data.color(d.item) : fnColor(d.item.text);
+        })
+        .attr("opacity", "0.8");
+      node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
 
-        self.circlePositions = self.randomCirclesPositions(options.intersectDelta);
+      self.transition = {};
+      self.event = $.microObserver.get($.misc.uuid());
 
-        var node = self.svg.selectAll(".node")
-          .data(self.circlePositions)
-          .enter().append("g")
-          .attr("class", function (d) {return ["node", options.data.classed(d.item)].join(" w");});
-
-        var fnColor = d3.scale.category20();
-
-
-        node.append("circle")
-          .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
-          .style("fill", function (d) {
-            return options.data.color !== undefined ? options.data.color(d.item) : fnColor(d.item.text);
-          })
-          .attr("opacity", "0.8");
-        node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
-
-        self.transition = {};
-        self.event = $.microObserver.get($.misc.uuid());
-
-        if (options.supportResponsive) {
-          $(window).resize(function() {
-            var width = $(options.container).width();
-            self.svg.attr("width", width);
-            self.svg.attr("height", width);
-          });
-          $(window).resize();
-        }
-      },
+      if (options.supportResponsive) {
+        $(window).resize(function() {
+          var width = $(options.container).width();
+          self.svg.attr("width", width);
+          self.svg.attr("height", width);
+        });
+        $(window).resize();
+      }
+    },
 
     getCirclePositions: function () {
       return this.circlePositions;
