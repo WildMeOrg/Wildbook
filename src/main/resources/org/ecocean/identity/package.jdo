@@ -9,6 +9,7 @@
             <field name="taskID" persistence-modifier="persistent" />
             <field name="timestamp" persistence-modifier="persistent" />
             <field name="serviceName" persistence-modifier="persistent" />
+            <field name="objectID" persistence-modifier="persistent" />
             <field name="serviceJobID" persistence-modifier="persistent" />
 
 		<field name="status" persistence-modifier="persistent">
