@@ -239,8 +239,14 @@
       node.append("circle")
         .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
         .style("fill", function (d) {
-          return options.data.color !== undefined ? options.data.color(d.item) : fnColor(d.item.text);
-        })
+              if(d.item.sex == "female") {
+                return "pink";
+              } else if (d.item.sex == "male") {
+                return "deepskyblue";
+              } else {
+                return "lightgray";
+              }
+          })
         .attr("opacity", "0.8");
       node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
 
@@ -275,7 +281,17 @@
         .transition().duration(self.options.transitDuration);
       self.transition.centralNode.attr('transform', toCentralPoint)
         .select("circle")
-        .style("fill", "#0CED6E")
+        .style("fill", function (d) {
+              if(d.item.sex == "female") {
+                return "pink";
+              } else if (d.item.sex == "male") {
+                return "deepskyblue";
+              } else {
+                return "lightgray";
+              }
+          })
+        .style("stroke", "white")
+        .style("stroke-width", "5px")
         .attr('r', function (d) {return self.options.innerRadius;});
     },
 
@@ -301,9 +317,24 @@
       var fnColor = d3.scale.category20();
       node.classed({active: false});
       d3.selectAll(".node:not(.active) circle").style("fill", function (d) {
-        return self.options.data.color !== undefined ? self.options.data.color(d.item) : fnColor(d.item.text);
-      });
-      d3.selectAll("circle").filter(function(d) {return d.r == 90;}).style("fill", "#0CED6E");
+              if(d.item.sex == "female") {
+                return "pink";
+              } else if (d.item.sex == "male") {
+                return "deepskyblue";
+              } else {
+                return "lightgray";
+              }
+          });
+      d3.selectAll("circle").filter(function(d) {return d.r == 90;}).style("fill", function (d) {
+              if(d.item.sex == "female") {
+                return "pink";
+              } else if (d.item.sex == "male") {
+                return "deepskyblue";
+              } else {
+                return "lightgray";
+              }
+          })
+          .style("stroke", "white").style("stroke-width", "5px");
     },
 
     registerClickEvent: function (node) {
