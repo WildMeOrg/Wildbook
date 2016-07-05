@@ -111,7 +111,7 @@ JSONObject iaTasks = new JSONObject();
       String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
-  		if (!ann.isTrivial()) continue;
+  		//if (!ann.isTrivial()) continue;  ///or not?
 
   		MediaAsset ma = ann.getMediaAsset();
   		if (ma != null) {
