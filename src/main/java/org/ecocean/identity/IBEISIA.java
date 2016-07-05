@@ -815,7 +815,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        rtn.put("iaEnabled", (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) == null));
+        rtn.put("iaEnabled", (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null));
         rtn.put("timestamp", System.currentTimeMillis());
         return rtn;
     }
