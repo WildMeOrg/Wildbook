@@ -871,11 +871,18 @@ function dataTypes(obj, fieldName) {
 
 </script>
 
+<% MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
+
+JSONObject newMaJson=photoIndy.getExemplarImage(request);
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+%>
+
 <%-- Main Div --%>
 <div class="container row maincontent maincontainer">
   <%=blocker%>
   <%-- Header Row --%>
-  <div class="jumbotron">
+  <div class="jumbotron" style="background:url(<%=jumboimgUrl%>)">
     <%
     myShepherd.beginDBTransaction();
     try {
