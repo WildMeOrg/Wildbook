@@ -22,7 +22,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -115,7 +115,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -158,7 +158,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -239,7 +239,7 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -332,8 +332,13 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
 
           linkEl = figureEl.children[0]; // <a> element
 
-          size = linkEl.getAttribute('data-size').split('x');
-
+          //size = linkEl.getAttribute('data-size').split('x');
+        size = [800,600];  //fallback that hopefully we never see
+        var imgEl = linkEl.children[0];
+        if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
+            size = [imgEl.naturalWidth, imgEl.naturalHeight];
+        }
+ 
           // create slide object
           item = {
               src: linkEl.getAttribute('href'),
