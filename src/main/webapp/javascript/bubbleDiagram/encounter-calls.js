@@ -132,7 +132,6 @@ var getData = function(individualID) {
         items.push(whale);
       }
       if (items.length > 0) {
-        makeCooccurrenceChart(items);
         getSexHaploData(individualID, items);
       }
       getEncounterTableData(occurrenceObjectArray, individualID);
@@ -152,6 +151,7 @@ var getSexHaploData = function(individualID, items) {
       result.sex = jsonData[i].sex;
       result.haplotype = jsonData[i].localHaplotypeReflection;
     }
+    makeCooccurrenceChart(items);
     makeTable(items, "#coHead", "#coBody");
   });
 };
