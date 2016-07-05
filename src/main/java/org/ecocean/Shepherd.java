@@ -3180,9 +3180,12 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
     q.closeAll();
     int numResults=al.size();
-    for(int i=0;i<numResults;i++){occurrenceIDs.add((String)al.get(i));}
+    for(int i=0;i<numResults;i++) {
+      occurrenceIDs.add((String)al.get(i));
+    }
     //System.out.println("zzzOccurrences for "+individualID+": "+occurrenceIDs.toString());
     return occurrenceIDs;
+
   }
 
 
