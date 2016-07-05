@@ -659,39 +659,27 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
       if (fv.get("behavior") != null && fv.get("behavior").toString().length() > 0) {
               enc.setBehavior(fv.get("behavior").toString());
           }
+      if (fv.get("alternateID") != null && fv.get("alternateID").toString().length() > 0) {
+        enc.setAlternateID(fv.get("alternateID").toString());
+      }
       if (fv.get("lifeStage") != null && fv.get("lifeStage").toString().length() > 0) {
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
-/*
-got regular field (measurement(weight))=(111)
-got regular field (measurement(weightunits))=(kilograms)
-got regular field (measurement(weightsamplingProtocol))=(samplingProtocol1)
-got regular field (measurement(length))=(222)
-got regular field (measurement(lengthunits))=(meters)
-got regular field (measurement(lengthsamplingProtocol))=(samplingProtocol0)
-got regular field (measurement(height))=(333)
-got regular field (measurement(heightunits))=(meters)
-got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
-      Map<String, Object> measurements = theForm.getMeasurements();
-      for (String key : measurements.keySet()) {
-        if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
-          String value = ((String) measurements.get(key)).trim();
-          if (value.length() > 0) {
-            try {
-              Double doubleVal = Double.valueOf(value);
-              String units = (String) measurements.get(key + "units");
-              String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
-              Measurement measurement = new Measurement(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
-              enc.addMeasurement(measurement);
-            }
-            catch(Exception ex) {
-              enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
-            }
-          }
-        }
+      //add WWF-specific fields for data and photographer privacy
+      if (fv.get("showPicture") != null) {
+        enc.setDynamicProperty("PublicView","Yes");
       }
-*/
+      else{
+        enc.setDynamicProperty("PublicView","No");
+      }
+      if (fv.get("showPhotographerName") != null) {
+        enc.setDynamicProperty("ShowPhotographer","Yes");
+      }
+      else{
+        enc.setDynamicProperty("ShowPhotographer","No");
+      }
+      //end WWF privacy fields
 
       List<MetalTag> metalTags = getMetalTags(fv);
       for (MetalTag metalTag : metalTags) {
@@ -713,8 +701,8 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
       if(fv.get("scars")!=null){
         enc.setDistinguishingScar(fv.get("scars").toString());
       }
-      
-      
+
+
       int sizePeriod=0;
       if ((fv.get("measureUnits") != null) && fv.get("measureUnits").toString().equals("Feet")) {
 
@@ -948,7 +936,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "informothers").equals("")) {
         enc.setInformOthers(getVal(fv, "informothers"));
       }
-      
+
       // xxxxxxx
       //add research team for GAq
       if (!getVal(fv, "researchTeam").equals("")) {
@@ -960,7 +948,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "conditions").equals("")) {
         enc.setDynamicProperty("Conditions", (getVal(fv, "conditions")));
       }
-      
+
       if (!getVal(fv, "camera").equals("")) {
         enc.setDynamicProperty("Camera", (getVal(fv, "camera")));
       }
@@ -973,46 +961,46 @@ System.out.println("depth --> " + fv.get("depth").toString());
       if (!getVal(fv, "folder").equals("")) {
         enc.setDynamicProperty("Folder", (getVal(fv, "folder")));
       }
-      
+
       if (!getVal(fv, "numberOfBoats").equals("")) {
         enc.setDynamicProperty("Number of boats", (getVal(fv, "numberOfBoats")));
       }
-      
+
       if (!getVal(fv, "startTime").equals("")) {
         enc.setDynamicProperty("Start Time", (getVal(fv, "startTime")));
       }
-      
+
       if (!getVal(fv, "endTime").equals("")) {
         enc.setDynamicProperty("End Time", (getVal(fv, "endTime")));
       }
-      
-      
+
+
       if (!getVal(fv, "endLongitude").equals("")) {
         enc.setDynamicProperty("End Longitude", (getVal(fv, "endLongitude")));
       }
       if (!getVal(fv, "endLatitude").equals("")) {
         enc.setDynamicProperty("End Latitude", (getVal(fv, "endLatitude")));
       }
-      
+
       if (!getVal(fv, "startLongitude").equals("")) {
         enc.setDynamicProperty("Start Longitude", (getVal(fv, "startLongitude")));
       }
       if (!getVal(fv, "startLatitude").equals("")) {
         enc.setDynamicProperty("Start Latitude", (getVal(fv, "startLatitude")));
       }
-      
+
       if (!getVal(fv, "beginWaypoint").equals("")) {
         enc.setDynamicProperty("Begin Waypoint", (getVal(fv, "beginWaypoint")));
       }
       if (!getVal(fv, "endWaypoint").equals("")) {
         enc.setDynamicProperty("End Waypoint", (getVal(fv, "endWaypoint")));
       }
-      
-      
-      
+
+
+
       //xxxxxxxx
-      
-      
+
+
       String guid = CommonConfiguration.getGlobalUniqueIdentifierPrefix(context) + encID;
 
       //new additions for DarwinCore
@@ -1066,6 +1054,3 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
 
 }
-
-
-

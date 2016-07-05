@@ -30,7 +30,13 @@ public class MediaAssetFactory {
      * Fetch a single asset from the database by id.
      */
     public static MediaAsset load(final int id, Shepherd myShepherd) {
-        return ((org.ecocean.media.MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+        try {
+            return ((org.ecocean.media.MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+        } catch (org.datanucleus.exceptions.NucleusObjectNotFoundException ex) {
+            return null;
+        } catch (javax.jdo.JDOObjectNotFoundException ex) {
+            return null;
+        }
     }
 
 /*
