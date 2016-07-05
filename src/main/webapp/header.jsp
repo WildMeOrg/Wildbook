@@ -85,6 +85,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
  
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
+ 	<meta property="og:site_name" content="Flukebook"/>
   	<!-- End Open Graph Tags -->
   
     </head>
