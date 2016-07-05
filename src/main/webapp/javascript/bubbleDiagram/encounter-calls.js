@@ -20,29 +20,14 @@ var makeCooccurrenceChart = function(items) {
     },
     plugins: [
       {
-        name: "central-click",
-        options: {
-          style: {
-            "font-size": "12px",
-            "font-style": "italic",
-            "font-family": "Source Sans Pro, sans-serif",
-            "text-anchor": "middle",
-            "fill": "white"
-          },
-          attr: {dy: "65px"},
-          centralClick: function() {
-          }
-        }
-      },
-      {
         name: "lines",
         options: {
           format: [
             {
-              textField: "count",
-              classed: {count: true},
+              textField: "text",
+              classed: {text: true},
               style: {
-                "font-size": "20px",
+                "font-size": "18px",
                 "font-family": "Source Sans Pro, sans-serif",
                 "text-anchor": "middle",
                 fill: "white"
@@ -54,8 +39,8 @@ var makeCooccurrenceChart = function(items) {
               }
             },
             {
-              textField: "text",
-              classed: {text: true},
+              textField: "count",
+              classed: {count: true},
               style: {
                 "font-size": "12px",
                 "font-family": "Source Sans Pro, sans-serif",
