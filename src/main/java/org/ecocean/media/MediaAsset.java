@@ -35,6 +35,7 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
@@ -87,6 +88,8 @@ public class MediaAsset implements java.io.Serializable {
     protected ArrayList<String> labels;
 
     protected ArrayList<Feature> features;
+
+    protected ArrayList<Keyword> keywords;
 
     protected String hashCode;
 
@@ -202,7 +205,7 @@ public class MediaAsset implements java.io.Serializable {
     public JSONObject getParameters() {
         if (parameters != null) return parameters;
         //System.out.println("NOTE: getParameters() on " + this + " was null, so trying to get from parametersAsString()");
-        JSONObject j = _toJSONObject(parametersAsString);
+        JSONObject j = Util.stringToJSONObject(parametersAsString);
         parameters = j;
         return j;
     }
@@ -233,21 +236,10 @@ public class MediaAsset implements java.io.Serializable {
         }
         parametersAsString = p;
         //now we also set parameters as the JSONObject (or try)
-        JSONObject j = _toJSONObject(p);
+        JSONObject j = Util.stringToJSONObject(p);
         if (j != null) parameters = j;
     }
 
-    //utility: swallows json exception and will return null if fails
-    private static JSONObject _toJSONObject(String s) {
-        JSONObject j = null;
-        if (s == null) return j;
-        try {
-            j = new JSONObject(s);
-        } catch (JSONException je) {
-            System.out.println("error parsing json string (" + s + "): " + je.toString());
-        }
-        return j;
-    }
 
     public JSONObject getDerivationMethod() {
         return derivationMethod;
@@ -461,6 +453,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
+
+        try {
+            int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
+            if (i == 0) return new URL(store.getUsage().substring(16));
+        } catch (java.net.MalformedURLException ex) {}
+
         return store.webURL(this);
     }
 
@@ -611,6 +609,18 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             }
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
+
+            if ((this.getKeywords() != null) && (this.getKeywords().size() > 0)) {
+                JSONArray ka = new JSONArray();
+                for (Keyword kw : this.getKeywords()) {
+                    JSONObject kj = new JSONObject();
+                    kj.put("indexname", kw.getIndexname());
+                    kj.put("readableName", kw.getReadableName());
+                    ka.put(kj);
+                }
+                jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
+            }
+
             return jobj;
         }
 
@@ -712,9 +722,17 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return mas;
     }
 
-    //TODO until we get keywords migrated to MediaAsset
-    public List<Keyword> getKeywords() {
-        return new ArrayList<Keyword>();
+
+    public void setKeywords(ArrayList<Keyword> kws) {
+        keywords = kws;
+    }
+    public ArrayList<Keyword> addKeyword(Keyword k) {
+        if (keywords == null) keywords = new ArrayList<Keyword>();
+        if (!keywords.contains(k)) keywords.add(k);
+        return keywords;
+    }
+    public ArrayList<Keyword> getKeywords() {
+        return keywords;
     }
  
 

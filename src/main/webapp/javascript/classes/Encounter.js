@@ -5,7 +5,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 
 	refClass: {
 		measurements: 'Measurements',
-		images: 'SinglePhotoVideos',
+		images: 'MediaAssets',
 	},
 
 /*
@@ -15,8 +15,14 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 */
 
 
+        //TODO have special way to get which Annotation
 	thumbUrl: function() {
-		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
+                if (!this.get('annotations') || (this.get('annotations').length < 1)) return '';
+                var ma = this.get('annotations')[0].mediaAsset;
+                if (!ma) return '';
+                ma = new wildbook.Model.MediaAsset(ma);
+                return ma.labelUrl('_thumb', '');
+		//return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/thumb.jpg';
 	},
 
 
