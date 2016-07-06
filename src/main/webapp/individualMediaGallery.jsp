@@ -57,7 +57,7 @@ try {
   else {
   	for (Annotation ann : anns) {
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
-  		if (!ann.isTrivial()) continue;
+  		//if (!ann.isTrivial()) continue;
 
   		MediaAsset ma = ann.getMediaAsset();
   		if (ma != null) {

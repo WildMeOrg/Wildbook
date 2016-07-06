@@ -1751,7 +1751,10 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             return jobj;
         }
 
-  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
       if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
@@ -1764,14 +1767,43 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-            if (j!=null) return j;
+            
+            
+            
+            if (j!=null) {
+              
+              
+              //ok, we have a viable candidate
+              
+              //put ProfilePhotos at the beginning
+              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);haveProfilePhoto=true;}
+              //put any Right keywords at the top but after a profile photo
+              else if(ma.hasKeyword("Right")){
+                if(haveProfilePhoto){al.add(1, j);}
+                else{al.add(0, j);}
+              }
+              //otherwise, just add it to the bottom of the stack
+              else{
+                al.add(j);
+              }
+              
+            }
+            
+            
           }
         }
     }
     }
-    return new JSONObject();
+    return al;
   }
   
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+    
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
+    if(al.size()>0){return al.get(0);}
+    return new JSONObject();
+    
+  }
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {
     for (Encounter enc : this.getDateSortedEncounters()) {
