@@ -431,39 +431,10 @@ myShepherd=null;
 %>
 
 
+
+<script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
 <script>
 
-  // little namespace for gallery funcs
-  var galFunc = {};
-
-  galFunc.cropPics = function(selector, ratio) {
-    var image_width = $( selector ).parent().width();
-    var desired_height = image_width * 1.0/ratio;
-    $( selector ).height(desired_height);
-    $( selector+' img').css('min-height', desired_height.toString()+'px');
-
-    // center image vertically
-    $( selector+' img').each(function(index, value) {
-      var vertical_offset = ($(this).height() - desired_height)/2.0;
-      $(this).css('margin-top','-'+vertical_offset.toString()+'px');
-    });
-
-    $( selector+' img').width('100%');
-  };
-
-  galFunc.cropInnerPics = function() {
-    galFunc.cropPics('.gallery-info.active .gallery-inner .crop', 16.0/9);
-  };
-
-
-  galFunc.cropGridPics = function() {
-    galFunc.cropPics('.gallery-unit .crop', 16.0/9);
-  };
-
-
-  $( document ).ready(function() {
-    galFunc.cropGridPics();
-  });
   $( window ).resize(function(){
     galFunc.cropGridPics();
     galFunc.cropInnerPics();
