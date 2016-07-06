@@ -10,7 +10,7 @@
 
 
 /*Hide Diagram Tab Content*/
-#communityDiagram, #communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
+#communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
   display: none;
 }
 

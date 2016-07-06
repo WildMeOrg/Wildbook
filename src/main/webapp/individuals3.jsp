@@ -139,6 +139,8 @@ if (request.getParameter("number")!=null) {
 		myShepherd.rollbackDBTransaction();
 }
 %>
+<jsp:include page="header.jsp" flush="true"/>
+
 
   <style type="text/css">
     <!--
@@ -236,63 +238,6 @@ table.tissueSample td {
   </style>
 
 
-    <jsp:include page="header.jsp" flush="true"/>
-
-
-  <!--
-    1 ) Reference to the files containing the JavaScript and CSS.
-    These files must be located on your server.
-  -->
-
-  <script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css"/>
-
-  <!--
-    2) Optionally override the settings defined at the top
-    of the highslide.js file. The parameter hs.graphicsDir is important!
-  -->
-
-  <script type="text/javascript">
-    hs.graphicsDir = 'highslide/highslide/graphics/';
-
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
-
-    hs.align = 'auto';
-  	hs.anchor = 'top';
-
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 250;
-
-    //block right-click user copying if no permissions available
-    <%
-    if(request.getUserPrincipal()==null){
-    %>
-    hs.blockRightClick = true;
-    <%
-    }
-    %>
-
-    // Add the controlbar
-    hs.addSlideshow({
-      //slideshowGroup: 'group1',
-      interval: 5000,
-      repeat: false,
-      useControls: true,
-      fixedControls: 'fit',
-      overlayOptions: {
-        opacity: 0.75,
-        position: 'bottom center',
-        hideOnMouseOut: true
-      }
-    });
-
-
-  </script>
 
 <!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
@@ -331,18 +276,16 @@ table.tissueSample td {
 	width: 100px;
 }
 </style>
+
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
-<%-- <script src="javascript/bubbleDiagram/d3-transform.js"></script> --%>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<%-- <script src="javascript/bubbleDiagram/central-click.js"></script>
-<script src="javascript/bubbleDiagram/lines.js"></script> --%>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
@@ -576,30 +519,16 @@ $(document).ready( function() {
   $("#familyDiagramTab").click(function (e) {
     e.preventDefault()
     $("#familyDiagram").show();
-    $("#communityDiagram").hide();
     $("#communityTable").hide();
     $("#familyDiagramTab").addClass("active");
-    $("#communityDiagramTab").removeClass("active");
-    $("#communityTableTab").removeClass("active");
-  });
-
-  $("#communityDiagramTab").click(function (e) {
-    e.preventDefault()
-    $("#familyDiagram").hide();
-    $("#communityDiagram").show();
-    $("#communityTable").hide();
-    $("#familyDiagramTab").removeClass("active");
-    $("#communityDiagramTab").addClass("active");
     $("#communityTableTab").removeClass("active");
   });
 
   $("#communityTableTab").click(function (e) {
     e.preventDefault()
     $("#familyDiagram").hide();
-    $("#communityDiagram").hide();
     $("#communityTable").show();
     $("#familyDiagramTab").removeClass("active");
-    $("#communityDiagramTab").removeClass("active");
     $("#communityTableTab").addClass("active");
   });
 
@@ -870,12 +799,12 @@ function dataTypes(obj, fieldName) {
 }
 
 </script>
-
+<%-- Get background image for jumbotron --%>
 <% MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
 
 JSONObject newMaJson=photoIndy.getExemplarImage(request);
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 %>
 
 <%-- Main Div --%>
@@ -917,193 +846,127 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
   <%-- End of Header Row --%>
   </div>
 
-  <%-- Body Row --%>
+  <%-- Descriptions --%>
   <div class="row">
-    <%-- Main Left Column --%>
-    <div class="col-md-8 mainColumn">
-      <%-- Descriptions --%>
-      <div class="row">
-        <div class="col-md-4">
-          <%
-          if (CommonConfiguration.allowNicknames(context)) {
+    <div class="col-md-4">
+      <%
+      if (CommonConfiguration.allowNicknames(context)) {
 
-            String myNickname = "";
-            if (sharky.getNickName() != null) {
-              myNickname = sharky.getNickName();
-            }
-            String myNicknamer = "";
-            if (sharky.getNickNamer() != null) {
-              myNicknamer = sharky.getNickNamer();
-            }
-            %>
+        String myNickname = "";
+        if (sharky.getNickName() != null) {
+          myNickname = sharky.getNickName();
+        }
+        String myNicknamer = "";
+        if (sharky.getNickNamer() != null) {
+          myNicknamer = sharky.getNickNamer();
+        }
+        %>
 
-            <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p>
+        <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p>
 
-            <p><%=nicknamer %>: <%=myNicknamer%></p>
-            <%
-          }
-          %>
-          <!-- Now prep the nickname popup dialog -->
-          <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
-          <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+        <p><%=nicknamer %>: <%=myNicknamer%></p>
+        <%
+      }
+      %>
+      <!-- Now prep the nickname popup dialog -->
+      <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
+      <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-            <tr>
-              <td align="left" valign="top">
-                <form name="nameShark" method="post" action="IndividualSetNickName">
-                  <input name="individual" type="hidden"
-                    value="<%=request.getParameter("number")%>"> <%=nickname %>:
-                    <input name="nickname" type="text" id="nickname" size="15"
-                      maxlength="50"><br> <%=nicknamer %>: <input name="namer" type="text" id="namer" size="15" maxlength="50"><br> <input
-                      name="Name" type="submit" id="Name" value="<%=update %>"></form>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <!-- nickname popup dialog script -->
-              <script>
-              var dlgNick = $("#dialogNickname").dialog({
-                autoOpen: false,
-                draggable: false,
-                resizable: false,
-                width: 500
-              });
-
-              $("a#nickname").click(function() {
-                dlgNick.dialog("open");
-              });
-              </script>
-        </div>
-        <div class="col-md-4">
-            <%
-              String sexValue="";
-              if(sharky.getSex()!=null){sexValue=sharky.getSex();}
-              %>
-              <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
-              <%
-                //edit sex
-                if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
-
-                <!-- Now prep the sex popup dialog -->
-                <div id="dialogSex" title="<%=setsex %>" style="display:none">
-                <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-                  <tr>
-                    <td align="left" valign="top">
-                      <form name="setxsexshark" action="IndividualSetSex" method="post">
-
-                        <select name="selectSex" size="1" id="selectSex">
-                          <option value="unknown"><%=props.getProperty("unknown") %></option>
-                          <option value="male"><%=props.getProperty("male") %></option>
-                          <option value="female"><%=props.getProperty("female") %></option>
-                        </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
-                        <input name="Add" type="submit" id="Add" value="<%=update %>" />
-                      </form>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <!-- sex popup dialog script -->
-              <script>
-                var dlgSex = $("#dialogSex").dialog({
-                autoOpen: false,
-                draggable: false,
-                resizable: false,
-                width: 500
-                });
-
-                $("a#sex").click(function() {
-                dlgSex.dialog("open");
-                });
-              </script>
-              <%}%>
-            </p>
-
-            <!-- start birth date -->
-            <a name="birthdate"></a>
-            <%
-              String timeOfBirth="";
-              //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
-              if(sharky.getTimeOfBirth()>0){
-              String timeOfBirthFormat="yyyy-MM-d";
-              if(props.getProperty("birthdateJodaFormat")!=null){
-              timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
-              }
-              timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
-              }
-
-              String displayTimeOfBirth=timeOfBirth;
-              //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
-
-              %>
-              <p><%=props.getProperty("birthdate")  %>:
-              <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-            </p>
-
-            <!-- Now prep the birth date popup dialog -->
-            <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
-            <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-              <tr><td align="left" valign="top">
-                <strong>
-                  <font color="#990000"> <%=props.getProperty("clickDate")%>
-                </font>
-              </strong>
-              <br /><%=props.getProperty("dateFormat")%>
-              <br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
-            </td></tr>
-
-            <tr>
-              <td align="left" valign="top">
-                <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
-
-                  <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-                  <%=props.getProperty("birthdate")  %>:
-                  <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
-
-                  <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
+        <tr>
+          <td align="left" valign="top">
+            <form name="nameShark" method="post" action="IndividualSetNickName">
+              <input name="individual" type="hidden"
+                value="<%=request.getParameter("number")%>"> <%=nickname %>:
+                <input name="nickname" type="text" id="nickname" size="15"
+                  maxlength="50"><br> <%=nicknamer %>: <input name="namer" type="text" id="namer" size="15" maxlength="50"><br> <input
+                  name="Name" type="submit" id="Name" value="<%=update %>"></form>
                 </td>
               </tr>
             </table>
-
           </div>
-          <!-- birth date popup dialog script -->
+          <!-- nickname popup dialog script -->
           <script>
-            var dlgBirthDate = $("#dialogBirthDate").dialog({
+          var dlgNick = $("#dialogNickname").dialog({
             autoOpen: false,
             draggable: false,
             resizable: false,
-            width: 600
-            });
+            width: 500
+          });
 
-            $("a#birthdate").click(function() {
-            dlgBirthDate.dialog("open");
-            });
+          $("a#nickname").click(function() {
+            dlgNick.dialog("open");
+          });
           </script>
-          </p>
-          <!-- end birth date -->
-
-          <!-- start death date -->
-          <a name="deathdate"></a>
           <%
-          String timeOfDeath="";
-          if(sharky.getTimeofDeath()>0){
-          String timeOfDeathFormat="yyyy-MM-d";
-          if(props.getProperty("deathdateJodaFormat")!=null){
-          timeOfDeathFormat=props.getProperty("deathdateJodaFormat");
+            String sexValue="";
+            if(sharky.getSex()!=null){sexValue=sharky.getSex();}
+            %>
+            <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+            <%
+              //edit sex
+              if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
+
+              <!-- Now prep the sex popup dialog -->
+              <div id="dialogSex" title="<%=setsex %>" style="display:none">
+              <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+                <tr>
+                  <td align="left" valign="top">
+                    <form name="setxsexshark" action="IndividualSetSex" method="post">
+
+                      <select name="selectSex" size="1" id="selectSex">
+                        <option value="unknown"><%=props.getProperty("unknown") %></option>
+                        <option value="male"><%=props.getProperty("male") %></option>
+                        <option value="female"><%=props.getProperty("female") %></option>
+                      </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
+                      <input name="Add" type="submit" id="Add" value="<%=update %>" />
+                    </form>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <!-- sex popup dialog script -->
+            <script>
+              var dlgSex = $("#dialogSex").dialog({
+              autoOpen: false,
+              draggable: false,
+              resizable: false,
+              width: 500
+              });
+
+              $("a#sex").click(function() {
+              dlgSex.dialog("open");
+              });
+            </script>
+            <%}%>
+          </p>
+    </div>
+    <div class="col-md-4">
+
+        <!-- start birth date -->
+        <a name="birthdate"></a>
+        <%
+          String timeOfBirth="";
+          //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
+          if(sharky.getTimeOfBirth()>0){
+          String timeOfBirthFormat="yyyy-MM-d";
+          if(props.getProperty("birthdateJodaFormat")!=null){
+          timeOfBirthFormat=props.getProperty("birthdateJodaFormat");
           }
-          timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString(timeOfDeathFormat);
+          timeOfBirth=(new DateTime(sharky.getTimeOfBirth())).toString(timeOfBirthFormat);
           }
-          String displayTimeOfDeath=timeOfDeath;
-          //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
+
+          String displayTimeOfBirth=timeOfBirth;
+          //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
           %>
-          <p><%=props.getProperty("deathdate")  %>:
-          <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-          </p>
+          <p><%=props.getProperty("birthdate")  %>:
+          <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+        </p>
 
-          <!-- Now prep the death date popup dialog -->
-          <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
-          <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+        <!-- Now prep the birth date popup dialog -->
+        <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
+        <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
           <tr><td align="left" valign="top">
             <strong>
@@ -1111,99 +974,193 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
             </font>
           </strong>
           <br /><%=props.getProperty("dateFormat")%>
-          <br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
+          <br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
+        </td></tr>
 
-          </td></tr>
-
-          <tr>
+        <tr>
           <td align="left" valign="top">
-            <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
+            <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-              <%=props.getProperty("deathdate")  %>:
-              <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
+              <%=props.getProperty("birthdate")  %>:
+              <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
+
+              <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
             </td>
           </tr>
-          </table>
-
-          </div>
-          <!-- death date popup dialog script -->
-          <script>
-          var dlgDeathDate = $("#dialogDeathDate").dialog({
-          autoOpen: false,
-          draggable: false,
-          resizable: false,
-          width: 600
-          });
-
-          $("a#deathdate").click(function() {
-          dlgDeathDate.dialog("open");
-          });
-          </script>
-          </p>
-          <!-- end death date -->
-        </div>
-        <div class="col-md-4">
-          <a name="alternateid"></a>
-          <%
-          String altID="";
-          if(sharky.getAlternateID()!=null){
-            altID=sharky.getAlternateID();
-          }
-
-          %>
-          <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
-          <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-        </p>
-        <!-- Now prep the alternateId popup dialog -->
-        <div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
-        <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-          <tr>
-            <td align="left" valign="top">
-              <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
-                <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
-                <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
-              </td>
-            </tr>
-          </table>
-
-        </div>
-        <!-- alternateId popup dialog script -->
-        <script>
-        var dlg = $("#dialogAlternateID").dialog({
-          autoOpen: false,
-          draggable: false,
-          resizable: false,
-          width: 600
-        });
-
-        $("a#alternateID").click(function() {
-          dlg.dialog("open");
-        });
-        </script>
-
-        <%
-        if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-          String genusSpeciesFound=props.getProperty("notAvailable");
-          if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
-          %>
-          <p><img align="absmiddle" src="images/taxontree.gif">
-            <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
-          </p>
-          <%
-        }
-        %>
-
-        </div>
+        </table>
 
       </div>
-      <%-- End Descriptions --%>
+      <!-- birth date popup dialog script -->
+      <script>
+        var dlgBirthDate = $("#dialogBirthDate").dialog({
+        autoOpen: false,
+        draggable: false,
+        resizable: false,
+        width: 600
+        });
+
+        $("a#birthdate").click(function() {
+        dlgBirthDate.dialog("open");
+        });
+      </script>
+      </p>
+      <!-- end birth date -->
+
+      <!-- start death date -->
+      <a name="deathdate"></a>
+      <%
+      String timeOfDeath="";
+      if(sharky.getTimeofDeath()>0){
+      String timeOfDeathFormat="yyyy-MM-d";
+      if(props.getProperty("deathdateJodaFormat")!=null){
+      timeOfDeathFormat=props.getProperty("deathdateJodaFormat");
+      }
+      timeOfDeath=(new DateTime(sharky.getTimeofDeath())).toString(timeOfDeathFormat);
+      }
+      String displayTimeOfDeath=timeOfDeath;
+      //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
+
+      %>
+      <p><%=props.getProperty("deathdate")  %>:
+      <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+      </p>
+
+      <!-- Now prep the death date popup dialog -->
+      <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
+      <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+      <tr><td align="left" valign="top">
+        <strong>
+          <font color="#990000"> <%=props.getProperty("clickDate")%>
+        </font>
+      </strong>
+      <br /><%=props.getProperty("dateFormat")%>
+      <br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
+
+      </td></tr>
+
+      <tr>
+      <td align="left" valign="top">
+        <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
+          <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+          <%=props.getProperty("deathdate")  %>:
+          <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
+        </td>
+      </tr>
+      </table>
+
+      </div>
+      <!-- death date popup dialog script -->
+      <script>
+      var dlgDeathDate = $("#dialogDeathDate").dialog({
+      autoOpen: false,
+      draggable: false,
+      resizable: false,
+      width: 600
+      });
+
+      $("a#deathdate").click(function() {
+      dlgDeathDate.dialog("open");
+      });
+      </script>
+      </p>
+      <!-- end death date -->
+    </div>
+    <div class="col-md-4">
+      <a name="alternateid"></a>
+      <%
+      String altID="";
+      if(sharky.getAlternateID()!=null){
+        altID=sharky.getAlternateID();
+      }
+
+      %>
+      <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
+      <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
+    </p>
+    <!-- Now prep the alternateId popup dialog -->
+    <div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
+    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+
+      <tr>
+        <td align="left" valign="top">
+          <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
+            <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
+            <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+    <!-- alternateId popup dialog script -->
+    <script>
+    var dlg = $("#dialogAlternateID").dialog({
+      autoOpen: false,
+      draggable: false,
+      resizable: false,
+      width: 600
+    });
+
+    $("a#alternateID").click(function() {
+      dlg.dialog("open");
+    });
+    </script>
+
+    <%
+    if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+      String genusSpeciesFound=props.getProperty("notAvailable");
+      if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
+      %>
+      <p><img align="absmiddle" src="images/taxontree.gif">
+        <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
+      </p>
+      <%
+    }
+    %>
+
+    </div>
+
+  </div>
+  <%-- End Descriptions --%>
+
+  <div class="row" id="just-a-big-temp-photoswipe-containing-workarea">
+    <%
+
+    // TODO: implement a photoswipe gallery here
+
+    boolean loggedIn = false;
+    try{
+      if(request.getUserPrincipal()!=null){loggedIn=true;}
+    }
+    catch(NullPointerException nullLogged){}
+
+      Encounter[] galleryEncs = sharky.getDateSortedEncounters();
+
+      if (galleryEncs.length>0) {
+        String encNum = galleryEncs[0].getCatalogNumber();
+        %>
+        <jsp:include page="individualMediaGallery.jsp" flush="true">
+          <jsp:param name="encounterNumber" value="<%=encNum%>" />
+          <jsp:param name="individualID" value="<%=name%>" />
+          <jsp:param name="isOwner" value="<%=isOwner %>" />
+          <jsp:param name="loggedIn" value="<%=loggedIn %>" />
+        </jsp:include>
+        <%
+
+      }
 
 
+      %>
+    </div>
 
+  <%-- Body Row --%>
+  <br><br>
+  <div class="row">
 
-
+    <%-- Main Left Column --%>
+    <div class="col-md-8 mainColumn">
 
       <%-- TODO does this vv go here? --%>
       <%
@@ -1564,9 +1521,6 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
         <ul class="nav nav-tabs">
           <li id="familyDiagramTab"  class="active">
             <a href="#familyDiagram">Familial Diagram</a>
-          </li>
-          <li id="communityDiagramTab">
-            <a href="#communityDiagram"><%=props.getProperty("social")%> Diagram</a>
           </li>
           <li id="communityTableTab">
             <a href="#communityTable"><%=props.getProperty("social")%> Table</a>
@@ -2165,431 +2119,7 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
 
     <%-- Main Right Column --%>
     <div class="col-md-4 mainColumn">
-      <!-- Start thumbnail gallery -->
-      <div>
-        <p>
-          <strong><%=props.getProperty("imageGallery") %>
-          </strong></p>
 
-            <%
-            String[] keywords=keywords=new String[0];
-        		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-        		if(numThumbnails>0){
-        		%>
-
-        <table id="results" border="0" width="100%">
-            <%
-
-
-        			int countMe=0;
-        			//Vector thumbLocs=new Vector();
-        			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-
-        			int  numColumns=2;
-        			int numThumbs=0;
-        			  if (CommonConfiguration.allowAdoptions(context)) {
-        				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-        				  int numAdoptions = adoptions.size();
-        				  if(numAdoptions>0){
-        					  numColumns=2;
-        				  }
-        			  }
-
-        			try {
-
-        			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE individualID == \""+sharky.getIndividualID()+"\"");
-        		        //query.setFilter("SELECT "+jdoqlQueryString);
-        		        query.setResult("catalogNumber");
-        		        Collection c = (Collection) (query.execute());
-        		        ArrayList<String> enclist = new ArrayList<String>(c);
-        		        query.closeAll();
-
-
-        				thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
-        				numThumbs=thumbLocs.size();
-        			%>
-
-          <tr valign="top">
-         <td>
-         <!-- HTML Codes by Quackit.com -->
-        <div style="text-align:left;border:1px solid lightgray;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
-
-              <%
-              						while(countMe<numThumbs){
-        							//for(int columns=0;columns<numColumns;columns++){
-        								if(countMe<numThumbs) {
-        									//String combined ="";
-        									//if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-        									//	combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-        									//}
-        									//else{
-        									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-
-        									//}
-
-        									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-        									//String thumbLink=stzr.nextToken();
-        									//String encNum=stzr.nextToken();
-        									//int fileNamePos=combined.lastIndexOf("BREAK")+5;
-        									//String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
-
-        									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-        									String encSubdir = thisEnc.subdir();
-        									boolean visible = thisEnc.canUserAccess(request);
-
-        									String thumbLink="";
-        									boolean video=true;
-        									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-        										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
-        										video=false;
-        									}
-        									else{
-        										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-
-        									}
-        									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
-
-        	boolean thisEncounterVisible = thisEnc.canUserAccess(request);
-        							%>
-
-
-
-              <table class="<%=(visible ? "" : "no-access")%>" align="left" width="<%=100/numColumns %>%" margin="0 auto">
-                <tr align="center">
-                  <td valign="top">
-
-                      <%
-        			if(isOwner && thisEncounterVisible){
-        												%>
-                    <a href="<%=link%>" target="_blank"
-                    <%
-                    if(thumbLink.indexOf("video.jpg")==-1){
-                    %>
-                    	class="highslide" onclick="return hs.expand(this)"
-                    <%
-                    }
-                    %>
-                    >
-                    <%
-                    }
-                     %>
-                      <img src="<%=thumbLink%>" alt="photo" border="1" title="<%=props.getProperty("clickEnlarge")%>"/>
-                      <%
-                        if (isOwner) {
-                      %>
-                    </a>
-                      <%
-        			}
-
-        			%>
-
-                    <div
-                    <%
-                    if(!thumbLink.endsWith("video.jpg")){
-                    %>
-                    class="highslide-caption"
-                    <%
-                    }
-                    %>
-                    >
-
-                      <table>
-                        <tr>
-                          <td align="left" valign="top">
-
-                            <table>
-                              <%
-
-                                int kwLength = keywords.length;
-                                //Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-                              %>
-
-
-
-                              <tr>
-                                <td>
-
-        	<% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-                                	<span class="caption"><%=props.getProperty("location") %>:
-                                		<%
-                                		if(thisEnc.getLocation()!=null){
-                                		%>
-                                			<%=thisEnc.getLocation() %>
-                                		<%
-                                		}
-                                		else {
-                                		%>
-                                			&nbsp;
-                                		<%
-                                		}
-                                		%>
-                                	</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>
-                                	<span class="caption"><%=props.getProperty("locationID") %>:
-        				                        		<%
-        				                        		if(thisEnc.getLocationID()!=null){
-        				                        		%>
-        				                        			<%=thisEnc.getLocationID() %>
-        				                        		<%
-        				                        		}
-        				                        		else {
-        				                        		%>
-        				                        			&nbsp;
-        				                        		<%
-        				                        		}
-        				                        		%>
-                                	</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td><span
-                                  class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a target="_blank"
-                                  href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-                                </a></span></td>
-                              </tr>
-                              <%
-                                if (thisEnc.getVerbatimEventDate() != null) {
-                              %>
-                              <tr>
-
-                                <td><span
-                                  class="caption"><%=props.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
-                                </td>
-                              </tr>
-                              <%
-                                }
-                              %>
-                              <tr>
-                                <td><span class="caption">
-        											<%=props.getProperty("matchingKeywords") %>
-        											<%
-        											 //while (allKeywords2.hasNext()) {
-        					                          //Keyword word = (Keyword) allKeywords2.next();
-
-
-        					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-        											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-
-        					                            //String renderMe = word.getReadableName();
-        												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-        												int myWordsSize=myWords.size();
-        					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-        					                              //String kwParam = keywords[kwIter];
-        					                              //if (kwParam.equals(word.getIndexname())) {
-        					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-        					                              //}
-        					                      		 	%>
-        					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-        					 								<%
-        					                            }
-
-
-
-
-        					                          //    }
-        					                       // }
-
-                                  %>
-        										</span></td>
-                              </tr>
-                            </table>
-                            <br/>
-
-                            <%
-                              if (CommonConfiguration.showEXIFData(context)) {
-
-                    	if(!thumbLink.endsWith("video.jpg")){
-                   		 %>
-        					<span class="caption">
-        						<div class="scroll">
-        						<span class="caption">
-        					<%
-                    if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-                      try{
-                      File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-                      if(exifImage.exists()){
-                      	Metadata metadata = JpegMetadataReader.readMetadata(exifImage);
-                      	// iterate through metadata directories
-                        for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-                  				%>
-          								<%=tag.toString() %><br/>
-          								<%
-                        }
-                      } //end if
-                      else{
-                    	  %>
-        		            <p>File not found on file system. No EXIF data available.</p>
-                  		<%
-                      }
-                    } //end try
-                    catch(Exception e){
-                    	 %>
-        		            <p>Cannot read metadata for this file.</p>
-                    	<%
-                    	System.out.println("Cannout read metadata for: "+thumbLocs.get(countMe).getFilename());
-                    	e.printStackTrace();
-                    }
-
-                          }
-                        %>
-
-
-           								</span>
-                    </div>
-           								</span>
-           			<%
-                    	}
-           			%>
-
-
-                          </td>
-                          <%
-                            }
-                          %>
-                        </tr>
-                      </table>
-                    </div>
-
-
-        </td>
-        </tr>
-
-         <%
-                    if(!thumbLink.endsWith("video.jpg")){
-         %>
-        <tr>
-          <td class="lock-td">
-        <% if (!visible) out.println(thisEnc.collaborationLockHtml(collabs)); %>
-          	<span class="caption"><%=props.getProperty("location") %>:
-        	                        		<%
-        	                        		if(thisEnc.getLocation()!=null){
-        	                        		%>
-        	                        			<%=thisEnc.getLocation() %>
-        	                        		<%
-        	                        		}
-        	                        		else {
-        	                        		%>
-        	                        			&nbsp;
-        	                        		<%
-        	                        		}
-        	                        		%>
-                                	</span>
-          </td>
-        </tr>
-        <tr>
-          <td>
-         	<span class="caption"><%=props.getProperty("locationID") %>:
-                                		<%
-                                		if(thisEnc.getLocationID()!=null){
-                                		%>
-                                			<%=thisEnc.getLocationID() %>
-                                		<%
-                                		}
-                                		else {
-                                		%>
-                                			&nbsp;
-                                		<%
-                                		}
-                                		%>
-                                	</span>
-           </td>
-        </tr>
-        <tr>
-          <td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
-        </tr>
-        <tr>
-          <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a target="_blank"
-            href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-          </a></span></td>
-        </tr>
-        <tr>
-          <td><span class="caption">
-        											<%=props.getProperty("matchingKeywords") %>
-        											<%
-                                //int numKeywords=myShepherd.getNumKeywords();
-        											 //while (allKeywords2.hasNext()) {
-        					                          //Keyword word = (Keyword) allKeywords2.next();
-
-
-        					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-        											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-
-        					                            //String renderMe = word.getReadableName();
-        												//List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-        												//int myWordsSize=myWords.size();
-        					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-        					                              //String kwParam = keywords[kwIter];
-        					                              //if (kwParam.equals(word.getIndexname())) {
-        					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-        					                              //}
-        					                      		 	%>
-        					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-        					 								<%
-        					                            }
-
-
-
-
-        					                          //    }
-        					                       // }
-
-                                  %>
-        										</span></td>
-        </tr>
-        <%
-
-                    }
-        %>
-        </table>
-
-        <%
-
-              countMe++;
-            } //end if
-          } //endFor
-        %>
-        </div>
-
-        </td>
-        </tr>
-        <%
-
-
-
-        } catch (Exception e) {
-          e.printStackTrace();
-        %>
-        <tr>
-          <td>
-            <p><%=props.getProperty("error")%>
-            </p>.
-          </td>
-        </tr>
-        <%
-          }
-        %>
-
-        </table>
-        <%
-        } else {
-        %>
-
-        <p><%=props.getProperty("noImages")%></p>
-
-        <%
-          }
-        %>
-      </div>
-      <!-- End thumbnail gallery -->
-      <br>
-      <br>
       <%-- Start Collaborators --%>
       <div>
         <%
@@ -2604,7 +2134,7 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
         //myShepherd.beginDBTransaction();
 
         //loop through users to display photos
-        List<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
+        ArrayList<User> relatedUsers =  userShepherd.getAllUsersForMarkedIndividual(sharky);
         int numUsers=relatedUsers.size();
         if(numUsers>0){
         %><div id="researchers"><%
@@ -2737,9 +2267,6 @@ String jumboimgUrl = newMaJson.optString("url",urlLoc+"/cust/mantamatcher/img/he
 </div>
 
 
-<%-- Import Footer --%>
-<jsp:include page="footer.jsp" flush="true"/>
-
 <%---------------- End Visual Content ----------------%>
 
 <%
@@ -2854,3 +2381,18 @@ myShepherd.closeDBTransaction();
 
 
 %>
+
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
+<jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
+
+<%-- Import Footer --%>
+<jsp:include page="footer.jsp" flush="true"/>
