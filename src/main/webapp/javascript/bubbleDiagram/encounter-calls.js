@@ -70,7 +70,6 @@ var makeCooccurrenceChart = function(items) {
 };
 
 var getData = function(individualID) {
-    individualID.toString();
     var occurrenceObjectArray = [];
     var items = [];
     var encounterArray = [];
@@ -179,13 +178,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
     tr.enter().append("tr").attr("class", function(d){return d3.values(d)[0];});
 
     var td = tr.selectAll("td").data(function(d){return d3.values(d);});
-    td.enter().append("td")
-    .text(function(d) {
-      if(d === "TissueSample") {
-        return "Tissue Sample";
-      }
-      return d;
-    });
+    td.enter().append("td").text(function(d) {return d;});
 
     if(sortOn !== null) {
       if(sortOn != previousSort){
@@ -195,14 +188,10 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
         tr.sort(function(a,b){return sort(b[sortOn], a[sortOn]);});
         previousSort = null;
       }
-      td.text(function(d) {
-        if(d === "TissueSample") {
-          return "Tissue Sample";
-        }
-        return d;
-
-      });
-      $("td:contains('Tissue Sample')").html("<img src='images/microscope.gif'/>");
+      td.text(function(d) {return d;});
+      $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
+      $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
+      $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
     }
   }
 
@@ -233,33 +222,45 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       }
       jsonData = json;
       for(var i=0; i < jsonData.encounters.length; i++) {
-
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
             if(encounterData.includes(jsonData.encounters[i].occurrenceID)) {
             } else {
-               occurringWith = occurrenceObjectArray[j].occurringWith;
+               var occurringWith = occurrenceObjectArray[j].occurringWith;
             }
           }
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-          var date = dateInMilliseconds.toISOString().substring(0, 10);
+          date = dateInMilliseconds.toISOString().substring(0, 10);
         } else {
-          var date = "Unknown";
-        };
-        var location = jsonData.encounters[i].verbatimLocality;
+          date = "Unknown";
+        }
+        if(jsonData.encounters[i].verbatimLocality) {
+          var location = jsonData.encounters[i].verbatimLocality;
+        } else {
+          var location = "undefined";
+        }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
-        if(jsonData.encounters[i].tissueSamples.length > 0) {
-          var tissueSamples = jsonData.encounters[i].tissueSamples[0].type;
-        } else {
-          var tissueSamples = "";
+        if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
+          if(jsonData.encounters[i].tissueSamples.length > 0) {
+            var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
+          } else if(jsonData.encounters[i].annotations.length > 0) {
+            var dataTypes = "image";
+          } else if (jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
+            var dataTypes = "both"
+          } else {
+            var dataTypes = "";
+          }
         }
         var sex = jsonData.encounters[i].sex;
         var behavior = jsonData.encounters[i].behavior;
         var alternateID = jsonData.encounters[i].alternateid;
         var encounter = new Object();
-        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: tissueSamples, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
+        if(occurringWith === undefined) {
+          var occurringWith = "";
+        }
+        encounter = {catalogNumber: catalogNumber, date: date, location: location, dataTypes: dataTypes, alternateID: alternateID, sex: sex, occurringWith: occurringWith, behavior: behavior};
         encounterData.push(encounter);
       }
       makeTable(encounterData, "#encountHead", "#encountBody");

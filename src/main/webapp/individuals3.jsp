@@ -567,7 +567,9 @@ $(document).ready( function() {
     });
 
     setTimeout(function() {
-    $("td:contains('Tissue Sample')").html("<img src='images/microscope.gif'/>");
+    $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
+    $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
+    $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
     $('#encountTable tr').click(function() {
       selectedWhale = ($(this).attr("class"));
       goToEncounterURL(selectedWhale);
