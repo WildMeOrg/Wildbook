@@ -132,6 +132,16 @@ th {
   cursor: pointer;
 }
 
+.encounterImg {
+  max-width: auto;
+  max-height: 20%;
+}
+
+.encounterSample {
+  max-width: auto;
+  max-height: 60%;
+}
+
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #7997a1;
   color: #FFFFFF;
