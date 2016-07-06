@@ -88,6 +88,8 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	
+  	
   	<%
   //find the endorseImage if set
   	if((request.getParameter("endorseimage")!=null)&&(!request.getParameter("endorseimage").trim().equals(""))){
@@ -99,22 +101,41 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 	    		<meta property="og:image" content="<%=ma.webURLString().replaceAll("52.40.15.8", "norppagalleria.wwf.fi") %>" />
 	    		<meta property="og:image:width" content="<%=(int)ma.getWidth() %>" />
 				<meta property="og:image:height" content="<%=(int)ma.getHeight() %>" />
+				<meta property="og:description" content="Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" />
+  	
 	    	<%
   		}
+
   	  	else{
   	    	%>
   	    		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
   	    		<meta property="og:image:width" content="1082" />
 				<meta property="og:image:height" content="722" />
+				<meta property="og:description" content="Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" />
+  	
 
   	    	<%
   	    	}
   	}
+		else if(request.getRequestURL().toString().indexOf("gallery.jsp")!=-1){
+  			//http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg
+  			%>
+  				<meta property="og:image" content="http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" />
+	    		<meta property="og:image:width" content="1200" />
+				<meta property="og:image:height" content="627" />
+				<meta property="og:description" content="WWF:n Norppagalleriassa voit tutustua kaikkiin tunnistettuihin saimaannorppiin. K&auml;y sin&auml;kin katsomassa!" />
+  	
+				
+  			
+  			<%
+  		}
   	else{
   	%>
   		<meta property="og:image" content="/cust/mantamatcher/img/hero_manta.jpg" />
   		<meta property="og:image:width" content="1082" />
 				<meta property="og:image:height" content="722" />
+				<meta property="og:description" content="Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" />
+  	
   	<%
   	}
 
