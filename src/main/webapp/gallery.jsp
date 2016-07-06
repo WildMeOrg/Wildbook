@@ -454,12 +454,12 @@ myShepherd.beginDBTransaction();
                 String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
                 %>
 
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=imageURL %>&title=<%=shareTitle %>&endorseimage=<%=pairMediaAssetID[j] %>" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                <a href="https://www.facebook.com/sharer/sharer.php?u=http://norppagalleria.wwf.fi/gallery.jsp&title=<%=shareTitle %>&endorseimage=http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
                 	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
                 </a>
 
-                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=imageURL %>"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=imageURL %>"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
                 <td>

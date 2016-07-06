@@ -534,12 +534,19 @@ jQuery(function($) {
     <div class="col-md-6 col-md-offset-3">
 
       <p>
-        Saimaassa uiskentelee noin 320 norppaa. Tavoitteenamme on tunnistaa niist&auml; mahdollisimman moni. Siihen tarvitsemme myös sinun apuasi! Otamme ilolla vastaan kuvia saimaannorpista, ja jo tunnistettuihin viiksiniekkoihin p&auml;&auml;set tutustumaan galleriassa. Kuvien lis&auml;ksi olemme kiinnostuneita myös n&auml;köhavainnoista, sill&auml; nekin auttavat t&auml;m&auml;n eritt&auml;in uhanalaisen hylkeen suojelussa.
+        Saimaassa uiskentelee yli 300 norppaa. Tavoitteenamme on tunnistaa niist&auml; mahdollisimman moni. Siihen tarvitsemme my&oum;s sinun apuasi! Otamme ilolla vastaan kuvia saimaannorpista, ja jo tunnistettuihin viiksiniekkoihin p&auml;&auml;set tutustumaan galleriassa. Kuvien lis&auml;ksi olemme kiinnostuneita my&oum;s n&auml;k&oum;havainnoista, sill&auml; nekin auttavat t&auml;m&auml;n eritt&auml;in uhanalaisen hylkeen suojelussa.
       </p>
       <p style="font-size:2em;color:#999">
-        <i class="icon icon-facebook-btn" aria-hidden="true"></i>
-        <i class="icon icon-twitter-btn" aria-hidden="true"></i>
-        <i class="icon icon-google-plus-btn" aria-hidden="true"></i>
+        <a href="https://www.facebook.com/sharer/sharer.php?&endorseimage=http://norppagalleria.wwf.fi/images/pic_for_social_media.jpg&u=http://norppagalleria.wwf.fi&title=Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                	
+        	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
+        </a>
+        <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!+http://norppagalleria.wwf.fi/images/pic_for_social_media.jpg">
+        	<i class="icon icon-twitter-btn" aria-hidden="true"></i>
+        </a>
+        <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/images/pic_for_social_media.jpg"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+        
+
       </p>
     </div>
   </div>
@@ -567,7 +574,7 @@ jQuery(function($) {
 		</div>
 		<div class="col-md-6 full-height per-seal-info">
 		  <h2 class="greenish">Pullervo</h2>
-		  <p>Pullervo on Suomen tunnetuin saimaannorppa. Se nousi koko kansan tietoisuuteen Norppaliven toisena p&auml;&auml;t&auml;hten&auml; toukokuussa 2016. Pullervo tunnettiin ennen koodinimell&auml; Phs106. Sen nime&auml;miseksi k&auml;ynnistettiin kilpailu, ja ehdotuksia nimeksi tuli yli 6 000. Pullervo on v&auml;ritykselt&auml;&auml;n erityisen vaalea ja isohko uros.</p>
+		  <p>Pullervo on Suomen tunnetuin saimaannorppa. Se nousi koko kansan tietoisuuteen Norppaliven toisen p&auml;&auml;t&auml;hten&auml; toukokuussa 2016. Pullervo tunnettiin ennen koodinimell&auml; Phs106. Sen nime&auml;miseksi k&auml;ynnistettiin kilpailu, ja ehdotuksia nimeksi tuli yli 6 000. Pullervo on erityisen vaalea ja isohko uros.</p>
 		  <p class=pfooter-link>
 		    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 		  </p>
@@ -587,7 +594,7 @@ jQuery(function($) {
 
 <div class="col-md-6 full-height per-seal-info">
   <h2 class="greenish">Siiri</h2>
-  <p>Siiri oli toinen Norppalivess&auml; n&auml;hdyist&auml; saimaannorpista. Se on n&auml;hty samalla lepokivell&auml; jo kolmena per&auml;kk&auml;isen&auml; vuotena. Vuonna 2015 Siiri oli It&auml;-Suomen yliopiston tutkijoilla l&auml;hetinseurannassa, jolloin sen liikkeist&auml; saatiin t&auml;rke&auml;&auml; tietoa tutkimusk&auml;ytt&ouml;&ouml;n.</p>
+  <p>Siiri oli toinen Norppalivess&auml; n&auml;hdyist&auml; saimaannorpista. Se on tavattu samalla lepokivell&auml; jo kolmena per&auml;kk&auml;isen&auml; vuotena. Vuonna 2015 Siiri oli It&auml;-Suomen yliopiston tutkijoilla l&auml;hetinseurannassa, jolloin sen liikkeist&auml; saatiin t&auml;rke&auml;&auml; tietoa.</p>
   <p class=pfooter-link>
     <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
   </p>
@@ -607,7 +614,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Terttu</h2>
-	  <p>Haukivedell&auml; vuonna 2008 syntyneen Tertun el&auml;m&auml;n alkutaivalta seurattiin tarkasti sen karvaan kiinnitetyn radiol&auml;hettimen avulla. L&auml;hetin putosi kuitenkin seuraavana vuonna Tertun kyydist&auml;, sill&auml; norpat vaihtavat karvansa s&auml;&auml;nn&ouml;llisesti. Seuraavaa havaintoa saatiin odottaa muutaman vuoden ajan. Sen j&auml;lkeen Terttu on n&auml;hty vuosittain, aina alle seitsem&auml;n kilometrin p&auml;&auml;ss&auml; syntym&auml;paikastaan. Vuonna 2015 saatiin iloisia perheuutisia, kun Terttu synnytti poikasen.</p>
+	  <p>Haukivedell&auml; vuonna 2008 syntyneen Tertun el&auml;m&auml;n alkutaivalta seurattiin tarkasti l&auml;hettimen avulla. Karvaan kiinnitetty l&auml;hetin putosi seuraavana vuonna Tertun kyydist&auml;, sill&auml; norpat vaihtavat karvansa kev&auml;isin. Seuraavaa havaintoa saatiin odottaa kolme vuotta. Sen j&auml;lkeen Terttu on n&auml;hty vuosittain, aina alle seitsem&auml;n kilometrin p&auml;&auml;ss&auml; syntym&auml;paikastaan. Vuonna 2015 saatiin iloisia perheuutisia, kun Terttu synnytti poikasen.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
@@ -627,7 +634,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Teemu</h2>
-	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&ouml;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&ouml;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
+	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&oum;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&oum;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
@@ -647,7 +654,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Ritva</h2>
-	  <p>Ritva alkaa olla kunnioitettavassa i&auml;ss&auml;, ja se onkin pisimp&auml;&auml;n tunnettu saimaannorppa. Ensimm&auml;isen kerran Ritva havaittiin vuonna 1998 Haukivedell&auml;, jolloin tutkijat seurasivat sen liikkeit&auml; radiol&auml;hettimen avulla. Ritva on naaraaksi varsin suuri. Se painoi vuonna 1998 per&auml;ti 95 kiloa. Vuonna 1999 Ritva synnytti kuutin, mink&auml; j&auml;lkeen sit&auml; ei n&auml;hty pitk&auml;&auml;n aikaan. Viime vuosina Ritvasta on kuitenkin lukuisia havaintoja, kaikki alle nelj&auml;n kilometrin s&auml;teell&auml; toisistaan.</p>
+	  <p>Ritva alkaa olla kunnioitettavassa i&auml;ss&auml;, ja se onkin pisimp&auml;&auml;n seurattu saimaannorppa. Ensimm&auml;isen kerran Ritva havaittiin vuonna 1998 Haukivedell&auml;, jolloin tutkijat seurasivat sen liikkeit&auml; radiol&auml;hettimen avulla. Ritva on naaraaksi varsin suuri. Se painoi vuonna 1998 per&auml;ti 95 kiloa. Seuraavana vuonna Ritva synnytti kuutin, mink&auml; j&auml;lkeen sit&auml; ei n&auml;hty pitk&auml;&auml;n aikaan. Viime vuosina Ritvasta on kuitenkin lukuisia havaintoja, kaikki alle nelj&auml;n kilometrin s&auml;teell&auml; toisistaan.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
@@ -666,7 +673,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Arka</h2>
-	  <p>Arka-norpasta erityisen tekev&auml;t sen perhesiteet. Arka on nimitt&auml;in toinen ensimm&auml;isist&auml; varmistetuista norppakaksosista. Kaksoset syntyiv&auml;t vuonna 2009 Pihlajavedell&auml;, ja Arka-naaraasta on lukuisia havaintoja vuosien varrelta. Vuonna 2015 se kuvattiin j&auml;&auml;ll&auml; poikasen kanssa. Samana kes&auml;n&auml; Arka jakoi lepopaikan toisen aikuisen norpan kanssa. Kyseess&auml; ei kuitenkaan ollut sen kaksonen Parka, josta ei valitettavasti ole tehty havaintoja vuoden 2009 j&auml;lkeen.</p>
+	  <p>Arka-norpasta erityisen tekev&auml;t sen perhesiteet. Arka on nimitt&auml;in toinen norppakaksosista. Kaksoset syntyiv&auml;t vuonna 2009 Pihlajavedell&auml;, ja Arka-naaraasta on lukuisia havaintoja vuosien varrelta. Vuonna 2015 se kuvattiin j&auml;&auml;ll&auml; poikasen kanssa. Samana kes&auml;n&auml; Arka jakoi lepopaikan toisen aikuisen norpan kanssa. Kyseess&auml; ei kuitenkaan ollut sen kaksossisarus Parka, josta ei valitettavasti ole tehty havaintoja syntym&auml;kev&auml;&auml;n j&auml;lkeen. </p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
@@ -687,7 +694,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Mitro</h2>
-	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&ouml;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&ouml;s GPS- seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&ouml;ll&ouml;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&ouml;s makoilemasta rantaruohikolla.</p>
+	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&oum;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&oum;s GPS-seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&oum;ll&oum;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&oum;s makoilemasta rantaruohikolla.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
