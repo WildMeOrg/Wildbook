@@ -18,7 +18,7 @@
 %>
 <jsp:include page="header.jsp" flush="true"/>
 <div class="container maincontent">
-          <h1 class="intro">Mist&auml; WWF:n Norppagalleriassa on kyse?</h1>
+          <h2 class="intro">Mist&auml; WWF:n Norppagalleriassa on kyse?</h2>
      
 
 
@@ -31,7 +31,7 @@
 
 <p>Yksil&ouml;ntunnistukseen kelpaa kuva, josta erottaa norpan kyljen turkkikuvion. Usein kaukaakin otetut kuvat riitt&auml;v&auml;t tunnistukseen. Kuvista, joissa norppa on vedess&auml; eiv&auml;tk&auml; sen kylkikuviot n&auml;y, ei norppaa pystyt&auml; tunnistamaan. P&auml;&auml;osa Norppagallerian kuvista on saatu It&auml;-Suomen yliopiston tutkijoiden saimaannorpan lepokiville asentamista riistakameroista. Tutkimukselle on erityisluvat.</p>
 
-<h2 class="intro">&auml;l&auml; h&auml;iritse saimaannorppia!</h2>
+<h2 class="intro">&Auml;l&auml; h&auml;iritse saimaannorppia!</h2>
 
 <p>Vaikka kartutamme Norppagalleriaa tutkimuksen ja suojelun tarpeisiin, &auml;l&auml; koskaan h&auml;iritse norppia kuvien ja havaintojen saamiseksi! Saimaannorppa on luonnonsuojelulailla rauhoitettu ja luonnonsuojeluasetuksen mukaan erityisesti suojeltava laji, jonka tahallinen h&auml;iritseminen sen el&auml;m&auml;nkierron kannalta t&auml;rkeill&auml; paikoilla on lailla kielletty. Avovesiaikaisilla lev&auml;hdyspaikoilla h&auml;iri&ouml;n v&auml;ltt&auml;minen tarkoittaa k&auml;yt&auml;nn&ouml;ss&auml; sit&auml;, ett&auml; lepokivell&auml; olevaa norppaa ei tule tahallisesti, esimerkiksi valokuvaustarkoituksessa, l&auml;hesty&auml; niin ett&auml; se h&auml;iriintyy ja joutuu pulahtamaan veteen. Erityisen t&auml;rke&auml;&auml; h&auml;iri&ouml;n v&auml;ltt&auml;minen on karvanvaihtoaikaan huhtikuun puoliv&auml;list&auml; kes&auml;kuun puoliv&auml;liin, jolloin norpat viett&auml;v&auml;t paljon aikaa lepokivill&auml;. Pitk&auml;lt&auml;kin et&auml;isyydelt&auml; saa teleobjektiivilla hyviss&auml; olosuhteissa yksil&ouml;tunnistukseen riitt&auml;v&auml;n kuvan norppaa h&auml;iritsem&auml;tt&auml;.</p> 
 
