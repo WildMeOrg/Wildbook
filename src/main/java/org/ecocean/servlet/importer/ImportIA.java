@@ -41,11 +41,12 @@ public class ImportIA extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     boolean firstTime = false;
-    if (request.getParameter("doInit") != null) firstTime = true;
+    if (request.getParameter("doInit") != null) firstTime = true;  //TODO FIXME this is very much hardcoded to one installation!
 
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    FeatureType.initAll(myShepherd);
     PrintWriter out = response.getWriter();
 
     if (firstTime) initFeatureTypeAndAssetStore(myShepherd);
@@ -57,27 +58,38 @@ public class ImportIA extends HttpServlet {
 
     out.println("\n\nStarting ImportIA servlet...");
 
+    System.out.println("IA-IMPORT: started.....");
     JSONObject imageSetRes = getFromIA("/api/imageset/json/", context, out);
     JSONArray fancyImageSetUUIDS = imageSetRes.optJSONArray("response");
+    int testingLimit = -1;
+    if (request.getParameter("testingLimit") != null) {
+        try {
+            testingLimit = Integer.parseInt(request.getParameter("testingLimit"));
+        } catch (Exception ex) {}
+        if (testingLimit > 0) System.out.println("IA-IMPORT: testingLimit=" + testingLimit);
+    }
 
-    //int testingLimit = 10;
-
-    //for (int i = 0; i < fancyImageSetUUIDS.length() && i < testingLimit; i++) {
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
-      JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
-      String occID = IBEISIA.fromFancyUUID(fancyID);
+        if ((testingLimit > 0) && (i >= testingLimit)) continue;
+        JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
+        Occurrence occ = null;
+        String occID = IBEISIA.fromFancyUUID(fancyID);
 
+        System.out.println("IA-IMPORT: ImageSet " + occID);
       JSONObject annotRes = getFromIA("/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + fancyID + "]", context, out);
+System.out.println("annotRes -----> " + annotRes);
       // it's a singleton list, hence [0]
       JSONArray annotFancyUUIDs = annotRes.getJSONArray("response").getJSONArray(0);
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
       out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
       List<Annotation> annots = IBEISIA.grabAnnotations(annotUUIDs, myShepherd);
+System.out.println("annots -----> " + annots);
       JSONArray iaNamesArray = null;
       try {
         iaNamesArray = IBEISIA.iaNamesFromAnnotUUIDs(annotFancyUUIDs);
       } catch (Exception e) {        e.printStackTrace(out);
       }
+System.out.println("iaNamesArray ----> " + iaNamesArray);
 
       List<String> uniqueNames = new ArrayList<String>();
       HashMap<String,ArrayList<Annotation>> annotGroups = new HashMap<String,ArrayList<Annotation>>();
@@ -87,6 +99,7 @@ public class ImportIA extends HttpServlet {
         uniqueNames.add(thisName);
         annotGroups.put(thisName, new ArrayList<Annotation>());
       }
+        System.out.println("IA-IMPORT: unique names " + uniqueNames);
 
       for (int j=0; j < annots.size(); j++) {
         annotGroups.get(iaNamesArray.getString(j)).add(annots.get(j));
@@ -127,24 +140,39 @@ public class ImportIA extends HttpServlet {
         } catch (Exception ex) {}
         if (age != null) enc.setAge(age);
         myShepherd.storeNewEncounter(enc, Util.generateUUID());
-        if (myShepherd.isMarkedIndividual(name)) {
-          MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
-          if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
-          ind.addEncounter(enc, context);
-        } else {
-          MarkedIndividual ind = new MarkedIndividual(name, enc);
-          if (sex != null) ind.setSex(sex);
-          myShepherd.storeNewMarkedIndividual(ind);
-          myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
+        System.out.println("IA-IMPORT: " + enc);
+
+        if (!IBEISIA.unknownName(name)) {
+            enc.setIndividualID(name);
+            if (myShepherd.isMarkedIndividual(name)) {
+                MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
+                if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
+                ind.addEncounter(enc, context);
+            } else {
+                MarkedIndividual ind = new MarkedIndividual(name, enc);
+                if (sex != null) ind.setSex(sex);
+                myShepherd.storeNewMarkedIndividual(ind);
+                myShepherd.commitDBTransaction();
+                myShepherd.beginDBTransaction();
+                System.out.println("IA-IMPORT: new indiv " + ind);
+            }
         }
         for (Annotation ann: annotGroups.get(name)) {
-          myShepherd.storeNewAnnotation(ann);
+            myShepherd.storeNewAnnotation(ann);
         }
+        if (occ == null) {
+            //TODO test that it doesnt exist
+            occ = new Occurrence(occID, enc);
+        } else {
+            occ.addEncounter(enc);
+        }
+        System.out.println("IA-IMPORT: " + occ);
 
         myShepherd.commitDBTransaction();
 
       }
+
+        myShepherd.getPM().makePersistent(occ);
     }
 
     myShepherd.closeDBTransaction();
