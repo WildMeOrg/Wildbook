@@ -355,7 +355,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
 
 
                       <li>
-                        <a href="#">T&Auml;ST&Auml; ON KYSE</a>
+                        <a href="tasta.jsp">T&Auml;ST&Auml; ON KYSE</a>
                       </li>
 
                       <li>
