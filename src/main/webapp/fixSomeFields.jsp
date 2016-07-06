@@ -35,33 +35,28 @@ int numFixes=0;
 
 try{
 
-	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
+	Iterator allEncs=myShepherd.getAllEncounters();
 	
 
 
 	while(allEncs.hasNext()){
 		
-		MarkedIndividual indie=(MarkedIndividual)allEncs.next();
-		String altid=indie.getAlternateID();
+		Encounter enc=(Encounter)allEncs.next();
+
 		
-		indie.setAlternateID(altid.replaceAll("None", ""));
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
+		if(enc.getIndividualID()!=null){
 		
-		if((indie.getAlternateID()!=null)&&(indie.getAlternateID().indexOf(",")==-1)&&(indie.getAlternateID().length()>5)){
+			MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
+			if(!enc.getSex().equals(indie.getSex())){
+				enc.setSex(indie.getSex());
+				myShepherd.commitDBTransaction();
+				myShepherd.beginDBTransaction();
+				numFixes++;
+			}
 			
-			//now we gott fix it
+		
 			
-			String corrected=indie.getAlternateID().substring(0,5)+","+indie.getAlternateID().substring(5);
-			indie.setAlternateID(corrected);
-			myShepherd.commitDBTransaction();
-			myShepherd.beginDBTransaction();
 		}
-		
-		
-		//myShepherd.commitDBTransaction();
-		numFixes++;
-		//myShepherd.beginDBTransaction();
 
 	}
 	myShepherd.rollbackDBTransaction();
