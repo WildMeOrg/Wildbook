@@ -40,8 +40,8 @@ public class ImportIA extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-    boolean firstTime = true;
-    if (request.getParameter("skipInit")!=null) firstTime = false;
+    boolean firstTime = false;
+    if (request.getParameter("doInit") != null) firstTime = true;
 
     String context="context0";
     context=ServletUtilities.getContext(request);
