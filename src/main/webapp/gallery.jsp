@@ -452,6 +452,7 @@ myShepherd.beginDBTransaction();
                 <%
                 String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
                 String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
+                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
                 %>
 
                 <a href="https://www.facebook.com/sharer/sharer.php?u=http://norppagalleria.wwf.fi/gallery.jsp&title=<%=shareTitle %>&endorseimage=http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
