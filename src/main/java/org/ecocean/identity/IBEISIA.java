@@ -1243,6 +1243,7 @@ System.out.println("identification most recent action found is " + action);
                 anns.add(ann);
                 continue;
             }
+System.out.println("need " + annId + " from IA, i guess?");
             ann = getAnnotationFromIA(annId, myShepherd);
             if (ann == null) throw new RuntimeException("Could not getAnnotationFromIA(" + annId + ")");
             anns.add(ann);
@@ -1286,11 +1287,13 @@ System.out.println("identification most recent action found is " + action);
             if (ma == null) throw new RuntimeException("could not find MediaAsset " + imageUUID);
 
 //////// FIXME this is placeholder until we have this on getMediaAssetFromIA()
+/*
 Double[] ll = iaLatLonFromAnnotUUID(annId);
 if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
     ma.setUserLatitude(ll[0]);
     ma.setUserLongitude(ll[1]);
 }
+*/
 /////////
 
             //now we need the bbox to make the Feature
@@ -1320,6 +1323,7 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
             return ann;
 
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("getAnnotationFromIA(" + annId + ") error " + ex.toString());
         }
     }
@@ -1410,9 +1414,14 @@ if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
             dt = iaDateTimeFromImageUUID(maUUID);
         } catch (Exception ex) {}
         if (dt != null) ma.setUserDateTime(dt);
-        //TODO:
-        //ma.setUserLatitude();
-        //ma.setUserLongitude();
+
+        try {
+            Double[] ll = iaLatLonFromImageUUID(maUUID);
+            if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
+                ma.setUserLatitude(ll[0]);
+                ma.setUserLongitude(ll[1]);
+            }
+        } catch (Exception ex) {}
         myShepherd.getPM().makePersistent(ma);
         System.out.println("INFO: " + ma + " pulled from IA (and persisted!)");
         return ma;
@@ -1909,14 +1918,12 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
     }
+//http://52.37.240.178:5000/api/image/lat/json/?image_uuid_list=[{%22__UUID__%22:%22e985b3d4-bb2a-8291-07af-1ec4028d4649%22}]
     public static Double[] iaLatLonFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-/*
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
-        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from annot uuid=" + uuid);
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/gps/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get gps from image uuid=" + uuid);
         JSONArray ll = rtn.getJSONArray("response").getJSONArray(0);
         return new Double[]{ ll.optDouble(0), ll.optDouble(1) };
-*/
-        return null;
     }
 //http://52.37.240.178:5000/api/image/unixtime/json/?image_uuid_list=[{%22__UUID__%22:%22cb2e67a4-7094-d971-c5c6-3b5bed251fec%22}]
     public static DateTime iaDateTimeFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -1951,6 +1958,15 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         } else {
             rtn.put("iaURL", iau.toString());
             rtn.put("iaEnabled", true);
+            try {
+                // these 2 seem borked
+                //JSONObject rtn = RestClient.get(iaURL("context0", "/api/core/version/")
+                //JSONObject rtn = RestClient.get(iaURL("context0", "/api/core/db/version/")
+                JSONObject r = RestClient.get(iaURL("context0", "/api/core/db/name/"));
+                if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbName", r.getString("response"));
+                r = RestClient.get(iaURL("context0", "/api/core/db/info/"));
+                if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbInfo", r.getString("response"));
+            } catch (Exception ex) {}
         }
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
@@ -1958,5 +1974,12 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         rtn.put("timestamp", System.currentTimeMillis());
         return rtn;
     }
+
+    public static boolean unknownName(String name) {
+        if (name == null) return true;
+        if (name.equals(IA_UNKNOWN_NAME)) return true;
+        return false;
+    }
+
 
 }
