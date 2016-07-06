@@ -1139,11 +1139,18 @@ function sendButtonClicked() {
     }
     else{
     %>
-		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-		if(!isEmpty(recaptachaResponse)) {
-			$("#encounterForm").attr("action", "EncounterForm");
+    	if(($('#myCaptcha > *').length < 1)){
+    	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
+   		}
+   		else{	console.log('Here!'); 	
+   			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+   					
+   					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+   					if(!isEmpty(recaptachaResponse)) {		
+   						$("#encounterForm").attr("action", "EncounterForm");
+   						submitForm();
+   					}
 		}
 	//alert(recaptachaResponse);
 	<%
