@@ -1807,13 +1807,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   }
   
-  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-    
-    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
-    if(al.size()>0){return al.get(0);}
-    return new JSONObject();
-    
-  }
+
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {
     for (Encounter enc : this.getDateSortedEncounters()) {
