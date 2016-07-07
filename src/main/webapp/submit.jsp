@@ -106,16 +106,7 @@ context=ServletUtilities.getContext(request);
     animatedcollapse.init();
   </script>
 
- <%
- if(!langCode.equals("en")){
- %>
 
-<script src="javascript/timepicker/datepicker-<%=langCode %>.js"></script>
-<script src="javascript/timepicker/jquery-ui-timepicker-<%=langCode %>.js"></script>
-
- <%
- }
- %>
 
 <script type="text/javascript">
 
@@ -675,7 +666,18 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 }
 %>
 
+
+
+
 </fieldset>
+<div class="form-group">
+      
+      <div class="col-md-12">
+      <label class="control-label">Lis&auml;tietoa</label>
+      <br>
+        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+      </div>
+    </div>
 <br />
 
 
@@ -1137,11 +1139,18 @@ function sendButtonClicked() {
     }
     else{
     %>
-		var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   		 console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-		if(!isEmpty(recaptachaResponse)) {
-			$("#encounterForm").attr("action", "EncounterForm");
+    	if(($('#myCaptcha > *').length < 1)){
+    	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
+   		}
+   		else{	console.log('Here!'); 	
+   			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+   					
+   					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+   					if(!isEmpty(recaptachaResponse)) {		
+   						$("#encounterForm").attr("action", "EncounterForm");
+   						submitForm();
+   					}
 		}
 	//alert(recaptachaResponse);
 	<%
@@ -1176,5 +1185,6 @@ else {%>
 </div>
 </div>
 </div>
+
 
 <jsp:include page="footer.jsp" flush="true"/>

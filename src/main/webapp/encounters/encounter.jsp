@@ -3227,7 +3227,9 @@ $("a#measure").click(function() {
 
 
 </c:if>
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <table>
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8">
@@ -3314,7 +3316,9 @@ $("a#metal").click(function() {
 }
 %>
 </c:if>
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <c:if test="${showAcousticTag}">
 <%
   pageContext.setAttribute("acousticTagTitle", encprops.getProperty("acousticTag"));
@@ -3395,8 +3399,13 @@ $("a#acoustic").click(function() {
 %>
 
 </c:if>
+<%
+}
+%>
 
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <c:if test="${showSatelliteTag}">
 <%
   pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
@@ -3486,9 +3495,19 @@ $("a#sat").click(function() {
 <%
 }
 %></c:if>
+<%
+}
+%>
 </td>
 </tr>
 </table>
+<%
+}
+%>
+
+
+<!-- end public hide -->
+
 
 <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
 <%
