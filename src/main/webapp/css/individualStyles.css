@@ -1,16 +1,26 @@
 .maincontainer {
   margin-left: 3%;
   margin-right: 3%;
+  padding-top: 0px;
 }
 
 .mainColumn {
-  padding-left: 3%;
-  padding-right: 3%;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.mainHeader {
+  background-color: #b4cad2;
+}
+
+.slider {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
 }
 
 
 /*Hide Diagram Tab Content*/
-#communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
+#communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
 }
 
@@ -40,7 +50,6 @@ li.active{
 
 #familyDiagram svg {
   border: 1px solid #aaa;
-  border-radius: 5px;
 }
 .individual rect {
   fill: #fff;
@@ -73,7 +82,6 @@ li.active{
 
 .bubbleChart svg{
   background: #373F51;
-  border-radius: 5px;
   width: 100%;
 }
 
