@@ -1286,16 +1286,6 @@ System.out.println("need " + annId + " from IA, i guess?");
             MediaAsset ma = grabMediaAsset(imageUUID, myShepherd);
             if (ma == null) throw new RuntimeException("could not find MediaAsset " + imageUUID);
 
-//////// FIXME this is placeholder until we have this on getMediaAssetFromIA()
-/*
-Double[] ll = iaLatLonFromAnnotUUID(annId);
-if ((ll != null) && (ll.length == 2) && (ll[0] != null) && (ll[1] != null)) {
-    ma.setUserLatitude(ll[0]);
-    ma.setUserLongitude(ll[1]);
-}
-*/
-/////////
-
             //now we need the bbox to make the Feature
             rtn = RestClient.get(iaURL(context, "/api/annot/bbox/json/" + idSuffix));
             if ((rtn == null) || (rtn.optJSONArray("response") == null) || (rtn.getJSONArray("response").optJSONArray(0) == null)) throw new RuntimeException("could not get annot bbox");
@@ -1933,19 +1923,34 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
     }
-    public static String iaSexFromName(String name) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+//http://52.37.240.178:5000/api/name/sex/json/?name_uuid_list=[{%22__UUID__%22:%22302cc5dc-4028-490b-99ee-5dc1680d057e%22}]&__format__=True
 /*
+    public static String iaSexFromName(String name) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/unixtime/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from annot uuid=" + uuid);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
-*/
         return null;
     }
-    public static Double iaAgeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/image/gps/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+*/
+//http://52.37.240.178:5000/api/annot/sex/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
+    public static String iaSexFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/sex/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+System.out.println(">>>>>>>> sex -> " + rtn);
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
-        return rtn.getJSONArray("response").optDouble(0, (Double)null);
+        int sexi = rtn.getJSONArray("response").optInt(0, -1);
+        if (sexi == -1) return null;
+        //what else???
+        return null;
+    }
+//http://52.37.240.178:5000/api/annot/age/months/json/?annot_uuid_list=[{%22__UUID__%22:%224517636f-65ad-a236-950c-107f2c962c19%22}]
+// note - returns array with min/max.... doubles?
+    public static Double iaAgeFromAnnotUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/age/months/json/?annot_uuid_list=[" + toFancyUUID(uuid) + "]"));
+System.out.println(">>>>>>>> age -> " + rtn);
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get age from annot uuid=" + uuid);
+        //return rtn.getJSONArray("response").optDouble(0, (Double)null);
+        return (Double)null;
     }
 
     public static JSONObject iaStatus(HttpServletRequest request) {

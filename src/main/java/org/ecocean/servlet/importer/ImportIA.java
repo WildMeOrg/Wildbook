@@ -71,6 +71,7 @@ public class ImportIA extends HttpServlet {
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
         if ((testingLimit > 0) && (i >= testingLimit)) continue;
+        myShepherd.beginDBTransaction();
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
         Occurrence occ = null;
         String occID = IBEISIA.fromFancyUUID(fancyID);
@@ -111,9 +112,8 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
 
       for (String name : uniqueNames) {
 
-        myShepherd.beginDBTransaction();
-
         Encounter enc = new Encounter(annotGroups.get(name));
+        enc.setMatchedBy("IBEIS IA");
         /*
             note: this constructor will set the date/time on the Encounter "based upon the Annotations"
             (which currently means the .getDateTime() of the first MediaAsset -- but this algorithm may change).
@@ -131,7 +131,8 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
         */
         String sex = null;
         try {
-          sex = IBEISIA.iaSexFromName(name);
+          sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
+System.out.println("--- sex=" + sex);
         } catch (Exception ex) {}
         Double age = null;
         try {
@@ -152,8 +153,6 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
                 MarkedIndividual ind = new MarkedIndividual(name, enc);
                 if (sex != null) ind.setSex(sex);
                 myShepherd.storeNewMarkedIndividual(ind);
-                myShepherd.commitDBTransaction();
-                myShepherd.beginDBTransaction();
                 System.out.println("IA-IMPORT: new indiv " + ind);
             }
         }
@@ -161,8 +160,8 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
             myShepherd.storeNewAnnotation(ann);
         }
         if (occ == null) {
-            //TODO test that it doesnt exist
-            occ = new Occurrence(occID, enc);
+            occ = myShepherd.getOccurrence(occID);
+            if (occ == null) occ = new Occurrence(occID, enc);
         } else {
             occ.addEncounter(enc);
         }
@@ -173,9 +172,10 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
       }
 
         myShepherd.getPM().makePersistent(occ);
+        myShepherd.commitDBTransaction();
     }
 
-    myShepherd.closeDBTransaction();
+    //myShepherd.closeDBTransaction();
 
 
   }
