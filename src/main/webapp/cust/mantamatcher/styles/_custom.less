@@ -306,9 +306,15 @@ form table td, form table th {
 	padding-top: 20px;
 	}
 
-	.page-header a { color: @mainColor; }
+@media (max-width: 768px) {
+	.nav-primary>li>a {
+		text-align: right;
+	}
+}
 
-	.header-top-wrapper { background: @brand-dark; }
+.page-header a { color: @mainColor; }
+
+.header-top-wrapper { background: @brand-dark; }
 
 		.header-top-wrapper .container {
 			padding-top: 10px;
