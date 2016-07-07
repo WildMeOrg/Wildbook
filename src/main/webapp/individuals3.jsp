@@ -1496,45 +1496,6 @@ if (request.getParameter("number")!=null) {
       <%-- End Collaborators --%>
       </div>
 
-      <br>
-      <%-- Comments --%>
-      <div>
-        <div class="col-sm-8">
-          <%
-          if(isOwner){
-            %>
-            <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
-
-            <div style="text-align:left;border:1px solid lightgray;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
-              <p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
-            </div>
-            <%
-            if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
-              %>
-              <p>
-                <form action="IndividualAddComment" method="post" name="addComments">
-                  <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-                  <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
-                  <input name="action" type="hidden" value="comments" id="action">
-
-                    <p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
-                    <input name="Submit" type="submit" value="<%=addComments %>">
-                  </form>
-                </p>
-                <%
-              } //if isEditable
-
-            }
-            %>
-
-          </td>
-            </tr>
-          </table>
-        </div>
-
-        <%-- End Comments --%>
-      </div>
-
       <%-- Map --%>
       <br>
       <div>
@@ -1542,7 +1503,44 @@ if (request.getParameter("number")!=null) {
           <jsp:param name="name" value="<%=name%>"/>
         </jsp:include>
       </div>
-      <%-- End of Map Row --%>
+      <%-- End of Map --%>
+
+      <br>
+      <%-- Comments --%>
+      <div class="col-sm-6">
+        <%
+        if(isOwner){
+          %>
+          <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=researcherComments %></strong>: </p>
+
+          <div style="text-align:left;border:1px solid lightgray;width:100%;height:250px;overflow-y:scroll;overflow-x:scroll;border-radius:5px;">
+            <p><%=sharky.getComments().replaceAll("\n", "<br>")%></p>
+          </div>
+          <%
+          if (CommonConfiguration.isCatalogEditable(context) && isOwner) {
+            %>
+            <p>
+              <form action="IndividualAddComment" method="post" name="addComments">
+                <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
+                <input name="individual" type="hidden" value="<%=sharky.getName()%>" id="individual">
+                <input name="action" type="hidden" value="comments" id="action">
+
+                  <p><textarea name="comments" cols="60" id="comments" class="form-control" rows="3" style="width: 100%"></textarea> <br />
+                  <input name="Submit" type="submit" value="<%=addComments %>">
+                </form>
+              </p>
+              <%
+            } //if isEditable
+
+          }
+          %>
+
+        </td>
+          </tr>
+        </table>
+      </div>
+      <%-- End Comments --%>
+
     </div>
   <%-- End of Body Row --%>
   </div>
