@@ -299,7 +299,9 @@ myShepherd.beginDBTransaction();
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
-          JSONObject maJson = indie.getExemplarImage(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          JSONObject maJson=new JSONObject();
+          if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] = indie.getExemplarPhotographer();
           if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
             pairCopyright[j] =  "&copy; " +pairCopyright[j];
