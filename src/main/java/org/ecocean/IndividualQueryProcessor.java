@@ -1306,6 +1306,7 @@ public class IndividualQueryProcessor {
       Query query=myShepherd.getPM().newQuery(filter);
       if((order!=null)&&(!order.trim().equals(""))){
         query.setOrdering(order);
+        System.out.println("Setting individualQuery order to: "+order);
       }
       try{
 
@@ -1335,7 +1336,7 @@ public class IndividualQueryProcessor {
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName DESC, individualID DESC", paramMap);
           //keyword and then individualID ascending
         }
         //process over to Vector

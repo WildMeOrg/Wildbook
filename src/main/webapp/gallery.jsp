@@ -84,7 +84,7 @@ int numResults = 0;
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
-String order ="";
+String order ="nickName ASC NULLS LAST";
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
@@ -288,11 +288,20 @@ myShepherd.beginDBTransaction();
 </section>
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a></button>
+    <a class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a></button>
+    <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a>&nbsp;
 
-    <button type="button" class="btn-link"><a style="color: white;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a></button>
+   <a  class="btn-link" style="color: white;
+								font-family: 'UniversLTW01-59UltraCn',sans-serif;
+								font-weight: 300;
+								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a>
 
   </div>
 </nav>
@@ -443,14 +452,15 @@ myShepherd.beginDBTransaction();
                 <%
                 String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
                 String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
+                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
                 %>
 
-                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=imageURL %>&title=<%=shareTitle %>&endorseimage=<%=pairMediaAssetID[j] %>" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                <a href="https://www.facebook.com/sharer/sharer.php?u=http://norppagalleria.wwf.fi/gallery.jsp&title=<%=shareTitle %>&endorseimage=http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
                 	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
                 </a>
 
-                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=imageURL %>"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=imageURL %>"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
                 <td>
@@ -464,7 +474,7 @@ myShepherd.beginDBTransaction();
                     <li>
                       <%
                         String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
+                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
                       %>
                       <%=props.getProperty("sex")%> <%=sexValue%>
                     </li>
@@ -483,17 +493,21 @@ myShepherd.beginDBTransaction();
                       %>
                       <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
-                      <li>
+                     
                       <%
                       String timeOfDeath=props.getProperty("unknown");
                       //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
                       if(pair[j].getTimeofDeath()>0){
                       	String timeOfDeathFormat="yyyy-MM-d";
                       	timeOfDeath=(new DateTime(pair[j].getTimeofDeath())).toString(timeOfDeathFormat);
+                      	%>
+                      	<li>
+                      		<%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
+                    	</li>
+                      	<%
                       }
                       %>
-                      <%=props.getProperty("deathdate")%>: <%=timeOfDeath%>
-                    </li>
+                       
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
@@ -523,7 +537,7 @@ myShepherd.beginDBTransaction();
 
           <%
           if (startNum>0) {
-            int newStart = Math.min(startNum-numIndividualsOnPage,0);
+            int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
             <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
@@ -547,12 +561,14 @@ myShepherd=null;
 
 
 
+
 <script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
+
 <script>
 
   $( window ).resize(function(){
-    galFunc.cropGridPics();
-    galFunc.cropInnerPics();
+    imageCropper.cropGridPics();
+    imageCropper.cropInnerPics();
   });
 
   // handles gallery-info hiding/showing
@@ -580,7 +596,7 @@ myShepherd=null;
         $(targetArrow).addClass('active');
         $(target).slideToggle(800);
         $(target).addClass('active');
-        galFunc.cropInnerPics();
+        imageCropper.cropInnerPics();
       })
     }
   });
@@ -588,7 +604,7 @@ myShepherd=null;
   $('.seal-scroll.scroll-fwd').click( function() {
     console.log('beginning scroll logic');
     var $active = $(this).siblings('.seal-gallery-pic.active');
-    var $next = galFunc.nextWrap($active, '.seal-gallery-pic');
+    var $next = imageCropper.nextWrap($active, '.seal-gallery-pic');
     $active.toggle(0);
     $next.toggle(0, function () {
       console.log("next is toggled!");
@@ -600,7 +616,7 @@ myShepherd=null;
   $('.seal-scroll.scroll-back').click( function() {
     console.log('beginning scroll logic');
     var $active = $(this).siblings('.seal-gallery-pic.active');
-    var $prev = galFunc.prevWrap($active, '.seal-gallery-pic');
+    var $prev = imageCropper.prevWrap($active, '.seal-gallery-pic');
     $active.toggle(0);
     $prev.toggle(0, function () {
       console.log("next is toggled!");

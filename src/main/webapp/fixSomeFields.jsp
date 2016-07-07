@@ -42,13 +42,21 @@ try{
 	while(allEncs.hasNext()){
 		
 		Encounter enc=(Encounter)allEncs.next();
-		if((enc.getHour()==0)||(enc.getHour()==24)){
-			enc.setHour(12);
+
+		
+		if(enc.getIndividualID()!=null){
+		
+			MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
+			if(!enc.getSex().equals(indie.getSex())){
+				enc.setSex(indie.getSex());
+				myShepherd.commitDBTransaction();
+				myShepherd.beginDBTransaction();
+				numFixes++;
+			}
+			
+		
+			
 		}
-		enc.resetDateInMilliseconds();
-		myShepherd.commitDBTransaction();
-		numFixes++;
-		myShepherd.beginDBTransaction();
 
 	}
 	myShepherd.rollbackDBTransaction();
