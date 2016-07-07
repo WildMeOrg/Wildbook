@@ -45,6 +45,12 @@
 						background-size: cover;
 					}
 				}
+				@media (max-width: 540px) {
+					.row.donate-row h2.jumboesque {
+						padding-top: 20px;
+					}
+				}
+
 
 				.row.donate-row h2.jumboesque {
 					padding-top: 50px;
@@ -59,7 +65,6 @@
 				.row.donate-row .donate-zone {
 					background-color: #dff2f1;
 					min-height: 240px;
-					height: 100%;
 					padding-left: 0;
 				}
 
