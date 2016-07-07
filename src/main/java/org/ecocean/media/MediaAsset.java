@@ -734,6 +734,25 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
+    
+    public boolean hasKeyword(String keywordName){
+      if(keywords!=null){
+        int numKeywords=keywords.size();
+        for(int i=0;i<numKeywords;i++){
+          Keyword kw=keywords.get(i);
+          if((kw.getIndexname().equals(keywordName))||(kw.getReadableName().equals(keywordName))){return true;}
+        }
+      }
+      
+      return false;
+    }
+    
+    public boolean hasKeyword(Keyword key){
+      if(keywords!=null){
+        if(keywords.contains(key)){return true;}
+      }
+      return false;
+    }
  
 
     //if we dont have the Annotation... which kinda sucks but okay
