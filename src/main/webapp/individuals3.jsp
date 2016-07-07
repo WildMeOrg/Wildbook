@@ -283,13 +283,6 @@ if (request.getParameter("number")!=null) {
 
 </script>
 
-<%-- Get images for slider --%>
-<% MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
-
-JSONObject newMaJson=photoIndy.getExemplarImage(request);
-String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-%>
 
 <%---------- Main Div ----------%>
 <div class="container row maincontent maincontainer">
@@ -302,6 +295,12 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
       try {
         if (myShepherd.isMarkedIndividual(name)) {
 
+          // Get images for slider
+          MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
+
+          JSONObject newMaJson=photoIndy.getExemplarImage(request);
+          String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+          String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
           MarkedIndividual sharky = myShepherd.getMarkedIndividual(name);
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
@@ -609,7 +608,7 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
     </div>
 
     <div class="slider col-sm-6">
-      <img src="<%=jumboimgUrl%>"/>
+      <img class="sliderimg" src="<%=jumboimgUrl%>"/>
     </div>
   </div>
   <%-- End of Header Row --%>
