@@ -142,102 +142,6 @@ if (request.getParameter("number")!=null) {
 <jsp:include page="header.jsp" flush="true"/>
 
 
-  <%-- /*<style type="text/css">
-    <!--
-    .style1 {
-      color: #000000;
-      font-weight: bold;
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-      border-width: 0px 0px 0px 0px;
-      margin: 0px;
-    }
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-table.tissueSample {
-    border-width: 1px;
-    border-spacing: 2px;
-    border-color: gray;
-    border-collapse: collapse;
-    background-color: white;
-}
-table.tissueSample th {
-    border-width: 1px;
-    padding: 1px;
-    border-style: solid;
-    border-color: gray;
-    background-color: #99CCFF;
-    -moz-border-radius: ;
-}
-table.tissueSample td {
-    border-width: 1px;
-    padding: 2px;
-    border-style: solid;
-    border-color: gray;
-    background-color: white;
-    -moz-border-radius: ;
-}
-
-
-	.collab-private {
-		background-color: #FDD;
-	}
-
-	.collab-private td {
-		background-color: transparent !important;
-	}
-
-	.collab-private .collab-icon {
-		position: absolute;
-		left: -15px;
-		z-index: -1;
-		width: 13px;
-		height: 13px;
-		background: url(images/lock-icon-tiny.png) no-repeat;
-	}
-
-	tr.clickable:hover td {
-		background-color: #EFA !important;
-	}
-
-    -->
-  </style>*/ --%>
-
-
 
 <!--  FACEBOOK SHARE BUTTON -->
 <div id="fb-root"></div>
@@ -305,517 +209,80 @@ table.tissueSample td {
 
 <script type="text/javascript">
 
-// var testColumns = {
-// 	//rowNum: { label: '#', val: _colRowNum },
-// 	date: { label: 'Date', val: _colEncDate },
-// 	location: { label: 'Location' },
-// 	dataTypes: { label: 'Data types', val: _colDataTypes },
-// 	alternateID: { label: 'Alt ID', val: cleanValue },
-// 	sex: { label: 'Sex' },
-// 	occ: { label: 'Occurring with', val: _colOcc },
-// 	behavior: { label: 'Behavior' },
-// };
-
-/*
-$(document).keydown(function(k) {
-	if ((k.which == 38) || (k.which == 40)) k.preventDefault();
-	if (k.which == 38) return tableDn();
-	if (k.which == 40) return tableUp();
-});
-
-*/
-// var colDefn = [
-// 	{
-// 		key: 'date',
-// 		label: 'Date',
-// 		value: _colEncDate,
-// 		sortValue: _colEncDateSort,
-// 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
-// 	},
-// 	{
-// 		key: 'location',
-// 		label: 'Location',
-// 	},
-// 	{
-// 		key: 'dataTypes',
-// 		label: 'Data types',
-// 		value: _colDataTypes,
-// 		sortValue: _colDataTypesSort,
-// 	},
-// 	{
-// 		key: 'alternateID',
-// 		label: 'Alt ID',
-// 		value: cleanValue,
-// 	},
-// 	{
-// 		key: 'sex',
-// 		label: 'Sex',
-// 	},
-// 	{
-// 		key: 'occ',
-// 		label: 'Occurring with',
-// 		value: _colOcc,
-// 	},
-// 	{
-// 		key: 'behavior',
-// 		label: 'Behavior',
-// 	}
-//
-// ];
-//
-//
-// var howMany = 10;
-// var start = 0;
-// var results = [];
-//
-// var sortCol = -1;
-// var sortReverse = true;
-//
-//
-// var sTable = false;
-//
-// function doTable() {
-// 	for (var i = 0 ; i < searchResults.length ; i++) {
-// 		searchResults[i] = new wildbook.Model.Encounter(searchResults[i]);
-// 		//searchResultsObjects[i] = new wildbook.Model.MarkedIndividual(searchResults[i]);
-// 	}
-
-// 	sTable = new SortTable({
-// 		data: searchResults,
-// 		perPage: howMany,
-// 		sliderElement: $('#results-slider'),
-// 		columns: colDefn,
-// 	});
-//
-// 	$('#results-table').addClass('tablesorter').addClass('pageableTable');
-// 	var th = '<thead><tr>';
-// 		for (var c = 0 ; c < colDefn.length ; c++) {
-// 			var cls = 'ptcol-' + colDefn[c].key;
-// 			if (!colDefn[c].nosort) {
-// 				if (sortCol < 0) { //init
-// 					sortCol = c;
-// 					cls += ' headerSortUp';
-// 				}
-// 				cls += ' header" onClick="return headerClick(event, ' + c + ');';
-// 			}
-// 			th += '<th class="' + cls + '">' + colDefn[c].label + '</th>';
-// 		}
-// 	$('#results-table').append(th + '</tr></thead>');
-//
-//
-// 	if (howMany > searchResults.length) howMany = searchResults.length;
-//
-// 	for (var i = 0 ; i < howMany ; i++) {
-// 		var r = '<tr onClick="return rowClick(this);" class="clickable pageableTable-visible">';
-// 		for (var c = 0 ; c < colDefn.length ; c++) {
-// 			r += '<td class="ptcol-' + colDefn[c].key + '"></td>';
-// 		}
-// 		r += '</tr>';
-// 		$('#results-table').append(r);
-// 	}
-//
-// 	sTable.initSort();
-// 	sTable.initValues();
-//
-//
-// 	newSlice(sortCol, sortReverse);
-//
-// 	$('#progress').hide();
-// 	sTable.sliderInit();
-// 	show();
-//
-// 	$('#results-table').on('mousewheel', function(ev) {  //firefox? DOMMouseScroll
-// 		if (!sTable.opts.sliderElement) return;
-// 		ev.preventDefault();
-// 		var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-// 		if (delta != 0) nudge(-delta);
-// 	});
-//
-// }
-//
-// function rowClick(el) {
-// 	console.log(el);
-// 	var w = window.open('encounters/encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
-// 	w.focus();
-// 	return false;
-// }
-
-// function headerClick(ev, c) {
-// 	start = 0;
-// 	ev.preventDefault();
-// 	console.log(c);
-// 	if (sortCol == c) {
-// 		sortReverse = !sortReverse;
-// 	} else {
-// 		sortReverse = false;
-// 	}
-// 	sortCol = c;
-//
-// 	$('#results-table th.headerSortDown').removeClass('headerSortDown');
-// 	$('#results-table th.headerSortUp').removeClass('headerSortUp');
-// 	if (sortReverse) {
-// 		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortUp');
-// 	} else {
-// 		$('#results-table th.ptcol-' + colDefn[c].key).addClass('headerSortDown');
-// 	}
-// console.log('sortCol=%d sortReverse=%o', sortCol, sortReverse);
-// 	newSlice(sortCol, sortReverse);
-// 	show();
-// }
-
-//
-// function show() {
-// 	$('#results-table td').html('');
-// 	for (var i = 0 ; i < results.length ; i++) {
-// 		$('#results-table tbody tr')[i].setAttribute('data-id', searchResults[results[i]].get('catalogNumber'));
-// 		var private = searchResults[results[i]].get('_sanitized') || false;
-// 		var title = 'Encounter ' + searchResults[results[i]].get('catalogNumber');
-// 		if (private) {
-// 			$($('#results-table tbody tr')[i]).addClass('collab-private');
-// 			title += ' [private]';
-// 		} else {
-// 			$($('#results-table tbody tr')[i]).removeClass('collab-private');
-// 		}
-// 		$('#results-table tbody tr')[i].title = title;
-// 		for (var c = 0 ; c < colDefn.length ; c++) {
-// 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-// 			$('#results-table tbody tr')[i].children[c].innerHTML = sTable.values[results[i]][c];
-// 		}
-// 	}
-//
-// 	sTable.sliderSet(100 - (start / (searchResults.length - howMany)) * 100);
-// }
-//
-// function newSlice(col, reverse) {
-// 	results = sTable.slice(col, start, start + howMany, reverse);
-// }
-//
-//
-// function nudge(n) {
-// 	start += n;
-// 	if ((start + howMany) > sTable.matchesFilter.length) start = sTable.matchesFilter.length - howMany;
-// 	if (start < 0) start = 0;
-// console.log('start -> %d', start);
-// 	newSlice(sortCol, sortReverse);
-// 	show();
-// }
-/*
-function xnudge(n) {
-	start += n;
-	if (start < 0) start = 0;
-	if (start > searchResults.length - 1) start = searchResults.length - 1;
-	newSlice(sortCol, sortReverse);
-	show();
-}
-*/
-
-// function tableDn() {
-// 	return nudge(-1);
-// 	start--;
-// 	if (start < 0) start = 0;
-// 	newSlice(sortCol, sortReverse);
-// 	show();
-// }
-//
-// function tableUp() {
-// 	return nudge(1);
-// 	start++;
-// 	if (start > searchResults.length - 1) start = searchResults.length - 1;
-// 	newSlice(sortCol, sortReverse);
-// 	show();
-// }
-
-////////
-
-
-$(document).ready( function() {
-	wildbook.init(function() { doTable(); });
-  $("#familyDiagramTab").click(function (e) {
-    e.preventDefault()
-    $("#familyDiagram").show();
-    $("#communityTable").hide();
-    $("#familyDiagramTab").addClass("active");
-    $("#communityTableTab").removeClass("active");
-  });
-
-  $("#communityTableTab").click(function (e) {
-    e.preventDefault()
-    $("#familyDiagram").hide();
-    $("#communityTable").show();
-    $("#familyDiagramTab").removeClass("active");
-    $("#communityTableTab").addClass("active");
-  });
-
-  $("#cooccurrenceDiagramTab").click(function (e) {
-    e.preventDefault()
-    $("#cooccurrenceDiagram").show();
-    $("#cooccurrenceTable").hide();
-    $("#cooccurrenceDiagramTab").addClass("active");
-    $("#cooccurrenceTableTab").removeClass("active");
-  });
-
-  $("#cooccurrenceTableTab").click(function (e) {
-    e.preventDefault()
-    $("#cooccurrenceTable").show();
-    $("#cooccurrenceDiagram").hide();
-    $("#cooccurrenceTableTab").addClass("active");
-    $("#cooccurrenceDiagramTab").removeClass("active");
-  });
-
-  $("#bioSamplesTableTab").click(function (e) {
-    e.preventDefault()
-    $("#bioSamplesTable").show();
-    $("#encountersTable").hide();
-    $("#innerEncountersTable").hide();
-    $("#bioSamplesTableTab").addClass("active");
-    $("#encountersTableTab").removeClass("active");
+  $(document).ready( function() {
+  	// wildbook.init(function() { doTable(); });
+    $("#familyDiagramTab").click(function (e) {
+      e.preventDefault()
+      $("#familyDiagram").show();
+      $("#communityTable").hide();
+      $("#familyDiagramTab").addClass("active");
+      $("#communityTableTab").removeClass("active");
     });
 
-  $("#encountersTableTab").click(function (e) {
-    e.preventDefault()
-    $("#encountersTable").show();
-    $("#innerEncountersTable").show();
-    $("#bioSamplesTable").hide();
-    $("#encountersTableTab").addClass("active");
-    $("#bioSamplesTableTab").removeClass("active");
+    $("#communityTableTab").click(function (e) {
+      e.preventDefault()
+      $("#familyDiagram").hide();
+      $("#communityTable").show();
+      $("#familyDiagramTab").removeClass("active");
+      $("#communityTableTab").addClass("active");
     });
 
-    setTimeout(function() {
-    $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
-    $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
-    $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
-
-    $('#encountTable tr').click(function() {
-      selectedWhale = ($(this).attr("class"));
-      goToEncounterURL(selectedWhale);
+    $("#cooccurrenceDiagramTab").click(function (e) {
+      e.preventDefault()
+      $("#cooccurrenceDiagram").show();
+      $("#cooccurrenceTable").hide();
+      $("#cooccurrenceDiagramTab").addClass("active");
+      $("#cooccurrenceTableTab").removeClass("active");
     });
 
-    $('#cooccurrenceTable tr').click(function() {
-      selectedWhale = ($(this).attr("class"));
-      goToWhaleURL(selectedWhale);
+    $("#cooccurrenceTableTab").click(function (e) {
+      e.preventDefault()
+      $("#cooccurrenceTable").show();
+      $("#cooccurrenceDiagram").hide();
+      $("#cooccurrenceTableTab").addClass("active");
+      $("#cooccurrenceDiagramTab").removeClass("active");
     });
-    $("#encountTable td:nth-child(1)").attr("class", "hide");
-    $("#encountTable th:nth-child(1)").attr("class", "hide");
 
-  }, 6000);
-});
+    $("#bioSamplesTableTab").click(function (e) {
+      e.preventDefault()
+      $("#bioSamplesTable").show();
+      $("#encountersTable").hide();
+      $("#innerEncountersTable").hide();
+      $("#bioSamplesTableTab").addClass("active");
+      $("#encountersTableTab").removeClass("active");
+      });
 
+    $("#encountersTableTab").click(function (e) {
+      e.preventDefault()
+      $("#encountersTable").show();
+      $("#innerEncountersTable").show();
+      $("#bioSamplesTable").hide();
+      $("#encountersTableTab").addClass("active");
+      $("#bioSamplesTableTab").removeClass("active");
+      });
 
+      setTimeout(function() {
+      $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
+      $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
+      $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
 
-function _colIndividual(o) {
-	//var i = '<b><a target="_new" href="individuals.jsp?number=' + o.individualID + '">' + o.individualID + '</a></b> ';
-	var i = '<b>' + o.individualID + '</b> ';
-	if (!extra[o.individualID]) return i;
-	i += (extra[o.individualID].firstIdent || '') + ' <i>';
-	i += (extra[o.individualID].genusSpecies || '') + '</i>';
-	return i;
-}
+      $('#encountTable tr').click(function() {
+        selectedWhale = ($(this).attr("class"));
+        goToEncounterURL(selectedWhale);
+      });
 
+      $('#cooccurrenceTable tr').click(function() {
+        selectedWhale = ($(this).attr("class"));
+        goToWhaleURL(selectedWhale);
+      });
+      $("#encountTable td:nth-child(1)").attr("class", "hide");
+      $("#encountTable th:nth-child(1)").attr("class", "hide");
 
-function _colNumberEncounters(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].numberEncounters;
-	if (n == undefined) return '';
-	return n;
-}
-
-/*
-function _colYearsBetween(o) {
-	return o.get('maxYearsBetweenResightings');
-}
-*/
-
-function _colNumberLocations(o) {
-	if (!extra[o.individualID]) return '';
-	var n = extra[o.individualID].locations;
-	if (n == undefined) return '';
-	return n;
-}
-
-
-function _colTaxonomy(o) {
-	if (!o.get('genus') || !o.get('specificEpithet')) return 'n/a';
-	return o.get('genus') + ' ' + o.get('specificEpithet');
-}
-
-
-function _colRowNum(o) {
-	return o._rowNum;
-}
-
-
-function _colThumb(o) {
-	if (!extra[o.individualID]) return '';
-	var url = extra[o.individualID].thumbUrl;
-	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
-}
-
-
-
-function _textExtraction(n) {
-	var s = $(n).text();
-	var skip = new RegExp('^(none|unassigned|)$', 'i');
-	if (skip.test(s)) return 'zzzzz';
-	return s;
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-var encs;
-var resultsTable;
-
-
-var tableContents = document.createDocumentFragment();
-
-function xdoTable() {
-	resultsTable = new pageableTable({
-		columns: testColumns,
-		tableElement: $('#results-table'),
-		sliderElement: $('#results-slider'),
-		tablesorterOpts: {
-			//headers: { 1: {sorter: false} },
-			textExtraction: _textExtraction,
-		},
-	});
-
-	resultsTable.tableInit();
-
-	encs = new wildbook.Collection.Encounters();
-	var addedCount = 0;
-	encs.on('add', function(o) {
-		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('encounters/encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
-		row.addClass('clickable');
-		row.appendTo(tableContents);
-		addedCount++;
-/*
-		var percentage = Math.floor(addedCount / searchResults.length * 100);
-console.log(percentage);
-$('#progress').html(percentage);
-*/
-		if (addedCount >= searchResults.length) {
-			$('#results-table').append(tableContents);
-		}
-	});
-
-	_.each(searchResults, function(o) {
-//console.log(o);
-		encs.add(new wildbook.Model.Encounter(o));
-	});
-	$('#progress').remove();
-	resultsTable.tableShow();
-
-/*
-	encs.fetch({
-		//fields: { individualID: 'newMatch' },
-		success: function() {
-			$('#progress').remove();
-			resultsTable.tableShow();
-		}
-	});
-*/
-
-}
-
-
-function _colDataTypes(o) {
-	var dt = '';
-	if (o.get('hasImages')) dt += '<img title="images" src="images/Crystal_Clear_filesystem_folder_image.png" />';
-	if (o.get('hasTissueSamples')) dt += '<img title="tissue samples" src="images/microscope.gif" style="padding: 0px 1px 0px 1px;" />';
-	if (o.get('hasMeasurements')) dt += '<img title="measurements" src="images/ruler.png" />';
-	return dt;
-}
-
-function _colDataTypesSort(o) {
-	var dt = '';
-	if (o.get('hasImages')) dt += ' images';
-	if (o.get('hasTissueSamples')) dt += ' tissues';
-	if (o.get('hasMeasurements')) dt += ' measurements';
-	return dt;
-}
-
-
-function _colEncDate(o) {
-	var icon = '<span class="collab-icon"></span>';
-	return icon + wildbook.flexibleDate(o.get('date'));
-}
-
-
-function _colEncDateSort(o) {
-	var d = wildbook.parseDate(o.get('date'));
-	if (!d) return 0;
-	return d.getTime();
-}
-
-
-function _colOcc(o) {
-	var occ = o.get('occurrences');
-	if (!occ || (occ.length < 1)) {return '';}
-	return occ.join(', ');
-}
-
-
-function _colRowNum(o) {
-	return o._rowNum;
-}
-
-
-function _colThumb(o) {
-	var url = o.thumbUrl();
-	if (!url) return '';
-	return '<div style="background-image: url(' + url + ');"><img src="' + url + '" /></div>';
-	return '<div style="background-image: url(' + url + ');"></div>';
-	return '<img src="' + url + '" />';
-}
-
-
-function _colModified(o) {
-	var m = o.get('modified');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) {return '';}
-	return d.toISOString().substring(0,10);
-}
-
-function _colCreationDate(o) {
-	var m = o.get('dwcDateAdded');
-	if (!m) return '';
-	var d = wildbook.parseDate(m);
-	if (!wildbook.isValidDate(d)) {return '';}
-	return d.toISOString().substring(0,10);
-}
-
-
-
-function _textExtraction(n) {
-	var s = $(n).text();
-	var skip = new RegExp('^(none|unassigned|)$', 'i');
-	if (skip.test(s)) return 'zzzzz';
-	return s;
-}
-
-
-function cleanValue(obj, fieldName) {
-	var v = obj.get(fieldName);
-	var empty = /^(null|unknown|none|undefined)$/i;
-	if (empty.test(v)) v = '';
-	return v;
-}
-
-
-function dataTypes(obj, fieldName) {
-	var dt = [];
-	_.each(['measurements', 'images'], function(w) {
-		//if (obj[w] && obj[w].models && (obj[w].models.length > 0)) dt.push(w.substring(0,1));
-		if (obj.get(w) && (obj.get(w).length > 0)) dt.push(w.substring(0,1));
-	});
-	return dt.join(', ');
-}
+    }, 6000);
+  });
 
 </script>
+
 <%-- Get images for slider --%>
 <% MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
 
@@ -1146,37 +613,6 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
     </div>
   </div>
   <%-- End of Header Row --%>
-
-
-  <%-- <div class="row" id="just-a-big-temp-photoswipe-containing-workarea">
-    <%
-
-    // TODO: implement a photoswipe gallery here
-
-    boolean loggedIn = false;
-    try{
-      if(request.getUserPrincipal()!=null){loggedIn=true;}
-    }
-    catch(NullPointerException nullLogged){}
-
-      Encounter[] galleryEncs = sharky.getDateSortedEncounters();
-
-      if (galleryEncs.length>0) {
-        String encNum = galleryEncs[0].getCatalogNumber();
-        %>
-        <jsp:include page="individualMediaGallery.jsp" flush="true">
-          <jsp:param name="encounterNumber" value="<%=encNum%>" />
-          <jsp:param name="individualID" value="<%=name%>" />
-          <jsp:param name="isOwner" value="<%=isOwner %>" />
-          <jsp:param name="loggedIn" value="<%=loggedIn %>" />
-        </jsp:include>
-        <%
-
-      }
-
-
-      %>
-    </div> --%>
 
   <%-- Body Row --%>
   <br><br>
@@ -1724,38 +1160,6 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
           </div>
         </div>
 
-        <%-- <div id="cooccurrenceTable" class="mygrid-wrapper-div">
-          <table width="100%" class="tissueSample table">
-          <th><strong><%=props.get("sightedWith") %></strong></th><th><strong><%=props.getProperty("numSightingsTogether") %></strong></th></tr>
-          <%
-
-          Iterator<Map.Entry> othersIterator=otherIndies.iterator();
-          while(othersIterator.hasNext()){
-          	Map.Entry indy=othersIterator.next();
-          	MarkedIndividual occurIndy=myShepherd.getMarkedIndividual((String)indy.getKey());
-          	%>
-          	<tr><td>
-          	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=occurIndy.getIndividualID()%>"><%=occurIndy.getIndividualID() %></a>
-          		<%
-          		if(occurIndy.getSex()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=occurIndy.getSex() %></span>
-          		<%
-          		}
-
-          		if(occurIndy.getHaplotype()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=occurIndy.getHaplotype() %></span>
-          		<%
-          		}
-          		%>
-          	</td>
-          	<td><%=((Integer)indy.getValue()).toString() %></td></tr>
-          	<%
-          }
-          %>
-          </table>
-        </div> --%>
         <%
         }
         else {
@@ -1855,137 +1259,6 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
             <tbody id="encountBody"></tbody>
           </table>
 
-
-
-          <%-- <table id="encounter_report" width="100%">
-            <tr>
-              <td align="left" valign="top">
-
-                <p><strong><%=sharky.totalEncounters()%>
-              </strong>
-              <%=numencounters %>
-            </p>
-
-
-            <%
-            Encounter[] dateSortedEncs = sharky.getDateSortedEncounters();
-
-            ArrayList<HashMap> myEncs = new ArrayList<HashMap>();
-
-            <%-- int total = dateSortedEncs.length;
-            for (int i = 0; i < total; i++) {
-              HashMap henc = new HashMap();
-              Encounter enc = dateSortedEncs[i];
-
-              boolean visible = true; //enc.canUserAccess(request);  ///TODO technically we dont need this encounter-level locking!!!
-              Vector encImages = enc.getAdditionalImageNames();
-              String imgName = "";
-
-              //String encSubdir = thisEnc.subdir();
-              imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + enc.subdir() + "/thumb.jpg";
-
-              henc.put("visible", visible);
-              henc.put("thumbUrl", imgName);
-              henc.put("date", enc.getDate());
-              henc.put("location", enc.getLocation());
-              if ((enc.getImages()!=null) && (enc.getImages().size()>0)) henc.put("hasImages", true);
-              if ((myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasTissueSamples", true);
-
-              //if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
-              if ((myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(enc.getCatalogNumber()).size()>0)) henc.put("hasMeasurements", true);
-
-              henc.put("catalogNumber", enc.getEncounterNumber());
-              henc.put("alternateID", enc.getAlternateID());
-              henc.put("sex", enc.getSex());
-
-              /*
-              if (CommonConfiguration.useSpotPatternRecognition(context)) {
-              %>
-              <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-              <td class="lineitem">&nbsp;</td>
-              <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-              <td class="lineitem">LR</td>
-              <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-              <td class="lineitem">L</td>
-              <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-              <td class="lineitem">R</td>
-              <%
-              }
-              }
-
-              */
-
-              ArrayList<String> occ = new ArrayList<String>();
-              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-              ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-              if(otherOccurs!=null){
-              int numOtherOccurs=otherOccurs.size();
-              for(int j=0;j<numOtherOccurs;j++){
-              String thisName=otherOccurs.get(j);
-              if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
-              }
-              }
-              }
-
-              henc.put("occurrences", occ);
-
-              henc.put("behavior", enc.getBehavior());
-              /*
-              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-              if((thisOccur!=null)&&(thisOccur.getGroupBehavior()!=null)){
-              %>
-              <br /><br /><em><%=props.getProperty("groupBehavior") %></em><br /><%=thisOccur.getGroupBehavior() %>
-              <%
-              }
-              }
-              */
-
-              System.out.println(henc);
-              myEncs.add(henc);
-
-              } //end for
-
-              //String encsJson = new Gson().toJson(myEncs);
-              String encsJson = "[\n";
-              ExecutionContext ec = ((JDOPersistenceManager)myShepherd.getPM()).getExecutionContext();
-              for (int i = 0; i < total; i++) {
-              Encounter enc = dateSortedEncs[i];
-              //myEncs.get(i);  //HashMap
-              JSONObject jobj = RESTUtils.getJSONObjectFromPOJO(enc, ec);
-              jobj.put("date", enc.getDate());
-              jobj = enc.sanitizeJson(request, jobj);
-
-              ArrayList<String> occ = new ArrayList<String>();
-              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-              Occurrence thisOccur=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber());
-              ArrayList<String> otherOccurs=thisOccur.getMarkedIndividualNamesForThisOccurrence();
-              if(otherOccurs!=null){
-              int numOtherOccurs=otherOccurs.size();
-              for(int j=0;j<numOtherOccurs;j++){
-              String thisName=otherOccurs.get(j);
-              System.out.println("name -> "+thisName);
-              if(!thisName.equals(sharky.getIndividualID())) occ.add(thisName);
-              }
-              }
-              }
-              jobj.put("occurrences", occ);
-
-              encsJson += jobj.toString() + ",\n";
-              }
-              encsJson += "\n]";
-              //encsJson = "[]";
-
-              %> --%>
-
-              <%-- <div class="pageableTable-wrapper mygrid-wrapper-div" id="innerEncountersTable">
-                <div id="progress">Generating encounters table</div>
-                <table id="results-table"></table>
-                <div id="results-slider"></div>
-              </div>
-
-            </table> --%>
 
             <%-- <script>
               var searchResults = <%=encsJson%>;
@@ -2279,7 +1552,7 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
 
   <%
   }
-  
+
   //could not find the specified individual!
   else {
 
@@ -2324,22 +1597,18 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
     </HEAD>
     <%
   } else if (al3.size() > 0) {
-    //just grab the first one
-    Encounter shr = al3.get(0);
-    String realName = shr.getEncounterNumber();
-    %>
-
-    <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
-    </HEAD>
-    <%
-      }
-      else {
+      //just grab the first one
+      Encounter shr = al3.get(0);
+      String realName = shr.getEncounterNumber();
       %>
 
-
-      <p><%=matchingRecord %>: <strong><%=name%>
-    </strong></p>
+      <meta http-equiv="REFRESH"
+        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
+      </HEAD>
+      <%
+  } else {
+    %>
+    <p><%=matchingRecord %>: <strong><%=name%></strong></p>
     <p>
       <%=tryAgain %>
     </p>
@@ -2366,17 +1635,14 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
         </a>
       </font>
     </p>
-    <%
-      }
-      %>
-    </td>
-  </tr>
-  </table>
-
+  <%
+  }
+  %>
 
   <%
   }
   }
+
   catch (Exception eSharks_jsp) {
   System.out.println("Caught and handled an exception in individuals.jsp!");
   eSharks_jsp.printStackTrace();
@@ -2390,20 +1656,21 @@ String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img
 
   %>
 
-  <!--db: These are the necessary tools for photoswipe.-->
-  <%
-    String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-    String pswipedir = urlLoc+"/photoswipe";
-    %>
-    <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
-    <link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
-    <!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
-    <jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
-    <script src='<%=pswipedir%>/photoswipe.js'></script>
-    <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 <%------- End of Main Div -------%>
 </div>
+
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
+<jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 
 <%-- Import Footer --%>
 <jsp:include page="footer.jsp" flush="true"/>
