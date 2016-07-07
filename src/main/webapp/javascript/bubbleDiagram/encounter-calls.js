@@ -197,6 +197,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
 
   function sort(a,b) {
     if(typeof a == "string"){
+      if(a === "") {
+      a = "0";
+      }if (b === "") {
+        b = "0";
+      }
       var parseA = parseInt(a);
       if(parseA) {
         var whaleA = parseA;
