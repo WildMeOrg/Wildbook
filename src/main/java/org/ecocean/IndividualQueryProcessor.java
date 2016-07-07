@@ -1336,7 +1336,7 @@ public class IndividualQueryProcessor {
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName ASC, individualID ASC", paramMap);
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName DESC, individualID DESC", paramMap);
           //keyword and then individualID ascending
         }
         //process over to Vector
