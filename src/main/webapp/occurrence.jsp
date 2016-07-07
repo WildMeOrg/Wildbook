@@ -375,16 +375,7 @@ if(sharky.getLocationID()!=null){
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
-    <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
 
-    	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=props.getProperty("spots") %></strong>
-    	</td>
-    <%
-    }
-    %>
    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
  <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
  
@@ -480,21 +471,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
     <td class="lineitem"><%=sexValue %></td>
 
-    <%
-      if (CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
-    <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-    <td class="lineitem">&nbsp;</td>
-    <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">LR</td>
-    <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-    <td class="lineitem">L</td>
-    <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">R</td>
-    <%
-        }
-      }
-    %>
+
     
   
     <td class="lineitem">
