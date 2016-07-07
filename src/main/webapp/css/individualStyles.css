@@ -1,3 +1,6 @@
+.container {
+  width: auto
+}
 .maincontainer {
   margin-left: 3%;
   margin-right: 5%;
@@ -20,6 +23,11 @@
 
 .sliderimg {
   max-height: 400px;
+}
+
+#markedIndividualHeader {
+  -webkit-text-fill-color: #005589;
+  color: #005589;
 }
 
 

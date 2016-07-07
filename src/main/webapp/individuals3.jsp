@@ -306,7 +306,7 @@ if (request.getParameter("number")!=null) {
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
           %>
-          <h1><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+          <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
           <%-- <p class="caption"><em><%=props.getProperty("description") %></em></p> --%>
 
       <%-- Social Media Buttons --%>
