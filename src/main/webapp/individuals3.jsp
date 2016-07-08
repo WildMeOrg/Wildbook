@@ -287,26 +287,36 @@ if (request.getParameter("number")!=null) {
 <%---------- Main Div ----------%>
 <div class="container row maincontent maincontainer">
   <%=blocker%>
+  <%
+  myShepherd.beginDBTransaction();
+  try {
+    if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
   <div class="row mainHeader">
     <div class="col-sm-6">
-      <%
-      myShepherd.beginDBTransaction();
-      try {
-        if (myShepherd.isMarkedIndividual(name)) {
 
-          // Get images for slider
-          MarkedIndividual photoIndy=myShepherd.getMarkedIndividual(name);
+          <%
+          MarkedIndividual sharky=myShepherd.getMarkedIndividual(name);
 
-          JSONObject newMaJson=photoIndy.getExemplarImage(request);
-          String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-          String jumboimgUrl = newMaJson.optString("url",imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-
-          MarkedIndividual sharky = myShepherd.getMarkedIndividual(name);
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
+          if ((CommonConfiguration.allowNicknames(context)) && (sharky.getNickName() != null)) {
+
+            String myNickname = "";
+            myNickname = sharky.getNickName();
+            %>
+
+            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
+
+            <%
+
+
+          } else {
+            %>
+            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+          <%
+          }
           %>
-          <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
           <%-- <p class="caption"><em><%=props.getProperty("description") %></em></p> --%>
 
       <%-- Social Media Buttons --%>
@@ -331,7 +341,9 @@ if (request.getParameter("number")!=null) {
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
+            <p><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></p>
             <%
+
             if (CommonConfiguration.allowNicknames(context)) {
 
               String myNickname = "";
@@ -429,7 +441,7 @@ if (request.getParameter("number")!=null) {
             String genusSpeciesFound=props.getProperty("notAvailable");
             if(sharky.getGenusSpecies()!=null){genusSpeciesFound=sharky.getGenusSpecies();}
             %>
-            <p><img align="absmiddle" src="images/taxontree.gif">
+            <p>
               <%=props.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>
             </p>
             <%
@@ -571,7 +583,7 @@ if (request.getParameter("number")!=null) {
             }
 
             %>
-            <p><img align="absmiddle" src="images/alternateid.gif"> <%=alternateID %>:
+            <p> <%=alternateID %>:
             <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
           </p>
           <!-- Now prep the alternateId popup dialog -->
@@ -601,6 +613,7 @@ if (request.getParameter("number")!=null) {
             dlg.dialog("open");
             });
           </script>
+          <p><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky%>">View all images</a></p>
         </div>
 
       </div>
@@ -608,7 +621,27 @@ if (request.getParameter("number")!=null) {
     </div>
 
     <div class="slider col-sm-6">
-      <img class="sliderimg" src="<%=jumboimgUrl%>"/>
+      <%-- Get images for slider --%>
+      <%
+      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+
+      for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
+        JSONObject newMaJson = new JSONObject();
+        newMaJson = photoObjectArray.get(extraImgNo);
+        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+
+        %>
+        <%-- <div class="super-crop seal-gallery-pic"> --%>
+          <%-- <div class="crop"> --%>
+            <div>
+              <img class="sliderimg" src="<%=newimgUrl%>" alt="<%=sharky%>" />
+            </div>
+          <%-- </div> --%>
+        <%-- </div> --%>
+        <%
+      }
+      %>
     </div>
   </div>
   <%-- End of Header Row --%>
