@@ -161,7 +161,7 @@ if (request.getParameter("number")!=null) {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
   })();
 </script>
-
+<script src="javascript/lazysizes.min.js"></script>
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
@@ -635,7 +635,7 @@ if (request.getParameter("number")!=null) {
         <%-- <div class="super-crop seal-gallery-pic"> --%>
           <%-- <div class="crop"> --%>
             <div>
-              <img class="sliderimg" src="<%=newimgUrl%>" alt="<%=sharky%>" />
+              <img class="sliderimg lazyload" src="<%=newimgUrl%>" alt="<%=sharky%>" />
             </div>
           <%-- </div> --%>
         <%-- </div> --%>
@@ -1255,9 +1255,6 @@ if (request.getParameter("number")!=null) {
           }
         %>
 
-
-
-
         </td>
         </tr>
 
@@ -1290,11 +1287,6 @@ if (request.getParameter("number")!=null) {
             <thead id="encountHead"></thead>
             <tbody id="encountBody"></tbody>
           </table>
-
-
-            <%-- <script>
-              var searchResults = <%=encsJson%>;
-            </script> --%>
         </div>
         <%-- End Encounter Table --%>
 
@@ -1397,13 +1389,6 @@ if (request.getParameter("number")!=null) {
                             }
                             else {
                             %>
-                            <%-- <script>
-                            $("#encountersTable").show();
-                            $("#innerEncountersTable").show();
-                            $("#bioSamplesTable").hide();
-                            $("#encountersTableTab").addClass("active");
-                            $("#bioSamplesTableTab").removeClass("active");
-                            </script> --%>
                             <p class="para"><%=props.getProperty("noTissueSamples") %></p>
                             <%
                               }
@@ -1691,7 +1676,7 @@ if (request.getParameter("number")!=null) {
 </div>
 
 <!--db: These are the necessary tools for photoswipe.-->
-<%
+<%-- <%
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 String pswipedir = urlLoc+"/photoswipe";
 %>
@@ -1700,7 +1685,7 @@ String pswipedir = urlLoc+"/photoswipe";
 <!--<p>Looking for photoswipe in <%=pswipedir %></p>-->
 <jsp:include page='photoswipe/photoswipeTemplate.jsp' flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
-<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script> --%>
 
 <%-- Import Footer --%>
 <jsp:include page="footer.jsp" flush="true"/>
