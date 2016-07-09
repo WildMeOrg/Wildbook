@@ -33,10 +33,8 @@ function setupFamilyTree(individualID) {
     if(json.length < 1) {
       //If there are no familial relationships, show social relationships table instead
       $("#familyDiagram").hide();
-      $("#communityDiagram").hide();
       $("#communityTable").show();
       $("#familyDiagramTab").removeClass("active");
-      $("#communityDiagramTab").removeClass("active");
       $("#communityTableTab").addClass("active");
       showIncompleteInformationMessage();
 
@@ -52,7 +50,7 @@ function setupFamilyTree(individualID) {
 
       var svg = d3.select("#familyDiagram").append("svg")
       .attr('width', "100%")
-      .attr('height', "40%")
+      .attr('height', "300px")
       .call(zoom)
       .append('g')
 

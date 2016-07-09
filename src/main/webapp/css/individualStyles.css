@@ -1,16 +1,50 @@
+.container {
+  width: auto
+}
 .maincontainer {
   margin-left: 3%;
-  margin-right: 3%;
+  margin-right: 5%;
+  padding-top: 0px;
 }
 
 .mainColumn {
-  padding-left: 3%;
-  padding-right: 3%;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+.mainHeader {
+  background-color: #e8eff1;
+}
+
+.slider {
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  display: none;
+}
+
+.sliderimg {
+  max-height: 400px;
+  margin: 0 !important;
+}
+
+.crop-outer {
+  cursor: pointer;
+  width: auto;
+  overflow: hidden;
+}
+.crop-outer .crop {
+  text-align: center;
+  overflow: hidden;
+}
+
+#markedIndividualHeader {
+  -webkit-text-fill-color: #005589;
+  color: #005589;
 }
 
 
 /*Hide Diagram Tab Content*/
-#communityDiagram, #communityTable, #cooccurrenceTable, #encountersTable, #innerEncountersTable {
+#communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
 }
 
@@ -40,7 +74,6 @@ li.active{
 
 #familyDiagram svg {
   border: 1px solid #aaa;
-  border-radius: 5px;
 }
 .individual rect {
   fill: #fff;
@@ -73,7 +106,6 @@ li.active{
 
 .bubbleChart svg{
   background: #373F51;
-  border-radius: 5px;
   width: 100%;
 }
 
@@ -83,7 +115,7 @@ li.active{
 
 .mygrid-wrapper-div {
   overflow: scroll;
-  height: 350px;
+  max-height: 350px;
 }
 
 #zoomIn, #zoomOut, #reset, #resetButton {
@@ -132,6 +164,12 @@ th {
   cursor: pointer;
 }
 
+.encounterImg, .encounterSample {
+  max-width: 30px;
+  width: auto;
+  max-height: 30px;
+}
+
 .table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
   background-color: #7997a1;
   color: #FFFFFF;
@@ -151,35 +189,26 @@ td {
 /*Collaborating Researcher Styles*/
 
 .researcherName {
-  text-align: center;
   font-weight: bold;
 }
 
 .researcherPhoto {
-  width: 75%;
+  max-width: 100%;
+  max-height: 200px;
   height: auto;
-  margin-left: 12.5%;
-  margin-right: 12.5%;
-  border: 1px solid lightgray;
 }
 
 .researcherPhotoContainer {
   max-width: 100%;
-  padding: 5%;
+  padding: 2%;
   word-wrap: break-word;
+}
+
+.thumbnail {
+  box-shadow: none;
 }
 
 #researchers {
   overflow: scroll;
   max-height: 500px;
-  border: 1px solid lightgray;
-  border-radius: 1%;
-}
-
-/*Media Queries*/
-@media screen and (min-width: 400px) and (max-width: 990px) {
-  .researcherPhotoContainer {
-    max-width: 50%;
-    float: left;
-  }
 }
