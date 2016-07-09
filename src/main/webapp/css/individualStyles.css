@@ -26,6 +26,16 @@
   margin: auto;
 }
 
+.crop-outer {
+  cursor: pointer;
+  width: auto;
+  overflow: hidden;
+}
+.crop-outer .crop {
+  text-align: center;
+  overflow: hidden;
+}
+
 #markedIndividualHeader {
   -webkit-text-fill-color: #005589;
   color: #005589;

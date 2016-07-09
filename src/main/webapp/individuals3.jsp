@@ -300,21 +300,21 @@ if (request.getParameter("number")!=null) {
 
           boolean isOwner = ServletUtilities.isUserAuthorizedForIndividual(sharky, request);
 
-          if ((CommonConfiguration.allowNicknames(context)) && (sharky.getNickName() != null)) {
+          if (CommonConfiguration.allowNicknames(context)) {
+            if ((sharky.getNickName() != null) && (!sharky.getNickName().trim().equals(""))) {
+              String myNickname = "";
+              myNickname = sharky.getNickName();
+              %>
 
-            String myNickname = "";
-            myNickname = sharky.getNickName();
-            %>
+              <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
 
-            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
-
-            <%
-
-
-          } else {
-            %>
-            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
-          <%
+              <%
+            }
+            else {
+              %>
+              <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+              <%
+            }
           }
           %>
           <%-- <p class="caption"><em><%=props.getProperty("description") %></em></p> --%>
@@ -632,17 +632,17 @@ if (request.getParameter("number")!=null) {
         String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
         %>
-        <%-- <div class="super-crop seal-gallery-pic"> --%>
-          <%-- <div class="crop"> --%>
-            <div>
-              <img class="sliderimg lazyload" src="<%=newimgUrl%>" alt="<%=sharky%>" />
-            </div>
-          <%-- </div> --%>
-        <%-- </div> --%>
+        <div class="crop-outer">
+          <div class="crop">
+            <img class="sliderimg lazyload" src="<%=newimgUrl%>" alt="<%=sharky%>" />
+          </div>
+        </div>
         <%
       }
       %>
     </div>
+    <script>
+    </script>
   </div>
   <%-- End of Header Row --%>
 
@@ -1563,6 +1563,37 @@ if (request.getParameter("number")!=null) {
   <%-- End of Body Row --%>
   </div>
 
+  <script src="<%=imgurlLoc %>/javascript/imageCropper.js"></script>
+  <%-- Crop the images. I am sure there is a better way to do this, but we set max height to 400px arbitrarily. Varying results between Firefox and Chrome. Doesn't work great responsively...yet --%>
+  <script>
+    var maxHeight = 400;
+    $('div.crop-outer').css('max-height',maxHeight+'px');
+    var cropDesktopPics = function(maxHeight) {
+      $('.crop-outer .crop img').each(function() {
+        var scaleRatio = maxHeight/$(this).height();
+        var newWidth = scaleRatio * $(this).width();
+        var horiz_offset = (newWidth - $(this).width())/2;
+        if (scaleRatio > 1) {
+          $(this).height(maxHeight);
+          $(this).css({"max-width":(newWidth)+"px"})
+          $(this).width('100%');
+          $(this).css('margin-left','-'+horiz_offset+'px');
+        }
+        else {
+          $(this).width('100%');
+          $(this).css('margin-left','-'+horiz_offset+'px');
+        }
+      });
+    }
+    cropDesktopPics(maxHeight);
+
+    $(document).ready(function(){
+      cropDesktopPics(maxHeight);
+    });
+    $( window ).resize(function(){
+      cropDesktopPics(maxHeight);
+    });
+  </script>
 
 
   <%
