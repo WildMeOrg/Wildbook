@@ -24,7 +24,7 @@
 
 .sliderimg {
   max-height: 400px;
-  margin: auto;
+  margin: 0 !important;
 }
 
 .crop-outer {
