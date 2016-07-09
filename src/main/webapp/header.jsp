@@ -85,6 +85,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
  
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
+ 	<meta property="og:site_name" content="Flukebook"/>
   	<!-- End Open Graph Tags -->
   
     </head>
@@ -96,8 +98,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>
-                  <div class="search-and-secondary-wrapper">
+                <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
                     
                    
