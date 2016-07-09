@@ -99,6 +99,11 @@
 		            	        		<fetch-group name="allSharks_min">
 				            		<field name="encounters"/>
 				        		</fetch-group>
+								
+								<fetch-group name="socialdata">
+				            		<field name="sex"/>
+				        		</fetch-group>
+								
 			<fetch-group name="count" />
 
 		</class>
