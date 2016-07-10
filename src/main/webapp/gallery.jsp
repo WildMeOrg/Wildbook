@@ -22,6 +22,8 @@
 
 <%
 
+
+
 // All this fuss before the html is from individualSearchResults
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -82,10 +84,7 @@ int numResults = 0;
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 myShepherd.beginDBTransaction();
-String order ="";
-//if(request.getParameter("sort")!=null){
-//	order=request.getParameter("sort");
-//}
+String order ="nickName ASC NULLS LAST";
 
 request.setAttribute("rangeStart", startNum);
 request.setAttribute("rangeEnd", endNum);
@@ -93,8 +92,13 @@ MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShe
 
 rIndividuals = result.getResult();
 
+
+
+
 //handle any null errors better
 if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+
+
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
@@ -137,6 +141,29 @@ if (rIndividuals.size() < listNum) {
     overflow: hidden;
   }
 
+  // seal-scrolling css
+  .gallery-inner {
+    position: relative;
+  }
+  .seal-scroll {
+    cursor:pointer;
+    position: absolute;
+    top: 40%;
+  }
+  .seal-scroll.scroll-fwd {
+    right: 10%;
+  }
+  .seal-scroll.scroll-back {
+    left: 10%;
+  }
+
+  .super-crop.seal-gallery-pic {
+    display: none;
+  }
+  .super-crop.seal-gallery-pic.active {
+    display: block;
+  }
+
   p.image-copyright {
     	text-align: right;
     	position: absolute;
@@ -165,6 +192,7 @@ if (rIndividuals.size() < listNum) {
     font-size: 36px !important;
     line-height: 1.3em !important;
     font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
+    padding: 27px;
   }
 
 
@@ -228,8 +256,6 @@ myShepherd.beginDBTransaction();
 
 %>
 
-
-
 <div class="container maincontent">
 <h1><%=props.getProperty("gallery") %></h1>
 <nav class="navbar navbar-default gallery-nav">
@@ -243,8 +269,8 @@ myShepherd.beginDBTransaction();
   </div>
 </nav>
 
+<div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
-
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -265,14 +291,14 @@ myShepherd.beginDBTransaction();
   	   		.replaceAll("HV","Haukivesi")
             .replaceAll("JV","Joutenvesi")
          	.replaceAll("PEV","Pyyvesi - Enonvesi")
-			.replaceAll("KV","Kulovesi")
+			.replaceAll("KV","Kolovesi")
 			.replaceAll("PV","Pihlajavesi")
 			.replaceAll("PUV","Puruvesi")
 			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
 			.replaceAll("LL","Luonteri – Lietvesi")
 			.replaceAll("ES","Etel&auml;-Saimaa");
       %>
-      
+
         <h2><%=locCode %></h2>
       </div>
     <% } %>
@@ -295,6 +321,7 @@ myShepherd.beginDBTransaction();
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
+        String[] pairMediaAssetID = new String[2];
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
@@ -302,10 +329,12 @@ myShepherd.beginDBTransaction();
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
-          pairCopyright[j] = indie.getExemplarPhotographer();
+          pairCopyright[j] =
+          maJson.optString("photographer");
           if ((pairCopyright[j]!=null)&&!pairCopyright[j].equals("")) {
             pairCopyright[j] =  "&copy; " +pairCopyright[j];
           }
+          pairMediaAssetID[j]=maJson.optString("id");
           pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
@@ -323,7 +352,6 @@ myShepherd.beginDBTransaction();
                 }
                 %>
               </div>
-
               <p><strong><%=pairNickname[j]%></strong></p>
             </div>
           </div>
@@ -342,7 +370,7 @@ myShepherd.beginDBTransaction();
 
 
             <div class="gallery-inner">
-              <div class="super-crop">
+              <div class="super-crop seal-gallery-pic active">
                 <div class="crop">
                   <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                   <%
@@ -354,13 +382,58 @@ myShepherd.beginDBTransaction();
                   %>
                 </div>
               </div>
+              <%
+              // display=none copies of the above for each additional image
+              ArrayList<JSONObject> al = pair[j].getExemplarImages(request);
+              for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
+                JSONObject newMaJson = new JSONObject();
+                newMaJson = al.get(extraImgNo);
+                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+
+                String copyright = newMaJson.optString("photographer");
+                if ((copyright!=null)&&!copyright.equals("")) {
+                  copyright =  "&copy; " +copyright+" / WWF";
+                } else {
+                  copyright = "&copy; WWF";
+                }
+
+
+
+                %>
+                <div class="super-crop seal-gallery-pic">
+                  <div class="crop">
+                    <img src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                    <p class="image-copyright"> <%=copyright%> </p>
+                    <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
+                  </div>
+                </div>
+                <%
+              }
+              %>
+
+              <img class="seal-scroll scroll-back" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"/>
+
+              <img class="seal-scroll scroll-fwd" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/>
+
+
+
+
 
 
               <span class="galleryh2"><%=pairNickname[j]%></span>
               <span style="font-size:1.5rem;color:#999;text-align:right;float:right;margin-top:4px;bottom:0;">
-                <a href=#><i class="icon icon-facebook-btn" aria-hidden="true"></i></a>
-                <a href=#><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a href=#><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+                <%
+                String imageURL=pairUrl[j].replaceAll(":", "%3A").replaceAll("/", "%2F").replaceFirst("52.40.15.8", "norppagalleria.wwf.fi");
+                String shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairName[j];
+                if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
+                %>
+
+                <a href="https://www.facebook.com/sharer/sharer.php?u=http://norppagalleria.wwf.fi/gallery.jsp&title=<%=shareTitle %>&endorseimage=http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
+                </a>
+
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
                 <td>
@@ -374,7 +447,7 @@ myShepherd.beginDBTransaction();
                     <li>
                       <%
                         String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female")) {sexValue=props.getProperty(sexValue);}
+                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
                       %>
                       <%=props.getProperty("sex")%> <%=sexValue%>
                     </li>
@@ -419,12 +492,15 @@ myShepherd.beginDBTransaction();
           }
           %>
 
+          Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
+
           <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
-      </div>
+      </row>
 
   </section>
+</div>
 </div>
 
 <%
@@ -434,12 +510,14 @@ myShepherd=null;
 
 
 
+
 <script src="<%=urlLoc %>/javascript/galleryFuncs.js"></script>
+<script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
 <script>
 
   $( window ).resize(function(){
-    galFunc.cropGridPics();
-    galFunc.cropInnerPics();
+    imageCropper.cropGridPics();
+    imageCropper.cropInnerPics();
   });
 
   // handles gallery-info hiding/showing
@@ -467,10 +545,36 @@ myShepherd=null;
         $(targetArrow).addClass('active');
         $(target).slideToggle(800);
         $(target).addClass('active');
-        galFunc.cropInnerPics();
+        imageCropper.cropInnerPics();
       })
     }
   });
+
+  $('.seal-scroll.scroll-fwd').click( function() {
+    console.log('beginning scroll logic');
+    var $active = $(this).siblings('.seal-gallery-pic.active');
+    var $next = imageCropper.nextWrap($active, '.seal-gallery-pic');
+    $active.toggle(0);
+    $next.toggle(0, function () {
+      console.log("next is toggled!");
+      $active.removeClass('active');
+      $next.addClass('active');
+    });
+  });
+
+  $('.seal-scroll.scroll-back').click( function() {
+    console.log('beginning scroll logic');
+    var $active = $(this).siblings('.seal-gallery-pic.active');
+    var $prev = imageCropper.prevWrap($active, '.seal-gallery-pic');
+    $active.toggle(0);
+    $prev.toggle(0, function () {
+      console.log("next is toggled!");
+      $active.removeClass('active');
+      $prev.addClass('active');
+    });
+  })
+
+
 
   // a little namespace for gallery functions
   var gallery = {};
