@@ -570,7 +570,7 @@ jQuery(function($) {
 		</div>
 		<div class="col-md-6 full-height per-seal-info">
 		  <h2 class="greenish">Pullervo</h2>
-		  <p>Pullervo on Suomen tunnetuin saimaannorppa. Se nousi koko kansan tietoisuuteen Norppaliven toisen p&auml;&auml;t&auml;hten&auml; toukokuussa 2016. Pullervo tunnettiin ennen koodinimell&auml; Phs106. Sen nime&auml;miseksi k&auml;ynnistettiin kilpailu, ja ehdotuksia nimeksi tuli yli 6 000. Pullervo on erityisen vaalea ja isohko uros.</p>
+		  <p>Pullervo on Suomen tunnetuin saimaannorppa. Se nousi koko kansan tietoisuuteen Norppaliven toisena p&auml;&auml;t&auml;hten&auml; toukokuussa 2016. Pullervo tunnettiin ennen koodinimell&auml; Phs106. Sen nime&auml;miseksi k&auml;ynnistettiin kilpailu, ja ehdotuksia nimeksi tuli yli 6 000. Pullervo on erityisen vaalea ja isohko uros.</p>
 		  <p class=pfooter-link>
 		    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 		  </p>
@@ -625,7 +625,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Teemu</h2>
-	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&oum;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&oum;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
+	  <p>Haukivedell&auml; uiskenteleva Teemu on tallennettu todenn&auml;k&ouml;isesti moniin kotialbumeihin. Se on koko Saimaan useimmiten tavattu norppa, joka ei huomiota tai veneit&auml; kavahda. Ensimm&auml;isen kerran Teemu n&auml;htiin vuonna 2006. Vuonna 2009 Teemulle asennettiin radiol&auml;hetin, jolloin se my&ouml;s punnittiin: painoa oli kertynyt komeat 103 kiloa. Teemu vaikuttaa olevan varsin kotiseuturakas eik&auml; se ei juuri harhaile pois tutuilta vesilt&auml;.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
@@ -679,7 +679,7 @@ jQuery(function($) {
 
 	<div class="col-md-6 full-height per-seal-info">
 	  <h2 class="greenish">Mitro</h2>
-	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&oum;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&oum;s GPS-seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&oum;ll&oum;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&oum;s makoilemasta rantaruohikolla.</p>
+	  <p>Mitro on reipas liikkeiss&auml;&auml;n. Se havaittiin ensimm&auml;isen kerran Pihlajavedell&auml; vuonna 2011. Se loikoili samoilla tienoilla my&ouml;s seuraavana vuonna, mutta vuonna 2013 Mitro yll&auml;tti tutkijat t&auml;ysin: se tallentui nimitt&auml;in riistakamerakuviin yli 35 kilometrin p&auml;&auml;ss&auml; aiemmin suosimastaan paikasta. Mitro oli my&ouml;s GPS-seurannassa, jonka aikana sen havaittiin tehneen yli 60 kilometrin uintilenkin ja k&auml;yneen aina Puruvedell&auml; asti. Se ei kaihda seuraa, vaan k&ouml;ll&ouml;ttelee usein toisen norpan kanssa vierekk&auml;isill&auml; kivill&auml;. Mitro on kuvattu my&ouml;s makoilemasta rantaruohikolla.</p>
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>

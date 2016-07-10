@@ -135,7 +135,7 @@
 									<span class="button-icon" aria-hidden="true">
 								</button>
 							-->   <h2>
-											<a href="adoptanimal.jsp">
+											<a href="http://www.wwf.fi/norppakummiksi">
 													<!--<button class="large">Report encounter<span class="button-icon" aria-hidden="true"></button>-->
 													<button class="btn btn-primary">Liity Norppa-Kummiksi</button>
 											</a>
