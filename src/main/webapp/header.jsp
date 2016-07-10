@@ -462,7 +462,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                     },
                     success: function( data ) {
                         var res = $.map(data, function(item) {
-                            var label;
+                            var label="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }
