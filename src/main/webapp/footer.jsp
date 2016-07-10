@@ -159,25 +159,26 @@
 
 
 								<div class="row wwf-row">
-									<div class="col-xs-2">
-										<a href="">
-											<img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf_panda_logo.svg">
-										</a>
-									</div>
+									
 
-									<div class="col-xs-10">
+									<div class="col-xs-12" style="text-align: center;">
+									<a style="
+    									background-image: url('http://norppagalleria.wwf.fi/cust/mantamatcher/img/wwf_panda_logo.svg');
+    									background-repeat: no-repeat;
+    									background-size: contain;
+    									width: 72px;
+    									height: 108px;
+    									display: inline-block;" 
+    									
+    									href="/" title="Etusivulle" rel="home" tabindex="1"><span class="screen-reader-text">WWF</span></a>
 										<h2 style="color:#000;"> Rakennamme tulevaisuuden, jossa ihmiset ja luonto el&auml;v&auml;t tasapainossa</h2>
 
 											<ul class="nav">
-												<li><a href="#">Yksityisyyden suoja ja tekijänoikeudet</a></li>
-												&nbsp;&nbsp;&nbsp;&nbsp;
-												<li><a href="#">Keräyslupa ja rekisteriseloste</a></li>
-												&nbsp;&nbsp;&nbsp;&nbsp;
-												<li><a href="#">Työpaikat</a></li>
-												&nbsp;&nbsp;&nbsp;&nbsp;
-												<li><a href="#">Yhteystiedot</a></li>
-												&nbsp;&nbsp;&nbsp;&nbsp;
-												<li><a href="#">Palaute</a></li>
+																			<li><a href="/yksityisyydensuoja_tekijanoikeudet/">Yksityisyyden suoja ja tekijänoikeudet</a></li>
+							<li><a href="http://www.wwf.fi/kerayslupa/">Keräyslupa ja rekisteriseloste</a></li>
+							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/tyopaikat/">Työpaikat</a></li>
+							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/">Yhteystiedot</a></li>
+							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/palaute/" onClick="ga('send', 'event', {'eventCategory': 'feedback', 'eventAction': 'fee_step1_footer_', 'eventLabel': 'lnk'});" >Palaute</a></li>
 											</ul>
 										</br>
 										<small class="copyright source-org vcard" itemprop="copyrightHolder">Copyright © <span itemprop="copyrightYear">2014</span> <span class="org fn" itemprop="creator">WWF Suomi</span>, valokuvien tekijänoikeudet kuvien yhteydessä</small>
