@@ -626,11 +626,17 @@ if (request.getParameter("number")!=null) {
         right: 15px;
         bottom: 0px;
         z-index: 10;
+        color: white;
+        text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
 
 
-    <div class="slider col-sm-6">
+    <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
