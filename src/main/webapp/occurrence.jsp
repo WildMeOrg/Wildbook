@@ -162,7 +162,7 @@ context=ServletUtilities.getContext(request);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
 
 
-			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+			List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = sharky.canUserAccess(request);
 
 			if (!visible) {
@@ -375,16 +375,7 @@ if(sharky.getLocationID()!=null){
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
-    <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
 
-    	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=props.getProperty("spots") %></strong>
-    	</td>
-    <%
-    }
-    %>
    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
  <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
  
@@ -480,21 +471,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
     <td class="lineitem"><%=sexValue %></td>
 
-    <%
-      if (CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
-    <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-    <td class="lineitem">&nbsp;</td>
-    <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">LR</td>
-    <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-    <td class="lineitem">L</td>
-    <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">R</td>
-    <%
-        }
-      }
-    %>
+
     
   
     <td class="lineitem">
@@ -556,12 +533,12 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 			
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
@@ -939,7 +916,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
-    <input name="Submit" type="submit" value="<%=props.getProperty("addComments") %>">
+    <input name="Submit" type="submit" value="<%=props.getProperty("addComments") %>"></p>
 </form>
 </p>
 <%
@@ -948,22 +925,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
   } //if isOwner
 %>
-
-
-</p>
-
-
-</td>
-</tr>
-
-
-</table>
-
-</td>
-</tr>
-</table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
 
 
 <br />
@@ -981,32 +942,8 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 } 
 
-//could not find the specified individual!
-else {
 
 
-
-%>
-
-
-<p><%=props.getProperty("matchingRecord") %>:
-<br /><strong><%=request.getParameter("number")%>
-</strong><br/><br />
-  <%=props.getProperty("tryAgain") %>
-</p>
-
-
-<%
-      }
-	  %>
-      </td>
-</tr>
-</table>
-
-
-
-      
-      <%
     
   } catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in occurrence.jsp!");

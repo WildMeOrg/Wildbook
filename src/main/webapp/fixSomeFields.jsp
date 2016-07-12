@@ -11,11 +11,8 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-	Shepherd myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
 
-// pg_dump -Ft sharks > sharks.out
-
-//pg_restore -d sharks2 /home/webadmin/sharks.out
 
 
 %>
@@ -28,16 +25,19 @@ context=ServletUtilities.getContext(request);
 
 
 <body>
+<<<<<<< HEAD
 <p>Removing all workspaces.</p>
+=======
+
+>>>>>>> origin/crc
 <ul>
 <%
 
 myShepherd.beginDBTransaction();
 
-//build queries
-
 int numFixes=0;
 
+<<<<<<< HEAD
 try {
 
 	String rootDir = getServletContext().getRealPath("/");
@@ -62,23 +62,41 @@ try {
   		myShepherd.beginDBTransaction();
     }
   }
-}
-catch (Exception ex) {
+=======
+try{
 
-	System.out.println("!!!An error occurred on page fixSomeFields.jsp. The error was:");
-	ex.printStackTrace();
+	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
+	
+
+
+	while(allEncs.hasNext()){
+		
+		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
+		enc.refreshDependentProperties(context);
+		myShepherd.commitDBTransaction();
+		myShepherd.beginDBTransaction();
+
+	}
 	myShepherd.rollbackDBTransaction();
-
-
+	
+>>>>>>> origin/crc
+}
+catch(Exception e){
+	myShepherd.rollbackDBTransaction();
 }
 finally{
-
 	myShepherd.closeDBTransaction();
-	myShepherd=null;
+
 }
+
 %>
 
 </ul>
+<<<<<<< HEAD
 <p>Done successfully: <%=numFixes %> workspaces deleted.</p>
+=======
+<p>Done successfully: <%=numFixes %></p>
+
+>>>>>>> origin/crc
 </body>
 </html>

@@ -22,7 +22,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -31,7 +31,7 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+        mkImg(maJson)
       )
     )
   );
@@ -39,18 +39,59 @@ maLib.maJsonToFigureElem = function(maJson, intoElem) {
   return;
 }
 
+
+maLib.startIdentify = function(el) {
+  	var aid = el.getAttribute('data-id');
+  	el.parentElement.innerHTML = '<i>starting identification</i>';
+  	jQuery.ajax({
+  		url: '/ia',
+  		type: 'POST',
+  		dataType: 'json',
+  		contentType: 'application/javascript',
+  		success: function(d) {
+  			console.info('identify returned %o', d);
+  			if (d.taskID) {
+  				window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+  			} else {
+  				alert('error starting identification');
+  			}
+  		},
+  		error: function(x,y,z) {
+  			alert('error starting identification');
+  			console.warn('%o %o %o', x, y, z);
+  		},
+  		data: JSON.stringify({
+  			identify: aid,
+  			genus: '<%=imageEnc.getGenus()%>',
+  			species: '<%=imageEnc.getSpecificEpithet()%>'
+  		})
+  	});
+  }
+
+
 maLib.defaultCaptionFunction = function(maJson) {
   if ('url' in maJson) {return maJson.url;}
   else {return "Test caption, do not read"}
 }
 
+/*
+var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
+fig.append(
+  $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+    mkImg(maJson)
+  )
+);
+*/
+
+
 maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
-    partArray = partArray[partArray.length-1].split('.')
-    return partArray[0];
+    partArray = partArray[partArray.length-1].split('.');
+    return encodeURI(partArray[0]);
   }
   return "Test caption, do not read";
+
 }
 
 /**
@@ -59,18 +100,22 @@ maLib.cascadiaCaptionFunction = function(maJson) {
  *
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
-maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) {
+maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  caption = caption || '';
 
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
+  url = wildbook.cleanUrl(url);
+
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -80,11 +125,10 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) 
   var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
   fig.append(
     $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-      '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      mkImg(maJson)
     )
   );
-  var caption = maCaptionFunction(maJson);
-  fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
+  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
 
 
   intoElem.append(fig);
@@ -98,6 +142,61 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, maCaptionFunction) 
   maLib.testExtraction(maJson);
   return;
 }
+
+maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCaptionFunction) {
+  //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  // TODO: genericize caption
+  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+
+  colSize = colSize || 6;
+
+  // TODO: copy into html figure element
+  var url = maJson.url, w, h;
+  url = wildbook.cleanUrl(url);
+  // have to check to make sure values exist
+  if ('metadata' in maJson) {
+    w = maJson.metadata.width;
+    h = maJson.metadata.height;
+  }
+  if (!url) {
+    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    return;
+  }
+  var wxh = w+'x'+h;
+  var watermarkUrl = maLib.getChildUrl('_watermark');
+
+  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" class="col-md-'+colSize+'"/>');
+
+
+  fig.append(
+    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      mkImg(maJson)
+    )
+  );
+
+  // make sure half-width images aren't more than 1/4 height of screen
+  /*
+  if (colSize==3) {
+    fig.find("img").css("max-height","140px");
+  }*/
+
+
+  var caption = maCaptionFunction(maJson);
+  fig.append('<figcaption itemprop="caption description">'+caption+'</figcaption>');
+
+  intoElem.append(fig);
+  /*
+    $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
+      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      )
+    )
+  );*/
+  maLib.testExtraction(maJson);
+  return;
+}
+
+
 
 /***
   SCHEMA EXAMPLE FOR HTML FIGURE:
@@ -134,12 +233,13 @@ maLib.testExtraction = function(maJson) {
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
   var url = maJson.url, w, h;
+  url = wildbook.cleanUrl(url);
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
     h = maJson.metadata.height;
   }
-  if (!url || !w || !h) {
+  if (!url) {
     console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
     return;
   }
@@ -147,7 +247,7 @@ maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   intoElem.append(
     $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject" />').append(
       $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
-        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+        mkImg(maJson)
       )
     )
   );
@@ -232,8 +332,13 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
 
           linkEl = figureEl.children[0]; // <a> element
 
-          size = linkEl.getAttribute('data-size').split('x');
-
+          //size = linkEl.getAttribute('data-size').split('x');
+        size = [800,600];  //fallback that hopefully we never see
+        var imgEl = linkEl.children[0];
+        if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
+            size = [imgEl.naturalWidth, imgEl.naturalHeight];
+        }
+ 
           // create slide object
           item = {
               src: linkEl.getAttribute('href'),
@@ -403,6 +508,13 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
     openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
   }
 };
+
+
+
+function mkImg(maJson) {
+    var url = wildbook.cleanUrl(maJson.url);
+    return '<img id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+}
 
 // execute above function
 

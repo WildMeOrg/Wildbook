@@ -99,8 +99,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
       Encounter enc = myShepherd.getEncounter(num);
       try {
 
-        if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
-          //System.out.println("Yes, shark is unassigned!");
+        if (enc.getIndividualID()==null) {
           ok2add = true;
           for (int i = 0; i < 200; i++) {
             if ((request.getParameter("spotx" + (new Integer(i)).toString()) != null) && (request.getParameter("spoty" + (new Integer(i)).toString()) != null)) {

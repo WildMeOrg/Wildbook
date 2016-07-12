@@ -300,6 +300,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>IAGateway</servlet-name>
+    <servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
   </servlet>
@@ -363,6 +368,10 @@
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>RestKeyword</servlet-name>
+    <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
+  </servlet>
 
     <servlet>
       <servlet-name>ImportSRGD</servlet-name>
@@ -458,6 +467,11 @@
     <url-pattern>/BatchUpload/*</url-pattern>
   </servlet-mapping>
 
+    <servlet-mapping>
+    <servlet-name>IAGateway</servlet-name>
+    <url-pattern>/ia</url-pattern>
+  </servlet-mapping>
+
     <servlet>
       <servlet-name>UserCreate</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreate</servlet-class>
@@ -503,6 +517,11 @@
     <servlet-name>MediaAssetsForUser</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>MediaAssetAttach</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetAttach</servlet-class>
+</servlet>
+
 
   <servlet>
     <servlet-name>EncounterResetDate</servlet-name>
@@ -675,6 +694,11 @@
     <servlet>
       <servlet-name>OccurrenceRemoveEncounter</servlet-name>
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
+  </servlet>
+
+          <servlet>
+        <servlet-name>CRCExportReport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
   </servlet>
 
   <servlet>
@@ -1037,6 +1061,17 @@
 		</init-param>
 	</servlet>
 
+
+	<servlet>
+		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
+		<servlet-class>org.ecocean.servlet.PrimeIBEISImageAnalysisForSpecies</servlet-class>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>PrimeIBEISImageAnalysisForSpecies</servlet-name>
+		<url-pattern>/PrimeIBEISImageAnalysisForSpecies</url-pattern>
+	</servlet-mapping>
+
   <!-- TranslateQuery -->
   <servlet>
     <servlet-name>TranslateQuery</servlet-name>
@@ -1080,6 +1115,10 @@
 <url-pattern>/rest/*</url-pattern>
 </servlet-mapping>
 
+     <servlet-mapping>
+        <servlet-name>CRCExportReport</servlet-name>
+        <url-pattern>/CRCExportReport</url-pattern>
+  </servlet-mapping>
 
 
 <servlet-mapping>
@@ -1219,6 +1258,10 @@
       </servlet-mapping>
 
 
+      <servlet-mapping>
+         <servlet-name>MediaAssetAttach</servlet-name>
+         <url-pattern>/MediaAssetAttach</url-pattern>
+      </servlet-mapping>
 
         <servlet-mapping>
           <servlet-name>TissueSampleRemoveBiologicalMeasurement</servlet-name>
@@ -1706,6 +1749,11 @@
   <servlet-mapping>
     <servlet-name>KeywordHandler</servlet-name>
     <url-pattern>/KeywordHandler</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>RestKeyword</servlet-name>
+    <url-pattern>/RestKeyword</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>

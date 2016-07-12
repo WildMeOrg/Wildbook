@@ -25,6 +25,7 @@ import java.util.*;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.security.Collaboration;
+import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -97,6 +98,8 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
+  
+  private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
   private String localHaplotypeReflection;
@@ -224,6 +227,17 @@ public class MarkedIndividual implements java.io.Serializable {
 		this.dateFirstIdentified = d;
 		return d;
 	}
+	
+	 public String refreshDateLastestSighting() {
+	    Encounter[] sorted = this.getDateSortedEncounters(true);
+	    if (sorted.length < 1) return null;
+	    Encounter last = sorted[0];
+	    if (last.getYear() < 1) return null;
+	    this.dateTimeLatestSighting=last.getDate();
+	    return last.getDate();
+	  }
+
+
 
 
 	public String refreshThumbnailUrl(String context) {
@@ -1137,9 +1151,20 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return "";
   }
+  
+  public String getDateLatestSighting() {
+    if (dateTimeLatestSighting != null) {
+      return dateTimeLatestSighting;
+    }
+    return "";
+  }
 
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
+  }
+  
+  public void setDateTimeLatestSighting(String time) {
+    dateTimeLatestSighting = time;
   }
 
   public void setAlternateID(String newID) {
@@ -1253,9 +1278,9 @@ public class MarkedIndividual implements java.io.Serializable {
     int numEncounters = encounters.size();
     for (int i = 0; i < numEncounters; i++) {
       Encounter enc = (Encounter) encounters.get(i);
-      Iterator it = myShepherd.getAllKeywords();
+      Iterator<Keyword> it = myShepherd.getAllKeywords();
       while (it.hasNext()) {
-        Keyword word = (Keyword) it.next();
+        Keyword word = it.next();
         if (enc.hasKeyword(word) && (!al.contains(word))) {
           al.add(word);
         }
@@ -1349,6 +1374,8 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     maxYearsBetweenResightings=maxYears;
     }
+  
+
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
     int endYear = m_endYear;
@@ -1534,7 +1561,7 @@ public boolean hasGeneticSex(){
 *Obtains the email addresses of all submitters, photographs, and others to notify.
 *@return ArrayList of all emails to inform
 */
-public ArrayList getAllEmailsToUpdate(){
+public List<String> getAllEmailsToUpdate(){
 	ArrayList notifyUs=new ArrayList();
 
 	int numEncounters=encounters.size();
@@ -1711,7 +1738,7 @@ public long getTimeofDeath(){return timeOfDeath;}
 public void setTimeOfBirth(long newTime){timeOfBirth=newTime;}
 public void setTimeOfDeath(long newTime){timeOfDeath=newTime;}
 
-public ArrayList<Relationship> getAllRelationships(Shepherd myShepherd){
+public List<Relationship> getAllRelationships(Shepherd myShepherd){
   return myShepherd.getAllRelationshipsForMarkedIndividual(individualID);
 }
 
@@ -1816,13 +1843,82 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
 
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
+    boolean haveProfilePhoto=false;
+    for (Encounter enc : this.getDateSortedEncounters()) {
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        ArrayList<Annotation> anns = enc.getAnnotations();
+        if ((anns == null) || (anns.size() < 1)) {
+          continue;
+        }
+        for (Annotation ann: anns) {
+          if (!ann.isTrivial()) continue;
+          MediaAsset ma = ann.getMediaAsset();
+          if (ma != null) {
+            //JSONObject j = new JSONObject();
+            JSONObject j = ma.sanitizeJson(req, new JSONObject());
+            
+            
+            
+            if (j!=null) {
+              
+              
+              //ok, we have a viable candidate
+              
+              //put ProfilePhotos at the beginning
+              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);haveProfilePhoto=true;}
+              //put any Right keywords at the top but after a profile photo
+              else if(ma.hasKeyword("Right")){
+                if(haveProfilePhoto){al.add(1, j);}
+                else{al.add(0, j);}
+              }
+              //otherwise, just add it to the bottom of the stack
+              else{
+                al.add(j);
+              }
+              
+            }
+            
+            
+          }
+        }
+    }
+    }
+    return al;
+
+  }
+  
+  public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
+    
+    ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
+    if(al.size()>0){return al.get(0);}
+    return new JSONObject();
+    
+
+  }
+  
+
+  // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
+  public String getExemplarPhotographer() {
+    for (Encounter enc : this.getDateSortedEncounters()) {
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+        if((enc.getDynamicPropertyValue("ShowPhotographer")==null)||(enc.getDynamicPropertyValue("ShowPhotographer").equals("Yes"))){return enc.getPhotographerName();}
+        else{return "";}
+
+      }
+    }
+    return "";
+  }
+
+
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
 	public String collaborationLockHtml(HttpServletRequest request) {
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
 		Shepherd myShepherd = new Shepherd(context);
 
-		ArrayList<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   	ArrayList<String> uids = this.getAllAssignedUsers();
   	ArrayList<String> open = new ArrayList<String>();
 		String collabClass = "pending";
@@ -1853,6 +1949,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.resetMaxNumYearsBetweenSightings();
 		this.refreshDateFirstIdentified();
 		this.refreshThumbnailUrl(context);
+		this.refreshDateLastestSighting();
 	}
 
 

@@ -46,7 +46,7 @@
 
     Shepherd myShepherd = new Shepherd(context);
 
-    ArrayList<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
+    List<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
     myShepherd.beginDBTransaction();
     //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
@@ -71,10 +71,10 @@
       keywords = new String[0];
     }
 
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
-    if (request.getParameter("noQuery") == null) {
+    //if (request.getParameter("noQuery") == null) {
     	
     	
     	String jdoqlQueryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
@@ -89,12 +89,15 @@
 	  //queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
 	
     rEncounters=myShepherd.getThumbnails(myShepherd, request, enclist, startNum, endNum, keywords);
+    /*
     }
     else{
-    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
+    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.Annotation WHERE id != null");    	
     	allQuery.setRange(startNum, endNum);
-    	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
+    	ArrayList<Annotation> al=new ArrayList<Annotation>((Collection<Annotation>)allQuery.execute());
+    	rEncounters
    }
+    */
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
@@ -178,7 +181,6 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -309,7 +311,7 @@
 
 			
 			int countMe=0;
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 			
 			try {
 				//thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
@@ -330,7 +332,7 @@
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
 										video=false;
 									}
 									else{
@@ -568,26 +570,17 @@
                         <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //Iterator allKeywords2 = myShepherd.getAllKeywords();
-                        //while (allKeywords2.hasNext()) {
-                          //Keyword word = (Keyword) allKeywords2.next();
-                          
-                          
-                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-						  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-                        	  
-                            //String renderMe = word.getReadableName();
+                      
 							List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-							int myWordsSize=myWords.size();
-                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-                              //String kwParam = keywords[kwIter];
-                              //if (kwParam.equals(word.getIndexname())) {
-                              //  renderMe = "<strong>" + renderMe + "</strong>";
-                              //}
-                      		 	%>
- 								<br/><%=myWords.get(kwIter).getReadableName()%>
- 								<%
-                            }
+							if(myWords!=null){				
+								int myWordsSize=myWords.size();
+	                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+	                              
+	                      		 	%>
+	 								<br/><%=myWords.get(kwIter).getReadableName()%>
+	 								<%
+	                            }
+							}
 
 
 
@@ -781,27 +774,16 @@
   <td><span class="caption">
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-									          //Iterator allKeywords2 = myShepherd.getAllKeywords();
-					                        //while (allKeywords2.hasNext()) {
-					                          //Keyword word = (Keyword) allKeywords2.next();
-					                          
-					                          
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
-					                            //String renderMe = word.getReadableName();
-												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
-					 								<br/><%=myWords.get(kwIter).getReadableName() %>
-					 								<%
-					                            }
+                        						List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+												if(myWords!=null){
+													int myWordsSize=myWords.size();
+						                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+						                              
+						                      		 	%>
+						 								<br/><%=myWords.get(kwIter).getReadableName() %>
+						 								<%
+						                            }
+												}
 
 
 

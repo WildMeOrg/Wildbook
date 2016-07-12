@@ -26,6 +26,7 @@
              org.ecocean.Shepherd,
              org.ecocean.User,
              java.util.ArrayList,
+             java.util.List,
              java.util.Properties,
              org.apache.commons.lang.WordUtils,
              org.ecocean.security.Collaboration,
@@ -76,13 +77,16 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/collaboration.js"></script>
 
-     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>
+      <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
+      <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
+      
+     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
   	<script src="<%=urlLoc %>/cust/mantamatcher/js/___behaviour.js"></script>
 
  	<!-- Start Open Graph Tags -->
- 	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
- 	<meta property="og:site_name" content="Flukebook"/>
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
+  	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
+ 	<meta property="og:site_name" content="Flukebook"/>
   	<!-- End Open Graph Tags -->
 
     <style>
@@ -113,8 +117,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge">An IBEIS Project</a>
-                  <div class="search-and-secondary-wrapper">
+                <div class="search-and-secondary-wrapper">
                     <ul class="secondary-nav hor-ul no-bullets">
 
 
@@ -167,12 +170,12 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
                       %>
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <%
-                      }
-
-
-
-                      ArrayList<String> contextNames=ContextConfiguration.getContextNames();
+                      <% 
+                      } 
+                     	
+                      
+                      
+                      List<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
                 		%>
@@ -219,8 +222,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 		%>
                 		   <!-- Can we inject language functionality here? -->
                     <%
-
-            		ArrayList<String> supportedLanguages=CommonConfiguration.getSequentialPropertyValues("language", context);
+                    
+            		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
             		int numSupportedLanguages=supportedLanguages.size();
 
             		if(numSupportedLanguages>1){
@@ -305,6 +308,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
+                        	
+                        	<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
                           	<li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
@@ -338,6 +343,8 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
+                          <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
+                        
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
@@ -509,7 +516,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     },
                     success: function( data ) {
                         var res = $.map(data, function(item) {
-                            var label;
+                            var label="";
                             if ((item.type == "individual")&&(item.species!=null)) {
 //                                label = item.species + ": ";
                             }

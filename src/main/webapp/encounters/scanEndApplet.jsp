@@ -21,7 +21,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=iso-8859-1" language="java"
          import="org.ecocean.servlet.ServletUtilities,org.dom4j.Document, org.dom4j.Element,org.dom4j.io.SAXReader, org.ecocean.*, org.ecocean.grid.MatchComparator, org.ecocean.grid.MatchObject, java.io.File, java.util.Arrays, java.util.Iterator, java.util.List, java.util.Vector" %>
-<html>
+
 <%
 
 String context="context0";
@@ -55,24 +55,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String maxTriangleRotation = "";
   String side2 = "";
 %>
-
-<head>
-  <title><%=CommonConfiguration.getHTMLTitle(context) %>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-          <link href="../css/pageableTable.css" rel="stylesheet" type="text/css"/>
-<link rel="stylesheet" href="../javascript/tablesorter/themes/blue/style.css" type="text/css" media="print, projection, screen" />
-      
-</head>
+<jsp:include page="../header.jsp" flush="true"/>
 
 <style type="text/css">
  
@@ -94,7 +77,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -122,18 +105,15 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     border-bottom: 1px solid #8DBDD8;
   }
   
+  td, th {
+    border: 1px solid black;
+    padding: 5px;
+}
+  
 </style>
 
-<body>
-<div id="wrapper">
-<div id="page">
-<jsp:include page="../header.jsp" flush="true">
-  <jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-</jsp:include>
-<div id="page">
 
-
-<div id="main">
+<div class="container maincontent">
 
 <ul id="tabmenu">
   <li><a
@@ -281,9 +261,8 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 <p><a href="#resultstable">See the table below for score breakdowns.</a></p>
 
-<p>
 
-<p>
+
 
 <%
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
@@ -320,7 +299,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   </OBJECT>
 </p>
   
-      <a name="resultstable"/><table class="tablesorter">
+      <a name="resultstable"/>
+      
+      <table class="tablesorter" width="800px">
       <thead>
         <tr align="left" valign="top">
           <th><strong>Individual ID</strong></th>
@@ -345,14 +326,9 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
               if ((results[p].matchValue != 0) || (request.getAttribute("singleComparison") != null)) {%>
         <tr>
           <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
+            <a
                   href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
-                </a></td>
-              </tr>
-            </table>
+                </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
@@ -405,16 +381,12 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
             Element enc1 = (Element) encounters.get(0);
             Element enc2 = (Element) encounters.get(1);
         %>
+        
         <tr align="left" valign="top">
           <td>
-            <table width="62">
-
-              <tr>
-                <td width="60" align="left"><a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>"><%=enc1.attributeValue("assignedToShark")%>
-                </a></td>
-              </tr>
-            </table>
+            <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            	<%=enc1.attributeValue("assignedToShark")%>
+            </a>
           </td>
           <%if (enc1.attributeValue("number").equals("N/A")) {%>
           <td>N/A</td>
@@ -528,10 +500,7 @@ if ((request.getParameter("epsilon") != null) && (request.getParameter("R") != n
         <li>Max. Triangle Rotation (<%=maxTriangleRotation%>)</li>
 
       </ul>
+<br />
+</div>
 <jsp:include page="../footer.jsp" flush="true"/>
-</div>
-</div>
-<!-- end page --></div>
-<!--end wrapper -->
-</body>
-</html>
+

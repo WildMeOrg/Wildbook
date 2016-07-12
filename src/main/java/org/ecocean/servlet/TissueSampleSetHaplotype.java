@@ -92,7 +92,7 @@ public class TissueSampleSetHaplotype extends HttpServlet {
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />" + "Added or updated mitochondrial DNA analysis (haplotype) "+request.getParameter("analysisID")+" for tissue sample "+request.getParameter("sampleID")+".<br />"+mtDNA.getHTMLString());
         
         //check if this affects the MarkedIndividual.localHaplotypeReflection
-        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))){
+        if(enc.getIndividualID()!=null){
             MarkedIndividual indie=myShepherd.getMarkedIndividual(enc.getIndividualID());
             indie.doNotSetLocalHaplotypeReflection(mtDNA.getHaplotype());
         }
