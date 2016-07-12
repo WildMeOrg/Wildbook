@@ -636,7 +636,7 @@ if (request.getParameter("number")!=null) {
         %>
         <div class="crop-outer">
           <div class="crop">
-              <img class="sliderimg" src="<%=newimgUrl%>" alt="<%=sharky.getIndividualID()%>" />
+              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=sharky.getIndividualID()%>" />
           </div>
         </div>
         <%
