@@ -80,8 +80,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
       
-     <script src="http://a.vimeocdn.com/js/froogaloop2.min.js"></script>    
-  	<script src="<%=urlLoc %>/cust/mantamatcher/js/___behaviour.js"></script>
+      <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
  
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
