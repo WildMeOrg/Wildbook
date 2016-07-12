@@ -408,6 +408,7 @@ margin-bottom: 8px !important;
 
 <div class="container maincontent">
 
+<div class="row">
 
 			<%
   			myShepherd.beginDBTransaction();
@@ -420,7 +421,7 @@ margin-bottom: 8px !important;
 
 						if (!visible) {
 							String blocker = "";
-							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
@@ -545,9 +546,9 @@ $(function() {
   </script>
 
 
-    			<table width="100%">
+    			<table>
     				<tr>
-    					<td bgcolor="#<%=headerBGColor %>">
+    					<td>
     						<%
     						//int stateInt=-1;
     						String classColor="approved_encounters";
@@ -604,6 +605,7 @@ $(function() {
 								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
+          </div>
 					<table>
 						<tr>
 							<td width="560px" style="vertical-align:top">
@@ -627,7 +629,7 @@ $(function() {
     							if (!enc.hasMarkedIndividual()) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%>
+    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
@@ -642,7 +644,8 @@ $(function() {
     							%>
     							<p class="para">
 
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
+
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
@@ -702,6 +705,7 @@ $(function() {
   									if(!enc.hasMarkedIndividual()) {
   									%>
 
+
   									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
     									<tr>
       										<td align="left" valign="top" class="para">
@@ -746,7 +750,7 @@ $(function() {
         											<tr>
           												<td>
           													<font color="#990000">
-          														<img align="absmiddle" src="../images/cancel.gif"/>
+          														<img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/>
           													</font>
           												</td>
           												<td>
@@ -929,7 +933,7 @@ $("a#alternateID").click(function() {
     	<td align="left" valign="top" class="para">
       <table>
         <tr>
-          <td><font color="#990000"><img align="absmiddle" src="../images/cancel.gif"/></font></td>
+          <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
           <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
           </strong></td>
         </tr>
@@ -2941,9 +2945,8 @@ $("a#username").click(function() {
 
         	Shepherd userShepherd=new Shepherd("context0");
         	userShepherd.beginDBTransaction();
+
         	ArrayList<String> usernames=userShepherd.getAllUsernames();
-
-
 
         	int numUsers=usernames.size();
         	for(int i=0;i<numUsers;i++){
@@ -3015,7 +3018,7 @@ if (isOwner) {
               String tapirCheckIcon="cancel.gif";
               if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
               %>
-              TapirLink:&nbsp;<input align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+              TapirLink:&nbsp;<input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
         </form>
       </td>
     </tr>
@@ -3037,7 +3040,7 @@ if (isOwner) {
               <%
               String deleteIcon="cancel.gif";
               %>
-              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
+              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
         </form>
       </td>
     </tr>
@@ -4168,7 +4171,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 %>
 
 				</td>
-				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+				<td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteGenetic") %>');" href="../TissueSampleRemoveSexAnalysis?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
 			<%
 			}
 			else if(ga.getAnalysisType().equals("MicrosatelliteMarkers")){
@@ -4179,7 +4182,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 				<td style="border-style: none;">
 					<p><span class="caption"><strong><%=encprops.getProperty("msMarkers") %></strong></span>
 					<%
-					if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))&&(request.getUserPrincipal()!=null)){
+					if((enc.getIndividualID()!=null)&&(request.getUserPrincipal()!=null)){
 					%>
 					<a href="../individualSearch.jsp?individualDistanceSearch=<%=enc.getIndividualID()%>"><img height="20px" width="20px" align="absmiddle" alt="Individual-to-Individual Genetic Distance Search" src="../images/Crystal_Clear_app_xmag.png"></img></a>
 					<%
@@ -4203,7 +4206,7 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 
 
 				</td>
-				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img width="20px" height="20px" style="border-style: none;" src="../images/cancel.gif" /></a>
+				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a>
 
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -4381,9 +4384,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -4434,7 +4437,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -4903,9 +4906,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			ArrayList<String> measurementUnits=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -4956,7 +4959,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		ArrayList<String> protovalues=CommonConfiguration.getSequentialPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -5057,7 +5060,7 @@ $("a#addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 	</td>
 
 
-	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;" src="../images/cancel.gif" /></a></td></tr>
+	<td><a id="sample" href="encounter.jsp?number=<%=enc.getCatalogNumber() %>&sampleID=<%=thisSample.getSampleID()%>&edit=tissueSample&function=1"><img width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td><a onclick="return confirm('<%=encprops.getProperty("deleteTissue") %>');" href="../EncounterRemoveTissueSample?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a></td></tr>
 	<%
 }
 %>
@@ -5150,7 +5153,7 @@ String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
-<p>Looking for photoswipe in <%=pswipedir%></p>
+<!--  <p>Looking for photoswipe in <%=pswipedir%></p>-->
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>

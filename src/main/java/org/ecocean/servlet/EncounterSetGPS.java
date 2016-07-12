@@ -24,7 +24,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.ecocean.*;
 
@@ -132,7 +132,7 @@ public class EncounterSetGPS extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> The encounter's recorded GPS location has been updated from "+oldGPS+" to "+newGPS+".");
             out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+            List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){
               for(int i=0;i<allStatesSize;i++){
@@ -150,7 +150,7 @@ public class EncounterSetGPS extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter GPS location was NOT updated. An error was encountered. Please try this operation again in a few seconds. If this condition persists, contact the webmaster.");
             out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-            ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+            List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){
               for(int i=0;i<allStatesSize;i++){
@@ -169,7 +169,7 @@ public class EncounterSetGPS extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-          ArrayList<String> allStates=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
             for(int i=0;i<allStatesSize;i++){

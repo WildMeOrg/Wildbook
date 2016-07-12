@@ -38,6 +38,7 @@ import org.joda.time.DateTime;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Set;
 import java.util.List;
@@ -96,6 +97,8 @@ public class MediaAsset implements java.io.Serializable {
     protected ArrayList<String> labels;
 
     protected ArrayList<Feature> features;
+
+    protected ArrayList<Keyword> keywords;
 
     protected String hashCode;
 
@@ -615,6 +618,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
         }
+
+        try {
+            int i = ((store.getUsage() == null) ? -1 : store.getUsage().indexOf("PLACEHOLDERHACK:"));
+            if (i == 0) return new URL(store.getUsage().substring(16));
+        } catch (java.net.MalformedURLException ex) {}
+
         return store.webURL(this);
     }
 
@@ -786,6 +795,18 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             jobj.put("occurrenceID",this.getOccurrenceID());
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
+
+            if ((this.getKeywords() != null) && (this.getKeywords().size() > 0)) {
+                JSONArray ka = new JSONArray();
+                for (Keyword kw : this.getKeywords()) {
+                    JSONObject kj = new JSONObject();
+                    kj.put("indexname", kw.getIndexname());
+                    kj.put("readableName", kw.getReadableName());
+                    ka.put(kj);
+                }
+                jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
+            }
+
             return jobj;
         }
 
@@ -887,9 +908,36 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return mas;
     }
 
-    //TODO until we get keywords migrated to MediaAsset
-    public List<Keyword> getKeywords() {
-        return new ArrayList<Keyword>();
+
+    public void setKeywords(ArrayList<Keyword> kws) {
+        keywords = kws;
+    }
+    public ArrayList<Keyword> addKeyword(Keyword k) {
+        if (keywords == null) keywords = new ArrayList<Keyword>();
+        if (!keywords.contains(k)) keywords.add(k);
+        return keywords;
+    }
+    public ArrayList<Keyword> getKeywords() {
+        return keywords;
+    }
+    
+    public boolean hasKeyword(String keywordName){
+      if(keywords!=null){
+        int numKeywords=keywords.size();
+        for(int i=0;i<numKeywords;i++){
+          Keyword kw=keywords.get(i);
+          if((kw.getIndexname().equals(keywordName))||(kw.getReadableName().equals(keywordName))){return true;}
+        }
+      }
+      
+      return false;
+    }
+    
+    public boolean hasKeyword(Keyword key){
+      if(keywords!=null){
+        if(keywords.contains(key)){return true;}
+      }
+      return false;
     }
 
 

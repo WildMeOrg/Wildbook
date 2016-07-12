@@ -3,7 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.datanucleus.api.rest.orgjson.JSONObject,
-org.datanucleus.api.rest.orgjson.JSONArray,
+org.datanucleus.api.rest.orgjson.JSONArray,org.datanucleus.api.rest.orgjson.JSONException,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
@@ -39,10 +39,16 @@ String indID = request.getParameter("individualID");
 JSONArray all = new JSONArray();
 try {
 
+  MarkedIndividual sharky = imageShepherd.getMarkedIndividual(indID);
+  Encounter[] galleryEncs = sharky.getDateSortedEncounters();
+
   String langCode=ServletUtilities.getLanguageCode(request);
   Properties encprops = new Properties();
   encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
-  Encounter enc = imageShepherd.getEncounter(encNum);
+
+  for (Encounter enc : galleryEncs) {
+
+  //Encounter enc = imageShepherd.getEncounter(encNum);
   ArrayList<Annotation> anns = enc.getAnnotations();
 
   if ((anns == null) || (anns.size() < 1)) {
@@ -51,7 +57,7 @@ try {
   else {
   	for (Annotation ann : anns) {
       // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
-  		if (!ann.isTrivial()) continue;
+  		//if (!ann.isTrivial()) continue;
 
   		MediaAsset ma = ann.getMediaAsset();
   		if (ma != null) {
@@ -60,30 +66,92 @@ try {
   		}
   	}
   	// out.println("var assets = " + all.toString() + ";");
-    System.out.println("All media assets as an array: "+all.toString());
 
 }
+}
+
+System.out.println("individualMediaGallery: All media assets as an array: "+all.toString());
+%> <script>console.log('all MAs: <%=all.toString() %>'); </script> <%
+
+
+// IF we have at least 4 images, we need to make sure image 2 has a SMALLER height than image 3, or else image 4 will go under 3, not 2.
+
+if (all.length()>3) {
+
+  try {
+    
+    int height1 = all.getJSONObject(1).getJSONObject("metadata").getInt("height");
+    int height2 = all.getJSONObject(2).getJSONObject("metadata").getInt("height");
+    if (height1 > height2) {
+      JSONObject temp = all.getJSONObject(1);
+      all.put(1,all.getJSONObject(2));
+      all.put(2, temp);
+      System.out.println("flipped images!");
+    }
+
+  }
+  catch (JSONException e) {
+    e.printStackTrace();
+  }
+}
+
 
 }
 catch(Exception e){e.printStackTrace();}
 finally{
 	imageShepherd.rollbackDBTransaction();
-	imageShepherd.commitDBTransaction();
+	imageShepherd.closeDBTransaction();
 }
 
 %>
 
-<h2>Gallery</h2>
+<!--<h2>Gallery</h2>-->
+<div class='row' id='ind-gallery'>
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
+
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
+
+<style>
+  .my-gallery>figure {
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-bottom: 5px;
+  }
+</style>
+
+
 <script>
 
   // Load each photo into photoswipe: '.my-gallery' above is grabbed by imageDisplayTools.initPhotoSwipeFromDOM,
   // so here we load .my-gallery with all of the MediaAssets --- done with maJsonToFigureElem.
   var assets = <%=all.toString()%>;
+  var unseenImages = false;
+  for (var index in assets) {
+    var elem = assets[index];
+    if (index==0) {
+      maLib.maJsonToFigureElemColCaption(elem, $('#enc-gallery'), 6);
+      first = false;
+    } else if (index<5){
+      maLib.maJsonToFigureElemColCaption(elem, $('#enc-gallery'), 3);
+    } else {
+      unseenImages = true;
+      break;
+    }
+  }
+
+  // TODO: fix this link, Bink.
+  if (unseenImages) {
+    console.log('shalom!');
+    // link to individual thumbnail search results
+    var thumbGalleryLink = 'http://<%=CommonConfiguration.getURLLocation(request) %>/individualThumbnailSearchResults.jsp?individualID=<%=indID%>';
+
+    $('#ind-gallery').append('<p style="text-align:right;">Most recent images shown. <a href="'+thumbGalleryLink+'"><em>See all images.</em></a></p>');
+  }
+
   assets.forEach( function(elem) {
-    maLib.maJsonToFigureElem(elem, $('#enc-gallery'));
+
   });
 
 </script>
-<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+</div>
+<jsp:include page="/photoswipe/photoswipeTemplate.jsp" flush="true"/>

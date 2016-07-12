@@ -65,7 +65,7 @@ System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
         //TODO the 600 response here is IBEIS-specific, so we need to genericize this
         if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK) && (conn.getResponseCode() != 600)) {
             //conn.disconnnect();
-System.out.println("!!!!!!!!!!!!!!!!!!! bad response code = " + conn.getResponseCode());
+System.out.println("!!!!!!!!!!!!!!!!!!! [url = " + url.toString() + "] bad response code = " + conn.getResponseCode());
             success = false;
         }
 

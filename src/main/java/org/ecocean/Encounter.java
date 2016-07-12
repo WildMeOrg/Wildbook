@@ -117,6 +117,7 @@ public class Encounter implements java.io.Serializable {
   public String lifeStage;
   public String country;
 
+    private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
   /*
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
@@ -273,7 +274,7 @@ public class Encounter implements java.io.Serializable {
     this.hour = hour;
     this.minutes = minutes;
     this.size_guess = size_guess;
-    this.individualID = "Unassigned";
+
     this.setDWCDateAdded();
     this.setDWCDateLastModified();
     this.resetDateInMilliseconds();
@@ -936,11 +937,7 @@ public class Encounter implements java.io.Serializable {
     catalogNumber = num;
   }
 
-  public String isAssignedToMarkedIndividual() {
 
-    return individualID;
-
-  }
 
     //this is probably what you wanted above to do.  :/
     public boolean hasMarkedIndividual() {
@@ -1564,6 +1561,10 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setIndividualID(String indy) {
+    if(indy==null){
+      individualID=null;
+      return;
+    }
     this.individualID = indy;
   }
 
@@ -2120,6 +2121,37 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         return m;
     }
 
+    // only checks top-level MediaAssets, not children or resized images
+    public boolean hasTopLevelMediaAsset(int id) {
+      return (indexOfMediaAsset(id)>=0);
+    }
+
+    // finds the index of the MA we're looking for
+    public int indexOfMediaAsset(int id) {
+      if (annotations == null) return -1;
+      for (int i=0; i < annotations.size(); i++) {
+        MediaAsset ma = annotations.get(i).getMediaAsset();
+        if (ma == null) continue;
+        if (ma.getId() == id) return i;
+      }
+      return -1;
+    }
+
+    // creates a new annotation and attaches the asset
+    public void addMediaAsset(MediaAsset ma, String context) {
+      String fullSpecies = CommonConfiguration.getProperty("genus",context)+" "+ CommonConfiguration.getProperty("species",context);
+      Annotation ann = new Annotation(ma, fullSpecies);
+      annotations.add(ann);
+    }
+
+    public void removeAnnotation(int index) {
+      annotations.remove(index);
+    }
+
+    public void removeMediaAsset(MediaAsset ma) {
+      removeAnnotation(indexOfMediaAsset(ma.getId()));
+    }
+
     //this is a kinda hacky way to find media ... really used by encounter.jsp now but likely should go away?
     public ArrayList<MediaAsset> findAllMediaByFeatureId(Shepherd myShepherd, String[] featureIds) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
@@ -2376,7 +2408,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
 
 	//this simple version makes some assumptions: you already have list of collabs, and it is not visible
-	public String collaborationLockHtml(ArrayList<Collaboration> collabs) {
+	public String collaborationLockHtml(List<Collaboration> collabs) {
 		Collaboration c = Collaboration.findCollaborationWithUser(this.getAssignedUsername(), collabs);
 		String collabClass = "pending";
 		if ((c == null) || (c.getState() == null)) {
@@ -2537,6 +2569,7 @@ throw new Exception();
 */
 
     public static ArrayList<Encounter> getEncountersForMatching(String taxonomyString, Shepherd myShepherd) {
+        if (_matchEncounterCache.get(taxonomyString) != null) return _matchEncounterCache.get(taxonomyString);
         ArrayList<Encounter> encs = new ArrayList<Encounter>();
         String queryString = "SELECT FROM org.ecocean.media.MediaAsset WHERE !features.isEmpty()";
         Query query = myShepherd.getPM().newQuery(queryString);
@@ -2549,9 +2582,10 @@ throw new Exception();
             if (enc == null) System.out.println("could not find enc for ma " + ma);
             if (enc == null) continue;
             if (!enc.getTaxonomyString().equals(taxonomyString)) continue;
-            encs.add(enc);
+            if (!encs.contains(enc)) encs.add(enc);
         }
         query.closeAll();
+        _matchEncounterCache.put(taxonomyString, encs);
         return encs;
     }
 

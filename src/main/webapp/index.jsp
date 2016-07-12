@@ -165,7 +165,7 @@ margin-bottom: 8px !important;
  		
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
@@ -497,7 +497,7 @@ finally{
                     <ul class="encounter-list list-unstyled">
                        
                        <%
-                       ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        try{

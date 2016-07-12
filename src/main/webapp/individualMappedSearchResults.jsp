@@ -48,15 +48,15 @@
 
 
 
-    ArrayList<String> allHaplos2=new ArrayList<String>(); 
+    List<String> allHaplos2=new ArrayList<String>(); 
     int numHaplos2 = 0;
     allHaplos2=myShepherd.getAllHaplotypes(); 
     numHaplos2=allHaplos2.size();
     
-    List<String> allSpecies=CommonConfiguration.getIndexedValues("genusSpecies",context);
+    List<String> allSpecies=CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
     int numSpecies=allSpecies.size();
    
-    List<String> allSpeciesColors=CommonConfiguration.getIndexedValues("genusSpeciesColor",context);
+    List<String> allSpeciesColors=CommonConfiguration.getIndexedPropertyValues("genusSpeciesColor",context);
     int numSpeciesColors=allSpeciesColors.size();
 %>
 
@@ -96,7 +96,7 @@ margin-bottom: 8px !important;
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;

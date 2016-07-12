@@ -274,7 +274,7 @@ public class ScanAppletSupport extends HttpServlet {
 
     //change
     //separate this out
-    //ArrayList list=myShepherd.getID4AvailableScanWorkItems(id,query, groupSize, checkoutTimeout, force);
+    //List list=myShepherd.getID4AvailableScanWorkItems(id,query, groupSize, checkoutTimeout, force);
     ArrayList<ScanWorkItem> list = gm.getWorkItems(groupSize);
     int listSize = list.size();
 
@@ -353,7 +353,7 @@ public class ScanAppletSupport extends HttpServlet {
 
     //change
     //get a list of unfinished scanWorkItems
-    //ArrayList list=myShepherd.getID4AvailableScanWorkItems(query, groupSize, checkoutTimeout, false);
+    //List list=myShepherd.getID4AvailableScanWorkItems(query, groupSize, checkoutTimeout, false);
     ArrayList<ScanWorkItem> list = new ArrayList<ScanWorkItem>();
       list = gm.getWorkItems(groupSize);
 

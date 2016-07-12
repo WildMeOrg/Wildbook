@@ -75,10 +75,10 @@ public class MassSetInformOthers extends HttpServlet {
     if ((informEmail != null) && (matchString != null) && (!matchString.equals("")) && (!informEmail.equals(""))) {
       myShepherd.beginDBTransaction();
       try {
-        Iterator it = myShepherd.getAllEncounters(query);
+        Iterator<Encounter> it = myShepherd.getAllEncounters(query);
 
         while (it.hasNext()) {
-          Encounter tempEnc = (Encounter) it.next();
+          Encounter tempEnc = it.next();
           String previousInform = "";
           if (tempEnc.getInformOthers() != null) {
             previousInform = tempEnc.getInformOthers();

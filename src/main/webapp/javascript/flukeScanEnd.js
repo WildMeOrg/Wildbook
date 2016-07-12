@@ -95,7 +95,7 @@ var columnInfo = {
 
 
 var colDefn = [];
-$(document).ready(function() { wildbook.init(function() { init(); }); });
+$(document).ready(function() { wildbook.init(function() { init2(); }); });
 
 
 function displayChart(enc1, enc2) {
@@ -240,7 +240,7 @@ var xcolDefn = [
 		value: _colModified,
 		sortValue: _colModifiedSort,
 	}
-	
+
 ];
 
 */
@@ -411,8 +411,10 @@ console.info('addImage(%o, %o)', enc, el);
     var imgSrc = ma.labelUrl('_spot', ma.labelUrl());
 
     el.find('.note').remove();
-    el.append('<img src="' + imgSrc + '"/>');
+    el.append('<img src="' + wildbook.cleanUrl(imgSrc) + '"/>');
     var inf = {
+        catalogNumber: 'Encounter ID',
+        otherCatalogNumbers: 'Alternate Encounter ID',
         individualID: 'Assigned to',
         date: 'Date',
         sex: 'Sex',
@@ -901,4 +903,3 @@ function drawChart(d1, d2) {
     var chart = new google.visualization.LineChart(document.getElementById('chart'));
     chart.draw(joinedData, options);
 }
-

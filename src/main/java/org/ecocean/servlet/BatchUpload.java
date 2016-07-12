@@ -631,12 +631,12 @@ public final class BatchUpload extends DispatchServlet {
     }
 
     // Get valid values of certain data.
-    List<String> listSex = CommonConfiguration.getSequentialPropertyValues("sex",context);
-    List<String> listTax = CommonConfiguration.getSequentialPropertyValues("genusSpecies",context);
-    List<String> listLS = CommonConfiguration.getSequentialPropertyValues("lifeStage",context);
-    List<String> listPC = CommonConfiguration.getSequentialPropertyValues("patterningCode",context);
-    List<String> listLoc = CommonConfiguration.getSequentialPropertyValues("locationID",context);
-    List<String> listSP = CommonConfiguration.getSequentialPropertyValues("samplingProtocol",context);
+    List<String> listSex = CommonConfiguration.getIndexedPropertyValues("sex",context);
+    List<String> listTax = CommonConfiguration.getIndexedPropertyValues("genusSpecies",context);
+    List<String> listLS = CommonConfiguration.getIndexedPropertyValues("lifeStage",context);
+    List<String> listPC = CommonConfiguration.getIndexedPropertyValues("patterningCode",context);
+    List<String> listLoc = CommonConfiguration.getIndexedPropertyValues("locationID",context);
+    List<String> listSP = CommonConfiguration.getIndexedPropertyValues("samplingProtocol",context);
 
     // Validate encounters.
     Map<String, Encounter> mapEnc = new HashMap<String, Encounter>();
@@ -756,8 +756,8 @@ public final class BatchUpload extends DispatchServlet {
 
 
     // Get valid values of certain data.
-    List<String> listMT = CommonConfiguration.getSequentialPropertyValues("measurement",context);
-    List<String> listMU = CommonConfiguration.getSequentialPropertyValues("measurementUnits",context);
+    List<String> listMT = CommonConfiguration.getIndexedPropertyValues("measurement",context);
+    List<String> listMU = CommonConfiguration.getIndexedPropertyValues("measurementUnits",context);
 
     // Check/assign measurements.
     Set<Measurement> badMeaNoEnc = new LinkedHashSet<Measurement>();
@@ -941,7 +941,7 @@ public final class BatchUpload extends DispatchServlet {
     }
 
     // Get valid values of certain data.
-    List<String> listTT = CommonConfiguration.getSequentialPropertyValues("tissueType",context);
+    List<String> listTT = CommonConfiguration.getIndexedPropertyValues("tissueType",context);
 
     // Check/assign samples.
     Set<TissueSample> badSamNoEnc = new LinkedHashSet<TissueSample>();

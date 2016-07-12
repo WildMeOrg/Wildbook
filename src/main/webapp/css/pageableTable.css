@@ -38,8 +38,8 @@
 
 .ptcol-thumb img {
 	position: absolute;
-	top: 25px;
-	left: -120px;
+	top: 320px;
+	left: 250px;
 	display: none;
 	border: solid 5px #000;
 	border-radius: 7px;

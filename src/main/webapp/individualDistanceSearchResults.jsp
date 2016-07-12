@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,java.util.Map,java.util.Iterator,java.util.Set,java.util.TreeMap,java.util.StringTokenizer,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.Properties, java.util.Vector,java.util.ArrayList" %>
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,org.ecocean.*, org.ecocean.genetics.distance.*,java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 
 
@@ -88,7 +88,7 @@
     }
     	   
     
-    ArrayList<String> loci=myShepherd.getAllLoci();
+    List<String> loci=myShepherd.getAllLoci();
     int numLoci=loci.size();
     String[] theLoci=new String[numLoci];
     for(int q=0;q<numLoci;q++){

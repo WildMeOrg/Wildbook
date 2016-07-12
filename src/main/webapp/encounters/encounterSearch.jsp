@@ -1,7 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="java.util.Locale,org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,javax.jdo.Extent, javax.jdo.Query, java.util.ArrayList, com.reijns.I3S.Point2D" %>
 <%@ page import="java.util.GregorianCalendar" %>
 <%@ page import="java.util.Iterator" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
 <%
@@ -456,7 +457,7 @@ function FSControl(controlDiv, map) {
         </em>)</p>
 
       <%
-        ArrayList<String> locIDs = myShepherd.getAllLocationIDs();
+        List<String> locIDs = myShepherd.getAllLocationIDs();
         int totalLocIDs = locIDs.size();
 
         if (totalLocIDs >= 1) {
@@ -485,9 +486,13 @@ function FSControl(controlDiv, map) {
       %>
       
       
-<p>&nbsp;</p>
+      <%
+
+if(CommonConfiguration.showProperty("showCountry",context)){
+
+%>
 <table><tr><td valign="top">
-<strong><%=encprops.getProperty("country")%></strong><br />
+<strong><%=encprops.getProperty("country")%>:</strong><br />
 <em><%=encprops.getProperty("leaveBlank")%>
         </em>
 
@@ -496,24 +501,35 @@ function FSControl(controlDiv, map) {
   <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
   <%
- 
-  
-  
-  String[] locales = Locale.getISOCountries();
-	  for (String countryCode : locales) {
-		Locale obj = new Locale("", countryCode);
-	    %>
-      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-        
- <%
-	 }
- %>
-			       
+  			       boolean hasMoreCountries=true;
+  			       int stageNum=0;
+  			       
+  			       while(hasMoreCountries){
+  			       	  String currentCountry = "country"+stageNum;
+  			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
+  			       	  	%>
+  			       	  	 
+  			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
+  			       	  	<%
+  			       		stageNum++;
+  			          }
+  			          else{
+  			        	hasMoreCountries=false;
+  			          }
+  			          
+			       }
+			       if(stageNum==0){%>
+			    	   <em><%=encprops.getProperty("noCountries")%></em>
+			       <% 
+			       }
+			       %>
 			       
 
   </select>
   </td></tr></table>
-
+<%
+}
+%>
       
     </div>
   </td>
@@ -681,7 +697,7 @@ function FSControl(controlDiv, map) {
                              alt="Help" border="0" align="absmiddle"/></a></span></p>
 
       <%
-        ArrayList<String> vbds = myShepherd.getAllVerbatimEventDates();
+        List<String> vbds = myShepherd.getAllVerbatimEventDates();
         int totalVBDs = vbds.size();
 
 
@@ -960,7 +976,7 @@ function FSControl(controlDiv, map) {
 							</span>
             </em><br/>
               <%
-				ArrayList<String> behavs = myShepherd.getAllBehaviors();
+				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
 				
@@ -1118,9 +1134,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
 
 
-        Iterator keys = myShepherd.getAllKeywords(kwQuery);
+        Iterator<Keyword> keys = myShepherd.getAllKeywords(kwQuery);
         for (int n = 0; n < totalKeywords; n++) {
-          Keyword word = (Keyword) keys.next();
+          Keyword word = keys.next();
       %>
       <option value="<%=word.getIndexname()%>"><%=word.getReadableName()%>
       </option>
@@ -1311,7 +1327,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
    </p>
 
       <%
-        ArrayList<String> haplos = myShepherd.getAllHaplotypes();
+        List<String> haplos = myShepherd.getAllHaplotypes();
         int totalHaplos = haplos.size();
 		System.out.println(haplos.toString());
 
@@ -1349,7 +1365,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
    </p>
 
       <%
-        ArrayList<String> genSexes = myShepherd.getAllGeneticSexes();
+        List<String> genSexes = myShepherd.getAllGeneticSexes();
         int totalSexes = genSexes.size();
 		//System.out.println(haplos.toString());
 
@@ -1413,7 +1429,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <p>
 
       <%
-        ArrayList<String> loci = myShepherd.getAllLoci();
+        List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
 		
         if (totalLoci >= 1) {
@@ -1492,7 +1508,7 @@ else {
           <td width="154">
           <p><strong><%=encprops.getProperty("types2search")%></strong></p>
      		<%
-     		ArrayList<String> values=CommonConfiguration.getSequentialPropertyValues("encounterState",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
      		int numProps=values.size();
      		%>
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
@@ -1536,7 +1552,7 @@ else {
 
       <%
       	Shepherd inShepherd=new Shepherd("context0");
-        ArrayList<User> users = inShepherd.getAllUsers();
+        List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
       %>
@@ -1579,7 +1595,7 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
     <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
       href="javascript:animatedcollapse.toggle('patternrecognition')" style="text-decoration:none"><img
       src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000"><%=encprops.getProperty("patternRecognition") %></font></a></h4>
+      <font color="#000000">Pattern Recognition</font></a></h4>
   </td>
 </tr>
 <tr>
@@ -1589,12 +1605,12 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
       <table width="720px" align="left">
         <tr>
           <td>
-            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;<%=encprops.getProperty("hasPattern") %></label>
+            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;Has mapped fluke.</label>
           </td>
         </tr>
         <tr>
           <td>
-            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;<%=encprops.getProperty("hasNoPattern") %></label>
+            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;Has NO mapped fluke patterning.</label>
           </td>
         </tr>
       </table>

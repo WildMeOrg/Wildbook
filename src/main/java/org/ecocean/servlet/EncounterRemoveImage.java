@@ -75,7 +75,7 @@ public class EncounterRemoveImage extends HttpServlet {
     if ((myShepherd.isEncounter(encounterNumber)) && (myShepherd.isSinglePhotoVideo(dcID))) {
       Encounter enc = myShepherd.getEncounter(encounterNumber);
       SinglePhotoVideo sid=myShepherd.getSinglePhotoVideo(dcID);
-      if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+      if (enc.getIndividualID()==null) {
 
         //positionInList=0;
         try {
@@ -121,10 +121,10 @@ public class EncounterRemoveImage extends HttpServlet {
           myShepherd.getPM().deletePersistent(sid);
           
           /*
-          Iterator keywords = myShepherd.getAllKeywords();
+          Iterator<Keyword> keywords = myShepherd.getAllKeywords();
           String toRemove = encounterNumber + "/" + fileName;
           while (keywords.hasNext()) {
-            Keyword word = (Keyword) keywords.next();
+            Keyword word = keywords.next();
 
             //if (word.isMemberOf(toRemove)) {
 

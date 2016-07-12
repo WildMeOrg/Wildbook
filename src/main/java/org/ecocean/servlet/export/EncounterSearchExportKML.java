@@ -112,10 +112,10 @@ public class EncounterSearchExportKML extends HttpServlet{
             String nameText = "";
 
             //add the name
-            if (enc.isAssignedToMarkedIndividual().equals("Unassigned")) {
+            if (enc.getIndividualID()==null) {
               nameText = "Encounter " + enc.getEncounterNumber();
             } else {
-              nameText = enc.isAssignedToMarkedIndividual() + ": Encounter " + enc.getEncounterNumber();
+              nameText = enc.getIndividualID() + ": Encounter " + enc.getEncounterNumber();
             }
             name.setText(nameText);
 

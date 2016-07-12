@@ -90,33 +90,33 @@ context=ServletUtilities.getContext(request);
     switch (i) {
       case 0:
       case 1:
-        list = CommonConfiguration.getSequentialPropertyValues("sex", context);
+        list = CommonConfiguration.getIndexedPropertyValues("sex", context);
         break;
       case 2:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
+        temp = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
         set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(0, s.indexOf(" ")));
         list.addAll(set);
         break;
       case 3:
-        temp = CommonConfiguration.getSequentialPropertyValues("genusSpecies", context);
+        temp = CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
         set = new TreeSet<String>();
         for (String s : temp)
           set.add(s.substring(s.indexOf(" ") + 1));
         list.addAll(set);
         break;
       case 4:
-        list = CommonConfiguration.getSequentialPropertyValues("locationID", context);
+        list = CommonConfiguration.getIndexedPropertyValues("locationID", context);
         break;
       case 5:
-        list = CommonConfiguration.getSequentialPropertyValues("livingStatus", context);
+        list = CommonConfiguration.getIndexedPropertyValues("livingStatus", context);
         break;
       case 6:
-        list = CommonConfiguration.getSequentialPropertyValues("lifeStage", context);
+        list = CommonConfiguration.getIndexedPropertyValues("lifeStage", context);
         break;
       case 7:
-        list = CommonConfiguration.getSequentialPropertyValues("patterningCode", context);
+        list = CommonConfiguration.getIndexedPropertyValues("patterningCode", context);
         break;
       case 8:
         Properties props = new Properties();
@@ -126,26 +126,26 @@ context=ServletUtilities.getContext(request);
         list.add(props.getProperty("patternMatch"));
         break;
       case 9:
-        list = CommonConfiguration.getSequentialPropertyValues("measurement", context);
+        list = CommonConfiguration.getIndexedPropertyValues("measurement", context);
         break;
       case 10:
-        list = CommonConfiguration.getSequentialPropertyValues("measurementUnits", context);
+        list = CommonConfiguration.getIndexedPropertyValues("measurementUnits", context);
         break;
       case 11:
-        list = CommonConfiguration.getSequentialPropertyValues("samplingProtocol", context);
+        list = CommonConfiguration.getIndexedPropertyValues("samplingProtocol", context);
         break;
       case 12:
         Shepherd shep = new Shepherd(context);
-        for (Iterator iter = shep.getAllKeywords(); iter.hasNext();)
-          list.add(((Keyword)iter.next()).getReadableName());
+        for (Iterator<Keyword> iter = shep.getAllKeywords(); iter.hasNext();)
+          list.add(iter.next().getReadableName());
         shep.closeDBTransaction();
         shep = null;
         break;
       case 13:
-        list = CommonConfiguration.getSequentialPropertyValues("tissueType", context);
+        list = CommonConfiguration.getIndexedPropertyValues("tissueType", context);
         break;
       case 14: // FIXME
-        list = CommonConfiguration.getSequentialPropertyValues("preservationMethod", context);
+        list = CommonConfiguration.getIndexedPropertyValues("preservationMethod", context);
         break;
       default:
     }

@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 
 public class EncounterQueryProcessor {
 
-  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE ";
+  private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
@@ -87,9 +87,9 @@ public class EncounterQueryProcessor {
     if(request.getParameter("resightOnly")!=null) {
       //String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID != \"Unassigned\")";
+        filter+="(individualID != null)";
       }
-      else{filter+=" && (individualID != \"Unassigned\")";}
+      else{filter+=" && (individualID != null)";}
       prettyPrint.append("Identified and resighted.<br />");
     }
     //end resighted filter--------------------------------------------------------------------------------------
@@ -97,9 +97,9 @@ public class EncounterQueryProcessor {
     //filter for unassigned encounters------------------------------------------
     if(request.getParameter("unassigned")!=null) {
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(individualID == \"Unassigned\")";
+        filter+="(individualID == null)";
       }
-      else{filter+=" && (individualID == \"Unassigned\")";}
+      else{filter+=" && (individualID == null)";}
       prettyPrint.append("Unidentified.<br />");
     }
     //end unassigned filter--------------------------------------------------------------------------------------
@@ -611,14 +611,14 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //hasPhoto filters-------------------------------------------------
     if(request.getParameter("hasPhoto")!=null){
-          prettyPrint.append("Has at least one photo.");
+          prettyPrint.append("Has at least one MediaAsset.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="images.contains(dce15)";}
-            else if (filter.indexOf("images.contains(dce15)")==-1){filter+=(" && images.contains(dce15) ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="annotations.contains(dce15) && dce15.mediaAsset != null";}
+            else if (filter.indexOf("annotations.contains(dce15)")==-1){filter+=(" && annotations.contains(dce15) && dce15.mediaAsset != null");}
 
             prettyPrint.append("<br />");
-            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.SinglePhotoVideo dce15";}
-            else if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo dce15")){jdoqlVariableDeclaration+=";org.ecocean.SinglePhotoVideo dce15";}
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation dce15";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation dce15")){jdoqlVariableDeclaration+=";org.ecocean.Annotation dce15";}
 
     }
     //end hasPhoto filters-----------------------------------------------
@@ -686,10 +686,10 @@ public class EncounterQueryProcessor {
       else{filter+=" && (";}
 
       if((request.getParameter("photoKeywordOperator")!=null)&&(request.getParameter("photoKeywordOperator").equals("_OR_"))){
-          prettyPrint.append("Photo/video keyword is any one of the following: ");
+          prettyPrint.append("MediaAsset keyword is any one of the following: ");
       }
       else{
-        prettyPrint.append("All of these photo/video keywords are applied: ");
+        prettyPrint.append("All of these MediaAsset keywords are applied: ");
       }
           int kwLength=keywords.length;
 
@@ -710,12 +710,12 @@ public class EncounterQueryProcessor {
 
 
 
-                if(filter.indexOf("images.contains(photo"+kwIter+")")==-1){
+                if(filter.indexOf("annotations.contains(photo"+kwIter+")")==-1){
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
-                  filter+=" ( images.contains(photo"+kwIter+")";
+                  filter+=" ( annotations.contains(photo"+kwIter+")";
                 }
 
-                if(filter.indexOf("photo"+kwIter+".keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".keywords.contains(word"+kwIter+")";}
+                if(filter.indexOf("photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
              // }
 
@@ -723,7 +723,7 @@ public class EncounterQueryProcessor {
 
                 if((kwIter==0)&&(jdoqlVariableDeclaration.equals(""))){jdoqlVariableDeclaration=" VARIABLES ";}
                 if(kwIter>0){jdoqlVariableDeclaration+=";";}
-              if(!jdoqlVariableDeclaration.contains("org.ecocean.SinglePhotoVideo photo"+kwIter)){jdoqlVariableDeclaration+="org.ecocean.SinglePhotoVideo photo"+kwIter;}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+="org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
 
 
@@ -742,7 +742,7 @@ public class EncounterQueryProcessor {
     //------------------------------------------------------------------
     //ms markers filters-------------------------------------------------
       myShepherd.beginDBTransaction();
-      ArrayList<String> markers=myShepherd.getAllLoci();
+      List<String> markers=myShepherd.getAllLoci();
         int numMarkers=markers.size();
         String theseMarkers="";
         boolean hasMarkers=false;
@@ -1357,11 +1357,15 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //end GPS filters-----------------------------------------------
+    
+    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null";}
+
 
     filter+=jdoqlVariableDeclaration;
 
     filter += parameterDeclaration;
-
+    System.out.println("EncounterQueryProcessor filter: "+filter);
+    
     return filter;
 
   }
@@ -1406,7 +1410,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     if(allEncounters!=null){
       while (allEncounters.hasNext()) {
-        Encounter temp_enc=(Encounter)allEncounters.next();
+        Encounter temp_enc=allEncounters.next();
         rEncounters.add(temp_enc);
       }
     }
@@ -1414,34 +1418,6 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 
-  //filter for encounters of MarkedIndividuals that have been resighted------------------------------------------
-  /* 
-    if((request.getParameter("resightOnly")!=null)&&(request.getParameter("numResights")!=null)) {
-      int numResights=1;
-
-      try{
-        numResights=(new Integer(request.getParameter("numResights"))).intValue();
-        prettyPrint.append("numResights is > "+numResights+".<br />");
-        }
-      catch(NumberFormatException nfe) {nfe.printStackTrace();}
-
-      for(int q=0;q<rEncounters.size();q++) {
-        Encounter rEnc=(Encounter)rEncounters.get(q);
-        //if(rEnc.isAssignedToMarkedIndividual().equals("Unassigned")){
-          //rEncounters.remove(q);
-          //q--;
-        //}
-        //else{
-          MarkedIndividual s=myShepherd.getMarkedIndividual(rEnc.isAssignedToMarkedIndividual());
-          if(s.totalEncounters()<numResights) {
-            rEncounters.remove(q);
-            q--;
-          }
-        //}
-      }
-    }
-    */
-  //end if resightOnly--------------------------------------------------------------------------------------
 
 
 
@@ -1506,7 +1482,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
 		//silo security logging
-		ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 		String url = request.getRequestURL().toString() + "?" + request.getQueryString();
 		Date now = new Date();
 
@@ -1537,7 +1513,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 				}
 			}
 		}
-
+		//System.out.println("rEncounters size is: "+rEncounters.size());
     return (new EncounterQueryResult(rEncounters,filter,prettyPrint.toString()));
 
   }

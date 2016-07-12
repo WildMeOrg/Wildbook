@@ -90,10 +90,67 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = IBEISIA.iaStatus(request).toString();
 
-    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+///////////////
+    } else if (request.getParameter("getJobResultFromTaskID") != null) {
+        JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
-        String jobID = request.getParameter("getDetectionReviewHtml");
+        String taskID = request.getParameter("getJobResultFromTaskID");
+
+
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+        if ((logs == null) || (logs.size() < 1)) {
+            res.put("error", "could not find any record for task ID = " + taskID);
+
+        } else {
+            JSONObject last = logs.get(logs.size() - 1).getStatusJson();
+            res.put("_debug", last);
+// note: jobstatus == completed seems to be the thing we want
+            if ("getJobStatus".equals(last.getString("_action")) && "unknown".equals(last.getJSONObject("_response").getJSONObject("response").getString("jobstatus"))) {
+                res.put("details", last.get("_response"));
+                res.put("error", "final log for task " + taskID + " was an unknown jobstatus, so results were not obtained");
+
+            } else if (last.getString("_action").equals("getJobResult") && (last.optJSONObject("_response") != null)) {
+                res = last.getJSONObject("_response");
+
+/*  this gets results live from IA - problematic cuz of reboots and it resets jobs.  :(
+            try {
+                res = IBEISIA.getJobResult(jobID);
+            } catch (Exception ex) {
+                throw new IOException(ex.toString());
+            }
+*/
+
+            if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
+                JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
+                if (firstResult != null) {
+System.out.println("firstResult -> " + firstResult.toString());
+                    res.put("queryAnnotation", expandAnnotation(IBEISIA.fromFancyUUID(firstResult.optJSONObject("qauuid")), myShepherd, request));
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    JSONArray mout = new JSONArray();
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            JSONObject aj = expandAnnotation(IBEISIA.fromFancyUUID(matches.optJSONObject(i)), myShepherd, request);
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+                    res.put("matchAnnotations", mout);
+                }
+            }
+            }
+
+        }
+
+        response.setContentType("text/plain");
+        getOut = res.toString();
+/////////////
+
+    } else if (request.getParameter("getDetectReviewHtml") != null) {
+        String jobID = request.getParameter("getDetectReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
             try {
@@ -782,6 +839,58 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         }
     }
 
+    public static JSONObject expandAnnotation(String annID, Shepherd myShepherd, HttpServletRequest request) {
+        if (annID == null) return null;
+        JSONObject rtn = new JSONObject();
+        Annotation ann = null;
+        try {
+            ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annID), true)));
+        } catch (Exception ex) {}
+        if (ann != null) {
+            rtn.put("annotationID", annID);
+            Encounter enc = Encounter.findByAnnotation(ann, myShepherd);
+            if (enc != null) {
+                JSONObject jenc = new JSONObject();
+                jenc.put("catalogNumber", enc.getCatalogNumber());
+                jenc.put("date", enc.getDate());
+                jenc.put("sex", enc.getSex());
+                jenc.put("verbatimLocality", enc.getVerbatimLocality());
+                jenc.put("locationID", enc.getLocationID());
+                jenc.put("individualID", enc.getIndividualID());
+                jenc.put("otherCatalogNumbers", enc.getOtherCatalogNumbers());
+                rtn.put("encounter", jenc);
+            }
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma != null) {
+                try {
+                    rtn.put("mediaAsset", new JSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject()).toString()));
+                } catch (Exception ex) {}
+            }
+        }
+        return rtn;
+    }
+
+    public static JSONObject taskSummary(JSONArray taskIds, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject();
+        if ((taskIds == null) || (taskIds.length() < 1)) return rtn;
+        for (int i = 0 ; i < taskIds.length() ; i++) {
+            String annId = taskIds.optString(i);
+            if (annId == null) continue;
+            ArrayList<IdentityServiceLog> logs = IdentityServiceLog.summaryForAnnotationId(annId, myShepherd);
+            if ((logs != null) && (logs.size() > 0)) {
+                JSONObject tasks = new JSONObject();
+                for (IdentityServiceLog l : logs) {
+                    if (l.getTaskID() == null) continue;
+                    JSONObject t = new JSONObject();
+                    if (l.getStatus() != null) t.put("status", new JSONObject(l.getStatus()));
+                    t.put("timestamp", l.getTimestamp());
+                    tasks.put(l.getTaskID(), t);
+                }
+                rtn.put(annId, tasks);
+            }
+        }
+        return rtn;
+    }
 
     //yeah maybe this should be merged into MediaAsset duh
     private String mediaAssetIdToUUID(int id) {
@@ -823,5 +932,3 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
     }
 
 }
-  
-

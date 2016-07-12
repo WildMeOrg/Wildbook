@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.List;
 
 public class EncounterGetPatterningPassport extends HttpServlet {
   
@@ -59,7 +60,7 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     myShepherd.beginDBTransaction();
 
     responseMsg += "GetPatterningPassport<p/>";
-    ArrayList<PatterningPassport> ppArr = getAll(myShepherd);
+    List<PatterningPassport> ppArr = getAll(myShepherd);
     responseMsg += "getAll() " + ppArr.size() + "<p/>";
     
     Iterator ppIt = ppArr.iterator(); 
@@ -89,8 +90,8 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     //return;
   }
 
-  public ArrayList<PatterningPassport> getAll(Shepherd myShepherd) {
-    ArrayList<PatterningPassport> ppList;
+  public List<PatterningPassport> getAll(Shepherd myShepherd) {
+    List<PatterningPassport> ppList;
     ppList = myShepherd.getPatterningPassports();
     
     return ppList;
