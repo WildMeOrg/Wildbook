@@ -161,7 +161,7 @@ if (request.getParameter("number")!=null) {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
   })();
 </script>
-<script src="javascript/lazysizes.min.js"></script>
+
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
@@ -294,7 +294,7 @@ if (request.getParameter("number")!=null) {
   try {
     if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader">
+  <div class="row mainHeader" style="position:relative;">
     <div class="col-sm-6">
 
           <%
@@ -615,14 +615,28 @@ if (request.getParameter("number")!=null) {
             dlg.dialog("open");
             });
           </script>
-          <p><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p>
         </div>
 
       </div>
       <%-- End Descriptions --%>
     </div>
 
-    <div class="slider col-sm-6">
+    <div class="viewAllImgs" style="
+        position: absolute;
+        right: 15px;
+        bottom: 0px;
+        z-index: 10;
+        color: white;
+        text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    ">
+    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
+
+
+    <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
