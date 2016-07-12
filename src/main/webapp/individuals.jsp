@@ -308,7 +308,7 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
+            <h1 id="markedIndividualHeader"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
 
             <%
 
