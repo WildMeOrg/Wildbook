@@ -161,7 +161,7 @@ if (request.getParameter("number")!=null) {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
   })();
 </script>
-<script src="javascript/lazysizes.min.js"></script>
+
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
