@@ -615,12 +615,20 @@ if (request.getParameter("number")!=null) {
             dlg.dialog("open");
             });
           </script>
-          <p><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p>
         </div>
 
       </div>
       <%-- End Descriptions --%>
     </div>
+
+    <div class="viewAllImgs" style="
+        position: absolute;
+        right: 80px;
+        bottom: 15px;
+        z-index: 10;
+    ">
+    <p class="viewAllImgs"><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p></div>
+
 
     <div class="slider col-sm-6">
       <%-- Get images for slider --%>
