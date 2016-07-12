@@ -244,7 +244,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         if(jsonData.encounters[i].verbatimLocality) {
           var location = jsonData.encounters[i].verbatimLocality;
         } else {
-          var location = "undefined";
+          var location = "";
         }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
