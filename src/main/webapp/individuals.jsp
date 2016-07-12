@@ -294,7 +294,7 @@ if (request.getParameter("number")!=null) {
   try {
     if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader">
+  <div class="row mainHeader" style="position:relative;">
     <div class="col-sm-6">
 
           <%
@@ -623,8 +623,8 @@ if (request.getParameter("number")!=null) {
 
     <div class="viewAllImgs" style="
         position: absolute;
-        right: 80px;
-        bottom: 15px;
+        right: 15px;
+        bottom: 0px;
         z-index: 10;
     ">
     <p class="viewAllImgs"><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p></div>
