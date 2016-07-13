@@ -632,15 +632,15 @@ function addNewKeyword(el) {
 
 	if (el.id == 'keyword-new') {
 		if (val == '') return;
-		imageEnhancer.popup('Adding new keyword <b>' + val + '</b> to this image.');
+		//imageEnhancer.popup('Adding new keyword <b>' + val + '</b> to this image.');
 		data.onMediaAssets.newAdd = [ val ];
 	} else if (jel.hasClass('iek-remove')) {
 		var kid = jel.parent().prop('id').substring(8);
-		imageEnhancer.popup('Removing keyword <b>' + wildbookGlobals.keywords[kid] + '</b> from this image.');
+		//imageEnhancer.popup('Removing keyword <b>' + wildbookGlobals.keywords[kid] + '</b> from this image.');
 		data.onMediaAssets.remove = [ kid ];
 	} else {
 		var name = wildbookGlobals.keywords[val] || '';
-		imageEnhancer.popup('Adding keyword <b>' + name + '</b> to this image.');
+		//imageEnhancer.popup('Adding keyword <b>' + name + '</b> to this image.');
 		data.onMediaAssets.add = [ val ];
 	}
 console.info(data);
@@ -653,12 +653,14 @@ console.info(data);
 		success: function(d) {
 console.info(d);
 			if (d.success) {
+/*
 				var elapsed = new Date().getTime() - popupStartTime;
 				if (elapsed > 6000) {
 					$('.image-enhancer-popup').remove();
 				} else {
 					window.setTimeout(function() { $('.image-enhancer-popup').remove(); }, 6000 - elapsed);
 				}
+*/
 				if (d.newKeywords) {
 					for (var id in d.newKeywords) {
 						wildbookGlobals.keywords[id] = d.newKeywords[id];
@@ -695,8 +697,6 @@ console.info(d);
 		dataType: 'json'
 	});
 	return false;
-//.image-enhancer-popup
-//.popup-content
 }
 
 /*
@@ -754,8 +754,11 @@ console.info("############## mid=%s -> %o", mid, ma);
 
 	h += '</div>';
 	el.append(h);
-	el.find('.iek-remove').on('click', function(ev) {
+	el.find('.image-enhancer-keyword-wrapper').on('click', function(ev) {
 		ev.stopPropagation();
+	});
+	el.find('.iek-remove').on('click', function(ev) {
+		//ev.stopPropagation();
 		addNewKeyword(ev.target);
 	});
 }
