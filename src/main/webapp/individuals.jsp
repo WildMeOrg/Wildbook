@@ -315,7 +315,7 @@ if (request.getParameter("number")!=null) {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
           <%
           }
         }
