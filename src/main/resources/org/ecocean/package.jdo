@@ -413,6 +413,9 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
+	  
+	  <field name="webURL" persistence-modifier="none"></field>
+
     </class>
 
     <class name="Measurement" identity-type="application">

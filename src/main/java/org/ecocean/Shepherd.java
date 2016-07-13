@@ -1855,6 +1855,7 @@ public class Shepherd {
       int lastIndex=webURL.lastIndexOf("/")+1;
       String filename=webURL.substring(lastIndex);
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
+      spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
       myArray.add(spv);
     }
