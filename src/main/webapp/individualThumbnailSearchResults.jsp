@@ -197,10 +197,12 @@
       <h1 class="intro">
         <%
           if (request.getParameter("noQuery") == null) {
-        %>
-        <%=encprops.getProperty("searchTitle")%>
-        <%
-        } else {
+	        %>
+	        <%=encprops.getProperty("searchTitle")%>
+	        <%
+        	
+          } 
+        else {
         %>
         <%=encprops.getProperty("title")%>
         <%
@@ -335,7 +337,7 @@
 										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
+									String link=thumbLocs.get(countMe).getWebURL();
 						
 							%>
 
@@ -354,7 +356,7 @@
             %>
 >
 <% } else { %><a><% } %>
-            <img class="lazyload" src="http://<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
+            <img width="250px" height="*" class="lazyload" src="http://<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
 
             <div 
             	<%
@@ -489,32 +491,7 @@
                       if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
                     %>
 
-                    <p><strong>EXIF</strong></p>
-												<span class="caption">
-						<div class="scroll">	
-						<span class="caption">
-					<%
-            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              FileInputStream jin=null;
-              try{
-            	  
-            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-            	  File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-				  jin=new FileInputStream(exifImage);
-            	  %>
-              	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-              	<%
-
-                  }
-              catch(Exception e){e.printStackTrace();}
-              finally{
-            	  if(jin!=null){jin.close();}
-              }
-                      }
-                %>
-   									</span>
-            </div>
-   								</span>
+                 
 
 
                   </td>
