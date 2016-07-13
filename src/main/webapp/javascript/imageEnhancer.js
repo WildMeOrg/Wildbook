@@ -68,15 +68,19 @@ console.info('assigning event %s', e);
 
     wrapperSizeSetFromImg: function(el) {
         var img = el.find('img');
-        var w = el.find('.image-enhancer-wrapper');
-console.log('img = %o / w = %o', img, w);
-console.log('img.length -----> %o', img.length);
-console.log(' .complete? %o', img.prop('complete'));
-        if (!img.length || !w.length) return;
+        img.on('load', function(ev) {
+            var ji = $(ev.target);
+console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
+            var id = ji.data('enh-mediaassetid');
+            var w = el.find('#image-enhancer-wrapper-' + id);
+//console.log('img = %o / w = %o', img, w);
+//console.log('img.length -----> %o', img.length);
+//console.log(' .complete? %o', img.prop('complete'));
 //console.warn('img => %o', img);
 //console.warn('%d x %d', img.width(), img.height());
-        w.css('width', img.width());
-        w.css('height', img.height());
+            w.css('width', ji.width());
+            w.css('height', ji.height());
+        });
     },
 
     initMenu: function(el) {
