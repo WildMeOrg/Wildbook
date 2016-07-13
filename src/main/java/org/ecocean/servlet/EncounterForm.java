@@ -666,20 +666,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
 
-      //add WWF-specific fields for data and photographer privacy
-      if (fv.get("showPicture") != null) {
-        enc.setDynamicProperty("PublicView","Yes");
-      }
-      else{
-        enc.setDynamicProperty("PublicView","No");
-      }
-      if (fv.get("showPhotographerName") != null) {
-        enc.setDynamicProperty("ShowPhotographer","Yes");
-      }
-      else{
-        enc.setDynamicProperty("ShowPhotographer","No");
-      }
-      //end WWF privacy fields
+
 
       List<MetalTag> metalTags = getMetalTags(fv);
       for (MetalTag metalTag : metalTags) {
