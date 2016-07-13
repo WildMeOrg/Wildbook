@@ -1590,13 +1590,13 @@ if (request.getParameter("number")!=null) {
        var horiz_offset = (newWidth - $(this).width())/2;
        if (scaleRatio > 1) {
          $(this).height(maxHeight);
-         $(this).css({"max-width":(newWidth)"px"})
+         $(this).css({"max-width":(newWidth)+"px"})
          $(this).width('100%');
-         $(this).css('margin-left','-'horiz_offset'px');
+         $(this).css('margin-left','-'+horiz_offset+'px');
        }
        else {
          $(this).width('100%');
-         $(this).css('margin-left','-'horiz_offset'px');
+         $(this).css('margin-left','-'+horiz_offset+'px');
        }
      });
     }
