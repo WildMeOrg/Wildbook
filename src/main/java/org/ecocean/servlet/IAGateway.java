@@ -149,8 +149,10 @@ System.out.println("firstResult -> " + firstResult.toString());
         getOut = res.toString();
 /////////////
 
-    } else if (request.getParameter("getDetectReviewHtml") != null) {
-        String jobID = request.getParameter("getDetectReviewHtml");
+    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
             try {

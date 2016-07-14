@@ -668,6 +668,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
     //a slightly different flavor -- we can explicitely pass the query annotation
 	//  NOTE!!! TODO this might be redundant with beginIdentifyAnnotaions above. (this came from crc)
+/*
     public static JSONObject beginIdentify(Annotation qann, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
@@ -742,6 +743,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return results;
     }
 
+*/
 
 
     public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
