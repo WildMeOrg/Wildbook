@@ -1868,11 +1868,6 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);haveProfilePhoto=true;}
-              //put any Right keywords at the top but after a profile photo
-              else if(ma.hasKeyword("Right")){
-                if(haveProfilePhoto){al.add(1, j);}
-                else{al.add(0, j);}
-              }
               //otherwise, just add it to the bottom of the stack
               else{
                 al.add(j);

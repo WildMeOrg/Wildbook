@@ -76,7 +76,7 @@ var getData = function(individualID) {
     var occurrenceArray = [];
     var dataObject = {};
 
-     d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
+     d3.json("/api/jdoql?SELECT%20FROM%20org.ecocean.Occurrence%20WHERE%20encounters.contains(enc)%20&&%20enc.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc", function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -123,7 +123,7 @@ var getData = function(individualID) {
   };
 
 var getSexHaploData = function(individualID, items) {
-  d3.json("http://www.flukebook.org/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
+  d3.json("/api/jdoql?SELECT%20FROM%20org.ecocean.MarkedIndividual%20WHERE%20encounters.contains(enc)%20&&%20occur.encounters.contains(enc)%20&&%20occur.encounters.contains(enc2)%20&&%20enc2.individualID%20==%20%22" + individualID + "%22%20VARIABLES%20org.ecocean.Encounter%20enc;org.ecocean.Encounter%20enc2;org.ecocean.Occurrence%20occur", function(error, json) {
     if(error) {
       console.log("error")
     }
@@ -221,7 +221,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-    d3.json("http://www.flukebook.org/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+    d3.json("/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
       if(error) {
         console.log("error")
       }
@@ -237,7 +237,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
+		
           date = dateInMilliseconds.toISOString().substring(0, 10);
+		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
+		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
+		  
         } else {
           date = "Unknown";
         }
@@ -273,9 +277,9 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("http://flukebook.org/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("http://flukebook.org/individuals.jsp?number=" + selectedWhale);
+    window.open("/individuals.jsp?number=" + selectedWhale);
   }
