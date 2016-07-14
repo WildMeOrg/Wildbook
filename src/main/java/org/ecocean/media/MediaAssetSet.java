@@ -74,6 +74,8 @@ public class MediaAssetSet implements java.io.Serializable {
     public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
            org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
         //TODO security check, duh
+        jobj.put("id", id);
+        jobj.put("timestamp", timestamp);
         if ((getMediaAssets() != null) && (getMediaAssets().size() > 0)) {
             org.datanucleus.api.rest.orgjson.JSONArray assets = new org.datanucleus.api.rest.orgjson.JSONArray();
             for (MediaAsset ma : getMediaAssets()) {

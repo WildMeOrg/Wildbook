@@ -46,7 +46,7 @@ if [ "$t0" = "1.0" -a "$t1" = "0.0" -a "$t2" = "0.0" -a "$t3" = "1.0" ] ; then
 	fi
 	crop="${width}x$height$offset"
 
-	cmd="/usr/bin/convert +repage -crop $crop $source $target"
+	cmd="/usr/bin/convert -strip +repage -crop $crop $source $target"
 
 
 #for using the transform matrix, we set it to translate of 0,0 and let the crop work by negating these offset values
@@ -63,7 +63,7 @@ else
 	fi
 	crop="${width}x$height$offset"
 
-	cmd="/usr/bin/convert $source -matte -virtual-pixel Transparent -affine $t0,$t1,$t2,$t3,0,0 -transform +repage -gravity Center -crop $crop $target"
+	cmd="/usr/bin/convert $source -strip -matte -virtual-pixel Transparent -affine $t0,$t1,$t2,$t3,0,0 -transform +repage -gravity Center -crop $crop $target"
 fi
 
 

@@ -590,7 +590,7 @@ System.out.println("enc ?= " + enc.toString());
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
                     ma.updateMetadata();
-                    newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                    newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }
@@ -603,7 +603,7 @@ System.out.println("enc ?= " + enc.toString());
                 if ((maSet != null) && (maSet.getMediaAssets() != null) && (maSet.getMediaAssets().size() > 0)) {
                     int num = maSet.getMediaAssets().size();
                     for (MediaAsset ma : maSet.getMediaAssets()) {
-                        newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
                     }
                     session.setAttribute("filesOKMessage", num + " " + ((num == 1) ? "file" : "files"));
                 }

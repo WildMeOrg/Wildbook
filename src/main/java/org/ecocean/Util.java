@@ -22,12 +22,15 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import java.util.Iterator;
+import java.util.Map;
 import org.apache.commons.io.IOUtils;
 
 //import javax.jdo.JDOException;
 //import javax.jdo.JDOHelper;
 import javax.jdo.Query;
 //import javax.jdo.PersistenceManagerFactory;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 
 
 import org.ecocean.tag.MetalTag;
@@ -88,6 +91,7 @@ public class Util {
 	}
 
 	public static boolean isUUID(String s) {
+                if (s == null) return false;
 		boolean ok = true;
 		try {
 			UUID u = UUID.fromString(s);
@@ -354,6 +358,12 @@ public class Util {
         return hashDirectories(in, File.separator);
     }
 
+    public static boolean isIdentityMatrix(float[] m) {
+        if (m == null) return false;
+        if (m.length != 6) return false;
+        if ((m[0] == 1) && (m[1] == 0) && (m[2] == 0) && (m[3] == 1) && (m[4] == 0) && (m[5] == 0)) return false;
+        return true;
+    }
 
     public static org.datanucleus.api.rest.orgjson.JSONObject toggleJSONObject(JSONObject jin) {
         if (jin == null) return null;
@@ -385,6 +395,49 @@ public class Util {
           System.out.println("error parsing json string (" + s + "): " + je.toString());
       }
       return j;
+    }
+
+    public static org.datanucleus.api.rest.orgjson.JSONArray concatJsonArrayInPlace(org.datanucleus.api.rest.orgjson.JSONArray toBeReturned, org.datanucleus.api.rest.orgjson.JSONArray toBeAdded) throws org.datanucleus.api.rest.orgjson.JSONException {
+      for (int i=0; i<toBeAdded.length(); i++) {
+        toBeReturned.put(toBeAdded.get(i));
+      }
+      return toBeReturned;
+    }
+
+    /**
+     * Useful for some UI stuff -db
+     * From stackOverflow http://stackoverflow.com/a/7085652
+     **/
+    public static org.datanucleus.api.rest.orgjson.JSONObject requestParamsToJSON(HttpServletRequest req) throws org.datanucleus.api.rest.orgjson.JSONException {
+      org.datanucleus.api.rest.orgjson.JSONObject jsonObj = new org.datanucleus.api.rest.orgjson.JSONObject();
+      Map<String,String[]> params = req.getParameterMap();
+      for (Map.Entry<String,String[]> entry : params.entrySet()) {
+        String v[] = entry.getValue();
+        Object o = (v.length == 1) ? v[0] : v;
+        jsonObj.put(entry.getKey(), o);
+      }
+      return jsonObj;
+    }
+
+    // transforms a string such as "90.1334" or "46″ N 79°" into a decimal value
+    // TODO: parse second type of input string
+    public static Double getDecimalCoordFromString(String latOrLong) {
+
+      try {
+        return Double.valueOf(latOrLong);
+      }
+      catch (NumberFormatException nfe) {
+        System.out.println("ERROR: could not parse decimal coordinate from string "+latOrLong);
+        nfe.printStackTrace();
+      }
+      return null;
+
+    }
+
+    //whatever a string of this should look like.  apparently we want a string version on encounter for example. (?)
+    public static String decimalLatLonToString(Double ll) {
+        if (ll == null) return null;
+        return ll.toString();
     }
 
 
