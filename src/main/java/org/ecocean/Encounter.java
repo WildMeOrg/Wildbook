@@ -2138,9 +2138,8 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     }
 
     // creates a new annotation and attaches the asset
-    public void addMediaAsset(MediaAsset ma, String context) {
-      String fullSpecies = CommonConfiguration.getProperty("genus",context)+" "+ CommonConfiguration.getProperty("species",context);
-      Annotation ann = new Annotation(ma, fullSpecies);
+    public void addMediaAsset(MediaAsset ma) {
+      Annotation ann = new Annotation(getTaxonomyString(), ma);
       annotations.add(ann);
     }
 
