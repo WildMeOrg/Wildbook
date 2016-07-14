@@ -343,7 +343,7 @@ myShepherd.beginDBTransaction();
           <div class="col-xs-6">
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
               <div class="crop" title="<%=pairName[j]%>">
-                <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                 <%
                 if(pairCopyright[j]!=null){
                	%>
@@ -372,7 +372,7 @@ myShepherd.beginDBTransaction();
             <div class="gallery-inner">
               <div class="super-crop seal-gallery-pic active">
                 <div class="crop">
-                  <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                  <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                   <%
                   if(pairCopyright[j]!=null){
                	  %>
@@ -402,7 +402,7 @@ myShepherd.beginDBTransaction();
                 %>
                 <div class="super-crop seal-gallery-pic">
                   <div class="crop">
-                    <img src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+                    <img class="lazyload" src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                     <p class="image-copyright"> <%=copyright%> </p>
                     <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
                   </div>

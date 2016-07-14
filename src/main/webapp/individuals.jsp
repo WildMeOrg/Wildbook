@@ -161,7 +161,7 @@ if (request.getParameter("number")!=null) {
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
   })();
 </script>
-<script src="javascript/lazysizes.min.js"></script>
+
 <script src="javascript/underscore-min.js"></script>
 <script src="javascript/backbone-min.js"></script>
 <script src="javascript/core.js"></script>
@@ -294,7 +294,7 @@ if (request.getParameter("number")!=null) {
   try {
     if (myShepherd.isMarkedIndividual(name)) { %>
   <%-- Header Row --%>
-  <div class="row mainHeader">
+  <div class="row mainHeader" style="position:relative;">
     <div class="col-sm-6">
 
           <%
@@ -315,7 +315,7 @@ if (request.getParameter("number")!=null) {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><img src="images/wild-me-logo-only-100-100.png" width="75px" height="75px" align="absmiddle"/> <%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
           <%
           }
         }
@@ -615,14 +615,28 @@ if (request.getParameter("number")!=null) {
             dlg.dialog("open");
             });
           </script>
-          <p><a href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>">View all images</a></p>
         </div>
 
       </div>
       <%-- End Descriptions --%>
     </div>
 
-    <div class="slider col-sm-6">
+    <div class="viewAllImgs" style="
+        position: absolute;
+        right: 15px;
+        bottom: 0px;
+        z-index: 10;
+        color: white;
+        text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    ">
+    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
+
+
+    <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
@@ -1576,13 +1590,13 @@ if (request.getParameter("number")!=null) {
        var horiz_offset = (newWidth - $(this).width())/2;
        if (scaleRatio > 1) {
          $(this).height(maxHeight);
-         $(this).css({"max-width":(newWidth)"px"})
+         $(this).css({"max-width":(newWidth)+"px"})
          $(this).width('100%');
-         $(this).css('margin-left','-'horiz_offset'px');
+         $(this).css('margin-left','-'+horiz_offset+'px');
        }
        else {
          $(this).width('100%');
-         $(this).css('margin-left','-'horiz_offset'px');
+         $(this).css('margin-left','-'+horiz_offset+'px');
        }
      });
     }
