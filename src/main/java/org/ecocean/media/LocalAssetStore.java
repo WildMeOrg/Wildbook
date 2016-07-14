@@ -327,6 +327,15 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
     }
 
     @Override
+    public String getFilename(MediaAsset ma) {
+        Path path = pathFromParameters(ma.getParameters());
+        if (path == null) return null;
+        Path fn = path.getFileName();
+        if (fn == null) return null;  //will this ever happen?
+        return fn.toString();
+    }
+
+    @Override
     public String hashCode(JSONObject params) {
         if (params == null) return null;
         Path path = pathFromParameters(params);

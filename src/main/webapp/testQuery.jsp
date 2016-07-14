@@ -80,17 +80,20 @@ out.println("</ul></p>");
 <script>
 
   // returns the first 100 MediaAssets in the db
-  var testQuery = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
-  // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
+  // var testQuery = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
+  var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 30, rangeMin:15};
   // var testQuery = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}};
 
+  $(".results").append("<p>Query = "+JSON.stringify(testQuery)+"</p>");
+  /*
+
   // Stringify the query so it can be passed to java
-  var testString = JSON.stringify(testQuery);
   $(".results").append("<p>Query = "+testString+"</p>");
   // ... but attach that string as a named variable because HTTP posts have named variables
   // debug arg is purely for debugging the query thing
   // var args = {stringifiedJSONQuery: testString, debug:true};
-  var args = {stringifiedJSONQuery: testString};
+  */
+  var args = testQuery;
   // now just use $.post("TranslateQuery", args, callbackFunctionOnReturned(data))
   $.post( "TranslateQuery", args, function( data ) {
     $(".results").append( "Data Loaded: " + data );

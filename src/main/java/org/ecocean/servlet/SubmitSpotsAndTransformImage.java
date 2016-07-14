@@ -22,8 +22,8 @@ package org.ecocean.servlet;
 import org.ecocean.*;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.media.MediaAssetFactory;
-import org.ecocean.identity.Feature;
-import org.ecocean.identity.FeatureType;
+import org.ecocean.media.Feature;
+import org.ecocean.media.FeatureType;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -83,6 +83,8 @@ System.out.println("GOT " + jb.toString());
 
     myShepherd.beginDBTransaction();
     
+    FeatureType.initAll(myShepherd);
+  
     
     MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
     if (ma == null) {
@@ -184,8 +186,28 @@ System.out.println("pixelScale -> " + pixelScale);
     transform[5] *= pixelScale;
 System.out.println("transform matrix -> " + Arrays.toString(transform));
     //note: for imagemagick, translate x,y will be moved to clipping offset
-    Annotation annot = new Annotation(ma, enc.getTaxonomyString(), 0, 0, (int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), transform);
+
+    // if no modification was done to image, we dont need a new MediaAsset and the Annotation already exists
+    boolean spotMAisNew = false;
+    MediaAsset spotMA = ma;
+
+    float sizeMult = 1;
+    if (!Util.isIdentityMatrix(transform)) {
+        //first we construct our feature for the shape we have (and the new Annotation will need this)
+        JSONObject fparams = new JSONObject();
+        //if (ma.getWidth() > 3000) sizeMult = 3000 / ma.getWidth();  //a little bit of size sanity
+        fparams.put("width", ma.getWidth() * sizeMult);
+        fparams.put("height", ma.getHeight() * sizeMult);
+        fparams.put("transformMatrix", transform);
+        Feature ft = new Feature("org.ecocean.boundingBox", fparams);
+        ma.addFeature(ft);
+        Annotation annot = new Annotation(enc.getTaxonomyString(), ft);
 System.out.println("annotation -> " + annot);
+        enc.addAnnotation(annot);
+        spotMAisNew = true;
+        spotMA = ft.createMediaAsset();
+System.out.println("NEW (transformed) spotMA created -> " + spotMA);
+    }
 
     /*
         we dont want to make a duplicate Annotation (which *usually* means the trivial one -- since we (should!) already have that.
@@ -193,19 +215,9 @@ System.out.println("annotation -> " + annot);
         enc.addAnnotation to blow up with a psql constraint complaint.  ugh.
     */
 
-    boolean spotMAisNew = false;
-    MediaAsset spotMA = ma;  //this is only the case when no transform was done, i.e. spots were just done on an unaltered image
-
-    if (!annot.isTrivial()) {
-        enc.addAnnotation(annot);
-        spotMAisNew = true;
-        spotMA = annot.createMediaAsset();
-System.out.println("NEW (transformed) spotMA created -> " + spotMA);
-    }
-
     //now we add the spots (as a Feature) to the spotMA
     if (spotMA != null) {
-        if (spotMAisNew) spotMA.setMinimalMetadata((int)Math.round(ma.getWidth()), (int)Math.round(ma.getHeight()), "image/jpeg");
+        if (spotMAisNew) spotMA.setMinimalMetadata((int)Math.round(ma.getWidth() * sizeMult), (int)Math.round(ma.getHeight() * sizeMult), "image/jpeg");
 
 //////TODO how do we make this generic, for sided-spots (whalesharks dorsal) vs fluke vs dorsal etc...
         JSONObject params = new JSONObject();
@@ -215,7 +227,7 @@ System.out.println("NEW (transformed) spotMA created -> " + spotMA);
         if (refSpots.size() > 0) {
             JSONObject p = new JSONObject();
             p.put("spots", SuperSpot.listToJSONArray(refSpots));
-            Feature f = new Feature(FeatureType.load(typePrefix + ".referenceSpots", myShepherd), p);
+            Feature f = new Feature(typePrefix + ".referenceSpots", p);
             spotMA.addFeature(f);
         }
         JSONObject p = new JSONObject();
@@ -226,7 +238,7 @@ System.out.println("NEW (transformed) spotMA created -> " + spotMA);
             p.put("spotsRight", SuperSpot.listToJSONArray(spots.get(1)));
         }
         if (p.has("spotsLeft") || p.has("spotsRight")) {
-            Feature f = new Feature(FeatureType.load(typePrefix + ".edgeSpots", myShepherd), p);
+            Feature f = new Feature(typePrefix + ".edgeSpots", p);
             spotMA.addFeature(f);
         }
     }
@@ -247,7 +259,10 @@ System.out.println("NEW (transformed) spotMA created -> " + spotMA);
 */
 
 
-    if (spotMAisNew) MediaAssetFactory.save(spotMA, myShepherd);
+    if (spotMAisNew) {
+        spotMA.setAccessControl(request);
+        MediaAssetFactory.save(spotMA, myShepherd);
+    }
 
     myShepherd.commitDBTransaction();
     

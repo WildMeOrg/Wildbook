@@ -28,6 +28,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.text.DecimalFormat;
 
@@ -58,6 +59,9 @@ public class MarkedIndividual implements java.io.Serializable {
 
   //sex of the MarkedIndividual
   private String sex = "unknown";
+
+  private String genus = "";
+  private String specificEpithet;
 
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
@@ -120,6 +124,8 @@ public class MarkedIndividual implements java.io.Serializable {
       this.sex = enc.getSex();
     }
     //numUnidentifiableEncounters = 0;
+    setTaxonomyFromEncounters();
+    setSexFromEncounters();
     maxYearsBetweenResightings=0;
   }
 
@@ -157,6 +163,8 @@ public class MarkedIndividual implements java.io.Serializable {
         numberEncounters++;
         refreshDependentProperties(context);
       }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
       return isNew;
 
  }
@@ -228,6 +236,8 @@ public class MarkedIndividual implements java.io.Serializable {
 	    this.dateTimeLatestSighting=last.getDate();
 	    return last.getDate();
 	  }
+
+
 
 
 	public String refreshThumbnailUrl(String context) {
@@ -670,6 +680,60 @@ public class MarkedIndividual implements java.io.Serializable {
 
   }
 
+    public String getGenus() {
+        return genus;
+    }
+
+    public void setGenus(String newGenus) {
+        genus = newGenus;
+    }
+
+    public String getSpecificEpithet() {
+        return specificEpithet;
+    }
+
+    public void setSpecificEpithet(String newEpithet) {
+        specificEpithet = newEpithet;
+    }
+
+    public String getTaxonomyString() {
+        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    }
+
+    ///this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
+    /// therefore we dont allow that unless you pass boolean true to force it
+    ///  TODO we only pick first one - perhaps smarter would be to check all encounters and pick dominant one?
+    public String setTaxonomyFromEncounters(boolean force) {
+        if (!force && ((genus != null) || (specificEpithet != null))) return getTaxonomyString();
+        if ((encounters == null) || (encounters.size() < 1)) return getTaxonomyString();
+        for (Encounter enc : encounters) {
+            if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
+                genus = enc.getGenus();
+                specificEpithet = enc.getSpecificEpithet();
+                return getTaxonomyString();
+            }
+        }
+        return getTaxonomyString();
+    }
+    public String setTaxonomyFromEncounters() {
+        return setTaxonomyFromEncounters(false);
+    }
+
+    //similar to above
+    public String setSexFromEncounters(boolean force) {
+        if (!force && (sex != null)) return getSex();
+        if ((encounters == null) || (encounters.size() < 1)) return getSex();
+        for (Encounter enc : encounters) {
+            if (enc.getSex() != null) {
+                sex = enc.getSex();
+                return getSex();
+            }
+        }
+        return getSex();
+    }
+    public String setSexFromEncounters() {
+        return setSexFromEncounters(false);
+    }
 
   public double getLastEstimatedSize() {
     double lastSize = 0;
@@ -1349,19 +1413,11 @@ public class MarkedIndividual implements java.io.Serializable {
       return "0";
     }
   }
-/**
-Returns the first genus-species pair found in the Encounter objects for this MarkedIndividual.
-@return a String if found or null if no genus-species pair is found
-*/
-public String getGenusSpecies(){
-	    for (int c = 0; c < encounters.size(); c++) {
-	      	Encounter temp = (Encounter) encounters.get(c);
-			if((temp.getGenus()!=null)&&(temp.getSpecificEpithet()!=null)){return (temp.getGenus()+" "+temp.getSpecificEpithet());}
 
-    	}
-		return null;
+    public String getGenusSpecies(){
+        return getTaxonomyString();
+    }
 
-}
 
 /**
 Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
@@ -1751,6 +1807,41 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             return jobj;
         }
 
+  // Returns a somewhat rest-like JSON object containing the metadata
+  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+    JSONObject jobj = new JSONObject();
+    jobj.put("individualID", this.getIndividualID());
+    jobj.put("url", this.getUrl(request));
+    jobj.put("sex", this.getSex());
+    jobj.put("nickname", this.nickName);
+
+    Vector<String> encIDs = new Vector<String>();
+    for (Encounter enc : this.encounters) {
+      encIDs.add(enc.getCatalogNumber());
+    }
+    jobj.put("encounterIDs", encIDs.toArray());
+    return sanitizeJson(request, jobj);
+  }
+
+  public String getUrl(HttpServletRequest request) {
+    return "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID();
+  }
+
+
+  /**
+  * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
+  * all they want in return are MediaAssets
+  * TODO: decorate with metadata
+  **/
+  public org.datanucleus.api.rest.orgjson.JSONArray sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+    org.datanucleus.api.rest.orgjson.JSONArray resultArray = new org.datanucleus.api.rest.orgjson.JSONArray();
+    for(int i=0;i<encounters.size();i++) {
+      Encounter tempEnc=(Encounter)encounters.get(i);
+      Util.concatJsonArrayInPlace(resultArray, tempEnc.sanitizeMedia(request));
+    }
+    return resultArray;
+  }
+
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
@@ -1856,5 +1947,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshDateLastestSighting();
 	}
 
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("individualID", individualID)
+                .append("species", getGenusSpecies())
+                .append("sex", getSex())
+                .append("numEncounters", numberEncounters)
+                .append("numLocations", numberLocations)
+                .toString();
+    }
 
 }

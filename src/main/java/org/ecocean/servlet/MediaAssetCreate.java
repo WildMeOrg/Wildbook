@@ -233,7 +233,7 @@ System.out.println(i + ") params -> " + params.toString());
 */
                     targetMA.updateMetadata();
                     targetMA.addLabel("_original");
-                    ////targetMA.setAccessControl(request);  //TODO not in this branch yet!
+                    targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
