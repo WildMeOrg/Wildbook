@@ -561,7 +561,7 @@ jQuery(function($) {
       <!---->
       <div class="crop-outer">
         <div class="crop" title="&copy; K39 / WWF">
-		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2953/Phs106Phs106_130515_R.jpg" alt="&copy; K39 / WWF"/></a>
+		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2935_cropped.jpg" alt="&copy; K39 / WWF"/></a>
           <!---->
         </div>
       </div>
@@ -582,7 +582,7 @@ jQuery(function($) {
 <div class="col-md-6">
   <div class="crop-outer">
     <div class="crop" title="&copy; UEF / WWF">
-      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2801/Phs142Phs142_200515_R.JPG" alt="&copy; UEF / WWF"/></a>
+      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2801_cropped.jpg" alt="&copy; UEF / WWF"/></a>
     </div>
   </div>
 </div>
@@ -600,7 +600,7 @@ jQuery(function($) {
 	<div class="col-md-6">
     <div class="crop-outer">
       <div class="crop" title="&copy; M. Auttila / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3015/Phs014Phs014_150515_R.JPG" alt="&copy; M. Auttila / WWF"/></a>
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_3015_cropped.jpg" alt="&copy; M. Auttila / WWF"/></a>
       </div>
     </div>
   </div>
@@ -618,7 +618,7 @@ jQuery(function($) {
 	<div class="col-md-6">
     <div class="crop-outer">
       <div class="crop" title="&copy; Sanna Sihvonen / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3183/Phs023Phs023_300515.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_3138_cropped.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
       </div>
     </div>
   </div>
@@ -636,7 +636,7 @@ jQuery(function($) {
 	<div class="col-md-6">
     <div class="crop-outer">
       <div class="crop" title="&copy; Kunnasranta / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/3105/Phs052Phs052_010515_R.jpg" alt="&copy; Kunnasranta / WWF"/></a>
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_3105_cropped.jpg" alt="&copy; Kunnasranta / WWF"/></a>
       </div>
     </div>
   </div>
@@ -653,7 +653,7 @@ jQuery(function($) {
 	<div class="col-md-6">
     <div class="crop-outer">
       <div class="crop" title="&copy; K39 / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2954/Phs045Phs045_010615_belly.jpg" alt="&copy; K39 / WWF"/></a>
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2954_cropped.jpg" alt="&copy; K39 / WWF"/></a>
       </div>
     </div>
   </div>
@@ -672,7 +672,7 @@ jQuery(function($) {
 	<div class="col-md-6">
     <div class="crop-outer">
       <div class="crop" title="&copy; K53A / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="http://52.40.15.8/wildbook_data_dir/encounters/2840/Phs087Phs087_020615_belly.jpg" alt="&copy; K53A / WWF"/></a>
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2840_cropped.jpg" alt="&copy; K53A / WWF"/></a>
       </div>
     </div>
   </div>
@@ -804,17 +804,34 @@ google.maps.event.addDomListener(window, "resize", function() {
 <script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
 
 <script>
-var maxHeight = Math.max.apply(null, $("div.per-seal-info").map(function (){
+var maxHeight = function() {
+  return Math.max.apply(null, $("div.per-seal-info").map(function (){
     return $(this).height();
-}).get());
-var maxWidth = Math.max.apply(null, $("div.per-seal-info").map(function (){
-    return $(this).width();
-}).get());
+  }).get())
+};
+var maxWidth = function() {
+  Math.max.apply(null, $("div.per-seal-info").map(function (){
+      return $(this).width();
+  }).get());
+}
 
-console.log("maxHeight = "+maxHeight);
-$("div.per-seal-info").height(maxHeight);
-$('div.crop-outer').css('max-height',maxHeight+'px');
+console.log("maxHeight = "+maxHeight());
+//$("div.per-seal-info").height(maxHeight());
+//$('div.crop-outer').css('max-height',maxHeight()+'px');
 
+imageCropper.cropIndexPics = function() {
+  console.log("cropIndexPics");
+  imageCropper.cropPics('div.crop-outer div.crop', 16.0/9.0);
+};
+
+/*imageCropper.cropIndexPics();
+$( window ).resize(function(){
+  imageCropper.cropIndexPics();
+});*/
+
+
+
+/*
 var cropDesktopPics = function(maxHeight) {
   $('.crop-outer .crop a img').each(function() {
     var scaleRatio = maxHeight/$(this).height();
@@ -837,7 +854,7 @@ cropDesktopPics(maxHeight);
 $( window ).resize(function(){
   cropDesktopPics(maxHeight);
 });
-
+*/
 /*
 $('.crop-outer .crop a img').height(maxHeight);
 
