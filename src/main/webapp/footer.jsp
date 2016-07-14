@@ -51,6 +51,20 @@
 					}
 				}
 
+				@media (max-width:768px) {
+					div.row.donate-row div.donate-zone {
+						margin-bottom: -20px;
+					}
+					@media (min-width:520px) {
+						.container-fluid.main-section .row.donate-row .seal-pic {
+							background: url('<%=urlLoc%>/cust/mantamatcher/img/wwf-join-banner-medium.jpg');
+							background-repeat: no-repeat;
+							background-position: center;
+							background-size: cover;
+						}
+					}
+				}
+
 
 				.row.donate-row h2.jumboesque {
 					padding-top: 50px;
@@ -65,7 +79,13 @@
 				.row.donate-row .donate-zone {
 					background-color: #dff2f1;
 					min-height: 240px;
-					padding-left: 0;
+					padding-left: 5px;
+					padding-right:5px;
+				}
+
+				.row.donate-row .donate-zone button.btn {
+					white-space: normal;
+					max-width: 90%;
 				}
 
 				footer.page-footer div.row.collaborators-row {
@@ -125,8 +145,8 @@
 
             <div class="container-fluid">
               <div class="container-fluid main-section">
-								<div class="row donate-row">
-									<div class="col-xs-6 bc4 donate-zone">
+								<div class="row donate-row" style="position:relative">
+									<div class="col-sm-6 bc4 donate-zone">
 											<!--<h1 class="hidden">Wildbook</h1>-->
 											<h2 class="jumboesque">Miten voit auttaa?</h2>
 											<!--
@@ -141,7 +161,7 @@
 											</a>
 										</h2>
 									</div>
-									<div class="col-xs-6 bc4 seal-pic">
+									<div class="col-sm-6 bc4 seal-pic">
 									</div>
 
 
@@ -159,7 +179,7 @@
 
 
 								<div class="row wwf-row">
-									
+
 
 									<div class="col-xs-12" style="text-align: center;">
 									<a style="
@@ -168,8 +188,8 @@
     									background-size: contain;
     									width: 72px;
     									height: 108px;
-    									display: inline-block;" 
-    									
+    									display: inline-block;"
+
     									href="/" title="Etusivulle" rel="home" tabindex="1"><span class="screen-reader-text">WWF</span></a>
 										<h2 style="color:#000;"> Rakennamme tulevaisuuden, jossa ihmiset ja luonto el&auml;v&auml;t tasapainossa</h2>
 
