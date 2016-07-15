@@ -346,13 +346,14 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
 
 
     @Override
-    public JSONObject createParameters(File file) {
+    public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
         if (file == null) return p;
-        if (underRoot(file.toPath())) {
+        if (underRoot(file.toPath())) {  //note: we ignore grouping here!
             p.put("path", file.toPath());
         } else {  //must be just some file "elsewhere", so we store it in some unique dir
-            p.put("path", root().toString() + File.separator + Util.hashDirectories(Util.generateUUID(), File.separator) + File.separator + file.getName());
+            if (grouping == null) grouping = Util.hashDirectories(Util.generateUUID(), File.separator);
+            p.put("path", root().toString() + File.separator + grouping + File.separator + file.getName());
         }
 //System.out.println("NOTE: LocalAssetStore.createParameters(" + file + ") -> " + p.toString());
         return p;
