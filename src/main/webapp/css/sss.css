@@ -33,7 +33,7 @@
 	margin: 0;
 	position: absolute;
 	top: 0;
-	background: url('/images/sssArrows.png') no-repeat;
+	background: url('../images/sssArrows.png') no-repeat;
 }
 
 .sssprev {
