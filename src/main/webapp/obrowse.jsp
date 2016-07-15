@@ -110,6 +110,9 @@ java.util.Properties" %>
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
+		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
+			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
+		}
 		return h + "</ul></div>";
 	}
 %>
@@ -179,6 +182,20 @@ if (type.equals("Encounter")) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
 		needForm = true;
 	}
+
+} else if (type.equals("MediaAssetMetadata")) {  //note: you pass the actual MediaAsset id here
+	try {
+		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
+			out.println(ma.getMetadata().getData().toString());
+		} else {
+			out.println("<p>no <b>.metadata.data</b> on " + ma.toString() + "</p>");
+		}
+	} catch (Exception ex) {
+		out.println("<p>ERROR: " + ex.toString() + "</p>");
+		needForm = true;
+	}
+
 } else {
 	out.println("<p>unknown type</p>>");
 	needForm = true;
