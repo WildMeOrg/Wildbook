@@ -43,18 +43,21 @@ org.ecocean.media.*
 
 <%
 
-//////////// these are the some settings to consider:
-File sourceDir = new File("/tmp/testSourceDir");  //TODO change this to somewhere you want to look
+//////////// these are the some settings to consider... *some* can be set via url params
+File sourceDir = new File("/tmp/testSourceDir");  //TODO change this to somewhere you want to look (cannot be set from url! security breach!)
 boolean recurse = true;   //recurse down into subdirs of above
+if ((request.getParameter("recurse") != null) && request.getParameter("recurse").toLowerCase().equals("false")) recurse = false;
 boolean allowDuplicates = false;   //will not create if already exists
+if ((request.getParameter("allowDuplicates") != null) && request.getParameter("allowDuplicates").toLowerCase().equals("true")) allowDuplicates = true;
 
 /*
 	this value will correspond roughly to the subdir(s) it gets stored in. magic(?) of MediaAsset!
 	note: this likely will influence 'allowDuplicates' value up there, since random(ish) values will amount to different MediaAssets
 */
-//String grouping = null;  //let AssetStore.createParameters() decide where to put this thing
+String grouping = null;  //let AssetStore.createParameters() decide where to put this thing, likely something randomish *per item*
 //String grouping = Util.hashDirectories(Util.generateUUID(), "/");  //random one, but will be the same for this whole set
-String grouping = "some/static/value";  //choose your own?  maybe a hint toward what this import is?
+//String grouping = "some/static/value";  //choose your own?  maybe a hint toward what this import is?
+if ((request.getParameter("grouping") != null) && (request.getParameter("grouping").indexOf("..") < 0)) grouping = request.getParameter("grouping");
 
 /////////////// END of interesting things to set
 
@@ -68,7 +71,6 @@ String grouping = "some/static/value";  //choose your own?  maybe a hint toward 
 
 
 
-myShepherd.beginDBTransaction();
 
 FeatureType.initAll(myShepherd);
 
@@ -96,18 +98,22 @@ System.out.println("trying to create MediaAsset with sp = " + sp);
             continue;
         }
         try {
-            ma.updateMetadata();  //root images get the whole deal (guess this sh/could key off label=_original ?)
+            ma.updateMetadata();
         } catch (IOException ioe) {
             	//we dont care (well sorta) ... since IOException usually means we couldnt open file or some nonsense that we cant recover from
 		System.out.println("could not updateMetadata() on " + ma);
         }
         ma.addLabel("_original");
+	myShepherd.beginDBTransaction();
         MediaAssetFactory.save(ma, myShepherd);
+	ma.updateStandardChildren(myShepherd);
+	myShepherd.commitDBTransaction();
 	out.println("<p>created <a target=\"_new\" title=\"" + ma.toString() + "\" href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a></p>");
 }
 
 
-myShepherd.commitDBTransaction();
+//myShepherd.commitDBTransaction();
+myShepherd.closeDBTransaction();
 
 
 
