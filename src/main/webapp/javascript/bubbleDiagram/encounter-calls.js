@@ -238,11 +238,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-		
+
           date = dateInMilliseconds.toISOString().substring(0, 10);
 		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
 		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-		  
+
         } else {
           date = "Unknown";
         }
@@ -278,9 +278,9 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl+"/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("/individuals.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl+"/individuals.jsp?number=" + selectedWhale);
   }
