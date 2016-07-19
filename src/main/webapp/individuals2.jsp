@@ -281,6 +281,39 @@ if (request.getParameter("number")!=null) {
       $("#encountTable th:nth-child(1)").attr("class", "hide");
 
     }, 6000);
+
+    $("#edit").click(function() {
+      if($('input[name="namer"]').val() == " ") {
+        $('input[name="namer"]').val("");
+      }
+
+      $("#nickname").prop("disabled", false);
+      $("#namer").prop("disabled", false);
+      $("#Name").show();
+    });
+    $("#finishEdit").click(function() {
+      $("nickname").removeClass("form-control");
+      $("#nickname").addClass("form-control-success");
+      $("#nicknamer").addClass("form-control-success");
+      $(".nickNameEdit").addClass("has-success");
+      $(".nickNameEdit").addClass("has-feedback");
+      $(".saveUpdate").show();
+    });
+
+
+    // $("#finishEdit").click(function() {
+    //   $("#nickname").prop("disabled", true);
+    //   $("#namer").prop("disabled", true);
+    // });
+
+    $("#nickname").click(function() {
+      $(".saveUpdate").hide();
+      $("form").removeClass("has-success");
+    });
+    $("#namer").click(function() {
+      $(".saveUpdate").hide();
+      $("form").removeClass("has-success");
+    });
   });
 
 </script>
@@ -308,7 +341,15 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
+            <h1 id="markedIndividualHeader"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <%-- <a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a> --%>
+            <div>
+              <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
+              <button class="btn btn-md" type="button" name="button" id="finishEdit">Close Edit</button>
+            </div>
+            <%}%></h1>
+
+
 
             <%
 
@@ -356,11 +397,36 @@ if (request.getParameter("number")!=null) {
               if (sharky.getNickNamer() != null) {
                 myNicknamer = sharky.getNickNamer();
               }
+              if(myNicknamer.equals("")) {
+                myNicknamer = " ";
+              }
               %>
 
-              <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p>
+              <%-- <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p> --%>
 
-              <p><%=nicknamer %>: <%=myNicknamer%></p>
+              <div>
+                  <form name="nameShark" method="post" action="IndividualSetNickName" class="form-inline">
+                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
+
+                    <div class="form-group nickNameEdit">
+                      <label class="formLabel"><%=nickname %>:</label>
+                      <input disabled class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
+                      <span class="form-control-feedback saveUpdate">&check;</span>
+                    </div>
+
+                    <div class="form-group nickNameEdit">
+                      <label class="formLabel"><%=nicknamer %>:</label>
+
+                      <input disabled class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
+                      <span class="form-control-feedback saveUpdate">&check;</span>
+                    </div>
+
+                    <%-- <input name="Name" type="submit" id="Name" value="<%=update %>"> --%>
+                    <button class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>"><%=update %></button>
+                  </form>
+              </div>
+
+              <%-- <p><%=nicknamer %>: <%=myNicknamer%></p> --%>
               <%
             }
             %>
