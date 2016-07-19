@@ -42,6 +42,54 @@
   color: #005589;
 }
 
+/*Edit forms*/
+label {
+  font-weight: lighter;
+}
+
+
+
+input[type="text"] {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color:  #333;
+  font-size: 1em;
+}
+
+
+.form-control[disabled] {
+  cursor: default;
+  background-color: #e8eff1;
+  color: #333;
+  border: none;
+  font-size: 1em;
+  -moz-box-shadow:    0px 0px 0px 0px #FFFFFF;
+  -webkit-box-shadow: 0px 0px 0px 0px #FFFFFF;
+  box-shadow:         0px 0px 0px 0px #FFFFFF;
+}
+
+.saveUpdate, #Name {
+  display: none;
+}
+
+#Name {
+  margin-bottom: 8px;
+}
+
+#edit, #finishEdit  {
+  background-color: white;
+}
+
+#edit:hover, #finishEdit:hover {
+  background-color: #8bff00;
+}
+
+.has-feedback .form-control {
+  padding-right: 0px;
+}
+
+
+
 
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {
