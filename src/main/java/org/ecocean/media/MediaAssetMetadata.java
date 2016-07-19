@@ -128,7 +128,7 @@ oh, and incidentally GPS block often has time in it too.  :( :( :(   @@
     public DateTime getDateTime() {
         if ((getData() == null) || (getData().optJSONObject("exif") == null)) return null;
         HashMap<String,String> matches = _find(getData().getJSONObject("exif"), ".*date.*");
-System.out.println("MediaAssetMetadata.getDateTime() ----> " + matches);
+//System.out.println("MediaAssetMetadata.getDateTime() ----> " + matches);
         //we attempt to find "the most prevalant" one.  ugh.  give me a break.
         HashMap<DateTime,Integer> count = new HashMap<DateTime,Integer>();
         SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
@@ -213,13 +213,13 @@ GPS Altitude: "10 metres"
                 }
             }
         }
-System.out.println("gps array: " + gps[0] + ", " + gps[1] + ", " + gps[2]);
+//System.out.println("gps array: " + gps[0] + ", " + gps[1] + ", " + gps[2]);
         return gps;
     }
 
     //we are going to standardize on meters cuz eff imperialism
     private Double _parseAltitude(String alt) {
-System.out.println("alt -> " + alt);
+//System.out.println("alt -> " + alt);
         if (alt == null) return null;
         String[] parts = alt.split(" +");
         if (parts.length < 1) return null;
