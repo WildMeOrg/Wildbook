@@ -109,6 +109,7 @@ System.out.println("trying to create MediaAsset with sp = " + sp);
 	ma.updateStandardChildren(myShepherd);
 	myShepherd.commitDBTransaction();
 	out.println("<p>created <a target=\"_new\" title=\"" + ma.toString() + "\" href=\"obrowse.jsp?type=MediaAsset&id=" + ma.getId() + "\">" + ma.getId() + "</a></p>");
+	System.out.println("localFilesToMediaAssets: " + f.toString() + " --> " + ma.getId());
 }
 
 

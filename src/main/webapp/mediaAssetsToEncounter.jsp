@@ -51,6 +51,7 @@ Digital Time Created: "142014"
 	Shepherd myShepherd=null;
 	myShepherd = new Shepherd("context0");
 
+	String idList = "";
 	String[] ids = request.getParameterValues("id");
 	if ((ids == null) || (ids.length < 1)) throw new RuntimeException("you must have at least one MediaAsset id passed as id=VALUE");
 	String species = request.getParameter("species");
@@ -84,6 +85,7 @@ Digital Time Created: "142014"
 			anns.add(newAnn);
 			out.println(newAnn + " (new)</p>");
 		}
+		idList += ids[i] + " ";
 	}
 
 	if (anns.size() < 1) {
@@ -92,6 +94,7 @@ Digital Time Created: "142014"
 		Encounter enc = new Encounter(anns);
 		myShepherd.getPM().makePersistent(enc);
 		out.println("<p>successfully created <a href=\"obrowse.jsp?type=Encounter&id=" + enc.getCatalogNumber() + "\" title=\"" + enc.toString() + "\" target=\"_new\">" + enc.getCatalogNumber() + "</a></p>");
+		System.out.println("mediaAssetsToEncounter: " + idList + "--> " + enc.getCatalogNumber());
 	}
 
 	myShepherd.commitDBTransaction();
