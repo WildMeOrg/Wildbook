@@ -1795,11 +1795,14 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void setDateFromAssets() {
         //FIXME if you dare.  i can *promise you* there are some timezone problems here.  ymmv.
         if ((annotations == null) || (annotations.size() < 1)) return;
-        MediaAsset ma = annotations.get(0).getMediaAsset();
-        if (ma == null) return;
-        DateTime dt = ma.getDateTime();
-        if (dt == null) return;
-        setDateInMilliseconds(dt.getMillis());
+        DateTime dt = null;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            dt = ma.getDateTime();
+            if (dt != null) break;  //we just take the first one
+        }
+        if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
     public void setSpeciesFromAssets() {
@@ -1809,13 +1812,19 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
 
+    //find the first one(s) we can
     public void setLatLonFromAssets() {
         if ((annotations == null) || (annotations.size() < 1)) return;
-        MediaAsset ma = annotations.get(0).getMediaAsset();
-        if (ma == null) return;
-        Double lat = ma.getLatitude();
+        Double lat = null;
+        Double lon = null;
+        for (Annotation ann : annotations) {
+            MediaAsset ma = ann.getMediaAsset();
+            if (ma == null) continue;
+            if (lat == null) lat = ma.getLatitude();
+            if (lon == null) lon = ma.getLongitude();
+            if ((lat != null) && (lon != null)) break;
+        }
         if (lat != null) this.setDecimalLatitude(lat);
-        Double lon = ma.getLongitude();
         if (lon != null) this.setDecimalLongitude(lon);
     }
 

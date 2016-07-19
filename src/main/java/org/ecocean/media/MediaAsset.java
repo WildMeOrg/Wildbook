@@ -36,7 +36,6 @@ import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
 import java.util.Date;
-import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -449,25 +448,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
               then (b) crawl metadata.exif for something date-y
     */
     public DateTime getDateTime() {
-
         if (this.userDateTime != null) return this.userDateTime;
-
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
         //meh, gotta find it the hard way then...
-        HashMap<String,String> matches = getMetadata().findRecurse(".*date.*");
-        if ((matches == null) || (matches.size() < 1)) return null;
-        String dateString = (String)matches.values().toArray()[0];
-        if (dateString == null) return null;
-        SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
-        Date dt = null;
-        try {
-            dt = dateParser.parse(dateString);
-        } catch (java.text.ParseException ex) {
-            return null;
-        }
-        return new DateTime(dt);
+        return getMetadata().getDateTime();
     }
 
     public void setUserDateTime(DateTime dt) {
@@ -486,13 +472,11 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
     public Double getLatitude() {
-
         if (this.userLatitude != null) return this.userLatitude;
         if (getMetadata() == null) return null;
-        String lat = getMetadata().getAttributes().optString("latitude", null);
-        if (lat != null) return Util.getDecimalCoordFromString(lat);
-        return null;
-
+        double lat = getMetadata().getAttributes().optDouble("latitude");
+        if (!Double.isNaN(lat)) return lat;
+        return getMetadata().getLatitude();
     }
 
 
@@ -505,13 +489,11 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
     public Double getLongitude() {
-
         if (this.userLongitude != null) return this.userLongitude;
         if (getMetadata() == null) return null;
-        String lon = getMetadata().getAttributes().optString("longitude", null);
-        if (lon != null) return Util.getDecimalCoordFromString(lon);
-        return null;
-
+        double lon = getMetadata().getAttributes().optDouble("longitude");
+        if (!Double.isNaN(lon)) return lon;
+        return getMetadata().getLongitude();
     }
 
 

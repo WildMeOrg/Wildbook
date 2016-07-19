@@ -434,6 +434,27 @@ public class Util {
 
     }
 
+/////GPS Longitude: "-69.0° 22.0' 45.62999999998169"",
+    public static Double latlonDMStoDD(String dms) {
+        String[] d = dms.split(" +");
+        if (d.length < 1) return null;
+System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" + d[2]);
+        Double dd = null;
+        try {
+            dd = Double.valueOf(d[0].substring(0, d[0].length() - 1));
+            Double m = 0.0;
+            Double s = 0.0;
+            if (d.length > 1) m = Double.valueOf(d[1].substring(0, d[1].length() - 1));
+            if (d.length > 2) s = Double.valueOf(d[2].substring(0, d[2].length() - 1));
+            dd = Math.signum(dd) * (Math.abs(dd) + ((m * 60) + s) / (60*60));
+System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
+            return dd;
+
+        } catch (NumberFormatException nfe) {
+            return null;
+        }
+    }
+
     //whatever a string of this should look like.  apparently we want a string version on encounter for example. (?)
     public static String decimalLatLonToString(Double ll) {
         if (ll == null) return null;

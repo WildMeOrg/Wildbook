@@ -267,12 +267,13 @@ System.out.println("S3AssetStore.copyAsset(): " + fromB.toString() + "|" + fromK
     }
 
     @Override
-    public JSONObject createParameters(File file) {
+    public JSONObject createParameters(File file, String grouping) {
         JSONObject p = new JSONObject();
         if ((this.config == null) || (this.config.getString("bucket") == null)) throw new IllegalArgumentException(this + " does not have a default bucket value");
         p.put("bucket", this.config.getString("bucket"));
         //note: this key is simply to try to encourage uniqueness, but can be later re-set with something better if desired
-        if (file != null) p.put("key", Util.hashDirectories(Util.generateUUID(), "/") + "/" + file.getName());
+        if (grouping == null) grouping = Util.hashDirectories(Util.generateUUID(), "/");
+        if (file != null) p.put("key", grouping + "/" + file.getName());
         return p;
     }
 
