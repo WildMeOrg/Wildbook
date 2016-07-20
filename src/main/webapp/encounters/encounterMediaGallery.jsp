@@ -47,6 +47,11 @@ try {
   ArrayList<Annotation> anns = enc.getAnnotations();
   %>
   <script>
+  function isGenusSpeciesSet() {
+    var check = <%=((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null))%>;
+    console.log("isGenusSpeciesSet() = "+check);
+    return check;
+  }
 
   function startIdentify(ma) {
 	if (!ma) return;
@@ -509,9 +514,9 @@ div.file-item div {
 // h/t https://stackoverflow.com/a/12692647
 $(window).resize(function() {
 	if (this.resizeTO) clearTimeout(this.resizeTO);
-        this.resizeTO = setTimeout(function() {
-            $(this).trigger('resizeEnd');
-        }, 500);
+  this.resizeTO = setTimeout(function() {
+      $(this).trigger('resizeEnd');
+  }, 500);
 });
 
 $(window).on('resizeEnd', function(ev) {
@@ -542,9 +547,13 @@ function doImageEnhancer(sel) {
 
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
+      if (isGenusSpeciesSet()) {
+        i!mageEnhancer.popup("You need full taxonomic classification to start identification!");
+        return;
+      }
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
-console.log('%o ?????', mid);
+      console.log('%o ?????', mid);
 			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
