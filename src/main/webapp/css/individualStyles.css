@@ -47,17 +47,24 @@ label {
   font-weight: lighter;
 }
 
-
-
-input#nickname.form-control, input#namer.form-control{
+input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-control, input#timeOfDeath.form-control, input#alternateid.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
   font-size: 1em;
-  /*height: 30px;*/
+  height: 30px;
 }
 
+.editForm {
+  display: none;
+}
 
+.clickDateText{
+  margin-bottom: 0px;
+  display: none;
+  color: #990000;
+  font-size: 14px;
+}
 
 .form-control[disabled] {
   cursor: default;
@@ -74,11 +81,16 @@ input#nickname.form-control, input#namer.form-control{
   margin-bottom: 0px;
 }
 
-.saveUpdate, #Name, #Add, #updateSex {
+.saveUpdate {
   display: none;
+  color: green;
 }
 
-#Name, #Add {
+#showInline {
+  display: inline-block;
+}
+
+#Name, #Add, #birthy, #deathy, #AltID {
   margin-bottom: 8px;
 }
 
