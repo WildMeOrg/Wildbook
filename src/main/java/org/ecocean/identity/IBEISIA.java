@@ -2061,11 +2061,12 @@ System.out.println(">>>>>>>> age -> " + rtn);
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        URL iau = iaURL(context, "");
-        if (iau == null) {
+        String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        if (utest == null) {
             rtn.put("iaURL", (String)null);
             rtn.put("iaEnabled", false);
         } else {
+            URL iau = iaURL(context, "");
             rtn.put("iaURL", iau.toString());
             rtn.put("iaEnabled", true);
 /*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
@@ -2079,10 +2080,10 @@ System.out.println(">>>>>>>> age -> " + rtn);
                 if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbInfo", r.getString("response"));
             } catch (Exception ex) {}
 */
+            JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
+            settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
+            rtn.put("settings", settings);
         }
-        JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
-        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
-        rtn.put("settings", settings);
         rtn.put("timestamp", System.currentTimeMillis());
         return rtn;
     }
