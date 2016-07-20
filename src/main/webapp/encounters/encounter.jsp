@@ -409,6 +409,7 @@ margin-bottom: 8px !important;
 <div class="container maincontent">
 
 <div class="row">
+  <div class="col-xs-12">
 
 			<%
   			myShepherd.beginDBTransaction();
@@ -589,11 +590,11 @@ $(function() {
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
- 					<table style="border-spacing: 10px;border-collapse: inherit;">
+ 					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
  						<tr valign="middle">
   							<td>
     							<!-- Google PLUS-ONE button -->
-								<g:plusone size="small" annotation="none"></g:plusone>
+								<g:plusone size="medium" annotation="none"></g:plusone>
 							</td>
 							<td>
 								<!--  Twitter TWEET THIS button -->
@@ -606,6 +607,7 @@ $(function() {
 						</tr>
 					</table>
           </div>
+        </div>
 					<table>
 						<tr>
 							<td width="560px" style="vertical-align:top">
