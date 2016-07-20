@@ -79,9 +79,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
-      
+
       <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
- 
+
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
   	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
@@ -91,18 +91,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
     <style>
       ul.nav.navbar-nav {
         width: 100%;
-      }
-
-      ul.navbar-nav li.IBEIS-link {
-        margin-right: 75px;
-      }
-
-      ul.navbar-nav li.IBEIS-link>a {
-        background-color:rgb(76,175,80);
-      }
-      ul.navbar-nav li.IBEIS-link>a:hover {
-        background-color:rgb(76,175,80);
-        color: #fff;
       }
 
     </style>
@@ -169,11 +157,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       if (CommonConfiguration.getWikiLocation(context)!=null) {
                       %>
                         <li><a target="_blank" href="<%=CommonConfiguration.getWikiLocation(context) %>"><%=props.getProperty("userWiki")%></a></li>
-                      <% 
-                      } 
-                     	
-                      
-                      
+                      <%
+                      }
+
+
+
                       List<String> contextNames=ContextConfiguration.getContextNames();
                 		int numContexts=contextNames.size();
                 		if(numContexts>1){
@@ -221,7 +209,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 		%>
                 		   <!-- Can we inject language functionality here? -->
                     <%
-                    
+
             		List<String> supportedLanguages=CommonConfiguration.getIndexedPropertyValues("language", context);
             		int numSupportedLanguages=supportedLanguages.size();
 
@@ -307,7 +295,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                        	
+
                         	<!--
                         	<li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
 
@@ -343,7 +331,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Individuals <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                           <li><a href="<%=urlLoc %>/gallery.jsp"><%=props.getProperty("gallery")%></a></li>
-                        
+
                           <li><a href="<%=urlLoc %>/individualSearchResults.jsp"><%=props.getProperty("viewAll")%></a></li>
                         </ul>
                       </li>
@@ -460,11 +448,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
                         </ul>
                       </li>
-
-                      <li class="pull-right IBEIS-link">
-                        <a class="pull-right" href="<%=urlLoc %>/ui/#/workspace"> IBEIS Image Analysis</a>
-                      </li>
-
                     </ul>
 
 
