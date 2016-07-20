@@ -71,24 +71,46 @@ public class ImportIA extends HttpServlet {
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
         if ((testingLimit > 0) && (i >= testingLimit)) continue;
-        myShepherd.beginDBTransaction();
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
         Occurrence occ = null;
         String occID = IBEISIA.fromFancyUUID(fancyID);
 
         System.out.println("IA-IMPORT: ImageSet " + occID);
       JSONObject annotRes = getFromIA("/api/imageset/annot/uuid/json/?imageset_uuid_list=[" + fancyID + "]", context, out);
-System.out.println("annotRes -----> " + annotRes);
+/////System.out.println("annotRes -----> " + annotRes);
       // it's a singleton list, hence [0]
       JSONArray annotFancyUUIDs = annotRes.getJSONArray("response").getJSONArray(0);
+
+if (annotFancyUUIDs.length() > 100) {
+    JSONArray x = new JSONArray();
+    for (int j = 0 ; j < 100 ; j++) {
+        x.put(annotFancyUUIDs.getJSONObject(j));
+    }
+    annotFancyUUIDs = x;
+System.out.println("truncated to\n" + x);
+}
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
-      out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
-      List<Annotation> annots = IBEISIA.grabAnnotations(annotUUIDs, myShepherd);
-System.out.println("annots -----> " + annots);
+      //out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
+      out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
+
+
+        //now we have to break this up a little since there are some pretty gigantic sets of annotations, it turns out.  :(
+        List<Annotation> annots = new ArrayList<Annotation>();
+        int annotBatchSize = 100;
+        for (int astart = 0 ; astart < annotUUIDs.size() ; astart += annotBatchSize) {
+            int aend = astart + annotBatchSize - 1;
+            if (aend >= annotUUIDs.size()) aend = annotUUIDs.size() - 1;
+System.out.println("BATCH: " + astart + " -> " + aend);
+            List<Annotation> these = IBEISIA.grabAnnotations(annotUUIDs.subList(astart, aend+1), myShepherd);  //subList end arg is *exclusive*
+            annots.addAll(these);
+        }
+System.out.println("annots size = " + annots.size());
+/////System.out.println("annots -----> " + annots);
       JSONArray iaNamesArray = null;
       try {
         iaNamesArray = IBEISIA.iaNamesFromAnnotUUIDs(annotFancyUUIDs);
-      } catch (Exception e) {        e.printStackTrace(out);
+      } catch (Exception e) {
+        e.printStackTrace();
       }
 System.out.println("iaNamesArray ----> " + iaNamesArray);
 
@@ -140,7 +162,10 @@ System.out.println("--- sex=" + sex);
             age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId());
         } catch (Exception ex) {}
         if (age != null) enc.setAge(age);
+        myShepherd.beginDBTransaction();
         myShepherd.storeNewEncounter(enc, Util.generateUUID());
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
         System.out.println("IA-IMPORT: " + enc);
 
         if (!IBEISIA.unknownName(name)) {
@@ -159,6 +184,8 @@ System.out.println("--- sex=" + sex);
         for (Annotation ann: annotGroups.get(name)) {
             myShepherd.storeNewAnnotation(ann);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.beginDBTransaction();
         if (occ == null) {
             occ = myShepherd.getOccurrence(occID);
             if (occ == null) occ = new Occurrence(occID, enc);
