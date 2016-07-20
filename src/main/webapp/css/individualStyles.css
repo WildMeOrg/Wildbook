@@ -86,15 +86,34 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   color: green;
 }
 
-#showInline {
-  display: inline-block;
+.relationshipInput {
+  height: 30px;
+}
+
+.highlight {
+  color: #990000;
+}
+
+input.form-control.relationshipInput, select.form-control.relationshipInput {
+  margin-bottom: 10px;
+}
+
+#addRelationshipForm {
+  background-color: #e8eff1;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: none;
 }
 
 #Name, #Add, #birthy, #deathy, #AltID {
   margin-bottom: 8px;
 }
 
-#edit, #finishEdit  {
+#addRelationshipBtn {
+  margin-bottom: 20px;
+}
+
+#edit, #finishEdit {
   background-color: white;
 }
 
