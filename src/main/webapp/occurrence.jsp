@@ -79,59 +79,22 @@ context=ServletUtilities.getContext(request);
   <jsp:include page="header.jsp" flush="true"/>
 
 
-  <!--
-    1 ) Reference to the files containing the JavaScript and CSS.
-    These files must be located on your server.
-  -->
+<script src="javascript/sss.js"></script>
+<link rel="stylesheet" href="css/sss.css" type="text/css" media="all">
+<script>
+  jQuery(function($) {
+    $('.slider').sss({
+      slideShow : false, // Set to false to prevent SSS from automatically animating.
+      startOn : 0, // Slide to display first. Uses array notation (0 = first slide).
+      transition : 400, // Length (in milliseconds) of the fade transition.
+      speed : 3500, // Slideshow speed in milliseconds.
+      showNav : true // Set to false to hide navigation arrows.
+      });
 
-  <script type="text/javascript" src="highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="highslide/highslide/highslide.css"/>
-
-  <!--
-    2) Optionally override the settings defined at the top
-    of the highslide.js file. The parameter hs.graphicsDir is important!
-  -->
-
-  <script type="text/javascript">
-    hs.graphicsDir = 'highslide/highslide/graphics/';
-    
-    hs.transitions = ['expand', 'crossfade'];
-    hs.outlineType = 'rounded-white';
-    hs.fadeInOut = true;
-    //hs.dimmingOpacity = 0.75;
-
-    //define the restraining box
-    hs.useBox = true;
-    hs.width = 810;
-    hs.height = 250;
-    hs.align = 'auto';
-  	hs.anchor = 'top';
-
-    //block right-click user copying if no permissions available
-    <%
-    if(request.getUserPrincipal()==null){
-    %>
-    hs.blockRightClick = true;
-    <%
-    }
-    %>
-
-    // Add the controlbar
-    hs.addSlideshow({
-      //slideshowGroup: 'group1',
-      interval: 5000,
-      repeat: false,
-      useControls: true,
-      fixedControls: 'fit',
-      overlayOptions: {
-        opacity: 0.75,
-        position: 'bottom center',
-        hideOnMouseOut: true
-      }
+      $(".slider").show();
     });
-
-  </script>
-
+</script>
+ 
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -514,48 +477,52 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <!-- Start thumbnail gallery -->
 
 <br />
-<p>
-  <strong><%=props.getProperty("imageGallery") %>
-  </strong></p>
+<p><strong><%=props.getProperty("imageGallery") %></strong></p>
 
    
-    <div class="viewAllImgs" style="
-        position: absolute;
-        right: 15px;
-        bottom: 0px;
-        z-index: 10;
-        color: white;
-        text-shadow:
-        -1px -1px 0 #000,
-        1px -1px 0 #000,
-        -1px 1px 0 #000,
-        1px 1px 0 #000;
-    ">
-    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?occurenceID=<%=sharky.getOccurrenceID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
 
 
-    <div class="slider col-sm-6 center-slider">
+    <div class="slider col-sm-12 center-slider">
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
       String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-
-      for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<20); extraImgNo++) {
-        JSONObject newMaJson = new JSONObject();
-        newMaJson = photoObjectArray.get(extraImgNo);
-        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-
-        %>
-        <div class="crop-outer">
-          <div class="crop">
-              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=sharky.getOccurrenceID()%>" />
-          </div>
-        </div>
-        <%
-      }
+      int numPhotos=photoObjectArray.size();
+	if(numPhotos>0){
+	      for (int extraImgNo=0; extraImgNo<numPhotos; extraImgNo++) {
+	        JSONObject newMaJson = new JSONObject();
+	        newMaJson = photoObjectArray.get(extraImgNo);
+	        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	
+	        %>
+	        <div class="crop-outer">
+	          <div class="crop">
+	              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=sharky.getOccurrenceID()%>" />
+	          </div>
+	        </div>
+	        <%
+	      }
+    }
+	else{
+		%>
+		<p><%=props.getProperty("noImages") %></p>
+		<%
+	}
       %>
     </div>
-  </div>
+
+<p>&nbsp;</p>
+
+<table>
+<tr>
+<td>
+
+      <jsp:include page="individualMapEmbed.jsp" flush="true">
+        <jsp:param name="occurrence_number" value="<%=name%>"/>
+      </jsp:include>
+</td>
+</tr>
+</table>
 
 
 
@@ -572,7 +539,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <br />
 <p><img align="absmiddle" src="images/Crystal_Clear_app_kaddressbook.gif"> <strong><%=props.getProperty("researcherComments") %>
-</strong>: </p>
+</strong></p>
 
 <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
 
@@ -602,16 +569,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 
 <br />
-<table>
-<tr>
-<td>
 
-      <jsp:include page="individualMapEmbed.jsp" flush="true">
-        <jsp:param name="occurrence_number" value="<%=name%>"/>
-      </jsp:include>
-</td>
-</tr>
-</table>
 <%
 
 } 
