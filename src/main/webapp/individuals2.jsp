@@ -209,7 +209,10 @@ if (request.getParameter("number")!=null) {
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
+
+
 <script type="text/javascript">
+
 
   $(document).ready( function() {
   	// wildbook.init(function() { doTable(); });
@@ -286,10 +289,12 @@ if (request.getParameter("number")!=null) {
       if($('input[name="namer"]').val() == " ") {
         $('input[name="namer"]').val("");
       }
-
       $("#nickname").prop("disabled", false);
       $("#namer").prop("disabled", false);
       $("#Name").show();
+      $("#sexText").hide();
+      $("#updateSex").show();
+      $("#Add").show();
     });
     $("#finishEdit").click(function() {
       $("nickname").removeClass("form-control");
@@ -404,34 +409,29 @@ if (request.getParameter("number")!=null) {
 
               <%-- <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p> --%>
 
-              <div>
+                <%-- Edit nickname form --%>
                   <form name="nameShark" method="post" action="IndividualSetNickName" class="form-inline">
                     <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
-
                     <div class="form-group nickNameEdit">
                       <label class="formLabel"><%=nickname %>:</label>
                       <input disabled class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
                       <span class="form-control-feedback saveUpdate">&check;</span>
                     </div>
-
                     <div class="form-group nickNameEdit">
                       <label class="formLabel"><%=nicknamer %>:</label>
 
                       <input disabled class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
                       <span class="form-control-feedback saveUpdate">&check;</span>
                     </div>
-
-                    <%-- <input name="Name" type="submit" id="Name" value="<%=update %>"> --%>
                     <button class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>"><%=update %></button>
                   </form>
-              </div>
+                  <%-- End edit nickname form --%>
 
-              <%-- <p><%=nicknamer %>: <%=myNicknamer%></p> --%>
               <%
             }
             %>
             <!-- Now prep the nickname popup dialog -->
-            <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
+            <%-- <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
               <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
                 <tr>
@@ -445,9 +445,9 @@ if (request.getParameter("number")!=null) {
                   </td>
                 </tr>
               </table>
-            </div>
+            </div> --%>
             <!-- nickname popup dialog script -->
-            <script>
+            <%-- <script>
               var dlgNick = $("#dialogNickname").dialog({
                 autoOpen: false,
                 draggable: false,
@@ -458,12 +458,13 @@ if (request.getParameter("number")!=null) {
               $("a#nickname").click(function() {
                 dlgNick.dialog("open");
               });
-            </script>
+            </script> --%>
             <%
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
             %>
-            <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
+            <p id="sexText"><%=sex %>: <%=sexValue %></p>
+            <%--  <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
             <%
               //edit sex
               if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
@@ -501,7 +502,30 @@ if (request.getParameter("number")!=null) {
               });
             </script>
             <%}%>
-          </p>
+          </p> --%>
+
+          <%-- Edit sex form --%>
+          <script type="text/javascript">
+            $(document).ready(function() {
+                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
+            });
+          </script>
+
+          <form name="setxsexshark" action="IndividualSetSex" method="post" class="form-inline" id="updateSex">
+            <div class="form-group" id="selectSex">
+              <label><%=sex %>: </label>
+              <select name="selectSex" size="1" class="form-control">
+                <option value="unknown"><%=props.getProperty("unknown") %></option>
+                <option value="male"><%=props.getProperty("male") %></option>
+                <option value="female"><%=props.getProperty("female") %></option>
+              </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
+            </div>
+            <%-- <input name="Add" type="submit" id="Add" value="<%=update %>" /> --%>
+            <button class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>"><%=update %></button>
+          </form>
+          <%-- End edit sex form --%>
+
+
 
           <%
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
