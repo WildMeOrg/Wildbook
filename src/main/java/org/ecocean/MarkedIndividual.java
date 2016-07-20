@@ -1845,15 +1845,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    boolean haveProfilePhoto=false;
+    //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
-      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
         if ((anns == null) || (anns.size() < 1)) {
           continue;
         }
         for (Annotation ann: anns) {
-          if (!ann.isTrivial()) continue;
+          //if (!ann.isTrivial()) continue;
           MediaAsset ma = ann.getMediaAsset();
           if (ma != null) {
             //JSONObject j = new JSONObject();
@@ -1878,7 +1878,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
           }
         }
-    }
+    //}
     }
     return al;
 
