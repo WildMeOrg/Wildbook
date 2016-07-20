@@ -455,7 +455,7 @@ myShepherd.beginDBTransaction();
                 </td>
                 <td>
                   <ul>
-                    
+
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
@@ -463,11 +463,11 @@ myShepherd.beginDBTransaction();
                 </td>
               </tr></table>
 
-             
+
               <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
                 To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
               </p>
-              
+
 
             </div>
           </div>
@@ -492,9 +492,9 @@ myShepherd.beginDBTransaction();
           }
           %>
 
-          Lataa lis&auml;&auml; norppia &nbsp;&nbsp;&nbsp;&nbsp;
+          see more
 
-          <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+          &nbsp;&nbsp;&nbsp;&nbsp; <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
       </row>
@@ -515,9 +515,47 @@ myShepherd=null;
 <script src="<%=urlLoc %>/javascript/imageCropper.js"></script>
 <script>
 
-  $( window ).resize(function(){
+  imageCropper.cropPicsGalleryPage = function() {
+    console.log("========Cropping Gallery Pictures=======");
     imageCropper.cropGridPics();
     imageCropper.cropInnerPics();
+  }
+
+  $( "img.lazyloaded:eq(  )" ).load(function() {
+    console.log('WRONG lazyload image loaded');
+    //imageCropper.cropPicsGalleryPage();
+  });
+
+  $( "img:last" ).load(function() {
+    console.log('lazyloadED image loaded');
+    //imageCropper.cropPicsGalleryPage();
+  })
+
+  var nIndividuals = <%=numIndividualsOnPage%>;
+  console.log("individuals per page = "+nIndividuals);
+  var lastIndiv = nIndividuals-1;
+
+  imageCropper.testCrop = function() {
+    console.log("LAST IMAGE LOADED");
+    imageCropper.cropPicsGalleryPage();
+    $(window).trigger('resize');
+    $(window).trigger('resize');
+    imageCropper.cropPicsGalleryPage();
+    console.log("I'm not sure this will print");
+  }
+
+  $( "img:eq("+lastIndiv+")").load( imageCropper.testCrop() );
+
+
+
+/*  $( window ).load(function() {
+    console.log("loaded; waiting!");
+    setTimeout(imageCropper.cropPicsGalleryPage, 1000);
+  })*/
+
+
+  $( window ).resize(function(){
+    imageCropper.cropPicsGalleryPage();
   });
 
   // handles gallery-info hiding/showing
