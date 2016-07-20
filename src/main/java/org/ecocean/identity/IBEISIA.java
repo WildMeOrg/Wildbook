@@ -2068,17 +2068,17 @@ System.out.println(">>>>>>>> age -> " + rtn);
         } else {
             rtn.put("iaURL", iau.toString());
             rtn.put("iaEnabled", true);
+/*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
             try {
                 // these 2 seem borked
                 //JSONObject rtn = RestClient.get(iaURL("context0", "/api/core/version/")
                 //JSONObject rtn = RestClient.get(iaURL("context0", "/api/core/db/version/")
                 JSONObject r = RestClient.get(iaURL("context0", "/api/core/db/name/"));
                 if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbName", r.getString("response"));
-/*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
                 r = RestClient.get(iaURL("context0", "/api/core/db/info/"));
                 if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbInfo", r.getString("response"));
-*/
             } catch (Exception ex) {}
+*/
         }
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
