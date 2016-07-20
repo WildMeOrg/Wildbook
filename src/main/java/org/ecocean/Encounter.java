@@ -2497,7 +2497,7 @@ thus, we have to treat it as a special case.
                 Shepherd myShepherd = new Shepherd(context);
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
                 if ((kids != null) && (kids.size() > 0)) ma = kids.get(0);
-                return ma.webURL();
+                return ma.webURL().toString();
 	}
 
         //this probably needs a better name and should allow for something more like an ordered list; that said,
