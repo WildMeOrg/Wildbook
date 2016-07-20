@@ -69,6 +69,11 @@ var makeCooccurrenceChart = function(items) {
     });
 };
 
+var getIndividualIDFromEncounterToString = function(encToString) {
+  // return everything between "individualID=" and the next comma after that
+  return encToString.split("individualID=")[1].split(",")[0];
+}
+
 var getData = function(individualID) {
     var occurrenceObjectArray = [];
     var items = [];
@@ -82,15 +87,19 @@ var getData = function(individualID) {
       }
       var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
-        var encounterSize = jsonData[i].encounters.length;
+        var thisOcc = jsonData[i];
+        var encounterSize = thisOcc.encounters.length;
+        // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-          if(encounterArray.includes(jsonData[i].encounters[j].individualID)) {
+          var thisEnc = thisOcc.encounters[j];
+          var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
+          if(encounterArray.includes(thisEncIndID)) {
           } else {
-            encounterArray.push(jsonData[i].encounters[j].individualID);
+            encounterArray.push(thisEncIndID);
           }
         }
         occurrenceArray = occurrenceArray.concat(encounterArray);
-        var occurrenceID = jsonData[i].encounters[0].occurrenceID;
+        var occurrenceID = thisOcc.encounters[0].occurrenceID;
         var index = encounterArray.indexOf(individualID.toString());
         if (~index) {
             encounterArray[index] = "";
@@ -99,7 +108,7 @@ var getData = function(individualID) {
         if(encounterArray.length > 0) {
           occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
         } else {
-          occurrenceObject = {occurrenceID: "", occurringWith: ""};
+          occurrenceObject = { occurrenceID: "", occurringWith: "" };
         }
         occurrenceObjectArray.push(occurrenceObject);
         encounterArray = [];
@@ -110,6 +119,7 @@ var getData = function(individualID) {
         dataObject[occurrenceArray[i]] = 0;
         ++dataObject[occurrenceArray[i]];
       }
+
       for (var prop in dataObject) {
         var whale = new Object();
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
@@ -128,9 +138,10 @@ var getSexHaploData = function(individualID, items) {
       console.log("error")
     }
     jsonData = json;
+    //console.log("jsonData: "+JSON.stringify(jsonData));
     for(var i=0; i < jsonData.length; i++) {
       var result = items.filter(function(obj) {
-        return obj.text === jsonData[i].individualID
+        return obj.text === jsonData[i].individualID;
       })[0];
       if (!result) continue;
       result.sex = jsonData[i].sex;
@@ -238,11 +249,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-		
+
           date = dateInMilliseconds.toISOString().substring(0, 10);
 		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
 		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-		  
+
         } else {
           date = "Unknown";
         }
@@ -278,9 +289,9 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl+"/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open("/individuals.jsp?number=" + selectedWhale);
+    window.open(wildbookGlobals.baseUrl+"/individuals.jsp?number=" + selectedWhale);
   }

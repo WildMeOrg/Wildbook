@@ -788,7 +788,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     public static String[] findTaskIDsFromObjectID(String objectID, Shepherd myShepherd) {
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByObjectID(SERVICE_NAME, objectID, myShepherd);
         if ((logs == null) || (logs.size() < 1)) return null;
-        
+
         String[] ids = new String[logs.size()];
         int ct = 0;
         for (IdentityServiceLog l : logs) {
@@ -932,7 +932,7 @@ System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(
         }
 System.out.println("!!!! waitForTrainingJobs() has finished.");
     }
-    
+
 
 //{"xtl":910,"height":413,"theta":0,"width":444,"class":"giraffe_reticulated","confidence":0.2208,"ytl":182}
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd) {
@@ -2061,11 +2061,12 @@ System.out.println(">>>>>>>> age -> " + rtn);
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        URL iau = iaURL(context, "");
-        if (iau == null) {
+        String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
+        if (utest == null) {
             rtn.put("iaURL", (String)null);
             rtn.put("iaEnabled", false);
         } else {
+            URL iau = iaURL(context, "");
             rtn.put("iaURL", iau.toString());
             rtn.put("iaEnabled", true);
 /*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
@@ -2080,9 +2081,6 @@ System.out.println(">>>>>>>> age -> " + rtn);
             } catch (Exception ex) {}
 */
         }
-        JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
-        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
-        rtn.put("settings", settings);
         rtn.put("timestamp", System.currentTimeMillis());
         return rtn;
     }
@@ -2105,7 +2103,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
         ArrayList<Annotation> tanns = new ArrayList<Annotation>();
         ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
 
-        
+
         if (targetEncs.size() < 1) {
             results.put("error", "targetEncs is empty");
             return results;
@@ -2114,7 +2112,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
         log("Prime image analysis for "+species, jobID, new JSONObject("{\"_action\": \"init\"}"), context);
 
         try {
-            
+
             for (Encounter enc : targetEncs) {
                 ArrayList<Annotation> annotations = enc.getAnnotations();
                 for (Annotation ann : annotations) {
@@ -2136,7 +2134,7 @@ System.out.println(allAnns);
             results.put("sendAnnotations", sendAnnotations(allAnns));
 
             //this should attempt to repair missing Annotations
-            
+
             /*
             boolean tryAgain = true;
             JSONObject identRtn = null;
@@ -2145,7 +2143,7 @@ System.out.println(allAnns);
                 tryAgain = iaCheckMissing(identRtn);
             }
             results.put("sendIdentify", identRtn);
-            
+
 
             //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
 //########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
@@ -2159,9 +2157,9 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
             }
             */
 
-        results.put("success", true);    
-            
-        } 
+        results.put("success", true);
+
+        }
         catch (Exception ex) {  //most likely from sendFoo()
             System.out.println("WARN: IBEISIA.primeImageAnalysisForSpecies() failed due to an exception: " + ex.toString());
             ex.printStackTrace();
@@ -2176,7 +2174,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
         return results;
     }
-    
+
 
 
 }

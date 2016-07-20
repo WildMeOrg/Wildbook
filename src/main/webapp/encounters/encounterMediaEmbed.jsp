@@ -93,7 +93,7 @@ function startIdentify(el) {
 			console.warn('%o %o %o', x, y, z);
 		},
 		data: JSON.stringify({
-  			identify: { annotationIds: [ aid ] }
+			identify: { annotationIds: [ aid ] }
 		})
 	});
 }
