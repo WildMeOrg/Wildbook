@@ -2492,12 +2492,22 @@ thus, we have to treat it as a special case.
 */
 	//see also: future, MediaAssets
 	public String getThumbnailUrl(String context) {
-		List<SinglePhotoVideo> spvs = this.images;
-
-		if (spvs == null || spvs.size() < 1) return null;
-
-		return "/" + CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + this.subdir() + "/thumb.jpg";
+                MediaAsset ma = getPrimaryMediaAsset();
+                if (ma == null) return null;
+                Shepherd myShepherd = new Shepherd(context);
+                ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
+                if ((kids != null) && (kids.size() > 0)) ma = kids.get(0);
+                return ma.webURL().toString();
 	}
+
+        //this probably needs a better name and should allow for something more like an ordered list; that said,
+        //  knowing we can always try to get THE ONE is probably useful too
+        public MediaAsset getPrimaryMediaAsset() {
+            ArrayList<MediaAsset> mas = getMedia();
+            if (mas.size() < 1) return null;
+            //here we could walk thru and find keywords, for example
+            return mas.get(0);
+        }
 
 	public boolean restAccess(HttpServletRequest request, org.json.JSONObject jsonobj) throws Exception {
 		ApiAccess access = new ApiAccess();

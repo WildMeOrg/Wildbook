@@ -174,6 +174,8 @@ public class Annotation implements java.io.Serializable {
         return transformMatrix;
     }
 
+    //TODO this needs to be fixed to mean "has the unity feature"... i think(!?) -- but migrating to features needs a legacy-compatible version!  ouch
+    //       good luck on that one, jon
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) return false;
