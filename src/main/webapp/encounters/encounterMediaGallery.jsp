@@ -7,7 +7,7 @@ org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
-<%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
+
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
   ~ Copyright (C) 2011 Jason Holmberg
@@ -47,6 +47,11 @@ try {
   ArrayList<Annotation> anns = enc.getAnnotations();
   %>
   <script>
+  function isGenusSpeciesSet() {
+    var check = <%=((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null))%>;
+    console.log("isGenusSpeciesSet() = "+check);
+    return check;
+  }
 
   function startIdentify(ma) {
 	if (!ma) return;
@@ -73,7 +78,7 @@ try {
         console.warn('%o %o %o', x, y, z);
       },
       data: JSON.stringify({
-  	identify: { annotationIds: [ aid ] }
+  	    identify: { annotationIds: [ aid ] }
       })
     });
   }
@@ -175,7 +180,6 @@ for (int i=0; i<captionLinks.size(); i++) {
 	}
   input[type="file"] {
     display:inline;
-    width:108px;
   }
 
 </style>
@@ -510,9 +514,9 @@ div.file-item div {
 // h/t https://stackoverflow.com/a/12692647
 $(window).resize(function() {
 	if (this.resizeTO) clearTimeout(this.resizeTO);
-        this.resizeTO = setTimeout(function() {
-            $(this).trigger('resizeEnd');
-        }, 500);
+  this.resizeTO = setTimeout(function() {
+      $(this).trigger('resizeEnd');
+  }, 500);
 });
 
 $(window).on('resizeEnd', function(ev) {
@@ -543,9 +547,13 @@ function doImageEnhancer(sel) {
 
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
+      if (isGenusSpeciesSet()) {
+        imageEnhancer.popup("You need full taxonomic classification to start identification!");
+        return;
+      }
 			//var mid = enh.imgEl.context.id.substring(11);
 			var mid = enh.imgEl.data('enh-mediaassetid');
-console.log('%o ?????', mid);
+      console.log('%o ?????', mid);
 			imageEnhancer.message(jQuery('#image-enhancer-wrapper-' + mid), '<p>starting matching; please wait...</p>');
 			startIdentify(assetById(mid), enh.imgEl);
 		}]);
@@ -735,7 +743,7 @@ console.info("############## mid=%s -> %o", mid, ma);
 		h += '<div class="image-enhancer-keyword" id="keyword-' + ma.keywords[i].indexname + '">' + ma.keywords[i].readableName + ' <span class="iek-remove" title="remove keyword">X</span></div>';
 	}
 
-	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">Add new keyword <div class="iek-new-form">';
+	h += '<div class="iek-new-wrapper' + (ma.keywords.length ? ' iek-autohide' : '') + '">add new keyword<div class="iek-new-form">';
 	if (wildbookGlobals.keywords) {
 		var hasSome = false;
 		var mh = '<select onChange="return addNewKeyword(this);" style="width: 100%" class="keyword-selector"><option value="">select keyword</option>';
