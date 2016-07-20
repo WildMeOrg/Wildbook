@@ -263,7 +263,7 @@ td.tdw:hover div {
 
 <script type="text/javascript">
 
-	var needIAStatus = <%=("unapproved".equals(request.getParameter("state")) ? "true" : "false")%>;
+	var needIAStatus = false;
 /*
 
 

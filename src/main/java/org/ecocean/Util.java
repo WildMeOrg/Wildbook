@@ -438,7 +438,7 @@ public class Util {
     public static Double latlonDMStoDD(String dms) {
         String[] d = dms.split(" +");
         if (d.length < 1) return null;
-System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" + d[2]);
+//System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" + d[2]);
         Double dd = null;
         try {
             dd = Double.valueOf(d[0].substring(0, d[0].length() - 1));
@@ -447,7 +447,7 @@ System.out.println("latlonDMStoDD(" + dms + ") --> " + d[0] + "/" + d[1] + "/" +
             if (d.length > 1) m = Double.valueOf(d[1].substring(0, d[1].length() - 1));
             if (d.length > 2) s = Double.valueOf(d[2].substring(0, d[2].length() - 1));
             dd = Math.signum(dd) * (Math.abs(dd) + ((m * 60) + s) / (60*60));
-System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
+//System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
             return dd;
 
         } catch (NumberFormatException nfe) {
