@@ -73,9 +73,7 @@ try {
         console.warn('%o %o %o', x, y, z);
       },
       data: JSON.stringify({
-        identify: aid,
-        genus: '<%=enc.getGenus()%>',
-        species: '<%=enc.getSpecificEpithet()%>'
+        identify: { annotationIds: [ aid ] }
       })
     });
   }

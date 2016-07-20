@@ -93,9 +93,7 @@ function startIdentify(el) {
 			console.warn('%o %o %o', x, y, z);
 		},
 		data: JSON.stringify({
-			identify: aid,
-			genus: '<%=imageEnc.getGenus()%>',
-			species: '<%=imageEnc.getSpecificEpithet()%>'
+			identify: { annotationIds: [ aid ] }
 		})
 	});
 }
