@@ -548,7 +548,7 @@ function doImageEnhancer(sel) {
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
       if (isGenusSpeciesSet()) {
-        i!mageEnhancer.popup("You need full taxonomic classification to start identification!");
+        imageEnhancer.popup("You need full taxonomic classification to start identification!");
         return;
       }
 			//var mid = enh.imgEl.context.id.substring(11);
