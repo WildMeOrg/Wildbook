@@ -49,7 +49,7 @@ margin-bottom: 8px !important;
 
 
   <script type="text/javascript">
-  
+
 //Define the overlay, derived from google.maps.OverlayView
   function Label(opt_options) {
    // Initialization
@@ -64,7 +64,7 @@ margin-bottom: 8px !important;
 
    var div = this.div_ = document.createElement('div');
    div.style.zIndex=999;
-   
+
    div.appendChild(span);
    div.style.cssText = 'position: absolute; display: none;z-index: 999 !important;';
   };
@@ -108,24 +108,24 @@ margin-bottom: 8px !important;
 
    this.span_.innerHTML = this.get('text').toString();
   };
-  
-  
+
+
   		//map
   		var map;
   		var bounds = new google.maps.LatLngBounds();
-  
+
       function initialize() {
-    	  
-    	  
+
+
     	// Create an array of styles for our Goolge Map.
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
 
-      
+
         var center = new google.maps.LatLng(0,0);
         var mapZoom = 8;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-    	
-        
+
+
         map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
@@ -138,20 +138,20 @@ margin-bottom: 8px !important;
     	  fsControlDiv.index = 1;
     	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
-    
+
     	    // Create a new StyledMapType object, passing it the array of styles,
     	    // as well as the name to be displayed on the map type control.
     	    var styledMap = new google.maps.StyledMapType(gmap_styles, {name: "Styled Map"});
-    	
+
     	    //Associate the styled map with the MapTypeId and set it to display.
     	    map.mapTypes.set('map_style', styledMap);
     	    map.setMapTypeId('map_style');
-    	  
+
         var markers = [];
  	    var movePathCoordinates = [];
- 	    
+
  	    //iterate here to add points per location ID
- 	    
+
  		var maxZoomService = new google.maps.MaxZoomService();
  		maxZoomService.getMaxZoomAtLatLng(map.getCenter(), function(response) {
  			    if (response.status == google.maps.MaxZoomStatus.OK) {
@@ -159,61 +159,61 @@ margin-bottom: 8px !important;
  			    		map.setZoom(response.zoom);
  			    	}
  			    }
- 			    
+
  		});
 
- 		
+
  		//let's add map points for our locationIDs
  		<%
  		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
- 		
+
  		try{
 	 		for(int i=0;i<numLocationIDs;i++){
-	 			
+
 	 			String locID = locs.get(i);
 	 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
-	 				
+
 	 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
 	 				String lat = st.nextToken();
 	 				String longit=st.nextToken();
 	 				String thisLatLong=lat+","+longit;
-	 				
+
 	 		        //now  let's calculate how many
 	 		        int numSightings=myShepherd.getNumEncounters(locID);
 	 		        if(numSightings>0){
-	 		        
+
 	 		        	Integer numSightingsInteger=new Integer(numSightings);
-	 		          
-	 		          
+
+
 	 		          %>
-	 		          
+
 	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 			          bounds.extend(latLng);
-	 		          
+
 	 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
-	 		          
-	 		         
+
+
 	 		         var marker<%=i%> = new RichMarker({
 	 		            position: latLng,
 	 		            map: map,
 	 		            draggable: false,
 	 		           content: divString<%=i%>,
-	 		           flat: true 
+	 		           flat: true
 	 		        });
-	 		               
-	 		          
-	 		          
+
+
+
 	 			      markers.push(marker<%=i%>);
-	 		          map.fitBounds(bounds); 
-	 				
+	 		          map.fitBounds(bounds);
+
 	 				<%
 	 			} //end if
-	 				
+
 	 			}  //end if
-	 			
+
 	 		}  //end for
  		}
  		catch(Exception e){
@@ -223,18 +223,18 @@ margin-bottom: 8px !important;
  			myShepherd.rollbackDBTransaction();
  		}
  	 	%>
- 	 
+
 
  	 } // end initialize function
-        
+
       function fullScreen(){
   		$("#map_canvas").addClass('full_screen_map');
   		$('html, body').animate({scrollTop:0}, 'slow');
   		initialize();
-  		
+
   		//hide header
   		$("#header_menu").hide();
-  		
+
   		if(overlaysSet){overlaysSet=false;setOverlays();}
   		//alert("Trying to execute fullscreen!");
   	}
@@ -248,8 +248,8 @@ margin-bottom: 8px !important;
   		if(overlaysSet){overlaysSet=false;setOverlays();}
   		//alert("Trying to execute exitFullScreen!");
   	}
-  	
-  	
+
+
 
 
   	//making the exit fullscreen button
@@ -284,7 +284,7 @@ margin-bottom: 8px !important;
   	  controlUI.appendChild(controlText);
   	  controlText.style.visibility='hidden';
   	  //toggle the text of the button
-  	   
+
   	  if($("#map_canvas").hasClass("full_screen_map")){
   	      controlText.innerHTML = 'Exit Fullscreen';
   	    } else {
@@ -304,20 +304,20 @@ margin-bottom: 8px !important;
 
   	}
 
-    
 
-  	
-    
+
+
+
     google.maps.event.addDomListener(window, 'load', initialize);
     google.maps.event.addDomListener(window, "resize", function() {
     	 var center = map.getCenter();
     	 google.maps.event.trigger(map, "resize");
-    	 map.setCenter(center); 
+    	 map.setCenter(center);
     	});
-    
-    
-    
-    
+
+
+
+
   </script>
 
 <%
@@ -332,13 +332,13 @@ int numDataContributors=0;
 myShepherd.beginDBTransaction();
 
 try{
-    
-    
+
+
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
     numDataContributors=myShepherd.getNumUsers();
 
-    
+
 }
 catch(Exception e){
     e.printStackTrace();
@@ -356,7 +356,7 @@ finally{
             <h2>Wildbook helps you study identify, and protect wildlife populations!</h2>
             <!--
             <button id="watch-movie" class="large light">
-				Watch the movie 
+				Watch the movie
 				<span class="button-icon" aria-hidden="true">
 			</button>
 			-->
@@ -367,11 +367,11 @@ finally{
 
 	</div>
 
-    
+
 </section>
 
 <section class="container text-center main-section">
-	
+
 	<h2 class="section-header">How it works</h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
@@ -381,7 +381,7 @@ finally{
 	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
-	    </ol> 
+	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -389,7 +389,7 @@ finally{
 					<p class="lead">
 						Animals with patterned features can often be identified uniquely. By taking a picture, you can match that pattern to others already in the database. Your animal might be new to the database, or it might be a new sighting of one we have seen before!
 					</p>
-					
+
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
@@ -432,7 +432,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching Results</h3>
 					<p class="lead">
-						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile. 
+						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -447,7 +447,7 @@ finally{
 
     <aside class="container main-section">
         <div class="row">
-        
+
             <!-- Random user profile to select -->
             <%
             myShepherd.beginDBTransaction();
@@ -457,15 +457,15 @@ finally{
                 String profilePhotoURL="images/empty_profile.jpg";
                 if(featuredUser.getUserImage()!=null){
                 	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+featuredUser.getUsername()+"/"+featuredUser.getUserImage().getFilename();
-                } 
-            
+                }
+
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                     <div class="focusbox-inner opec">
                         <h2>Our contributors</h2>
                         <div>
                             <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
-                            <p><%=featuredUser.getFullName() %> 
+                            <p><%=featuredUser.getFullName() %>
                                 <%
                                 if(featuredUser.getAffiliation()!=null){
                                 %>
@@ -481,21 +481,21 @@ finally{
                 </section>
             <%
             } // end if
-            
+
             }
             catch(Exception e){e.printStackTrace();}
             finally{
-            
+
             	myShepherd.rollbackDBTransaction();
             }
             %>
-            
-            
+
+
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
                     <h2>Latest animal encounters</h2>
                     <ul class="encounter-list list-unstyled">
-                       
+
                        <%
                        List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
@@ -518,8 +518,8 @@ finally{
 	                                    </time>
 	                                </small>
 	                                <p><a href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" title=""><%=thisEnc.getIndividualID() %></a></p>
-	                           
-	                           
+
+
 	                            </li>
 	                        <%
 	                        }
@@ -527,11 +527,11 @@ finally{
                        catch(Exception e){e.printStackTrace();}
                        finally{
                     	   myShepherd.rollbackDBTransaction();
-                       
+
                        }
-                        
+
                         %>
-                       
+
                     </ul>
                     <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
                 </div>
@@ -545,9 +545,9 @@ finally{
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
 	                    long startTime=(new org.joda.time.DateTime()).getMillis()+(1000*60*60*24*30);
-	                    
+
 	                    System.out.println("  I think my startTime is: "+startTime);
-	                    
+
 	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
@@ -561,11 +561,11 @@ finally{
 	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-	                              } 
+	                              }
 	                              //System.out.println(spotters.values().toString());
 	                            Integer myInt=spotters.get(spotter);
 	                            //System.out.println(spotters);
-	                            
+
 	                          %>
 	                                <li>
 	                                    <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
@@ -578,18 +578,18 @@ finally{
 	                                    %>
 	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
 	                                </li>
-	                                
+
 	                           <%
 	                           numUsersToDisplay--;
-	                    }    
+	                    }
 	                   } //end while
                     }
                     catch(Exception e){e.printStackTrace();}
                     finally{myShepherd.rollbackDBTransaction();}
-                   
+
                    %>
-                        
-                    </ul>   
+
+                    </ul>
                     <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
                 </div>
             </section>
@@ -607,7 +607,7 @@ finally{
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                
+
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
             </section>
         </div>
@@ -626,15 +626,15 @@ finally{
                 </div>
             </article>
         <main>
-        
+
     </section>
 </div>
 
-<div class="container-fluid main-section">
+<div class="container-fluid main-section" id="map-section" style="padding-left:5%;padding-right:5%;">
     <h2 class="section-header">Encounters around the world</h2>
-    
-      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
-   
+
+      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
+
 </div>
 
 <!--
@@ -663,7 +663,7 @@ finally{
 		                <div class="focusbox-inner" style="overflow: hidden;">
 		                	<%
 		                    String profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/adoptions/"+adopt.getID()+"/thumb.jpg";
-		                    
+
 		                	%>
 		                    <img src="<%=profilePhotoURL %>" alt="" class="pull-right round">
 		                    <h2><small>Meet an adopter:</small><%=adopt.getAdopterName() %></h2>
@@ -678,19 +678,19 @@ finally{
 		                    %>
 		                </div>
 		            </div>
-	            
+
 	            <%
 				}
             }
             catch(Exception e){e.printStackTrace();}
             finally{myShepherd.rollbackDBTransaction();}
-            
+
             %>
-            
-            
+
+
         </section>
-        
-        
+
+
         <hr />
         <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -707,7 +707,7 @@ finally{
                 </a>
             </div>
         </section>
-        
+
     </section>
 </div>
 -->
