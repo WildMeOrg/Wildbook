@@ -1,5 +1,8 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
+         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
+         com.google.gson.Gson,
+         org.datanucleus.api.rest.orgjson.JSONObject
+         " %>
 
 <%
 
@@ -515,273 +518,44 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
   <strong><%=props.getProperty("imageGallery") %>
   </strong></p>
 
-    <%
-    String[] keywords=keywords=new String[0];
-		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
-		if(numThumbnails>0){	
-		%>
-
-<table id="results" border="0" width="100%">
-    <%
-
-			
-			int countMe=0;
-			//Vector thumbLocs=new Vector();
-			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-			
-			int  numColumns=3;
-			int numThumbs=0;
-			  if (CommonConfiguration.allowAdoptions(context)) {
-				  List<Adoption> adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-				  int numAdoptions = adoptions.size();
-				  if(numAdoptions>0){
-					  numColumns=2;
-				  }
-			  }
-
-			try {
-				
-				
-			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE occurrenceID == \""+sharky.getOccurrenceID()+"\"");
-		        //query.setFilter("SELECT "+jdoqlQueryString);
-		        query.setResult("catalogNumber");
-		        Collection c = (Collection) (query.execute());
-		        ArrayList<String> enclist = new ArrayList<String>(c);
-		        query.closeAll();
-				
-			    thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
-				numThumbs=thumbLocs.size();
-			%>
-
-  <tr valign="top">
- <td>
- <!-- HTML Codes by Quackit.com -->
-<div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-      <%
-      						while(countMe<numThumbs){
-							//for(int columns=0;columns<numColumns;columns++){
-								if(countMe<numThumbs) {
-									//String combined ="";
-									//if(myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-									//	combined = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-									//}
-									//else{
-									//	combined= thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "/" + thumbLocs.get(countMe).getDataCollectionEventID() + ".jpg" + "BREAK" + thumbLocs.get(countMe).getCorrespondingEncounterNumber() + "BREAK" + thumbLocs.get(countMe).getFilename();
-							              
-									//}
-
-									//StringTokenizer stzr=new StringTokenizer(combined,"BREAK");
-									//String thumbLink=stzr.nextToken();
-									//String encNum=stzr.nextToken();
-									//int fileNamePos=combined.lastIndexOf("BREAK")+5;
-									//String fileName=combined.substring(fileNamePos).replaceAll("%20"," ");
-									String thumbLink="";
-									boolean video=true;
-									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink=thumbLocs.get(countMe).getWebURL();
-										video=false;
-									}
-									else{
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-										
-									}
-									String link=thumbLocs.get(countMe).getWebURL();
-						
-							%>
-
    
-    
-      <table align="left" width="<%=100/numColumns %>%">
-        <tr>
-          <td valign="top">
-			
-              <%
-			if(isOwner){
-												%>
-            <a href="<%=link%>" 
-            <%
-            if(thumbLink.indexOf("video.jpg")==-1){
-            %>
-            	class="highslide" onclick="return hs.expand(this)"
-            <%
-            }
-            %>
-            >
-            <%
-            }
-             %>
-              <img class="lazyload" src="http://<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="Click to enlarge"/>
-              <%
-                if (isOwner) {
-              %>
-            </a>
-              <%
-			}
-            
-			%>
-
-            <div 
-            <%
-            if(!thumbLink.endsWith("video.jpg")){
-            %>
-            class="highslide-caption"
-            <%
-            }
-            %>
-            >
-
-              <table>
-                <tr>
-                  <td align="left" valign="top">
-
-                    <table>
-                      <%
-
-                        int kwLength = keywords.length;
-                        Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-                      %>
-                      
-                      
-
-                      <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span
-                          class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a
-                          href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-                        </a></span></td>
-                      </tr>
-                        <tr>
-                        <td><span class="caption"><%=props.getProperty("individualID") %>: 
-                        
-                        <%
-                        		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){
-                        		%>
-                        			<a href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a>
-                        		<%
-                        		}
-                        		%>
-                        
-                        </span></td>
-                      </tr>
-                      <%
-                        if (thisEnc.getVerbatimEventDate() != null) {
-                      %>
-                      <tr>
-
-                        <td><span
-                          class="caption"><%=props.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
-                        </td>
-                      </tr>
-                      <%
-                        }
-                      %>
-                     
-                    </table>
-                    <br/>
-
-                    
-                </tr>
-              </table>
-            </div>
-            
-
-</td>
-</tr>
-
- <%
-            if(!thumbLink.endsWith("video.jpg")){
- %>
-<tr>
-  <td><span class="caption"><%=props.getProperty("location") %>: <%=thisEnc.getLocation() %></span>
-  </td>
-</tr>
-<tr>
-  <td><span
-    class="caption"><%=props.getProperty("locationID") %>: <%=thisEnc.getLocationID() %></span></td>
-</tr>
-<tr>
-  <td><span class="caption"><%=props.getProperty("date") %>: <%=thisEnc.getDate() %></span></td>
-</tr>
-<tr>
-  <td><span class="caption"><%=props.getProperty("catalogNumber") %>: <a
-    href="encounters/encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>"><%=thisEnc.getCatalogNumber() %>
-  </a></span></td>
-</tr>
-                        <tr>
-                        	<td>
-                        		<span class="caption"><%=props.getProperty("individualID") %>: 
-                        		<%
-                        		if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){
-                        		%>
-                        			<a href="individuals.jsp?number=<%=thisEnc.getIndividualID() %>"><%=thisEnc.getIndividualID() %></a>
-                        		<%
-                        		}
-                        		%>
-                        		</span>
-                        	</td>
-                      </tr>
-
-<%
-
-            }
-%>
-</table>
-
-<%
-
-      countMe++;
-    } //end if
-  } //endFor
-%>
-</div>
-
-</td>
-</tr>
-<%
+    <div class="viewAllImgs" style="
+        position: absolute;
+        right: 15px;
+        bottom: 0px;
+        z-index: 10;
+        color: white;
+        text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    ">
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?occurenceID=<%=sharky.getOccurrenceID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
 
 
+    <div class="slider col-sm-6 center-slider">
+      <%-- Get images for slider --%>
+      <%
+      ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
+      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
-} catch (Exception e) {
-  e.printStackTrace();
-%>
-<tr>
-  <td>
-    <p><%=props.getProperty("error")%>
-    </p>.
-  </td>
-</tr>
-<%
-  }
-%>
+      for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<20); extraImgNo++) {
+        JSONObject newMaJson = new JSONObject();
+        newMaJson = photoObjectArray.get(extraImgNo);
+        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
-</table>
-</div>
-<%
-} else {
-%>
-
-<p><%=props.getProperty("noImages")%></p>
-
-<%
-  }
-%>
-
-</table>
-<!-- end thumbnail gallery -->
+        %>
+        <div class="crop-outer">
+          <div class="crop">
+              <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" class="sliderimg lazyload" data-src="<%=newimgUrl%>" alt="<%=sharky.getOccurrenceID()%>" />
+          </div>
+        </div>
+        <%
+      }
+      %>
+    </div>
+  </div>
 
 
 
