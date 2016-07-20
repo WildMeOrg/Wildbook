@@ -630,7 +630,7 @@ finally{
     </section>
 </div>
 
-<div class="container-fluid main-section" id="map-section" style="padding-left:5%;padding-right:5%;">
+<div class="container main-section">
     <h2 class="section-header">Encounters around the world</h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
