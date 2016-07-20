@@ -387,19 +387,13 @@ if(sharky.getLocationID()!=null){
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
       
-        Vector encImages = enc.getAdditionalImageNames();
-        String imgName = "";
-				String encSubdir = enc.subdir();
-        
-          imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
-        
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
     </td>
     <td class="lineitem">
     	<%
-    	if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+    	if (enc.hasMarkedIndividual()) {
     	%>
     	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     	<%
@@ -424,7 +418,7 @@ if(sharky.getLocationID()!=null){
     		
     		<%
     		//if the encounter has photos, show photo folder icon
-    		if((enc.getImages()!=null) && (enc.getImages().size()>0)){
+    		if ((enc.getMedia().size()>0)){
     		%>
     			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
     		<%
