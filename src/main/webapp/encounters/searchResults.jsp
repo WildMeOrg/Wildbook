@@ -628,6 +628,7 @@ function i18nLocationID(id) {
 function _colLocationId(o) {
 	var id = o.get('locationID');
 	if (!id) return '';
+	else if (id == 'None') return '';
 	return i18nLocationID(id);
 }
 
