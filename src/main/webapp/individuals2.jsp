@@ -288,11 +288,6 @@ if (request.getParameter("number")!=null) {
     $("#edit").click(function() {
       $(".noEditText").hide();
       $(".editForm").show();
-      $("#nickname").prop("disabled", false);
-      $("#namer").prop("disabled", false);
-      $("#timeOfBirth").prop("disabled", false);
-      $("#timeOfDeath").prop("disabled", false);
-      $("#alternateid").prop("disabled", false);
       $(".clickDateText").show();
     });
     $("#finishEdit").click(function() {
