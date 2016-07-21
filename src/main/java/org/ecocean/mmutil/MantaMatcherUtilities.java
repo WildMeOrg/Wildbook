@@ -143,6 +143,24 @@ public final class MantaMatcherUtilities {
     return mmFiles.get("O").exists() &&
             mmFiles.get("CR").exists() &&
             mmFiles.get("EH").exists() &&
+            mmFiles.get("FT").exists();
+  }
+
+  /**
+   * Checks whether the pre-processed MantaMatcher algorithm files exist for
+   * the specified base image file (only checks the files required for running
+   * {@code mmatch}), and that they are usable.
+   * Compared to {@link #checkMatcherFilesExist(File)} this method also
+   * checks that the {@code .FEAT} file exists, which contains the usable features for matching.
+   * Separating these methods allows simple checking of failed feature extraction.
+   * @param f base image file from which to reference other algorithm files
+   * @return true if all MantaMatcher files exist (O/CR/EH/FT/FEAT), false otherwise
+   */
+  public static boolean checkMatcherFilesUsable(File f) {
+    Map<String, File> mmFiles = getMatcherFilesMap(f);
+    return mmFiles.get("O").exists() &&
+            mmFiles.get("CR").exists() &&
+            mmFiles.get("EH").exists() &&
             mmFiles.get("FT").exists() &&
             mmFiles.get("FEAT").exists();
   }

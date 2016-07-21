@@ -253,7 +253,11 @@ try {
 %>
         <div class="mmaResults">
           <form id="formNewScan-<%=spvKey%>">
+<%  if (MantaMatcherUtilities.checkMatcherFilesUsable(spv.getFile())) { %>
             <button id="buttonNewScan-<%=spvKey%>" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.title") %>"><%= encprops.getProperty("mma.button.newScan") %></button>
+<%  } else { %>
+            <button disabled id="buttonNewScan-<%=spvKey%>" class="smaller" title="<%= encprops.getProperty("mma.button.newScan.disabled.title") %>"><%= encprops.getProperty("mma.button.newScan.disabled") %></button>
+<%  } %>
           </form>
         </div>
         <!-- New Scan popup dialog -->
