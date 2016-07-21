@@ -20,6 +20,8 @@
 package org.ecocean.servlet;
 
 import org.ecocean.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -39,7 +41,8 @@ import java.util.Vector;
 
 
 public class EncounterRemoveImage extends HttpServlet {
-
+  /** SLF4J logger instance for writing log entries. */
+  private static final Logger log = LoggerFactory.getLogger(EncounterRemoveImage.class);
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -166,18 +169,20 @@ public class EncounterRemoveImage extends HttpServlet {
         }
       } else {
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
-        actionResult.setSucceeded(false);
+        actionResult.setSucceeded(false).setMessageOverrideKey("removeImage-assigned").setMessageParams(encounterNumber);
       }
     } else {
       myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
       actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
     out.close();
+    myShepherd.closeDBTransaction();
   }
-
-
 }
 	
 	

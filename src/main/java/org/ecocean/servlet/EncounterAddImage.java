@@ -78,12 +78,7 @@ public class EncounterAddImage extends HttpServlet {
 
     // Prepare for user response.
     String link = "#";
-    try {
-      link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", request.getParameter("number"));
-    }
-    catch (URISyntaxException ex) {
-    }
-    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link).setLinkParams(request.getParameter("number"));
+    ActionResult actionResult = new ActionResult(locale, "encounter.editField", true, link);
 
     String fileName = "None";
     String encounterNumber = "None";
@@ -105,6 +100,13 @@ public class EncounterAddImage extends HttpServlet {
           //determine which variable to assign the param to
           if (name.equals("number")) {
             encounterNumber = value;
+            try {
+              link = CommonConfiguration.getServerURL(request, request.getContextPath()) + String.format("/encounters/encounter.jsp?number=%s", encounterNumber);
+              actionResult.setLink(link);
+              actionResult.setLinkParams(encounterNumber);
+            }
+            catch (URISyntaxException ex) {
+            }
           }
 
         }
@@ -158,7 +160,7 @@ public class EncounterAddImage extends HttpServlet {
           actionResult.setMessageOverrideKey("addImage").setMessageParams(encounterNumber);
 
           if (positionInList == 1) {
-            String resetLink = String.format("http://%s/resetThumbnail.jsp?number=", CommonConfiguration.getURLLocation(request), encounterNumber);
+            String resetLink = String.format("http://%s/resetThumbnail.jsp?number=%s", CommonConfiguration.getURLLocation(request), encounterNumber);
             actionResult.setCommentOverrideKey("addImage-withReset").setCommentParams(resetLink);
           }
 
@@ -169,7 +171,6 @@ public class EncounterAddImage extends HttpServlet {
         }
       } else {
         myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
         actionResult.setSucceeded(false);
       }
     } catch (IOException lEx) {
@@ -179,10 +180,14 @@ public class EncounterAddImage extends HttpServlet {
       npe.printStackTrace();
       actionResult.setSucceeded(false);
     }
+
+    // Reply to user.
+    request.getSession().setAttribute(ActionResult.SESSION_KEY, actionResult);
+    getServletConfig().getServletContext().getRequestDispatcher(ActionResult.JSP_PAGE).forward(request, response);
+
     out.close();
+    myShepherd.closeDBTransaction();
   }
-
-
 }
 	
 	
