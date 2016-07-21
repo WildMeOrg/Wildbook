@@ -90,6 +90,10 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   height: 30px;
 }
 
+.requiredLabel {
+  margin-bottom: 0px;
+}
+
 .highlight {
   color: #990000;
 }
@@ -124,7 +128,6 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
 .has-feedback .form-control {
   padding-right: 30px;
 }
-
 
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {

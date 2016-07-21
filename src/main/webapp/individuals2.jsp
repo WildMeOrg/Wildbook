@@ -733,7 +733,7 @@ if (request.getParameter("number")!=null) {
                 %>
             <div class="form-group row">
               <div  class="col-sm-2">
-                <label><%=props.getProperty("type")%></label>
+                <label class="requiredLabel"><%=props.getProperty("type")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-sm-3">
@@ -755,7 +755,7 @@ if (request.getParameter("number")!=null) {
             </div>
             <div class="form-group row">
               <div class="col-sm-2">
-                <label><%=props.getProperty("individualID1")%></label>
+                <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-sm-3">
@@ -782,7 +782,7 @@ if (request.getParameter("number")!=null) {
             </div>
             <div class="form-group row">
               <div class="col-sm-2">
-                <label><%=props.getProperty("individualRole1")%></label>
+                <label class="requiredLabel"><%=props.getProperty("individualRole1")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-sm-3">
@@ -829,7 +829,7 @@ if (request.getParameter("number")!=null) {
             </div>
             <div class="form-group row">
               <div class="col-sm-2">
-                <label><%=props.getProperty("individualRole2")%></label>
+                <label class="requiredLabel"><%=props.getProperty("individualRole2")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-sm-3">
@@ -1248,7 +1248,8 @@ if (request.getParameter("number")!=null) {
           	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           %>
           <th><%=props.getProperty("numSightingsTogether")%></th>
-          <th><%=props.getProperty("edit")%></th><th><%=props.getProperty("remove")%></th>
+          <th><%=props.getProperty("edit")%></th>
+          <th><%=props.getProperty("remove")%></th>
           <%
           	}
           %>
