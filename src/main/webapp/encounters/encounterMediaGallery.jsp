@@ -278,7 +278,7 @@ function doImageEnhancer(sel) {
 
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
-      if (isGenusSpeciesSet()) {
+      if (!isGenusSpeciesSet()) {
         imageEnhancer.popup("You need full taxonomic classification to start identification!");
         return;
       }
