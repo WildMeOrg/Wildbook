@@ -613,12 +613,15 @@ public class EncounterQueryProcessor {
     if(request.getParameter("hasPhoto")!=null){
           prettyPrint.append("Has at least one MediaAsset.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="annotations.contains(dce15) && dce15.mediaAsset != null";}
-            else if (filter.indexOf("annotations.contains(dce15)")==-1){filter+=(" && annotations.contains(dce15) && dce15.mediaAsset != null");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){filter+="annotations.contains(dce15) && dce15.features.contains(feat15) && feat15.asset != null";}
+            else if (filter.indexOf("annotations.contains(dce15)")==-1){filter+=(" && annotations.contains(dce15) && dce15.features.contains(feat15) && feat15.asset != null");}
 
             prettyPrint.append("<br />");
             if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.Annotation dce15";}
             else if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation dce15")){jdoqlVariableDeclaration+=";org.ecocean.Annotation dce15";}
+            if(jdoqlVariableDeclaration.equals("")){jdoqlVariableDeclaration=" VARIABLES org.ecocean.media.Feature feat15";}
+            else if(!jdoqlVariableDeclaration.contains("org.ecocean.media.Feature feat15")){jdoqlVariableDeclaration+=";org.ecocean.media.Feature feat15";}
+
 
     }
     //end hasPhoto filters-----------------------------------------------
@@ -714,10 +717,14 @@ public class EncounterQueryProcessor {
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
                   filter+=" ( annotations.contains(photo"+kwIter+")";
                 }
+                
+                if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
 
-                if(filter.indexOf("photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")";}
+
+                if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
-             // }
+            
+                
 
 
 
@@ -725,6 +732,7 @@ public class EncounterQueryProcessor {
                 if(kwIter>0){jdoqlVariableDeclaration+=";";}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+="org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.media.Feature feat"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.media.Feature feat"+kwIter;}
 
 
             }
