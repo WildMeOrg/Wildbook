@@ -70,8 +70,11 @@ var makeCooccurrenceChart = function(items) {
 };
 
 var getIndividualIDFromEncounterToString = function(encToString) {
+  return encToString.individualID;
+  //  THE BELOW VERSION OF THIS FUNCTION WORKS IF ON A BRANCH WHERE,
+  //  a RESTed Occurrence's Encounters are stored as Enc.toString(), rather than RESTed Encounters themselves.
   // return everything between "individualID=" and the next comma after that
-  return encToString.split("individualID=")[1].split(",")[0];
+  // return encToString.split("individualID=")[1].split(",")[0];
 }
 
 var getData = function(individualID) {
