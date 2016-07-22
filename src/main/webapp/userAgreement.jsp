@@ -60,7 +60,7 @@
           <h3><a name="general" id="general"><%=props.getProperty("section2_title")%></a></h3>
           <div>
             <p><%=props.getProperty("section2_text1")%></p>
-            <p><%=props.getProperty("section2_text1")%></p>
+            <p><%=props.getProperty("section2_text2")%></p>
           </div>
           <h3><a name="usage" id="usage"><%=props.getProperty("section3_title")%></a></h3>
           <div>
@@ -73,7 +73,7 @@
           <h4><a name="good_faith_data_collection_reporting_sharing_and_collaboration" id="good_faith_data_collection_reporting_sharing_and_collaboration"><%=props.getProperty("section3b_title")%></a></h4>
           <div>
             <p><%=props.getProperty("section3b_text1")%></p>
-            <p><%=props.getProperty("section3b_text1")%></p>
+            <p><%=props.getProperty("section3b_text2")%></p>
           </div>
           <h4><a name="publications_using_data_from_the_wildbook" id="publications_using_data_from_the_wildbook"><%=props.getProperty("section3c_title")%></a></h4>
           <div>
@@ -102,8 +102,8 @@
           <h3><a name="disclaimer_of_warrantylimitation_of_liability" id="disclaimer_of_warrantylimitation_of_liability"><%=props.getProperty("section6_title")%></a></h3>
           <div>
             <p><%=props.getProperty("section6_text1")%></p>
-            <p><%=props.getProperty("section6_text1")%></p>
-            <p><%=props.getProperty("section6_text1")%></p>
+            <p><%=props.getProperty("section6_text2")%></p>
+            <p><%=props.getProperty("section6_text3")%></p>
           </div>
           <h3><a name="indemnification" id="indemnification"><%=props.getProperty("section7_title")%></a></h3>
           <div>
