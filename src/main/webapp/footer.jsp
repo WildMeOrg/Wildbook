@@ -15,10 +15,10 @@
 
                 <div class="row">
                   <p class="col-sm-8" style="margin-top:40px;">
-                    <small>This software is distributed under the GPL v3 license and is intended to support mark-recapture field studies.
+                    <small>This software is distributed under the GPL v2 license and is intended to support mark-recapture field studies.
                   <br> <a href="http://www.wildme.org/wildbook" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
-                  <a href="http://www.wildme.org/wildbook" class="col-sm-4" title="This site is Powered by Wildbook">
+                  <a href="http://www.wildbook.org" class="col-sm-4" title="This site is Powered by Wildbook">
                     <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
 											height: 150px;
 										"/>
