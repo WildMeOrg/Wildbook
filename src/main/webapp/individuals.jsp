@@ -86,25 +86,13 @@ context=ServletUtilities.getContext(request);
 <%
 if (request.getParameter("number")!=null) {
 	myShepherd.beginDBTransaction();
+	try{
+		
 		if(myShepherd.isMarkedIndividual(name)){
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
 			int numEncs=myEncs.size();
 
-			if (request.getParameter("refreshDependentProperties") != null) {
-				indie.refreshDependentProperties(context);
-				myShepherd.getPM().makePersistent(indie);
-				myShepherd.commitDBTransaction();
-/*  i cannot get this to effect the results of the rest api.  :(  TODO
-				DataStoreCache cache = myShepherd.getPM().getPersistenceManagerFactory().getDataStoreCache();
-				if (cache != null) {
-					System.out.println("cache evict!!!");
-					//cache.evictAll();
-					cache.evict(indie);
-				}
-*/
-				System.out.println("refreshDependentProperties() forced via individuals.jsp");
-			}
 
 			boolean visible = indie.canUserAccess(request);
 
@@ -135,8 +123,12 @@ if (request.getParameter("number")!=null) {
 
 
 
-}
+		}
+	}
+	catch(Exception e){e.printStackTrace();}
+	finally{
 		myShepherd.rollbackDBTransaction();
+	}
 }
 %>
 <jsp:include page="header.jsp" flush="true"/>
