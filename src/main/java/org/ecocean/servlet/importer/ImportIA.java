@@ -57,6 +57,7 @@ public class ImportIA extends HttpServlet {
     }
 
     out.println("\n\nStarting ImportIA servlet...");
+    myShepherd.beginDBTransaction();
 
     System.out.println("IA-IMPORT: started.....");
     JSONObject imageSetRes = getFromIA("/api/imageset/json/", context, out);
@@ -81,37 +82,67 @@ public class ImportIA extends HttpServlet {
       // it's a singleton list, hence [0]
       JSONArray annotFancyUUIDs = annotRes.getJSONArray("response").getJSONArray(0);
 
-if (annotFancyUUIDs.length() > 100) {
+/*
+if (annotFancyUUIDs.length() > 10) {
     JSONArray x = new JSONArray();
-    for (int j = 0 ; j < 100 ; j++) {
+    for (int j = 0 ; j < 10 ; j++) {
         x.put(annotFancyUUIDs.getJSONObject(j));
     }
     annotFancyUUIDs = x;
 System.out.println("truncated to\n" + x);
 }
+*/
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
       //out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
       out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
 
 
         //now we have to break this up a little since there are some pretty gigantic sets of annotations, it turns out.  :(
+        // but ultimately we want to fill iaNamesArray and annots
+        JSONArray iaNamesArray = new JSONArray();
         List<Annotation> annots = new ArrayList<Annotation>();
         int annotBatchSize = 100;
-        for (int astart = 0 ; astart < annotUUIDs.size() ; astart += annotBatchSize) {
-            int aend = astart + annotBatchSize - 1;
-            if (aend >= annotUUIDs.size()) aend = annotUUIDs.size() - 1;
-System.out.println("BATCH: " + astart + " -> " + aend);
-            List<Annotation> these = IBEISIA.grabAnnotations(annotUUIDs.subList(astart, aend+1), myShepherd);  //subList end arg is *exclusive*
-            annots.addAll(these);
+
+        int acount = 0;
+        while (acount < annotUUIDs.size()) {
+
+            //we also only *import* NEW Annotations, cuz sorry this is importing
+            List<String> thisBatch = new ArrayList<String>();
+            JSONArray thisFancy = new JSONArray();
+            while ((thisBatch.size() < annotBatchSize) && (acount < annotUUIDs.size())) {
+                Annotation exist = null;
+                try {
+                    exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annotUUIDs.get(acount)), true)));
+                } catch (Exception ex) {}
+                if (exist != null) {
+System.out.println(" - - - skipping existing " + exist);
+                    acount++;
+                    continue;
+                }
+                thisBatch.add(annotUUIDs.get(acount));
+                thisFancy.put(IBEISIA.toFancyUUID(annotUUIDs.get(acount)));
+                acount++;
+            }
+System.out.println(acount + " of " + annotUUIDs.size() + " ================================================ now have a batch to fetch: " + thisBatch);
+            if (thisBatch.size() > 0) {
+                myShepherd.beginDBTransaction();
+                List<Annotation> these = IBEISIA.grabAnnotations(thisBatch, myShepherd);
+                myShepherd.commitDBTransaction();
+                annots.addAll(these);
+
+                try {
+                    JSONArray thisNames = IBEISIA.iaNamesFromAnnotUUIDs(thisFancy);
+System.out.println(" >>> thisNames length = " + thisNames.length());
+                    for (int ti = 0 ; ti < thisNames.length() ; ti++) {
+                        iaNamesArray.put(thisNames.get(ti));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
-System.out.println("annots size = " + annots.size());
-/////System.out.println("annots -----> " + annots);
-      JSONArray iaNamesArray = null;
-      try {
-        iaNamesArray = IBEISIA.iaNamesFromAnnotUUIDs(annotFancyUUIDs);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+
+        //at this point we should have annots and iaNamesArray filled
 System.out.println("iaNamesArray ----> " + iaNamesArray);
 
       List<String> uniqueNames = new ArrayList<String>();
@@ -193,8 +224,8 @@ System.out.println("--- sex=" + sex);
             occ.addEncounter(enc);
         }
         System.out.println("IA-IMPORT: " + occ);
-
         myShepherd.commitDBTransaction();
+
 
       }
 
