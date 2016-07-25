@@ -84,8 +84,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
  	<!-- Start Open Graph Tags -->
  	<meta property="og:url" content="<%=request.getRequestURI() %>?<%=request.getQueryString() %>" />
-  	<meta property="og:image" content="http://www.flukebook.org/images/og_flukebook.png"/>
- 	<meta property="og:site_name" content="Flukebook"/>
+  	<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %>"/>
   	<!-- End Open Graph Tags -->
 
     <style>
@@ -472,10 +471,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             },
             select: function(ev, ui) {
                 if (ui.item.type == "individual") {
-                    window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number=") %>" + ui.item.value);
+                    window.location.replace("<%=(urlLoc+"/individuals.jsp?number=") %>" + ui.item.value);
                 }
                 else if (ui.item.type == "locationID") {
-                	window.location.replace("<%=("http://" + CommonConfiguration.getURLLocation(request)+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
+                	window.location.replace("<%=(urlLoc+"/encounters/searchResultsAnalysis.jsp?locationCodeField=") %>" + ui.item.value);
                 }
                 /*
                 //restore user later
@@ -491,7 +490,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             //source: app.config.wildbook.proxyUrl + "/search"
             source: function( request, response ) {
                 $.ajax({
-                    url: '<%=("http://" + CommonConfiguration.getURLLocation(request)) %>/SiteSearch',
+                    url: '<%=urlLoc %>/SiteSearch',
                     dataType: "json",
                     data: {
                         term: request.term

@@ -92,6 +92,10 @@ var getData = function(individualID) {
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
           var thisEnc = thisOcc.encounters[j];
+          console.log("thisEnc = "+thisEnc);
+          console.log("thisEnc = "+thisEnc.toString());
+          console.log("thisEnc = "+JSON.stringify(thisEnc));
+          console.log("typeof(thisEnc) = "+typeof(thisEnc));
           var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
           if(encounterArray.includes(thisEncIndID)) {
           } else {
