@@ -194,11 +194,12 @@ public class RelationshipCreate extends HttpServlet {
             //output success statement
             out.println(ServletUtilities.getHeader(request));
             if(createThisRelationship){
+              response.setStatus(HttpServletResponse.SC_OK);
               out.println("<strong>Success:</strong> A relationship of type " + request.getParameter("type") + " was created between " + request.getParameter("markedIndividualName1")+" and "+request.getParameter("markedIndividualName2")+".");
             }
             else{
               out.println("<strong>Failure:</strong>  I could not create the relationship. Have your administrator check the log files for you to understand the problem.");
-              
+              response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");

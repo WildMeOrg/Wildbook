@@ -211,6 +211,7 @@ public class IndividualAddEncounter extends HttpServlet {
             //print successful result notice
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to " + request.getParameter("individual") + ".");
+            response.setStatus(HttpServletResponse.SC_OK);
             if (sexMismatch) {
               out.println("<p><strong>Warning! There is conflict between the designated sex of the new encounter and the designated sex in previous records. You should resolve this conflict for consistency.</strong></p>");
             }
@@ -229,6 +230,7 @@ public class IndividualAddEncounter extends HttpServlet {
           //if lock exception thrown
           else {
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT added to " + request.getParameter("individual") + ". Another user is currently modifying this record in the database. Please try to add the encounter again after a few seconds.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">View " + request.getParameter("individual") + "</a></p>\n");

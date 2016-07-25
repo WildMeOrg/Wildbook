@@ -150,7 +150,7 @@ public class UserAddProfileImage extends HttpServlet {
           
           
           out.println("<strong>Success!</strong> I have successfully uploaded the user profile image file.");
-
+          response.setStatus(HttpServletResponse.SC_OK);
           if(request.getRequestURL().indexOf("MyAccount")!=-1){
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp\">Return to My Account.</a></p>\n");
             
@@ -163,7 +163,7 @@ public class UserAddProfileImage extends HttpServlet {
           //String message = "An additional image file has been uploaded for encounter #" + encounterNumber + ".";
           //ServletUtilities.informInterestedParties(request, encounterNumber, message);
         } else {
-
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure!</strong> This User account is currently being modified by another user. Please wait a few seconds before trying to add this image again.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to User Management</a></p>\n");
@@ -174,18 +174,23 @@ public class UserAddProfileImage extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Error:</strong> I was unable to upload your image file. I cannot find the username that you intended it for in the database.");
         out.println(ServletUtilities.getFooter(context));
 
       }
-    } catch (IOException lEx) {
+    } 
+    catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to upload your image file. Please contact the webmaster about this message.");
       out.println(ServletUtilities.getFooter(context));
-    } catch (NullPointerException npe) {
+    } 
+    catch (NullPointerException npe) {
       npe.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to upload an image as no file was specified.");
       out.println(ServletUtilities.getFooter(context));
     }

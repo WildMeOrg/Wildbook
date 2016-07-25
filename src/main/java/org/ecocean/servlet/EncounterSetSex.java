@@ -119,6 +119,7 @@ public class EncounterSetSex extends HttpServlet {
           if (!locked) {
             myShepherd.commitDBTransaction(action);
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> encounter sex has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -133,8 +134,10 @@ public class EncounterSetSex extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
             String message = "The sex for encounter #" + request.getParameter("number") + "has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
-          } else {
+          } 
+          else {
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Failure:</strong> Encounter sex was NOT updated because another user is currently modifying the record for this encounter.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -151,6 +154,7 @@ public class EncounterSetSex extends HttpServlet {
           }
         } else {
           out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
           List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -168,6 +172,7 @@ public class EncounterSetSex extends HttpServlet {
 
       } else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
         out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
         out.println(ServletUtilities.getFooter(context));
@@ -175,6 +180,7 @@ public class EncounterSetSex extends HttpServlet {
 
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
       out.println(ServletUtilities.getFooter(context));

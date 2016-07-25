@@ -111,6 +111,7 @@ public class EncounterSetLocationID extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter location has been updated from " + oldCode + " to " + request.getParameter("code") + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_OK);
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
@@ -126,6 +127,7 @@ public class EncounterSetLocationID extends HttpServlet {
       } else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter location code was NOT updated because the record for this encounter is currently being modified by another user. Please try to add the location code again in a few seconds.");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
@@ -141,6 +143,7 @@ public class EncounterSetLocationID extends HttpServlet {
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);

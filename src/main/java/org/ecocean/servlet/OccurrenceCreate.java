@@ -108,6 +108,7 @@ public class OccurrenceCreate extends HttpServlet {
 
             //output success statement
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create occurrence <strong>" + myOccurrenceID + "</strong>.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + ".</strong></a></p>\n");
@@ -119,7 +120,7 @@ public class OccurrenceCreate extends HttpServlet {
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + "</strong></a></p>\n");
             out.println(ServletUtilities.getFooter(context));
-
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           }
 
 
@@ -138,6 +139,7 @@ public class OccurrenceCreate extends HttpServlet {
         out.println("<strong>Error:</strong> An occurrence with this identifier already exists in the database. Select a different identifier and try again.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
       } 
       else {
@@ -147,6 +149,7 @@ public class OccurrenceCreate extends HttpServlet {
         out.println("<strong>Error:</strong> You cannot make a new occurrence from this encounter because it is already assigned to another occurrence. Remove it from its previous occurrence if you want to re-assign it elsewhere.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
 
@@ -155,6 +158,7 @@ public class OccurrenceCreate extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I didn't receive enough data to create a new occurrence from this encounter.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
     }
 
 
