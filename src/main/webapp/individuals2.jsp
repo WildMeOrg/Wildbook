@@ -290,10 +290,8 @@ if (request.getParameter("number")!=null) {
       $(".editForm").show();
       $(".clickDateText").show();
     });
-    $("#finishEdit").click(function() {
-      // $("#Name, #Add, #birthy, #deathy, #AltID" ).hide();
-      $(".saveUpdate, #Name, #Add, #birthy, #deathy, #AltID").toggle();
-    });
+
+
 
     $("#nickname").click(function() {
       $(".saveUpdate").hide();
@@ -399,23 +397,68 @@ if (request.getParameter("number")!=null) {
 
               <p class="noEditText"><%=nickname %>: <%=myNickname%></p>
 
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $("#Name").click(function() {
+
+                    $("#Name").hide();
+
+                    var nickname = $("#nickname").val();
+                    var namer = $("#namer").val();
+
+                    $.post("IndividualSetNickName", {"nickname": nickname, "namer": namer},
+                    function() {
+                      //if response == 200
+                      $("#nameDiv, #namerDiv").addClass("has-success");
+                      $("#nameCheck, #namerCheck").show();
+                    })
+                    .fail(function() {
+                      $("#nameDiv").addClass("has-error");
+                      $("#nameError").show();
+                    });
+                  });
+
+                  $("#nickname").click(function() {
+                    $("#nameError, #nameCheck").hide()
+                    $("#nameDiv").removeClass("has-success");
+                    $("#nameDiv").removeClass("has-error");
+                    $("#Name").show();
+                  });
+                  $("#namer").click(function() {
+                    $("#namerCheck").hide();
+                    $("#namerDiv").removeClass("has-success");
+                    $("#namerDiv").removeClass("has-error");
+                    $("#Name").show();
+                  });
+                });
+              </script>
+
                 <%-- Edit nickname form --%>
-                  <form name="nameShark" method="post" action="IndividualSetNickName" class="form-inline editForm">
+                  <form name="nameShark" method="post" action="IndividualSetNickName" class="editForm">
                     <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
-                      <div class="form-group">
-                        <label><%=nickname %>:</label>
-                        <input disabled class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
-                        <span class="saveUpdate">  &check;</span>
+                      <div class="form-group has-feedback row" id="nameDiv">
+                        <div class="col-sm-3">
+                          <label><%=nickname %>:</label>
+                        </div>
+                        <div class="col-sm-4">
+                          <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
+                          <span class="form-control-feedback" id="nameCheck">&check;</span>
+                          <span class="form-control-feedback" id="nameError">X</span>
+                        </div>
                       </div>
 
-                      <div class="form-group">
-                        <label><%=nicknamer %>:</label>
-                        <input disabled class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
-                        <%-- <span class="form-control-feedback saveUpdate">&check;</span> --%>
+                      <div class="form-group has-feedback row" id="namerDiv">
+                        <div class="col-sm-3">
+                          <label><%=nicknamer %>:</label>
+                        </div>
+                        <div class="col-sm-4">
+                          <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
+                          <span class="form-control-feedback" id="namerCheck">&check;</span>
+                        </div>
+                        <div class="col-sm-1">
+                          <input class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>">
+                        </div>
                       </div>
-
-                    <button class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>"><%=update %></button>
-                    <span class="saveUpdate">  &check;</span>
                   </form>
                   <%-- End edit nickname form --%>
 
@@ -429,6 +472,30 @@ if (request.getParameter("number")!=null) {
             %>
             <p class="noEditText"><%=sex %>: <%=sexValue %></p>
 
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#Add").click(function() {
+                  $("#Add").hide();
+
+                  var sex = $("#newSex").val();
+
+                  $.post("IndividualSetSex", {"sex": sex},
+                  function() {
+                    //if response == 200
+                    $("#sexCheck").show();
+                  })
+                  .fail(function() {
+                    $("#sexError").show()
+                  });
+                });
+
+                $("#newSex").click(function() {
+                  $("#sexError, #sexCheck").hide()
+                  $("#Add").show();
+                });
+              });
+            </script>
+
           <%-- Edit sex form --%>
           <script type="text/javascript">
             $(document).ready(function() {
@@ -439,15 +506,15 @@ if (request.getParameter("number")!=null) {
           <form name="setxsexshark" action="IndividualSetSex" method="post" class="form-inline editForm" id="updateSex">
             <div class="form-group" id="selectSex">
               <label><%=sex %>: </label>
-              <select name="selectSex" size="1" class="form-control">
+              <select id="newSex" name="selectSex" size="1" class="form-control">
                 <option value="unknown"><%=props.getProperty("unknown") %></option>
                 <option value="male"><%=props.getProperty("male") %></option>
                 <option value="female"><%=props.getProperty("female") %></option>
               </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
             </div>
-            <%-- <input name="Add" type="submit" id="Add" value="<%=update %>" /> --%>
-            <button class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>"><%=update %></button>
-            <span class="saveUpdate">  &check;</span>
+            <input class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>">
+            <span id="sexCheck">&check;</span>
+            <span id="sexEheck">X</span>
           </form>
           <%-- End edit sex form --%>
 
@@ -486,19 +553,55 @@ if (request.getParameter("number")!=null) {
             %>
             <p class="noEditText"><%=props.getProperty("birthdate")  %>:<%=displayTimeOfBirth%></p>
 
+
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#birthy").click(function() {
+
+                  $("#birthy").hide();
+
+                  var timeOfBirth = $("#timeOfBirth").val();
+
+                  $.post("IndividualSetYearOfBirth", {"timeOfBirth": timeOfBirth},
+                  function() {
+                    //if response == 200
+                    $("#birthDiv").addClass("has-success");
+                    $("#birthCheck").show();
+                  })
+                  .fail(function() {
+                    $("#birthDiv").addClass("has-error");
+                    $("#birthError").show();
+                  });
+                });
+
+                $("#timeOfBirth").click(function() {
+                  $("#birthError, #birthCheck").hide()
+                  $("#birthDiv").removeClass("has-success");
+                  $("#birthDiv").removeClass("has-error");
+                  $("#birthy").show();
+                });
+              });
+            </script>
+
             <%-- Edit birth date form --%>
             <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
             <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
 
-            <form class="form-inline editForm" name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+            <form class="editForm" name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-              <div class="form-group">
-                <label><%=props.getProperty("birthdate")  %>:</label>
-                <input disabled class="form-control" name="timeOfBirth" type="text" id="timeOfBirth" value="<%=timeOfBirth %>" placeholder="2013-12-21">
-                <%-- <span class="form-control-feedback saveUpdate">&check;</span> --%>
+              <div class="form-group has-feedback row" id="birthDiv">
+                <div class="col-sm-3">
+                  <label><%=props.getProperty("birthdate")  %>:</label>
+                </div>
+                <div class="col-sm-4">
+                  <input class="form-control" name="timeOfBirth" type="text" id="timeOfBirth" value="<%=timeOfBirth %>" placeholder="2013-12-21">
+                  <span class="form-control-feedback" id="birthCheck">&check;</span>
+                  <span class="form-control-feedback" id="birthError">X</span>
+                </div>
+                <div class="col-sm-1">
+                  <input class="btn btn-sm" name="birthy" type="submit" id="birthy" value="<%=update %>">
+                </div>
               </div>
-              <button class="btn btn-sm" name="birthy" type="submit" id="birthy" value="<%=update %>"><%=update %></button>
-              <span class="saveUpdate">  &check;</span>
             </form>
             <%-- End edit birth date form --%>
 
@@ -519,19 +622,54 @@ if (request.getParameter("number")!=null) {
             %>
             <p class="noEditText"><%=props.getProperty("deathdate")  %>: <%=displayTimeOfDeath%></p>
 
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#deathy").click(function() {
+
+                  $("#deathy").hide();
+
+                  var timeOfDeath = $("#timeOfDeath").val();
+
+                  $.post("IndividualSetYearOfDeath", {"timeOfDeath": timeOfDeath},
+                  function() {
+                    //if response == 200
+                    $("#deathDiv").addClass("has-success");
+                    $("#deathCheck").show();
+                  })
+                  .fail(function() {
+                    $("#deathDiv").addClass("has-error");
+                    $("#deathError").show();
+                  });
+                });
+
+                $("#timeOfDeath").click(function() {
+                  $("#deathError, #deathCheck").hide()
+                  $("#deathDiv").removeClass("has-success");
+                  $("#deathDiv").removeClass("has-error");
+                  $("#deathy").show();
+                });
+              });
+            </script>
+
             <%-- Edit death date form --%>
             <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
             <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
 
-            <form class="form-inline editForm" name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
+            <form class="editForm" name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-              <div class="form-group">
-                <label><%=props.getProperty("deathdate")  %>:</label>
-                <input disabled class="form-control" name="timeOfDeath" type="text" id="timeOfDeath" value="<%=timeOfDeath %>" placeholder="2013-12-21"/>
-                <%-- <span class="form-control-feedback saveUpdate">&check;</span> --%>
+              <div class="form-group has-feedback row" id="deathDiv">
+                <div class="col-sm-3">
+                  <label><%=props.getProperty("deathdate")  %>:</label>
+                </div>
+                <div class="col-sm-4">
+                  <input class="form-control" name="timeOfDeath" type="text" id="timeOfDeath" value="<%=timeOfDeath %>" placeholder="2013-12-21"/>
+                  <span class="form-control-feedback" id="deathCheck">&check;</span>
+                  <span class="form-control-feedback" id="deathError">X</span>
+                </div>
+                <div class="col-sm-1">
+                  <input class="btn btn-sm" name="deathy" type="submit" id="deathy" value="<%=update %>">
+                </div>
               </div>
-              <button class="btn btn-sm" name="deathy" type="submit" id="deathy" value="<%=update %>"><%=update %></button>
-              <span class="saveUpdate">  &check;</span>
             </form>
             <%-- End edit death date form --%>
           <!-- end death date -->
@@ -546,16 +684,52 @@ if (request.getParameter("number")!=null) {
             %>
             <p class="noEditText"><%=alternateID %>: <%=altID%></p>
 
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#AltID").click(function() {
+
+                  $("#AltID").hide();
+
+                  var alternateid = $("#alternateid").val();
+
+                  $.post("IndividualSetAlternateID", {"alternateid": alternateid},
+                  function() {
+                    //if response == 200
+                    $("#altIdDiv").addClass("has-success");
+                    $("#altIdCheck").show();
+                  })
+                  .fail(function() {
+                    $("#altIdDiv").addClass("has-error");
+                    $("#deathError").show();
+                  });
+                });
+
+                $("#alternateid").click(function() {
+                  $("#altIdError, #altIdCheck").hide()
+                  $("#altIdDiv").removeClass("has-success");
+                  $("#altIdDiv").removeClass("has-error");
+                  $("#AltID").show();
+                });
+              });
+            </script>
+
             <%-- Start alt id form --%>
-            <form name="set_alternateid" method="post" action="IndividualSetAlternateID" class="form-inline editForm">
+            <form name="set_alternateid" method="post" action="IndividualSetAlternateID" class="editForm">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-              <div class="form-group">
-                <label><%=alternateID %>:</label>
-                <input disabled class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
+              <div class="form-group has-feedback row" id="altIdDiv">
+                <div class="col-sm-3">
+                  <label><%=alternateID %>:</label>
+                </div>
+                <div class="col-sm-4">
+                  <input class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
+                </div>
+                <div class="col-sm-1">
+                  <%-- two buttons with same id - Name --%>
+                  <input class="btn btn-sm" name="Name" type="submit" id="AltID" value="<%=update %>">
+                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
+                  <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
               </div>
-              <%-- two buttons with same id - Name --%>
-              <button class="btn btn-sm" name="Name" type="submit" id="AltID" value="<%=update %>"><%=update %></button>
-              <span class="saveUpdate">  &check;</span>
             </form>
             <%-- End alt id form --%>
         </div>
@@ -643,15 +817,12 @@ if (request.getParameter("number")!=null) {
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
-        <%-- <p class="para">
-        	<a id="addRelationship" class="launchPopup">
-        		<img align="absmiddle" width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit_add.png"/>
-        	</a>
-        	<a id="addRelationship" class="launchPopup">
-        		<%=props.getProperty("addRelationship") %>
-        	</a>
-        </p> --%>
-        <button class="btn btn-md" type="button" name="button" id="addRelationshipBtn"><%=props.getProperty("addRelationship") %></button>
+
+        <%-- <button class="btn btn-md" type="button" name="button" id="addRelationshipBtn"><%=props.getProperty("addRelationship") %></button> --%>
+
+        <input class="btn btn-md" type="button" name="button" id="addRelationshipBtn" value="<%=props.getProperty("addRelationship") %>">
+
+
         <%
         }
         %>
@@ -896,7 +1067,7 @@ if (request.getParameter("number")!=null) {
                 </select>
               </div>
             </div>
-            <button class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>"><%=props.getProperty("update") %></button>
+            <input class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
           <%
             	if(request.getParameter("persistenceID")!=null){
             %>
