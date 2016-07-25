@@ -585,7 +585,7 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println("<strong>Step 2 Failed:</strong> I could not upload this patterning file. There may be a database error, or a incompatible image file format may have been uploaded.");
           }
           else {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST\);
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Step 2 Failed:</strong> I could not remove this patterning file. There may be a database error.");
           }
           out.println("<p><a href=\"" + request.getScheme() + "://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
