@@ -116,6 +116,7 @@ public class EncounterSetSize extends HttpServlet {
           if (!locked && okNumberFormat) {
             myShepherd.commitDBTransaction(action);
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> Encounter size has been updated from " + oldSize + " " + oldUnits + " (" + oldGuess + ")" + " to "+newValue+".");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -130,8 +131,10 @@ public class EncounterSetSize extends HttpServlet {
             out.println(ServletUtilities.getFooter(context));
             String message = "Encounter #" + request.getParameter("number") + " size has been updated from " + oldSize + " " + oldUnits + "(" + oldGuess + ")" + " to " + request.getParameter("lengthField") + " " + request.getParameter("lengthUnits") + "(" + request.getParameter("guessList") + ").";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
-          } else if (!okNumberFormat) {
+          } 
+          else if (!okNumberFormat) {
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<strong>Failure:</strong> Encounter size was NOT updated because I did not understand the value that you entered. The value must be zero or greater. A value of zero indicates an unknown length.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -144,8 +147,10 @@ public class EncounterSetSize extends HttpServlet {
             }
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
             out.println(ServletUtilities.getFooter(context));
-          } else {
+          } 
+          else {
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Failure:</strong> Encounter size was NOT updated because another user is currently modifying the record for this encounter.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -161,8 +166,10 @@ public class EncounterSetSize extends HttpServlet {
 
 
           }
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
           List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -178,15 +185,19 @@ public class EncounterSetSize extends HttpServlet {
 
         }
 
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p>I didn't understand your command, or you are not authorized for this action.</p>");
         out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
         out.println(ServletUtilities.getFooter(context));
       }
 
-    } else {
+    } 
+    else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<p>I did not receive enough data to process your command. No action was indicated to me.</p>");
       out.println("<p>Please try again or <a href=\"welcome.jsp\">login here</a>.");
       out.println(ServletUtilities.getFooter(context));
