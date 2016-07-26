@@ -66,17 +66,6 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   font-size: 14px;
 }
 
-/*.form-control[disabled] {
-  cursor: default;
-  background-color: #e8eff1;
-  color: #333;
-  border: none;
-  font-size: 1em;
-  -moz-box-shadow:    0px 0px 0px 0px #FFFFFF;
-  -webkit-box-shadow: 0px 0px 0px 0px #FFFFFF;
-  box-shadow:         0px 0px 0px 0px #FFFFFF;
-}*/
-
 .form-group {
   margin-bottom: 0px;
 }
@@ -84,11 +73,13 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
 #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck {
   display: none;
   color: green;
+  font-family: sans-serif;
 }
 
 #nameError, #sexError, #birthError, #deathError, #altIdError {
   display: none;
   color: red;
+  font-family: sans-serif;
 }
 
 .relationshipInput {
@@ -107,6 +98,15 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   margin-bottom: 10px;
 }
 
+.editFormInput {
+  margin-right: 5px;
+  padding-right: 0px;
+}
+
+.editFormBtn {
+  padding-left: 0px;
+}
+
 #addRelationshipForm {
   background-color: #e8eff1;
   padding: 10px;
@@ -115,7 +115,11 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
 }
 
 #Name, #Add, #birthy, #deathy, #AltID {
-  margin-bottom: 8px;
+  margin-bottom: 0px;
+  margin-top: 2px;
+  margin-left: 15px;
+  padding-top: 0px;
+  padding-bottom: 2px;
 }
 
 #addRelationshipBtn {
