@@ -402,7 +402,7 @@ if (request.getParameter("number")!=null) {
 
                     $("#Name").hide();
 
-                    var individual = $("#setNameindividual").val();
+                    var individual = $("#setNameIndividual").val();
                     var nickname = $("#nickname").val();
                     var namer = $("#namer").val();
 
@@ -434,7 +434,7 @@ if (request.getParameter("number")!=null) {
 
                 <%-- Edit nickname form --%>
                   <form name="nameShark" class="editForm">
-                    <input id="setNameindividual" name="individual" type="hidden" value="<%=request.getParameter("number")%>">
+                    <input id="setNameIndividual" name="individual" type="hidden" value="<%=request.getParameter("number")%>">
                       <div class="form-group has-feedback row" id="nameDiv">
                         <div class="col-sm-3">
                           <label><%=nickname %>:</label>
@@ -471,17 +471,19 @@ if (request.getParameter("number")!=null) {
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
             %>
             <p class="noEditText"><%=sex %>: <%=sexValue %></p>
-
+            <%-- Sex update returning weird apache error --%>
             <script type="text/javascript">
               $(document).ready(function() {
+                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
+
                 $("#Add").click(function() {
                   $("#Add").hide();
 
+                  var individual = $("#setSexIndividual").val();
                   var sex = $("#newSex").val();
 
-                  $.post("IndividualSetSex", {"sex": sex},
+                  $.post("IndividualSetSex", {"individual": individual, "sex": sex},
                   function() {
-                    //if response == 200
                     $("#sexCheck").show();
                   })
                   .fail(function() {
@@ -496,25 +498,25 @@ if (request.getParameter("number")!=null) {
               });
             </script>
 
-          <%-- Edit sex form --%>
-          <script type="text/javascript">
-            $(document).ready(function() {
-                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
-            });
-          </script>
-
-          <form name="setxsexshark" action="IndividualSetSex" method="post" class="form-inline editForm" id="updateSex">
-            <div class="form-group" id="selectSex">
-              <label><%=sex %>: </label>
-              <select id="newSex" name="selectSex" size="1" class="form-control">
-                <option value="unknown"><%=props.getProperty("unknown") %></option>
-                <option value="male"><%=props.getProperty("male") %></option>
-                <option value="female"><%=props.getProperty("female") %></option>
-              </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
+          <form name="setxsexshark" class="editForm">
+            <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" id="setSexIndividual" />
+            <div class="form-group row" id="selectSex">
+              <div class="col-sm-3">
+                <label><%=sex %>: </label>
+              </div>
+              <div class="col-sm-6 editFormInput">
+                <select id="newSex" name="selectSex" size="1" class="form-control">
+                  <option value="unknown"><%=props.getProperty("unknown") %></option>
+                  <option value="male"><%=props.getProperty("male") %></option>
+                  <option value="female"><%=props.getProperty("female") %></option>
+                </select>
+              </div>
+              <div class="col-sm-1 editFormBtn">
+                <input class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>">
+                <span id="sexCheck">&check;</span>
+                <span id="sexCheck">X</span>
+              </div>
             </div>
-            <input class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>">
-            <span id="sexCheck">&check;</span>
-            <span id="sexCheck">X</span>
           </form>
           <%-- End edit sex form --%>
 
@@ -560,11 +562,11 @@ if (request.getParameter("number")!=null) {
 
                   $("#birthy").hide();
 
+                  var individual = $("#setBirthIndividual").val();
                   var timeOfBirth = $("#timeOfBirth").val();
 
-                  $.post("IndividualSetYearOfBirth", {"timeOfBirth": timeOfBirth},
+                  $.post("IndividualSetYearOfBirth", {"individual": individual, "timeOfBirth": timeOfBirth},
                   function() {
-                    //if response == 200
                     $("#birthDiv").addClass("has-success");
                     $("#birthCheck").show();
                   })
@@ -587,18 +589,18 @@ if (request.getParameter("number")!=null) {
             <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
             <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
 
-            <form class="editForm" name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+            <form class="editForm" name="set_birthdate">
+              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" id="setBirthIndividual"/>
               <div class="form-group has-feedback row" id="birthDiv">
                 <div class="col-sm-3">
                   <label><%=props.getProperty("birthdate")  %>:</label>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6 editFormInput">
                   <input class="form-control" name="timeOfBirth" type="text" id="timeOfBirth" value="<%=timeOfBirth %>" placeholder="2013-12-21">
                   <span class="form-control-feedback" id="birthCheck">&check;</span>
                   <span class="form-control-feedback" id="birthError">X</span>
                 </div>
-                <div class="col-sm-1">
+                <div class="col-sm-1 editFormBtn">
                   <input class="btn btn-sm" name="birthy" type="submit" id="birthy" value="<%=update %>">
                 </div>
               </div>
