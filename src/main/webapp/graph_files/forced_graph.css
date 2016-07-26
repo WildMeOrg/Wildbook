@@ -1,0 +1,231 @@
+
+.node  {
+	stroke: #134;
+	stroke-width: 1.5px;
+}
+
+.link {
+	
+}
+
+svg{
+	display: block ;
+	border-style: solid;
+    border-width: 5px;
+    border-radius: 5px;
+    position:absolute;
+}
+
+.noselect {
+	cursor: default;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+body{
+	margin:auto;
+	padding-left: 5px;
+	width: auto;
+}
+
+/** Begin configuration css */
+#configuration{
+	color:white;
+	padding:20px;
+	position:absolute;
+    background-color:gray;
+    border-radius: 5px;
+	z-index:100;
+}
+
+.config_header{
+	font-family: 'Allerta', Helvetica, Arial, sans-serif;
+    font-size: 30px;
+    
+}
+
+.config_row{
+	font-family: 'Crimson Text', Georgia, Times, serif;
+    font-size: 30px;
+	padding-left:20px;
+	padding-top:15px;
+	padding-bottom:10px;
+}
+
+select{
+	font-family: 'Crimson Text', Georgia, Times, serif;
+    font-size: 30px;
+    margin: 0;
+	padding: 0;
+	padding: 5px;
+	line-height: 1;
+	border: 0;
+	border-radius: 5px;
+}
+
+.config_cell{
+	padding-right:20px;
+	display:inline;
+	float:left;
+}
+
+.config_label{
+	width:175px;
+}
+
+.config_dropdown{
+	font-family: 'Crimson Text', Georgia, Times, serif;
+    font-size: 40px;
+}
+
+select {
+	width:220px;
+}
+
+/** Begin click div */
+#display_div{
+    width:1510px;
+    height:810px;
+    display:inline;
+    position: absolute;
+    z-index: -1;
+}
+
+/** Relaunches the edit div and removes the current graph */
+#launch_config{
+	bottom:0;
+	right:0;
+	margin-bottom:20px;
+	margin-right:20px;
+    border-radius: 5px;
+    position: absolute;
+    background-color:gray;
+    color:white;
+    opacity:.5;
+    z-index: 100;
+}
+
+/* Set the display to a fixed width and location inside of the svg */
+#fluke_data_display{
+	top:0;
+	right:0;
+	margin-top:20px;
+	margin-right:20px;
+	height: auto;
+    width: 250px;
+    padding:5px;
+    border-radius: 5px;
+    position: absolute;
+    background-color:gray;
+    color:white;
+    opacity:0;
+    z-index: -1;
+}
+
+#force_fluke_right{
+	float:right;
+}
+
+table a:link {
+	color: #666;
+	font-weight: bold;
+	text-decoration:none;
+}
+table a:visited {
+	color: #999999;
+	font-weight:bold;
+	text-decoration:none;
+}
+table a:active,
+table a:hover {
+	color: #bd5a35;
+	text-decoration:underline;
+}
+table {
+	font-family:Arial, Helvetica, sans-serif;
+	color:#666;
+	font-size:12px;
+	text-shadow: 1px 1px 0px #fff;
+	background:#eaebec;
+	margin:20px;
+	border:#ccc 1px solid;
+
+	-moz-border-radius:3px;
+	-webkit-border-radius:3px;
+	border-radius:3px;
+
+	-moz-box-shadow: 0 1px 2px #d1d1d1;
+	-webkit-box-shadow: 0 1px 2px #d1d1d1;
+	box-shadow: 0 1px 2px #d1d1d1;
+}
+table th {
+	width:100%;
+	padding:10px ;
+	border-top:1px solid #fafafa;
+	border-bottom:1px solid #e0e0e0;
+
+	background: #ededed;
+	background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#ebebeb));
+	background: -moz-linear-gradient(top,  #ededed,  #ebebeb);
+}
+table th:first-child {
+	text-align: left;
+	padding-left:20px;
+}
+table tr:first-child th:first-child {
+	-moz-border-radius-topleft:3px;
+	-webkit-border-top-left-radius:3px;
+	border-top-left-radius:3px;
+}
+table tr:first-child th:last-child {
+	-moz-border-radius-topright:3px;
+	-webkit-border-top-right-radius:3px;
+	border-top-right-radius:3px;
+}
+table tr {
+	text-align: center;
+	padding-left:20px;
+	padding-right:20px;
+}
+table td:first-child {
+	text-align: left;
+	padding-left:20px;
+	border-left: 0;
+}
+table td {
+	padding:5px;
+	border-top: 1px solid #ffffff;
+	border-bottom:1px solid #e0e0e0;
+	border-left: 1px solid #e0e0e0;
+
+	background: #fafafa;
+	background: -webkit-gradient(linear, left top, left bottom, from(#fbfbfb), to(#fafafa));
+	background: -moz-linear-gradient(top,  #fbfbfb,  #fafafa);
+}
+table tr.even td {
+	background: #f6f6f6;
+	background: -webkit-gradient(linear, left top, left bottom, from(#f8f8f8), to(#f6f6f6));
+	background: -moz-linear-gradient(top,  #f8f8f8,  #f6f6f6);
+}
+table tr:last-child td {
+	border-bottom:0;
+}
+table tr:last-child td:first-child {
+	-moz-border-radius-bottomleft:3px;
+	-webkit-border-bottom-left-radius:3px;
+	border-bottom-left-radius:3px;
+}
+table tr:last-child td:last-child {
+	-moz-border-radius-bottomright:3px;
+	-webkit-border-bottom-right-radius:3px;
+	border-bottom-right-radius:3px;
+}
+table tr:hover td {
+	background: #f2f2f2;
+	background: -webkit-gradient(linear, left top, left bottom, from(#f2f2f2), to(#f0f0f0));
+	background: -moz-linear-gradient(top,  #f2f2f2,  #f0f0f0);	
+}

@@ -72,7 +72,7 @@
 		  #tabmenu a, a.active {
 		    color: #000;
 		    background: #E6EEEE;
-		    font: 0.5em "Arial", sans-serif;
+		     
 		    border: 1px solid #CDCDCD;
 		    padding: 2px 5px 0px 5px;
 		    margin: 0;
@@ -136,6 +136,10 @@
 		<% if (blocked.size() < 1) { %>
 		 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
+		
+		<p>CRC Excel Matching Summary <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/CRCExportReport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		</p>
+		
 		<p><%=map_props.getProperty("exportedOBIS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a><br />
 		<%=map_props.getProperty("exportedOBISLocales")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportExcelFile?<%=request.getQueryString()%>&locales=trues"><%=map_props.getProperty("clickHere")%></a>
 		</p>

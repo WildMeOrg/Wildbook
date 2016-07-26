@@ -1,5 +1,5 @@
 
-<%@ page contentType="text/html; charset=utf-8" 
+<%@ page contentType="text/html; charset=utf-8"
 		import="java.util.GregorianCalendar,
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
@@ -30,16 +30,16 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-  
+
 
     //set up the file input stream
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/submit.properties"));
     props = ShepherdProperties.getProperties("submit.properties", langCode, context);
-    
+
     Properties recaptchaProps=ShepherdProperties.getProperties("recaptcha.properties", "", context);
-    
+
     Properties socialProps = ShepherdProperties.getProperties("socialAuth.properties", "", context);
-    
+
     long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
     long maxSizeBytes = maxSizeMB * 1048576;
 %>
@@ -54,8 +54,8 @@ context=ServletUtilities.getContext(request);
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
-    
-    
+
+
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
 .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
@@ -71,11 +71,11 @@ context=ServletUtilities.getContext(request);
 
 /* Shortened version style */
 .ui-timepicker-div.ui-timepicker-oneLine { padding-right: 2px; }
-.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time, 
+.ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time,
 .ui-timepicker-div.ui-timepicker-oneLine dt { display: none; }
 .ui-timepicker-div.ui-timepicker-oneLine .ui_tpicker_time_label { display: block; padding-top: 2px; }
 .ui-timepicker-div.ui-timepicker-oneLine dl { text-align: right; }
-.ui-timepicker-div.ui-timepicker-oneLine dl dd, 
+.ui-timepicker-div.ui-timepicker-oneLine dl dd,
 .ui-timepicker-div.ui-timepicker-oneLine dl dd > div { display:inline-block; margin:0; }
 .ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_minute:before,
 .ui-timepicker-div.ui-timepicker-oneLine dl dd.ui_tpicker_second:before { content:':'; display:inline-block; }
@@ -191,13 +191,13 @@ $(function() {
     }
 
     $(window).unload(resetMap);
-    
+
     //
     // Call it now on page load.
     //
     resetMap();
-    
-    
+
+
 
     $( "#datepicker" ).datetimepicker({
       changeMonth: true,
@@ -225,14 +225,14 @@ var map;
 var marker;
 
 function placeMarker(location) {
-    if(marker!=null){marker.setMap(null);}  
+    if(marker!=null){marker.setMap(null);}
     marker = new google.maps.Marker({
           position: location,
           map: map
       });
 
       //map.setCenter(location);
-      
+
         var ne_lat_element = document.getElementById('lat');
         var ne_long_element = document.getElementById('longitude');
 
@@ -249,15 +249,15 @@ function placeMarker(location) {
     if(marker!=null){
         center = new google.maps.LatLng(10.8, 160.8);
     }
-    
+
     map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
           mapTypeId: google.maps.MapTypeId.HYBRID
         });
-    
+
     if(marker!=null){
-        marker.setMap(map);    
+        marker.setMap(map);
     }
 
       //adding the fullscreen control to exit fullscreen
@@ -275,10 +275,10 @@ function fullScreen() {
     $("#map_canvas").addClass('full_screen_map');
     $('html, body').animate({scrollTop:0}, 'slow');
     initialize();
-    
+
     //hide header
     $("#header_menu").hide();
-    
+
     //if(overlaysSet){overlaysSet=false;setOverlays();}
 }
 
@@ -321,7 +321,7 @@ function addFullscreenButton(controlDiv, map) {
     controlText.style.paddingTop = '3px';
     controlText.style.paddingBottom = '2px';
     controlUI.appendChild(controlText);
-    
+
     //toggle the text of the button
     if($("#map_canvas").hasClass("full_screen_map")){
         controlText.innerHTML = '<%=props.getProperty("exitFullscreen") %>';
@@ -346,7 +346,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
 <div class="container-fluid page-content" role="main">
 
 <div class="container maincontent">
- 
+
   <div class="col-xs-12 col-sm-4 col-md-4 col-lg-4">
       <h1 class="intro">Report an encounter</h1>
 
@@ -358,21 +358,21 @@ google.maps.event.addDomListener(window, 'load', initialize);
         <strong>Note</strong>: The fields labelled in Red are required.
       </p>
   </div>
-  
+
 
   <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
 <iframe id="social_files_iframe" style="display: none;" ></iframe>
-<form id="encounterForm" 
-	  action="spambot.jsp" 
-	  method="post" 
+<form id="encounterForm"
+	  action="spambot.jsp"
+	  method="post"
 	  enctype="multipart/form-data"
-      name="encounter_submission" 
-      target="_self" dir="ltr" 
+      name="encounter_submission"
+      target="_self" dir="ltr"
       lang="en"
       onsubmit="return false;"
       class="form-horizontal"
 >
-      
+
 <div class="dz-message"></div>
 
 
@@ -445,10 +445,10 @@ function showUploadBox() {
               <button class="zocial icon" title="Upload from your computer" onclick="showUploadBox()" style="background:url(images/computer.png);background-repeat: no-repeat;">
               </button>
           </li>
-    
+
         </ul>
     </div>
-    
+
     <div>
         <div id="submitupload" class="input-file-drop">
             <% if (isIE) { %>
@@ -478,7 +478,7 @@ function showUploadBox() {
 <div class="form-group required">
 
     <div class="form-group required">
-      
+
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger">Encounter date</label>
         <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
@@ -501,12 +501,12 @@ function showUploadBox() {
 <%
 if(CommonConfiguration.showReleaseDate(context)){
 %>
-    
+
     <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_releasedate") %></label>
         <input class="hasDatepicker form-control" type="text" style="position: relative; z-index: 101;" id="releasedatepicker" name="releaseDate" size="20">
       </div>
-    
+
 <%
 }
 %>
@@ -518,7 +518,7 @@ if(CommonConfiguration.showReleaseDate(context)){
 <fieldset>
     <h3><%=props.getProperty("submit_location")%></h3>
 
-    <div class="form-group required">  
+    <div class="form-group required">
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label text-danger"><%=props.getProperty("where") %></label>
       </div>
@@ -526,7 +526,7 @@ if(CommonConfiguration.showReleaseDate(context)){
         <input name="location" type="text" id="location" size="40" class="form-control">
       </div>
     </div>
-    
+
 
 <%
 //add locationID to fields selectable
@@ -538,19 +538,19 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label">Was this one of our study sites?</label>
       </div>
-      
+
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
                   <%
                          boolean hasMoreLocationsIDs=true;
                          int locNum=0;
-                         
+
                          while(hasMoreLocationsIDs){
                                String currentLocationID = "locationID"+locNum;
                                if(CommonConfiguration.getProperty(currentLocationID,context)!=null){
                                    %>
-                                    
+
                                      <option value="<%=CommonConfiguration.getProperty(currentLocationID,context)%>"><%=CommonConfiguration.getProperty(currentLocationID,context)%></option>
                                    <%
                                  locNum++;
@@ -558,9 +558,9 @@ if(CommonConfiguration.getIndexedPropertyValues("locationID", context).size()>0)
                             else{
                                hasMoreLocationsIDs=false;
                             }
-                            
+
                        }
-                       
+
      %>
       </select>
       </div>
@@ -575,19 +575,19 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-4 col-lg-4">
         <label class="control-label"><%=props.getProperty("country") %></label>
       </div>
-      
+
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
                   <%
                          boolean hasMoreCountries=true;
                          int taxNum=0;
-                         
+
                          while(hasMoreCountries){
                                String currentCountry = "country"+taxNum;
                                if(CommonConfiguration.getProperty(currentCountry,context)!=null){
                                    %>
-                                    
+
                                      <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
                                    <%
                                  taxNum++;
@@ -595,9 +595,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
                             else{
                                hasMoreCountries=false;
                             }
-                            
+
                        }
-                       
+
      %>
    </select>
       </div>
@@ -610,7 +610,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
 <div>
     <p id="map">
-    <!--  
+    <!--
       <p>Use the arrow and +/- keys to navigate to a portion of the globe,, then click
         a point to set the sighting location. You can also use the text boxes below the map to specify exact
         latitude and longitude.</p>
@@ -634,10 +634,10 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 
       <p class="help-block">
         GPS coordinates are in the decimal degrees format. Do you have GPS coordinates in a different format? <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
-      </p> 
+      </p>
     </div>
-    
-    
+
+
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
@@ -685,11 +685,11 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         myShepherd.closeDBTransaction();
     }
     %>
- 
+
 
 
   <fieldset>
-    <div class="row">  
+    <div class="row">
       <div class="col-xs-12 col-lg-6">
         <h3>About You</h3>
         <p class="help-block">Your contact information</p>
@@ -718,7 +718,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <p class="help-block">
           If you didn't take these pictures
         </p>
-        
+
         <div class="form-group form-inline">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Name</label>
@@ -762,7 +762,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
       </div>
     </div>
-        
+
     <div class="form-group">
       <div class="col-xs-6 col-md-4">
         <label class="control-label">Additional comments</label>
@@ -772,10 +772,10 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
     </div>
   </fieldset>
- 
- 
- 
-  
+
+
+
+
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
       <img src="images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
@@ -784,24 +784,24 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
   </h4>
 
     <div id="advancedInformation" fade="1" style="display: none;">
-    
+
       <h3>About the animal</h3>
-      
+
       <fieldset>
-      
+
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Sex</label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
-            <label class="radio-inline"> 
+            <label class="radio-inline">
               <input type="radio" name="sex" value="male"> Male
-            </label> 
+            </label>
             <label class="radio-inline">
               <input type="radio" name="sex" value="female"> Female
             </label>
-            <label class="radio-inline"> 
+            <label class="radio-inline">
               <input name="sex" type="radio" value="unknown" checked="checked"> Unknown
             </label>
           </div>
@@ -824,31 +824,31 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <select class="form-control" name="genusSpecies" id="genusSpecies">
              	<option value="" selected="selected">unknown</option>
   <%
-                     
+
   					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
   					int numGenusSpeciesProps=species.size();
   					String selected="";
   					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
 
                      if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     
+
                     	for(int q=0;q<numGenusSpeciesProps;q++){
                            String currentGenuSpecies = "genusSpecies"+q;
                            if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
                                %>
                                  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
                                <%
-                           
+
                         }
 
-                        
+
                    }
                    }
  %>
   </select>
     </div>
         </div>
-     
+
         <%
 }
 
@@ -867,6 +867,17 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
           </div>
         </div>
 
+				<div class="form-group">
+					<div class="col-xs-6 col-md-4">
+						<label class="control-label">Alternate ID</label>
+					</div>
+
+					<div class="col-xs-6 col-lg-8">
+						<input class="form-control" name="alternateID" type="text" id="alternateID" size="75">
+					</div>
+				</div>
+
+
         <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Observed behavior</label>
@@ -876,18 +887,18 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
             <input class="form-control" name="behavior" type="text" id="behavior" size="75">
           </div>
         </div>
-        
-        
+
+
            <div class="form-group">
           <div class="col-xs-6 col-md-4">
             <label class="control-label">Noticeable scarring</label>
           </div>
 
-          <div class="col-xs-6 col-lg-8"> 
+          <div class="col-xs-6 col-lg-8">
             <input class="form-control" name="scars" type="text" id="scars" size="75">
           </div>
         </div>
-        
+
 <%
 
 if(CommonConfiguration.showProperty("showLifestage",context)){
@@ -903,12 +914,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   <%
                      boolean hasMoreStages=true;
                      int stageNum=0;
-                     
+
                      while(hasMoreStages){
                            String currentLifeStage = "lifeStage"+stageNum;
                            if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
                                %>
-                                
+
                                  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
                                <%
                              stageNum++;
@@ -916,15 +927,15 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
                         else{
                           hasMoreStages=false;
                         }
-                        
+
                    }
-                   
+
  %>
-  </select>   
+  </select>
   </div>
         </div>
-       
-         
+
+
 <%
 }
 %>
@@ -947,7 +958,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
            <h3>Measurements</h3>
 
 
-<div class="col-xs-12 col-lg-8"> 
+<div class="col-xs-12 col-lg-8">
   <table class="measurements">
   <tr>
   <th><%=props.getProperty("type") %></th><th><%=props.getProperty("size") %></th><th><%=props.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th><%=props.getProperty("samplingProtocol") %></th></c:if>
@@ -974,11 +985,11 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
          </fieldset>
 </c:if>
 
- 
+
 
 
       <hr/>
-      
+
        <fieldset>
         <h3>Tags</h3>
       <%
@@ -995,7 +1006,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
             <label><%=props.getProperty("physicalTags") %></label>
           </div>
 
-<div class="col-xs-12 col-lg-8"> 
+<div class="col-xs-12 col-lg-8">
     <table class="metalTags">
     <tr>
       <th><%=props.getProperty("location") %></th><th><%=props.getProperty("tagNumber") %></th>
@@ -1016,7 +1027,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
           <div class="col-xs-6 col-md-4">
             <label><%=props.getProperty("acousticTag") %></label>
           </div>
-<div class="col-xs-12 col-lg-8"> 
+<div class="col-xs-12 col-lg-8">
       <table class="acousticTag">
       <tr>
       <td><%=props.getProperty("serialNumber") %></td>
@@ -1039,7 +1050,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 <%
   pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
 %>
-<div class="col-xs-12 col-lg-8"> 
+<div class="col-xs-12 col-lg-8">
       <table class="satelliteTag">
       <tr>
         <td><%=props.getProperty("name") %></td>
@@ -1063,19 +1074,19 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
     </div>
     </div>
 </c:if>
-      
+
       </fieldset>
 
 <hr/>
-        
-      <div class="form-group">  
+
+      <div class="form-group">
         <label class="control-label">Other email addresses to inform of resightings and status</label>
         <input class="form-control" name="informothers" type="text" id="informothers" size="75">
         <p class="help-block">Note: Multiple email addresses can be entered in email fields, using commas as separators.</p>
       </div>
       </div>
-      
-   
+
+
          <%
          if(request.getRemoteUser()==null){
          %>
@@ -1083,23 +1094,23 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
            <script>
 		         //we need to first check here if we need to do the background social image send... in which case,
 		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
-		        
+
 		       var captchaWidgetId;
 		        function onloadCallback() {
-		        	captchaWidgetId = grecaptcha.render( 
-		        	
+		        	captchaWidgetId = grecaptcha.render(
+
 			        	'myCaptcha', {
 				  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
 				  			'theme' : 'light'
 						});
 		        }
-		        
 
-			     
 
-			           
+
+
+
            </script>
-        
+
         <%
          }
         %>
@@ -1119,43 +1130,42 @@ function sendButtonClicked() {
     }
     else{
     %>
-    
-	    if(($('#myCaptcha > *').length < 1)){
-	    	$("#encounterForm").attr("action", "EncounterForm");
+    	if(($('#myCaptcha > *').length < 1)){
+    	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
-	    }
-	    else{	console.log('Here!'); 	
-	    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-			
-			console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-			if(!isEmpty(recaptachaResponse)) {		
-				$("#encounterForm").attr("action", "EncounterForm");
-				submitForm();
-			}
+   		}
+   		else{	console.log('Here!'); 	
+   			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+   					
+   					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
+   					if(!isEmpty(recaptachaResponse)) {		
+   						$("#encounterForm").attr("action", "EncounterForm");
+   						submitForm();
+   					}
 		}
-		//alert(recaptachaResponse);
+	//alert(recaptachaResponse);
 	<%
     }
 	%>
 	return true;
 }
 </script>
-      
+
 
       <p class="text-center">
         <button class="large" type="submit" onclick="return sendButtonClicked();">
-          Send encounter report 
+          Send encounter report
           <span class="button-icon" aria-hidden="true" />
         </button>
       </p>
 
 
 <p>&nbsp;</p>
-<%if (request.getRemoteUser() != null) {%> 
-	<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/> 
-<%} 
+<%if (request.getRemoteUser() != null) {%>
+	<input name="submitterID" type="hidden" value="<%=request.getRemoteUser()%>"/>
+<%}
 else {%>
-	<input name="submitterID" type="hidden" value="N/A"/> 
+	<input name="submitterID" type="hidden" value="N/A"/>
 <%
 }
 %>

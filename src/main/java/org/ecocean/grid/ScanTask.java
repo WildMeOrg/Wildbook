@@ -56,7 +56,7 @@ public class ScanTask implements Serializable {
   private int numSpots = 0;
   private int numCollisions = 0;
   private boolean started = false;
-  private int numComparisons = 0;
+  private int numComparisons = Integer.MAX_VALUE;
 
 
   /**
@@ -139,10 +139,12 @@ public class ScanTask implements Serializable {
         numSpots = el.getSpots().size();
       }
     }
+    numComparisons++;
   }
 
   public void setWorkItems(Vector swis) {
     this.workItems = swis;
+    numComparisons=swis.size();
     ScanWorkItem swi = (ScanWorkItem) swis.get(0);
     if (numSpots == 0) {
       EncounterLite el = swi.getNewEncounterLite();

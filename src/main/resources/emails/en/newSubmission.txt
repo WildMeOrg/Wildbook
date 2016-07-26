@@ -1,8 +1,8 @@
 SUBJECT: New encounter submission: @ENCOUNTER_ID@
-Thank you for helping animal research!
+Thank you for helping manta research!
 
 Thank you for reporting your encounter. We will use your information to assist
-scientific research and global conservation initiatives for animal rays.
+scientific research and global conservation initiatives for manta rays.
 
 Your sighting link:
 @ENCOUNTER_LINK@
@@ -11,9 +11,9 @@ The information that you have submitted represents an "encounter" that
 we track. Each encounter is assigned a unique number, and you can view
 that encounter at any time using the link above or by going to:
 
-        http://www.Wildbook.org/
+        http://www.mantamatcher.org/
 
 We will keep you informed of any changes to your submitted encounter,
-and email you if the animal is matched to another one within the Wildbook
-database. We will also let you know if/when and where your animal is
+and email you if the manta is matched to another one within the MantaMatcher
+database. We will also let you know if/when and where your manta is
 resighted by other community members.

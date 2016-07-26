@@ -34,6 +34,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.security.SocialAuth;
+import org.ecocean.identity.IBEISIA;
 
 import org.w3c.dom.Document;
 import com.google.gson.Gson;
@@ -114,6 +115,31 @@ public class JavascriptGlobals extends HttpServlet {
             propvalToHashMap(pn, authprops.getProperty(pn), rtn);
         }
     }
+
+
+    HashMap uploader = new HashMap();
+    String s3key = CommonConfiguration.getProperty("s3upload_accessKeyId", context);
+    if (s3key == null) {
+        uploader.put("type", "local");
+    } else {
+        uploader.put("type", "s3direct");
+        uploader.put("s3_accessKeyId", s3key);
+        uploader.put("s3_secretAccessKey", CommonConfiguration.getProperty("s3upload_secretAccessKey", context));
+        uploader.put("s3_region", CommonConfiguration.getProperty("s3upload_region", context));
+        uploader.put("s3_bucket", CommonConfiguration.getProperty("s3upload_bucket", context));
+    }
+
+    rtn.put("uploader", uploader);
+
+    HashMap<String,String> kw = new HashMap<String,String>();
+    Iterator<Keyword> keywords = myShepherd.getAllKeywords();
+    while (keywords.hasNext()) {
+        Keyword k = keywords.next();
+        kw.put(k.getIndexname(), k.getReadableName());
+    }
+    rtn.put("keywords", kw);
+
+    rtn.put("iaStatus", IBEISIA.iaStatus(request));
 
     response.setContentType("text/javascript");
     response.setCharacterEncoding("UTF-8");
