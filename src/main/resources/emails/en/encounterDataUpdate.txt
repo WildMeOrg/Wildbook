@@ -1,7 +1,7 @@
 SUBJECT: Encounter update: @ENCOUNTER_ID@
 Hello! 
 
-Just a quick email to let you know of a change in data for an encounter
+Just a quick email to let you know of a change in data for a manta encounter
 that you have marked for tracking. See the text below to learn more.
 
 Change:

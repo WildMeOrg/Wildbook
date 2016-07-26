@@ -96,7 +96,7 @@ margin-bottom: 8px !important;
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial", sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -169,6 +169,13 @@ margin-bottom: 8px !important;
  
         
         <%
+
+//now remove encounters this user cannot see
+for (int i = rEncounters.size() - 1 ; i >= 0 ; i--) {
+	Encounter enc = (Encounter)rEncounters.get(i);
+	if (!enc.canUserAccess(request)) rEncounters.remove(i);
+}
+
         //Vector haveGPSData = new Vector();
         int rEncountersSize=rEncounters.size();
         int count = 0;

@@ -43,7 +43,7 @@ public class WorkAppletHeadless {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "www.whaleshark.org";
+  public static final String thisURLRoot = "localhost:8080/wildbook-5.4.0-DEVELOPMENT";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;

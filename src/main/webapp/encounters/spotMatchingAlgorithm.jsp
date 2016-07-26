@@ -192,7 +192,8 @@ try {
   			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
   			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
 
-  	
+  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
+  				
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
@@ -205,6 +206,10 @@ try {
 	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
 	  		<%
 	  		}
+		}
+	  		
+  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
+			
 	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
@@ -217,13 +222,10 @@ try {
 	  			<%
 	  		}
 	  		
-	  		%>
-			<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
-
-  
+	  		
+  	}
 
 
-<%
 		} //if use spot pattern reognition
 		else{
 		%>
@@ -271,12 +273,14 @@ try {
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
+		 				System.out.println("     uploadedFile exists!");
+		 				
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
-/*
+
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
 		 				if (!extractImage.exists()) {
-		 					//System.out.println("Made it here.");
+		 					System.out.println("Made it here.");
 		 					
 		 					height+=Double.toString(imageDimensions.getHeight());
 		 					width+=Double.toString(imageDimensions.getWidth());
@@ -301,7 +305,7 @@ try {
   							
   							<%
 							}
-*/
+
 						}
 									//set the right file
 									
@@ -310,10 +314,10 @@ try {
 									//iInfo=new ImageInfo();
 									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
 		 				
-/*
+
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
 									if (!extractRightImage.exists()) {
-										//System.out.println("Made it here.");
+										System.out.println("extractRight does not exist: Made it here.");
 										//heightR+=iInfo.getHeight();
 										//widthR+=iInfo.getWidth();
 										//System.out.println(height+"and"+width);
@@ -334,7 +338,11 @@ try {
   										</di:img> 
   									<%
 									}
-*/
+									else{
+										System.out.println("extractRight exists at: "+extractRightImage.getAbsolutePath());
+										
+									}
+
 								}
 									
 								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
@@ -550,6 +558,13 @@ $(document).ready(function() {
               						}
             						%>
           						</tr>
+          						<%
+          						if(request.isUserInRole("admin")){
+          						%>
+          						<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
+        						<%
+          						}
+        						%>
         					</table>
 
         					<input name="writeThis" type="hidden" id="writeThis" value="true" />
@@ -572,6 +587,5 @@ finally {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 }
-
 }
 %>

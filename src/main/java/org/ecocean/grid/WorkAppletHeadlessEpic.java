@@ -44,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "www.whaleshark.org";
+  public static String thisURLRoot = "www.flukebook.org";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -82,6 +82,7 @@ public class WorkAppletHeadlessEpic {
 
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
+    //if(args[0]!=null)thisURLRoot=args[0];
     a.getGoing();
   }
 
@@ -266,6 +267,7 @@ public class WorkAppletHeadlessEpic {
 
               } 
               catch (NullPointerException npe) {
+                npe.printStackTrace();
                 //generic, non-specific applet operation
                 //just sleep because there are no other tasks to do
                 //if(!getParameter("encounter").equals("null")) status.setValue(0);
@@ -292,34 +294,39 @@ public class WorkAppletHeadlessEpic {
                 //we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
                 threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
               }
+              System.out.println("...done spawning threads...");
 
 
               //block until all threads are done
               long vSize = vectorSize;
-              while (threadHandler.getCompletedTaskCount() < vSize) {
-              }
+              while (threadHandler.getCompletedTaskCount() < vSize) {}
+              
+              
+              System.out.println("...all threads done!...");
 
               //check the results and make variable changes as needed
               int resultsSize = workItemResults.size();
+              
+              System.out.println("Trying to return num results:"+resultsSize);
+              
+              /**
               for (int d = 0; d < resultsSize; d++) {
                 b++;
-                try {
-
-                  //if(!getParameter("encounter").equals("null")) status.setValue(swi.getWorkItemsCompleteInTask()+d);
-                } catch (NullPointerException npe) {
-                }
+                
                 ScanWorkItemResult swir = (ScanWorkItemResult) workItemResults.get(d);
                 MatchObject thisResult = swir.getResult();
                 if ((thisResult.getMatchValue() * thisResult.getAdjustedMatchValue()) >= 115) {
                   numMatches++;
                 }
               }
+              */
 
 
               //if we have results to send, send 'em!
               if (resultsSize > 0) {
 
-                URL finishScan = new URL("http://" + thisURLRoot + "/scanWorkItemResultsHandler2?" + targeted + "group=true&nodeIdentifier=" + nodeID);
+                URL finishScan = new URL("http://www.flukebook.org/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
+                System.out.println("Trying to send results to: "+finishScan.toString());
                 URLConnection finishConnection = finishScan.openConnection();
 
                 // inform the connection that we will send output and accept input
@@ -376,6 +383,7 @@ public class WorkAppletHeadlessEpic {
                 catch(Exception except){
                   if(outputToFinalServlet!=null){outputToFinalServlet.close();}
                   if(inputStreamFromServlet!=null){inputStreamFromServlet.close();}
+                  except.printStackTrace();
                 }
                 
                 if (line.equals("success")) {
@@ -419,6 +427,7 @@ public class WorkAppletHeadlessEpic {
     catch (Exception mue) {
       System.out.println("I hit an Exception while trying to create the recoverURL for OutOfMemoryErrors");
       //mue.printStackTrace();
+      mue.printStackTrace();
       System.exit(0);
 
     }

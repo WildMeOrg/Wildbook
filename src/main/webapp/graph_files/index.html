@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="forced_graph.css">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+<link href="http://fonts.googleapis.com/css?family=Crimson+Text" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Allerta" rel="stylesheet" type="text/css">
+<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+<script src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="configuration.js" charset="utf-8"></script>
+<body>
+<div id="display_div">
+	<!-- makes the data pop-up display in the top right corner -->
+	<div id="force_fluke_right" class="noselect">
+		<!-- the content of this dis is generated via javascript and is based on data from the flukebook data -->
+		<div id="fluke_data_display"></div>
+		<div id="launch_config" style="display:none">
+			<div style="padding:5px;">Reconfigure</div>
+		</div>
+	</div>
+	<!-- allows users to configure what the graph displays -->
+	<div id="configuration" class="noselect" >
+		<button id="configuration_close" style="margin-left:110px; margin-top:30px;">Load Configuration</button>
+	</div>
+	<svg id="display_svg"></svg>
+</div>
+<script src="graph.js"></script>
+<script src="displayFlukeData.js"></script>
+<script type="text/javascript" >
+var config = $('#configuration');
+/**
+	Creates a new header jQuery object, also setting 
+	the header. It's a separate function to clean up the 
+	loops below.
+*/
+globals.make_header = function(header_name){
+	var new_header = $("<span>");
+	new_header.attr("id", header_name.toLowerCase());
+	// add the display text
+	var header_label = $('<div class="config_header">');
+	// we're assuming the header name is appropriately capitalized
+	header_label.append(header_name.replace("_", " ") + " Attributes");
+	// put the header text on the header object and return to 
+	new_header.append(header_label);
+
+	return new_header;
+}
+
+/**
+	Create a new attribute jquery object 
+	and sets the name value. Does not create the 
+	option list directly, only the shell
+*/
+globals.make_row = function(config_label){
+	return $('<div class="config_row">'+
+				'<div class="config_cell config_label">' + config_label.replace("_", " ") + '</div>' +
+					'<div class="config_cell config_dropdown">' +
+						'<select name="' + config_label +'" ></select>' +
+					'</div>' +
+				'</div>' );
+}
+
+// set up the options using the defined functions in the configuration file
+for (var span_key in attribute_data_mappings){
+	// create the attribute associate to the span key
+	var new_header = globals.make_header(span_key);
+	
+	// create a row for each attribute key and generate the option lists
+	var graph_attribute = attribute_data_mappings[span_key];
+	for (var attribute_key in graph_attribute){
+		// make the row object 
+		var attribute_row = globals.make_row(attribute_key);
+		var select = attribute_row.find('select[name='+attribute_key+']');
+		for (var data_attributes in attribute_data_mappings[span_key][attribute_key]){
+			$(select).append($('<option>').text(data_attributes));
+		}
+		// finally add the new attribute row back to the header div 
+		new_header.append(attribute_row);
+	}
+	
+	// now randomly select an option
+	/*new_header.find('select').each(function(i, s){
+		var names = $(s).find('option').map(function(i,a){ return $(a).html() })
+		$(s).val(names[Math.floor(Math.random() * names.length)] );
+	});*/
+	
+	// append the new header to the configuration object 
+	config.prepend(new_header);
+}
+
+// set parent for the config div centering 
+if (parent)
+	parent = config.parent();
+else
+	parent = window;
+	
+// center the configuration div (only needs to run once) 
+config.css({
+	"position": "absolute",
+	"top": ((($(parent).height() - 100 - config.outerHeight()) / 2) + $(parent).scrollTop() + "px"),
+	"left": ((($(parent).width() - config.outerWidth()) / 2) + $(parent).scrollLeft() + "px")
+});
+
+// Add the close action 
+$('#configuration_close').button().click(function(){
+	// hide the div
+	config.hide();
+	// show the edit div in the right/left corner
+	var launch = $('#launch_config');
+	launch.show();
+	launch.click(function(){
+		// hide the reconfig
+		launch.hide();
+		// show the configuration div
+		config.show();
+		// destroy the graph (in graph.js)
+		transitionAndRemove();  
+	});
+	// do some data load/filter stuff
+	var attribute_functions = getAttributeFunctions();
+	run(attribute_functions);
+});
+
+// This function gets all of the selected settings from the configuration div and returns them in an object
+function getAttributeFunctions(){
+	// get all of the functions based on the configuration, allowing the graph generation to be cleaner
+	var attribute_functions = {};
+	for (var name in attribute_data_mappings){
+		attribute_functions[name] = {};
+		// get all of the associated functions for the node attribute and data selected
+		$.each( $('#'+name.toLowerCase()).find("select"), function(i,select){
+			attribute_functions[name][select.name] = attribute_data_mappings[name][select.name][$(select).val()]
+		});
+	}
+
+	return attribute_functions;
+}
+</script>
+</body>
+</html>

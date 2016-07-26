@@ -8,11 +8,13 @@
     <persistence-unit name="shepherd">
     <mapping-file>org/ecocean/package.jdo</mapping-file>
     <mapping-file>org/ecocean/genetics/package.jdo</mapping-file>
+    <mapping-file>org/ecocean/media/package.jdo</mapping-file>
+    <mapping-file>org/ecocean/identity/package.jdo</mapping-file>
     <mapping-file>org/ecocean/tag/package.jdo</mapping-file>
         <properties>
-            <property name="datanucleus.ConnectionDriverName" value="org.apache.derby.jdbc.EmbeddedDriver"/>
-            <property name="datanucleus.ConnectionURL" value="jdbc:derby:shepherd_derby_database;create=true"/>
-            <property name="datanucleus.ConnectionUserName" value="shepherd"/>
+            <property name="datanucleus.ConnectionDriverName" value="com.mysql.jdbc.Driver"/>
+            <property name="datanucleus.ConnectionURL" value="jdbc:mysql://localhost:3306/fluketest"/>
+            <property name="datanucleus.ConnectionUserName" value="wildbook"/>
             <property name="datanucleus.ConnectionPassword" value="shepherd"/>
         </properties>
 
