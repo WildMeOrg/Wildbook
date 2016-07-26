@@ -479,7 +479,7 @@ if (request.getParameter("number")!=null) {
                 $("#Add").click(function() {
                   $("#Add").hide();
 
-                  var individual = $("#setSexIndividual").val();
+                  // var individual = $("#setSexIndividual").val();
                   var sex = $("#newSex").val();
 
                   $.post("IndividualSetSex", {"individual": individual, "sex": sex},
@@ -557,6 +557,7 @@ if (request.getParameter("number")!=null) {
 
 
             <script type="text/javascript">
+            // Sex update returning weird apache error
               $(document).ready(function() {
                 $("#birthy").click(function() {
 
@@ -592,7 +593,7 @@ if (request.getParameter("number")!=null) {
             <form class="editForm" name="set_birthdate">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" id="setBirthIndividual"/>
               <div class="form-group has-feedback row" id="birthDiv">
-                <div class="col-sm-3">
+                <div class="col-sm-4">
                   <label><%=props.getProperty("birthdate")  %>:</label>
                 </div>
                 <div class="col-sm-6 editFormInput">
@@ -630,11 +631,11 @@ if (request.getParameter("number")!=null) {
 
                   $("#deathy").hide();
 
+                  var individual = $("#setDeathIndividual").val();
                   var timeOfDeath = $("#timeOfDeath").val();
 
-                  $.post("IndividualSetYearOfDeath", {"timeOfDeath": timeOfDeath},
+                  $.post("IndividualSetYearOfDeath", {"individual": individual, "timeOfDeath": timeOfDeath},
                   function() {
-                    //if response == 200
                     $("#deathDiv").addClass("has-success");
                     $("#deathCheck").show();
                   })
@@ -657,18 +658,18 @@ if (request.getParameter("number")!=null) {
             <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
             <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
 
-            <form class="editForm" name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+            <form class="editForm" name="set_deathdate">
+              <input id="setDeathIndividual" name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
               <div class="form-group has-feedback row" id="deathDiv">
-                <div class="col-sm-3">
+                <div class="col-sm-4">
                   <label><%=props.getProperty("deathdate")  %>:</label>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6 editFormInput">
                   <input class="form-control" name="timeOfDeath" type="text" id="timeOfDeath" value="<%=timeOfDeath %>" placeholder="2013-12-21"/>
                   <span class="form-control-feedback" id="deathCheck">&check;</span>
                   <span class="form-control-feedback" id="deathError">X</span>
                 </div>
-                <div class="col-sm-1">
+                <div class="col-sm-1 editFormBtn">
                   <input class="btn btn-sm" name="deathy" type="submit" id="deathy" value="<%=update %>">
                 </div>
               </div>
@@ -692,11 +693,11 @@ if (request.getParameter("number")!=null) {
 
                   $("#AltID").hide();
 
+                  var individual = $("#setAltIndividual").val();
                   var alternateid = $("#alternateid").val();
 
-                  $.post("IndividualSetAlternateID", {"alternateid": alternateid},
+                  $.post("IndividualSetAlternateID", {"individual": individual, "alternateid": alternateid},
                   function() {
-                    //if response == 200
                     $("#altIdDiv").addClass("has-success");
                     $("#altIdCheck").show();
                   })
@@ -716,16 +717,16 @@ if (request.getParameter("number")!=null) {
             </script>
 
             <%-- Start alt id form --%>
-            <form name="set_alternateid" method="post" action="IndividualSetAlternateID" class="editForm">
-              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+            <form name="set_alternateid" class="editForm">
+              <input id="setAltIndividual" name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
               <div class="form-group has-feedback row" id="altIdDiv">
-                <div class="col-sm-3">
+                <div class="col-sm-4">
                   <label><%=alternateID %>:</label>
                 </div>
-                <div class="col-sm-4">
+                <div class="col-sm-6 editFormInput">
                   <input class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
                 </div>
-                <div class="col-sm-1">
+                <div class="col-sm-1 editFormBtn">
                   <%-- two buttons with same id - Name --%>
                   <input class="btn btn-sm" name="Name" type="submit" id="AltID" value="<%=update %>">
                   <span class="form-control-feedback" id="altIdCheck">&check;</span>
