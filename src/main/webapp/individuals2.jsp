@@ -481,7 +481,7 @@ if (request.getParameter("number")!=null) {
                   var individual = $("input[name='individual']").val();
                   var sex = $("#newSex").val();
 
-                  $.post("IndividualSetSex", {"individual": individual, "sex": sex},
+                  $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
                   function() {
                     $("#sexCheck").show();
                   })
@@ -726,12 +726,11 @@ if (request.getParameter("number")!=null) {
                 </div>
                 <div class="col-sm-6 editFormInput">
                   <input class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
-                </div>
-                <div class="col-sm-1 editFormBtn">
-                  <%-- two buttons with same id - Name --%>
-                  <input class="btn btn-sm" name="Name" type="submit" id="AltID" value="<%=update %>">
                   <span class="form-control-feedback" id="altIdCheck">&check;</span>
                   <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
+                <div class="col-sm-1 editFormBtn">
+                  <input class="btn btn-sm" name="AltID" type="submit" id="AltID" value="<%=update %>">
                 </div>
               </div>
             </form>
