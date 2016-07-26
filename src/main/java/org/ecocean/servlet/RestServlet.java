@@ -205,7 +205,7 @@ public class RestServlet extends HttpServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-      response.setHeader("Access-Control-Allow-Origin", "*");
+      resp.setHeader("Access-Control-Allow-Origin", "*");
       getPMF(req);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
@@ -466,13 +466,13 @@ public class RestServlet extends HttpServlet
 
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        ServletUtilities.doOptions(request, response);
+        ServletUtilities.doOptions(req, resp);
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         getPMF(req);
         if (req.getContentLength() < 1)
         {
