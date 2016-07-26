@@ -56,7 +56,7 @@ public class IndividualSetSex extends HttpServlet {
     boolean locked = false;
 
 
-    String action = request.getParameter("action");
+    //String action = request.getParameter("action");
 
     if ((request.getParameter("individual") != null) && (request.getParameter("selectSex") != null)) {
 
@@ -86,7 +86,7 @@ public class IndividualSetSex extends HttpServlet {
 
 
       if (!locked) {
-        myShepherd.commitDBTransaction(action);
+        myShepherd.commitDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
         response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> Sex has been updated from " + oldSex + " to " + request.getParameter("selectSex") + ".");
