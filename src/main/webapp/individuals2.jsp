@@ -291,8 +291,6 @@ if (request.getParameter("number")!=null) {
       $(".clickDateText").show();
     });
 
-
-
     $("#nickname").click(function() {
       $(".saveUpdate").hide();
       $("#Name, #Add, #birthy, #deathy, #AltID" ).show();
@@ -333,7 +331,7 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <%-- <a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a> --%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
@@ -399,16 +397,17 @@ if (request.getParameter("number")!=null) {
 
               <script type="text/javascript">
                 $(document).ready(function() {
-                  $("#Name").click(function() {
+                  $("#Name").click(function(e) {
+                    e.preventDefault();
 
                     $("#Name").hide();
 
+                    var individual = $("#setNameindividual").val();
                     var nickname = $("#nickname").val();
                     var namer = $("#namer").val();
 
-                    $.post("IndividualSetNickName", {"nickname": nickname, "namer": namer},
+                    $.post("IndividualSetNickName", {"individual": individual, "nickname": nickname, "namer": namer},
                     function() {
-                      //if response == 200
                       $("#nameDiv, #namerDiv").addClass("has-success");
                       $("#nameCheck, #namerCheck").show();
                     })
@@ -434,13 +433,13 @@ if (request.getParameter("number")!=null) {
               </script>
 
                 <%-- Edit nickname form --%>
-                  <form name="nameShark" method="post" action="IndividualSetNickName" class="editForm">
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
+                  <form name="nameShark" class="editForm">
+                    <input id="setNameindividual" name="individual" type="hidden" value="<%=request.getParameter("number")%>">
                       <div class="form-group has-feedback row" id="nameDiv">
                         <div class="col-sm-3">
                           <label><%=nickname %>:</label>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6 editFormInput">
                           <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
                           <span class="form-control-feedback" id="nameCheck">&check;</span>
                           <span class="form-control-feedback" id="nameError">X</span>
@@ -451,14 +450,15 @@ if (request.getParameter("number")!=null) {
                         <div class="col-sm-3">
                           <label><%=nicknamer %>:</label>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6 editFormInput">
                           <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
                           <span class="form-control-feedback" id="namerCheck">&check;</span>
                         </div>
-                        <div class="col-sm-1">
+                        <div class="col-sm-1 editFormBtn">
                           <input class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>">
                         </div>
                       </div>
+
                   </form>
                   <%-- End edit nickname form --%>
 
@@ -514,7 +514,7 @@ if (request.getParameter("number")!=null) {
             </div>
             <input class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>">
             <span id="sexCheck">&check;</span>
-            <span id="sexEheck">X</span>
+            <span id="sexCheck">X</span>
           </form>
           <%-- End edit sex form --%>
 
@@ -922,7 +922,7 @@ if (request.getParameter("number")!=null) {
             <div class="form-group row">
               <div class="col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
-                <p class="highlight"><small><%=props.getProperty("required")%></small></p>
+                <p><small class="highlight"><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-sm-3">
                 <%
