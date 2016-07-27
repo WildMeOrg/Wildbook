@@ -875,12 +875,12 @@ if (request.getParameter("number")!=null) {
           });
         </script>
 
+        <div id="relationshipResponseDiv"></div>
         <div id="addRelationshipForm">
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
           <h4><%=props.getProperty("setRelationship")%></h4>
-          <div id="relationshipResponseDiv"></div>
 
           <form id="setRelationship">
             <%
