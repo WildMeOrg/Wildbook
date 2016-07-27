@@ -76,10 +76,15 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   font-family: sans-serif;
 }
 
-#nameError, #sexError, #birthError, #deathError, #altIdError {
+#nameError, #namerError, #sexError, #birthError, #deathError, #altIdError {
   display: none;
   color: red;
   font-family: sans-serif;
+  font-weight: bold;
+}
+
+#nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv {
+  display: none;
 }
 
 .relationshipInput {
@@ -126,11 +131,11 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   margin-bottom: 20px;
 }
 
-#edit, #finishEdit {
+#edit, #closeEdit {
   background-color: white;
 }
 
-#edit:hover, #finishEdit:hover {
+#edit:hover, #closeEdit:hover {
   background-color: #8bff00;
 }
 
