@@ -413,7 +413,7 @@ if (request.getParameter("number")!=null) {
                   });
 
                   $("#nickname, #namer").click(function() {
-                    $("#nameError, #nameCheck, #namerCheck, #namerError").hide()
+                    $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
                     $("#nameDiv, #namerDiv").removeClass("has-success");
                     $("#nameDiv, #namerDiv").removeClass("has-error");
                     $("#Name").show();
@@ -488,7 +488,7 @@ if (request.getParameter("number")!=null) {
                 });
 
                 $("#newSex").click(function() {
-                  $("#sexError, #sexCheck").hide()
+                  $("#sexError, #sexCheck, #sexErrorDiv").hide()
                   $("#Add").show();
                 });
               });
