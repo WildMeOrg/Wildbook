@@ -296,10 +296,6 @@ if (request.getParameter("number")!=null) {
       $(".clickDateText").hide();
       $(".noEditText").show();
     });
-
-    $("#addRelationshipBtn").click(function() {
-      $("#addRelationshipForm").toggle();
-    });
   });
 
 </script>
@@ -405,25 +401,21 @@ if (request.getParameter("number")!=null) {
 
                     $.post("IndividualSetNickName", {"individual": individual, "nickname": nickname, "namer": namer},
                     function() {
+                      $("#nicknameErrorDiv").hide();
                       $("#nameDiv, #namerDiv").addClass("has-success");
                       $("#nameCheck, #namerCheck").show();
                     })
-                    .fail(function() {
-                      $("#nameDiv").addClass("has-error");
-                      $("#nameError").show();
+                    .fail(function(response) {
+                      $("#nameDiv, #namerDiv").addClass("has-error");
+                      $("#nameError, #namerError, #nicknameErrorDiv").show();
+                      $("#nicknameErrorDiv").html(response.responseText);
                     });
                   });
 
-                  $("#nickname").click(function() {
-                    $("#nameError, #nameCheck").hide()
-                    $("#nameDiv").removeClass("has-success");
-                    $("#nameDiv").removeClass("has-error");
-                    $("#Name").show();
-                  });
-                  $("#namer").click(function() {
-                    $("#namerCheck").hide();
-                    $("#namerDiv").removeClass("has-success");
-                    $("#namerDiv").removeClass("has-error");
+                  $("#nickname, #namer").click(function() {
+                    $("#nameError, #nameCheck, #namerCheck, #namerError").hide()
+                    $("#nameDiv, #namerDiv").removeClass("has-success");
+                    $("#nameDiv, #namerDiv").removeClass("has-error");
                     $("#Name").show();
                   });
                 });
@@ -431,6 +423,7 @@ if (request.getParameter("number")!=null) {
 
                 <%-- Edit nickname form --%>
                 <p id="checkIndividualValue"></p>
+                <div class="highlight" id="nicknameErrorDiv"></div>
                   <form name="nameShark" class="editForm">
                     <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
                       <div class="form-group has-feedback row" id="nameDiv">
@@ -451,12 +444,12 @@ if (request.getParameter("number")!=null) {
                         <div class="col-sm-6 editFormInput">
                           <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
                           <span class="form-control-feedback" id="namerCheck">&check;</span>
+                          <span class="form-control-feedback" id="namerError">X</span>
                         </div>
                         <div class="col-sm-1 editFormBtn">
                           <input class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>">
                         </div>
                       </div>
-
                   </form>
                   <%-- End edit nickname form --%>
 
@@ -484,6 +477,8 @@ if (request.getParameter("number")!=null) {
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
                   function() {
                     $("#sexCheck").show();
+                    $("svg.bubbleChart").remove();
+                    getData(individual);
                   })
                   .fail(function() {
                     $("#sexError").show()
@@ -822,6 +817,13 @@ if (request.getParameter("number")!=null) {
         %>
 
         <%-- <button class="btn btn-md" type="button" name="button" id="addRelationshipBtn"><%=props.getProperty("addRelationship") %></button> --%>
+        <script type="text/javascript">
+          $(document).ready(function() {
+            $("#addRelationshipBtn").click(function() {
+              resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
+            });
+          });
+        </script>
 
         <input class="btn btn-md" type="button" name="button" id="addRelationshipBtn" value="<%=props.getProperty("addRelationship") %>">
 
@@ -901,13 +903,15 @@ if (request.getParameter("number")!=null) {
                 }
                 %>
             <div class="form-group row">
-              <div  class="col-sm-2">
+              <div  class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("type")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
-              <div class="col-sm-3">
-                <select required name="type" class="form-control relationshipInput">
-                  <%
+              <div class="col-xs-9 col-sm-3">
+                <select required name="type" class="form-control relationshipInput" id="type">
+                  <option value="CommunityMembership">social grouping</option>
+
+                  <%-- <%
                   List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
                   int numTypes=types.size();
                   for(int g=0;g<numTypes;g++){
@@ -915,47 +919,50 @@ if (request.getParameter("number")!=null) {
                     String selectedText="";
                     if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
-                    <option <%=selectedText%>><%=types.get(g)%></option>
+                    <option value="CommunityMembership" <%=selectedText%>><%=types.get(g)%></option>
                     <%
                   }
-                  %>
+                  %> --%>
                 </select>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
               </div>
-              <div class="col-sm-3">
-                <%
+              <div class="col-xs-9 col-sm-3">
+                <input type="text" id="indiviudal1" placeholder="<%=props.getProperty("individualID1")%>"/>
+
+
+                <%-- <%
                 if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
                   %>
-                  <%=sharky.getIndividualID()%><input class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
+                  <%=sharky.getIndividualID()%><input id="indiviudal1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
 
                   <%
                 }
                 else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
                   %>
-                  <input required class="form-control relationshipInput" name="markedIndividualName1" type="text" value="<%=markedIndividual1Name%>" placeholder="<%=props.getProperty("individualID1")%>"/>
+                  <input id="indiviudal1" required class="form-control relationshipInput" name="markedIndividualName1" type="text" value="<%=markedIndividual1Name%>" placeholder="<%=props.getProperty("individualID1")%>"/>
                   <%
                 }
                 else{
                   %>
-                  <%=markedIndividual1Name%><input class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
+                  <%=markedIndividual1Name%><input id="indiviudal1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
                   <%
                 }
-                %>
+                %> --%>
               </div>
 
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualRole1")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
-              <div class="col-sm-3">
-                <select required class="form-control relationshipInput" name="markedIndividualRole1">
+              <div class="col-xs-9 col-sm-3">
+                <select id="role1" required class="form-control relationshipInput" name="markedIndividualRole1">
                   <%
                   List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
                   int numRoles=roles.size();
@@ -970,39 +977,41 @@ if (request.getParameter("number")!=null) {
                   %>
                 </select>
               </div>
-              <div class="col-sm-1">
+              <div class="col-xs-1 col-sm-1">
                 <label><%=props.getProperty("markedIndividual1DirectionalDescriptor")%></label>
               </div>
-              <div class="col-sm-3">
-                <input class="form-control relationshipInput" name="markedIndividual1DirectionalDescriptor" type="text" value="<%=markedIndividual1DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>"/>
+              <div class="col-xs-9 col-sm-3">
+                <input id="descriptor1" class="form-control relationshipInput" name="markedIndividual1DirectionalDescriptor" type="text" value="<%=markedIndividual1DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>"/>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("individualID2")%></label>
               </div>
-              <div class="col-sm-3">
-                <%
+              <div class="col-xs-9 col-sm-3">
+                <input type="text" id="indiviudal2" placeholder="<%=props.getProperty("individualID2")%>"/>
+
+                <%-- <%
                 if(!markedIndividual2Name.equals(sharky.getIndividualID())){
                   %>
-                  <input class="form-control relationshipInput" name="markedIndividualName2" type="text" value="<%=markedIndividual2Name%>" placeholder="<%=props.getProperty("individualID2")%>"/>
+                  <input id="individual2" class="form-control relationshipInput" name="markedIndividualName2" type="text" value="<%=markedIndividual2Name%>" placeholder="<%=props.getProperty("individualID2")%>"/>
                   <%
                 }
                 else{
                   %>
-                  <%=markedIndividual2Name%><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
+                  <%=markedIndividual2Name%><input id="individual2" type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
                   <%
                 }
-                %>
+                %> --%>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualRole2")%></label>
                 <p class="highlight"><small><%=props.getProperty("required")%></small></p>
               </div>
-              <div class="col-sm-3">
-                <select required class="form-control relationshipInput" name="markedIndividualRole2">
+              <div class="col-xs-9 col-sm-3">
+                <select id="role2" required class="form-control relationshipInput" name="markedIndividualRole2">
                   <%
                   for(int g=0;g<numRoles;g++){
 
@@ -1015,43 +1024,43 @@ if (request.getParameter("number")!=null) {
                   %>
                 </select>
               </div>
-              <div class="col-sm-1">
+              <div class="col-xs-1 col-sm-1">
                 <label><%=props.getProperty("markedIndividual2DirectionalDescriptor")%></label>
               </div>
-              <div class="col-sm-3">
-                <input class="form-control relationshipInput" name="markedIndividual2DirectionalDescriptor" type="text" value="<%=markedIndividual2DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>"/>
+              <div class="col-xs-9 col-sm-3">
+                <input id="descriptor2" class="form-control relationshipInput" name="markedIndividual2DirectionalDescriptor" type="text" value="<%=markedIndividual2DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>"/>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("relatedCommunityName")%></label>
               </div>
-              <div class="col-sm-3">
-                <input class="form-control relationshipInput" name="relatedCommunityName" type="text" value="<%=communityName%>" placeholder="<%=props.getProperty("relatedCommunityName")%>"/>
+              <div class="col-xs-9 col-sm-3">
+                <input id="relatedCommunityName" class="form-control relationshipInput" name="relatedCommunityName" type="text" value="<%=communityName%>" placeholder="<%=props.getProperty("relatedCommunityName")%>"/>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("startTime")%></label>
               </div>
-              <div class="col-sm-3">
-                <input class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="<%=props.getProperty("startTime")%>"/>
+              <div class="col-xs-9 col-sm-3">
+                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="<%=props.getProperty("startTime")%>"/>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("endTime")%></label>
               </div>
-              <div class="col-sm-3">
-                <input class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="<%=props.getProperty("endTime")%>"/>
+              <div class="col-xs-9 col-sm-3">
+                <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="<%=props.getProperty("endTime")%>"/>
               </div>
             </div>
             <div class="form-group row">
-              <div class="col-sm-2">
+              <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("bidirectional")%></label>
               </div>
-              <div class="col-sm-3">
-                <select name="bidirectional" class="form-control relationshipInput">
+              <div class="col-xs-9 col-sm-3">
+                <select id="bidirectional" name="bidirectional" class="form-control relationshipInput">
                   <option value=""></option>
                   <%
                   String selected="";
@@ -1071,315 +1080,15 @@ if (request.getParameter("number")!=null) {
               </div>
             </div>
             <input class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
-          <%
+          <%-- <%
             	if(request.getParameter("persistenceID")!=null){
             %>
           	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
           <%
           	}
-          %>
+          %> --%>
           </form>
         </div>
-
-        <!-- start relationship popup code -->
-        <%-- <%
-        if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-        %>
-        <div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">
-
-        <form id="setRelationship" action="RelationshipCreate" method="post">
-        <table cellspacing="2" bordercolor="#FFFFFF">
-
-        <%
-        	String markedIndividual1Name="";
-        String markedIndividual2Name="";
-        String markedIndividual1Role="";
-        String markedIndividual2Role="";
-        String type="";
-        String startTime="";
-        String endTime="";
-        String bidirectional="";
-        String markedIndividual1DirectionalDescriptor="";
-        String markedIndividual2DirectionalDescriptor="";
-        String communityName="";
-
-        //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
-
-        	if(request.getParameter("persistenceID")!=null){
-
-        	//Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
-
-        	Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));
-
-        	Relationship myRel=(Relationship)myShepherd.getPM().getObjectById(identity);
-
-        	if(myRel.getMarkedIndividualName1()!=null){
-        		markedIndividual1Name=myRel.getMarkedIndividualName1();
-        	}
-        	if(myRel.getMarkedIndividualName2()!=null){
-        		markedIndividual2Name=myRel.getMarkedIndividualName2();
-        	}
-        	if(myRel.getMarkedIndividualRole1()!=null){
-        		markedIndividual1Role=myRel.getMarkedIndividualRole1();
-        	}
-        	if(myRel.getMarkedIndividualRole2()!=null){
-        		markedIndividual2Role=myRel.getMarkedIndividualRole2();
-        	}
-        	if(myRel.getType()!=null){
-        		type=myRel.getType();
-        	}
-        	if(myRel.getMarkedIndividual1DirectionalDescriptor()!=null){
-        		markedIndividual1DirectionalDescriptor=myRel.getMarkedIndividual1DirectionalDescriptor();
-        	}
-        	if(myRel.getMarkedIndividual2DirectionalDescriptor()!=null){
-        		markedIndividual2DirectionalDescriptor=myRel.getMarkedIndividual2DirectionalDescriptor();
-        	}
-
-        	if(myRel.getStartTime()>-1){
-        		startTime=(new DateTime(myRel.getStartTime())).toString();
-        	}
-        	if(myRel.getEndTime()>-1){
-        		endTime=(new DateTime(myRel.getEndTime())).toString();
-        	}
-
-        	if(myRel.getBidirectional()!=null){
-        		bidirectional=myRel.getBidirectional().toString();
-        	}
-
-        	if(myRel.getRelatedSocialUnitName()!=null){
-        		communityName=myRel.getRelatedSocialUnitName();
-        	}
-
-
-        }
-        %>
-
-            <tr>
-              	<td width="200px">
-                  <strong><%=props.getProperty("type")%></strong><br />
-                  <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
-                <td>
-                	<select name="type">
-        			<%
-        				List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
-        				int numTypes=types.size();
-        				for(int g=0;g<numTypes;g++){
-
-        					String selectedText="";
-        					if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=types.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select>
-
-
-                </td>
-             </tr>
-             <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("individualID1")%></strong><br />
-                   <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
-                   </td>
-                  <td>
-
-                     <%
-                               	if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
-                               %>
-                       			<%=sharky.getIndividualID()%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-
-                       		<%
-                       			               			}
-                       			               		            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
-                       			               		%>
-                		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name%>" />
-               		<%
-                			}
-                		        	else{
-                		%>
-               			<%=markedIndividual1Name%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-               		<%
-               			}
-               		%>
-               </td>
-           	</tr>
-           	<tr>
-             	<td>
-                  <strong><%=props.getProperty("individualRole1")%></strong>
-                  <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
-                 </td>
-                 <td>
-
-                 <select name="markedIndividualRole1">
-        			<%
-        				List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
-        				int numRoles=roles.size();
-        				for(int g=0;g<numRoles;g++){
-
-        					String selectedText="";
-        					if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=roles.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select>
-
-                 </td>
-
-                 <td>
-                 	<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>
-                 </td>
-                 <td>
-                 	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor%>" />
-                 </td>
-
-           	</tr>
-
-            <tr>
-             	<td><strong><%=props.getProperty("individualID2")%></strong></td>
-                <td>
-           			<%
-           				if(!markedIndividual2Name.equals(sharky.getIndividualID())){
-           			%>
-                		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name%>" />
-               		<%
-                			}
-                		        	else{
-                		%>
-               			<%=markedIndividual2Name%><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
-               		<%
-               			}
-               		%>
-               </td>
-           	</tr>
-           	<tr>
-             	<td>
-
-                  <strong><%=props.getProperty("individualRole2")%></strong>
-                  <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
-                  <td>
-                  	<select name="markedIndividualRole2">
-        			<%
-        				for(int g=0;g<numRoles;g++){
-
-        					String selectedText="";
-        					if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=roles.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select></td>
-               <td>
-                 	<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>
-                 </td>
-                 <td>
-                 	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor%>" />
-                 </td>
-           	</tr>
-
-           <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("relatedCommunityName")%></strong></td>
-                  <td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName%>" />
-               </td>
-           	</tr>
-
-           	   <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("startTime")%></strong></td>
-                  <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime%>" />
-               </td>
-               </tr>
-               <tr>
-               <td>
-
-                 <strong><%=props.getProperty("endTime")%></strong></td>
-                  <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" />
-               </td>
-
-           	</tr>
-
-           	<tr>
-             	<td>
-
-                  <strong><%=props.getProperty("bidirectional")%></strong>
-               </td>
-               <td>
-                  	<select name="bidirectional">
-
-
-                  		<option value=""></option>
-                  		<%
-                  			String selected="";
-                  		          	if(bidirectional.equals("true")){
-                  		          		selected="selected=\"selected\"";
-                  		          	}
-                  		%>
-                  		<option value="true" <%=selected%>>true</option>
-                  		<%
-                  			selected="";
-                  		          	if(bidirectional.equals("false")){
-                  		          		selected="selected=\"selected\"";
-                  		          	}
-                  		%>
-                  		<option value="false" <%=selected%>>false</option>
-                  	</select>
-
-               </td>
-           	</tr>
-
-
-            <tr><td colspan="2">
-                    	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>" />
-           			</td>
-           	</tr>
-
-
-              </td>
-            </tr>
-          </table>
-
-          <%
-            	if(request.getParameter("persistenceID")!=null){
-            %>
-          	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
-          <%
-          	}
-          %>
-
-        </form>
-        </div>
-          <!-- popup dialog script -->
-        <script>
-          var dlgRel = $("#dialogRelationship").dialog({
-            autoOpen: false,
-            draggable: false,
-            resizable: false,
-            width: 600
-          });
-
-          $("a#addRelationship").click(function() {
-            dlgRel.dialog("open");
-            //$("#setRelationship").find("input[type=text], textarea").val("");
-
-
-          });
-        </script>
-        <%
-           	}
-
-           //setup the javascript to handle displaying an edit tissue sample dialog box
-           if( (request.getParameter("edit")!=null) && request.getParameter("edit").equals("relationship")){
-           %>
-        <script>
-        dlgRel.dialog("open");
-        </script> --%>
 
         <%
           	}
@@ -1492,10 +1201,30 @@ if (request.getParameter("number")!=null) {
 
           	</td>
 
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#editRelationshipBtn").click(function() {
+                  resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
+                  var relationshipID = "<%=persistenceID%>".substring(0, 3);
+                  // for(var i; i < relationshipID.length; i++) {
+                  //   $(".collectionDiv").append("<p>relationshipID[i]</p>");
+                  // }
+                  var persistIDs = [];
+                  persistIDs.push(relationshipID);
+
+                  $(".collectionDiv").append("<p>" + relationshipID + "</p>")
+                  getRelationshipData(relationshipID);
+                });
+              });
+            </script>
 
 
           	<td>
-          		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
+              <div class="collectionDiv">
+
+              </div>
+              <button type="button" name="button" id="editRelationshipBtn">Edit relationship</button>
+          		<%-- <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a> --%>
           	</td>
           	<td>
           		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
