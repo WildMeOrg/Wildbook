@@ -863,25 +863,15 @@ if (request.getParameter("number")!=null) {
               var bidirectional = $("#bidirectional");
 
               $.post("RelationshipCreate", {"type": type, "markedIndividualName1": markedIndividualName1, "markedIndividualRole1": markedIndividualRole1, "markedIndividualName2": markedIndividualName2, "markedIndividualRole2": markedIndividualRole2, "relatedCommunityName": relatedCommunityName, "startTime": startTime, "endTime": endTime, "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor, "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor, "bidirectional": bidirectional},
-              function() {
-                $("#altIdErrorDiv").hide();
-                $("#altIdDiv").addClass("has-success");
-                $("#altIdCheck").show();
-                $("#displayAltID").html(alternateid);
+              function(response) {
+                $("#relationshipResponseDiv").html(response.responseText);
+
               })
               .fail(function(response) {
-                $("#altIdDiv").addClass("has-error");
-                $("#altIdError, #altIdErrorDiv").show();
-                $("#altIdErrorDiv").html(response.responseText);
+                $("#relationshipResponseDiv").html(response.responseText);
               });
             });
 
-            $("#alternateid").click(function() {
-              $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
-              $("#altIdDiv").removeClass("has-success");
-              $("#altIdDiv").removeClass("has-error");
-              $("#AltID").show();
-            });
           });
         </script>
 
@@ -890,6 +880,7 @@ if (request.getParameter("number")!=null) {
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
           <h4><%=props.getProperty("setRelationship")%></h4>
+          <div id="relationshipResponseDiv"></div>
 
           <form id="setRelationship">
             <%
