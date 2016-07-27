@@ -286,9 +286,10 @@ if (request.getParameter("number")!=null) {
     }, 6000);
 
     $("#edit").click(function() {
-      $(".noEditText").hide();
-      $(".editForm").show();
-      $(".clickDateText").show();
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError").hide();
+      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID").show();
+      $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
+      $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
     });
 
     $("#closeEdit").click(function() {
@@ -323,7 +324,7 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
@@ -385,7 +386,7 @@ if (request.getParameter("number")!=null) {
               }
               %>
 
-              <p class="noEditText"><%=nickname %>: <%=myNickname%></p>
+              <p class="noEditText"><%=nickname %>: <span id="displayNickname"><%=myNickname%></span></p>
 
               <script type="text/javascript">
                 $(document).ready(function() {
@@ -404,6 +405,8 @@ if (request.getParameter("number")!=null) {
                       $("#nicknameErrorDiv").hide();
                       $("#nameDiv, #namerDiv").addClass("has-success");
                       $("#nameCheck, #namerCheck").show();
+
+                      $("#headerDisplayNickname, #displayNickname").html(nickname);
                     })
                     .fail(function(response) {
                       $("#nameDiv, #namerDiv").addClass("has-error");
@@ -459,7 +462,7 @@ if (request.getParameter("number")!=null) {
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
             %>
-            <p class="noEditText"><%=sex %>: <%=sexValue %></p>
+            <p class="noEditText"><%=sex %>: <span id="displaySex"><%=sexValue %></span></p>
 
             <script type="text/javascript">
               $(document).ready(function() {
@@ -476,8 +479,10 @@ if (request.getParameter("number")!=null) {
                   function() {
                     $("#sexErrorDiv").hide();
                     $("#sexCheck").show();
+                    $("#displaySex").html(sex);
                     $("svg.bubbleChart").remove();
                     getData(individual);
+
                   })
                   .fail(function(response) {
                     $("#sexError, #sexErrorDiv").show();
@@ -491,6 +496,7 @@ if (request.getParameter("number")!=null) {
                 });
               });
             </script>
+
           <div class="highlight" id="sexErrorDiv"></div>
           <form name="setxsexshark" class="editForm">
             <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
@@ -545,7 +551,7 @@ if (request.getParameter("number")!=null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("birthdate")  %>:<%=displayTimeOfBirth%></p>
+            <p class="noEditText"><%=props.getProperty("birthdate")  %>: <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
 
             <script type="text/javascript">
@@ -563,6 +569,7 @@ if (request.getParameter("number")!=null) {
                     $("#birthErrorDiv").hide();
                     $("#birthDiv").addClass("has-success");
                     $("#birthCheck").show();
+                    $("#displayBirth").html(timeOfBirth);
                   })
                   .fail(function(response) {
                     $("#birthDiv").addClass("has-error");
@@ -617,7 +624,7 @@ if (request.getParameter("number")!=null) {
             //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("deathdate")  %>: <%=displayTimeOfDeath%></p>
+            <p class="noEditText"><%=props.getProperty("deathdate")  %>: <span id="displayDeath"><%=displayTimeOfDeath%></span></p>
 
             <script type="text/javascript">
               $(document).ready(function() {
@@ -634,6 +641,7 @@ if (request.getParameter("number")!=null) {
                     $("#deathErrorDiv").hide();
                     $("#deathDiv").addClass("has-success");
                     $("#deathCheck").show();
+                    $("#displayDeath").html(timeOfDeath);
                   })
                   .fail(function(response) {
                     $("#deathDiv").addClass("has-error");
@@ -682,7 +690,7 @@ if (request.getParameter("number")!=null) {
             }
 
             %>
-            <p class="noEditText"><%=alternateID %>: <%=altID%></p>
+            <p class="noEditText"><%=alternateID %>: <span id="displayAltID"><%=altID%></span></p>
 
             <script type="text/javascript">
               $(document).ready(function() {
@@ -699,6 +707,7 @@ if (request.getParameter("number")!=null) {
                     $("#altIdErrorDiv").hide();
                     $("#altIdDiv").addClass("has-success");
                     $("#altIdCheck").show();
+                    $("#displayAltID").html(alternateid);
                   })
                   .fail(function(response) {
                     $("#altIdDiv").addClass("has-error");
