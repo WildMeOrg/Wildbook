@@ -238,11 +238,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var dateInMilliseconds = new Date(jsonData.encounters[i].dateInMilliseconds);
         if(dateInMilliseconds > 0) {
-		
+
           date = dateInMilliseconds.toISOString().substring(0, 10);
 		  if(jsonData.encounters[i].day<1){date=date.substring(0,7);}
 		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
-		  
+
         } else {
           date = "Unknown";
         }
@@ -283,4 +283,66 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 
   var goToWhaleURL = function(selectedWhale) {
     window.open("/individuals.jsp?number=" + selectedWhale);
+  }
+
+  var getRelationshipData = function(relationshipID) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.social.Relationship/" + relationshipID, function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+
+      var type = jsonData.type;
+      var indiviudal1 = jsonData.markedIndividualName1;
+      var indiviudal2 = jsonData.markedIndividualName2;
+      var role1 = jsonData.markedIndividualRole1;
+      var role2 = jsonData.markedIndividualRole2;
+      var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
+      var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
+      var socialUnit = jsonData.relatedSocialUnitName;
+      var startTime = jsonData.startTime;
+      var endTime = jsonData.endTime;
+      var bidirectional = jsonData.bidirectional;
+
+      $("#addRelationshipForm").show();
+      $("#setRelationship").show();
+
+      $("#type").val(type);
+
+      $("#indiviudal1").val(indiviudal1);
+      $("#indiviudal1").prop('disabled', false);
+      $("#indiviudal1").removeClass('hideInput');
+      $('#role1').val(role1);
+      $("#descriptor1").val(descriptor1);
+
+      $("#indiviudal2").val(indiviudal2);
+      $("#indiviudal2").prop('disabled', true);
+      $("#indiviudal2").addClass('hideInput');
+      $("#role2").val(role2);
+      $("#descriptor2").val(descriptor2);
+
+      $("#socialUnit").val(socialUnit);
+      $("#startTime").val(startTime);
+      $("#endTime").val(endTime);
+      $("#bidirectional").val(bidirectional);
+    });
+  }
+
+  var resetForm = function($form, indiviudal1) {
+    $("#addRelationshipForm").show();
+
+    $form.show();
+    $form.find('input:text, select').val('');
+    $("#type option:selected").prop("selected", false);
+    $("#type option:first").prop("selected", "selected");
+    $("#role1 option:selected").prop("selected", false);
+    $("#role1 option:first").prop("selected", "selected");
+    $("#role2 option:selected").prop("selected", false);
+    $("#role2 option:first").prop("selected", "selected");
+
+    $("#indiviudal1").prop('disabled', true);
+    $("#indiviudal1").val(indiviudal1);
+    $("#indiviudal2").prop('disabled', false);
+    $("#indiviudal2").removeClass('hideInput');
+    $("#indiviudal1").addClass('hideInput');
   }
