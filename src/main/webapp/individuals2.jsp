@@ -564,27 +564,31 @@ if (request.getParameter("number")!=null) {
 
                   $.post("IndividualSetYearOfBirth", {"individual": individual, "timeOfBirth": timeOfBirth},
                   function() {
+                    $("#birthErrorDiv").hide();
                     $("#birthDiv").addClass("has-success");
                     $("#birthCheck").show();
                   })
-                  .fail(function() {
+                  .fail(function(response) {
                     $("#birthDiv").addClass("has-error");
-                    $("#birthError").show();
+                    $(".birthDateText").hide();
+                    $("#birthError, #birthErrorDiv").show();
+                    $("#birthErrorDiv").html(response.responseText);
                   });
                 });
 
                 $("#timeOfBirth").click(function() {
-                  $("#birthError, #birthCheck").hide()
+                  $("#birthError, #birthCheck, #birthErrorDiv").hide()
                   $("#birthDiv").removeClass("has-success");
                   $("#birthDiv").removeClass("has-error");
-                  $("#birthy").show();
+                  $("#birthy, .birthDateText").show();
                 });
               });
             </script>
 
             <%-- Edit birth date form --%>
-            <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
-            <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
+            <div class="highlight" id="birthErrorDiv"></div>
+            <p class="clickDateText birthDateText"><%=props.getProperty("clickDate")%></p>
+            <p class="clickDateText birthDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_birthdate">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
