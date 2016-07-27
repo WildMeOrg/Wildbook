@@ -476,12 +476,14 @@ if (request.getParameter("number")!=null) {
 
                   $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
                   function() {
+                    $("#sexErrorDiv").hide();
                     $("#sexCheck").show();
                     $("svg.bubbleChart").remove();
                     getData(individual);
                   })
-                  .fail(function() {
-                    $("#sexError").show()
+                  .fail(function(response) {
+                    $("#sexError, #sexErrorDiv").show();
+                    $("#sexErrorDiv").html(response.responseText);
                   });
                 });
 
@@ -491,7 +493,7 @@ if (request.getParameter("number")!=null) {
                 });
               });
             </script>
-
+          <div class="highlight" id="sexErrorDiv"></div>
           <form name="setxsexshark" class="editForm">
             <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
             <div class="form-group row" id="selectSex">
