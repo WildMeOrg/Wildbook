@@ -145,52 +145,7 @@ public class UserSelfUpdate extends HttpServlet {
         newUser.RefreshDate();
         
         
-        
-        //now handle roles
-        /*
-        //if this is not a new user, we need to blow away all old roles
-        List<Role> preexistingRoles=new ArrayList<Role>();
-        if(!createThisUser){
-          //get existing roles for this existing user
-          preexistingRoles=myShepherd.getAllRolesForUser(username);
-          myShepherd.getPM().deletePersistentAll(preexistingRoles);
-        }
-        
-        
-        //start role processing
-        
-        List<String> contexts=ContextConfiguration.getContextNames();
-        int numContexts=contexts.size();
-        //System.out.println("numContexts is: "+numContexts);
-        for(int d=0;d<numContexts;d++){
-        
-          String[] roles=request.getParameterValues("context"+d+"rolename");
-          if(roles!=null){
-          int numRoles=roles.length;
-          //System.out.println("numRoles in context"+d+" is: "+numRoles);
-          for(int i=0;i<numRoles;i++){
 
-            String thisRole=roles[i].trim();
-             if(!thisRole.trim().equals("")){
-            Role role=new Role();
-            if(myShepherd.getRole(thisRole,username,("context"+d))==null){
-            
-              role.setRolename(thisRole);
-              role.setUsername(username);
-              role.setContext("context"+d);
-              myShepherd.getPM().makePersistent(role);
-              addedRoles+=("SEPARATORSTART"+ContextConfiguration.getNameForContext("context"+d)+":"+roles[i]+"SEPARATOREND");
-              //System.out.println(addedRoles);
-              myShepherd.commitDBTransaction();
-              myShepherd.beginDBTransaction();
-              //System.out.println("Creating role: context"+d+thisRole);
-            }
-          }
-          }
-          }
-        }
-        //end role processing
-        */
         
 
         myShepherd.commitDBTransaction();    
@@ -202,7 +157,7 @@ public class UserSelfUpdate extends HttpServlet {
             out.println(ServletUtilities.getHeader(request));
           
               out.println("<strong>Success:</strong> User '" + username + "' was successfully updated.");
-         
+              response.setStatus(HttpServletResponse.SC_OK);
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to Your Account" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             
@@ -215,7 +170,7 @@ public class UserSelfUpdate extends HttpServlet {
         out.println("<strong>Failure:</strong> User was NOT found.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to our Account" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-        
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         
         
       }

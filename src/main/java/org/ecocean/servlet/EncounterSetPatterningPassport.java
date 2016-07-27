@@ -202,6 +202,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     // apply the data (node of pattern matching xml) to the patterningPassport
     Boolean setSuccess = pp.setPassportDataXml(xmlString,context);
     if (setSuccess.equals(Boolean.TRUE)) {
+
       returnString += "PatterningPassport successfully attached!<br/>";
       
       // TEMP -> 
@@ -214,6 +215,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
     } else {
       returnString += "PatterningPassport attach FAILED.  Are you sure it's valid XML?<br/>";
       myShepherd.rollbackDBTransaction();
+
     }
     
     myShepherd.closeDBTransaction();

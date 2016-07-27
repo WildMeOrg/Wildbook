@@ -59,7 +59,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the colorCode for encounter "+encNum+" to "+colorCode+".</p>");
-
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message="The colorCode for encounter "+encNum+" was set to "+colorCode+".";
@@ -68,7 +68,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> An exception occurred during processing. Please ask the webmaster to check the log for more information.");
-
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
@@ -79,6 +79,7 @@ public class EncounterSetPatterningCode extends HttpServlet {
                 out.println(ServletUtilities.getHeader(request));
                 out.println("<strong>Error:</strong> I was unable to set the colorCode. I cannot find the encounter that you intended in the database.");
                 out.println(ServletUtilities.getFooter(context));
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
                   }
                 out.close();

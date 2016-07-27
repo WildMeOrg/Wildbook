@@ -223,15 +223,17 @@ public class InterconnectSubmitSpots extends HttpServlet {
 
           out.println(ServletUtilities.getHeader(request));
           if (locked) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             out.println("<p>This object is currently in use by another user. Please wait a few seconds and then attempt to add spot data again.</p>");
-          } else if ((enc.getSpots() != null) && haveData && (side.equals("left"))) {
+          } 
+          else if ((enc.getSpots() != null) && haveData && (side.equals("left"))) {
             out.print("<strong>Step 1 Confirmed:</strong> Thank you for submitting " + side + "-side spot data for encounter number " + num + "!</p>\n");
             if (side.equals("right")) {
               out.println("<p>" + enc.getNumRightSpots() + " right-side spots were successfully added.</p>");
             } else {
               out.println("<p>" + enc.getNumSpots() + " left-side spots were successfully added.</p>");
             }
-
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<p><strong>Step 2: Upload the spot " + side + "-side image that you extracted the spot data from.</strong>");
             out.println("<form action=\"EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
             out.println("<input name=\"action\" type=\"hidden\" value=\"fileadder\" id=\"action\">");
@@ -255,7 +257,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             } else {
               out.println("<p>" + enc.getNumSpots() + " left-side spots were successfully added.</p>");
             }
-
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<p><strong>Step 2: Upload the spot " + side + "-side image that you extracted the spot data from.</strong>");
             out.println("<form action=\"EncounterAddSpotFile\" method=\"post\" enctype=\"multipart/form-data\" name=\"addSpotsFile\">");
             out.println("<input name=\"action\" type=\"hidden\" value=\"fileadder\" id=\"action\">");
@@ -270,12 +272,16 @@ public class InterconnectSubmitSpots extends HttpServlet {
             String message = "Spot-matching data was uploaded for encounter#" + num + ".";
             ServletUtilities.informInterestedParties(request, num, message,context);
 
-          } else if ((enc.getSpots() != null) && (!haveData) && (side.equals("left"))) {
+          } 
+          else if ((enc.getSpots() != null) && (!haveData) && (side.equals("left"))) {
             out.println("<p>You didn't submit any data!</p>");
-          } else {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+          } 
+          else {
             out.println("<p>Unfortunately, no spots were added to this shark. Check to see if you correctly added any data in the previous form.</p>");
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           }
-          ;
+          
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + num + "\">Return to encounter #" + num + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
         } catch (Exception genericE) {
@@ -297,11 +303,14 @@ public class InterconnectSubmitSpots extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       try {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p>You did not specify a valid number for this encounter: " + num + "</p>");
         out.println(ServletUtilities.getFooter(context));
-      } catch (Exception e) {
+      } 
+      catch (Exception e) {
         out.println("I couldn't find the template file to write to, but the spots were added successfully.");
         e.printStackTrace();
+        
       }
     }
     out.close();

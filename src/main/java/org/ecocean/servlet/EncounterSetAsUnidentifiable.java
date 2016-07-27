@@ -99,6 +99,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have set encounter " + request.getParameter("number") + " as unidentifiable in the database.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
+          response.setStatus(HttpServletResponse.SC_OK);
           List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
           int allStatesSize=allStates.size();
           if(allStatesSize>0){
@@ -119,7 +120,8 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           es.execute(mailer);
           es.shutdown();
 
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT modified encounter " + request.getParameter("number") + " in the database because another user is currently modifying its entry. Please try this operation again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -132,18 +134,24 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
             }
           }
           out.println(ServletUtilities.getFooter(context));
+          
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
 
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter# " + request.getParameter("number") + " is assigned to an individual and cannot be set as unidentifiable until it has been removed from that individual.");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
-    } else {
+    } 
+    else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I do not know which encounter you are trying to remove.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
 

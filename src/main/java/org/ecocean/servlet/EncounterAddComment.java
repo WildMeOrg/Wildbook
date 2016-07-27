@@ -103,11 +103,13 @@ public class EncounterAddComment extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       if (!locked) {
         myShepherd.commitDBTransaction();
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> I have successfully added your comments.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "A new comment has been added to encounter #" + request.getParameter("number") + ". The new comment is: \n" + request.getParameter("autocomments");
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying the entry for this encounter. Please try to add your comments again in a few seconds.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       }
@@ -116,6 +118,7 @@ public class EncounterAddComment extends HttpServlet {
 
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to add your comments.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));

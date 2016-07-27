@@ -162,6 +162,7 @@ public class EncounterDelete extends HttpServlet {
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
           es.execute(mailer);
           es.shutdown();
+          response.setStatus(HttpServletResponse.SC_OK);
         } 
         else {
           out.println(ServletUtilities.getHeader(request));
@@ -177,7 +178,7 @@ public class EncounterDelete extends HttpServlet {
             }
           }
           out.println(ServletUtilities.getFooter(context));
-
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
       } else {
@@ -185,13 +186,14 @@ public class EncounterDelete extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("Encounter " + request.getParameter("number") + " is assigned to a Marked Individual and cannot be deleted until it has been removed from that individual.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a>.</p>\n");
-        
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println(ServletUtilities.getFooter(context));
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to remove.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
 

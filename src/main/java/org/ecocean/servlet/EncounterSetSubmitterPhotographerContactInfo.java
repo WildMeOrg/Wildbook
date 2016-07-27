@@ -158,6 +158,7 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> Encounter contact information has been updated from:<br><i>" + oldContact + "</i><br>to<br><i>" + newContact + "</i>.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -172,7 +173,8 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         String message = "The photographer or submitter contact information for encounter #" + request.getParameter("number") + "has been updated from " + oldContact + " to " + newContact + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter contact information was NOT updated because another user is currently modifying the record for this encounter.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -186,10 +188,13 @@ public class EncounterSetSubmitterPhotographerContactInfo extends HttpServlet {
         }
         out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
       }
-    } else {
+    } 
+    else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);

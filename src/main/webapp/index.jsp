@@ -620,7 +620,8 @@ finally{
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
-                        <p class="lead">Place an inspirational quote here.</p>
+                        <p class="lead">
+                            <i>&ldquo;Sperm whales roam so vastly that no one research group can study them across their range. PhotoID as a tool for conservation and research finds power in numbers and international, inter-institutional collaboration. Flukebook enables us to do this easily.&rdquo;</i><br>- Shane Gero, <i>The Dominica Sperm Whale Project</i></p>
                         <a href="#" title="">I want to know more</a>
                     </div>
                 </div>

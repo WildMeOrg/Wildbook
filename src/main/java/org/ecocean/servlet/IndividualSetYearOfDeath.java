@@ -85,26 +85,29 @@ public class IndividualSetYearOfDeath extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the time of death for individual " + sharky + " to " + timeOfDeath + ".</p>");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_OK);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "The time of death for " + sharky + " was set to " + timeOfDeath + ".";
-      } else {
-
-        out.println(ServletUtilities.getHeader(request));
+      } 
+      else {
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        ///out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#deathdate\">Return to " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#deathdate\">Return to " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
 
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the individual's time of death. I cannot find the individual that you intended it for in the database, or the time was not specified.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
     out.close();

@@ -179,8 +179,6 @@
 				      /software.jsp = authc, roles[researcher]
 
 
-						/SinglePhotoVideoRemoveKeyword = authc, roles[researcher]
-				         /SinglePhotoVideoAddKeyword = authc, roles[researcher]
 						 /EncounterRemoveImage = authc, roles[researcher]
 						/EncounterAddImage = authc, roles[researcher]
 						/KeywordHandler = authc, roles[researcher]
@@ -384,10 +382,12 @@
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterApprove</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
@@ -923,6 +923,7 @@
     <servlet-class>org.ecocean.servlet.EncounterVMData</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
     <servlet-class>org.ecocean.servlet.SinglePhotoVideoAddKeyword</servlet-class>
@@ -932,6 +933,7 @@
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
       <servlet-class>org.ecocean.servlet.SinglePhotoVideoRemoveKeyword</servlet-class>
     </servlet>
+	-->
 
 
   <servlet>
@@ -1482,6 +1484,7 @@
     <url-pattern>/EncounterSetSubmitterPhotographerContactInfo</url-pattern>
   </servlet-mapping>
 
+  <!--
    <servlet-mapping>
       <servlet-name>SinglePhotoVideoRemoveKeyword</servlet-name>
       <url-pattern>/SinglePhotoVideoRemoveKeyword</url-pattern>
@@ -1491,7 +1494,7 @@
         <servlet-name>SinglePhotoVideoAddKeyword</servlet-name>
         <url-pattern>/SinglePhotoVideoAddKeyword</url-pattern>
   </servlet-mapping>
-
+-->
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocationID</servlet-name>
@@ -1692,10 +1695,12 @@
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterApprove</servlet-name>
     <url-pattern>/EncounterApprove</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>IndividualSetSex</servlet-name>
