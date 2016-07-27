@@ -112,6 +112,7 @@ public class EncounterSetScarring extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> Encounter scarring has been updated from " + oldScar + " to " + scar + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -124,10 +125,11 @@ public class EncounterSetScarring extends HttpServlet {
         }
         out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
         out.println(ServletUtilities.getFooter(context));
-        String message = "Encounter #" + request.getParameter("number") + " scarring has been updated from " + oldScar + " to " + scar + ".";
+        String message = "Encounter " + request.getParameter("number") + " scarring has been updated from " + oldScar + " to " + scar + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
       } else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> Encounter scarring was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -144,6 +146,7 @@ public class EncounterSetScarring extends HttpServlet {
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);

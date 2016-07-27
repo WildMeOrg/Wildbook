@@ -131,18 +131,21 @@ public class RemoveEmailAddress extends HttpServlet {
 
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success:</strong> I removed " + numInstances + " instances of your email in our database.");
         out.println(ServletUtilities.getFooter(context));
         //String message="Encounter #"+request.getParameter("number")+" location code has been updated from "+oldCode+" to "+request.getParameter("code")+".";
         //ServletUtilities.informInterestedParties(request.getParameter("number"), message);
       } else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> I could not find your email address in the database.");
         out.println(ServletUtilities.getFooter(context));
 
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println(ServletUtilities.getFooter(context));
 

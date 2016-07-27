@@ -253,12 +253,14 @@ public class EncounterAddSpotFile extends HttpServlet {
           out.println("<strong>Step 2 Confirmed:</strong> I have successfully uploaded your " + side + "-side spot data image file.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "#spotpatternmatching\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_OK);
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Step 2 Failed:</strong> This encounter is currently locked and modified by another user. Please try to resubmit your spot data and add this image again in a few seconds.");
 
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
       } else {
         myShepherd.rollbackDBTransaction();
@@ -266,12 +268,14 @@ public class EncounterAddSpotFile extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to upload your file. I cannot find the encounter that you intended it for in the database, or the file type uploaded is not supported.");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
     } catch (IOException lEx) {
       lEx.printStackTrace();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to upload your file.");
       out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
     }

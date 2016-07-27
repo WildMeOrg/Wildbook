@@ -108,6 +108,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
 
             //print successful result notice
             out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully added to occurrence " + request.getParameter("occurrence") + ".");
 
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
@@ -123,6 +124,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
           }
 
@@ -134,6 +136,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
           out.println(ServletUtilities.getFooter(context));
           myShepherd.rollbackDBTransaction();
           e.printStackTrace();
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           //myShepherd.closeDBTransaction();
         }
       } 
@@ -141,6 +144,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't add this encounter to an occurrence when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent occurrence.");
         out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();
       }

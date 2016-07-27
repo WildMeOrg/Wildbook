@@ -149,30 +149,37 @@ public class IndividualAddFile extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          out.println(ServletUtilities.getHeader(request));
+          //out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_OK);
           out.println("<strong>Success:</strong> I have successfully uploaded your data file.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          //out.println(ServletUtilities.getFooter(context));
           //String message="A new data file named "+fileName+" has been added to "+request.getParameter("individual")+".";
-        } else {
+        } 
+        else {
 
-          out.println(ServletUtilities.getHeader(request));
+          //out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I failed to add your file. This record is currently being modified by another user. Please try to add the file again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          //out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         }
-      } else {
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> I was unable to upload your file. I cannot find the record that you intended it for in the database.");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
       }
-    } catch (IOException lEx) {
+    } 
+    catch (IOException lEx) {
       lEx.printStackTrace();
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to upload your file.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
 
 
     }

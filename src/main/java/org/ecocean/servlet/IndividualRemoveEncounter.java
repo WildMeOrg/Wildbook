@@ -59,30 +59,6 @@ public class IndividualRemoveEncounter extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false, isOwner = true;
-    boolean isAssigned = false;
-
-    /**
-     if(request.getParameter("number")!=null){
-     myShepherd.beginDBTransaction();
-     if(myShepherd.isEncounter(request.getParameter("number"))) {
-     Encounter verifyMyOwner=myShepherd.getEncounter(request.getParameter("number"));
-     String locCode=verifyMyOwner.getLocationCode();
-
-     //check if the encounter is assigned
-     if((verifyMyOwner.getSubmitterID()!=null)&&(request.getRemoteUser()!=null)&&(verifyMyOwner.getSubmitterID().equals(request.getRemoteUser()))){
-     isAssigned=true;
-     }
-
-     //if the encounter is assigned to this user, they have permissions for it...or if they're a manager
-     if((request.isUserInRole("admin"))||(isAssigned)){
-     isOwner=true;
-     }
-     //if they have general location code permissions for the encounter's location code
-     else if(request.isUserInRole(locCode)){isOwner=true;}
-     }
-     myShepherd.rollbackDBTransaction();
-     }
-     */
 
     //remove encounter from MarkedIndividual
 
@@ -138,6 +114,7 @@ public class IndividualRemoveEncounter extends HttpServlet {
         if (!locked) {
           myShepherd.commitDBTransaction();
           out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_OK);
           out.println("<strong>Success:</strong> Encounter #" + request.getParameter("number") + " was successfully removed from " + old_name + ".");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
           if (wasRemoved) {
@@ -149,23 +126,28 @@ public class IndividualRemoveEncounter extends HttpServlet {
           if (!wasRemoved) {
             ServletUtilities.informInterestedIndividualParties(request, old_name, message,context);
           }
-        } else {
+        } 
+        else {
           out.println(ServletUtilities.getHeader(request));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT removed from " + old_name + ". Another user is currently modifying this record entry. Please try again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
 
         }
 
-      } else {
+      } 
+      else {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
         out.println(ServletUtilities.getFooter(context));
       }
 
 
     } else {
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("I did not receive enough data to remove this encounter from a marked individual.");
     }
 

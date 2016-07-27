@@ -407,9 +407,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       System.out.println("Ending adoption data submission.");
       //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
       if (adoptionSuccess) {
+        response.setStatus(HttpServletResponse.SC_OK);
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
       } else {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
     //}
@@ -420,35 +422,5 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
     
   } //end doPOST
 
-/*
-  public static String forHTMLTag(String aTagFragment) {
-    final StringBuffer result = new StringBuffer();
 
-    final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
-    char character = iterator.current();
-    while (character != CharacterIterator.DONE) {
-      if (character == '<') {
-        result.append("_");
-      } else if (character == '>') {
-        result.append("_");
-      } else if (character == '\"') {
-        result.append("_");
-      } else if (character == '\'') {
-        result.append("_");
-      } else if (character == '\\') {
-        result.append("_");
-      } else if (character == '&') {
-        result.append("_");
-      } else if (character == ' ') {
-        result.append("_");
-      } else {
-        //the char is not a special one
-        //add it to the result as is
-        result.append(character);
-      }
-      character = iterator.next();
-    }
-    return result.toString();
-  }
-*/
 }

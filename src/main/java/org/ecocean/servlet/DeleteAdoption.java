@@ -97,7 +97,7 @@ public class DeleteAdoption extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed adoption " + number + ". However, a saved copy an still be restored.");
-
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       } 
@@ -105,7 +105,7 @@ public class DeleteAdoption extends HttpServlet {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I failed to delete this adoption. Check the logs for more details.");
-
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
@@ -115,6 +115,7 @@ public class DeleteAdoption extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to remove your image file. I cannot find the encounter that you intended it for in the database.");
       out.println(ServletUtilities.getFooter(context));
 

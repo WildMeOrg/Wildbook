@@ -85,10 +85,11 @@ public class UserRemoveProfileImage extends HttpServlet {
       
       if(!username.equals("None")){
         out.println("<strong>Success!</strong> I have successfully removed the profile photo.");
+        response.setStatus(HttpServletResponse.SC_OK);
       }
       else{
         out.println("<strong>Failure:</strong> No such user exists in the library.");
-        
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
       
       if(request.getRequestURL().indexOf("MyAccount")!=-1){
@@ -100,9 +101,7 @@ public class UserRemoveProfileImage extends HttpServlet {
       }
       
       out.println(ServletUtilities.getFooter(context));
-      //String message = "An image file named " + fileName + " has been removed from encounter#" + encounterNumber + ".";
-      //ServletUtilities.informInterestedParties(request, encounterNumber, message);
-        
+      
 
     out.close();
   }

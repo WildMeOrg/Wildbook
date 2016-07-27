@@ -119,7 +119,7 @@ public class DeleteAllDataPermanently extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully removed all data.");
-
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       } 
@@ -127,7 +127,7 @@ public class DeleteAllDataPermanently extends HttpServlet {
 
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> I failed to delete all data.");
-
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 

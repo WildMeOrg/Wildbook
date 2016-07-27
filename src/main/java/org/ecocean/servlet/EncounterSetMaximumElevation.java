@@ -108,6 +108,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter elevation has been updated from " + oldElev + " to " + newElev + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_OK);
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
         int allStatesSize=allStates.size();
         if(allStatesSize>0){
@@ -120,8 +121,10 @@ public class EncounterSetMaximumElevation extends HttpServlet {
         out.println(ServletUtilities.getFooter(context));
         String message = "The elevation of encounter " + request.getParameter("number") + " has been updated from " + oldElev + " meters to " + newElev + " meters.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
+      } 
+      else {
         out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> Encounter elevation was NOT updated because another user is currently modifying the record for this encounter, or the value input does not translate to a valid elevation number.");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + "</a></p>\n");
         List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
@@ -139,6 +142,7 @@ public class EncounterSetMaximumElevation extends HttpServlet {
       }
     } else {
       out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
