@@ -427,10 +427,10 @@ if (request.getParameter("number")!=null) {
                   <form name="nameShark" class="editForm">
                     <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
                       <div class="form-group has-feedback row" id="nameDiv">
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                           <label><%=nickname %>:</label>
                         </div>
-                        <div class="col-sm-6 editFormInput">
+                        <div class="col-sm-7 editFormInput">
                           <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
                           <span class="form-control-feedback" id="nameCheck">&check;</span>
                           <span class="form-control-feedback" id="nameError">X</span>
@@ -438,17 +438,15 @@ if (request.getParameter("number")!=null) {
                       </div>
 
                       <div class="form-group has-feedback row" id="namerDiv">
-                        <div class="col-sm-3">
+                        <div class="col-sm-4">
                           <label><%=nicknamer %>:</label>
                         </div>
-                        <div class="col-sm-6 editFormInput">
+                        <div class="col-sm-7 editFormInput">
                           <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
                           <span class="form-control-feedback" id="namerCheck">&check;</span>
                           <span class="form-control-feedback" id="namerError">X</span>
                         </div>
-                        <div class="col-sm-1 editFormBtn">
-                          <input class="btn btn-sm" type="submit" name="Name" id="Name" value="<%=update %>">
-                        </div>
+                        <input class="btn btn-sm editFormBtn" type="submit" name="Name" id="Name" value="<%=update %>">
                       </div>
                   </form>
                   <%-- End edit nickname form --%>
@@ -497,21 +495,19 @@ if (request.getParameter("number")!=null) {
           <form name="setxsexshark" class="editForm">
             <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
             <div class="form-group row" id="selectSex">
-              <div class="col-sm-3">
+              <div class="col-sm-4">
                 <label><%=sex %>: </label>
               </div>
-              <div class="col-sm-6 editFormInput">
+              <div class="col-sm-7 col-xs-11 editFormInput">
                 <select id="newSex" name="selectSex" size="1" class="form-control">
                   <option value="unknown"><%=props.getProperty("unknown") %></option>
                   <option value="male"><%=props.getProperty("male") %></option>
                   <option value="female"><%=props.getProperty("female") %></option>
                 </select>
               </div>
-              <div class="col-sm-1 editFormBtn">
-                <input class="btn btn-sm" name="Add" type="submit" id="Add" value="<%=update %>">
+              <input class="btn btn-sm editFormBtn" name="Add" type="submit" id="Add" value="<%=update %>">
                 <span id="sexCheck">&check;</span>
                 <span id="sexError">X</span>
-              </div>
             </div>
           </form>
           <%-- End edit sex form --%>
@@ -596,14 +592,12 @@ if (request.getParameter("number")!=null) {
                 <div class="col-sm-4">
                   <label><%=props.getProperty("birthdate")  %>:</label>
                 </div>
-                <div class="col-sm-6 editFormInput">
+                <div class="col-sm-7 editFormInput">
                   <input class="form-control" name="timeOfBirth" type="text" id="timeOfBirth" value="<%=timeOfBirth %>" placeholder="2013-12-21">
                   <span class="form-control-feedback" id="birthCheck">&check;</span>
                   <span class="form-control-feedback" id="birthError">X</span>
                 </div>
-                <div class="col-sm-1 editFormBtn">
-                  <input class="btn btn-sm" name="birthy" type="submit" id="birthy" value="<%=update %>">
-                </div>
+                  <input class="btn btn-sm editFormBtn" name="birthy" type="submit" id="birthy" value="<%=update %>">
               </div>
             </form>
             <%-- End edit birth date form --%>
@@ -669,14 +663,12 @@ if (request.getParameter("number")!=null) {
                 <div class="col-sm-4">
                   <label><%=props.getProperty("deathdate")  %>:</label>
                 </div>
-                <div class="col-sm-6 editFormInput">
+                <div class="col-sm-7 editFormInput">
                   <input class="form-control" name="timeOfDeath" type="text" id="timeOfDeath" value="<%=timeOfDeath %>" placeholder="2013-12-21"/>
                   <span class="form-control-feedback" id="deathCheck">&check;</span>
                   <span class="form-control-feedback" id="deathError">X</span>
                 </div>
-                <div class="col-sm-1 editFormBtn">
-                  <input class="btn btn-sm" name="deathy" type="submit" id="deathy" value="<%=update %>">
-                </div>
+                  <input class="btn btn-sm editFormBtn" name="deathy" type="submit" id="deathy" value="<%=update %>">
               </div>
             </form>
             <%-- End edit death date form --%>
@@ -732,14 +724,12 @@ if (request.getParameter("number")!=null) {
                 <div class="col-sm-4">
                   <label><%=alternateID %>:</label>
                 </div>
-                <div class="col-sm-6 editFormInput">
+                <div class="col-sm-7 editFormInput">
                   <input class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
                   <span class="form-control-feedback" id="altIdCheck">&check;</span>
                   <span class="form-control-feedback" id="altIdError">X</span>
                 </div>
-                <div class="col-sm-1 editFormBtn">
-                  <input class="btn btn-sm" name="AltID" type="submit" id="AltID" value="<%=update %>">
-                </div>
+                  <input class="btn btn-sm editFormBtn" name="AltID" type="submit" id="AltID" value="<%=update %>">
               </div>
             </form>
             <%-- End alt id form --%>

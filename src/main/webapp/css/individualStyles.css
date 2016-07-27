@@ -57,6 +57,7 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
 
 .editForm {
   display: none;
+  margin-bottom: 10px;
 }
 
 .clickDateText{
@@ -109,7 +110,7 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
 }
 
 .editFormBtn {
-  padding-left: 0px;
+  width: 70px;
 }
 
 #addRelationshipForm {
