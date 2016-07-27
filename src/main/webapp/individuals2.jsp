@@ -635,29 +635,33 @@ if (request.getParameter("number")!=null) {
                   var individual = $("input[name='individual']").val();
                   var timeOfDeath = $("#timeOfDeath").val();
 
-                  $.post("IndividualSetYearOfDeath", {"individual": individual, "timeOfDeath": timeOfDeath},
+                  $.post("IndividualSetYearOfDeath", {"inividual": individual, "timeOfDeath": timeOfDeath},
                   function() {
+                    $("#deathErrorDiv").hide();
                     $("#deathDiv").addClass("has-success");
                     $("#deathCheck").show();
                   })
-                  .fail(function() {
+                  .fail(function(response) {
                     $("#deathDiv").addClass("has-error");
-                    $("#deathError").show();
+                    $(".deathDateText").hide();
+                    $("#deathError, #deathErrorDiv").show();
+                    $("#deathErrorDiv").html(response.responseText);
                   });
                 });
 
                 $("#timeOfDeath").click(function() {
-                  $("#deathError, #deathCheck").hide()
+                  $("#deathError, #deathCheck, #deathErrorDiv").hide()
                   $("#deathDiv").removeClass("has-success");
                   $("#deathDiv").removeClass("has-error");
-                  $("#deathy").show();
+                  $("#deathy, .deathDateText").show();
                 });
               });
             </script>
 
             <%-- Edit death date form --%>
-            <p class="clickDateText"><%=props.getProperty("clickDate")%></p>
-            <p class="clickDateText"><%=props.getProperty("leaveBlank")%></p>
+            <div class="highlight" id="deathErrorDiv"></div>
+            <p class="clickDateText deathDateText"><%=props.getProperty("clickDate")%></p>
+            <p class="clickDateText deathDateText"><%=props.getProperty("leaveBlank")%></p>
 
             <form class="editForm" name="set_deathdate">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
@@ -700,17 +704,19 @@ if (request.getParameter("number")!=null) {
 
                   $.post("IndividualSetAlternateID", {"individual": individual, "alternateid": alternateid},
                   function() {
+                    $("#altIdErrorDiv").hide();
                     $("#altIdDiv").addClass("has-success");
                     $("#altIdCheck").show();
                   })
-                  .fail(function() {
+                  .fail(function(response) {
                     $("#altIdDiv").addClass("has-error");
-                    $("#deathError").show();
+                    $("#altIdError, #altIdErrorDiv").show();
+                    $("#altIdErrorDiv").html(response.responseText);
                   });
                 });
 
                 $("#alternateid").click(function() {
-                  $("#altIdError, #altIdCheck").hide()
+                  $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
                   $("#altIdDiv").removeClass("has-success");
                   $("#altIdDiv").removeClass("has-error");
                   $("#AltID").show();
@@ -719,6 +725,7 @@ if (request.getParameter("number")!=null) {
             </script>
 
             <%-- Start alt id form --%>
+            <div class="highlight" id="altIdErrorDiv"></div>
             <form name="set_alternateid" class="editForm">
               <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
               <div class="form-group has-feedback row" id="altIdDiv">
