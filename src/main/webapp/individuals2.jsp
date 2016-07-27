@@ -843,6 +843,47 @@ if (request.getParameter("number")!=null) {
         <%
         }
         %>
+        <script type="text/javascript">
+          $(document).ready(function() {
+            $("#EditRELATIONSHIP").click(function(event) {
+              event.preventDefault();
+
+              $("#addRelationshipForm").hide();
+
+              var type = $("#type").val()
+              var markedIndividualName1 = $("#individual1").val();
+              var markedIndividualRole1 = $("#role1").val();
+              var markedIndividualName2 = $("#individual2").val();
+              var markedIndividualRole2 = $("#role2");
+              var relatedCommunityName = $("#relatedCommunityName").val();
+              var startTime = $("#startTime");
+              var endTime = $("#endTime");
+              var markedIndividual1DirectionalDescriptor = $("#descriptor1");
+              var markedIndividual2DirectionalDescriptor = $("#descriptor2");
+              var bidirectional = $("#bidirectional");
+
+              $.post("RelationshipCreate", {"type": type, "markedIndividualName1": markedIndividualName1, "markedIndividualRole1": markedIndividualRole1, "markedIndividualName2": markedIndividualName2, "markedIndividualRole2": markedIndividualRole2, "relatedCommunityName": relatedCommunityName, "startTime": startTime, "endTime": endTime, "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor, "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor, "bidirectional": bidirectional},
+              function() {
+                $("#altIdErrorDiv").hide();
+                $("#altIdDiv").addClass("has-success");
+                $("#altIdCheck").show();
+                $("#displayAltID").html(alternateid);
+              })
+              .fail(function(response) {
+                $("#altIdDiv").addClass("has-error");
+                $("#altIdError, #altIdErrorDiv").show();
+                $("#altIdErrorDiv").html(response.responseText);
+              });
+            });
+
+            $("#alternateid").click(function() {
+              $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
+              $("#altIdDiv").removeClass("has-success");
+              $("#altIdDiv").removeClass("has-error");
+              $("#AltID").show();
+            });
+          });
+        </script>
 
         <div id="addRelationshipForm">
         <%
@@ -850,7 +891,7 @@ if (request.getParameter("number")!=null) {
         %>
           <h4><%=props.getProperty("setRelationship")%></h4>
 
-          <form id="setRelationship" action="RelationshipCreate" method="post">
+          <form id="setRelationship">
             <%
             String markedIndividual1Name="";
             String markedIndividual2Name="";
@@ -944,7 +985,7 @@ if (request.getParameter("number")!=null) {
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input type="text" id="indiviudal1" placeholder="<%=props.getProperty("individualID1")%>"/>
+                <input class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
 
 
                 <%-- <%
@@ -989,10 +1030,10 @@ if (request.getParameter("number")!=null) {
                   %>
                 </select>
               </div>
-              <div class="col-xs-1 col-sm-1">
+              <div class="col-xs-2 col-sm-1">
                 <label><%=props.getProperty("markedIndividual1DirectionalDescriptor")%></label>
               </div>
-              <div class="col-xs-9 col-sm-3">
+              <div class="col-xs-7 col-sm-3">
                 <input id="descriptor1" class="form-control relationshipInput" name="markedIndividual1DirectionalDescriptor" type="text" value="<%=markedIndividual1DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>"/>
               </div>
             </div>
@@ -1001,7 +1042,7 @@ if (request.getParameter("number")!=null) {
                 <label><%=props.getProperty("individualID2")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input type="text" id="indiviudal2" placeholder="<%=props.getProperty("individualID2")%>"/>
+                <input class="form-control relationshipInput" type="text" id="indiviudal2" placeholder="<%=props.getProperty("individualID2")%>"/>
 
                 <%-- <%
                 if(!markedIndividual2Name.equals(sharky.getIndividualID())){
@@ -1036,10 +1077,10 @@ if (request.getParameter("number")!=null) {
                   %>
                 </select>
               </div>
-              <div class="col-xs-1 col-sm-1">
+              <div class="col-xs-2 col-sm-1">
                 <label><%=props.getProperty("markedIndividual2DirectionalDescriptor")%></label>
               </div>
-              <div class="col-xs-9 col-sm-3">
+              <div class="col-xs-7 col-sm-3">
                 <input id="descriptor2" class="form-control relationshipInput" name="markedIndividual2DirectionalDescriptor" type="text" value="<%=markedIndividual2DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>"/>
               </div>
             </div>
