@@ -267,7 +267,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         }
         var catalogNumber = jsonData.encounters[i].catalogNumber;
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
-          if(jsonData.encounters[i].tissueSamples.length > 0) {
+          if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
           } else if(jsonData.encounters[i].annotations.length > 0) {
             var dataTypes = "image";
