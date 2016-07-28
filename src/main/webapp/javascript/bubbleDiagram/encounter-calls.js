@@ -293,31 +293,29 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       jsonData = json;
 
       var type = jsonData.type;
-      var indiviudal1 = jsonData.markedIndividualName1;
-      var indiviudal2 = jsonData.markedIndividualName2;
+      var individual1 = jsonData.markedIndividualName1;
+      var individual2 = jsonData.markedIndividualName2;
       var role1 = jsonData.markedIndividualRole1;
       var role2 = jsonData.markedIndividualRole2;
       var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
       var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
       var socialUnit = jsonData.relatedSocialUnitName;
-      var startTime = jsonData.startTime;
-      var endTime = jsonData.endTime;
+      var startTime = new Date(jsonData.startTime);
+      var endTime = new Date(jsonData.endTime);
       var bidirectional = jsonData.bidirectional;
 
       $("#addRelationshipForm").show();
       $("#setRelationship").show();
 
-      $("#type").val(type);
+      // $("#type").val(type);
 
-      $("#indiviudal1").val(indiviudal1);
-      $("#indiviudal1").prop('disabled', false);
-      $("#indiviudal1").removeClass('hideInput');
+      $("#individual1set").hide();
+      $("#individual1").show();
+      $("#individual1").val(individual1);
       $('#role1').val(role1);
       $("#descriptor1").val(descriptor1);
 
-      $("#indiviudal2").val(indiviudal2);
-      $("#indiviudal2").prop('disabled', true);
-      $("#indiviudal2").addClass('hideInput');
+      $("#individual2").val(individual2);
       $("#role2").val(role2);
       $("#descriptor2").val(descriptor2);
 
@@ -328,7 +326,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     });
   }
 
-  var resetForm = function($form, indiviudal1) {
+  var resetForm = function($form, markedIndividual) {
     $("#addRelationshipForm").show();
 
     $form.show();
@@ -340,9 +338,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     $("#role2 option:selected").prop("selected", false);
     $("#role2 option:first").prop("selected", "selected");
 
-    $("#indiviudal1").prop('disabled', true);
-    $("#indiviudal1").val(indiviudal1);
-    $("#indiviudal2").prop('disabled', false);
-    $("#indiviudal2").removeClass('hideInput');
-    $("#indiviudal1").addClass('hideInput');
+    $("#individual1").hide();
+    $("#individual1").val(markedIndividual);
+    $("#individual1set").show();
   }
