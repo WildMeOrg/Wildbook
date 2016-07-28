@@ -112,7 +112,7 @@ public class RelationshipCreate extends HttpServlet {
           }
           
           
-          if(request.getParameter("relatedCommunityName")!=null){
+          if((request.getParameter("relatedCommunityName")!=null)&&(!request.getParameter("relatedCommunityName").trim().equals(""))){
             rel.setRelatedSocialUnitName(ServletUtilities.cleanFileName(request.getParameter("relatedCommunityName")));
           }
           else{rel.setRelatedSocialUnitName(null);}
@@ -179,7 +179,7 @@ public class RelationshipCreate extends HttpServlet {
           createThisRelationship=true;
           
           //check the community and create it if not present
-          if((request.getParameter("relatedCommunityName")!=null)&&(!myShepherd.isCommunity(request.getParameter("relatedCommunityName")))){
+          if((request.getParameter("relatedCommunityName")!=null)&&(!request.getParameter("relatedCommunityName").trim().equals(""))&&(!myShepherd.isCommunity(request.getParameter("relatedCommunityName")))){
             comm.setSocialUnitName(request.getParameter("relatedCommunityName"));
             myShepherd.getPM().makePersistent(comm);
           }
