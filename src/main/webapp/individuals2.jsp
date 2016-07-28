@@ -828,15 +828,6 @@ if (request.getParameter("number")!=null) {
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
 
-        <%-- <button class="btn btn-md" type="button" name="button" id="addRelationshipBtn"><%=props.getProperty("addRelationship") %></button> --%>
-        <script type="text/javascript">
-          $(document).ready(function() {
-            $("#addRelationshipBtn").click(function() {
-              resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
-            });
-          });
-        </script>
-
         <input class="btn btn-md" type="button" name="button" id="addRelationshipBtn" value="<%=props.getProperty("addRelationship") %>">
 
 
@@ -845,29 +836,48 @@ if (request.getParameter("number")!=null) {
         %>
         <script type="text/javascript">
           $(document).ready(function() {
+            $("#addRelationshipBtn").click(function() {
+              resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
+            });
+
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
 
-              $("#addRelationshipForm").hide();
 
-              var type = $("#type").val()
-              var markedIndividualName1 = $("#individual1").val();
+              var type = $("#type").val();
+              var markedIndividualName1 = $("#individual1set").text();
               var markedIndividualRole1 = $("#role1").val();
               var markedIndividualName2 = $("#individual2").val();
-              var markedIndividualRole2 = $("#role2");
+              var markedIndividualRole2 = $("#role2").val();
               var relatedCommunityName = $("#relatedCommunityName").val();
-              var startTime = $("#startTime");
-              var endTime = $("#endTime");
-              var markedIndividual1DirectionalDescriptor = $("#descriptor1");
-              var markedIndividual2DirectionalDescriptor = $("#descriptor2");
-              var bidirectional = $("#bidirectional");
+              var startTime = $("#startTime").val();
+              var endTime = $("#endTime").val();
+              var markedIndividual1DirectionalDescriptor = $("#descriptor1").val();
+              var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
+              var bidirectional = $("#bidirectional").val();
 
-              $.post("RelationshipCreate", {"type": type, "markedIndividualName1": markedIndividualName1, "markedIndividualRole1": markedIndividualRole1, "markedIndividualName2": markedIndividualName2, "markedIndividualRole2": markedIndividualRole2, "relatedCommunityName": relatedCommunityName, "startTime": startTime, "endTime": endTime, "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor, "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor, "bidirectional": bidirectional},
+              console.log(type, markedIndividualName1, markedIndividualRole1, markedIndividualName2, markedIndividualRole2, relatedCommunityName, startTime, endTime, markedIndividual1DirectionalDescriptor, markedIndividual2DirectionalDescriptor, bidirectional);
+
+              $.post("RelationshipCreate", {
+                "type": type,
+                "markedIndividualName1": markedIndividualName1,
+                "markedIndividualRole1": markedIndividualRole1,
+                "markedIndividualName2": markedIndividualName2,
+                "markedIndividualRole2": markedIndividualRole2,
+                "relatedCommunityName": relatedCommunityName,
+                "startTime": startTime,
+                "endTime": endTime,
+                "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor,
+                "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
+                "bidirectional": bidirectional},
               function(response) {
-                $("#relationshipResponseDiv").html(response.responseText);
+                console.log(response);
+                $("#relationshipSuccessDiv").html(response);
+                $("#addRelationshipForm").hide();
 
               })
               .fail(function(response) {
+                console.log(response);
                 $("#relationshipResponseDiv").html(response.responseText);
               });
             });
@@ -875,7 +885,8 @@ if (request.getParameter("number")!=null) {
           });
         </script>
 
-        <div id="relationshipResponseDiv"></div>
+        <div class="highlight" id="relationshipErrorDiv"></div>
+        <div class="succcessHighlight" id="relationshipSuccessDiv"></div>
         <div id="addRelationshipForm">
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -953,9 +964,7 @@ if (request.getParameter("number")!=null) {
               </div>
               <div class="col-xs-9 col-sm-3">
                 <select required name="type" class="form-control relationshipInput" id="type">
-                  <option value="CommunityMembership">social grouping</option>
-
-                  <%-- <%
+                  <%
                   List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
                   int numTypes=types.size();
                   for(int g=0;g<numTypes;g++){
@@ -963,10 +972,10 @@ if (request.getParameter("number")!=null) {
                     String selectedText="";
                     if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
-                    <option value="CommunityMembership" <%=selectedText%>><%=types.get(g)%></option>
+                    <option <%=selectedText%>><%=types.get(g)%></option>
                     <%
                   }
-                  %> --%>
+                  %>
                 </select>
               </div>
             </div>
@@ -976,24 +985,25 @@ if (request.getParameter("number")!=null) {
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
+                <p id="individual1set"><%=sharky.getIndividualID()%></p>
+                <input required class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
 
-
-                <%-- <%
+              <%-- <%
                 if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
                   %>
-                  <%=sharky.getIndividualID()%><input id="indiviudal1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
+                  <%=sharky.getIndividualID()%><input id="individual1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
 
                   <%
                 }
                 else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
                   %>
-                  <input id="indiviudal1" required class="form-control relationshipInput" name="markedIndividualName1" type="text" value="<%=markedIndividual1Name%>" placeholder="<%=props.getProperty("individualID1")%>"/>
+
+                  <input id="individual1" required class="form-control relationshipInput" name="markedIndividualName1" type="text" value="<%=markedIndividual1Name%>" placeholder="<%=props.getProperty("individualID1")%>"/>
                   <%
                 }
                 else{
                   %>
-                  <%=markedIndividual1Name%><input id="indiviudal1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
+                  <%=markedIndividual1Name%><input id="individual1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
                   <%
                 }
                 %> --%>
@@ -1033,7 +1043,8 @@ if (request.getParameter("number")!=null) {
                 <label><%=props.getProperty("individualID2")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input class="form-control relationshipInput" type="text" id="indiviudal2" placeholder="<%=props.getProperty("individualID2")%>"/>
+              <%-- <p id="individual2set"><%=sharky.getIndividualID()%></p> --%>
+                <input class="form-control relationshipInput" type="text" id="individual2" placeholder="<%=props.getProperty("individualID2")%>"/>
 
                 <%-- <%
                 if(!markedIndividual2Name.equals(sharky.getIndividualID())){
@@ -1124,13 +1135,13 @@ if (request.getParameter("number")!=null) {
               </div>
             </div>
             <input class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
-          <%-- <%
+          <%
             	if(request.getParameter("persistenceID")!=null){
             %>
-          	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
+          	<input name="persistenceID" id="persistanceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
           <%
           	}
-          %> --%>
+          %>
           </form>
         </div>
 
@@ -1164,7 +1175,7 @@ if (request.getParameter("number")!=null) {
         </div>
 
         <div id="communityTable" class="mygrid-wrapper-div">
-          <table width="100%" class="table table-striped table-bordered table-sm">
+          <table width="100%" class="table table-striped table-bordered table-sm" id="socialRelationshipTable">
           <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
           <%
           	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -1247,16 +1258,12 @@ if (request.getParameter("number")!=null) {
 
             <script type="text/javascript">
               $(document).ready(function() {
-                $("#editRelationshipBtn").click(function() {
-                  resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
-                  var relationshipID = "<%=persistenceID%>".substring(0, 3);
-                  // for(var i; i < relationshipID.length; i++) {
-                  //   $(".collectionDiv").append("<p>relationshipID[i]</p>");
-                  // }
-                  var persistIDs = [];
-                  persistIDs.push(relationshipID);
+                $("#socialRelationshipTable button").click(function() {
+                  var persistenceID = ($(this).attr("id"));
+                  $("#persistenceID").val(persistanceID);
+                  var relationshipID = persistenceID.substring(0, 3);
 
-                  $(".collectionDiv").append("<p>" + relationshipID + "</p>")
+                  console.log(relationshipID);
                   getRelationshipData(relationshipID);
                 });
               });
@@ -1267,8 +1274,7 @@ if (request.getParameter("number")!=null) {
               <div class="collectionDiv">
 
               </div>
-              <button type="button" name="button" id="editRelationshipBtn">Edit relationship</button>
-          		<%-- <a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a> --%>
+              <button type="button" name="button" id="<%=persistenceID%>">Edit relationship</button>
           	</td>
           	<td>
           		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
