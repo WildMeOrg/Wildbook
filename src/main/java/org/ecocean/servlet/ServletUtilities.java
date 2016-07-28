@@ -681,6 +681,7 @@ String rootWebappPath = "xxxxxx";
       return result;
     }
 
+
     //handy "let anyone do anything (?) cors stuff
     public static void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         response.setHeader("Access-Control-Allow-Origin", "*");
