@@ -70,6 +70,15 @@ public class ImportIA extends HttpServlet {
         if (testingLimit > 0) System.out.println("IA-IMPORT: testingLimit=" + testingLimit);
     }
 
+       if (request.getParameter("doOnly") != null) {
+               String onlyOcc = request.getParameter("doOnly");
+               System.out.println("IA-IMPORT: doing only Occurrence " + onlyOcc);
+               fancyImageSetUUIDS = new JSONArray();
+               fancyImageSetUUIDS.put(IBEISIA.toFancyUUID(onlyOcc));
+       }
+
+
+
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
         if ((testingLimit > 0) && (i >= testingLimit)) continue;
         JSONObject fancyID = fancyImageSetUUIDS.getJSONObject(i);
@@ -110,6 +119,7 @@ System.out.println("truncated to\n" + x);
             List<String> thisBatch = new ArrayList<String>();
             JSONArray thisFancy = new JSONArray();
             while ((thisBatch.size() < annotBatchSize) && (acount < annotUUIDs.size())) {
+/*
                 Annotation exist = null;
                 try {
                     exist = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annotUUIDs.get(acount)), true)));
@@ -119,6 +129,7 @@ System.out.println(" - - - skipping existing " + exist);
                     acount++;
                     continue;
                 }
+*/
                 thisBatch.add(annotUUIDs.get(acount));
                 thisFancy.put(IBEISIA.toFancyUUID(annotUUIDs.get(acount)));
                 acount++;
@@ -220,21 +231,26 @@ System.out.println("--- sex=" + sex);
         if (occ == null) {
             occ = myShepherd.getOccurrence(occID);
             if (occ == null) occ = new Occurrence(occID, enc);
+System.out.println("NEW OCC created " + occ);
         } else {
             occ.addEncounter(enc);
+System.out.println("using old OCC " + occ);
         }
+        myShepherd.getPM().makePersistent(occ);
         System.out.println("IA-IMPORT: " + occ);
         myShepherd.commitDBTransaction();
 
 
       }
 
+System.out.println("zzzzzzzzzzzzzzzzzz " + occ);
         myShepherd.getPM().makePersistent(occ);
         myShepherd.commitDBTransaction();
     }
 
     //myShepherd.closeDBTransaction();
 
+System.out.println(". . . . . . IMPORT COMPLETE . . . . . .");
 
   }
 

@@ -2039,7 +2039,7 @@ public class Shepherd {
     try {
       tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return null;
     }
     return tempShark;
