@@ -143,6 +143,14 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   padding-right: 30px;
 }
 
+#individual1set, #individual2set {
+  display: none;
+}
+
+.successHighlight {
+  color: green;
+}
+
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
