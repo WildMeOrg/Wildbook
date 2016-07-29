@@ -2511,6 +2511,12 @@ public class Shepherd {
       //return false;
     } catch (JDOException jdoe2) {
       jdoe2.printStackTrace();
+      Throwable[] throwables=jdoe2.getNestedExceptions();
+      int numThrowables=throwables.length;
+      for(int i=0;i<numThrowables;i++){
+        Throwable t=throwables[i];
+        t.printStackTrace();
+      }
       //return false;
     }
     //added to prevent conflicting calls jah 1/19/04
