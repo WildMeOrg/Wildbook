@@ -331,6 +331,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 
     $form.show();
     $form.find('input:text, select').val('');
+
     $("#type option:selected").prop("selected", false);
     $("#type option:first").prop("selected", "selected");
     $("#role1 option:selected").prop("selected", false);
@@ -338,7 +339,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     $("#role2 option:selected").prop("selected", false);
     $("#role2 option:first").prop("selected", "selected");
 
-    $("#individual1").hide();
+    $("#individual1").val('');
     $("#individual1").val(markedIndividual);
+    $("#individual1").hide();
     $("#individual1set").show();
   }
