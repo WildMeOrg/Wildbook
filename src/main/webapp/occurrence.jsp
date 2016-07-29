@@ -273,7 +273,7 @@ if(sharky.getGroupBehavior()!=null){
         }
         %>
         <input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
-        </form>
+      </form> <!-- end of setGroupBehavior form -->
     </td>
   </tr>
 </table>
@@ -308,9 +308,9 @@ if(sharky.getIndividualCount()!=null){
 </p>
 
 
+<div class="row">
 <form method="post" action="occurrence.jsp" id="occform">
 <input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" />
-
 
 
 <p>
@@ -367,6 +367,148 @@ if(sharky.getIndividualCount()!=null){
 <strong>Bearing (degrees from north)</strong>
 <input name="occ:bearing" value="<%=sharky.getBearing()%>" />
 </p>
+
+<div class="submit">
+<input type="submit" name="save" value="Save" />
+<div class="note"></div>
+</div>
+
+</form>
+</div> <!--row -->
+
+<script type="text/javascript">
+$(document).ready(function() {
+
+  var changedFields = {};
+
+	$('#occform input,#occform select').change(function() {
+    var str = $(this).val();
+    console.log('Change handler called on elem' + $(this).attr("name") + " to new val " + str);
+    changedFields[$(this).attr("name")] = str;
+		$('.submit').addClass('changes-made');
+		$('.submit .note').html('changes made. please save.');
+    console.log('changedFields = '+JSON.stringify(changedFields));
+    <%  /*out.println("WHOAH WE HAVE A CHANGE HERE");*/
+        System.out.println("WHOAH WE HAVE A CHANGE HERE");
+    %>
+	});
+	$('span.relationship').hover(function(ev) {
+//$('tr[data-indiv="07_091"]').hide();
+console.log(ev);
+		var jel = $(ev.target);
+		if (ev.type == 'mouseenter') {
+			var p = jel.data('partner');
+			$('tr[data-indiv="' + p + '"]').addClass('rel-partner');
+		} else {
+			$('.rel-partner').removeClass('rel-partner');
+		}
+	});
+	$('.enc-row').each(function(i, el) {
+		var eid = el.getAttribute('data-id');
+		el.setAttribute('title', 'click for: ' + eid);
+	});
+	$('.enc-row').click(function(el) {
+		var eid = el.currentTarget.getAttribute('data-id');
+		var w = window.open('encounters/encounter.jsp?number=' + eid, '_blank');
+		w.focus();
+		return false;
+	});
+
+	$('.col-sex').each(function(i, el) {
+		var p = $('<select><option value="">select sex</option><option>unknown</option><option>male</option><option>female</option></select>');
+		p.click( function(ev) { ev.stopPropagation(); } );
+		p.change(function() {
+			columnChange(this);
+		});
+		p.val($(el).html());
+		$(el).html(p);
+		//console.log('%o: %o', i, el);
+	});
+
+	$('.col-ageAtFirstSighting').each(function(i, el) {
+		if (!$(el).parent().data('indiv')) return;
+		var p = $('<input style="width: 30px;" placeholder="yrs" />');
+		p.click( function(ev) { ev.stopPropagation(); } );
+		p.change(function() {
+			columnChange(this);
+		});
+		p.val($(el).html());
+		$(el).html(p);
+	});
+
+	$('.col-zebraClass').each(function(i, el) {
+		var p = $('<select><option value="Unknown">Unknown</option><option>LF</option><option>NLF</option><option>TM</option><option>BM</option><option>JUV</option><option>FOAL</option></select>');
+		p.click( function(ev) { ev.stopPropagation(); } );
+		p.change(function() {
+			columnChange(this);
+		});
+		p.val($(el).html());
+		$(el).html(p);
+	});
+
+
+});
+
+
+function columnChange(el) {
+	var jel = $(el);
+	var prop = jel.parent().data('prop');
+	var eid = jel.parent().parent().data('id');
+	$('[name="' + eid + ':' + prop + '"]').remove();  //clear exisiting
+	$('<input>').attr({
+		name: eid + ':' + prop,
+		type: 'hidden',
+		value: jel.val(),
+	}).appendTo($('#occform'));
+
+	$('.submit').addClass('changes-made');
+	$('.submit .note').html('changes made. please save.');
+
+}
+
+
+var relEid = false;
+function relAdd(ev) {
+console.log(ev);
+	var jel = $(ev.target);
+	var eid = jel.parent().parent().data('id');
+	relEid = eid;
+	ev.stopPropagation();
+	$('#relationships-form input[type="text"]').val(undefined);
+	$('#relationships-form select').val(undefined);
+	$('#relationships-form').appendTo(ev.target).show();
+	$('#relationships-form input[type="text"]').focus();
+}
+
+function relSave(ev) {
+	ev.stopPropagation();
+	if (!relEid) return;
+
+	var partner = $('#rel-child-id').val();
+
+	$('<input>').attr({
+		name: relEid + ':_relMother',
+		type: 'hidden',
+		value: partner,
+	}).appendTo($('#occform'));
+	//$('#rel-child-id').val('');
+
+	$('#row-enc-' + relEid + ' .col-relationships').prepend('<span data-partner="' + partner + '" class="relationship relType-familial relRole-mother">' + partner + '</span>');
+
+	relEid = false;
+	$('#relationships-form').hide();
+	$('.submit').addClass('changes-made');
+	$('.submit .note').html('changes made. please save.');
+}
+
+function relCancel(ev) {
+	ev.stopPropagation();
+	relEid = false;
+	$('#relationships-form').hide();
+}
+
+</script>
+
 
 
 
@@ -426,7 +568,7 @@ if(sharky.getLocationID()!=null){
 
 <table id="results" width="100%">
   <tr class="lineitem">
-      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
