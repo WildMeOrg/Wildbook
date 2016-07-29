@@ -846,6 +846,10 @@ if (request.getParameter("number")!=null) {
               $("#setRelationshipResultDiv").hide();
             });
 
+            $("#closeRelationshipForm").click(function() {
+              $("#addRelationshipForm").hide();
+            });
+
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
 
@@ -1065,15 +1069,9 @@ if (request.getParameter("number")!=null) {
                 </select>
               </div>
             </div>
-            <input class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
-          <%-- <%
-            	if(request.getParameter("persistenceID")!=null){
-            %> --%>
-          	<%-- <input name="persistenceID" id="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/> --%>
+            <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
+            <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
           	<input name="persistenceID" id="persistenceID" type="hidden"/>
-          <%-- <%
-          	}
-          %> --%>
           </form>
         </div>
 
