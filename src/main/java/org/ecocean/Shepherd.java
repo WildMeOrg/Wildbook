@@ -2515,6 +2515,11 @@ public class Shepherd {
       int numThrowables=throwables.length;
       for(int i=0;i<numThrowables;i++){
         Throwable t=throwables[i];
+        if(t instanceof java.sql.SQLException){
+          java.sql.SQLException exc=(java.sql.SQLException)t;
+          java.sql.SQLException g=exc.getNextException();
+          g.printStackTrace();
+        }
         t.printStackTrace();
       }
       //return false;
