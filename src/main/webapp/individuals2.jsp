@@ -837,6 +837,7 @@ if (request.getParameter("number")!=null) {
         <script type="text/javascript">
           $(document).ready(function() {
             $("#addRelationshipBtn").click(function() {
+              $("#addRelationshipForm").show();
               resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
               $("#setRelationshipResultDiv").hide();
             });
@@ -1183,13 +1184,12 @@ if (request.getParameter("number")!=null) {
 
             <script type="text/javascript">
               $(document).ready(function() {
-                $("#socialRelationshipTable button").click(function() {
+                $(".editRelationshipBtn").click(function() {
                   $("#setRelationshipResultDiv").hide();
-                  var persistenceID = ($(this).attr("id"));
+                  var persistenceID = ($(this).attr("value"));
                   $("#persistenceID").val(persistenceID);
                   var relationshipID = persistenceID.substring(0, 3);
 
-                  console.log(relationshipID);
                   getRelationshipData(relationshipID);
                 });
               });
@@ -1200,10 +1200,53 @@ if (request.getParameter("number")!=null) {
               <div class="collectionDiv">
 
               </div>
-              <button type="button" name="button" id="<%=persistenceID%>">Edit relationship</button>
+              <button class="btn btn-sm btn-block editRelationshipBtn" type="button" name="button" value="<%=persistenceID%>"><%=props.getProperty("edit")%></button>
           	</td>
           	<td>
-          		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
+              <button class="btn btn-sm btn-block deleteRelationshipBtn" value="<%=persistenceID%>"><%=props.getProperty("remove")%></button>
+              <div class="confirmDelete" value="<%=persistenceID%>">
+                <p>Are you sure you want to delete this relationship?</p>
+                <button class="btn btn-sm btn-block yesDelete" type="button" name="button">Yes</button>
+                <button class="btn btn-sm btn-block cancelDelete" type="button" name="button">No</button>
+              </div>
+
+              <script type="text/javascript">
+              $(document).ready(function() {
+                $(".confirmDelete").hide();
+                $(".deleteRelationshipBtn[value='<%=persistenceID%>']").click(function() {
+                  $("#addRelationshipForm").hide();
+                  $(".deleteRelationshipBtn[value='<%=persistenceID%>']").hide();
+                  $("div[value='<%=persistenceID%>']").show();
+                  });
+                });
+
+                $(".yesDelete").click(function(event) {
+                  //run script to delete relationship
+                  event.preventDefault();
+                  var persistenceID = ($(this).attr("value"));
+
+                  $.post("RelationshipDelete", {"persistenceID": persistenceID},
+                  function(response) {
+                    $("#setRelationshipResultDiv").show();
+                    $("#relationshipSuccessDiv").html(response);
+                  })
+                  .fail(function(response) {
+                    $("#setRelationshipResultDiv").show();
+                    $("#relationshipErrorDiv").html(response.responseText);
+                  });
+
+                  $("div[value='<%=persistenceID%>']").hide();
+                  $(".deleteRelationshipBtn").show();
+                });
+
+                $(".cancelDelete").click(function() {
+                  $("div[value='<%=persistenceID%>']").hide();
+                  $(".deleteRelationshipBtn[value='<%=persistenceID%>']").show();
+                });
+              });
+              </script>
+
+          		<%-- <a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a> --%>
           	</td>
           	<%
           	}
@@ -1239,7 +1282,10 @@ if (request.getParameter("number")!=null) {
 
         <script type="text/javascript">
         // <% String individualID = sharky.getIndividualID();%>
-        getData("<%=individualID%>");
+        $(document).ready(function() {
+
+          getData("<%=individualID%>");
+        });
         // getTableData(<%=individualID%>);
         </script>
 
