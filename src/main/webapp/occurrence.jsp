@@ -158,15 +158,15 @@ context=ServletUtilities.getContext(request);
     if (myShepherd.isOccurrence(name)) {
 
 
-      Occurrence sharky = myShepherd.getOccurrence(name);
-      boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(sharky, request);
+      Occurrence occ = myShepherd.getOccurrence(name);
+      boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 
 
 			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
-			boolean visible = sharky.canUserAccess(request);
+			boolean visible = occ.canUserAccess(request);
 
 			if (!visible) {
-  			ArrayList<String> uids = sharky.getAllAssignedUsers();
+  			ArrayList<String> uids = occ.getAllAssignedUsers();
 				ArrayList<String> possible = new ArrayList<String>();
 				for (String u : uids) {
 					Collaboration c = null;
@@ -196,7 +196,7 @@ context=ServletUtilities.getContext(request);
 <table><tr>
 
 <td valign="middle">
- <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
+ <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">
   <td>
@@ -216,9 +216,9 @@ context=ServletUtilities.getContext(request);
 
 <p><%=props.getProperty("groupBehavior") %>:
 <%
-if(sharky.getGroupBehavior()!=null){
+if(occ.getGroupBehavior()!=null){
 %>
-	<%=sharky.getGroupBehavior() %>
+	<%=occ.getGroupBehavior() %>
 <%
 }
 %>
@@ -294,13 +294,13 @@ $("a#groupB").click(function() {
 </script>
 
 
-<p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
+<p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
 <p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
 <%
-if(sharky.getIndividualCount()!=null){
+if(occ.getIndividualCount()!=null){
 %>
-	<%=sharky.getIndividualCount() %>
+	<%=occ.getIndividualCount() %>
 <%
 }
 %>
@@ -310,37 +310,37 @@ if(sharky.getIndividualCount()!=null){
 
 <div class="row">
 <form method="post" action="occurrence.jsp" id="occform">
-<input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" />
+<input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
 
 <p>
 <strong>Habitat</strong>
-<input name="occ:habitat" value="<%=sharky.getHabitat()%>" />
+<input name="occ:habitat" value="<%=occ.getHabitat()%>" />
 </p>
 
 <p>
 <strong>Group Size</strong>
-<input name="occ:groupSize" value="<%=sharky.getGroupSize()%>" />
+<input name="occ:groupSize" value="<%=occ.getGroupSize()%>" />
 </p>
 
 <p>
 <strong>Number Territorial Males</strong>
-<input name="occ:numTerMales" value="<%=sharky.getNumTerMales()%>" />
+<input name="occ:numTerMales" value="<%=occ.getNumTerMales()%>" />
 </p>
 
 <p>
 <strong>Number Bachelor Males</strong>
-<input name="occ:numBachMales" value="<%=sharky.getNumBachMales()%>" />
+<input name="occ:numBachMales" value="<%=occ.getNumBachMales()%>" />
 </p>
 
 <p>
 <strong>Number Lactating Females</strong>
-<input name="occ:numLactFemales" value="<%=sharky.getNumLactFemales()%>" />
+<input name="occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" />
 </p>
 
 <p>
 <strong>Number Non-lactating Females</strong>
-<input name="occ:numNonLactFemales" value="<%=sharky.getNumNonLactFemales()%>" />
+<input name="occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
 </p>
 
 
@@ -348,24 +348,24 @@ if(sharky.getIndividualCount()!=null){
 
 <div style="position: absolute; top: 0; left: 0;">
 <strong>Decimal Latitude</strong>
-<input name="occ:decimalLatitude" value="<%=sharky.getDecimalLatitude()%>" />
+<input name="occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
 </div>
 
 <div style="position: absolute; top: 0; right: 0;">
 <strong>Decimal Longitude</strong>
-<input name="occ:decimalLongitude" value="<%=sharky.getDecimalLongitude()%>" />
+<input name="occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
 </div>
 
 </div>
 
 <p>
 <strong>Distance (meters)</strong>
-<input name="occ:distance" value="<%=sharky.getDistance()%>" />
+<input name="occ:distance" value="<%=occ.getDistance()%>" />
 </p>
 
 <p>
 <strong>Bearing (degrees from north)</strong>
-<input name="occ:bearing" value="<%=sharky.getBearing()%>" />
+<input name="occ:bearing" value="<%=occ.getBearing()%>" />
 </p>
 
 <div class="submit">
@@ -549,9 +549,9 @@ $("a#indies").click(function() {
 
 <p><%=props.getProperty("locationID") %>:
 <%
-if(sharky.getLocationID()!=null){
+if(occ.getLocationID()!=null){
 %>
-	<%=sharky.getLocationID() %>
+	<%=occ.getLocationID() %>
 <%
 }
 %>
@@ -561,7 +561,7 @@ if(sharky.getLocationID()!=null){
 
 <td align="left" valign="top">
 
-<p><strong><%=sharky.getNumberEncounters()%>
+<p><strong><%=occ.getNumberEncounters()%>
 </strong>
   <%=props.getProperty("numencounters") %>
 </p>
@@ -592,7 +592,7 @@ if(sharky.getLocationID()!=null){
 
   </tr>
   <%
-    Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(false);
+    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
 
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
@@ -748,7 +748,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
     <%
     String[] keywords=keywords=new String[0];
-		int numThumbnails = myShepherd.getNumThumbnails(sharky.getEncounters().iterator(), keywords);
+		int numThumbnails = myShepherd.getNumThumbnails(occ.getEncounters().iterator(), keywords);
 		if(numThumbnails>0){
 		%>
 
@@ -773,7 +773,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 			try {
 
 
-			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE occurrenceID == \""+sharky.getOccurrenceID()+"\"");
+			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE occurrenceID == \""+occ.getOccurrenceID()+"\"");
 		        //query.setFilter("SELECT "+jdoqlQueryString);
 		        query.setResult("catalogNumber");
 		        Collection c = (Collection) (query.execute());
@@ -1127,7 +1127,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <div style="text-align:left;border:1px solid black;width:100%;height:400px;overflow-y:scroll;overflow-x:scroll;">
 
-<p><%=sharky.getComments().replaceAll("\n", "<br>")%>
+<p><%=occ.getComments().replaceAll("\n", "<br>")%>
 </p>
 </div>
 <%
@@ -1137,7 +1137,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <form action="OccurrenceAddComment" method="post" name="addComments">
   <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user">
-  <input name="number" type="hidden" value="<%=sharky.getOccurrenceID()%>" id="number">
+  <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" id="number">
   <input name="action" type="hidden" value="comments" id="action">
 
   <p><textarea name="comments" cols="60" id="comments"></textarea> <br>
