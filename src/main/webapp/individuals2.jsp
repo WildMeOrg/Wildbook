@@ -285,6 +285,10 @@ if (request.getParameter("number")!=null) {
 
     }, 6000);
 
+    var buttons = $("#edit, #closeEdit").on("click", function(){
+        buttons.toggle();
+    })
+
     $("#edit").click(function() {
       $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError").hide();
       $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID").show();
@@ -845,7 +849,6 @@ if (request.getParameter("number")!=null) {
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
 
-
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
               var markedIndividualRole1 = $("#role1").val();
@@ -858,7 +861,7 @@ if (request.getParameter("number")!=null) {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
-              console.log(type, markedIndividualName1, markedIndividualRole1, markedIndividualName2, markedIndividualRole2, relatedCommunityName, startTime, endTime, markedIndividual1DirectionalDescriptor, markedIndividual2DirectionalDescriptor, bidirectional);
+              // console.log(type, markedIndividualName1, markedIndividualRole1, markedIndividualName2, markedIndividualRole2, relatedCommunityName, startTime, endTime, markedIndividual1DirectionalDescriptor, markedIndividual2DirectionalDescriptor, bidirectional);
 
               $.post("RelationshipCreate", {
                 "type": type,
@@ -871,7 +874,8 @@ if (request.getParameter("number")!=null) {
                 "endTime": endTime,
                 "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor,
                 "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
-                "bidirectional": bidirectional},
+                "bidirectional": bidirectional
+              },
               function(response) {
                 $("#setRelationshipResultDiv").show();
                 $("#relationshipSuccessDiv").html(response);
@@ -890,14 +894,15 @@ if (request.getParameter("number")!=null) {
           });
         </script>
 
-        <div id="setRelationshipResultDiv">
-          <span class="highlight" id="relationshipErrorDiv"></span>
-          <span class="successHighlight" id="relationshipSuccessDiv"></span>
-          </div>
-        <div id="addRelationshipForm">
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
+          <div id="setRelationshipResultDiv">
+            <span class="highlight" id="relationshipErrorDiv"></span>
+            <span class="successHighlight" id="relationshipSuccessDiv"></span>
+          </div>
+          <div id="addRelationshipForm">
+
           <h4><%=props.getProperty("setRelationship")%></h4>
 
           <form id="setRelationship">
@@ -915,6 +920,7 @@ if (request.getParameter("number")!=null) {
             String communityName="";
 
                 %>
+
             <div class="form-group row">
               <div  class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("type")%></label>
@@ -1095,8 +1101,7 @@ if (request.getParameter("number")!=null) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-
-          setupFamilyTree(<%=individualID%>);
+            setupFamilyTree(<%=individualID%>);
           </script>
         </div>
 
@@ -1243,7 +1248,6 @@ if (request.getParameter("number")!=null) {
                   $("div[value='<%=persistenceID%>']").hide();
                   $(".deleteRelationshipBtn[value='<%=persistenceID%>']").show();
                 });
-              });
               </script>
 
           		<%-- <a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a> --%>

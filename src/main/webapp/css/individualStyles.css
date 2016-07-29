@@ -131,6 +131,14 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   margin-bottom: 20px;
 }
 
+#edit {
+  display: block;
+}
+
+#closeEdit {
+  display: none;
+}
+
 #edit, #closeEdit {
   background-color: white;
 }
