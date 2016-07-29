@@ -90,7 +90,9 @@ public class RelationshipCreate extends HttpServlet {
             }
             else{
               rel=new Relationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"));
-              myShepherd.getPM().makePersistent(rel);          
+              myShepherd.getPM().makePersistent(rel); 
+              myShepherd.commitDBTransaction();
+              myShepherd.beginDBTransaction();
               
             }
             
