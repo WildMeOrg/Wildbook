@@ -188,6 +188,16 @@ button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
   color: #FFFFFF;
 }
 
+input.btn.btn-md#closeRelationshipForm {
+  background-color: #D9231A;
+  color: #FFFFFF;
+}
+
+input.btn.btn-md#closeRelationshipForm:hover {
+  background-color: #EE261D;
+  color: #FFFFFF;
+}
+
 .setRelationshipResultDiv {
   padding-bottom: 20px;
 }
