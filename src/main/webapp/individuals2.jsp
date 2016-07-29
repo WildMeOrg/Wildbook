@@ -838,6 +838,7 @@ if (request.getParameter("number")!=null) {
           $(document).ready(function() {
             $("#addRelationshipBtn").click(function() {
               resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
+              $("#setRelationshipResultDiv").hide();
             });
 
             $("#EditRELATIONSHIP").click(function(event) {
@@ -845,7 +846,7 @@ if (request.getParameter("number")!=null) {
 
 
               var type = $("#type").val();
-              var markedIndividualName1 = $("#individual1set").text();
+              var markedIndividualName1 = $("#individual1").val();
               var markedIndividualRole1 = $("#role1").val();
               var markedIndividualName2 = $("#individual2").val();
               var markedIndividualRole2 = $("#role2").val();
@@ -871,22 +872,27 @@ if (request.getParameter("number")!=null) {
                 "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
                 "bidirectional": bidirectional},
               function(response) {
-                console.log(response);
+                $("#setRelationshipResultDiv").show();
                 $("#relationshipSuccessDiv").html(response);
+                $("#relationshipErrorDiv").empty();
                 $("#addRelationshipForm").hide();
 
               })
               .fail(function(response) {
-                console.log(response);
-                $("#relationshipResponseDiv").html(response.responseText);
+                $("#setRelationshipResultDiv").show();
+                $("#relationshipErrorDiv").html(response.responseText);
+                $("#relationshipSuccessDiv").empty();
+                $("#addRelationshipForm").hide();
               });
             });
 
           });
         </script>
 
-        <div class="highlight" id="relationshipErrorDiv"></div>
-        <div class="succcessHighlight" id="relationshipSuccessDiv"></div>
+        <div id="setRelationshipResultDiv">
+          <span class="highlight" id="relationshipErrorDiv"></span>
+          <span class="successHighlight" id="relationshipSuccessDiv"></span>
+          </div>
         <div id="addRelationshipForm">
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
@@ -972,6 +978,7 @@ if (request.getParameter("number")!=null) {
                     String selectedText="";
                     if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
+                    <%-- when type is saved and sent to servlet it looks for the value of the option - returning as social grouping, how to make it CommunityMembership or Familia --%>
                     <option <%=selectedText%>><%=types.get(g)%></option>
                     <%
                   }
@@ -1135,13 +1142,14 @@ if (request.getParameter("number")!=null) {
               </div>
             </div>
             <input class="btn btn-sm" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
-          <%
+          <%-- <%
             	if(request.getParameter("persistenceID")!=null){
-            %>
-          	<input name="persistenceID" id="persistanceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
-          <%
+            %> --%>
+          	<%-- <input name="persistenceID" id="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/> --%>
+          	<input name="persistenceID" id="persistenceID" type="hidden"/>
+          <%-- <%
           	}
-          %>
+          %> --%>
           </form>
         </div>
 
@@ -1259,8 +1267,9 @@ if (request.getParameter("number")!=null) {
             <script type="text/javascript">
               $(document).ready(function() {
                 $("#socialRelationshipTable button").click(function() {
+                  $("#setRelationshipResultDiv").hide();
                   var persistenceID = ($(this).attr("id"));
-                  $("#persistenceID").val(persistanceID);
+                  $("#persistenceID").val(persistenceID);
                   var relationshipID = persistenceID.substring(0, 3);
 
                   console.log(relationshipID);
