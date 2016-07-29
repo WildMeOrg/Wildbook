@@ -913,55 +913,6 @@ if (request.getParameter("number")!=null) {
             String markedIndividual2DirectionalDescriptor="";
             String communityName="";
 
-            //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
-
-            if(request.getParameter("persistenceID")!=null){
-
-              //Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
-
-              Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));
-
-              Relationship myRel=(Relationship)myShepherd.getPM().getObjectById(identity);
-
-              if(myRel.getMarkedIndividualName1()!=null){
-                markedIndividual1Name=myRel.getMarkedIndividualName1();
-              }
-              if(myRel.getMarkedIndividualName2()!=null){
-                markedIndividual2Name=myRel.getMarkedIndividualName2();
-              }
-              if(myRel.getMarkedIndividualRole1()!=null){
-                markedIndividual1Role=myRel.getMarkedIndividualRole1();
-              }
-              if(myRel.getMarkedIndividualRole2()!=null){
-                markedIndividual2Role=myRel.getMarkedIndividualRole2();
-              }
-              if(myRel.getType()!=null){
-                type=myRel.getType();
-              }
-              if(myRel.getMarkedIndividual1DirectionalDescriptor()!=null){
-                markedIndividual1DirectionalDescriptor=myRel.getMarkedIndividual1DirectionalDescriptor();
-              }
-              if(myRel.getMarkedIndividual2DirectionalDescriptor()!=null){
-                markedIndividual2DirectionalDescriptor=myRel.getMarkedIndividual2DirectionalDescriptor();
-              }
-
-              if(myRel.getStartTime()>-1){
-                startTime=(new DateTime(myRel.getStartTime())).toString();
-              }
-              if(myRel.getEndTime()>-1){
-                endTime=(new DateTime(myRel.getEndTime())).toString();
-                }
-
-                if(myRel.getBidirectional()!=null){
-                bidirectional=myRel.getBidirectional().toString();
-                }
-
-                if(myRel.getRelatedSocialUnitName()!=null){
-                communityName=myRel.getRelatedSocialUnitName();
-                }
-
-
-                }
                 %>
             <div class="form-group row">
               <div  class="col-xs-3 col-sm-2">
@@ -978,7 +929,7 @@ if (request.getParameter("number")!=null) {
                     String selectedText="";
                     if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
-                    <%-- when type is saved and sent to servlet it looks for the value of the option - returning as social grouping, how to make it CommunityMembership or Familia --%>
+                    <%-- when type is saved and sent to servlet it looks for the value of the option - returning as social grouping, how to make it CommunityMembership or Familial --%>
                     <option <%=selectedText%>><%=types.get(g)%></option>
                     <%
                   }
@@ -994,26 +945,6 @@ if (request.getParameter("number")!=null) {
               <div class="col-xs-9 col-sm-3">
                 <p id="individual1set"><%=sharky.getIndividualID()%></p>
                 <input required class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
-
-              <%-- <%
-                if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
-                  %>
-                  <%=sharky.getIndividualID()%><input id="individual1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-
-                  <%
-                }
-                else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
-                  %>
-
-                  <input id="individual1" required class="form-control relationshipInput" name="markedIndividualName1" type="text" value="<%=markedIndividual1Name%>" placeholder="<%=props.getProperty("individualID1")%>"/>
-                  <%
-                }
-                else{
-                  %>
-                  <%=markedIndividual1Name%><input id="individual1" class="relationshipInput" type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-                  <%
-                }
-                %> --%>
               </div>
 
             </div>
@@ -1050,21 +981,7 @@ if (request.getParameter("number")!=null) {
                 <label><%=props.getProperty("individualID2")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-              <%-- <p id="individual2set"><%=sharky.getIndividualID()%></p> --%>
                 <input class="form-control relationshipInput" type="text" id="individual2" placeholder="<%=props.getProperty("individualID2")%>"/>
-
-                <%-- <%
-                if(!markedIndividual2Name.equals(sharky.getIndividualID())){
-                  %>
-                  <input id="individual2" class="form-control relationshipInput" name="markedIndividualName2" type="text" value="<%=markedIndividual2Name%>" placeholder="<%=props.getProperty("individualID2")%>"/>
-                  <%
-                }
-                else{
-                  %>
-                  <%=markedIndividual2Name%><input id="individual2" type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
-                  <%
-                }
-                %> --%>
               </div>
             </div>
             <div class="form-group row">
