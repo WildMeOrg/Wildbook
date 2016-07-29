@@ -180,6 +180,10 @@ button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
   color: #FFFFFF;
 }
 
+.setRelationshipResultDiv {
+  padding-bottom: 20px;
+}
+
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {
   display: none;
