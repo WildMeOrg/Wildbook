@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, com.google.gson.Gson" %>
+         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, org.ecocean.social.*, com.google.gson.Gson" %>
 
 <%
 
@@ -164,6 +164,132 @@ context=ServletUtilities.getContext(request);
 
 			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = occ.canUserAccess(request);
+
+
+      String saving = request.getParameter("save");
+      String saveMessage = "";
+
+
+      if (saving != null) {
+
+        System.out.println("OCCURRENCE.JSP: Saving updated info...");
+
+        Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+        int total = dateSortedEncs.length;
+
+        HashMap<String,Encounter> encById = new HashMap<String,Encounter>();
+        for (int i = 0; i < total; i++) {
+          Encounter enc = dateSortedEncs[i];
+          encById.put(enc.getCatalogNumber(), enc);
+        }
+
+        ArrayList<Encounter> changedEncs = new ArrayList<Encounter>();
+        //myShepherd.beginDBTransaction();
+        Enumeration en = request.getParameterNames();
+        while (en.hasMoreElements()) {
+          String pname = (String)en.nextElement();
+          if (pname.indexOf("occ:") == 0) {
+            String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
+            String value = request.getParameter(pname);
+            //saveMessage += "<p>occ - " + methodName + "</P>";
+            java.lang.reflect.Method method;
+            if ((pname.indexOf("decimalL") > -1) || pname.equals("occ:distance") || pname.equals("occ:bearing")) {  //must call with Double value
+              Double dbl = null;
+              try {
+                dbl = Double.parseDouble(value);
+              } catch (Exception ex) {
+                System.out.println("could not parse double from " + value + ", using null");
+              }
+              try {
+                method = occ.getClass().getMethod(methodName, Double.class);
+                method.invoke(occ, dbl);
+                System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+dbl);
+              } catch (Exception ex) {
+                System.out.println(methodName + " -> " + ex.toString());
+              }
+            } else if ((pname.indexOf("num") == 4) || pname.equals("occ:groupSize")) {  //int
+              Integer i = null;
+              try {
+                i = Integer.parseInt(value);
+                System.out.println("OCCURRENCE.JSP: parsed integer value "+i+" for method "+methodName);
+              } catch (Exception ex) {
+                System.out.println("could not parse integer from " + value + ", using null");
+              }
+              try {
+                method = occ.getClass().getMethod(methodName, Integer.class);
+                method.invoke(occ, i);
+                System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+i);
+              } catch (Exception ex) {
+                System.out.println(("caught exception on "+methodName+" -> "+ex.toString()));
+              }
+            } else {
+              try {
+                method = occ.getClass().getMethod(methodName, String.class);
+                method.invoke(occ, value);
+                System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+value);
+              } catch (Exception ex) {
+                System.out.println(methodName + " -> " + ex.toString());
+              }
+            }
+
+          } // encounter-related fields
+            else if (pname.indexOf(":") > -1) {
+            int i = pname.indexOf(":");
+            String id = pname.substring(0, i);
+            String methodName = "set" + pname.substring(i+1, i+2).toUpperCase() + pname.substring(i+2);
+            String value = request.getParameter(pname);
+            Encounter enc = encById.get(id);
+            if (enc != null) {
+              java.lang.reflect.Method method;
+              if (methodName.equals("set_relMother")) {  //special case - make relationship
+                if ((value != null) && !value.equals("") && (enc.getIndividualID() != null)) {
+                  MarkedIndividual partnerIndiv = myShepherd.getMarkedIndividual(value);
+                  if (partnerIndiv != null) {
+                    Relationship rel = new Relationship("familial", enc.getIndividualID(), value, "mother", "calf");  //TODO generalize, i guess
+                    myShepherd.getPM().makePersistent(rel);
+                  }
+                }
+
+
+              } /*else if (methodName.equals("setAgeAtFirstSighting")) {  //need a Double, sets on individual
+                Double dbl = null;
+                try {
+                  dbl = Double.parseDouble(value);
+                } catch (Exception ex) {
+                  System.out.println("could not parse double from " + value + ", using null");
+                }
+                if ((dbl != null) && (enc.getIndividualID() != null)) {
+                  MarkedIndividual ind = myShepherd.getMarkedIndividual(enc.getIndividualID());
+                  if (ind != null) {
+                    ind.setAgeAtFirstSighting(dbl);
+                  }
+                }
+
+              } */ else {  //string
+                try {
+                  method = enc.getClass().getMethod(methodName, String.class);
+                  method.invoke(enc, value);
+                  System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+value);
+                  if (!changedEncs.contains(enc)) changedEncs.add(enc);
+                } catch (Exception ex) {
+                  System.out.println(methodName + " -> " + ex.toString());
+                }
+                //special case: we save the sex on the individual as well, if none is set there
+                if (methodName.equals("setSex") && (value != null) && !value.equals("") && !value.equals("unknown") && (enc.getIndividualID() != null)) {
+                  MarkedIndividual ind = myShepherd.getMarkedIndividual(enc.getIndividualID());
+                  if ((ind != null) && ((ind.getSex() == null) || ind.getSex().equals("") || ind.getSex().equals("unknown"))) {
+                    ind.setSex(value);
+                    System.out.println("setting sex=" + value + " on indiv " + ind.getIndividualID());
+                  }
+                }
+              }
+            }
+          }
+        }
+        myShepherd.commitDBTransaction();
+        System.out.println("OCCURRENCE.JSP: Transaction committed");
+      }
+
 
 			if (!visible) {
   			ArrayList<String> uids = occ.getAllAssignedUsers();
@@ -389,7 +515,7 @@ $(document).ready(function() {
 		$('.submit .note').html('changes made. please save.');
     console.log('changedFields = '+JSON.stringify(changedFields));
     <%  /*out.println("WHOAH WE HAVE A CHANGE HERE");*/
-        System.out.println("WHOAH WE HAVE A CHANGE HERE");
+        System.out.println("OCCURRENCE.JSP: change detected in form (JS)");
     %>
 	});
 	$('span.relationship').hover(function(ev) {
