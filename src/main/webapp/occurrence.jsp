@@ -347,7 +347,7 @@ context=ServletUtilities.getContext(request);
 <table><tr>
 
 <td valign="middle">
- <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=occ.getOccurrenceID()%></h1>
+ <h1><strong>&nbsp;<%=props.getProperty("occurrence") %></strong> <%=occ.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
  <table><tr valign="middle">
   <td>
@@ -462,7 +462,7 @@ if(occ.getIndividualCount()!=null){
 
 <div class="row">
 <div class="col-sm-12">
-<form method="post" action="occurrence.jsp?number=<%=name%>" id="occform">
+<form method="post" action="occurrence.jsp" id="occform">
 <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
 <style type="text/css">
@@ -470,21 +470,69 @@ if(occ.getIndividualCount()!=null){
     padding-bottom: 20px;
   }
 
-  table.occurrence-field-edit td {
+  table.occurrence-field-edit td:first-child {
     padding-right: 3em;
   }
+  table.occurrence-field-edit td {
+    padding-right: 0px;
+    padding-top: 2px;
+    padding-bottom: 3px;
+  }
+
+  table.occurrence-field-edit td.undo-container {
+    display: none;
+  }
+  table.occurrence-field-edit tr.changed-row td.undo-container {
+    display: unset;
+    padding: 0px;
+    margin: 0px;
+  }
+  table.occurrence-field-edit tr.changed-row td.undo-container div {
+    color: #000;
+    background: inherit;
+    border:none;
+    margin:0px;
+    padding: 6px;
+    padding-bottom:6px;
+    padding-top:5px;
+    font: inherit;
+    /*border is optional*/
+    cursor: pointer;
+  }
+
+  table.occurrence-field-edit tr.changed-row td.undo-container div.undo-button:hover {
+    cursor: pointer;
+    font-weight: bold;
+    background: #ddd;
+  }
+
+  table.occurrence-field-edit tr.padding-below td {
+    padding-bottom: 10px;
+  }
+
+
+  table.occurrence-field-edit tr.changed-row {
+    background: #ebebeb;
+    border-radius: 5px;
+  }
+
+
 
 </style>
 
 <table  class="occurrence-field-edit">
-  <tr class="padding-below">
+  <tr>
     <td>
       Habitat
     </td><td>
       <input name="oldValue-occ:habitat" value="<%=occ.getHabitat()%>" />
     </td>
   </tr>
-<p>
+
+  <tr class="padding-below">
+    <td></td>
+  </tr>
+
 <tr>
 <td>Group Size</td>
 <td><input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
@@ -505,11 +553,20 @@ if(occ.getIndividualCount()!=null){
 <td><input name="oldValue-occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" /></td>
 </tr>
 
-<tr class="padding-below">
-<td>Number Non-lactating Females</td>
-<td><input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" /></td>
+<tr data-original-value="<%=occ.getNumNonLactFemales()%>">
+  <td>Number Non-lactating Females</td>
+  <td>
+    <input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
+  </td>
+  <td class="undo-container">
+    <div title="undo this change" class="undo-button">&#8635;</div>
+  </td>
 </tr>
 </p>
+
+<tr class="padding-below">
+  <td></td>
+</tr>
 
 
 <p>
@@ -522,6 +579,10 @@ if(occ.getIndividualCount()!=null){
 <td><input name="oldValue-occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
 </td></tr>
 </p>
+
+<tr class="padding-below">
+  <td></td>
+</tr>
 
 <p>
 <tr>
@@ -551,15 +612,36 @@ var occFuncs = {};
 occFuncs.checkIfOldFormValue = function(changedElem) {
   return ($(changedElem).attr("name").startsWith("oldValue-"));
 }
+occFuncs.checkIfOldFormValue$ = function($changedElem) {
+  return (changedElem.attr("name").startsWith("oldValue-"));
+}
+
 occFuncs.markFormFieldNotOld = function(changedElem) {
   if (occFuncs.checkIfOldFormValue(changedElem)) {
     $(changedElem).attr("name",$(changedElem).attr("name").substring(9));
+    $(changedElem).closest('tr').addClass("changed-row");
   }
+}
+occFuncs.markFormFieldOld$ = function($inputElem) {
+  if (!occFuncs.checkIfOldFormValue($inputElem)){
+    $inputElem.attr("name","oldValue-"+$inputElem.attr("name"));
+  }
+
 }
 
 $(document).ready(function() {
 
   var changedFields = {};
+
+  $("td.undo-container div.undo-button").click(function(event) {
+    event.stopPropagation();
+    var changedRow = $(this).closest('tr.changed-row');
+    changedRow.removeClass('changed-row');
+    var original = changedRow.attr('data-original-value');
+    var correspondingInput = changedRow.find('td input');
+    correspondingInput.val(original);
+    occFuncs.markFormFieldOld$(correspondingInput);
+  });
 
 	$('#occform input,#occform select').change(function() {
     occFuncs.markFormFieldNotOld(this);
