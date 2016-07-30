@@ -286,7 +286,11 @@ td.measurement{
               map = new google.maps.Map(document.getElementById('map_canvas'), {
                 zoom: mapZoom,
                 center: center,
-                mapTypeId: google.maps.MapTypeId.HYBRID
+                mapTypeId: google.maps.MapTypeId.HYBRID,
+                zoomControl: true,
+                scaleControl: false,
+                scrollwheel: false,
+                disableDoubleClickZoom: true,
         });
 
         	if(marker!=null){
@@ -409,6 +413,7 @@ margin-bottom: 8px !important;
 <div class="container maincontent">
 
 <div class="row">
+  <div class="col-xs-12">
 
 			<%
   			myShepherd.beginDBTransaction();
@@ -417,6 +422,7 @@ margin-bottom: 8px !important;
     			try {
 
       			Encounter enc = myShepherd.getEncounter(num);
+            String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
 
 						if (!visible) {
@@ -589,11 +595,11 @@ $(function() {
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
- 					<table style="border-spacing: 10px;border-collapse: inherit;">
+ 					<table style="border-spacing: 10px;margin-left:-10px;border-collapse: inherit;">
  						<tr valign="middle">
   							<td>
     							<!-- Google PLUS-ONE button -->
-								<g:plusone size="small" annotation="none"></g:plusone>
+								<g:plusone size="medium" annotation="none"></g:plusone>
 							</td>
 							<td>
 								<!--  Twitter TWEET THIS button -->
@@ -606,10 +612,18 @@ $(function() {
 						</tr>
 					</table>
           </div>
-					<table>
-						<tr>
-							<td width="560px" style="vertical-align:top">
-
+        </div>
+					
+	
+	
+	<!-- main display area -->		
+			
+					<div class="container">
+						<div class="row">
+							
+							
+							  <!-- here lies the photo gallery  -->
+  <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
 <!-- START IDENTITY ATTRIBUTE -->
@@ -1025,12 +1039,48 @@ $("a#occurrence").click(function() {
 %>
 <!-- END OCCURRENCE ATTRIBUTE -->
 
-<br />
+
+
+    <jsp:include page="encounterMediaGallery.jsp" flush="true">
+    	<jsp:param name="encounterNumber" value="<%=num%>" />
+    	<jsp:param name="isOwner" value="<%=isOwner %>" />
+    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+  	</jsp:include>
+
+    <div id="add-image-zone" class="bc4">
+
+      <h2 style="text-align:left">Add image to Encounter</h2>
+
+      <div class="flow-box bc4" style="text-align:center" >
+
+        <div id="file-activity" style="display:none"></div>
+
+        <div id="updone"></div>
+
+        <div id="upcontrols">
+          <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+          <div id="flowbuttons">
+
+            <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+            <button id="upload-button" class="btn" style="display:none">begin upload</button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+							
+							
+							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
+
+
+
 
 <!-- start DATE section -->
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top;">
 
 <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
 </h2>
@@ -3621,22 +3671,258 @@ $("a#dynamicPropertyAdd").click(function() {
 %>
 
 
-  </td>
+  </div>
 
 
-  <!-- here lies the photo gallery  -->
-  <td style="vertical-align: top;padding-left: 10px;">
 
-    <jsp:include page="encounterMediaGallery.jsp" flush="true">
-    	<jsp:param name="encounterNumber" value="<%=num%>" />
-    	<jsp:param name="isOwner" value="<%=isOwner %>" />
-    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-  	</jsp:include>
+</div>
+</div>
 
-  </td>
-</tr>
-</table>
+<!-- end two columns here -->
 
+<script src="../tools/flow.min.js"></script>
+<style>
+
+div#add-image-zone {
+  background-color: #e8e8e8;
+  margin-bottom: 8px;
+  padding: 13px;
+}
+
+div#file-activity {
+	font-family: sans;
+  padding-top: 8px;
+	padding-bottom: 8px;
+	margin: 0px;
+	min-height: 20px;
+  border-radius: 5px;
+}
+div.file-item {
+	position: relative;
+	background-color: #DDD;
+	border-radius: 3px;
+	margin: 2px;
+}
+
+div.file-item div {
+	display: inline-block;
+	padding: 3px 7px;
+}
+.file-size {
+	width: 10%;
+}
+
+.file-bar {
+	position: absolute;
+	width: 0;
+	height: 100%;
+	padding: 0 !important;
+	left: 0;
+	border-radius: 3px;
+	background-color: rgba(100,100,100,0.3);
+}
+
+#flowbuttons {
+  width: 100%;
+  margin-left:1px;
+  margin-right:1px;
+}
+#flowbuttons button {
+  width:48%;
+}
+#flowbuttons button:first-child {
+  float: left;
+  margin-right: 2%;
+}
+
+#flowbuttons button:hover {
+  background-color: #fff;
+  border-color: #fff;
+  color:  #005589;
+}
+
+button#upload-button {
+  margin-right: 0px;
+}
+
+#upcontrols {
+  width: 100%;
+  padding-bottom: 8px;
+}
+
+</style>
+
+<script>
+
+  var keyToFilename = {};
+  var filenames = [];
+  var pendingUpload = -1;
+
+  $("button#add-image").click(function(){$(".flow-box").show()})
+
+
+  console.info("uploader is using uploading direct to host (not S3)");
+  var flow = new Flow({
+    target:'../ResumableUpload',
+    forceChunkSize: true,
+    testChunks: false,
+  });
+
+  flow.assignBrowse(document.getElementById('file-chooser'));
+
+  flow.on('fileAdded', function(file, event){
+    $('#file-activity').show();
+    console.log('added %o %o', file, event);
+  });
+  flow.on('fileProgress', function(file, chunk){
+    var el = findElement(file.name, file.size);
+    var p = ((file._prevUploadedSize / file.size) * 100) + '%';
+    updateProgress(el, p, 'uploading');
+    console.log('progress %o %o', file._prevUploadedSize, file);
+  });
+  flow.on('fileSuccess', function(file,message){
+    var el = findElement(file.name, file.size);
+    updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
+    console.log('success %o %o', file, message);
+    console.log('filename: '+file.name);
+    filenames.push(file.name);
+    pendingUpload--;
+    if (pendingUpload == 0) uploadFinished();
+  });
+  flow.on('fileError', function(file, message){
+    console.log('error %o %o', file, message);
+    pendingUpload--;
+    if (pendingUpload == 0) uploadFinished();
+  });
+
+  document.getElementById('upload-button').addEventListener('click', function(ev) {
+    var files = flow.files;
+    pendingUpload = files.length;
+    for (var i = 0 ; i < files.length ; i++) {
+        filenameToKey(files[i].name);
+    }
+    document.getElementById('upcontrols').style.display = 'none';
+    console.log('#pendingUpload='+pendingUpload);
+    flow.upload();
+  }, false);
+
+  document.getElementById('reselect-button').addEventListener('click', function(ev) {
+    var files = flow.files;
+    for (var i = 0 ; i < files.length ; i++) {
+        console.info('flow.js removing file '+files[i].name);
+        $("#file-item-"+i).hide();
+        flow.removeFile(files[i]);
+    }
+    document.getElementById('upload-button').style.display = 'none';
+    document.getElementById('reselect-button').style.display = 'none';
+    document.getElementById('file-activity').style.display = 'none';
+    $('#file-chooser').show();
+    pendingUpload = flow.files.length;
+    console.log('#pendingUpload='+pendingUpload);
+  }, false);
+
+
+  function filesChanged(f) {
+  	var h = '';
+  	for (var i = 0 ; i < f.files.length ; i++) {
+  		h += '<div class="file-item" id="file-item-' + i + '" data-i="' + i + '" data-name="' + f.files[i].name + '" data-size="' + f.files[i].size + '"><div class="file-name">' + f.files[i].name + '</div><div class="file-size">' + niceSize(f.files[i].size) + '</div><div class="file-status"></div><div class="file-bar"></div></div>';
+  	}
+  	document.getElementById('file-activity').innerHTML = h;
+    $('#file-chooser').hide();
+    $('#upload-button').show();
+    $('#reselect-button').show();
+  }
+  function niceSize(s) {
+  	if (s < 1024) return s + 'b';
+  	if (s < 1024*1024) return Math.floor(s/1024) + 'k';
+  	return Math.floor(s/(1024*1024) * 10) / 10 + 'M';
+  }
+  function updateProgress(el, width, status, bg) {
+  	if (!el) {console.info("quick return");return;}
+  	var els = el.children;
+  	if (width < 0) {  //special, means 100%
+  		els[3].style.width = '100%';
+  	} else if (width) {
+  		els[3].style.width = width;
+  	}
+  	if (status) els[2].innerHTML = status;
+  	if (bg) els[3].style.backgroundColor = bg;
+  }
+  function filenameToKey(fname) {
+      var key = fname;
+      keyToFilename[key] = fname;
+      console.info('key = %s', key);
+      return key;
+  }
+
+  function findElement(key, size) {
+          var name = keyToFilename[key];
+          if (!name) {
+              console.warn('could not find filename for key %o; bailing!', key);
+              return false;
+          }
+  	var items = document.getElementsByClassName('file-item');
+  	for (var i = 0 ; i < items.length ; i++) {
+  		if ((name == items[i].getAttribute('data-name')) && ((size < 0) || (size == items[i].getAttribute('data-size')))) return items[i];
+  	}
+  	return false;
+  }
+  function uploadFinished() {
+  	document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
+    console.log("upload finished.");
+    console.log('upload finished. Files added: '+filenames);
+
+    if (filenames.length > 0) {
+      console.log("creating mediaAsset for filename "+filenames[0]);
+      $.ajax({
+        url: '../MediaAssetCreate',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify({
+          "MediaAssetCreate": [
+            {"assets": [
+               {"filename": filenames[0] }
+              ]
+            }
+          ]
+        }),
+        success: function(d) {
+          console.info('Success! Got back '+JSON.stringify(d));
+          var maId = d.withoutSet[0].id;
+          console.info('parsed id = '+maId);
+
+          var ajaxData = {"attach":"true","EncounterID":"<%=encNum%>","MediaAssetID":maId};
+          var ajaxDataString = JSON.stringify(ajaxData);
+          console.info("ajaxDataString="+ajaxDataString);
+
+
+          $.ajax({
+            url: '../MediaAssetAttach',
+            type: 'POST',
+            dataType: 'json',
+            contentType: "application/json",
+            data: ajaxDataString,
+            success: function(d) {
+              console.info("I attached MediaAsset "+maId+" to encounter <%=encNum%>");
+            },
+            error: function(x,y,z) {
+              console.warn("failed to MediaAssetAttach");
+              console.warn('%o %o %o', x, y, z);
+            }
+          });
+
+        },
+        error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+        },
+      });
+
+    }
+  }
+
+
+  </script>
 
 
 
