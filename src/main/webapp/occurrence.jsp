@@ -447,7 +447,7 @@ $("a#groupB").click(function() {
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
-<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
+<!--<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
 <%
 if(occ.getIndividualCount()!=null){
 %>
@@ -455,74 +455,90 @@ if(occ.getIndividualCount()!=null){
 <%
 }
 %>
+-->
 &nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
 
 
 <div class="row">
 <div class="col-sm-12">
-<form method="post" action="occurrence.jsp" id="occform">
+<form method="post" action="occurrence.jsp?number=<%=name%>" id="occform">
 <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
+<style type="text/css">
+  tr.padding-below td {
+    padding-bottom: 20px;
+  }
+
+  table.occurrence-field-edit td {
+    padding-right: 3em;
+  }
+
+</style>
+
+<table  class="occurrence-field-edit">
+  <tr class="padding-below">
+    <td>
+      Habitat
+    </td><td>
+      <input name="oldValue-occ:habitat" value="<%=occ.getHabitat()%>" />
+    </td>
+  </tr>
+<p>
+<tr>
+<td>Group Size</td>
+<td><input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
+</tr>
+
+<tr>
+<td>Number Territorial Males</td>
+<td><input name="oldValue-occ:numTerMales" value="<%=occ.getNumTerMales()%>" /></td>
+</tr>
+
+<tr>
+<td>Number Bachelor Males</td>
+<td><input name="oldValue-occ:numBachMales" value="<%=occ.getNumBachMales()%>" /></td>
+</tr>
+
+<tr>
+<td>Number Lactating Females</td>
+<td><input name="oldValue-occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" /></td>
+</tr>
+
+<tr class="padding-below">
+<td>Number Non-lactating Females</td>
+<td><input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" /></td>
+</tr>
+</p>
+
 
 <p>
-<strong>Habitat</strong>
-<input name="oldValue-occ:habitat" value="<%=occ.getHabitat()%>" />
+<tr>
+<td>Decimal Latitude</td>
+<td><input name="oldValue-occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
+</td></tr>
+<tr class="padding-below">
+<td>Decimal Longitude</td>
+<td><input name="oldValue-occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
+</td></tr>
 </p>
 
 <p>
-<strong>Group Size</strong>
-<input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
+<tr>
+<td>Distance (meters)</td>
+<td><input name="oldValue-occ:distance" value="<%=occ.getDistance()%>" />
+
+<tr>
+<td>Bearing (degrees from north)</td>
+<td><input name="oldValue-occ:bearing" value="<%=occ.getBearing()%>" />
 </p>
 
-<p>
-<strong>Number Territorial Males</strong>
-<input name="oldValue-occ:numTerMales" value="<%=occ.getNumTerMales()%>" />
-</p>
-
-<p>
-<strong>Number Bachelor Males</strong>
-<input name="oldValue-occ:numBachMales" value="<%=occ.getNumBachMales()%>" />
-</p>
-
-<p>
-<strong>Number Lactating Females</strong>
-<input name="oldValue-occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" />
-</p>
-
-<p>
-<strong>Number Non-lactating Females</strong>
-<input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
-</p>
+</table>
 
 
-<div style="position: relative; height: 40px;">
-
-<div style="position: absolute; top: 0; left: 0;">
-<strong>Decimal Latitude</strong>
-<input name="oldValue-occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
-</div>
-
-<div style="position: absolute; top: 0; right: 0;">
-<strong>Decimal Longitude</strong>
-<input name="oldValue-occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
-</div>
-
-</div>
-
-<p>
-<strong>Distance (meters)</strong>
-<input name="oldValue-occ:distance" value="<%=occ.getDistance()%>" />
-</p>
-
-<p>
-<strong>Bearing (degrees from north)</strong>
-<input name="oldValue-occ:bearing" value="<%=occ.getBearing()%>" />
-</p>
-
-<div class="submit">
+<div class="submit" style="position:relative">
 <input type="submit" name="save" value="Save" />
-<div class="note"></div>
+<span class="note" style="position:absolute;bottom:9"></span>
 </div>
 
 </form>
