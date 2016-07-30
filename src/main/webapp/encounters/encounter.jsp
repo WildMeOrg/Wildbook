@@ -5416,10 +5416,13 @@ catch(Exception e){
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no encounter <%=num%> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
   to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
+
+
+<p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>
 
 
 <%
