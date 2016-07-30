@@ -152,6 +152,25 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
+<%!
+  static boolean newValEqualsOldVal(Occurrence occ, String getterName, int newVal) {
+    try {
+      java.lang.reflect.Method getter = occ.getClass().getMethod(getterName);
+      int oldVal = (Integer) getter.invoke(occ);
+      boolean result = (oldVal == newVal);
+      System.out.println("OCCURRENCE.JSP: "+getterName+" = "+oldVal);
+      System.out.println("              : newVal = "+newVal);
+      System.out.println("              : result = "+result);
+      return result;
+    } catch (Exception e) {
+      System.out.println("exception caught");
+    } finally {
+      return (false);
+    }
+  }
+%>
+
+
 <%
   myShepherd.beginDBTransaction();
   try {
@@ -190,6 +209,7 @@ context=ServletUtilities.getContext(request);
           String pname = (String)en.nextElement();
           if (pname.indexOf("occ:") == 0) {
             String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
+            String getterName = "get" + methodName.substring(3);
             String value = request.getParameter(pname);
             //saveMessage += "<p>occ - " + methodName + "</P>";
             java.lang.reflect.Method method;
@@ -209,16 +229,21 @@ context=ServletUtilities.getContext(request);
               }
             } else if ((pname.indexOf("num") == 4) || pname.equals("occ:groupSize")) {  //int
               Integer i = null;
+              boolean valueIsNew;
               try {
                 i = Integer.parseInt(value);
                 System.out.println("OCCURRENCE.JSP: parsed integer value "+i+" for method "+methodName);
+                boolean newValSameAsOld = newValEqualsOldVal(occ, getterName, i);
+                System.out.println("              : newValSameAsOld = "+newValSameAsOld);
+                valueIsNew = !newValSameAsOld;
+                System.out.println("              : valueIsNew = "+valueIsNew);
               } catch (Exception ex) {
                 System.out.println("could not parse integer from " + value + ", using null");
               }
               try {
                 method = occ.getClass().getMethod(methodName, Integer.class);
                 method.invoke(occ, i);
-                System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+i);
+                System.out.println("              : just invoked "+methodName+" with value "+i);
               } catch (Exception ex) {
                 System.out.println(("caught exception on "+methodName+" -> "+ex.toString()));
               }
@@ -226,7 +251,7 @@ context=ServletUtilities.getContext(request);
               try {
                 method = occ.getClass().getMethod(methodName, String.class);
                 method.invoke(occ, value);
-                System.out.println("OCCURRENCE.JSP: just invoked "+methodName+" with value "+value);
+                System.out.println("              : just invoked "+methodName+" with value "+value);
               } catch (Exception ex) {
                 System.out.println(methodName + " -> " + ex.toString());
               }
@@ -435,38 +460,39 @@ if(occ.getIndividualCount()!=null){
 
 
 <div class="row">
+<div class="col-sm-12">
 <form method="post" action="occurrence.jsp" id="occform">
 <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
 
 <p>
 <strong>Habitat</strong>
-<input name="occ:habitat" value="<%=occ.getHabitat()%>" />
+<input name="oldValue-occ:habitat" value="<%=occ.getHabitat()%>" />
 </p>
 
 <p>
 <strong>Group Size</strong>
-<input name="occ:groupSize" value="<%=occ.getGroupSize()%>" />
+<input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
 </p>
 
 <p>
 <strong>Number Territorial Males</strong>
-<input name="occ:numTerMales" value="<%=occ.getNumTerMales()%>" />
+<input name="oldValue-occ:numTerMales" value="<%=occ.getNumTerMales()%>" />
 </p>
 
 <p>
 <strong>Number Bachelor Males</strong>
-<input name="occ:numBachMales" value="<%=occ.getNumBachMales()%>" />
+<input name="oldValue-occ:numBachMales" value="<%=occ.getNumBachMales()%>" />
 </p>
 
 <p>
 <strong>Number Lactating Females</strong>
-<input name="occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" />
+<input name="oldValue-occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" />
 </p>
 
 <p>
 <strong>Number Non-lactating Females</strong>
-<input name="occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
+<input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
 </p>
 
 
@@ -474,24 +500,24 @@ if(occ.getIndividualCount()!=null){
 
 <div style="position: absolute; top: 0; left: 0;">
 <strong>Decimal Latitude</strong>
-<input name="occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
+<input name="oldValue-occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
 </div>
 
 <div style="position: absolute; top: 0; right: 0;">
 <strong>Decimal Longitude</strong>
-<input name="occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
+<input name="oldValue-occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
 </div>
 
 </div>
 
 <p>
 <strong>Distance (meters)</strong>
-<input name="occ:distance" value="<%=occ.getDistance()%>" />
+<input name="oldValue-occ:distance" value="<%=occ.getDistance()%>" />
 </p>
 
 <p>
 <strong>Bearing (degrees from north)</strong>
-<input name="occ:bearing" value="<%=occ.getBearing()%>" />
+<input name="oldValue-occ:bearing" value="<%=occ.getBearing()%>" />
 </p>
 
 <div class="submit">
@@ -500,14 +526,27 @@ if(occ.getIndividualCount()!=null){
 </div>
 
 </form>
+</div>
 </div> <!--row -->
 
 <script type="text/javascript">
+
+var occFuncs = {};
+occFuncs.checkIfOldFormValue = function(changedElem) {
+  return ($(changedElem).attr("name").startsWith("oldValue-"));
+}
+occFuncs.markFormFieldNotOld = function(changedElem) {
+  if (occFuncs.checkIfOldFormValue(changedElem)) {
+    $(changedElem).attr("name",$(changedElem).attr("name").substring(9));
+  }
+}
+
 $(document).ready(function() {
 
   var changedFields = {};
 
 	$('#occform input,#occform select').change(function() {
+    occFuncs.markFormFieldNotOld(this);
     var str = $(this).val();
     console.log('Change handler called on elem' + $(this).attr("name") + " to new val " + str);
     changedFields[$(this).attr("name")] = str;
