@@ -613,10 +613,17 @@ $(function() {
 					</table>
           </div>
         </div>
-					<table>
-						<tr>
-							<td width="560px" style="vertical-align:top">
-
+					
+	
+	
+	<!-- main display area -->		
+			
+					<div class="container">
+						<div class="row">
+							
+							
+							  <!-- here lies the photo gallery  -->
+  <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
 <!-- START IDENTITY ATTRIBUTE -->
@@ -1032,12 +1039,48 @@ $("a#occurrence").click(function() {
 %>
 <!-- END OCCURRENCE ATTRIBUTE -->
 
-<br />
+
+
+    <jsp:include page="encounterMediaGallery.jsp" flush="true">
+    	<jsp:param name="encounterNumber" value="<%=num%>" />
+    	<jsp:param name="isOwner" value="<%=isOwner %>" />
+    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+  	</jsp:include>
+
+    <div id="add-image-zone" class="bc4">
+
+      <h2 style="text-align:left">Add image to Encounter</h2>
+
+      <div class="flow-box bc4" style="text-align:center" >
+
+        <div id="file-activity" style="display:none"></div>
+
+        <div id="updone"></div>
+
+        <div id="upcontrols">
+          <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+          <div id="flowbuttons">
+
+            <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+            <button id="upload-button" class="btn" style="display:none">begin upload</button>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+							
+							
+							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
+
+
+
 
 <!-- start DATE section -->
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top;">
 
 <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
 </h2>
@@ -3628,43 +3671,14 @@ $("a#dynamicPropertyAdd").click(function() {
 %>
 
 
-  </td>
+  </div>
 
 
-  <!-- here lies the photo gallery  -->
-  <td style="vertical-align: top;padding-left: 10px;">
 
-    <jsp:include page="encounterMediaGallery.jsp" flush="true">
-    	<jsp:param name="encounterNumber" value="<%=num%>" />
-    	<jsp:param name="isOwner" value="<%=isOwner %>" />
-    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-  	</jsp:include>
+</div>
+</div>
 
-    <div id="add-image-zone" class="bc4">
-
-      <h2 style="text-align:left">Add image to Encounter</h2>
-
-      <div class="flow-box bc4" style="text-align:center" >
-
-        <div id="file-activity" style="display:none"></div>
-
-        <div id="updone"></div>
-
-        <div id="upcontrols">
-          <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-          <div id="flowbuttons">
-
-            <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-            <button id="upload-button" class="btn" style="display:none">begin upload</button>
-
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </td>
-</tr>
-</table>
+<!-- end two columns here -->
 
 <script src="../tools/flow.min.js"></script>
 <style>
@@ -5402,13 +5416,10 @@ catch(Exception e){
   		myShepherd.rollbackDBTransaction();
   		myShepherd.closeDBTransaction();
 		%>
-		<p class="para">There is no encounter #<%=num%> in the database. Please double-check the encounter number and try again.</p>
+		<p class="para">There is no encounter <%=num%> in the database. Please double-check the encounter number and try again.</p>
 
 <form action="encounter.jsp" method="post" name="encounter"><strong>Go
   to encounter: </strong> <input name="number" type="text" value="<%=num%>" size="20"> <input name="Go" type="submit" value="Submit" /></form>
-
-
-<p><font color="#990000"><a href="../individualSearchResults.jsp">View all individuals</a></font></p>
 
 
 <%
