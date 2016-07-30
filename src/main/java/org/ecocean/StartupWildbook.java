@@ -2,6 +2,7 @@ package org.ecocean;
 
 import java.io.File;
 import java.util.List;
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,6 +25,7 @@ public class StartupWildbook {
 
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
+    ensureProfilePhotoKeywordExists(myShepherd);
 
   }
 
@@ -67,9 +69,21 @@ public class StartupWildbook {
     String dataDir = ServletUtilities.dataDir("context0", rootDir);
     String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
     String dataUrl = urlLoc + "/wildbook_data_dir";
-
+    myShepherd.beginDBTransaction();
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
     myShepherd.getPM().makePersistent(as);
+    myShepherd.commitDBTransaction();
+
+  }
+  
+  public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
+    int numKeywords=myShepherd.getNumKeywords();
+    if(numKeywords==0){
+      String readableName = "ProfilePhoto";
+      Keyword newword = new Keyword(readableName);
+      myShepherd.storeNewKeyword(newword);
+
+    }
 
   }
 
