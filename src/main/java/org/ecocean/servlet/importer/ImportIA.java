@@ -60,7 +60,7 @@ public class ImportIA extends HttpServlet {
     myShepherd.beginDBTransaction();
 
     System.out.println("IA-IMPORT: started.....");
-    JSONObject imageSetRes = getFromIA("/api/imageset/json/", context, out);
+    JSONObject imageSetRes = getFromIA("/api/imageset/json/?is_special=False", context, out);
     JSONArray fancyImageSetUUIDS = imageSetRes.optJSONArray("response");
     int testingLimit = -1;
     if (request.getParameter("testingLimit") != null) {
