@@ -66,9 +66,9 @@ try {
       contentType: 'application/javascript',
       success: function(d) {
         console.info('identify returned %o', d);
-        if (d.taskID) {
+        if (d.tasks && (d.tasks.length > 0) && d.tasks[0].taskId) {
 		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+          window.location.href = 'matchResults.jsp?taskId=' + d.tasks[0].taskId;
         } else {
 		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
         }
