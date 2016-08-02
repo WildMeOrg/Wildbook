@@ -51,11 +51,14 @@ public class IBEISIA {
 
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
+    private static HashMap<String,Boolean> alreadySentExemplar = new HashMap<String,Boolean>();
     //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
 
     //cache-like, in order to speed up IA; TODO make this some kind of smarter class
     private static HashMap<String,String> cacheAnnotIndiv = new HashMap<String,String>();
+    private static HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
+    private static HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
 
     private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
@@ -118,7 +121,7 @@ public class IBEISIA {
         }
 
 System.out.println("sendMediaAssets(): sending " + ct);
-System.out.println(map);
+/////////System.out.println(map);
         if (ct < 1) return null;  //null for "none to send" ?  is this cool?
         return RestClient.post(url, new JSONObject(map));
     }
@@ -157,7 +160,7 @@ System.out.println("sendAnnotations(): sending " + ct);
         //this should only be checking for missing images, i guess?
         boolean tryAgain = true;
         JSONObject res = null;
-System.out.println(map);
+//////System.out.println(map);
         while (tryAgain) {
             res = RestClient.post(url, new JSONObject(map));
             tryAgain = iaCheckMissing(res);
@@ -165,6 +168,7 @@ System.out.println(map);
         return res;
     }
 
+    //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                           JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -188,7 +192,9 @@ System.out.println("- mark B");
         ArrayList<String> tnlist = new ArrayList<String>();
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
+        String species = null;
         for (Annotation ann : qanns) {
+            if (species == null) species = ann.getSpecies();
             qlist.add(toFancyUUID(ann.getUUID()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -196,7 +202,22 @@ System.out.println("- mark B");
 */
             qnlist.add(IA_UNKNOWN_NAME);
         }
-        for (Annotation ann : tanns) {
+
+        boolean setExemplarCaches = false;
+        if (tanns == null) {
+System.out.println("--- exemplar!");
+            if (targetNameListCache.get(species) == null) {
+System.out.println("     gotta compute :(");
+                tanns = Annotation.getExemplars(species, myShepherd);
+                setExemplarCaches = true;
+            } else {
+System.out.println("     free ride :)");
+                tlist = targetIdsListCache.get(species);
+                tnlist = targetNameListCache.get(species);
+            }
+        }
+
+        if (tanns != null) for (Annotation ann : tanns) {
             tlist.add(toFancyUUID(ann.getUUID()));
             String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
@@ -218,6 +239,10 @@ System.out.println("- mark B");
 System.out.println("- mark C");
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+        if (setExemplarCaches) {
+           targetIdsListCache.put(species, tlist);
+           targetNameListCache.put(species, tnlist);
+        }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         map.put("query_annot_name_list", qnlist);
@@ -227,7 +252,7 @@ System.out.println("- mark C");
 System.out.println("===================================== qlist & tlist =========================");
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
-System.out.println(map);
+//////////System.out.println(map);
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -613,6 +638,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
+    // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
         //TODO possibly could exclude qencs from tencs?
@@ -633,12 +659,24 @@ System.out.println("- mark 1");
                 if (ma != null) mas.add(ma);
             }
 
+            boolean isExemplar = false;
+            if (tanns == null) {
+                isExemplar = true;
+                if ((alreadySentExemplar.get(species) == null) || !alreadySentExemplar.get(species)) {
+System.out.println("   ... have to set tanns.  :(");
+                    tanns = Annotation.getExemplars(species, myShepherd);
+                    alreadySentExemplar.put(species, true);
+                }
+            }
+
 System.out.println("- mark 2");
-            for (Annotation ann : tanns) {
-                allAnns.add(ann);
-                MediaAsset ma = ann.getDerivedMediaAsset();
-                if (ma == null) ma = ann.getMediaAsset();
-                if (ma != null) mas.add(ma);
+            if (tanns != null) {
+                for (Annotation ann : tanns) {
+                    allAnns.add(ann);
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
             }
 
 /*
@@ -652,6 +690,8 @@ System.out.println("- mark 3");
 System.out.println("- mark 4");
             results.put("sendAnnotations", sendAnnotations(allAnns));
 System.out.println("- mark 5");
+
+            if (isExemplar) tanns = null;  //reset it for sendIdentify() below
 
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
