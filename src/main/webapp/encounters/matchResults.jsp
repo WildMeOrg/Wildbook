@@ -45,7 +45,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
         for (IdentityServiceLog l : logs) {
             if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
-            if (l.getObjectID() != null) qannId = l.getObjectID();
+            if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) qannId = l.getObjectIDs()[0];
         }
 
 	String qMediaAssetJson = null;

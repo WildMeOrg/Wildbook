@@ -54,6 +54,9 @@ public class IBEISIA {
     //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
 
+    //cache-like, in order to speed up IA; TODO make this some kind of smarter class
+    private static HashMap<String,String> cacheAnnotIndiv = new HashMap<String,String>();
+
     private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
@@ -173,8 +176,10 @@ System.out.println(map);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
+System.out.println("- mark A");
         if (queryConfigDict != null) map.put("query_config_dict", queryConfigDict);
         map.put("matching_state_list", IBEISIAIdentificationMatchingState.allAsJSONArray(myShepherd));  //this is "universal"
+System.out.println("- mark B");
         if (userConfidence != null) map.put("user_confidence", userConfidence);
 
         ArrayList<JSONObject> qlist = new ArrayList<JSONObject>();
@@ -193,7 +198,7 @@ System.out.println(map);
         }
         for (Annotation ann : tanns) {
             tlist.add(toFancyUUID(ann.getUUID()));
-            String indivId = ann.findIndividualId(myShepherd);
+            String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
             if (Util.isUUID(indivId)) {
                 tnlist.add(toFancyUUID(indivId));
@@ -210,6 +215,7 @@ System.out.println(map);
                 tnlist.add(indivId);
             }
         }
+System.out.println("- mark C");
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
         map.put("query_annot_uuid_list", qlist);
@@ -601,7 +607,9 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        return beginIdentifyAnnotations(qanns, tanns, null, null, myShepherd, species, taskID, baseUrl, context);
+        JSONObject queryConfigDict = queryConfigDict();
+
+        return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl, context);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
@@ -616,6 +624,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
 
+System.out.println("- mark 1");
         try {
             for (Annotation ann : qanns) {
                 allAnns.add(ann);
@@ -624,6 +633,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 if (ma != null) mas.add(ma);
             }
 
+System.out.println("- mark 2");
             for (Annotation ann : tanns) {
                 allAnns.add(ann);
                 MediaAsset ma = ann.getDerivedMediaAsset();
@@ -637,8 +647,11 @@ System.out.println(qanns);
 System.out.println(tanns);
 System.out.println(allAnns);
 */
+System.out.println("- mark 3");
             results.put("sendMediaAssets", sendMediaAssets(mas));
+System.out.println("- mark 4");
             results.put("sendAnnotations", sendAnnotations(allAnns));
+System.out.println("- mark 5");
 
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
@@ -647,6 +660,7 @@ System.out.println(allAnns);
                 identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl);
                 tryAgain = iaCheckMissing(identRtn);
             }
+System.out.println("- mark 6");
             results.put("sendIdentify", identRtn);
 
 System.out.println("sendIdentify ---> " + identRtn);
@@ -2186,6 +2200,79 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return results;
     }
 
+
+/*
+status: {
+_action: "getJobResult",
+_response: {
+response: {
+json_result: {
+query_annot_uuid_list: [
+{
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+],
+query_config_dict: { },
+inference_dict: {
+annot_pair_dict: {
+review_pair_list: [
+{
+prior_matching_state: {
+p_match: 0.9470680954707609,
+p_nomatch: 0.05293190452923913,
+p_notcomp: 0
+},
+annot_uuid_2: {
+__UUID__: "b889b610-55aa-4407-8b02-b5632839a201"
+},
+annot_uuid_1: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+},
+annot_uuid_key: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+}
+],
+confidence_list: [
+0.7994795279514134
+]
+},
+*/
+    //qid (query id) can be null, in which case the first one we find is good enough
+    public static JSONArray simpleResultsFromAnnotPairDict(JSONObject apd, String qid) {
+        if (apd == null) return null;
+        JSONArray rlist = apd.optJSONArray("review_pair_list");
+        JSONArray clist = apd.optJSONArray("confidence_list");
+        if ((rlist == null) || (rlist.length() < 1)) return null;
+        if (qid == null) qid = fromFancyUUID(rlist.getJSONObject(0).optJSONObject("annot_uuid_key"));
+System.out.println("using qid -> " + qid);
+        JSONArray res = new JSONArray();
+        for (int i = 0 ; i < rlist.length() ; i++) {
+            if (rlist.optJSONObject(i) == null) continue;
+            if (!qid.equals(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_key")))) continue;
+            JSONArray s = new JSONArray();
+            s.put(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")));
+            s.put(clist.optDouble(i, 0.0));
+            res.put(s);
+        }
+        if (res.length() < 1) return null;
+        return res;
+    }
+
+    //stub to pick algorithm to be used etc. 
+    public static JSONObject queryConfigDict() {
+        return null;
+        // this is trailing edge matching but takes foreeeevvvver
+        //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+    }
+
+    private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        String id = cacheAnnotIndiv.get(ann.getId());
+        if (id != null) return id;
+        id = ann.findIndividualId(myShepherd);
+        cacheAnnotIndiv.put(ann.getId(), id);
+        return id;
+    }
 
 
 }
