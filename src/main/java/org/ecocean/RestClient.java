@@ -32,6 +32,7 @@ https://stackoverflow.com/a/29053050/1525311
 public class RestClient {
     ///TODO this is IBEIS-specific -- need to generalize for RestClient to be universal
     private static final String HMAC_SHA1_ALGORITHM = "HmacSHA1";
+    private static final int CONNECTION_TIMEOUT = 180000;  //maybe this should be service-specific?
 
     public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return anyMethod("POST", url, data);
@@ -46,8 +47,8 @@ public class RestClient {
 System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
         //System.setProperty("http.keepAlive", "false");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(12000);
-        conn.setConnectTimeout(12000);
+        conn.setReadTimeout(CONNECTION_TIMEOUT);
+        conn.setConnectTimeout(CONNECTION_TIMEOUT);
         conn.setDoOutput((data != null));
         conn.setDoInput(true);
         conn.setRequestMethod(method);
@@ -113,8 +114,8 @@ System.out.println("!!!!!!!!!!!!!!!!!!! [url = " + url.toString() + "] bad respo
 
     public static JSONObject postStream(URL url, InputStream in) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setReadTimeout(12000);
-        conn.setConnectTimeout(12000);
+        conn.setReadTimeout(CONNECTION_TIMEOUT);
+        conn.setConnectTimeout(CONNECTION_TIMEOUT);
         conn.setDoOutput(true);
         conn.setDoInput(true);
         conn.setRequestMethod("POST");
