@@ -616,14 +616,20 @@ System.out.println("+ starting ident task " + annTaskId);
             String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
             //TODO we might want to cache this examplars list (per species) yes?
 System.out.println("- mark A");
-            ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
-System.out.println("- mark B");
-            if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
-            if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
-                System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+
+            ///note: this can all go away if/when we decide not to need limitTargetSize
+            ArrayList<Annotation> exemplars = null;  
+            if (limitTargetSize > -1) {
+                exemplars = Annotation.getExemplars(species, myShepherd);
+                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
+                if (exemplars.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
+                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                }
+                taskRes.put("exemplarsSize", exemplars.size());
             }
-            taskRes.put("exemplarsSize", exemplars.size());
+            /// end can-go-away
+
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
 System.out.println("- mark C");
