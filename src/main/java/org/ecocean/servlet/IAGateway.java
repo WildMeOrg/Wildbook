@@ -90,7 +90,8 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = IBEISIA.iaStatus(request).toString();
 
-///////////////
+    /* this is currently (i think!) only used from matchResults.jsp (e.g. flukebook) and as such doesnt really know about [the newish] ident review etc.
+        so we are going to kinda munge the review list into a results list and hope for the best */
     } else if (request.getParameter("getJobResultFromTaskID") != null) {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
@@ -102,7 +103,55 @@ public class IAGateway extends HttpServlet {
         if ((logs == null) || (logs.size() < 1)) {
             res.put("error", "could not find any record for task ID = " + taskID);
 
+//simpleResultsFromAnnotPairDict(JSONArray apd, String qid)
         } else {
+            JSONObject apd = null;
+            String qid = null;
+            for (IdentityServiceLog log : logs) {
+                JSONObject status = log.getStatusJson();
+                if (status == null) continue;
+                if (!"getJobResult".equals(status.optString("_action"))) continue;
+                if ((status.optJSONObject("_response") != null) && (status.getJSONObject("_response").optJSONObject("response") != null) &&
+                    (status.getJSONObject("_response").getJSONObject("response").optJSONObject("json_result") != null) &&
+                    (status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").optJSONObject("inference_dict") != null)) {
+                    apd = status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").getJSONObject("inference_dict").optJSONObject("annot_pair_dict");
+                    //lets pull our own qid here
+                    qid = IBEISIA.fromFancyUUID(status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").getJSONArray("query_annot_uuid_list").getJSONObject(0));
+                }
+            }
+            if (apd == null) {
+                res.put("error", "could not find annot_pair_dict job results for task " + taskID);
+            } else {
+System.out.println("found qid = " + qid);
+                JSONArray simpleResults = IBEISIA.simpleResultsFromAnnotPairDict(apd, qid);
+                res.put("queryAnnotation", expandAnnotation(qid, myShepherd, request));
+                res.put("__apd", apd);
+                res.put("__simple", simpleResults);
+                if (simpleResults != null) {
+                    JSONArray mout = new JSONArray();
+                    for (int i = 0 ; i < simpleResults.length() ; i++) {
+                        JSONArray row = simpleResults.getJSONArray(i);
+                        JSONObject aj = expandAnnotation(row.optString(0, null), myShepherd, request);
+                        aj.put("score", row.optDouble(1, -1.0));
+                        mout.put(aj);
+                    }
+                    res.put("matchAnnotations", mout);
+                }
+System.out.println(res);
+/*
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+*/
+            }
+/******* old cruft for historical record
             JSONObject last = logs.get(logs.size() - 1).getStatusJson();
             res.put("_debug", last);
 // note: jobstatus == completed seems to be the thing we want
@@ -112,14 +161,6 @@ public class IAGateway extends HttpServlet {
 
             } else if (last.getString("_action").equals("getJobResult") && (last.optJSONObject("_response") != null)) {
                 res = last.getJSONObject("_response");
-
-/*  this gets results live from IA - problematic cuz of reboots and it resets jobs.  :(
-            try {
-                res = IBEISIA.getJobResult(jobID);
-            } catch (Exception ex) {
-                throw new IOException(ex.toString());
-            }
-*/
 
             if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
                 JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
@@ -142,6 +183,7 @@ System.out.println("firstResult -> " + firstResult.toString());
                 }
             }
             }
+*/
 
         }
 
@@ -490,7 +532,7 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
-            JSONObject taskRes = _sendIdentificationTask(ann, request, null, null, limitTargetSize);
+            JSONObject taskRes = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, limitTargetSize);
 /*
             String species = ann.getSpecies();
             if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
@@ -569,10 +611,13 @@ System.out.println("anns -> " + anns);
         JSONArray jids = new JSONArray();
         jids.put(ann.getId());  //for now there is only one 
         taskRes.put("annotationIds", jids);
+System.out.println("+ starting ident task " + annTaskId);
         try {
             String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
             //TODO we might want to cache this examplars list (per species) yes?
+System.out.println("- mark A");
             ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
+System.out.println("- mark B");
             if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
             if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
                 System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
@@ -581,8 +626,10 @@ System.out.println("anns -> " + anns);
             taskRes.put("exemplarsSize", exemplars.size());
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
+System.out.println("- mark C");
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
+System.out.println("- mark D");
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
             taskRes.put("beginIdentify", sent);
             String jobId = null;
@@ -828,7 +875,7 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
 System.out.println("((((( once more thru the outer loop )))))");
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
             if (ann == null) return;
-            JSONObject rtn = _sendIdentificationTask(ann, request, null, null, -1);
+            JSONObject rtn = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, -1);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
@@ -932,5 +979,7 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         System.out.println("ERROR: IAGateway.sendError() reporting " + code + ": " + msg);
         response.sendError(code, msg);
     }
+
+
 
 }
