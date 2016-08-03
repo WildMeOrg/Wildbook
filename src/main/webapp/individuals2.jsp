@@ -267,10 +267,6 @@ if (request.getParameter("number")!=null) {
       });
 
       setTimeout(function() {
-      $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
-      $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
-      $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
-
       $('#encountTable tr').click(function() {
         selectedWhale = ($(this).attr("class"));
         goToEncounterURL(selectedWhale);
@@ -865,8 +861,6 @@ if (request.getParameter("number")!=null) {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
-              // console.log(type, markedIndividualName1, markedIndividualRole1, markedIndividualName2, markedIndividualRole2, relatedCommunityName, startTime, endTime, markedIndividual1DirectionalDescriptor, markedIndividual2DirectionalDescriptor, bidirectional);
-
               $.post("RelationshipCreate", {
                 "type": type,
                 "markedIndividualName1": markedIndividualName1,
@@ -1103,6 +1097,24 @@ if (request.getParameter("number")!=null) {
           </script>
         </div>
 
+        <%
+        if (!(isOwner && CommonConfiguration.isCatalogEditable(context))) {
+        %>
+
+        <script type="text/javascript">
+          console.log("logged in");
+          setTimeout(function() {
+            $("#relationshipTable td:nth-child(5)").attr("class", "hide");
+            $("#relationshipTable th:nth-child(5)").attr("class", "hide");
+            $("#relationshipTable td:nth-child(6)").attr("class", "hide");
+            $("#relationshipTable th:nth-child(6)").attr("class", "hide");
+          }, 5000)
+        </script>
+
+        <%
+        }
+        %>
+
         <script type="text/javascript">
           getRelationshipTableData("<%=individualID%>");
 
@@ -1113,10 +1125,6 @@ if (request.getParameter("number")!=null) {
                 var relationshipID = ($(this).attr("value"));
                 getRelationshipData(relationshipID);
               });
-
-              // $(".deleteRelationshipBtn").click(function() {
-              //   // console.log("clicked");
-              // });
 
               $(document).on('click', '.deleteRelationshipBtn', function () {
                 console.log("clicked");
@@ -1149,9 +1157,6 @@ if (request.getParameter("number")!=null) {
                   $("#relationshipErrorDiv").html(response.responseText);
                 });
               });
-              // $(".yesDelete").click(function(event) {
-
-              // });
 
               $(".cancelDelete").click(function() {
                 var relationshipID = ($(this).attr("value"));
