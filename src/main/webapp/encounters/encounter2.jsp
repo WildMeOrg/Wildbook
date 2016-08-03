@@ -735,7 +735,7 @@ $(function() {
      							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
   									<%
-  									// if(!enc.hasMarkedIndividual()) {
+  									if(!enc.hasMarkedIndividual()) {
   									%>
 
                     <script type="text/javascript">
@@ -819,9 +819,8 @@ $(function() {
 
 									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
 									<%
-  									// }
+  									}
   		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
 		  							%>
 
                     <script type="text/javascript">
@@ -855,6 +854,10 @@ $(function() {
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
                     </div>
+                    <div class="editText">
+                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                    </div>
                     <form class="editForm" id="removeShark" name="removeShark">
                       <div class="form-group row">
                         <div class="col-sm-12 col-xs-10">
@@ -867,11 +870,59 @@ $(function() {
                     </form>
                     <br>
 									<%
-   									}
+
 									if(!enc.hasMarkedIndividual()) {
 									%>
 
-									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+                  <script type="text/javascript">
+                  $(document).ready(function() {
+
+                    $("#Create").click(function(event) {
+                      event.preventDefault();
+
+                      $("#Create").hide();
+
+                      var number = $("#individualCreateNumber").val();
+                      var individual = $("#createSharkIndividual").val();
+                      var action = $("#individualCreateAction");
+                      var noemail = $("input:checkbox:checked").val();
+
+                      $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
+                      function(response) {
+                        console.log(response)
+                      })
+                      .fail(function(response) {
+                        console.log(response.responseText);
+                      });
+                    });
+                  });
+                  </script>
+
+                  <div class="editText">
+                    <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                    <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                  </div>
+                  <img align="absmiddle" src="../images/tag_small.gif"/>
+                  <form name="createShark" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
+                    <input name="action" type="hidden" value="create" id="individualCreateAction"/>
+                    <div class="form-group row">
+                      <div class="col-sm-4">
+                        <label><%=encprops.getProperty("createMarkedIndividual")%>:</label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10">
+                        <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <div class="col-sm-5 col-xs-10">
+                        <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                      </div>
+                    </div>
+                    <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                  </form>
+
+									<%-- <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
   										<tr>
     										<td align="left" valign="top" class="para">
     											<font color="#990000">
@@ -893,7 +944,7 @@ $(function() {
       											</form>
     										</td>
   										</tr>
-									</table>
+									</table> --%>
 								<%
 								}
 								%>
