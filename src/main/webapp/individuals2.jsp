@@ -1120,6 +1120,8 @@ if (request.getParameter("number")!=null) {
 
           $(document).ready(function() {
             setTimeout(function() {
+              var deletedMarkedIndividualName2 = "";
+              var deletedType = "";
               $(document).on('click', '.editRelationshipBtn', function () {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = ($(this).attr("value"));
@@ -1127,7 +1129,6 @@ if (request.getParameter("number")!=null) {
               });
 
               $(document).on('click', '.deleteRelationshipBtn', function () {
-                console.log("clicked");
                 var relationshipID = ($(this).attr("value"));
                 $("#addRelationshipForm").hide();
                 $("#remove" + relationshipID).hide();
@@ -1136,15 +1137,27 @@ if (request.getParameter("number")!=null) {
 
               $(document).on('click', '.yesDelete', function(event) {
                 event.preventDefault();
+
+                var $row = $(this).closest("tr"),
+                    $td1 = $row.find("td:nth-child(2)"),
+                    $td2 = $row.find("td:nth-child(3)");
+
+                $.each($td1, function() {
+                    deletedMarkedIndividualName2 = ($(this).text().substring(0, 5));
+                });
+
+                $.each($td2, function() {
+                  deletedType = ($(this).text());
+                });
+
                 var relationshipID = ($(this).attr("value"));
                 var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                // var deletedType =
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
-                // var deletedMarkedIndividualName2 =
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
+                console.log(deletedMarkedIndividualName1, deletedMarkedIndividualName2, deletedType);
 
-                $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1},
+                $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
                   $("#communityTable").empty();
                   $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
@@ -1163,16 +1176,18 @@ if (request.getParameter("number")!=null) {
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
               });
-            }, 6000);
+            }, 5000);
           });
         </script>
 
-        <div id="communityTable" class=mygrid-wrapper-div>
+        <div id="communityTable" class="mygrid-wrapper-div">
           <table id="relationshipTable" class="table table-bordered table-sm table-striped">
               <thead id="relationshipHead"></thead>
               <tbody id="relationshipBody"></tbody>
           </table>
         </div>
+
+
 
 
 
