@@ -44,6 +44,10 @@ label {
   display: none;
 }
 
+#dialogIdentity, #setRemoveResultDiv {
+  display: none;
+}
+
 /*.relationshipInput {
   height: 30px;
 }
@@ -76,7 +80,7 @@ label {
   display: none;
 }*/
 
-#setMB {
+#setMB, #individualRemoveEncounterBtn {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 15px;

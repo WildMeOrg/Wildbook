@@ -641,11 +641,11 @@ $(function() {
 
       $("#edit").click(function() {
         $(".noEditText, #matchCheck, #matchError").hide();
-        $(".editForm, #setMB").show();
+        $(".editForm, #setMB, #dialogIdentity").show();
       });
 
       $("#closeEdit").click(function() {
-        $(".editForm").hide();
+        $(".editForm, #dialogIdentity").hide();
         $(".noEditText").show();
       });
     });
@@ -679,25 +679,227 @@ $(function() {
     							}
     							else {
     							%>
-    							<p class="para">
+                  <%-- <div> --%>
+    							<%-- <p class="para"> --%>
 
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
+      								<p><%=encprops.getProperty("identified_as") %><a  href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
+
 
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
-      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+      									<%-- <a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+
+                        <%-- <div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none"> --%>
+        									<%-- <p><em><%=encprops.getProperty("identityMessage") %></em></p> --%>
+
+        									<%
+        									if(!enc.hasMarkedIndividual()) {
+        									%>
+
+                          <script type="text/javascript">
+                          $(document).ready(function() {
+
+                            $("#Add").click(function(event) {
+                              event.preventDefault();
+
+                              $("#Add").hide();
+
+                              var number = $("#individualAddEncounterNumber").val();
+                              var individual = $("#individualAddEncounterInput").val();
+                              var matchType = $("input[name='matchType']").val();
+                              var noemail = $( "input:checkbox:checked" ).val();
+                              var action = $("#individualAddEncounterAction").val();
+
+                              $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                              function() {
+                                $("#individualErrorDiv").hide();
+                                $("#individualDiv").addClass("has-success");
+                                $("#individualCheck, #matchedByCheck").show();
+
+                                $("#displayIndividualID").html(nickname);
+                              })
+                              .fail(function(response) {
+                                $("#individualDiv").addClass("has-error");
+                                $("#individualError, #matchedByError, #individualErrorDiv").show();
+                                $("#individualErrorDiv").html(response.responseText);
+                              });
+                            });
+
+                            $("#nickname, #namer").click(function() {
+                              $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
+                              $("#individualDiv").removeClass("has-success");
+                              $("#individualDiv").removeClass("has-error");
+                              $("#Add").show();
+                            });
+                          });
+                          </script>
+
+                            <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+                            <div class="highlight" id="individualErrorDiv"></div>
+                            <div id="dialogIdentity">
+                              <p><%=encprops.getProperty("manageIdentity")%></p>
+                              <p><em><%=encprops.getProperty("identityMessage") %></em></p>
+                            </div>
+        										<form name="add2shark" class="editForm">
+                              <div class="form-group row" id="individualDiv">
+                                <div class="col-sm-3">
+                                  <label><%=encprops.getProperty("individual")%>:</label>
+                                </div>
+                                <div class="col-sm-5 col-xs-10">
+                                  <input name="individual" type="text" size="10" maxlength="50" id="individualAddEncounterInput"/>
+                                  <span class="form-control-feedback" id="individualCheck">&check;</span>
+                                  <span class="form-control-feedback" id="individualError">X</span>
+                                </div>
+                              </div>
+                              <div class="form-group row" id="matchedByDiv">
+                                <div class="col-sm-3">
+                                  <label><%=encprops.getProperty("matchedBy")%>: </label>
+                                </div>
+                                <div class="col-sm-5 col-xs-10">
+                                  <select name="matchType" id="matchType">
+                                    <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                                    <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                                    <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                                  </select>
+                                  <span class="form-control-feedback" id="matchedByCheck">&check;</span>
+                                  <span class="form-control-feedback" id="matchedByError">X</span>
+                                </div>
+                              </div>
+                              <div class="form-group row">
+                                <div class="col-sm-5 col-xs-10">
+                                  <input name="noemail" type="checkbox" value="noemail" />
+                                  <label><%=encprops.getProperty("suppressEmail")%></label>
+                                </div>
+                              </div>
+        												<input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
+        												<input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+        												<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+        										</form>
+      									<br />
+
+      									<strong>--<%=encprops.getProperty("or") %>--</strong>
+      									<br /><br />
+      									<%
+        									}
+        		 	  	  					//Remove from MarkedIndividual if not unassigned
+      		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
+      		  							%>
+
+                          <script type="text/javascript">
+                          $(document).ready(function() {
+
+                            $("#individualRemoveEncounterBtn").click(function(event) {
+                              event.preventDefault();
+
+                              $("#individualRemoveEncounterBtn").hide();
+
+                              var number = $("#individualRemoveEncounterNumber").val();
+
+                              $.post("../IndividualRemoveEncounter", {"number": number},
+                              function(response) {
+                                $("#setRemoveResultDiv").hide();
+                                $("#removeSuccessDiv").html(response);
+                                $("#removeErrorDiv").empty();
+                                // $("#removeShark").hide();
+                              })
+                              .fail(function(response) {
+                                $("#setRemoveResultDiv").show();
+                                $("#removeErrorDiv").html(response.responseText);
+                                $("#removeSuccessDiv").empty();
+                                // $("#removeShark").hide();
+                              });
+                            });
+                          });
+                          </script>
+
+                          <div id="setRemoveResultDiv">
+                            <span class="highlight" id="removeErrorDiv"></span>
+                            <span class="successHighlight" id="removeSuccessDiv"></span>
+                          </div>
+                          <div id="dialogIdentity">
+                            <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                            <p><em><%=encprops.getProperty("identityMessage") %></em></p>
+                          </div>
+													<%-- <img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/> --%>
+
+    											<form class="editForm" id="removeShark" name="removeShark">
+                            <div class="form-group row">
+                              <div class="col-sm-12 col-xs-10">
+                                <label class="highlight"><%=encprops.getProperty("removeFromMarkedIndividual")%></label>
+                                <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
+                                <input name="action" type="hidden" value="remove" />
+                                <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                              </div>
+                            </div>
+    											</form>
+
+      									<br />
+      									<%
+         									}
+      									if(!enc.hasMarkedIndividual()) {
+      									%>
+
+                        <script type="text/javascript">
+                        $(document).ready(function() {
+
+                          $("#Create").click(function(event) {
+                            event.preventDefault();
+
+                            $("#Create").hide();
+
+                            var number = $("#individualCreateNumber").val();
+                            var individual = $("#individualCreateIndividual").val();
+                            var action = $("#individualCreateAction");
+                            var noemail = $("input:checkbox:checked").val();
+
+                            $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
+                            function(response) {
+                              console.log(response)
+                            })
+                            .fail(function(response) {
+                              console.log(response.responseText);
+                            });
+                          });
+                        });
+                        </script>
+
+                        <div id="dialogIdentity">
+                          <p><%=encprops.getProperty("manageIdentity")%></p>
+                          <p><em><%=encprops.getProperty("identityMessage") %></em></p>
+                        </div>
+  												<%-- <img align="absmiddle" src="../images/tag_small.gif"/> --%>
+  												<p class="highlight"><strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong></p>
+    											<form name="createShark" class="editForm">
+      											<input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
+      											<input name="action" type="hidden" value="create" id="individualCreateAction"/>
+                            <div class="form-group row">
+                              <div class="col-sm-5 col-xs-10">
+                                <input name="individual" type="text" id="individual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>" id="individualCreateIndividual"/>
+                              </div>
+                            </div>
+                            <div class="form-group row">
+                              <input name="noemail" type="checkbox" value="noemail" />
+                              <label><%=encprops.getProperty("suppressEmail")%><label>
+                            </div>
+    												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+    											</form>
+
       								<%
-        							}
+      								}
       								%>
-      								<br />
-      								<br />
-      								<%-- <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> --%>
-                        <span class="noEditText"><%=encprops.getProperty("matched_by") %>: <span id="displayMatch"><%=enc.getMatchedBy()%></span></span>
-      								<%
-        							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      								%>
-                    <script type="text/javascript">
+                      <%
+                    }
+                    %>
+                    <%-- <br />
+                    <br /> --%>
+                    <%-- <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> --%>
+                    <span class="noEditText"><%=encprops.getProperty("matched_by") %>: <span id="displayMatch"><%=enc.getMatchedBy()%></span></span>
+                    <%
+                    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+                      %>
+
+                      <script type="text/javascript">
                       $(document).ready(function() {
                         $("#matchedBy option[value='Pattern match']").attr('selected','selected');
 
@@ -726,8 +928,8 @@ $(function() {
                           $("#setMB").show();
                         });
                       });
-                    </script>
-                    <div>
+                      </script>
+
                       <div class="highlight" id="matchErrorDiv"></div>
                       <form name="setMBT" class="editForm">
                         <input name="number" type="hidden" value="<%=num%>" />
@@ -747,36 +949,22 @@ $(function() {
                           <span id="matchError">X</span>
                         </div>
                       </form>
-                    </div>
 
 
+                      <%
+                        }
+                        %>
+      		</div>
+          <%-- end first col-sm-6 --%>
 
-
-
-
-
-									<%-- <script>
-  										var dlgMatchedBy = $("#dialogMatchedBy").dialog({
-    										autoOpen: false,
-    										draggable: false,
-    										resizable: false,
-    										width: 600
-  										});
-
-  										$("a#matchedBy").click(function() {
-    										dlgMatchedBy.dialog("open");
-  										});
-  									</script> --%>
-        							<%
-       								 }
-      								%>
-    							</p>
+    							<%-- </p> --%>
+                <%-- </div> --%>
     							<%
       							} //end else
 
       							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       							%>
-     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">
+     							<%-- <div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">
   									<p><em><%=encprops.getProperty("identityMessage") %></em></p>
 
   									<%
@@ -882,9 +1070,9 @@ $(function() {
 								<%
 								}
 								%>
-							</div>
+							</div> --%>
 
-  							<script>
+  							<%-- <script>
   								var dlgIdentity = $("#dialogIdentity").dialog({
     								autoOpen: false,
     								draggable: false,
@@ -895,7 +1083,7 @@ $(function() {
   								$("a#identity").click(function() {
     								dlgIdentity.dialog("open");
   								});
-  							</script>
+  							</script> --%>
   						<%
   						}
 						%>
@@ -1111,7 +1299,7 @@ $("a#occurrence").click(function() {
     	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
   	</jsp:include>
 
-    <div id="add-image-zone" class="bc4">
+    <div id="add-image-zone" class="bc4 col-sm-6 col-xs-12">
 
       <h2 style="text-align:left">Add image to Encounter</h2>
 
