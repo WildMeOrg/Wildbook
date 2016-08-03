@@ -238,6 +238,8 @@ td.measurement{
 
   <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
   <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
+
 
   <!--
     2) Optionally override the settings defined at the top
@@ -585,8 +587,8 @@ $(function() {
 
     						<h1 class="<%=classColor%>">
     						 	<%=encprops.getProperty("title") %><%=livingStatus %>
-    						 </h1>
 
+    						 </h1>
 
     					</td>
     				</tr>
@@ -613,15 +615,15 @@ $(function() {
 					</table>
           </div>
         </div>
-					
-	
-	
-	<!-- main display area -->		
-			
+
+
+
+	<!-- main display area -->
+
 					<div class="container">
 						<div class="row">
-							
-							
+
+
 							  <!-- here lies the photo gallery  -->
   <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
@@ -631,6 +633,27 @@ $(function() {
   <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
 
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+  <script type="text/javascript">
+    $(document).ready(function() {
+      var buttons = $("#edit, #closeEdit").on("click", function(){
+          buttons.toggle();
+      });
+
+      $("#edit").click(function() {
+        $(".noEditText, #matchCheck, #matchError").hide();
+        $(".editForm, #setMB").show();
+      });
+
+      $("#closeEdit").click(function() {
+        $(".editForm").hide();
+        $(".noEditText").show();
+      });
+    });
+  </script>
+  <div>
+    <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
+    <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+  </div>
 <!--
 <div class="encounter-vm-button">
 	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
@@ -669,29 +692,70 @@ $(function() {
       								%>
       								<br />
       								<br />
-      								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
+      								<%-- <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> --%>
+                        <span class="noEditText"><%=encprops.getProperty("matched_by") %>: <span id="displayMatch"><%=enc.getMatchedBy()%></span></span>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
-     								 <a id="matchedBy" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-        							<div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">
-  										<table>
-    										<tr>
-      											<td align="left" valign="top">
-        											<form name="setMBT" action="../EncounterSetMatchedBy" method="post">
-          												<select name="matchedBy" id="matchedBy">
-            												<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-            												<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-            												<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-          												</select>
-          												<input name="number" type="hidden" value="<%=num%>" />
-          												<input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>" />
-        											</form>
-      											</td>
-    										</tr>
-  										</table>
-  									</div>
-									<script>
+                    <script type="text/javascript">
+                      $(document).ready(function() {
+                        $("#matchedBy option[value='Pattern match']").attr('selected','selected');
+
+                        $("#setMB").click(function(event) {
+                          event.preventDefault();
+                          $("#setMB").hide();
+
+                          var number = $("input[name='number']").val();
+                          var matchedBy = $("#matchedBy").val();
+
+                          $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
+                          function() {
+                            $("#matchErrorDiv").hide();
+                            $("#matchCheck").show();
+                            $("#displayMatch").html(sex);
+
+                          })
+                          .fail(function(response) {
+                            $("#matchError, #matchErrorDiv").show();
+                            $("#matchErrorDiv").html(response.responseText);
+                          });
+                        });
+
+                        $("#newMatch").click(function() {
+                          $("#matchError, #matchCheck, #matchErrorDiv").hide()
+                          $("#setMB").show();
+                        });
+                      });
+                    </script>
+                    <div>
+                      <div class="highlight" id="matchErrorDiv"></div>
+                      <form name="setMBT" class="editForm">
+                        <input name="number" type="hidden" value="<%=num%>" />
+                        <div class="form-group row" id="selectMatcher">
+                          <div class="col-sm-3">
+                            <label><%=encprops.getProperty("matchedBy")%>: </label>
+                          </div>
+                          <div class="col-sm-5 col-xs-10 editFormInput">
+                            <select name="matchedBy" id="matchedBy" size="1" class="form-control">
+                              <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                              <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                              <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                            </select>
+                          </div>
+                          <input name="setMB" type="submit" id="setMB" value='<%=encprops.getProperty("set")%>' class="btn btn-sm editFormBtn"/>
+                          <span id="matchCheck">&check;</span>
+                          <span id="matchError">X</span>
+                        </div>
+                      </form>
+                    </div>
+
+
+
+
+
+
+
+									<%-- <script>
   										var dlgMatchedBy = $("#dialogMatchedBy").dialog({
     										autoOpen: false,
     										draggable: false,
@@ -702,7 +766,7 @@ $(function() {
   										$("a#matchedBy").click(function() {
     										dlgMatchedBy.dialog("open");
   										});
-  									</script>
+  									</script> --%>
         							<%
        								 }
       								%>
@@ -1070,8 +1134,8 @@ $("a#occurrence").click(function() {
     </div>
 
   </div>
-							
-							
+
+
 							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
 
