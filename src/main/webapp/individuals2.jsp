@@ -1144,8 +1144,6 @@ if (request.getParameter("number")!=null) {
 
                 $.each($td1, function() {
                     var tableData = ($(this).text().match(/[A-Z][a-z]+|[0-9]+/g));
-                    // tableData = tableData.split(" ")
-                    console.log(tableData);
                     deletedMarkedIndividualName2 = tableData[0];
                 });
 
@@ -1158,7 +1156,6 @@ if (request.getParameter("number")!=null) {
                 var deletedMarkedIndividualName1 = "<%=individualID%>";
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
-                console.log(deletedMarkedIndividualName1, deletedMarkedIndividualName2, deletedType);
 
                 $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
