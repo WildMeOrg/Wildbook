@@ -1,9 +1,17 @@
+#mainHeader {
+  background-color: #e8e8e8;
+}
+
+#headerText {
+  -webkit-text-fill-color: #005589;
+}
+
 /*Edit forms*/
 label {
   font-weight: lighter;
 }
 
-input#alternateid.form-control{
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
@@ -16,6 +24,9 @@ input#alternateid.form-control{
   margin-bottom: 10px;
 }
 
+.editText {
+  display: none;
+}
 /*.clickDateText{
   margin-bottom: 0px;
   display: none;
@@ -27,13 +38,13 @@ input#alternateid.form-control{
   margin-bottom: 0px;
 }
 
-#matchCheck, #altIdCheck {
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError, #altIdError {
+#matchError, #altIdError, #matchedByError, #individualError {
   display: none;
   color: red;
   font-family: sans-serif;
@@ -48,21 +59,9 @@ input#alternateid.form-control{
   display: none;
 }
 
-/*.relationshipInput {
-  height: 30px;
-}
-
-.requiredLabel {
-  margin-bottom: 0px;
-}*/
-
 .highlight {
   color: #990000;
 }
-
-/*input.form-control.relationshipInput, select.form-control.relationshipInput {
-  margin-bottom: 10px;
-}*/
 
 .editFormInput {
   margin-right: 5px;
@@ -73,14 +72,7 @@ input#alternateid.form-control{
   width: 70px;
 }
 
-/*#addRelationshipForm {
-  background-color: #e8eff1;
-  padding: 10px;
-  margin-bottom: 20px;
-  display: none;
-}*/
-
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 15px;
@@ -88,9 +80,12 @@ input#alternateid.form-control{
   padding-bottom: 2px;
 }
 
-/*#addRelationshipBtn {
-  margin-bottom: 20px;
-}*/
+#Add {
+  margin-bottom: 0px;
+  margin-top: 2px;
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
 
 #edit {
   display: block;
@@ -101,7 +96,7 @@ input#alternateid.form-control{
 }
 
 #edit, #closeEdit {
-  background-color: pink;
+  background-color: white;
 }
 
 #edit:hover, #closeEdit:hover {
@@ -112,13 +107,10 @@ input#alternateid.form-control{
   padding-right: 30px;
 }
 
-/*#individual1set, #individual2set {
-  display: none;
-}*/
 
-/*.successHighlight {
+.successHighlight {
   color: green;
-}*/
+}
 
 button.btn.btn-sm.btn-block.yesDelete {
   background-color: #20B845;
@@ -145,16 +137,6 @@ button.btn.btn-sm.btn-block.deleteRelationshipBtn {
   color: #FFFFFF;
 }
 button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
-  background-color: #EE261D;
-  color: #FFFFFF;
-}
-
-input.btn.btn-md#closeRelationshipForm {
-  background-color: #D9231A;
-  color: #FFFFFF;
-}
-
-input.btn.btn-md#closeRelationshipForm:hover {
   background-color: #EE261D;
   color: #FFFFFF;
 }
