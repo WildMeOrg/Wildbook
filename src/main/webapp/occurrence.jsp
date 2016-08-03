@@ -365,84 +365,6 @@ context=ServletUtilities.getContext(request);
 </td>
 </tr></table> </td></tr></table>
 
-<p><%=props.getProperty("groupBehavior") %>:
-<%
-if(occ.getGroupBehavior()!=null){
-%>
-	<%=occ.getGroupBehavior() %>
-<%
-}
-%>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-</p>
-
-
-<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
-            <%=props.getProperty("groupBehavior") %>:
-
-        <%
-        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
-        %>
-        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea>
-        <%
-        }
-        else{
-        %>
-
-        	<select name="behaviorComment" id="behaviorComment">
-        		<option value=""></option>
-
-   				<%
-   				boolean hasMoreStages=true;
-   				int taxNum=0;
-   				while(hasMoreStages){
-   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-   	  				%>
-
-   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-   	  				<%
-   					taxNum++;
-      				}
-      				else{
-         				hasMoreStages=false;
-      				}
-
-   				}
-   			%>
-  			</select>
-
-
-        <%
-        }
-        %>
-        <input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
-      </form> <!-- end of setGroupBehavior form -->
-    </td>
-  </tr>
-</table>
-
-                         		</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgGroupB = $("#dialogGroupB").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#groupB").click(function() {
-  dlgGroupB.dialog("open");
-});
-</script>
 
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=occ.getMarkedIndividualNamesForThisOccurrence().size() %></p>
@@ -537,6 +459,16 @@ if(occ.getIndividualCount()!=null){
 <td>Group Size</td>
 <td><input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
 </tr>
+
+<tr>
+<td>Group Behavior</td>
+  <%
+  String groupBehavior = occ.getGroupBehavior();
+  if (groupBehavior == null) groupBehavior = "";
+    %>
+<td><input name="oldValue-occ:groupBehavior" value="<%=groupBehavior%>" />
+</tr>
+
 
 <tr>
 <td>Number Territorial Males</td>
