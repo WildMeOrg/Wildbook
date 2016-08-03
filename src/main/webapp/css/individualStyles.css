@@ -70,20 +70,20 @@ input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-co
   margin-bottom: 0px;
 }
 
-#nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck {
+#nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #matchCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#nameError, #namerError, #sexError, #birthError, #deathError, #altIdError {
+#nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, #matchError {
   display: none;
   color: red;
   font-family: sans-serif;
   font-weight: bold;
 }
 
-#nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv {
+#nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv, #matchErrorDiv {
   display: none;
 }
 
@@ -119,7 +119,7 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   display: none;
 }
 
-#Name, #Add, #birthy, #deathy, #AltID {
+#Name, #Add, #birthy, #deathy, #AltID, #setMB {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 15px;
