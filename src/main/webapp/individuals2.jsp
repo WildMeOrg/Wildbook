@@ -881,12 +881,8 @@ if (request.getParameter("number")!=null) {
                 $("#addRelationshipForm").hide();
                 <% String relationshipIndividualID = sharky.getIndividualID();%>
                 getRelationshipTableData("<%=relationshipIndividualID%>");
-                $(".communityTable").empty();
-                $(".communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
-                // if($(".communityTable").text() != "") {
-                //   $("#noCurrentData").hide();
-                // }
-
+                $("#communityTable").empty();
+                $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
               })
               .fail(function(response) {
                 $("#setRelationshipResultDiv").show();
@@ -1163,13 +1159,9 @@ if (request.getParameter("number")!=null) {
 
                 $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
-                  $(".communityTable").empty();
-                  $(".communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+                  $("#communityTable").empty();
+                  $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
                   getRelationshipTableData("<%=individualID%>");
-                  // console.log($(".communityTable").text());
-                  // if(($(".communityTable").text()) != "") {
-                  //   $("#noCurrentData").hide();
-                  // }
                   $("#setRelationshipResultDiv").show();
                   $("#relationshipSuccessDiv").html(response);
                 })
@@ -1188,7 +1180,7 @@ if (request.getParameter("number")!=null) {
           });
         </script>
 
-        <div class="communityTable mygrid-wrapper-div">
+        <div id="communityTable" class="mygrid-wrapper-div">
           <table id="relationshipTable" class="table table-bordered table-sm table-striped">
               <thead id="relationshipHead"></thead>
               <tbody id="relationshipBody"></tbody>
@@ -1200,12 +1192,6 @@ if (request.getParameter("number")!=null) {
         else {
         %>
         	<p id="noCurrentData" class="para"><%=props.getProperty("noSocial") %></p><br/>
-          <div class="communityTable"></div>
-          <%-- <script type="text/javascript">
-            if($(".communityTable").text() != "") {
-              $("#noCurrentData").hide();
-            }
-          </script> --%>
         <%
         }
         //
