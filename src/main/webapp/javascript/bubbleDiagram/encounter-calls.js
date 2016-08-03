@@ -224,6 +224,9 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
           return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
           }
         }
+        if(d == "GOS") {
+          return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+        }
       return d;
     });
 
