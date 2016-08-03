@@ -140,7 +140,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <jsp:include page="../header.jsp" flush="true"/>
 
   <style type="text/css">
-    <!--
+
 
 	#spot-image-wrapper-left,
 	#spot-image-wrapper-right
@@ -212,7 +212,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
       padding: 8px;
     }
 
-    -->
 
 
 
@@ -239,7 +238,6 @@ td.measurement{
   <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
   <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
   <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
-
 
   <!--
     2) Optionally override the settings defined at the top
@@ -414,8 +412,8 @@ margin-bottom: 8px !important;
 
 <div class="container maincontent">
 
-<div class="row">
-  <div class="col-xs-12">
+<div class="row" id="mainHeader">
+  <div class="col-sm-12">
 
 			<%
   			myShepherd.beginDBTransaction();
@@ -554,9 +552,6 @@ $(function() {
   </script>
 
 
-    			<table>
-    				<tr>
-    					<td>
     						<%
     						//int stateInt=-1;
     						String classColor="approved_encounters";
@@ -585,39 +580,41 @@ $(function() {
     						%>
 
 
-    						<h1 class="<%=classColor%>">
-    						 	<%=encprops.getProperty("title") %><%=livingStatus %>
-    						 </h1>
+                <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+                <h1 class="<%=classColor%>" id="headerText">
+                <%=encprops.getProperty("title") %><%=livingStatus %>
+                  <div>
+                    <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
+                    <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+                  </div>
+                </h1>
 
-                 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-                   <script type="text/javascript">
-                     $(document).ready(function() {
-                       var buttons = $("#edit, #closeEdit").on("click", function(){
-                           buttons.toggle();
-                       });
+                <script type="text/javascript">
+                $(document).ready(function() {
+                  var buttons = $("#edit, #closeEdit").on("click", function(){
+                    buttons.toggle();
+                  });
 
-                       $("#edit").click(function() {
-                         $(".noEditText, #matchCheck, #matchError").hide();
-                         $(".editForm, #setMB, #dialogIdentity").show();
-                       });
+                  $("#edit").click(function() {
+                    $(".noEditText, #matchCheck, #matchError").hide();
+                    $(".editForm, #setMB, #dialogIdentity, .editText").show();
+                  });
 
-                       $("#closeEdit").click(function() {
-                         $(".editForm, #dialogIdentity").hide();
-                         $(".noEditText").show();
-                       });
-                     });
-                   </script>
-                   <div>
-                     <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
-                     <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
-                   </div>
+                  $("#closeEdit").click(function() {
+                    $(".editForm, #dialogIdentity, .editText").hide();
+                    $(".noEditText").show();
+                  });
+                });
+                </script>
 
-                 <% } %>
 
-    					</td>
-    				</tr>
-    			</table>
-
+                <% }
+                else {
+                 %>
+                 <h1 class="<%=classColor%>" id="headerText">
+                   <%=encprops.getProperty("title") %><%=livingStatus %>
+                 </h1>
+                 <%}%></h1>
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
@@ -639,527 +636,542 @@ $(function() {
 					</table>
           </div>
         </div>
-
+<!-- end main header row -->
 
 
 	<!-- main display area -->
 
-					<div class="container">
-						<div class="row">
+				<div class="container">
+					<div class="row">
 
 
-							  <!-- here lies the photo gallery  -->
-  <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
+			<!-- here lies the photo gallery  -->
+            <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
-<!-- START IDENTITY ATTRIBUTE -->
+        <!-- START IDENTITY ATTRIBUTE -->
 
-  <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
-
-
-
+          <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
 
     							<%
     							if (!enc.hasMarkedIndividual()) {
   								%>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
-      								<%-- <%
-        							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-     								%>
-      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      								<%
-        							}
-      								%> --%>
     							</p>
     							<%
     							}
     							else {
     							%>
+    							<div>
+    								<p><%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
 
+          <%-- START MATCHED BY --%>
+    								<p class="noEditText">
+                      <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
+                        <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                    </p>
 
-      								<span><%=encprops.getProperty("identified_as") %><a  href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></span>
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#matchedBy option[value='Pattern match']").attr('selected','selected');
 
+                      $("#setMB").click(function(event) {
+                        event.preventDefault();
+                        $("#setMB").hide();
 
-        									<%
-        									if(!enc.hasMarkedIndividual()) {
-        									%>
+                        var number = $("input[name='number']").val();
+                        var matchedBy = $("#matchedBy").val();
 
-                          <script type="text/javascript">
-                          $(document).ready(function() {
+                        $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
+                        function() {
+                          $("#matchErrorDiv").hide();
+                          $("#matchCheck").show();
+                          $("#displayMatch").html(sex);
 
-                            $("#Add").click(function(event) {
-                              event.preventDefault();
-
-                              $("#Add").hide();
-
-                              var number = $("#individualAddEncounterNumber").val();
-                              var individual = $("#individualAddEncounterInput").val();
-                              var matchType = $("input[name='matchType']").val();
-                              var noemail = $( "input:checkbox:checked" ).val();
-                              var action = $("#individualAddEncounterAction").val();
-
-                              $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
-                              function() {
-                                $("#individualErrorDiv").hide();
-                                $("#individualDiv").addClass("has-success");
-                                $("#individualCheck, #matchedByCheck").show();
-
-                                $("#displayIndividualID").html(nickname);
-                              })
-                              .fail(function(response) {
-                                $("#individualDiv").addClass("has-error");
-                                $("#individualError, #matchedByError, #individualErrorDiv").show();
-                                $("#individualErrorDiv").html(response.responseText);
-                              });
-                            });
-
-                            $("#nickname, #namer").click(function() {
-                              $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
-                              $("#individualDiv").removeClass("has-success");
-                              $("#individualDiv").removeClass("has-error");
-                              $("#Add").show();
-                            });
-                          });
-                          </script>
-
-                            <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
-                            <div class="highlight" id="individualErrorDiv"></div>
-                            <div id="dialogIdentity">
-                              <p><%=encprops.getProperty("manageIdentity")%></p>
-                              <p><em><%=encprops.getProperty("identityMessage") %></em></p>
-                            </div>
-        										<form name="add2shark" class="editForm">
-                              <div class="form-group row" id="individualDiv">
-                                <div class="col-sm-3">
-                                  <label><%=encprops.getProperty("individual")%>:</label>
-                                </div>
-                                <div class="col-sm-5 col-xs-10">
-                                  <input name="individual" type="text" size="10" maxlength="50" id="individualAddEncounterInput"/>
-                                  <span class="form-control-feedback" id="individualCheck">&check;</span>
-                                  <span class="form-control-feedback" id="individualError">X</span>
-                                </div>
-                              </div>
-                              <div class="form-group row" id="matchedByDiv">
-                                <div class="col-sm-3">
-                                  <label><%=encprops.getProperty("matchedBy")%>: </label>
-                                </div>
-                                <div class="col-sm-5 col-xs-10">
-                                  <select name="matchType" id="matchType">
-                                    <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-                                    <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-                                    <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-                                  </select>
-                                  <span class="form-control-feedback" id="matchedByCheck">&check;</span>
-                                  <span class="form-control-feedback" id="matchedByError">X</span>
-                                </div>
-                              </div>
-                              <div class="form-group row">
-                                <div class="col-sm-5 col-xs-10">
-                                  <input name="noemail" type="checkbox" value="noemail" />
-                                  <label><%=encprops.getProperty("suppressEmail")%></label>
-                                </div>
-                              </div>
-        												<input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
-        												<input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
-        												<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
-        										</form>
-      									<br />
-
-      									<strong>--<%=encprops.getProperty("or") %>--</strong>
-      									<br /><br />
-      									<%
-        									}
-        		 	  	  					//Remove from MarkedIndividual if not unassigned
-      		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
-      		  							%>
-
-                          <script type="text/javascript">
-                          $(document).ready(function() {
-
-                            $("#individualRemoveEncounterBtn").click(function(event) {
-                              event.preventDefault();
-
-                              $("#individualRemoveEncounterBtn").hide();
-
-                              var number = $("#individualRemoveEncounterNumber").val();
-
-                              $.post("../IndividualRemoveEncounter", {"number": number},
-                              function(response) {
-                                $("#setRemoveResultDiv").hide();
-                                $("#removeSuccessDiv").html(response);
-                                $("#removeErrorDiv").empty();
-                                // $("#removeShark").hide();
-                              })
-                              .fail(function(response) {
-                                $("#setRemoveResultDiv").show();
-                                $("#removeErrorDiv").html(response.responseText);
-                                $("#removeSuccessDiv").empty();
-                                // $("#removeShark").hide();
-                              });
-                            });
-                          });
-                          </script>
-
-                          <div id="setRemoveResultDiv">
-                            <span class="highlight" id="removeErrorDiv"></span>
-                            <span class="successHighlight" id="removeSuccessDiv"></span>
-                          </div>
-                          <div id="dialogIdentity">
-                            <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                            <p><em><%=encprops.getProperty("identityMessage") %></em></p>
-                          </div>
-
-
-    											<form class="editForm" id="removeShark" name="removeShark">
-                            <div class="form-group row">
-                              <div class="col-sm-12 col-xs-10">
-                                <label class="highlight"><%=encprops.getProperty("removeFromMarkedIndividual")%></label>
-                                <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
-                                <input name="action" type="hidden" value="remove" />
-                                <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
-                              </div>
-                            </div>
-    											</form>
-
-      									<br />
-      									<%
-         									}
-      									if(!enc.hasMarkedIndividual()) {
-      									%>
-
-                        <script type="text/javascript">
-                        $(document).ready(function() {
-
-                          $("#Create").click(function(event) {
-                            event.preventDefault();
-
-                            $("#Create").hide();
-
-                            var number = $("#individualCreateNumber").val();
-                            var individual = $("#individualCreateIndividual").val();
-                            var action = $("#individualCreateAction");
-                            var noemail = $("input:checkbox:checked").val();
-
-                            $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
-                            function(response) {
-                              console.log(response)
-                            })
-                            .fail(function(response) {
-                              console.log(response.responseText);
-                            });
-                          });
-                        });
-                        </script>
-
-                        <div id="dialogIdentity">
-                          <p><%=encprops.getProperty("manageIdentity")%></p>
-                          <p><em><%=encprops.getProperty("identityMessage") %></em></p>
-                        </div>
-  												<%-- <img align="absmiddle" src="../images/tag_small.gif"/> --%>
-  												<p class="highlight"><strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong></p>
-    											<form name="createShark" class="editForm">
-      											<input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
-      											<input name="action" type="hidden" value="create" id="individualCreateAction"/>
-                            <div class="form-group row">
-                              <div class="col-sm-5 col-xs-10">
-                                <input name="individual" type="text" id="individual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>" id="individualCreateIndividual"/>
-                              </div>
-                            </div>
-                            <div class="form-group row">
-                              <input name="noemail" type="checkbox" value="noemail" />
-                              <label><%=encprops.getProperty("suppressEmail")%><label>
-                            </div>
-    												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
-    											</form>
-
-      								<%
-      								}
-      								%>
-
-                    <span class="noEditText"><%=encprops.getProperty("matched_by") %>: <span id="displayMatch"><%=enc.getMatchedBy()%></span></span>
-
-
-                      <script type="text/javascript">
-                      $(document).ready(function() {
-                        $("#matchedBy option[value='Pattern match']").attr('selected','selected');
-
-                        $("#setMB").click(function(event) {
-                          event.preventDefault();
-                          $("#setMB").hide();
-
-                          var number = $("input[name='number']").val();
-                          var matchedBy = $("#matchedBy").val();
-
-                          $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
-                          function() {
-                            $("#matchErrorDiv").hide();
-                            $("#matchCheck").show();
-                            $("#displayMatch").html(sex);
-
-                          })
-                          .fail(function(response) {
-                            $("#matchError, #matchErrorDiv").show();
-                            $("#matchErrorDiv").html(response.responseText);
-                          });
-                        });
-
-                        $("#newMatch").click(function() {
-                          $("#matchError, #matchCheck, #matchErrorDiv").hide()
-                          $("#setMB").show();
+                        })
+                        .fail(function(response) {
+                          $("#matchError, #matchErrorDiv").show();
+                          $("#matchErrorDiv").html(response.responseText);
                         });
                       });
-                      </script>
 
-                      <div class="highlight" id="matchErrorDiv"></div>
-                      <form name="setMBT" class="editForm">
-                        <input name="number" type="hidden" value="<%=num%>" />
-                        <div class="form-group row" id="selectMatcher">
-                          <div class="col-sm-3">
-                            <label><%=encprops.getProperty("matchedBy")%>: </label>
-                          </div>
-                          <div class="col-sm-5 col-xs-10 editFormInput">
-                            <select name="matchedBy" id="matchedBy" size="1" class="form-control">
-                              <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-                              <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-                              <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-                            </select>
-                          </div>
+                      $("#newMatch").click(function() {
+                        $("#matchError, #matchCheck, #matchErrorDiv").hide()
+                        $("#setMB").show();
+                      });
+                    });
+                    </script>
+
+                    <div class="highlight" id="matchErrorDiv"></div>
+                    <form name="setMBT" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" />
+                      <div class="form-group row" id="selectMatcher">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchedBy" id="matchedBy" size="1" class="form-control">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                        </div>
+                        <div class="col-sm-3">
                           <input name="setMB" type="submit" id="setMB" value='<%=encprops.getProperty("set")%>' class="btn btn-sm editFormBtn"/>
                           <span id="matchCheck">&check;</span>
                           <span id="matchError">X</span>
                         </div>
-                      </form>
-
-                        <!-- END INDIVIDUALID ATTRIBUTE -->
-
-                        <!-- START ALTERNATEID ATTRIBUTE -->
-
-                          <%
-                          String alternateID="";
-                          if(enc.getAlternateID()!=null){
-                            alternateID=enc.getAlternateID();
-                          }
-                          %>
-                          <p class="noEditText"><%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span></p>
-
-
-                        <script type="text/javascript">
-                          $(document).ready(function() {
-                            $("#setAltIDbtn").click(function(event) {
-                              event.preventDefault();
-
-                              $("#setAltIDbtn").hide();
-
-                              var encounter = $("input[name='encounter']").val();
-                              var alternateid = $("#alternateid").val();
-
-                              $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
-                              function() {
-                                $("#altIdErrorDiv").hide();
-                                $("#altIdDiv").addClass("has-success");
-                                $("#altIdCheck").show();
-                                $("#displayAltID").html(alternateid);
-                              })
-                              .fail(function(response) {
-                                $("#altIdDiv").addClass("has-error");
-                                $("#altIdError, #altIdErrorDiv").show();
-                                $("#altIdErrorDiv").html(response.responseText);
-                              });
-                            });
-
-                            $("#alternateid").click(function() {
-                              $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
-                              $("#altIdDiv").removeClass("has-success");
-                              $("#altIdDiv").removeClass("has-error");
-                              $("#setAltIDbtn").show();
-                            });
-                          });
-                        </script>
-
-                        <div class="highlight" id="altIdErrorDiv"></div>
-                          <form name="setAltID" class="editForm">
-                            <div class="form-group row">
-                              <div class="col-sm-3">
-                                <label><%=encprops.getProperty("setAlternateID")%>:</label>
-                              </div>
-                              <div class="col-sm-5 col-xs-10" id="altIdDiv">
-                                <input name="alternateid" id="alternateid" type="text" class="form-control" />
-                                <span class="form-control-feedback" id="altIdCheck">&check;</span>
-                                <span class="form-control-feedback" id="altIdError">X</span>
-                              </div>
-                              <div class="col-sm-4">
-                                <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
-                              </div>
-                            </div>
-                            <input name="encounter" type="hidden" value="<%=num%>" />
-                          </form>
-
-                      <!-- END ALTERNATEID ATTRIBUTE -->
-
-
-                      <!-- START EVENTID ATTRIBUTE -->
-                      <%
-                        if (enc.getEventID() != null) {
-                        %>
-                        <p class="para">
-                          <%=encprops.getProperty("eventID") %>: <%=enc.getEventID() %>
-                        </p>
-                        <%
-                          }
-                          %>
-                          <!-- END EVENTID ATTRIBUTE -->
-
-
-                          <!-- START OCCURRENCE ATTRIBUTE -->
-                          <p class="para">
-                            <img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
-                            <%
-                              if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-                              %>
-                              <a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>
-                              <%
-                                }
-                                else{
-                                %>
-                                <%=encprops.getProperty("none_assigned") %>
-                                <%
-                                  }
-
-                                  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-                                  %>
-                                  <a id="occurrence" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-                                  <%
-                                    }
-                                    %>
-                                  </p>
-
-                                  <%
-                                    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-                                    %>
-
-                                    <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none">
-
-                                    <p><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
-
-                                    <!-- start Occurrence management section-->
-                                    <%
-                                      //Remove from occurrence if assigned
-                                      if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
-
-
-                                      %>
-                                      <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-                                        <tr>
-                                          <td align="left" valign="top" class="para">
-                                            <table>
-                                              <tr>
-                                                <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
-                                                <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
-                                              </strong></td>
-                                            </tr>
-                                          </table>
-                                        </td>
-                                      </tr>
-                                      <tr>
-                                        <td align="left" valign="top">
-                                          <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
-                                            <input name="number" type="hidden" value="<%=num%>" />
-                                            <input name="action" type="hidden" value="remove" />
-                                            <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
-                                          </form>
-                                        </td>
-                                      </tr>
-                                    </table>
-                                    <br /> <%
-                                    }
-                                    //create new Occurrence with name
-
-                                    if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
-
-                                    %>
-                                    <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-                                      <tr>
-                                        <td align="left" valign="top" class="para">
-                                          <font color="#990000">
-                                            <strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
-                                          </tr>
-                                          <tr>
-                                            <td align="left" valign="top">
-                                              <form name="createOccurrence" method="post" action="../OccurrenceCreate">
-                                                <input name="number" type="hidden" value="<%=num%>" />
-                                                <input name="action" type="hidden" value="create" />
-                                                <%=encprops.getProperty("newOccurrenceID")%><br />
-                                                <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
-                                                <br />
-                                                <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-                                              </form>
-                                            </td>
-                                          </tr>
-                                        </table>
-                                        <br/>
-                                        <strong>--<%=encprops.getProperty("or") %>--</strong>
-                                        <br />
-                                        <br />
-                                        <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-                                          <tr>
-                                            <td align="left" valign="top" class="para"><font color="#990000">
-
-                                              <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
-                                            </tr>
-                                            <tr>
-                                              <td align="left" valign="top">
-                                                <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
-                                                  <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br />
-
-                                                  <input name="number" type="hidden" value="<%=num%>" />
-                                                  <input name="action" type="hidden" value="add" />
-                                                  <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
-                                                </form>
-                                              </td>
-                                            </tr>
-                                          </table>
-                                          <%
-                                            }
-
-                                            %>
-
-                                            <!-- end Occurrence management section -->
-
-                                          </div>
-                                          <!-- popup dialog script -->
-                                          <script>
-                                            var dlgOccurrence = $("#dialogOccurrence").dialog({
-                                            autoOpen: false,
-                                            draggable: false,
-                                            resizable: false,
-                                            width: 600
-                                            });
-
-                                            $("a#occurrence").click(function() {
-                                            dlgOccurrence.dialog("open");
-                                            });
-                                          </script>
-                                          <!-- end set occurrenceID -->
-                                          <%
-                                            }
-                                            %>
-                                            <!-- END OCCURRENCE ATTRIBUTE -->
-      		</div>
-          <%-- end first col-sm-6 --%>
-
-    							<%-- </p> --%>
-                <%-- </div> --%>
+                      </div>
+                    </form>
+    							</div>
     							<%
       							} //end else
-
-      							// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       							%>
+      <%-- END MATCHED BY --%>
 
-  						<%-- <%
-  						}
-						%> --%>
+      <%-- START MANAGE IDENTITY --%>
 
+     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
+
+  									<%
+  									// if(!enc.hasMarkedIndividual()) {
+  									%>
+
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+
+                      $("#Add").click(function(event) {
+                        event.preventDefault();
+
+                        $("#Add").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val();
+                        var matchType = $("input[name='matchType']").val();
+                        var noemail = $( "input:checkbox:checked" ).val();
+                        var action = $("#individualAddEncounterAction").val();
+
+                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                        function() {
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+
+                          $("#displayIndividualID").html(nickname);
+                        })
+                        .fail(function(response) {
+                          $("#individualDiv").addClass("has-error");
+                          $("#individualError, #matchedByError, #individualErrorDiv").show();
+                          $("#individualErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#nickname, #namer").click(function() {
+                        $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
+                        $("#individualDiv").removeClass("has-success");
+                        $("#individualDiv").removeClass("has-error");
+                        $("#Add").show();
+                      });
+                    });
+                    </script>
+
+                    <div class="editText">
+                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
+                    </div>
+                    <div class="highlight" id="individualErrorDiv"></div>
+                    <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+                    <form name="add2shark" class="editForm">
+                      <div class="form-group row" id="individualDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("individual")%>:</label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
+                          <span class="form-control-feedback" id="individualCheck">&check;</span>
+                          <span class="form-control-feedback" id="individualError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row" id="matchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchType" id="matchType" class="form-control" size="1">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                          <span class="form-control-feedback" id="matchedByCheck">&check;</span>
+                          <span class="form-control-feedback" id="matchedByError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <div class="col-sm-5 col-xs-10">
+                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                        </div>
+                      </div>
+                        <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
+                        <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                    </form>
+
+									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
+									<%
+  									// }
+  		 	  	  					//Remove from MarkedIndividual if not unassigned
+		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
+		  							%>
+
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+
+                      $("#individualRemoveEncounterBtn").click(function(event) {
+                        event.preventDefault();
+
+                        $("#individualRemoveEncounterBtn").hide();
+
+                        var number = $("#individualRemoveEncounterNumber").val();
+
+                        $.post("../IndividualRemoveEncounter", {"number": number},
+                        function(response) {
+                          $("#setRemoveResultDiv").hide();
+                          $("#removeSuccessDiv").html(response);
+                          $("#removeErrorDiv").empty();
+                          // $("#removeShark").hide();
+                        })
+                        .fail(function(response) {
+                          $("#setRemoveResultDiv").show();
+                          $("#removeErrorDiv").html(response.responseText);
+                          $("#removeSuccessDiv").empty();
+                          // $("#removeShark").hide();
+                        });
+                      });
+                    });
+                    </script>
+
+                    <div id="setRemoveResultDiv">
+                      <span class="highlight" id="removeErrorDiv"></span>
+                      <span class="successHighlight" id="removeSuccessDiv"></span>
+                    </div>
+                    <form class="editForm" id="removeShark" name="removeShark">
+                      <div class="form-group row">
+                        <div class="col-sm-12 col-xs-10">
+                          <label class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
+                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
+                          <input name="action" type="hidden" value="remove" />
+                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                        </div>
+                      </div>
+                    </form>
+                    <br>
+									<%
+   									}
+									if(!enc.hasMarkedIndividual()) {
+									%>
+
+									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  										<tr>
+    										<td align="left" valign="top" class="para">
+    											<font color="#990000">
+      												<img align="absmiddle" src="../images/tag_small.gif"/>
+      												<strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
+      											</font>
+    										</td>
+  										</tr>
+  										<tr>
+    										<td align="left" valign="top">
+      											<form name="createShark" method="post" action="../IndividualCreate">
+        											<input name="number" type="hidden" value="<%=num%>" />
+        											<input name="action" type="hidden" value="create" />
+        											<input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>" /><br />
+													<input name="noemail" type="checkbox" value="noemail" />
+        											<%=encprops.getProperty("suppressEmail")%><br />
+
+      												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      											</form>
+    										</td>
+  										</tr>
+									</table>
+								<%
+								}
+								%>
+							</div>
+
+
+<!-- END INDIVIDUALID ATTRIBUTE -->
+
+						<!-- START ALTERNATEID ATTRIBUTE -->
+            <%
+            String alternateID="";
+            if(enc.getAlternateID()!=null){
+              alternateID=enc.getAlternateID();
+            }
+            %>
+            <p class="noEditText">
+              <img align="absmiddle" src="../images/alternateid.gif">
+              <%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span>
+            </p>
+
+
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#setAltIDbtn").click(function(event) {
+                event.preventDefault();
+
+                $("#setAltIDbtn").hide();
+
+                var encounter = $("input[name='encounter']").val();
+                var alternateid = $("#alternateid").val();
+
+                $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
+                function() {
+                  $("#altIdErrorDiv").hide();
+                  $("#altIdDiv").addClass("has-success");
+                  $("#altIdCheck").show();
+                  $("#displayAltID").html(alternateid);
+                })
+                .fail(function(response) {
+                  $("#altIdDiv").addClass("has-error");
+                  $("#altIdError, #altIdErrorDiv").show();
+                  $("#altIdErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#alternateid").click(function() {
+                $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
+                $("#altIdDiv").removeClass("has-success");
+                $("#altIdDiv").removeClass("has-error");
+                $("#setAltIDbtn").show();
+              });
+            });
+          </script>
+
+          <div class="highlight" id="altIdErrorDiv"></div>
+            <form name="setAltID" class="editForm">
+              <div class="form-group row">
+                <div class="col-sm-3">
+                  <label><%=encprops.getProperty("setAlternateID")%>:</label>
+                </div>
+                <div class="col-sm-5 col-xs-10" id="altIdDiv">
+                  <input name="alternateid" id="alternateid" type="text" class="form-control" placeholder="<%=encprops.getProperty("alternate_id")%>"/>
+                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
+                  <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
+                <div class="col-sm-4">
+                  <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                </div>
+              </div>
+              <input name="encounter" type="hidden" value="<%=num%>" />
+            </form>
+
+        <!-- END ALTERNATEID ATTRIBUTE -->
+
+
+						<!-- START EVENTID ATTRIBUTE -->
+ 						<%
+    					if (enc.getEventID() != null) {
+  						%>
+  							<p class="para">
+  								<%=encprops.getProperty("eventID") %>: <%=enc.getEventID() %>
+  							</p>
+  						<%
+    					}
+  						%>
+						<!-- END EVENTID ATTRIBUTE -->
+
+
+						<!-- START OCCURRENCE ATTRIBUTE -->
+						<p class="para noEditText">
+							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
+							<%
+							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+							%>
+								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>
+							<%
+							}
+							else{
+							%>
+								<%=encprops.getProperty("none_assigned") %>
+							<%
+							}
+      				%>
+  					</p>
+
+              <%
+                //Remove from occurrence if assigned
+                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+              %>
+              <p class="editText"><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
+              <form action="../OccurrenceRemoveEncounter" class="editForm" method="post" name="removeOccurrence">
+                <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
+                <input name="action" type="hidden" value="remove" />
+                <div class="form-group row">
+                  <div class="col-sm-12">
+                    <label class="highlight"><%=encprops.getProperty("removeFromOccurrence")%></label>
+                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" class="btn btn-sm editFormBtn"/>
+                  </div>
+                </div>
+              </form>
+
+                <br />
+                <%
+                }
+                //create new Occurrence with name
+
+                if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                %>
+
+                  <form name="createOccurrence" method="post" action="../OccurrenceCreate" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>"/>
+                    <input name="action" type="hidden" value="create"/>
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("createOccurrence")%>:</label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10">
+                        <input name="occurrence" type="text" id="createOccurrenceInput" class="form-control" placeholder="<%=encprops.getProperty("newOccurrenceID")%>" />
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+                  <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
+
+                  <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" />
+                    <input name="action" type="hidden" value="add" />
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("add2Occurrence")%>: </label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10">
+                        <input name="occurrence" id="add2OccurrenceInput" type="text" class="form-control" placeholder="<%=encprops.getProperty("occurrenceID")%>"/>
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Add" type="submit" id="addOccurrence" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+
+                    <%
+                      }
+                      %>
+        <!-- end Occurrence management section -->
+
+                        <%-- <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p> --%>
+
+
+
+            <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none">
+
+<%-- <p><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
+
+<!-- start Occurrence management section-->
+	<%
+    //Remove from occurrence if assigned
+	if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+
+
+	%>
+	<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  	<tr>
+    	<td align="left" valign="top" class="para">
+      <table>
+        <tr>
+          <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
+          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
+          </strong></td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
+      	<input name="number" type="hidden" value="<%=num%>" />
+      	<input name="action" type="hidden" value="remove" />
+      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br /> <%
+      	}
+      	  //create new Occurrence with name
+
+      if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+
+      %>
+<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <tr>
+    <td align="left" valign="top" class="para">
+    	<font color="#990000">
+      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
+  </tr>
+  <tr>
+    <td align="left" valign="top">
+      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
+        <input name="number" type="hidden" value="<%=num%>" />
+        <input name="action" type="hidden" value="create" />
+        <%=encprops.getProperty("newOccurrenceID")%><br />
+        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
+        <br />
+        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
+      </form>
+    </td>
+  </tr>
+</table>
+<br/>
+<strong>--<%=encprops.getProperty("or") %>--</strong>
+<br />
+<br />
+  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+    <tr>
+      <td align="left" valign="top" class="para"><font color="#990000">
+
+        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
+        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br />
+
+            <input name="number" type="hidden" value="<%=num%>" />
+            <input name="action" type="hidden" value="add" />
+          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
+          </form>
+      </td>
+    </tr>
+  </table>
+ <%
+ }
+
+%> --%>
+
+<!-- end Occurrence management section -->
+
+</div>
+                         		<!-- popup dialog script -->
+<script>
+var dlgOccurrence = $("#dialogOccurrence").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#occurrence").click(function() {
+  dlgOccurrence.dialog("open");
+});
+</script>
+<!-- end set occurrenceID -->
+<%-- <%
+}
+%> --%>
+<!-- END OCCURRENCE ATTRIBUTE -->
 
 
 
@@ -1169,7 +1181,7 @@ $(function() {
     	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
   	</jsp:include>
 
-    <div id="add-image-zone" class="bc4 col-sm-6 col-xs-12">
+    <div id="add-image-zone" class="bc4">
 
       <h2 style="text-align:left">Add image to Encounter</h2>
 
