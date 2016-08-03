@@ -881,6 +881,11 @@ if (request.getParameter("number")!=null) {
                 $("#addRelationshipForm").hide();
                 <% String relationshipIndividualID = sharky.getIndividualID();%>
                 getRelationshipTableData("<%=relationshipIndividualID%>");
+                $(".communityTable").empty();
+                $(".communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+                // if($(".communityTable").text() != "") {
+                //   $("#noCurrentData").hide();
+                // }
 
               })
               .fail(function(response) {
@@ -1079,7 +1084,7 @@ if (request.getParameter("number")!=null) {
           if(relationships.size()>0){
           %>
 
-        <div role="navigation">
+        <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
             <li id="familyDiagramTab"  class="active">
               <a href="#familyDiagram">Familial Diagram</a>
@@ -1102,7 +1107,6 @@ if (request.getParameter("number")!=null) {
         %>
 
         <script type="text/javascript">
-          console.log("logged in");
           setTimeout(function() {
             $("#relationshipTable td:nth-child(5)").attr("class", "hide");
             $("#relationshipTable th:nth-child(5)").attr("class", "hide");
@@ -1159,9 +1163,13 @@ if (request.getParameter("number")!=null) {
 
                 $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
-                  $("#communityTable").empty();
-                  $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+                  $(".communityTable").empty();
+                  $(".communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
                   getRelationshipTableData("<%=individualID%>");
+                  // console.log($(".communityTable").text());
+                  // if(($(".communityTable").text()) != "") {
+                  //   $("#noCurrentData").hide();
+                  // }
                   $("#setRelationshipResultDiv").show();
                   $("#relationshipSuccessDiv").html(response);
                 })
@@ -1180,183 +1188,24 @@ if (request.getParameter("number")!=null) {
           });
         </script>
 
-        <div id="communityTable" class="mygrid-wrapper-div">
+        <div class="communityTable mygrid-wrapper-div">
           <table id="relationshipTable" class="table table-bordered table-sm table-striped">
               <thead id="relationshipHead"></thead>
               <tbody id="relationshipBody"></tbody>
           </table>
         </div>
-
-
-
-
-
-        <%-- <div id="communityTable" class="mygrid-wrapper-div">
-          <table width="100%" class="table table-striped table-bordered table-sm" id="socialRelationshipTable">
-          <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
-          <%
-          	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-          %>
-          <th><%=props.getProperty("numSightingsTogether")%></th>
-          <th><%=props.getProperty("edit")%></th>
-          <th><%=props.getProperty("remove")%></th>
-          <%
-          	}
-          %>
-
-          </tr>
-          <%
-          	int numRels=relationships.size();
-          for(int f=0;f<numRels;f++){
-          	Relationship myRel=relationships.get(f);
-          	String indieName1=myRel.getMarkedIndividualName1();
-          	String indieName2=myRel.getMarkedIndividualName2();
-          	String otherIndyName=indieName2;
-          	String thisIndyRole="";
-          	String otherIndyRole="";
-          	if(myRel.getMarkedIndividualRole1()!=null){thisIndyRole=myRel.getMarkedIndividualRole1();}
-          	if(myRel.getMarkedIndividualRole2()!=null){otherIndyRole=myRel.getMarkedIndividualRole2();}
-          	if(otherIndyName.equals(sharky.getIndividualID())){
-          		otherIndyName=indieName1;
-          		thisIndyRole=myRel.getMarkedIndividualRole2();
-          		otherIndyRole=myRel.getMarkedIndividualRole1();
-          	}
-          	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
-          	String type="";
-          	if(myRel.getType()!=null){type=myRel.getType();}
-
-          	String community="";
-          	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
-          %>
-          	<tr>
-          	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
-          	<td>
-          	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
-          		<%
-          		if(otherIndy.getNickName()!=null){
-          		%>
-          		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
-          		<%
-          		}
-          		if(otherIndy.getAlternateID()!=null){
-          		%>
-          		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
-          		<%
-          		}
-          		if(otherIndy.getSex()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
-          		<%
-          		}
-
-          		if(otherIndy.getHaplotype()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
-          		<%
-          		}
-          		%>
-          	</td>
-          	<td><%=type %></td>
-          	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
-
-          	<%
-          	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-
-          		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
-
-          		//int bracketLocation=persistenceID.indexOf("[");
-          		//persistenceID=persistenceID.substring(0,bracketLocation); --%>
-
-          	<%-- %>
-          	<td>
-          	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %> --%>
-
-          	<%-- </td>
-
-            <script type="text/javascript">
-              $(document).ready(function() {
-                $(".editRelationshipBtn").click(function() {
-                  $("#setRelationshipResultDiv").hide();
-                  var persistenceID = ($(this).attr("value"));
-                  $("#persistenceID").val(persistenceID);
-                  var relationshipID = persistenceID.substring(0, 3);
-
-                  getRelationshipData(relationshipID);
-                });
-              });
-            </script>
-
-
-          	<td>
-              <div class="collectionDiv">
-
-              </div>
-              <button class="btn btn-sm btn-block editRelationshipBtn" type="button" name="button" value="<%=persistenceID%>"><%=props.getProperty("edit")%></button>
-          	</td>
-          	<td>
-              <button class="btn btn-sm btn-block deleteRelationshipBtn" value="<%=persistenceID%>"><%=props.getProperty("remove")%></button>
-              <div class="confirmDelete" value="<%=persistenceID%>">
-                <p>Are you sure you want to delete this relationship?</p>
-                <button class="btn btn-sm btn-block yesDelete" type="button" name="button">Yes</button>
-                <button class="btn btn-sm btn-block cancelDelete" type="button" name="button">No</button>
-              </div> --%>
-
-              <%-- <script type="text/javascript">
-              $(document).ready(function() {
-                $(".confirmDelete").hide();
-                $(".deleteRelationshipBtn[value='<%=persistenceID%>']").click(function() {
-                  $("#addRelationshipForm").hide();
-                  $(".deleteRelationshipBtn[value='<%=persistenceID%>']").hide();
-                  $("div[value='<%=persistenceID%>']").show();
-                  });
-                });
-
-                $(".yesDelete").click(function(event) {
-                  //run script to delete relationship
-                  event.preventDefault();
-                  var persistenceID = ($(this).attr("value"));
-
-                  $.post("RelationshipDelete", {"persistenceID": persistenceID},
-                  function(response) {
-                    $("#setRelationshipResultDiv").show();
-                    $("#relationshipSuccessDiv").html(response);
-                  })
-                  .fail(function(response) {
-                    $("#setRelationshipResultDiv").show();
-                    $("#relationshipErrorDiv").html(response.responseText);
-                  });
-
-                  $("div[value='<%=persistenceID%>']").hide();
-                  $(".deleteRelationshipBtn").show();
-                });
-
-                $(".cancelDelete").click(function() {
-                  $("div[value='<%=persistenceID%>']").hide();
-                  $(".deleteRelationshipBtn[value='<%=persistenceID%>']").show();
-                });
-              </script> --%>
-
-          		<%-- <a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a> --%>
-          	<%-- </td>
-          	<%
-          	}
-          	%>
-
-          	</tr>
-          <%
-
-
-          }
-          %>
-
-          </table>
-        </div> --%>
         <br/>
         <%
         }
         else {
         %>
-        	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+        	<p id="noCurrentData" class="para"><%=props.getProperty("noSocial") %></p><br/>
+          <div class="communityTable"></div>
+          <%-- <script type="text/javascript">
+            if($(".communityTable").text() != "") {
+              $("#noCurrentData").hide();
+            }
+          </script> --%>
         <%
         }
         //
