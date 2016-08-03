@@ -3,13 +3,13 @@ label {
   font-weight: lighter;
 }
 
-/*input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-control, input#timeOfDeath.form-control, input#alternateid.form-control{
+input#alternateid.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
   font-size: 1em;
   height: 30px;
-}*/
+}
 
 .editForm {
   display: none;
@@ -27,13 +27,13 @@ label {
   margin-bottom: 0px;
 }
 
-#matchCheck {
+#matchCheck, #altIdCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError {
+#matchError, #altIdError {
   display: none;
   color: red;
   font-family: sans-serif;
@@ -44,7 +44,7 @@ label {
   display: none;
 }
 
-#dialogIdentity, #setRemoveResultDiv {
+#dialogIdentity, #setRemoveResultDiv, #altIdErrorDiv {
   display: none;
 }
 
@@ -80,7 +80,7 @@ label {
   display: none;
 }*/
 
-#setMB, #individualRemoveEncounterBtn {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 15px;
