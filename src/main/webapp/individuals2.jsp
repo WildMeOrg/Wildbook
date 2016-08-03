@@ -885,6 +885,8 @@ if (request.getParameter("number")!=null) {
                 $("#relationshipSuccessDiv").html(response);
                 $("#relationshipErrorDiv").empty();
                 $("#addRelationshipForm").hide();
+                <% String relationshipIndividualID = sharky.getIndividualID();%>
+                getRelationshipTableData("<%=relationshipIndividualID%>");
 
               })
               .fail(function(response) {
@@ -940,7 +942,6 @@ if (request.getParameter("number")!=null) {
                     String selectedText="";
                     if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
                     %>
-                    <%-- when type is saved and sent to servlet it looks for the value of the option - returning as social grouping, how to make it CommunityMembership or Familial --%>
                     <option <%=selectedText%>><%=types.get(g)%></option>
                     <%
                   }
@@ -1103,7 +1104,62 @@ if (request.getParameter("number")!=null) {
           </script>
         </div>
 
-        <div id="communityTable" class="mygrid-wrapper-div">
+        <script type="text/javascript">
+          getRelationshipTableData("<%=individualID%>");
+
+          $(document).ready(function() {
+            setTimeout(function() {
+              $(".editRelationshipBtn").click(function() {
+                $("#setRelationshipResultDiv").hide();
+                var relationshipID = ($(this).attr("value"));
+                getRelationshipData(relationshipID);
+              });
+
+              $(".deleteRelationshipBtn").click(function() {
+                  var relationshipID = ($(this).attr("value"));
+                  $("#addRelationshipForm").hide();
+                  $("#remove" + relationshipID).hide();
+                  $("div[value='" + relationshipID + "']").show();
+              });
+
+              $(".yesDelete").click(function(event) {
+                event.preventDefault();
+                var relationshipID = ($(this).attr("value"));
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                console.log(persistenceID);
+
+                $("div[value='" + relationshipID + "']").hide();
+                $("#remove" + relationshipID).show();
+
+                $.post("RelationshipDelete", {"persistenceID": persistenceID},
+                function(response) {
+                  $("#setRelationshipResultDiv").show();
+                  $("#relationshipSuccessDiv").html(response);
+                })
+                .fail(function(response) {
+                  $("#setRelationshipResultDiv").show();
+                  $("#relationshipErrorDiv").html(response.responseText);
+                });
+
+              });
+
+              $(".cancelDelete").click(function() {
+                var relationshipID = ($(this).attr("value"));
+                $("div[value='" + relationshipID + "']").hide();
+                $("#remove" + relationshipID).show();
+              });
+            }, 5000);
+          });
+        </script>
+
+        <div id="communityTable" class=mygrid-wrapper-div>
+          <table id="relationshipTable" class="table table-bordered table-sm table-striped">
+              <thead id="relationshipHead"></thead>
+              <tbody id="relationshipBody"></tbody>
+          </table>
+        </div>
+
+        <%-- <div id="communityTable" class="mygrid-wrapper-div">
           <table width="100%" class="table table-striped table-bordered table-sm" id="socialRelationshipTable">
           <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
           <%
@@ -1177,13 +1233,13 @@ if (request.getParameter("number")!=null) {
           		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
 
           		//int bracketLocation=persistenceID.indexOf("[");
-          		//persistenceID=persistenceID.substring(0,bracketLocation);
+          		//persistenceID=persistenceID.substring(0,bracketLocation); --%>
 
-          	%>
+          	<%-- %>
           	<td>
-          	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
+          	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %> --%>
 
-          	</td>
+          	<%-- </td>
 
             <script type="text/javascript">
               $(document).ready(function() {
@@ -1211,9 +1267,9 @@ if (request.getParameter("number")!=null) {
                 <p>Are you sure you want to delete this relationship?</p>
                 <button class="btn btn-sm btn-block yesDelete" type="button" name="button">Yes</button>
                 <button class="btn btn-sm btn-block cancelDelete" type="button" name="button">No</button>
-              </div>
+              </div> --%>
 
-              <script type="text/javascript">
+              <%-- <script type="text/javascript">
               $(document).ready(function() {
                 $(".confirmDelete").hide();
                 $(".deleteRelationshipBtn[value='<%=persistenceID%>']").click(function() {
@@ -1246,10 +1302,10 @@ if (request.getParameter("number")!=null) {
                   $("div[value='<%=persistenceID%>']").hide();
                   $(".deleteRelationshipBtn[value='<%=persistenceID%>']").show();
                 });
-              </script>
+              </script> --%>
 
           		<%-- <a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a> --%>
-          	</td>
+          	<%-- </td>
           	<%
           	}
           	%>
@@ -1262,7 +1318,7 @@ if (request.getParameter("number")!=null) {
           %>
 
           </table>
-        </div>
+        </div> --%>
         <br/>
         <%
         }
@@ -1288,7 +1344,6 @@ if (request.getParameter("number")!=null) {
 
           getData("<%=individualID%>");
         });
-        // getTableData(<%=individualID%>);
         </script>
 
         <%
