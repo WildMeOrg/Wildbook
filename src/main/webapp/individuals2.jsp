@@ -1072,7 +1072,6 @@ if (request.getParameter("number")!=null) {
             </div>
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
             <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
-          	<input name="persistenceID" id="persistenceID" type="hidden"/>
           </form>
         </div>
 
@@ -1109,30 +1108,39 @@ if (request.getParameter("number")!=null) {
 
           $(document).ready(function() {
             setTimeout(function() {
-              $(".editRelationshipBtn").click(function() {
+              $(document).on('click', '.editRelationshipBtn', function () {
                 $("#setRelationshipResultDiv").hide();
                 var relationshipID = ($(this).attr("value"));
                 getRelationshipData(relationshipID);
               });
 
-              $(".deleteRelationshipBtn").click(function() {
-                  var relationshipID = ($(this).attr("value"));
-                  $("#addRelationshipForm").hide();
-                  $("#remove" + relationshipID).hide();
-                  $("div[value='" + relationshipID + "']").show();
+              // $(".deleteRelationshipBtn").click(function() {
+              //   // console.log("clicked");
+              // });
+
+              $(document).on('click', '.deleteRelationshipBtn', function () {
+                console.log("clicked");
+                var relationshipID = ($(this).attr("value"));
+                $("#addRelationshipForm").hide();
+                $("#remove" + relationshipID).hide();
+                $("div[value='" + relationshipID + "']").show();
               });
 
-              $(".yesDelete").click(function(event) {
+              $(document).on('click', '.yesDelete', function(event) {
                 event.preventDefault();
                 var relationshipID = ($(this).attr("value"));
                 var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
-                console.log(persistenceID);
-
+                // var deletedType =
+                var deletedMarkedIndividualName1 = "<%=individualID%>";
+                // var deletedMarkedIndividualName2 =
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
 
-                $.post("RelationshipDelete", {"persistenceID": persistenceID},
+                $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1},
                 function(response) {
+                  $("#communityTable").empty();
+                  $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+                  getRelationshipTableData("<%=individualID%>");
                   $("#setRelationshipResultDiv").show();
                   $("#relationshipSuccessDiv").html(response);
                 })
@@ -1140,15 +1148,17 @@ if (request.getParameter("number")!=null) {
                   $("#setRelationshipResultDiv").show();
                   $("#relationshipErrorDiv").html(response.responseText);
                 });
-
               });
+              // $(".yesDelete").click(function(event) {
+
+              // });
 
               $(".cancelDelete").click(function() {
                 var relationshipID = ($(this).attr("value"));
                 $("div[value='" + relationshipID + "']").hide();
                 $("#remove" + relationshipID).show();
               });
-            }, 5000);
+            }, 6000);
           });
         </script>
 
@@ -1158,6 +1168,8 @@ if (request.getParameter("number")!=null) {
               <tbody id="relationshipBody"></tbody>
           </table>
         </div>
+
+
 
         <%-- <div id="communityTable" class="mygrid-wrapper-div">
           <table width="100%" class="table table-striped table-bordered table-sm" id="socialRelationshipTable">

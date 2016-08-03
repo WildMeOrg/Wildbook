@@ -221,7 +221,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
           return d[0].italics() + "-" + d[1];
         }
         if(d.length > 2) {
-          return "<a target='_blank' href='http://flukebook.org/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
+          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
           }
         }
       return d;
