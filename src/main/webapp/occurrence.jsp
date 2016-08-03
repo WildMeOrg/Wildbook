@@ -570,6 +570,13 @@ if(occ.getIndividualCount()!=null){
 
 
 <p>
+
+<tr>
+<td>Location ID</td>
+<td><input name="oldValue-occ:locationID" value="<%=occ.getLocationID()%>" />
+</td></tr>
+
+
 <tr>
 <td>Decimal Latitude</td>
 <td><input name="oldValue-occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
@@ -808,16 +815,6 @@ $("a#indies").click(function() {
 </script>
 
 
-
-
-<p><%=props.getProperty("locationID") %>:
-<%
-if(occ.getLocationID()!=null){
-%>
-	<%=occ.getLocationID() %>
-<%
-}
-%>
 </p>
 <table id="encounter_report" width="100%">
 <tr>
