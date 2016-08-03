@@ -1143,7 +1143,10 @@ if (request.getParameter("number")!=null) {
                     $td2 = $row.find("td:nth-child(3)");
 
                 $.each($td1, function() {
-                    deletedMarkedIndividualName2 = ($(this).text().substring(0, 5));
+                    var tableData = ($(this).text().match(/[A-Z][a-z]+|[0-9]+/g));
+                    // tableData = tableData.split(" ")
+                    console.log(tableData);
+                    deletedMarkedIndividualName2 = tableData[0];
                 });
 
                 $.each($td2, function() {
