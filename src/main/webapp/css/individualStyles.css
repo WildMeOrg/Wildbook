@@ -135,7 +135,7 @@ input.form-control.relationshipInput, select.form-control.relationshipInput {
   display: block;
 }
 
-#closeEdit {
+#closeEdit, .confirmDelete {
   display: none;
 }
 
@@ -225,6 +225,11 @@ li.active{
   background-color: #8aacb8;
 }
 
+/*Social Relationships Table Styles*/
+#relationshipTable th {
+  background-image: none;
+}
+
 /* Family Tree Styles */
 
 #familyDiagram {
@@ -250,7 +255,6 @@ li.active{
 }
 
 /*Bubble Diagram Styles*/
-
 
 .co-occurrences {
   width: 850px;
@@ -300,6 +304,7 @@ button {
 .node circle {
   stroke: none;
 }
+
 
 /*Co-occurrence Table Style*/
 
