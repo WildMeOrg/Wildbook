@@ -2634,10 +2634,8 @@ if (isOwner) {
 </div>
 <!-- end measurements form -->
 
-
 <%
 %>
-
 
 </c:if>
 
@@ -2656,11 +2654,8 @@ if (isOwner) {
 %>
 <p class="para"><em><c:out value="${metalTagTitle}"></c:out></em>
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<%-- &nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-// }
 %>
 <table>
 <c:forEach var="item" items="${metalTags}">
@@ -2679,7 +2674,6 @@ if (isOwner) {
 
 
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start metal tag popup -->
 <script type="text/javascript">
@@ -2737,22 +2731,8 @@ if (isOwner) {
   </table>
   </form>
 </div>
-                         		<!-- popup dialog script -->
-<%-- <script>
-var dlgMetal = $("#dialogMetal").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#metal").click(function() {
-  dlgMetal.dialog("open");
-});
-</script> --%>
-<!-- end metal tags popup -->
 <%
-// }
 %>
 </c:if>
 
@@ -2765,11 +2745,8 @@ $("a#metal").click(function() {
 <c:if test="${editable}">
 &nbsp;
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<%-- <a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-// }
 %>
 </c:if>
 <table>
@@ -2784,7 +2761,6 @@ $("a#metal").click(function() {
 
 
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start acoustic tag  -->
 <script type="text/javascript">
@@ -2847,7 +2823,6 @@ $("a#metal").click(function() {
 </div>
 
 <%
-// }
 %>
 
 </c:if>
@@ -2860,12 +2835,10 @@ $("a#metal").click(function() {
 %>
 <p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 &nbsp;
-<%-- <a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-// }
+
 %>
 <table>
 <tr>
@@ -2881,7 +2854,6 @@ $("a#metal").click(function() {
 </p>
 
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start sat tag metadata  -->
 <script type="text/javascript">
@@ -2954,22 +2926,9 @@ $("a#metal").click(function() {
    </table>
    </form>
 </div>
-                         		<!-- popup dialog script -->
-<%-- <script>
-var dlgSat = $("#dialogSat").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#sat").click(function() {
-  dlgSat.dialog("open");
-});
-</script> --%>
-<!-- end sat tag popup -->
 <%
-// }
+
 %></c:if>
 </td>
 </tr>
