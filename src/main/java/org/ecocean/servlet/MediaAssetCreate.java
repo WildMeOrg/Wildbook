@@ -282,5 +282,3 @@ System.out.println("no MediaAssetSet; created " + targetMA);
     }
 
 }
-  
-  
