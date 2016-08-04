@@ -191,6 +191,9 @@ context=ServletUtilities.getContext(request);
 
       if (saving != null) {
 
+        ClassEditTemplate.saveUpdatedFields((Object) occ, request, myShepherd);
+
+        /*
         System.out.println("OCCURRENCE.JSP: Saving updated info...");
 
         Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
@@ -211,6 +214,10 @@ context=ServletUtilities.getContext(request);
             String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
             String getterName = "get" + methodName.substring(3);
             String value = request.getParameter(pname);
+
+            ClassEditTemplate.updateObjectField(occ, methodName, value);
+
+
             //saveMessage += "<p>occ - " + methodName + "</P>";
             java.lang.reflect.Method method;
             if ((pname.indexOf("decimalL") > -1) || pname.equals("occ:distance") || pname.equals("occ:bearing")) {  //must call with Double value
@@ -290,7 +297,7 @@ context=ServletUtilities.getContext(request);
                   }
                 }
 
-              } */ else {  //string
+              }  else {  //string
                 try {
                   method = enc.getClass().getMethod(methodName, String.class);
                   method.invoke(enc, value);
@@ -311,8 +318,11 @@ context=ServletUtilities.getContext(request);
             }
           }
         }
+
+
         myShepherd.commitDBTransaction();
         System.out.println("OCCURRENCE.JSP: Transaction committed");
+        */
       }
 
 
@@ -384,7 +394,7 @@ if(occ.getIndividualCount()!=null){
 
 <div class="row">
 <div class="col-sm-12">
-<form method="post" action="occurrence.jsp" id="occform">
+<form method="post" action="occurrence.jsp?name=<%=occ.getOccurrenceID()%>" id="occform">
 <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
 <style type="text/css">
@@ -443,95 +453,30 @@ if(occ.getIndividualCount()!=null){
 </style>
 
 <table  class="occurrence-field-edit">
-  <tr>
-    <td>
-      Habitat
-    </td><td>
-      <input name="oldValue-occ:habitat" value="<%=occ.getHabitat()%>" />
-    </td>
-  </tr>
 
-  <tr class="padding-below">
-    <td></td>
-  </tr>
-
-<tr>
-<td>Group Size</td>
-<td><input name="oldValue-occ:groupSize" value="<%=occ.getGroupSize()%>" />
-</tr>
-
-<tr>
-<td>Group Behavior</td>
   <%
-  String groupBehavior = occ.getGroupBehavior();
-  if (groupBehavior == null) groupBehavior = "";
-    %>
-<td><input name="oldValue-occ:groupBehavior" value="<%=groupBehavior%>" />
-</tr>
+  ClassEditTemplate.writeEditableFieldRow((Object) occ, "habitat", out);
+  %>
 
+  <tr class="padding-below"><td></td></tr>
 
-<tr>
-<td>Number Territorial Males</td>
-<td><input name="oldValue-occ:numTerMales" value="<%=occ.getNumTerMales()%>" /></td>
-</tr>
+  <%
+  String[] groupFields = {"groupSize", "groupBehavior", "numTerMales", "numBachMales", "numLactFemales", "numNonLactFemales"};
+  ClassEditTemplate.writeEditableFieldRows((Object) occ, groupFields, out);
+  %>
 
-<tr>
-<td>Number Bachelor Males</td>
-<td><input name="oldValue-occ:numBachMales" value="<%=occ.getNumBachMales()%>" /></td>
-</tr>
+  <tr class="padding-below"><td></td></tr>
 
-<tr>
-<td>Number Lactating Females</td>
-<td><input name="oldValue-occ:numLactFemales" value="<%=occ.getNumLactFemales()%>" /></td>
-</tr>
+  <%
+  String[] locationFields = {"locationID", "decimalLatitude", "decimalLongitude"};
+  ClassEditTemplate.writeEditableFieldRows((Object) occ, locationFields, out);
+  %>
 
-<tr data-original-value="<%=occ.getNumNonLactFemales()%>">
-  <td>Number Non-lactating Females</td>
-  <td>
-    <input name="oldValue-occ:numNonLactFemales" value="<%=occ.getNumNonLactFemales()%>" />
-  </td>
-  <td class="undo-container">
-    <div title="undo this change" class="undo-button">&#8635;</div>
-  </td>
-</tr>
-</p>
+  <tr class="padding-below"><td></td></tr>
 
-<tr class="padding-below">
-  <td></td>
-</tr>
-
-
-<p>
-
-<tr>
-<td>Location ID</td>
-<td><input name="oldValue-occ:locationID" value="<%=occ.getLocationID()%>" />
-</td></tr>
-
-
-<tr>
-<td>Decimal Latitude</td>
-<td><input name="oldValue-occ:decimalLatitude" value="<%=occ.getDecimalLatitude()%>" />
-</td></tr>
-<tr class="padding-below">
-<td>Decimal Longitude</td>
-<td><input name="oldValue-occ:decimalLongitude" value="<%=occ.getDecimalLongitude()%>" />
-</td></tr>
-</p>
-
-<tr class="padding-below">
-  <td></td>
-</tr>
-
-<p>
-<tr>
-<td>Distance (meters)</td>
-<td><input name="oldValue-occ:distance" value="<%=occ.getDistance()%>" />
-
-<tr>
-<td>Bearing (degrees from north)</td>
-<td><input name="oldValue-occ:bearing" value="<%=occ.getBearing()%>" />
-</p>
+  <%
+  ClassEditTemplate.writeEditableFieldRows((Object) occ, new String[]{"distance", "bearing"}, out);
+  %>
 
 </table>
 
