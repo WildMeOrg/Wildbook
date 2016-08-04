@@ -11,7 +11,7 @@ label {
   font-weight: lighter;
 }
 
-input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control{
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depth.form-control, input#addLocCodeInput.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
@@ -72,7 +72,7 @@ input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#cr
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;
