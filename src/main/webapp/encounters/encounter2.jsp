@@ -645,8 +645,7 @@ $(function() {
 					<div class="row">
 
 
-			<!-- here lies the photo gallery  -->
-            <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
+      <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
         <!-- START IDENTITY ATTRIBUTE -->
@@ -926,7 +925,6 @@ $(function() {
 								%>
 							</div>
 
-
 <!-- END INDIVIDUALID ATTRIBUTE -->
 
 						<!-- START ALTERNATEID ATTRIBUTE -->
@@ -996,7 +994,7 @@ $(function() {
         <!-- END ALTERNATEID ATTRIBUTE -->
 
 
-						<!-- START EVENTID ATTRIBUTE -->
+				<!-- START EVENTID ATTRIBUTE -->
  						<%
     					if (enc.getEventID() != null) {
   						%>
@@ -1006,10 +1004,10 @@ $(function() {
   						<%
     					}
   						%>
-						<!-- END EVENTID ATTRIBUTE -->
+				<!-- END EVENTID ATTRIBUTE -->
 
 
-						<!-- START OCCURRENCE ATTRIBUTE -->
+				<!-- START OCCURRENCE ATTRIBUTE -->
 						<p class="para noEditText">
 							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
 							<%
@@ -1092,121 +1090,10 @@ $(function() {
                     <%
                       }
                       %>
-        <!-- end Occurrence management section -->
-
-                        <%-- <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p> --%>
-
-
+        <!-- END OCCURRENCE ATTRIBUTE -->
 
             <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none">
-
-<%-- <p><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
-
-<!-- start Occurrence management section-->
-	<%
-    //Remove from occurrence if assigned
-	if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
-
-
-	%>
-	<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  	<tr>
-    	<td align="left" valign="top" class="para">
-      <table>
-        <tr>
-          <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
-          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
-          </strong></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
-      	<input name="number" type="hidden" value="<%=num%>" />
-      	<input name="action" type="hidden" value="remove" />
-      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-      	}
-      	  //create new Occurrence with name
-
-      if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
-
-      %>
-<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  <tr>
-    <td align="left" valign="top" class="para">
-    	<font color="#990000">
-      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
-        <input name="number" type="hidden" value="<%=num%>" />
-        <input name="action" type="hidden" value="create" />
-        <%=encprops.getProperty("newOccurrenceID")%><br />
-        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
-        <br />
-        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<br/>
-<strong>--<%=encprops.getProperty("or") %>--</strong>
-<br />
-<br />
-  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para"><font color="#990000">
-
-        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
-        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br />
-
-            <input name="number" type="hidden" value="<%=num%>" />
-            <input name="action" type="hidden" value="add" />
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
-          </form>
-      </td>
-    </tr>
-  </table>
- <%
- }
-
-%> --%>
-
-<!-- end Occurrence management section -->
-
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgOccurrence = $("#dialogOccurrence").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#occurrence").click(function() {
-  dlgOccurrence.dialog("open");
-});
-</script>
-<!-- end set occurrenceID -->
-<%-- <%
-}
-%> --%>
-<!-- END OCCURRENCE ATTRIBUTE -->
-
-
+          </div>
 
     <jsp:include page="encounterMediaGallery.jsp" flush="true">
     	<jsp:param name="encounterNumber" value="<%=num%>" />
@@ -1239,7 +1126,7 @@ $("a#occurrence").click(function() {
   </div>
 
 
-							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
+  <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
 
 
@@ -1307,89 +1194,77 @@ else{
   </p>
 </c:if>
 
-<!-- start releaseDate popup -->
-<div id="dialogReleaseDate" title="<%=encprops.getProperty("setReleaseDate")%>" style="display:none">
+<!-- start releaseDate -->
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
+  <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate" clas="editForm">
+    <input type="hidden" name="encounter" value="${num}"/>
+    <div id="releasedatepicker" class="editForm"></div>
+    <div class="form-group row editForm">
+      <div class="col-sm-4">
+        <label><%=encprops.getProperty("setReleaseDate")%></label>
+        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+      </div>
+      <div class="col-sm-5">
+        <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
+      </div>
+      <div class="col-sm-3">
+        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
+      </div>
+    </div>
+  </form>
 
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-
-    <tr>
-        <td>
-            <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
-                <input type="hidden" name="encounter" value="${num}"/>
-            <table>
-
-                <tr><td>
-
-                    <div id="releasedatepicker"></div>
-
-          <p>
-           <%=encprops.getProperty("setReleaseDate")%> <input type="text" style="position: relative; z-index: 101;" id="releasedatepickerField" name="releasedatepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-          </p>
-
-          <br />
-           <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" />
-
-
-                </td></tr>
-            </table>
-            </form>
-        </td>
-    </tr>
-  </table>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgReleaseDate = $("#dialogReleaseDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#releaseDate").click(function() {
-  dlgReleaseDate.dialog("open");
-});
-</script>
 <!-- end releaseDate -->
-<!-- start verbatim event date popup -->
-<div id="dialogVBDate" title="<%=encprops.getProperty("setVerbatimEventDate")%>" style="display:none">
 
-	  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-		    <tr>
-		      <td align="left" valign="top" class="para"><strong><font
-		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
-		        <br />
-			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          		</em></font>
-		        </td>
-		    </tr>
-		    <tr>
-		      <td align="left" valign="top">
-		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
-		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50">
-		              <input name="encounter" type="hidden" value=<%=num%>>
-		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>"></form>
-		      </td>
-		    </tr>
-		  </table>
+<br>
+
+<!-- start verbatim event date -->
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
+  <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
+    <input name="encounter" type="hidden" value="<%=num%>">
+    <div class="form-group row">
+      <div class="col-sm-4">
+        <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
+        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+      </div>
+      <div class="col-sm-5 col-xs-10">
+        <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+        </div>
+        <div class="col-sm-3">
+          <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
+        </div>
+      </div>
+    </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgVBDate = $("#dialogVBDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#VBDate").click(function() {
-  dlgVBDate.dialog("open");
-});
-</script>
-<!-- start date popup -->
-<div id="dialogDate" title="<%=encprops.getProperty("resetEncounterDate")%>" style="display:none">
 
-  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<!-- start date -->
+<div class="editText">
+  <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
+  <form name="setencdate" action="../EncounterResetDate" method="post">
+    <input name="number" type="hidden" value="<%=num%>" id="number" />
+    <input name="action" type="hidden" value="changeEncounterDate" />
+    <div id="datepicker" class="editForm"></div>
+    <div class="form-group row editForm">
+      <div class="col-sm-5">
+        <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
+        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+      </div>
+      <div class="col-sm-5">
+        <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+      </div>
+      <div class="col-sm-2">
+        <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%-- <div id="dialogDate" title="<%=encprops.getProperty("resetEncounterDate")%>" style="display:none"> --%>
+
+  <%-- <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
     <tr>
       <td align="left" valign="top">
@@ -1408,8 +1283,8 @@ $("a#VBDate").click(function() {
         </form>
       </td>
     </tr>
-  </table>
-</div>
+  </table> --%>
+<%-- </div> --%>
                          		<!-- popup dialog script -->
 <script>
 var dlgDate = $("#dialogDate").dialog({
