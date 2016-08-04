@@ -596,10 +596,13 @@ $(function() {
                   });
 
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-                    $(".editForm, .editText, #setMB, #Add, i#ndividualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence").show();
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+
+                    $(".editForm, .editText, #setMB, #Add, i#ndividualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, ##removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers").show();
+
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
+
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
                   });
 
                   $("#closeEdit").click(function() {
@@ -1234,7 +1237,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
           <%
           if(enc.getSubmitterName()!=null){
             %>
-            <br/><%=enc.getSubmitterName()%>
+            <br/><span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
             <%
           }
           if (isOwner) {
@@ -1252,27 +1255,27 @@ START HERE THURSDAY AM WITH AJAX POSTING
             }
             else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
               %> <br/>
-              <a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=enc.getSubmitterEmail()%></a>
+              <a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
               <%
             }
 
             if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
               %>
-              <br/> <%=enc.getSubmitterPhone()%>
+              <br/><span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
               <%
             }
             if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
               %>
-              <br /><%=enc.getSubmitterAddress()%>
+              <br /><span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
               <%
                 }
 
                 if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
-                <br/><%=enc.getSubmitterOrganization()%>
+                <br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
                 <%
                   }
                   if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-                  <br/><%=enc.getSubmitterProject()%>
+                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
                   <%
                     }
 
@@ -1288,7 +1291,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
                       <%
                         if(enc.getPhotographerName()!=null){
                         %>
-                        <br/> <%=enc.getPhotographerName()%>
+                        <br/><span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
                         <%
                           }
 
@@ -1296,17 +1299,17 @@ START HERE THURSDAY AM WITH AJAX POSTING
 
                           if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
                           %>
-                          <br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=enc.getPhotographerEmail()%></a>
+                          <br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
                           <%
                             }
                             if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
                             %>
-                            <br/><%=enc.getPhotographerPhone()%>
+                            <br/><span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
                             <%
                               }
                               if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
                               %>
-                              <br/><%=enc.getPhotographerAddress()%>
+                              <br/><span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
                               <%
                                 }
 
@@ -1348,7 +1351,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
                                         }
                                         else{
                                         %>
-                                        <%=enc.getInformOthers()%><br/> <%
+                                        <span id="displayInformOthers"><%=enc.getInformOthers()%></span><br/> <%
                                         }
                                         }
                                         else {
@@ -1362,12 +1365,59 @@ START HERE THURSDAY AM WITH AJAX POSTING
                                           %>
 
           <!-- start submitter -->
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#editContact").click(function(event) {
+                event.preventDefault();
+
+                $("#editContact").hide();
+
+                var submitter = $("#submitter").val();
+                var number = $("#submitNumber").val();
+                var action = $("#submitAction").val();
+                var name = $("#submitName").val();
+                var email = $("#submitEmail").val();
+                var phone = $("#submitPhone").val();
+                var address = $("#submitAddress").val();
+                var submitterOrganization = $("#submitOrg").val();
+                var submitterProject = $("#submitProject").val();
+
+                $.post("../EncounterSetSubmitterPhotographerContactInfo", {"submitter": submitter, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address, "submitterOrganization": submitterOrganization, "submitterProject": submitterProject},
+                function() {
+                  $("#submitErrorDiv").hide();
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-success");
+                  $("#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").show();
+                  $("#displaySubmitName").html(name);
+                  $("#displaySubmitEmail").html(email);
+                  $("#displaySubmitPhone").html(phone);
+                  $("#displaySubmitAddress").html(address);
+                  $("#displaySubmitOrg").html(submitterOrganization);
+                  $("#displaySubmitProject").html(submitterProject);
+                })
+                .fail(function(response) {
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-error");
+                  $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError").show();
+                  $("#submitErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#setPersonalDetailsForm").click(function() {
+                $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").hide()
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-success");
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-error");
+                $("#editContact").show();
+              });
+            });
+          </script>
+
           <div>
+            <div class="highlight" id="submitErrorDiv"></div>
+
             <p class="editText"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)</strong></p>
-            <form name="setPersonalDetails" action="../EncounterSetSubmitterPhotographerContactInfo" method="post" class="editForm">
-              <input type="hidden" name="contact" value="submitter" />
-              <input name="number" type="hidden" value="<%=num%>" />
-              <input name="action" type="hidden" value="editcontact" />
+            <form name="setPersonalDetails" class="editForm" id="setPersonalDetailsForm">
+              <input type="hidden" name="contact" value="submitter" id="submitter"/>
+              <input name="number" type="hidden" value="<%=num%>" id="submitNumber"/>
+              <input name="action" type="hidden" value="editcontact" id="submitAction"/>
               <%
 
                 String sName="";
@@ -1389,48 +1439,60 @@ START HERE THURSDAY AM WITH AJAX POSTING
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("name")%></label>
                   </div>
-                  <div class="col-sm-5">
+                  <div class="col-sm-5" id="submitNameDiv">
                     <input id="submitName" name="name" type="text" value="<%=sName %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitNameCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitNameError">X</span>
                   </div>
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("email")%></label>
                   </div>
-                  <div class="col-sm-5">
+                  <div class="col-sm-5" id="submitEmailDiv">
                     <input id="submitEmail" name="email" type="text" value="<%=sEmail %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitEmailCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitEmailError">X</span>
                   </div>
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("phone")%></label>
                   </div>
-                  <div class="col-sm-5">
+                  <div class="col-sm-5" id="submitPhoneDiv">
                     <input id="submitPhone" name="phone" type="text" value="<%=sPhone %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submiPhoneCheck">&check;</span>
+                    <span class="form-control-feedback" id="submiPhoneError">X</span>
                   </div>
                 </div>
                 <div class="form-group row">
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("address")%></label>
                   </div>
-                  <div class="col-sm-5">
+                  <div class="col-sm-5" id="submitAddressDiv">
                     <input id="submitAddress" name="address" type="text" value="<%=sAddress %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitAddressCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitAddressError">X</span>
                   </div>
                 </div>
-                <div class="form-group row">
+                <div class="form-group row" id="submitOrgDiv">
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("submitterOrganization")%></label>
                   </div>
                   <div class="col-sm-5">
-                    <input id="submitOrg" name="submitterOrganization" type="text" size="20" value="<%=sOrg %>" class="form-control"></input>
+                    <input id="submitOrg" name="submitterOrganization" type="text" value="<%=sOrg %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitOrgCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitOrgError">X</span>
                   </div>
                 </div>
-                <div class="form-group row">
+                <div class="form-group row" id="submitProjectDiv">
                   <div class="col-sm-3">
                     <label><%=encprops.getProperty("submitterProject")%></label>
                   </div>
                   <div class="col-sm-5">
-                    <input id="submitProject" name="submitterProject" type="text" size="20" value="<%=sProject %>" class="form-control"></input>
+                    <input id="submitProject" name="submitterProject" type="text" value="<%=sProject %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitProjectCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitProjectError">X</span>
                   </div>
                 </div>
                 <div class="form-group row">
@@ -1445,12 +1507,55 @@ START HERE THURSDAY AM WITH AJAX POSTING
             <!-- end submitter  -->
 
             <!-- start photographer -->
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#editPhotographer").click(function(event) {
+                  event.preventDefault();
+
+                  $("#editPhotographer").hide();
+
+                  var submitter = $("#photographer").val();
+                  var number = $("#photoNumber").val();
+                  var action = $("#photoAction").val();
+                  var name = $("#photoName").val();
+                  var email = $("#photoEmail").val();
+                  var phone = $("#photoPhone").val();
+                  var address = $("#photoAddress").val();
+
+
+                  $.post("../EncounterSetSubmitterPhotographerContactInfo", {"submitter": submitter, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address},
+                  function() {
+                    $("#photoErrorDiv").hide();
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-success");
+                    $("#photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").show();
+                    $("#displayPhotoName").html(name);
+                    $("#displayPhotoEmail").html(email);
+                    $("#displayPhotoPhone").html(phone);
+                    $("#displayPhotoAddress").html(address);
+                  })
+                  .fail(function(response) {
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-error");
+                    $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError").show();
+                    $("#photoErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#setPhotographerInfoForm").click(function() {
+                  $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").hide()
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-success");
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-error");
+                  $("#editPhotographer").show();
+                });
+              });
+            </script>
             <div>
+              <div class="highlight" id="photoErrorDiv"></div>
+
               <p class="editText"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)</strong></p>
-              <form action="../EncounterSetSubmitterPhotographerContactInfo" method="post" class="editForm">
-                <input type="hidden" name="contact" value="photographer" />
-                <input name="number" type="hidden" value="<%=num%>" />
-                <input name="action" type="hidden" value="editcontact" />
+              <form id="setPhotographerInfoForm" class="editForm">
+                <input type="hidden" name="contact" value="photographer" id="photographer"/>
+                <input name="number" type="hidden" value="<%=num%>" id="photoNumber"/>
+                <input name="action" type="hidden" value="editcontact" id="photoAction"/>
 
                 <%
 
@@ -1469,32 +1574,40 @@ START HERE THURSDAY AM WITH AJAX POSTING
                     <div class="col-sm-3">
                       <label><%=encprops.getProperty("name")%></label>
                     </div>
-                    <div class="col-sm-5">
+                    <div class="col-sm-5" id="photoNameDiv">
                       <input id="photoName" name="name" type="text" size="20" value="<%=pName %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="submitNameCheck">&check;</span>
+                      <span class="form-control-feedback" id="submitNameError">X</span>
                     </div>
                   </div>
                   <div class="form-group row">
                     <div class="col-sm-3">
                       <label><%=encprops.getProperty("email")%></label>
                     </div>
-                    <div class="col-sm-5">
+                    <div class="col-sm-5" id="photoEmailDiv">
                       <input id="photoEmail" name="email" type="text" value="<%=pEmail %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="photoEmailCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoEmailError">X</span>
                     </div>
                   </div>
                   <div class="form-group row">
                     <div class="col-sm-3">
                       <label><%=encprops.getProperty("phone")%></label>
                     </div>
-                    <div class="col-sm-5">
+                    <div class="col-sm-5" id="photoPhoneDiv">
                       <input id="photoPhone" name="phone" type="text" size="20" value="<%=pPhone %>" class="form-control"></input></input>
+                      <span class="form-control-feedback" id="photoPhoneCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoPhoneError">X</span>
                     </div>
                   </div>
                   <div class="form-group row">
                     <div class="col-sm-3">
                       <label><%=encprops.getProperty("address")%></label>
                     </div>
-                    <div class="col-sm-5">
-                      <input id="photoAddress" name="address" type="text" size="20" value="<%=pAddress %>" class="form-control"></input>
+                    <div class="col-sm-5" id="photoAddressDiv">
+                      <input id="photoAddress" name="address" type="text" size="20" value="<%=pAddress %>" class="form-control"></input
+                      <span class="form-control-feedback" id="photoAddressCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoAddressError">X</span>>
                     </div>
                   </div>
                   <div class="form-group row">
@@ -1507,20 +1620,58 @@ START HERE THURSDAY AM WITH AJAX POSTING
               </div>
 
               <!-- end photographer  -->
+
               <%-- start inform others --%>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $("#setOthers").click(function(event) {
+                    event.preventDefault();
+
+                    $("#setOthers").hide();
+
+                    var encounter = $("#informEncounter").val();
+                    var informothers = $("#informOthers").val();
+
+                    $.post("../OccurrenceAddEncounter", {"encounter": encounter, "informothers": informothers},
+                    function() {
+                      $("#informErrorDiv").hide();
+                      $("#informOthersDiv").addClass("has-success");
+                      $("#informCheck").show();
+                      $("#displayInformOthers").html(occurrence);
+                    })
+                    .fail(function(response) {
+                      $("#informOthersDiv").addClass("has-error");
+                      $("#informError, #informErrorDiv").show();
+                      $("#informErrorDiv").html(response.responseText);
+                    });
+                  });
+
+                  $("#informOthers").click(function() {
+                    $("#informError, #informCheck, #informErrorDiv").hide()
+                    $("#informOthersDiv").removeClass("has-success");
+                    $("#informOthersDiv").removeClass("has-error");
+                    $("#setOthers").show();
+                  });
+                });
+              </script>
+
               <div>
+                <div class="highlight" id="informErrorDiv"></div>
+
                 <p class="editText">
                   <strong><%=encprops.getProperty("setOthersToInform")%></strong>
                   <span class="editText"><em><%=encprops.getProperty("separateEmails") %></em></span>
                 </p>
                 <form name="setOthers" action="../EncounterSetInformOthers" method="post" class="editForm">
-                  <input name="encounter" type="hidden" value="<%=num%>" />
+                  <input name="encounter" type="hidden" value="<%=num%>" id="informEncounter"/>
                   <div class="form-group row">
-                    <div class="col-sm-5">
+                    <div class="col-sm-5" id="informOthersDiv">
                       <input class="form-control" name="informothers" type="text" id="informOthers"
                         <%if(enc.getInformOthers()!=null){ %>
                         value="<%=enc.getInformOthers().trim()%>"
                         <%}%> />
+                        <span class="form-control-feedback" id="informCheck">&check;</span>
+                        <span class="form-control-feedback" id="informError">X</span>
                       </div>
                       <div class="col-sm-3">
                         <input name="Set" type="submit" id="setOthers" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>

@@ -48,13 +48,15 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
 
 
 
-#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck {
+
+
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError {
+#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError {
   display: none;
   color: red;
   font-family: sans-serif;
