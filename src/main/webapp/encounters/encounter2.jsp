@@ -596,17 +596,17 @@ $(function() {
                   });
 
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError").hide();
 
-                    $(".editForm, .editText, #setMB, #Add, i#ndividualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, ##removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers").show();
+                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers").show();
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-error");
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-success");
                   });
 
                   $("#closeEdit").click(function() {
-                    $(".editForm, #dialogIdentity, .editText").hide();
+                    $(".editForm, .editText").hide();
                     $(".noEditText").show();
                   });
                 });
@@ -1221,10 +1221,7 @@ $(function() {
                     <%
                       }
                       %>
-        <!-- END OCCURRENCE ATTRIBUTE -->
-
-<%-- TODO --%>
-START HERE THURSDAY AM WITH AJAX POSTING
+    <!-- END OCCURRENCE ATTRIBUTE -->
 
 
 <%-- START CONTACT INFORMATION --%>
@@ -1461,8 +1458,8 @@ START HERE THURSDAY AM WITH AJAX POSTING
                   </div>
                   <div class="col-sm-5" id="submitPhoneDiv">
                     <input id="submitPhone" name="phone" type="text" value="<%=sPhone %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submiPhoneCheck">&check;</span>
-                    <span class="form-control-feedback" id="submiPhoneError">X</span>
+                    <span class="form-control-feedback" id="submitPhoneCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitPhoneError">X</span>
                   </div>
                 </div>
                 <div class="form-group row">
@@ -1605,9 +1602,9 @@ START HERE THURSDAY AM WITH AJAX POSTING
                       <label><%=encprops.getProperty("address")%></label>
                     </div>
                     <div class="col-sm-5" id="photoAddressDiv">
-                      <input id="photoAddress" name="address" type="text" size="20" value="<%=pAddress %>" class="form-control"></input
+                      <input id="photoAddress" name="address" type="text" value="<%=pAddress %>" class="form-control"/>
                       <span class="form-control-feedback" id="photoAddressCheck">&check;</span>
-                      <span class="form-control-feedback" id="photoAddressError">X</span>>
+                      <span class="form-control-feedback" id="photoAddressError">X</span>
                     </div>
                   </div>
                   <div class="form-group row">
@@ -1637,7 +1634,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
                       $("#informErrorDiv").hide();
                       $("#informOthersDiv").addClass("has-success");
                       $("#informCheck").show();
-                      $("#displayInformOthers").html(occurrence);
+                      $("#displayInformOthers").html(informothers);
                     })
                     .fail(function(response) {
                       $("#informOthersDiv").addClass("has-error");
@@ -1665,7 +1662,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
                 <form name="setOthers" action="../EncounterSetInformOthers" method="post" class="editForm">
                   <input name="encounter" type="hidden" value="<%=num%>" id="informEncounter"/>
                   <div class="form-group row">
-                    <div class="col-sm-5" id="informOthersDiv">
+                    <div class="col-sm-6" id="informOthersDiv">
                       <input class="form-control" name="informothers" type="text" id="informOthers"
                         <%if(enc.getInformOthers()!=null){ %>
                         value="<%=enc.getInformOthers().trim()%>"
@@ -1684,6 +1681,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
                   }
                   %>
         </div>
+<%-- END CONTACT INFORMATION --%>
 
       <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none"></div>
 
@@ -1722,6 +1720,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
   <%-- start right column --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
+
     <!-- start DATE section -->
     <table>
     <tr>
@@ -1749,7 +1748,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
         <%
     				if(enc.getVerbatimEventDate()!=null){
     				%>
-        <%=enc.getVerbatimEventDate()%>
+        <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
         <%
     				}
     				else {
@@ -1768,7 +1767,7 @@ START HERE THURSDAY AM WITH AJAX POSTING
       pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
     %>
     <c:if test="${showReleaseDate}">
-      <br /><em><%=encprops.getProperty("releaseDate") %></em>:
+      <br /><em><span id="displayReleaseDate"><%=encprops.getProperty("releaseDate") %></span></em>:
         <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
         <c:if test="${editable}">
 
@@ -1776,19 +1775,57 @@ START HERE THURSDAY AM WITH AJAX POSTING
       </p>
     </c:if>
 
+
     <!-- start releaseDate -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#AddDate").click(function(event) {
+          event.preventDefault();
+
+          $("#AddDate").hide();
+
+          var encounter = $("#releaseDateEncounter").val();
+          var releasedatepicker = $("#releasedatepickerField").val();
+
+          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "releasedatepicker": releasedatepicker},
+          function() {
+            $("#releaseErrorDiv").hide();
+            $("#releaseDiv").addClass("has-success");
+            $("#releaseCheck").show();
+            $("#displayReleaseDate").html(releasedatepicker);
+          })
+          .fail(function(response) {
+            $("#releaseDiv").addClass("has-error");
+            $("#releaseError, #releaseErrorDiv").show();
+            $("#releaseErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#releasedatepickerField").click(function() {
+          $("#releaseError, #releaseCheck, #releaseErrorDiv").hide()
+          $("#releaseDiv").removeClass("has-success");
+          $("#releaseDiv").removeClass("has-error");
+          $("#AddDate").show();
+        });
+      });
+    </script>
+
     <div>
+      <div class="highlight" id="releaseErrorDiv"></div>
+
       <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
-      <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate" clas="editForm">
-        <input type="hidden" name="encounter" value="${num}"/>
+      <form name="setReleaseDate" clas="editForm">
+        <input type="hidden" name="encounter" value="${num}" id="releaseDateEncounter"/>
         <div id="releasedatepicker" class="editForm"></div>
         <div class="form-group row editForm">
           <div class="col-sm-4">
             <label><%=encprops.getProperty("setReleaseDate")%></label>
             <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
           </div>
-          <div class="col-sm-5">
+          <div class="col-sm-5" id="releaseDiv">
             <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
+            <span class="form-control-feedback" id="releaseCheck">&check;</span>
+            <span class="form-control-feedback" id="releaseError">X</span>
           </div>
           <div class="col-sm-3">
             <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
@@ -1800,19 +1837,54 @@ START HERE THURSDAY AM WITH AJAX POSTING
     <!-- end releaseDate -->
 
     <br>
-
     <!-- start verbatim event date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#setVerbatimEventDateBtn").click(function(event) {
+          event.preventDefault();
+
+          $("#setVerbatimEventDateBtn").hide();
+
+          var encounter = $("#verbatimDateEncounter").val();
+          var verbatimEventDate = $("#verbatimEventDateInput").val();
+
+          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "verbatimEventDate": verbatimEventDate},
+          function() {
+            $("#verbatimErrorDiv").hide();
+            $("#verbatimDiv").addClass("has-success");
+            $("#verbatimCheck").show();
+            $("#displayVerbatimDate").html(verbatimEventDate);
+          })
+          .fail(function(response) {
+            $("#verbatimDiv").addClass("has-error");
+            $("#verbatimError, #verbatimErrorDiv").show();
+            $("#verbatimErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#verbatimEventDateInput").click(function() {
+          $("#verbatimError, #verbatimCheck, #verbatimErrorDiv").hide()
+          $("#verbatimDiv").removeClass("has-success");
+          $("#verbatimDiv").removeClass("has-error");
+          $("#setVerbatimEventDateBtn").show();
+        });
+      });
+    </script>
     <div>
+      <div class="highlight" id="verbatimErrorDiv"></div>
+
       <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
       <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
-        <input name="encounter" type="hidden" value="<%=num%>">
+        <input name="encounter" type="hidden" value="<%=num%>" id="verbatimDateEncounter">
         <div class="form-group row">
           <div class="col-sm-4">
             <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
             <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
           </div>
-          <div class="col-sm-5 col-xs-10">
+          <div class="col-sm-5 col-xs-10" id="verbatimDiv">
             <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+              <span class="form-control-feedback" id="verbatimCheck">&check;</span>
+              <span class="form-control-feedback" id="verbatimError">X</span>
             </div>
             <div class="col-sm-3">
               <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
@@ -1823,19 +1895,55 @@ START HERE THURSDAY AM WITH AJAX POSTING
 
 
     <!-- start date -->
-    <div class="editText">
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#addResetDate").click(function(event) {
+          event.preventDefault();
+
+          $("#addResetDate").hide();
+
+          var number = $("#resetDateNumber").val();
+          var datepicker = $("#datepickerField").val();
+
+          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
+          function() {
+            $("#resetDateErrorDiv").hide();
+            $("#resetDateDiv").addClass("has-success");
+            $("#resetDateCheck").show();
+            $("#displayResetDate").html(datepicker);
+          })
+          .fail(function(response) {
+            $("#resetDateDiv").addClass("has-error");
+            $("#resetDateError, #resetDateErrorDiv").show();
+            $("#resetDateErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#datepickerField").click(function() {
+          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
+          $("#resetDateDiv").removeClass("has-success");
+          $("#resetDateDiv").removeClass("has-error");
+          $("#addResetDate").show();
+        });
+      });
+    </script>
+    <div>
+    <div class="highlight" id="resetDateErrorDiv"></div>
+
       <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
-      <form name="setencdate" action="../EncounterResetDate" method="post">
-        <input name="number" type="hidden" value="<%=num%>" id="number" />
-        <input name="action" type="hidden" value="changeEncounterDate" />
+      <form name="setencdate" action="" method="post">
+        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
+        <input name="action" type="hidden" value="changeEncounterDate"/>
         <div id="datepicker" class="editForm"></div>
         <div class="form-group row editForm">
           <div class="col-sm-5">
             <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
             <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
           </div>
-          <div class="col-sm-5">
+          <div class="col-sm-5" id="resetDateDiv">
             <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
+            <span class="form-control-feedback" id="resetDateError">X</span>
           </div>
           <div class="col-sm-2">
             <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
@@ -1914,6 +2022,8 @@ if(enc.getLocation()!=null){
   }
 %>
 <!-- End Display maximumDepthInMeters -->
+
+START HERE THURSDAY
 
 <!-- start location  -->
 <div>
