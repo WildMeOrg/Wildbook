@@ -1800,7 +1800,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             jobj.remove("timeOfDeath");
             jobj.remove("timeOfBirth");
             jobj.remove("maxYearsBetweenResightings");
-            jobj.remove("numUnidentifiableEncounters");
+            //jobj.remove("numUnidentifiableEncounters");
             jobj.remove("nickName");
             jobj.remove("nickNamer");
             jobj.put("_sanitized", true);
