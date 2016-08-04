@@ -3622,14 +3622,14 @@ if (isOwner) {
   });
 </script>
 <div>
-  <p><strong><%=encprops.getProperty("auto_comments")%></strong></p>
+  <p class="editText"><strong><%=encprops.getProperty("auto_comments")%></strong></p>
   <div class="highlight" id="autoCommentErrorDiv"></div>
     <%
     String rComments="";
     if(enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
-    <div style="text-align:left;border: 1px solid lightgray;width:575px;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;margin-bottom: 5px;">
+    <div class="editForm" style="text-align:left;border: 1px solid lightgray;width:575px;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
       <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
     </div>
 
@@ -3686,11 +3686,23 @@ if (isOwner) {
 %>
 <h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
 <c:if test="${editable and !empty measurements}">
-  <a id="measure" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
 <table>
 <tr>
-<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("size") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement"><%=encprops.getProperty("samplingProtocol") %></th></c:if>
+<th class="measurement">
+  <span id="displayMtype"><%=encprops.getProperty("type") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMsize"><%=encprops.getProperty("size") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMunits"><%=encprops.getProperty("units") %></span>
+</th>
+<c:if test="${!empty samplingProtocols}">
+  <th class="measurement">
+    <display id="displayMsample"><%=encprops.getProperty("samplingProtocol") %></span>
+  </th>
+</c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
@@ -3714,75 +3726,101 @@ if (isOwner) {
 </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+<%-- start measuremnts form--%>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addMeasurements").click(function(event) {
+      event.preventDefault();
 
-<div id="dialogMeasure" title="<%=encprops.getProperty("setMeasurements")%>" style="display:none">
- <%
-   pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
- %>
+      var encounter = $("#autoNumber").val();
 
-       <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-        <form name="setMeasurements" method="post" action="../EncounterSetMeasurements">
-        <input type="hidden" name="encounter" value="${num}"/>
+      $.post("../EncounterSetMeasurements", {"encounter": encounter},
+      function(response) {
+        $("#measurementResultDiv").show();
+        $("#measurementError").hide();
+        $("#measurementSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#measurementResultDiv").show();
+        $("#measurementSuccess").hide();
+        $("#measurementError").html(response.responseText);
+      });
+    });
+    $("#measurementForm").click(function() {
+      $("#measurementResultDiv").hide();
+    });
+  });
+</script>
+
+
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
+  <div id="measurementResultDiv">
+    <span id="measurementSuccess" class="successHighlight"></span>
+    <span id="measurementError" class="highlight"></span>
+  </div>
+
+    <%
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    %>
+
+    <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editForm">
+      <form name="setMeasurements" class="editForm" id="measurementForm">
+        <input type="hidden" name="encounter" value="${num}" id="measurementEncounter"/>
         <c:set var="index" value="0"/>
         <%
-          List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
 
         %>
         <c:forEach items="${items}" var="item">
-        <%
+          <%
           MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
           Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
           if (measurement == null) {
-              measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
-        %>
-            <tr>
-              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/></td>
-              <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
-                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
-                  <select name="measurement${index}(samplingProtocol)">
-                  <c:forEach items="${optionDescs}" var="optionDesc">
-                    <c:choose>
-                    <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
-                      <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
-                    </c:when>
-                    <c:otherwise>
-                      <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-                    </c:otherwise>
-                    </c:choose>
-                  </c:forEach>
-                  </select>
-              </td>
-            </tr>
-            <c:set var="index" value="${index + 1}"/>
-        </c:forEach>
-        <tr>
-        <td><input name="${set}" type="submit" value="${set}"/></td>
+          %>
+          <tr>
+            <td class="form_label">
+            <c:out value="${item.label}"/>
+            <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
+          </td>
+            <td>
+            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementInput"/>
+            <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
+            <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
+            <c:out value="(${item.unitsLabel})"/>
+            <select name="measurement${index}(samplingProtocol)" id="selectMeasurement">
+              <c:forEach items="${optionDescs}" var="optionDesc">
+                <c:choose>
+                  <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                    <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
+                  </c:when>
+                  <c:otherwise>
+                    <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                  </c:otherwise>
+                </c:choose>
+              </c:forEach>
+            </select>
+          </td>
         </tr>
-        </form>
-        </table>
-
+        <c:set var="index" value="${index + 1}"/>
+      </c:forEach>
+      <tr>
+        <td>
+          <input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="addMeasurements"/>
+        </td>
+      </tr>
+    </form>
+  </table>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgMeasure = $("#dialogMeasure").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+<!-- end measurements form -->
 
-$("a#measure").click(function() {
-  dlgMeasure.dialog("open");
-});
-</script>
-<!-- end measurements popup -->
+
 <%
-}
 %>
 
 
