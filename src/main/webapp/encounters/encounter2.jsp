@@ -596,13 +596,13 @@ $(function() {
                   });
 
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError").hide();
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError").hide();
 
                     $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers").show();
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-error");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv").removeClass("has-error");
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-success");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv").removeClass("has-success");
                   });
 
                   $("#closeEdit").click(function() {
@@ -1975,7 +1975,7 @@ $(function() {
 if(enc.getLocation()!=null){
 %>
 
-<em><%=encprops.getProperty("locationDescription")%> <%=enc.getLocation()%></em>
+<em><%=encprops.getProperty("locationDescription")%><span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
 }
 %>
@@ -1995,7 +1995,7 @@ if(enc.getLocation()!=null){
   <%
   if(enc.getCountry()!=null){
   %>
-  <span>: <%=enc.getCountry()%></span>
+  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
   }
     %>
@@ -2010,7 +2010,7 @@ if(enc.getLocation()!=null){
   <%
     if (enc.getDepthAsDouble() !=null) {
   %>
-  <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
+  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %>
   <%
@@ -2023,14 +2023,45 @@ if(enc.getLocation()!=null){
 %>
 <!-- End Display maximumDepthInMeters -->
 
-START HERE THURSDAY
-
 <!-- start location  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addLocation").click(function(event) {
+      event.preventDefault();
+
+      $("#addLocation").hide();
+
+      var number = $("#setLocationNumber").val();
+      var encounter = $("#setLocationEncounter").val();
+      var location = $("#locationInput").val();
+
+      $.post("../EncounterSetLocation", {"number": number, "encounter": encounter, "location": location},
+      function() {
+        $("#setLocationErrorDiv").hide();
+        $("#setLocationCheck").show();
+        $("#displayLocation").html(location);
+      })
+      .fail(function(response) {
+        $("#setLocationError, #setLocationErrorDiv").show();
+        $("#setLocationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#datepickerField").click(function() {
+      $("#setLocationError, #setLocationCheck, #setLocationErrorDiv").hide()
+      $("#addLocation").show();
+    });
+  });
+</script>
 <div>
+  <div class="highlight" id="setLocationErrorDiv"></div>
+
   <p class="editText"><strong><%=encprops.getProperty("setLocation")%></strong></p>
-  <form name="setLocation" action="../EncounterSetLocation" method="post" class="editForm">
-    <input name="number" type="hidden" value="<%=num%>" />
+  <form name="setLocation" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="setLocationNumber"/>
     <input name="action" type="hidden" value="setLocation" />
+    <input name="encounter" type="hidden" value="<%=num%>" id="setLocationEncounter">
+
   <%
   String thisLocation="";
   if(enc.getLocation()!=null){
@@ -2039,10 +2070,12 @@ START HERE THURSDAY
   %>
   <div class="form-group row">
     <div class="col-sm-5">
-      <textarea name="location" size="15" class="form-control"><%=thisLocation%></textarea>
+      <textarea name="location" class="form-control" id="locationInput"><%=thisLocation%></textarea>
     </div>
     <div class="col-sm-3">
       <input name="Add" type="submit" id="addLocation" value="<%=encprops.getProperty("setLocation")%>" class="btn btn-sm"/>
+      <span class="form-control-feedback" id="setLocationCheck">&check;</span>
+      <span class="form-control-feedback" id="setLocationError">X</span>
     </div>
   </div>
   </form>
@@ -2051,15 +2084,46 @@ START HERE THURSDAY
 
 
 <!-- start country -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#countryFormBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#countryFormBtn").hide();
+
+      var encounter = $("#countryEncounter").val();
+      var country = $("#selectCountry").val();
+
+      $.post("../EncounterSetCountry", {"encounter": encounter, "country": country},
+      function() {
+        $("#countryErrorDiv").hide();
+        $("#countryCheck").show();
+        $("#displayCountry").html(country);
+      })
+      .fail(function(response) {
+        $("#countryError, #countryErrorDiv").show();
+        $("#countryErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCountry").click(function() {
+      $("#countryError, #countryCheck, #countryErrorDiv").hide()
+      $("#countryFormBtn").show();
+    });
+  });
+</script>
+
 <div>
+  <div class="highlight" id="countryErrorDiv"></div>
+
   <p class="editText"><strong><%=encprops.getProperty("resetCountry")%></strong></p>
   <span class="editText"><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></span>
 
-  <form name="countryForm" action="../EncounterSetCountry" method="post" class="editForm">
-    <input name="encounter" type="hidden" value="<%=num%>" id="number" />
+  <form name="countryForm" class="editForm">
+    <input name="encounter" type="hidden" value="<%=num%>" id="countryEncounter" />
     <div class="form-group row">
       <div class="col-sm-5">
-        <select name="country" id="country" size="1" class="form-control">
+        <select name="country" id="selectCountry" size="1" class="form-control">
           <option value=""></option>
 
           <%
@@ -2076,6 +2140,8 @@ START HERE THURSDAY
       </div>
       <div class="col-sm-3">
         <input name="<%=encprops.getProperty("set")%>" type="submit" id="countryFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="countryCheck">&check;</span>
+        <span class="form-control-feedback" id="countryError">X</span>
       </div>
     </div>
   </form>
@@ -2083,10 +2149,44 @@ START HERE THURSDAY
 <!-- end country popup-->
 
 <!-- start locationID -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setLocationBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#setLocationBtn").hide();
+
+      var number = $("#locationIDnumber").val();
+      var code = $("#selectCode").val();
+      if(code == null) {
+        code = $("addLocCodeInput").val();
+      }
+
+      $.post("../EncounterSetLocationID", {"number": number, "code": code},
+      function() {
+        $("#locationIDerrorDiv").hide();
+        $("#locationIDcheck").show();
+        $("#displayLocationID").html(code);
+      })
+      .fail(function(response) {
+        $("#locationIDerror, #locationIDerrorDiv").show();
+        $("#locationIDerrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCode").click(function() {
+      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide()
+      $("#setLocationBtn").show();
+    });
+  });
+</script>
+
 <div>
+  <div class="highlight" id="locationIDerrorDiv"></div>
+
   <p class="editText"><strong><%=encprops.getProperty("setLocationID")%></strong></p>
-  <form name="addLocCode" action="../EncounterSetLocationID" method="post" class="editForm">
-    <input name="number" type="hidden" value="<%=num%>" />
+  <form name="addLocCode" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
     <input name="action" type="hidden" value="addLocCode" />
 
         <%
@@ -2107,7 +2207,7 @@ START HERE THURSDAY
           %>
           <div class="form-group row">
             <div class="col-sm-5">
-              <select name="code" id="code" class="form-control" size=="1">
+              <select name="code" id="selectCode" class="form-control" size=="1">
                 <option value=""></option>
 
                 <%
@@ -2133,6 +2233,8 @@ START HERE THURSDAY
             </div>
             <div class="col-sm-3">
               <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
+              <span class="form-control-feedback" id="locationIDcheck">&check;</span>
+              <span class="form-control-feedback" id="locationIDerror">X</span>
             </div>
           </div>
       <%
@@ -2143,18 +2245,56 @@ START HERE THURSDAY
 </div>
 <!-- end locationID -->
 
+START HERE THURSDAY
 
 
 <!-- start depth -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddDepth").click(function(event) {
+      event.preventDefault();
+
+      $("#AddDepth").hide();
+
+      var number = $("#depthNumber").val();
+      var depth = $("#depthInput").val();
+
+      $.post("../EncounterSetMaximumDepth", {"number": number, "depth": depth},
+      function() {
+        $("#depthErrorDiv").hide();
+        $("#depthDiv").addClass("has-success");
+        $("#depthCheck").show();
+        $("#displayDepth").html(depth);
+      })
+      .fail(function(response) {
+        $("#depthDiv").addClass("has-error");
+        $("#depthError, #depthErrorDiv").show();
+        $("#depthErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#depthInput").click(function() {
+      $("#depthError, #depthCheck, #depthErrorDiv").hide()
+      $("#depthDiv").removeClass("has-success");
+      $("#depthDiv").removeClass("has-error");
+      $("#AddDepth").show();
+    });
+  });
+</script>
+
 <div>
+  <div class="highlight" id="depthErrorDiv"></div>
+
   <p class="editText"><strong><%=encprops.getProperty("setDepth")%></strong></p>
-  <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post" class="editForm">
+  <form name="setencdepth" class="editForm">
     <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-    <input name="number" type="hidden" value="<%=num%>" id="number" />
+    <input name="number" type="hidden" value="<%=num%>" id="depthNumber" />
     <input name="action" type="hidden" value="setEncounterDepth" />
     <div class="form-group row">
-      <div class="col-sm-5">
-        <input name="depth" type="text" id="depth" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+      <div class="col-sm-5" id="depthDiv">
+        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="depthCheck">&check;</span>
+        <span class="form-control-feedback" id="depthError">X</span>
       </div>
       <div class="col-sm-3">
         <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
