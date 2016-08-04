@@ -181,7 +181,7 @@ context=ServletUtilities.getContext(request);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 
 
-			ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+			List collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = occ.canUserAccess(request);
 
 
@@ -394,7 +394,7 @@ if(occ.getIndividualCount()!=null){
 
 <div class="row">
 <div class="col-sm-12">
-<form method="post" action="occurrence.jsp?name=<%=occ.getOccurrenceID()%>" id="occform">
+<form method="post" action="occurrence.jsp?number=<%=occ.getOccurrenceID()%>" id="occform">
 <input name="number" type="hidden" value="<%=occ.getOccurrenceID()%>" />
 
 <style type="text/css">
@@ -895,12 +895,12 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 			int countMe=0;
 			//Vector thumbLocs=new Vector();
-			ArrayList<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
+			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
 
 			int  numColumns=3;
 			int numThumbs=0;
 			  if (CommonConfiguration.allowAdoptions(context)) {
-				  ArrayList adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+				  List adoptions = myShepherd.getAllAdoptionsForMarkedIndividual(name,context);
 				  int numAdoptions = adoptions.size();
 				  if(numAdoptions>0){
 					  numColumns=2;
@@ -911,14 +911,14 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 
 			    Query query = myShepherd.getPM().newQuery("SELECT from org.ecocean.Encounter WHERE occurrenceID == \""+occ.getOccurrenceID()+"\"");
-		        //query.setFilter("SELECT "+jdoqlQueryString);
-		        query.setResult("catalogNumber");
-		        Collection c = (Collection) (query.execute());
-		        ArrayList<String> enclist = new ArrayList<String>(c);
-		        query.closeAll();
+	        //query.setFilter("SELECT "+jdoqlQueryString);
+	        query.setResult("catalogNumber");
+	        Collection c = (Collection) (query.execute());
+	        ArrayList<String> enclist = new ArrayList<String>(c);
+	        query.closeAll();
+		      thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
+			    numThumbs=thumbLocs.size();
 
-			    thumbLocs=myShepherd.getThumbnails(myShepherd,request, enclist, 1, 99999, keywords);
-				numThumbs=thumbLocs.size();
 			%>
 
   <tr valign="top">
@@ -1070,7 +1070,7 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 					                            //String renderMe = word.getReadableName();
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
+												int myWordsSize = (myWords != null) ? myWords.size() : 0;
 					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
 					                              //String kwParam = keywords[kwIter];
 					                              //if (kwParam.equals(word.getIndexname())) {
@@ -1301,8 +1301,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 </td>
 </tr>
 </table>
-</div><!-- end maintext -->
-</div><!-- end main-wide -->
 
 
 <br />
@@ -1358,5 +1356,8 @@ else {
   myShepherd.closeDBTransaction();
 
 %>
+</div><!-- end maintext -->
+</div><!-- end main-wide -->
+
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
