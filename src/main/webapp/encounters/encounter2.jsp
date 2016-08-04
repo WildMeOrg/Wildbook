@@ -2316,16 +2316,13 @@ if(enc.getLocation()!=null){
   <%
     }
 
- // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-<%-- <a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+
   <%
-    // }
   %>
 
 
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start elevation -->
 <script type="text/javascript">
@@ -2380,7 +2377,6 @@ if(enc.getLocation()!=null){
 </div>
 <!-- end elevation  -->
 <%
-// }
 %>
 
 <%
@@ -2576,18 +2572,14 @@ if(enc.getLocation()!=null){
 
         <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
           <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
-            // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           %>
-          <%-- a id="taxon" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
           <%
-            // }
           %>
        </p>
 
   <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
-    <!-- start set taxonomy ID  -->
+  <!-- start set taxonomy ID  -->
     <script type="text/javascript">
       $(document).ready(function() {
         $("#taxBtn").click(function(event) {
@@ -2658,8 +2650,6 @@ if(enc.getLocation()!=null){
       </form>
     </div>
 <%
-// }
-
 
 }
 %>
@@ -2675,15 +2665,11 @@ if(enc.getLocation()!=null){
       <span id="displayStatus"><%=enc.getLivingStatus()%></span>
        <%
     }
-        // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
-      <%-- <a id="livingStatus" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
       <%
-        // }
       %>
     </p>
     <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
 <!-- start set living status -->
   <script type="text/javascript">
@@ -2740,10 +2726,8 @@ if(enc.getLocation()!=null){
   </div>
 
 <%
-    // }
 %>
 <!-- END ALIVE-DEAD ATTRIBUTE -->
-
 
 
 <!--  START SEX SECTION -->
@@ -2753,17 +2737,12 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 %>
 <p class="para"><%=encprops.getProperty("sex") %>&nbsp;<span id="displaySex"><%=sex %></span>
 <%
-// if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
  %>
- <%-- <a id="sex" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-// }
 %>
 </p>
 <%
-// if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start elevation popup -->
 <script type="text/javascript">
   $(document).ready(function() {
     $("#addSex").click(function(event) {
@@ -2824,7 +2803,6 @@ if(enc.getSex()!=null){sex=enc.getSex();}
 </div>
 
 <%
- // 	}
  %>
  <!--  END SEX SECTION -->
 
@@ -2838,15 +2816,11 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 %>
 <span id="displayScarring"><%=recordedScarring%></span>
 <%
-// if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
  %>
-<%-- <a id="scar" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-// }
 %>
 </p>
 <%
-// if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
  %>
 
  <script type="text/javascript">
@@ -2897,11 +2871,7 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
    </div>
    </form>
  </div>
-
-
-
     <%
- // 	}
  	%>
 <!--  END SCARRING SECTION -->
 
@@ -2919,18 +2889,13 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
   <%=encprops.getProperty("none")%>
   <%
     }
-
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 	  %>
-<%-- <a id="behavior" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 	  <%
-	    // }
 %>
 </p>
 
 
   <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
     <!-- start set behavior popup -->
     <script type="text/javascript">
@@ -2992,7 +2957,6 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
     </div>
 
 <%
-// }
 %>
 <!--  END BEHAVIOR SECTION -->
 
@@ -3014,18 +2978,14 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
   <%=encprops.getProperty("none")%>
   <%
     }
-
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 	  %>
-<%-- <a id="patterningCode" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+
 	  <%
-	    // }
 %>
 </p>
 
 
   <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
 <!-- start set patterning code -->
 <script type="text/javascript">
@@ -3115,7 +3075,6 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
 
 <%
-// }
   }
 %>
 <!--  END PATTERNING CODE SECTION -->
@@ -3136,16 +3095,12 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
   }
  %>
  <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-  <%-- <a id="LifeStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
   <%
-    // }
   %>
 </p>
 
  <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
 <!-- start set life stage -->
 <script type="text/javascript">
@@ -3220,7 +3175,6 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
 
 <%
-  // }
 }
   %>
 <!--  END LIFESTAGE SECTION -->
@@ -3230,11 +3184,8 @@ START HERE THURSDAY
 <!-- START ADDITIONAL COMMENTS -->
 <p class="para"><%=encprops.getProperty("comments") %>
   <%
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-  <%-- &nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
   <%
-    // }
   %>
 <br/>
 <%
@@ -3245,7 +3196,6 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 </p>
 <%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 <script type="text/javascript">
@@ -3299,7 +3249,6 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <%
-// }
 %>
 <!-- END ADDITIONAL COMMENTS -->
 
