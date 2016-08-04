@@ -1153,9 +1153,7 @@ else{
 }
 
 
-				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 					%><font size="-1"><a id="date" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
-        		}
+				
         		%>
 
 
@@ -1172,9 +1170,7 @@ else{
     <%=encprops.getProperty("none") %>
     <%
 				}
-				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 					%> <font size="-1"><a id="VBDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
-        		}
+
         		%>
 
 
@@ -1189,7 +1185,7 @@ else{
   <br /><em><%=encprops.getProperty("releaseDate") %></em>:
     <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
     <c:if test="${editable}">
-        <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
+        <%-- <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> --%>
     </c:if>
   </p>
 </c:if>
@@ -1286,7 +1282,7 @@ else{
   </table> --%>
 <%-- </div> --%>
                          		<!-- popup dialog script -->
-<script>
+<%-- <script>
 var dlgDate = $("#dialogDate").dialog({
   autoOpen: false,
   draggable: false,
@@ -1297,7 +1293,7 @@ var dlgDate = $("#dialogDate").dialog({
 $("a#date").click(function() {
   dlgDate.dialog("open");
 });
-</script>
+</script> --%>
 <!-- end date dialog -->
 
 </td>
