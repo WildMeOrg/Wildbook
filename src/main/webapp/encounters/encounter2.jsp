@@ -3490,41 +3490,12 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 <!-- start set username popup -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#Assign").click(function(event) {
-      event.preventDefault();
-
-      $("#Assign").hide();
-
-      var number = $("#assignNumber").val();
-      var submitter = $("#selectSubmitter").val();
-
-      $.post("../EncounterSetSubmitterID", {"number": number, "submitter": submitter},
-      function() {
-        $("#assignErrorDiv").hide();
-        $("#assignCheck").show();
-      })
-      .fail(function(response) {
-        $("#assignError, #assignErrorDiv").show();
-        $("#assignErrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#submitterSelect").click(function() {
-      $("#assignerror, #assignCheck, #assignErrorDiv").hide()
-      $("#Assign").show();
-    });
-  });
-</script>
-
-
 <div>
   <div class="highlight" id="assignErrorDiv"></div>
 
   <p class="editText"><strong><%=encprops.getProperty("assignUser")%></strong></p>
 
-  <form name="asetSubmID" class="editForm">
+  <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post" class="editForm">
     <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
     <div class="form-group row">
       <div class="col-sm-5">
