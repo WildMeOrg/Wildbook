@@ -54,7 +54,7 @@ public class JavascriptGlobals extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context="context0";
     context = ServletUtilities.getContext(request);
-    //Shepherd myShepherd = new Shepherd(context);
+    Shepherd myShepherd = new Shepherd(context);
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
 
 		String langCode = ServletUtilities.getLanguageCode(request);

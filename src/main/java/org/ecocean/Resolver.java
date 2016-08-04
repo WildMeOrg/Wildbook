@@ -253,7 +253,10 @@ needsReview = false;  // we are only full-auto now!
                 }
             } else if (type.equals("assignNameToAnnotations")){
                 FeatureType.initAll(myShepherd);
-                rtn = IBEISIA.assignFromIASimple(jin.optJSONObject(type), myShepherd);
+                rtn = IBEISIA.assignFromIAAPI(jin.optJSONObject(type), myShepherd, true);
+            } else if (type.equals("annotations")){
+                FeatureType.initAll(myShepherd);
+                rtn = IBEISIA.arbitraryAnnotationsFromIA(jin.optJSONArray(type), myShepherd);
             } else if (!validType(type)) {
                 rtn.put("success", false);
                 rtn.put(type, "error: invalid type " + type);
