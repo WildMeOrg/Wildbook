@@ -24,15 +24,39 @@ myShepherd=new Shepherd(context);
 
 
 //check for and inject a default user 'tomcat' if none exists
-if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
-  %>
-    <script type="text/javascript">
-      console.log("Wildbook is not initialized!");
-    </script>
-  <%
-  StartupWildbook.initializeWildbook(request, myShepherd);
+
+//check usernames and passwords
+myShepherd.beginDBTransaction();
+List<User> users=myShepherd.getAllUsers();
+if(users.size()==0){
+  String salt=ServletUtilities.getSalt().toHex();
+  String hashedPassword=ServletUtilities.hashAndSaltPassword("tomcat123", salt);
+
+  User newUser=new User("tomcat",hashedPassword,salt);
+  myShepherd.getPM().makePersistent(newUser);
+  System.out.println("Creating tomcat user account...");
+  myShepherd.commitDBTransaction();
+  List<Role> roles=myShepherd.getAllRoles();
+  if(roles.size()==0){
+
+    myShepherd.beginDBTransaction();
+    System.out.println("Creating tomcat roles...");
+
+    Role newRole1=new Role("tomcat","admin");
+    newRole1.setContext("context0");
+    myShepherd.getPM().makePersistent(newRole1);
+    Role newRole4=new Role("tomcat","destroyer");
+    newRole4.setContext("context0");
+    myShepherd.getPM().makePersistent(newRole4);
+
+    Role newRole7=new Role("tomcat","rest");
+    newRole7.setContext("context0");
+    myShepherd.getPM().makePersistent(newRole7);
+    myShepherd.commitDBTransaction();
+    System.out.println("Creating tomcat user account...");
+    }
 }
+
 
 
 
@@ -139,11 +163,7 @@ margin-bottom: 8px !important;
         map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID,
-          zoomControl: true,
-          scaleControl: false,
-          scrollwheel: false,
-          disableDoubleClickZoom: true,
+          mapTypeId: google.maps.MapTypeId.HYBRID
         });
 
     	  //adding the fullscreen control to exit fullscreen
@@ -179,7 +199,7 @@ margin-bottom: 8px !important;
 
  		//let's add map points for our locationIDs
  		<%
- 		List<String> locs=CommonConfiguration.getIndexedPropertyValues("locationID", context);
+ 		List<String> locs=CommonConfiguration.getIndexedValues("locationID", context);
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
@@ -345,12 +365,6 @@ int numDataContributors=0;
 
 myShepherd.beginDBTransaction();
 
-//String url = "login.jsp";
-//response.sendRedirect(url);
-//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
-//dispatcher.forward(request, response);
-
-
 try{
 
 
@@ -386,8 +400,6 @@ finally{
         </div>
 
 	</div>
-
-
 </section>
 
 <section class="container text-center main-section">
@@ -517,7 +529,7 @@ finally{
                     <ul class="encounter-list list-unstyled">
 
                        <%
-                       List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                       ArrayList<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                        int numResults=latestIndividuals.size();
                        myShepherd.beginDBTransaction();
                        try{
@@ -650,10 +662,10 @@ finally{
     </section>
 </div>
 
-<div class="container main-section">
+<div class="container-fluid main-section">
     <h2 class="section-header">Encounters around the world</h2>
 
-      <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
+      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
 
 </div>
 
