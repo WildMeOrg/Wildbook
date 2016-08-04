@@ -390,28 +390,44 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     PrintWriter out = response.getWriter();
 
     JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-    JSONObject res = new JSONObject();
+    JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
     String taskId = Util.generateUUID();
     res.put("taskId", taskId);
 
-    if (j.optJSONArray("detect") != null) {
+    if (j.optJSONObject("detect") != null) {
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
         List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
-        JSONArray ids = j.getJSONArray("detect");
         ArrayList<String> validIds = new ArrayList<String>();
-        for (int i = 0 ; i < ids.length() ; i++) {
-            int id = ids.optInt(i, 0);
+
+        if (j.getJSONObject("detect").optJSONArray("mediaAssetIds") != null) {
+            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetIds");
+            for (int i = 0 ; i < ids.length() ; i++) {
+                int id = ids.optInt(i, 0);
 System.out.println(id);
-            if (id < 1) continue;
-            MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-            if (ma != null) {
-                ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
-                mas.add(ma);
-                validIds.add(Integer.toString(id));
+                if (id < 1) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
+                    mas.add(ma);
+                }
+            }
+        } else if (j.getJSONObject("detect").optJSONArray("mediaAssetSetIds") != null) {
+            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetSetIds");
+            for (int i = 0 ; i < ids.length() ; i++) {
+                MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
+                if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0))
+                    mas.addAll(set.getMediaAssets());
+            }
+        } else {
+            res.put("success", false);
+            res.put("error", "unknown detect value");   
+        }
+
+        if (mas.size() > 0) {
+            for (MediaAsset ma : mas) {
+                validIds.add(Integer.toString(ma.getId()));
                 if (ma.getOccurrence() == null) needOccurrences.add(ma);
             }
-        }
-        if (mas.size() > 0) {
             if (needOccurrences.size() > 0) {  //first we make occurrences where needed
                 List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
                 res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
@@ -437,8 +453,11 @@ System.out.println(id);
                     ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
                 }
             }
+            res.remove("error");
+            res.put("success", true);
+        } else {
+            res.put("error", "no valid MediaAssets");
         }
-        res.put("success", true);
 
     } else if (j.optJSONObject("identify") != null) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
