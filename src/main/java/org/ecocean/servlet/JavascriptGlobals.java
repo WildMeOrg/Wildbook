@@ -133,7 +133,6 @@ public class JavascriptGlobals extends HttpServlet {
     rtn.put("uploader", uploader);
 
     HashMap<String,String> kw = new HashMap<String,String>();
-    Shepherd myShepherd = new Shepherd(context);
     myShepherd.beginDBTransaction();
     Iterator<Keyword> keywords = myShepherd.getAllKeywords();
     while (keywords.hasNext()) {
