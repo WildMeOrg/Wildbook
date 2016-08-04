@@ -2544,7 +2544,7 @@ if(enc.getLocation()!=null){
             });
           });
 
-          $("#genusSpecies").click(function() {
+          $("#lat, #longitude").click(function() {
             $("#gpsErrorDiv").hide()
             $("#setGPSbutton").show();
           });
@@ -3416,7 +3416,6 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
                          					if(aUserShepherd.getUser(username)!=null){
                          					%>
-                                			<table>
                                 			<%
 
                          					User thisUser=aUserShepherd.getUser(username);
@@ -3426,95 +3425,54 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                          					}
                          					%>
-                     						<tr>
-                     							<td>
-                     								<center>
-                     									<div style="height: 50px">
-															<a id="username" class="launchPopup"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"/></a>
-														</div>
-													</center>
-												</td>
-											</tr>
                      						<%
                          					String displayName="";
                          					if(thisUser.getFullName()!=null){
                          						displayName=thisUser.getFullName();
                          						%>
-                         					<tr>
-                         						<td style="border:none">
-                         							<center>
-                         								<a class="launchPopup" id="username" style="font-weight:normal;border:none"><%=displayName %></a>
-                         							</center>
-                         						</td>
-                         					</tr>
-                         					<tr>
-                         						<td>
-                         							<center>
-                         								<p class="caption">(click to learn more)</p>
-                         							</center>
-                         						</td>
-                         					</tr>
                          					<%
                          					}
-                         					else{
                                 			%>
-                                			<tr>
-                                				<td>&nbsp;</td>
-                                			</tr>
-                                			<%
-                                			}
-                         					%>
-                         				</table>
 
-                         				<!-- Now prep the popup dialog -->
-                         				<div id="dialog" title="<%=displayName %>" style="display:none">
-                         					<table cellpadding="3px">
-                         						<tr>
-                         							<td>
-                         								<div style="height: 150px"><img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
-                         			</td>
-                         			<td><p>
-                         			<%
-                         			if(thisUser.getAffiliation()!=null){
-                         			%>
-                         			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
-                         			<%
-                         			}
+     								<div>
+                      <div class="row">
+                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+                          <img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
+                        </div>
+                        <div class="col-sm-6">
+                          <%-- <p> --%>
 
-                         			if(thisUser.getUserProject()!=null){
-                         			%>
-                         			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
-                         			<%
-                         			}
+                        <%
+                        if(thisUser.getAffiliation()!=null){
+                        %>
+                        <p><strong><%=displayName %></strong></p>
+                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <%
+                        }
 
-                         			if(thisUser.getUserURL()!=null){
-                             			%>
-                             			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
-                             			<%
-                             		}
+                        if(thisUser.getUserProject()!=null){
+                        %>
+                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <%
+                        }
 
-                         			if(thisUser.getUserStatement()!=null){
-                             			%>
-                             			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
-                             			<%
-                             		}
-                         			%>
-                         			</p>
-                         			</td></tr></table>
-                         		</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlg = $("#dialog").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+                        if(thisUser.getUserURL()!=null){
+                            %>
+                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <%
+                          }
 
-$("a#username").click(function() {
-  dlg.dialog("open");
-});
-</script>
+                        if(thisUser.getUserStatement()!=null){
+                            %>
+                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+                            <%
+                          }
+                        %>
+                        </div>
+                      </div>
+
+                  </div>
+
 <%
                          	}
 
@@ -3605,7 +3563,6 @@ $("a#username").click(function() {
 
 
                    		<%
-                   // 	}
 
                    }
                    else {
