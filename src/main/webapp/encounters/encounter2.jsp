@@ -927,7 +927,7 @@ $(function() {
 
 <!-- END INDIVIDUALID ATTRIBUTE -->
 
-						<!-- START ALTERNATEID ATTRIBUTE -->
+<!-- START ALTERNATEID ATTRIBUTE -->
             <%
             String alternateID="";
             if(enc.getAlternateID()!=null){
@@ -1151,11 +1151,7 @@ else{
 <%=encprops.getProperty("unknown") %>
 <%
 }
-
-
-
         		%>
-
 
 <br />
 <em><%=encprops.getProperty("verbatimEventDate")%></em>:
@@ -1172,7 +1168,6 @@ else{
 				}
 
         		%>
-
 
 <!-- end verbatim event date -->
 
@@ -1288,22 +1283,9 @@ if(enc.getLocation()!=null){
 
 <br>
 
-  <%-- <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %><a id="location" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
-  <%-- <%
-    }
-  %> --%>
 <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
     src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
 <em><%=encprops.getProperty("locationID") %></em><span>: <%=enc.getLocationCode()%></span>
-  <%-- <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
-  <font size="-1"><a id="locationID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
-   <%
-    }
-  %> --%>
-
 
 <br>
 
@@ -1317,14 +1299,7 @@ if(enc.getLocation()!=null){
   <span>: <%=enc.getCountry()%></span>
   <%
   }
-    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     %>
-  <%-- <font size="-1"><a id="country" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
-   <%
-    }
-  %> --%>
-
-
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -1725,7 +1700,6 @@ $("a#elev").click(function() {
 <br /> <br />
  <!--end adding submit GPS-->
  <!-- END MAP and GPS SETTER -->
-
 
 <br />
 
