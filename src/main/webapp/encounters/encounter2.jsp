@@ -594,11 +594,11 @@ $(function() {
                   var buttons = $("#edit, #closeEdit").on("click", function(){
                     buttons.toggle();
                   });
-
+  // TOP EDIT BUTTON
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #taxCheck, #taxError, #statusCheck, #statusError, #sexCheck, #sexError, #scarCheck, #scarError, #behaviorCheck, #behaviorError, #lifeCheck, #lifeError, #commentCheck, #commentError, #patternCheck, #patternError").hide();
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #taxCheck, #taxError, #statusCheck, #statusError, #sexCheck, #sexError, #scarCheck, #scarError, #behaviorCheck, #behaviorError, #lifeCheck, #lifeError, #commentCheck, #commentError, #patternCheck, #patternError, #workCheck, #workError, #assignCheck, #assignError").hide();
 
-                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editPattern, #editBehavior, #addLife, #editComment").show();
+                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editPattern, #editBehavior, #addLife, #editComment, #editWork, #Assign").show();
 
                     $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv, #elevationDiv").removeClass("has-error");
 
@@ -2209,15 +2209,15 @@ if(enc.getLocation()!=null){
 
                 <%
                 boolean hasMoreLocs=true;
-                int taxNum=0;
+                int codeTaxNum=0;
                 while(hasMoreLocs){
-                  String currentLoc = "locationID"+taxNum;
+                  String currentLoc = "locationID"+codeTaxNum;
                   if(CommonConfiguration.getProperty(currentLoc,context)!=null){
                     %>
 
                     <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
                     <%
-                    taxNum++;
+                    codeTaxNum++;
                   }
                   else{
                     hasMoreLocs=false;
@@ -2623,15 +2623,15 @@ if(enc.getLocation()!=null){
 
               <%
               boolean hasMoreTax=true;
-              int taxNum=0;
+              int genusTaxNum=0;
               while(hasMoreTax){
-                String currentGenuSpecies = "genusSpecies"+taxNum;
+                String currentGenuSpecies = "genusSpecies"+genusTaxNum;
                 if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
                   %>
 
                   <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
                   <%
-                  taxNum++;
+                  genusTaxNum++;
                 }
                 else{
                   hasMoreTax=false;
@@ -3042,15 +3042,15 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 
                   <%
                   boolean hasMoreLocs=true;
-                  int taxNum=0;
+                  int patternTaxNum=0;
                   while(hasMoreLocs){
-                     String currentLoc = "patterningCode"+taxNum;
+                     String currentLoc = "patterningCode"+patternTaxNum;
                      if(CommonConfiguration.getProperty(currentLoc,context)!=null){
                        %>
 
                          <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
                        <%
-                     taxNum++;
+                     patternTaxNum++;
                      }
                      else{
                         hasMoreLocs=false;
@@ -3146,15 +3146,15 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
           <option value=""></option>
              <%
              boolean hasMoreStages=true;
-             int taxNum=0;
+             int lifeTaxNum=0;
              while(hasMoreStages){
-                String currentLifeStage = "lifeStage"+taxNum;
+                String currentLifeStage = "lifeStage"+lifeTaxNum;
                 if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
                   %>
 
                     <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
                   <%
-                taxNum++;
+                lifeTaxNum++;
                 }
                 else{
                    hasMoreStages=false;
@@ -3178,8 +3178,6 @@ if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar
 }
   %>
 <!--  END LIFESTAGE SECTION -->
-
-START HERE THURSDAY
 
 <!-- START ADDITIONAL COMMENTS -->
 <p class="para"><%=encprops.getProperty("comments") %>
@@ -3245,9 +3243,6 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
   </div>
   </form>
 </div>
-
-
-
 <%
 %>
 <!-- END ADDITIONAL COMMENTS -->
@@ -3255,7 +3250,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 <br />
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
 <h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
 
@@ -3263,7 +3258,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 								<p class="para">
 									Number: <%=num%>
 								</p>
-								<!-- START WORKFLOW ATTRIBUTE -->
+			<!-- START WORKFLOW ATTRIBUTE -->
 
 
  								<%
@@ -3272,36 +3267,70 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
 									<p class="para">
-										 <%=encprops.getProperty("workflowState") %> <%=state %>
+										 <%=encprops.getProperty("workflowState") %><span id="displayWork"><%=state %></span>
 
 										<%
-										if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 										%>
-										<a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+
 										<%
-										}
 										%>
 
 									</p>
 									<%
-										if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 									%>
-   									<div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">
-  										<table class="popupForm">
-						  					<tr>
-						    					<td align="left" valign="top">
-						      						<form name="countryForm" action="../EncounterSetState" method="post">
-						            					<select name="state" id="state">
+
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#selectState option[value='<%=state %>']").attr('selected','selected');
+
+                      $("#editWork").click(function(event) {
+                        event.preventDefault();
+
+                        $("#editWork").hide();
+
+                        var number = $("#workNumber").val();
+                        var state = $("#selectState").val();
+
+                        $.post("../EncounterSetState", {"number": number, "state": state},
+                        function() {
+                          $("#workErrorDiv").hide();
+                          $("#workCheck").show();
+                          $("#displayWork").html(state);
+                        })
+                        .fail(function(response) {
+                          $("#workError, #workErrorDiv").show();
+                          $("#workErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#selectState").click(function() {
+                        $("#workerror, #workCheck, #workErrorDiv").hide()
+                        $("#editWork").show();
+                      });
+                    });
+                  </script>
+
+
+                  <div>
+                    <div class="highlight" id="workErrorDiv"></div>
+
+                    <p class="editText"><strong><%=encprops.getProperty("setWorkflowState")%></strong></p>
+
+                    <form name="workflowStateForm" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="workNumber" />
+                      <div class="form-group row">
+                        <div class="col-sm-5">
+                          <select name="state" id="selectState" class="form-control" size="1">
 															<%
 						       								boolean hasMoreStates=true;
-						       								int taxNum=0;
+						       								int stateTaxNum=0;
 						       								while(hasMoreStates){
-						       	  								String currentLifeState = "encounterState"+taxNum;
+						       	  								String currentLifeState = "encounterState"+stateTaxNum;
 						       	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
 						       	  									%>
 						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
 						       	  									<%
-						       										taxNum++;
+						       										stateTaxNum++;
 						          								}
 						          								else{
 						             								hasMoreStates=false;
@@ -3309,33 +3338,23 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 						       								} //end while
 						       								%>
-						      						</select>
-						      						<input name="number" type="hidden" value="<%=num%>" id="number" />
-						        					<input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      					</form>
-						    				</td>
-						  				</tr>
-									</table>
-  								</div>
-								<script>
-  									var dlgState = $("#dialogState").dialog({
-    									autoOpen: false,
-    									draggable: false,
-    									resizable: false,
-    									width: 600
-  									});
+						      				</select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input name="<%=encprops.getProperty("set")%>" type="submit" id="editWork" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                          <span class="form-control-feedback" id="workCheck">&check;</span>
+                          <span class="form-control-feedback" id="workError">X</span>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
 
-  									$("a#state").click(function() {
-    									dlgState.dialog("open");
-  									});
-  								</script>
        							<%
-        						}
+        						// }
       							%>
-								<!-- END WORKFLOW ATTRIBUTE -->
+				<!-- END WORKFLOW ATTRIBUTE -->
 
-
-								<!-- START USER ATTRIBUTE -->
+				<!-- START USER ATTRIBUTE -->
 								<%
  								if((CommonConfiguration.showUsersToPublic(context))||(request.getUserPrincipal()!=null)){
  								%>
@@ -3346,13 +3365,9 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
      									</td>
         								<%
-        								if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       									%>
-      									<td>
-      										<a id="user" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      									</td>
+
       									<%
-        								}
       									%>
      								</tr>
      								<tr>
@@ -3378,7 +3393,7 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
                      							<td>
                      								<center>
                      									<div style="height: 50px">
-															<a id="username" class="launchPopup"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
+															<a id="username" class="launchPopup"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"/></a>
 														</div>
 													</center>
 												</td>
@@ -3476,86 +3491,96 @@ $("a#username").click(function() {
                         aUserShepherd.closeDBTransaction();
                       	}
                          				//insert here
-                         	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 
 <!-- start set username popup -->
-<div id="dialogUser" title="<%=encprops.getProperty("assignUser")%>" style="display:none">
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#Assign").click(function(event) {
+      event.preventDefault();
 
-	    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_Login_Manager.gif"/>
-        <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
+      $("#Assign").hide();
 
-          <select name="submitter" id="submitter">
-        	<option value=""></option>
-        	<%
+      var number = $("#assignNumber").val();
+      var submitter = $("#selectSubmitter").val();
 
-        	Shepherd userShepherd=new Shepherd("context0");
-        	userShepherd.beginDBTransaction();
+      $.post("../EncounterSetSubmitterID", {"number": number, "submitter": submitter},
+      function() {
+        $("#assignErrorDiv").hide();
+        $("#assignCheck").show();
+      })
+      .fail(function(response) {
+        $("#assignError, #assignErrorDiv").show();
+        $("#assignErrorDiv").html(response.responseText);
+      });
+    });
 
-        	ArrayList<String> usernames=userShepherd.getAllUsernames();
-
-        	int numUsers=usernames.size();
-        	for(int i=0;i<numUsers;i++){
-        		String thisUsername=usernames.get(i);
-        		User thisUser2=userShepherd.getUser(thisUsername);
-        		String thisUserFullname=thisUsername;
-        		if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
-        	%>
-        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-        	<%
-			}
-        	userShepherd.rollbackDBTransaction();
-        	userShepherd.closeDBTransaction();
-        	%>
-      	</select>
-
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgUser = $("#dialogUser").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#user").click(function() {
-  dlgUser.dialog("open");
-});
+    $("#submitterSelect").click(function() {
+      $("#assignerror, #assignCheck, #assignErrorDiv").hide()
+      $("#Assign").show();
+    });
+  });
 </script>
 
 
+<div>
+  <div class="highlight" id="assignErrorDiv"></div>
 
-                         		<%
-                         	}
+  <p class="editText"><strong><%=encprops.getProperty("assignUser")%></strong></p>
 
-                         }
-                         else {
-                         %>
-                         &nbsp;
-                         <%
-                         }
-                        %>
-                        </td>
+  <form name="asetSubmID" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="submitter" id="submitterSelect" class="form-control" size="1">
+            <option value=""></option>
+            <%
+
+            Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.beginDBTransaction();
+
+            ArrayList<String> usernames=userShepherd.getAllUsernames();
+
+            int numUsers=usernames.size();
+            for(int i=0;i<numUsers;i++){
+                String thisUsername=usernames.get(i);
+                User thisUser2=userShepherd.getUser(thisUsername);
+                String thisUserFullname=thisUsername;
+                if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
+              %>
+              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+              <%
+            }
+            userShepherd.rollbackDBTransaction();
+            userShepherd.closeDBTransaction();
+            %>
+          </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="assignCheck">&check;</span>
+        <span class="form-control-feedback" id="assignError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+                   		<%
+                   // 	}
+
+                   }
+                   else {
+                   %>
+                   &nbsp;
+                   <%
+                   }
+                  %>
+                  </td>
 
 
     </tr></table>
-
 
 <!-- END USER ATTRIBUTE -->
 
@@ -4533,9 +4558,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 						       <%
 						       boolean hasMoreLocs=true;
-						       int taxNum=0;
+						       int tissueTaxNum=0;
 						       while(hasMoreLocs){
-						       	  String currentLoc = "tissueType"+taxNum;
+						       	  String currentLoc = "tissueType"+tissueTaxNum;
 						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
 
 						       		  String selected="";
@@ -4544,7 +4569,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
 						       	  	<%
-						       		taxNum++;
+						       		tissueTaxNum++;
 						          }
 						          else{
 						             hasMoreLocs=false;
