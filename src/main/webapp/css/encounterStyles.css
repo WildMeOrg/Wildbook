@@ -11,7 +11,7 @@ label {
   font-weight: lighter;
 }
 
-input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control{
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control, input#lat.form-control, input#longitude.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
@@ -88,7 +88,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;

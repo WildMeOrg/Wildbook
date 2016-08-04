@@ -598,7 +598,7 @@ $(function() {
                   $("#edit").click(function() {
                     $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #taxCheck, #taxError, #statusCheck, #statusError, #sexCheck, #sexError, #scarCheck, #scarError, #behaviorCheck, #behaviorError, #lifeCheck, #lifeError, #commentCheck, #commentError, #patternCheck, #patternError, #workCheck, #workError, #assignCheck, #assignError").hide();
 
-                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editPattern, #editBehavior, #addLife, #editComment, #editWork, #Assign").show();
+                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editPattern, #editBehavior, #addLife, #editComment, #editWork, #Assign, #setGPSbutton").show();
 
                     $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv, #elevationDiv").removeClass("has-error");
 
@@ -2498,7 +2498,7 @@ if(enc.getLocation()!=null){
     </script>
 
  	<%
- 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null)){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
  		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
@@ -2523,31 +2523,71 @@ if(enc.getLocation()!=null){
 
      	%>
 
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $("#setGPSbutton").click(function(event) {
+            event.preventDefault();
+
+            $("#setGPSbutton").hide();
+
+            var number = $("#gpsNumber").val();
+            var lat = $("#lat").val();
+            var longitude = $("#longitude").val();
+
+            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
+            function() {
+
+            })
+            .fail(function(response) {
+              $("#gpsErrorDiv").show();
+              $("#gpsErrorDiv").html(response.responseText);
+            });
+          });
+
+          $("#genusSpecies").click(function() {
+            $("#gpsErrorDiv").hide()
+            $("#setGPSbutton").show();
+          });
+        });
+      </script>
+
 
      	<a name="gps"></a>
-     		<table>
-     			<tr>
-					<td>
-					<form name="resetGPSform" method="post" action="../EncounterSetGPS">
-				    	<input name="action" type="hidden" value="resetGPS" />
+        <div>
+          <br>
+          <div class="highlight" id="gpsErrorDiv"></div>
+          <form name="resetGPSform" class="editForm">
+            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
+            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
+            <div class="form-group row">
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("latitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
+              </div>
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("longitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-3">
+                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
+              </div>
+            </div>
+          </form>
 
-						<strong><%=encprops.getProperty("latitude")%>:</strong>
+          <br/>
+          <span class="editText"><%=encprops.getProperty("gpsConverter")%></span><a class="editText" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+        </div>
 
-						<input name="lat" type="text" id="lat" size="10" value="<%=laty%>" /> &deg;
-						<strong><%=encprops.getProperty("longitude")%>:</strong>
-						<input name="longitude" type="text" id="longitude" size="10" value="<%=longy%>" />&nbsp;&deg;
-						<br />
-						<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
 
-						<br/>
-						<br/>
-						<%=encprops.getProperty("gpsConverter")%> <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
-						<input name="number" type="hidden" value=<%=num%> />
 
-					</form>
-				</td>
-			</tr>
-     	</table>
+
+
      	<%
  		}  //end isOwner
      	%>
@@ -2555,9 +2595,6 @@ if(enc.getLocation()!=null){
  <!--end adding submit GPS-->
  <!-- END MAP and GPS SETTER -->
 
-<br />
-
-  <br />
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
