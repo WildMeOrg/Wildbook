@@ -596,8 +596,10 @@ $(function() {
                   });
 
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError").hide();
-                    $(".editForm, #setMB, #dialogIdentity, .editText").show();
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
+                    $(".editForm, .editText, #setMB, #Add, i#ndividualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence").show();
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
                   });
 
                   $("#closeEdit").click(function() {
@@ -645,12 +647,12 @@ $(function() {
 					<div class="row">
 
 
-      <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
+            <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
         <!-- START IDENTITY ATTRIBUTE -->
 
-          <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+              <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
 
     							<%
     							if (!enc.hasMarkedIndividual()) {
@@ -679,14 +681,14 @@ $(function() {
                         event.preventDefault();
                         $("#setMB").hide();
 
-                        var number = $("input[name='number']").val();
+                        var number = $("#setMBnumber").val();
                         var matchedBy = $("#matchedBy").val();
 
                         $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
                         function() {
                           $("#matchErrorDiv").hide();
                           $("#matchCheck").show();
-                          $("#displayMatch").html(sex);
+                          $("#displayMatchedBy").html(matchedBy);
 
                         })
                         .fail(function(response) {
@@ -704,7 +706,7 @@ $(function() {
 
                     <div class="highlight" id="matchErrorDiv"></div>
                     <form name="setMBT" class="editForm">
-                      <input name="number" type="hidden" value="<%=num%>" />
+                      <input name="number" type="hidden" value="<%=num%>" id="setMBnumber"/>
                       <div class="form-group row" id="selectMatcher">
                         <div class="col-sm-3">
                           <label><%=encprops.getProperty("matchedBy")%>: </label>
@@ -756,8 +758,7 @@ $(function() {
                           $("#individualErrorDiv").hide();
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
-
-                          $("#displayIndividualID").html(nickname);
+                          $("#displayIndividualID").html(individual);
                         })
                         .fail(function(response) {
                           $("#individualDiv").addClass("has-error");
@@ -766,7 +767,7 @@ $(function() {
                         });
                       });
 
-                      $("#nickname, #namer").click(function() {
+                      $("#individualAddEncounterInput, #matchType").click(function() {
                         $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
                         $("#individualDiv").removeClass("has-success");
                         $("#individualDiv").removeClass("has-error");
@@ -779,9 +780,14 @@ $(function() {
                       <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
                       <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
                     </div>
+
                     <div class="highlight" id="individualErrorDiv"></div>
+
                     <p><strong class="highlight"><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
                     <form name="add2shark" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
+                      <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
                       <div class="form-group row" id="individualDiv">
                         <div class="col-sm-3">
                           <label><%=encprops.getProperty("individual")%>:</label>
@@ -811,8 +817,6 @@ $(function() {
                           <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
                         </div>
                       </div>
-                        <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
-                        <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
                         <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
                     </form>
 
@@ -837,13 +841,12 @@ $(function() {
                           $("#setRemoveResultDiv").hide();
                           $("#removeSuccessDiv").html(response);
                           $("#removeErrorDiv").empty();
-                          // $("#removeShark").hide();
+                          $("#removeShark").hide();
                         })
                         .fail(function(response) {
                           $("#setRemoveResultDiv").show();
                           $("#removeErrorDiv").html(response.responseText);
                           $("#removeSuccessDiv").empty();
-                          // $("#removeShark").hide();
                         });
                       });
                     });
@@ -889,10 +892,21 @@ $(function() {
                       $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
                       function(response) {
                         console.log(response)
+                        $("#indCreateCheck").show();
+                        $("#createSharkDiv").addClass("has-success");
                       })
                       .fail(function(response) {
-                        console.log(response.responseText);
+                        $("#individualCreateErrorDiv, #indCreateError").show();
+                        $("#individualCreateErrorDiv").html(response.responseText);
+                        $("#createSharkDiv").addClass("has-error");
                       });
+                    });
+
+                    $("#createSharkIndividual").click(function() {
+                      $("#individualCreateErrorDiv, #indCreateError, #indCreateCheck").hide();
+                      $("#createSharkDiv").removeClass("has-success");
+                      $("#createSharkDiv").removeClass("has-error");
+                      $("#Create").show();
                     });
                   });
                   </script>
@@ -901,6 +915,9 @@ $(function() {
                     <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
                     <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
                   </div>
+
+                  <div class="highlight" id="individualCreateErrorDiv"></div>
+
                   <img align="absmiddle" src="../images/tag_small.gif"/>
                   <form name="createShark" class="editForm">
                     <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
@@ -909,8 +926,10 @@ $(function() {
                       <div class="col-sm-4">
                         <label><%=encprops.getProperty("createMarkedIndividual")%>:</label>
                       </div>
-                      <div class="col-sm-5 col-xs-10">
+                      <div class="col-sm-5 col-xs-10" id="createSharkDiv">
                         <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
+                        <span class="form-control-feedback" id="indCreateCheck">&check;</span>
+                        <span class="form-control-feedback" id="indCreateError">X</span>
                       </div>
                     </div>
                     <div class="form-group row">
@@ -947,7 +966,7 @@ $(function() {
 
                 $("#setAltIDbtn").hide();
 
-                var encounter = $("input[name='encounter']").val();
+                var encounter = $("#altIDencounter").val();
                 var alternateid = $("#alternateid").val();
 
                 $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
@@ -975,6 +994,7 @@ $(function() {
 
           <div class="highlight" id="altIdErrorDiv"></div>
             <form name="setAltID" class="editForm">
+              <input name="encounter" type="hidden" value="<%=num%>" id="altIDencounter"/>
               <div class="form-group row">
                 <div class="col-sm-3">
                   <label><%=encprops.getProperty("setAlternateID")%>:</label>
@@ -988,7 +1008,6 @@ $(function() {
                   <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
                 </div>
               </div>
-              <input name="encounter" type="hidden" value="<%=num%>" />
             </form>
 
         <!-- END ALTERNATEID ATTRIBUTE -->
@@ -1013,12 +1032,12 @@ $(function() {
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>
+								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
 							%>
-								<%=encprops.getProperty("none_assigned") %>
+								<span id="displayOccurrenceID"><%=encprops.getProperty("none_assigned") %></span>
 							<%
 							}
       				%>
@@ -1028,13 +1047,44 @@ $(function() {
                 //Remove from occurrence if assigned
                 if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
               %>
+              <script type="text/javascript">
+                $(document).ready(function() {
+
+                  $("#removeOccurrenceBtn").click(function(event) {
+                    event.preventDefault();
+
+                    $("#removeOccurrenceBtn").hide();
+
+                    var number = $("#occurrenceRemoveEncounterNumber").val();
+
+                    $.post("../OccurrenceRemoveEncounter", {"number": number},
+                    function(response) {
+                      $("#occurrenceRemoveResultDiv").hide();
+                      $("#occurRemoveSuccessDiv").html(response);
+                      $("#occurRemoveErrorDiv").empty();
+                      $("#removeOccurrenceBtn").hide();
+                    })
+                    .fail(function(response) {
+                      $("#occurrenceRemoveResultDiv").show();
+                      $("#occurRemoveErrorDiv").html(response.responseText);
+                      $("#occurRemoveSuccessDiv").empty();
+                      $("#removeOccurrenceBtn").show();
+                    });
+                  });
+                });
+              </script>
+
               <div class="editText">
                 <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
                 <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
               </div>
-              <form action="../OccurrenceRemoveEncounter" class="editForm" method="post" name="removeOccurrence">
+              <div id="occurrenceRemoveResultDiv">
+                <span class="highlight" id="occurRemoveErrorDiv"></span>
+                <span class="successHighlight" id="occurRemoveSuccessDiv"></span>
+              </div>
+              <form class="editForm" name="removeOccurrence">
                 <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
-                <input name="action" type="hidden" value="remove" />
+                <input name="action" type="hidden" value="remove" id="occurrenceRemoveEncounterAction"/>
                 <div class="form-group row">
                   <div class="col-sm-12">
                     <label class="highlight"><strong><%=encprops.getProperty("removeFromOccurrence")%></strong></label>
@@ -1050,36 +1100,114 @@ $(function() {
 
                 if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
+                <script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#createOccur").click(function(event) {
+                      event.preventDefault();
+
+                      $("#createOccur").hide();
+
+                      var occurrence = $("#createOccurrenceInput").val();
+                      var number = $("#createOccurNumber").val();
+                      var action = $("#createOccurAction").val();
+
+                      $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number, "action": action},
+                      function() {
+                        $("#createOccurErrorDiv").hide();
+                        $("#occurDiv").addClass("has-success");
+                        $("#createOccurCheck").show();
+                        $("#displayOccurrenceID").html(occurrence);
+                      })
+                      .fail(function(response) {
+                        $("#occurDiv").addClass("has-error");
+                        $("#createOccurError, #createOccurErrorDiv").show();
+                        $("#createOccurErrorDiv").html(response.responseText);
+                      });
+                    });
+
+                    $("#createOccurrenceInput").click(function() {
+                      $("#createOccurError, #createOccurCheck, #createOccurErrorDiv").hide()
+                      $("#occurDiv").removeClass("has-success");
+                      $("#occurDiv").removeClass("has-error");
+                      $("#createOccur").show();
+                    });
+                  });
+                </script>
+
                 <div class="editText">
                   <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
                   <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
                 </div>
-                  <form name="createOccurrence" method="post" action="../OccurrenceCreate" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>"/>
-                    <input name="action" type="hidden" value="create"/>
+
+                <div class="highlight" id="createOccurErrorDiv"></div>
+
+                  <form name="createOccurrence" method="post" action="" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="createOccurNumber"/>
+                    <input name="action" type="hidden" value="create" id="createOccurAction"/>
                     <div class="form-group row">
                       <div class="col-sm-3">
                         <label><%=encprops.getProperty("createOccurrence")%>:</label>
                       </div>
-                      <div class="col-sm-5 col-xs-10">
+                      <div class="col-sm-5 col-xs-10" id="occurDiv">
                         <input name="occurrence" type="text" id="createOccurrenceInput" class="form-control" placeholder="<%=encprops.getProperty("newOccurrenceID")%>" />
+                        <span class="form-control-feedback" id="createOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="createOccurError">X</span>
                       </div>
                       <div class="col-sm-4">
-                        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                        <input name="Create" type="submit" id="createOccur" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
                       </div>
                     </div>
                   </form>
+
                   <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
 
-                  <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>" />
-                    <input name="action" type="hidden" value="add" />
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#addOccurrence").click(function(event) {
+                        event.preventDefault();
+
+                        $("#addOccurrence").hide();
+
+                        var occurrence = $("#add2OccurrenceInput").val();
+                        var number = $("#addOccurNumber").val();
+                        var action = $("#addOccurAction").val();
+
+                        $.post("../OccurrenceAddEncounter", {"occurrence": occurrence, "number": number, "action": action},
+                        function() {
+                          $("#addOccurErrorDiv").hide();
+                          $("#addDiv").addClass("has-success");
+                          $("#createOccurCheck").show();
+                          $("#displayOccurrenceID").html(occurrence);
+                        })
+                        .fail(function(response) {
+                          $("#addDiv").addClass("has-error");
+                          $("#addOccurError, #addOccurErrorDiv").show();
+                          $("#addOccurErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#addOccurrenceInput").click(function() {
+                        $("#addOccurError, #addOccurCheck, #addOccurErrorDiv").hide()
+                        $("#addDiv").removeClass("has-success");
+                        $("#addDiv").removeClass("has-error");
+                        $("#addOccurrence").show();
+                      });
+                    });
+                  </script>
+
+                  <div class="highlight" id="addOccurErrorDiv"></div>
+
+                  <form name="add2occurrence" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="addOccurNumber"/>
+                    <input name="action" type="hidden" value="add" id="addOccurAction"/>
                     <div class="form-group row">
                       <div class="col-sm-3">
                         <label><%=encprops.getProperty("add2Occurrence")%>: </label>
                       </div>
-                      <div class="col-sm-5 col-xs-10">
+                      <div class="col-sm-5 col-xs-10" id="addDiv">
                         <input name="occurrence" id="add2OccurrenceInput" type="text" class="form-control" placeholder="<%=encprops.getProperty("occurrenceID")%>"/>
+                        <span class="form-control-feedback" id="addOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="addOccurError">X</span>
                       </div>
                       <div class="col-sm-4">
                         <input name="Add" type="submit" id="addOccurrence" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
@@ -1091,6 +1219,10 @@ $(function() {
                       }
                       %>
         <!-- END OCCURRENCE ATTRIBUTE -->
+
+<%-- TODO --%>
+START HERE THURSDAY AM WITH AJAX POSTING
+
 
 <%-- START CONTACT INFORMATION --%>
         <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
@@ -1402,10 +1534,9 @@ $(function() {
                   %>
         </div>
 
-
-
       <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none"></div>
 
+<%-- START IMAGES --%>
     <jsp:include page="encounterMediaGallery.jsp" flush="true">
     	<jsp:param name="encounterNumber" value="<%=num%>" />
     	<jsp:param name="isOwner" value="<%=isOwner %>" />
@@ -1433,139 +1564,137 @@ $(function() {
         </div>
       </div>
     </div>
-
+<%-- END IMAGES --%>
   </div>
+  <%-- end left column --%>
 
-
+  <%-- start right column --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
+    <!-- start DATE section -->
+    <table>
+    <tr>
+    <td width="560px" style="vertical-align:top;">
 
-
-
-<!-- start DATE section -->
-<table>
-<tr>
-<td width="560px" style="vertical-align:top;">
-
-<h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
-</h2>
-<p>
-<%if(enc.getDateInMilliseconds()!=null){ %>
-  <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-    <%=enc.getDate()%>
-  </a>
+    <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
+    </h2>
+    <p>
+    <%if(enc.getDateInMilliseconds()!=null){ %>
+      <a
+        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        <%=enc.getDate()%>
+      </a>
+        <%
+    }
+    else{
+    %>
+    <%=encprops.getProperty("unknown") %>
     <%
-}
-else{
-%>
-<%=encprops.getProperty("unknown") %>
-<%
-}
-        		%>
+    }
+            		%>
 
-<br />
-<em><%=encprops.getProperty("verbatimEventDate")%></em>:
+    <br />
+    <em><%=encprops.getProperty("verbatimEventDate")%></em>:
+        <%
+    				if(enc.getVerbatimEventDate()!=null){
+    				%>
+        <%=enc.getVerbatimEventDate()%>
+        <%
+    				}
+    				else {
+    				%>
+        <%=encprops.getProperty("none") %>
+        <%
+    				}
+
+            		%>
+
+    <!-- end verbatim event date -->
+
+
+
     <%
-				if(enc.getVerbatimEventDate()!=null){
-				%>
-    <%=enc.getVerbatimEventDate()%>
-    <%
-				}
-				else {
-				%>
-    <%=encprops.getProperty("none") %>
-    <%
-				}
+      pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
+    %>
+    <c:if test="${showReleaseDate}">
+      <br /><em><%=encprops.getProperty("releaseDate") %></em>:
+        <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
+        <c:if test="${editable}">
 
-        		%>
-
-<!-- end verbatim event date -->
-
-
-
-<%
-  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
-%>
-<c:if test="${showReleaseDate}">
-  <br /><em><%=encprops.getProperty("releaseDate") %></em>:
-    <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
-    <c:if test="${editable}">
-
+        </c:if>
+      </p>
     </c:if>
-  </p>
-</c:if>
 
-<!-- start releaseDate -->
-<div>
-  <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
-  <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate" clas="editForm">
-    <input type="hidden" name="encounter" value="${num}"/>
-    <div id="releasedatepicker" class="editForm"></div>
-    <div class="form-group row editForm">
-      <div class="col-sm-4">
-        <label><%=encprops.getProperty("setReleaseDate")%></label>
-        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-      </div>
-      <div class="col-sm-5">
-        <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
-      </div>
-      <div class="col-sm-3">
-        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
-      </div>
-    </div>
-  </form>
-
-</div>
-<!-- end releaseDate -->
-
-<br>
-
-<!-- start verbatim event date -->
-<div>
-  <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
-  <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
-    <input name="encounter" type="hidden" value="<%=num%>">
-    <div class="form-group row">
-      <div class="col-sm-4">
-        <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
-        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-      </div>
-      <div class="col-sm-5 col-xs-10">
-        <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+    <!-- start releaseDate -->
+    <div>
+      <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
+      <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate" clas="editForm">
+        <input type="hidden" name="encounter" value="${num}"/>
+        <div id="releasedatepicker" class="editForm"></div>
+        <div class="form-group row editForm">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setReleaseDate")%></label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5">
+            <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
+          </div>
+          <div class="col-sm-3">
+            <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
+          </div>
         </div>
-        <div class="col-sm-3">
-          <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
-        </div>
-      </div>
-    </form>
-</div>
+      </form>
 
-
-<!-- start date -->
-<div class="editText">
-  <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
-  <form name="setencdate" action="../EncounterResetDate" method="post">
-    <input name="number" type="hidden" value="<%=num%>" id="number" />
-    <input name="action" type="hidden" value="changeEncounterDate" />
-    <div id="datepicker" class="editForm"></div>
-    <div class="form-group row editForm">
-      <div class="col-sm-5">
-        <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
-        <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-      </div>
-      <div class="col-sm-5">
-        <input type="text" id="datepickerField" name="datepicker" class="form-control" />
-      </div>
-      <div class="col-sm-2">
-        <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
-      </div>
     </div>
-  </form>
-</div>
-</td>
-</tr>
-</table>
+    <!-- end releaseDate -->
+
+    <br>
+
+    <!-- start verbatim event date -->
+    <div>
+      <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
+      <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
+        <input name="encounter" type="hidden" value="<%=num%>">
+        <div class="form-group row">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5 col-xs-10">
+            <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+            </div>
+            <div class="col-sm-3">
+              <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
+            </div>
+          </div>
+        </form>
+    </div>
+
+
+    <!-- start date -->
+    <div class="editText">
+      <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
+      <form name="setencdate" action="../EncounterResetDate" method="post">
+        <input name="number" type="hidden" value="<%=num%>" id="number" />
+        <input name="action" type="hidden" value="changeEncounterDate" />
+        <div id="datepicker" class="editForm"></div>
+        <div class="form-group row editForm">
+          <div class="col-sm-5">
+            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5">
+            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+          </div>
+          <div class="col-sm-2">
+            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
+          </div>
+        </div>
+      </form>
+    </div>
+    </td>
+    </tr>
+    </table>
 
       <%
 

@@ -46,13 +46,15 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   margin-bottom: 0px;
 }
 
-#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck {
+
+
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError, #altIdError, #matchedByError, #individualError {
+#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError {
   display: none;
   color: red;
   font-family: sans-serif;
