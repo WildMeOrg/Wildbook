@@ -921,30 +921,6 @@ $(function() {
                     </div>
                     <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
                   </form>
-
-									<%-- <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  										<tr>
-    										<td align="left" valign="top" class="para">
-    											<font color="#990000">
-      												<img align="absmiddle" src="../images/tag_small.gif"/>
-      												<strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
-      											</font>
-    										</td>
-  										</tr>
-  										<tr>
-    										<td align="left" valign="top">
-      											<form name="createShark" method="post" action="../IndividualCreate">
-        											<input name="number" type="hidden" value="<%=num%>" />
-        											<input name="action" type="hidden" value="create" />
-        											<input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>" /><br />
-													<input name="noemail" type="checkbox" value="noemail" />
-        											<%=encprops.getProperty("suppressEmail")%><br />
-
-      												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-      											</form>
-    										</td>
-  										</tr>
-									</table> --%>
 								<%
 								}
 								%>
@@ -1054,14 +1030,17 @@ $(function() {
                 //Remove from occurrence if assigned
                 if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
               %>
-              <p class="editText"><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
+              <div class="editText">
+                <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+              </div>
               <form action="../OccurrenceRemoveEncounter" class="editForm" method="post" name="removeOccurrence">
                 <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
                 <input name="action" type="hidden" value="remove" />
                 <div class="form-group row">
                   <div class="col-sm-12">
-                    <label class="highlight"><%=encprops.getProperty("removeFromOccurrence")%></label>
-                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" class="btn btn-sm editFormBtn"/>
+                    <label class="highlight"><strong><%=encprops.getProperty("removeFromOccurrence")%></strong></label>
+                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="removeOccurrenceBtn" class="btn btn-sm editFormBtn"/>
                   </div>
                 </div>
               </form>
@@ -1073,7 +1052,10 @@ $(function() {
 
                 if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
                 %>
-
+                <div class="editText">
+                  <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                  <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+                </div>
                   <form name="createOccurrence" method="post" action="../OccurrenceCreate" class="editForm">
                     <input name="number" type="hidden" value="<%=num%>"/>
                     <input name="action" type="hidden" value="create"/>
