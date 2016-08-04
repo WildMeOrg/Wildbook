@@ -596,13 +596,13 @@ $(function() {
                   });
 
                   $("#edit").click(function() {
-                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError").hide();
+                    $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError ").hide();
 
-                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers").show();
+                    $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev").show();
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv").removeClass("has-error");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv, #elevationDiv").removeClass("has-error");
 
-                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv").removeClass("has-success");
+                    $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv, #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv, #elevationDiv").removeClass("has-success");
                   });
 
                   $("#closeEdit").click(function() {
@@ -2245,8 +2245,6 @@ if(enc.getLocation()!=null){
 </div>
 <!-- end locationID -->
 
-START HERE THURSDAY
-
 
 <!-- start depth -->
 <script type="text/javascript">
@@ -2314,58 +2312,78 @@ START HERE THURSDAY
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
   %>
-    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
   } else {
   %>
   <%=encprops.getProperty("unknown") %>
   <%
     }
 
- if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+ // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-<a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%-- <a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
   <%
-    }
+    // }
   %>
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start elevation popup -->
-<div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">
+<!-- start elevation -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddElev").click(function(event) {
+      event.preventDefault();
 
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
-          <input name="elevation" type="text" id="elevation" size="10" /> Meters <input
-          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setEncounterElevation" /><br />
-          <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
+      $("#AddElev").hide();
 
-<!-- popup dialog script -->
-<script>
-var dlgElev = $("#dialogElev").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+      var number = $("#elevationNumber").val();
+      var elevation = $("#elevation").val();
 
-$("a#elev").click(function() {
-  dlgElev.dialog("open");
-});
+      $.post("../EncounterSetMaximumElevation", {"number": number, "elevation": elevation},
+      function() {
+        $("#elevationErrorDiv").hide();
+        $("#elevationDiv").addClass("has-success");
+        $("#elevationCheck").show();
+        $("#displayElevation").html(elevation);
+      })
+      .fail(function(response) {
+        $("#elevationDiv").addClass("has-error");
+        $("#elevationError, #elevationErrorDiv").show();
+        $("#elevationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#elevationInput").click(function() {
+      $("#elevationError, #elevationCheck, #elevationErrorDiv").hide()
+      $("#elevationDiv").removeClass("has-success");
+      $("#elevationDiv").removeClass("has-error");
+      $("#AddElev").show();
+    });
+  });
 </script>
-<!-- end elevation popup -->
+<div>
+  <div class="highlight" id="elevationErrorDiv"></div>
+
+  <p class="editText"><strong><%=encprops.getProperty("setElevation")%></strong></p>
+  <form name="setencelev" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="elevationNumber" />
+    <input name="action" type="hidden" value="setEncounterElevation" />
+    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+    <div class="form-group row">
+      <div class="col-sm-5" id="elevationDiv">
+        <input name="elevation" type="text" id="elevation" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="elevationCheck">&check;</span>
+        <span class="form-control-feedback" id="elevationError">X</span>
+      </div>
+    </div>
+    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+  </form>
+</div>
+<!-- end elevation  -->
 <%
-}
+// }
 %>
 
 <%
@@ -2511,6 +2529,8 @@ $("a#elev").click(function() {
        	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
 
      	%>
+
+
      	<a name="gps"></a>
      		<table>
      			<tr>
@@ -2545,6 +2565,9 @@ $("a#elev").click(function() {
 <br />
 
   <br />
+
+START HERE THURSDAY
+
 <%-- OBSERVATION ATTRIBUTES --%>
   <h2><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %></h2>
 <!-- START TAXONOMY ATTRIBUTE -->
