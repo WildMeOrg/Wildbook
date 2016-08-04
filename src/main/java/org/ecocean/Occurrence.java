@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
@@ -44,6 +45,37 @@ public class Occurrence implements java.io.Serializable{
   private String modified;
   //private String locationID;
   private String dateTimeCreated;
+
+
+	/* Rosemary meta-data for IBEIS */
+/*
+	private String sun = "";
+	private String wind = "";
+	private String rain = "";
+	private String cloudCover = "";
+	private String direction;
+	private String localName;
+	private String grassLength;
+	private String grassColor;
+	private String grassSpecies;
+	private String bushType;
+	private String bit;
+	private String otherSpecies;
+*/
+	private Double distance;
+	private Double decimalLatitude;
+	private Double decimalLongitude;
+
+/////Lewa-specifics
+  private DateTime dateTime;
+
+	private String habitat;
+	private Integer groupSize;
+	private Integer numTerMales;
+	private Integer numBachMales;
+	private Integer numNonLactFemales;
+	private Integer numLactFemales;
+	private Double bearing;
 
 
   //empty constructor used by the JDO enhancer
@@ -150,7 +182,7 @@ public class Occurrence implements java.io.Serializable{
 
       for(int i=0;i<size;i++){
         Encounter enc=encounters.get(i);
-        if((enc.getIndividualID()!=null)&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
+        if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().equals("Unassigned"))&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
       }
     }
     catch(Exception e){e.printStackTrace();}
@@ -236,6 +268,174 @@ public class Occurrence implements java.io.Serializable{
       comments = newComments;
     }
   }
+
+	public void setDecimalLatitude(Double d) {
+		this.decimalLatitude = d;
+	}
+
+	public Double getDecimalLatitude() {
+		return this.decimalLatitude;
+	}
+
+	public void setDecimalLongitude(Double d) {
+		this.decimalLongitude = d;
+	}
+
+	public Double getDecimalLongitude() {
+		return this.decimalLongitude;
+	}
+
+/*
+	public void setWind(String w) {
+		this.wind = w;
+	}
+
+	public String getWind() {
+		return this.wind;
+	}
+
+	public void setSun(String s) {
+		this.sun = s;
+	}
+
+	public String getSun() {
+		return this.sun;
+	}
+	public String getRain() {
+		return this.rain;
+	}
+	public void setRain(String r) {
+		this.rain = r;
+	}
+
+	public String getCloudCover() {
+		return this.cloudCover;
+	}
+	public void setCloudCover(String c) {
+		this.cloudCover = c;
+	}
+
+	public String getDirection() {
+		return this.direction;
+	}
+	public void setDirection(String d) {
+		this.direction = d;
+	}
+
+	public String getLocalName() {
+		return this.localName;
+	}
+	public void setLocalName(String n) {
+		this.localName = n;
+	}
+
+	public String getGrassLength() {
+		return this.grassLength;
+	}
+	public void setGrassLength(String l) {
+		this.grassLength = l;
+	}
+
+	public String getGrassColor() {
+		return this.grassColor;
+	}
+	public void setGrassColor(String c) {
+		this.grassColor = c;
+	}
+
+	public String getGrassSpecies() {
+		return this.grassSpecies;
+	}
+	public void setGrassSpecies(String g) {
+		this.grassSpecies = g;
+	}
+
+	public String getBushType() {
+		return this.bushType;
+	}
+	public void setBushType(String t) {
+		this.bushType = t;
+	}
+
+	public String getBit() {
+		return this.bit;
+	}
+	public void setBit(String b) {
+		this.bit = b;
+	}
+
+	public String getOtherSpecies() {
+		return this.otherSpecies;
+	}
+	public void setOtherSpecies(String s) {
+		this.otherSpecies = s;
+	}
+*/
+
+  public DateTime getDateTime() {
+    return this.dateTime;
+  }
+
+  public void setDateTime(DateTime dt) {
+    this.dateTime = dt;
+  }
+
+	public Double getDistance() {
+		return this.distance;
+	}
+	public void setDistance(Double d) {
+		this.distance = d;
+	}
+
+	public String getHabitat() {
+		return this.habitat;
+	}
+	public void setHabitat(String h) {
+		this.habitat = h;
+	}
+
+	public Integer getGroupSize() {
+		return this.groupSize;
+	}
+	public void setGroupSize(Integer s) {
+		this.groupSize = s;
+	}
+
+	public Integer getNumTerMales() {
+		return this.numTerMales;
+	}
+	public void setNumTerMales(Integer s) {
+		this.numTerMales = s;
+	}
+
+	public Integer getNumBachMales() {
+		return this.numBachMales;
+	}
+	public void setNumBachMales(Integer s) {
+		this.numBachMales = s;
+	}
+
+	public Integer getNumNonLactFemales() {
+		return this.numNonLactFemales;
+	}
+	public void setNumNonLactFemales(Integer s) {
+		this.numNonLactFemales = s;
+	}
+
+	public Integer getNumLactFemales() {
+		return this.numLactFemales;
+	}
+	public void setNumLactFemales(Integer s) {
+		this.numLactFemales = s;
+	}
+
+	public Double getBearing() {
+		return this.bearing;
+	}
+	public void setBearing(Double b) {
+		this.bearing = b;
+	}
+
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
@@ -396,56 +596,6 @@ public class Occurrence implements java.io.Serializable{
         return new ToStringBuilder(this)
                 .append("id", occurrenceID)
                 .toString();
-    }
-    
-    public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
-      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-      //boolean haveProfilePhoto=false;
-      for (Encounter enc : this.getDateSortedEncounters(false)) {
-        //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
-          ArrayList<Annotation> anns = enc.getAnnotations();
-          if ((anns == null) || (anns.size() < 1)) {
-            continue;
-          }
-          for (Annotation ann: anns) {
-            //if (!ann.isTrivial()) continue;
-            MediaAsset ma = ann.getMediaAsset();
-            if (ma != null) {
-              //JSONObject j = new JSONObject();
-              JSONObject j = ma.sanitizeJson(req, new JSONObject());
-              
-              
-              
-              if (j!=null) {
-                
-                
-                //ok, we have a viable candidate
-                
-                //put ProfilePhotos at the beginning
-                if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
-                //otherwise, just add it to the bottom of the stack
-                else{
-                  al.add(j);
-                }
-                
-              }
-              
-              
-            }
-          }
-      //}
-      }
-      return al;
-
-    }
-    
-    public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-      
-      ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
-      if(al.size()>0){return al.get(0);}
-      return new JSONObject();
-      
-
     }
 
 
