@@ -41,11 +41,11 @@
       <url>http://download.osgeo.org/webdav/geotools/</url>
     </repository>
   </repositories>
-  
-  
+
+
 
   <dependencies>
-  
+
     <dependency>
         <groupId>com.healthmarketscience.jackcess</groupId>
         <artifactId>jackcess</artifactId>
@@ -74,8 +74,15 @@
             <type>jar</type>
             <optional>true</optional>
         </dependency>
-		
-		
+
+
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>7.0</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -88,7 +95,7 @@
       <artifactId>shiro-core</artifactId>
       <version>1.2.1</version>
     </dependency>
-	
+
 	   <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
@@ -218,7 +225,7 @@
       <artifactId>jdbc-stdext</artifactId>
       <version>2.0</version>
 </dependency>
-	
+
 
 <dependency>
 	<groupId>org.springframework</groupId>
@@ -246,8 +253,8 @@
 	<artifactId>json</artifactId>
 	<version>20131018</version>
 </dependency>
-            
-	
+
+
 	<!--Start JDO and DataNucleus dependencies -->
 <dependency>
 	<groupId>org.datanucleus</groupId>
@@ -335,13 +342,13 @@
       <version>3.2</version>
       <scope>test</scope>
     </dependency>
-    
+
         <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
         <version>3.11</version>
     </dependency>
-    
+
     <dependency>
     <groupId>org.apache.poi</groupId>
     <artifactId>poi-ooxml</artifactId>
@@ -413,13 +420,13 @@
 	<version>3.7.13</version>
 </dependency>
 
-	
+
 	    <dependency>
         	<groupId>ch.ethz.ganymed</groupId>
         	<artifactId>ganymed-ssh2</artifactId>
         	<version>build210</version>
     </dependency>
-	
+
 	<dependency>
 	<groupId>nz.ac.waikato.cms.weka</groupId>
 	<artifactId>realAdaBoost</artifactId>
