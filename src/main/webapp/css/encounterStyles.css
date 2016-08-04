@@ -19,6 +19,14 @@ input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#cr
   height: 30px;
 }
 
+input#informOthers.form-control, input#photoName.form-control, input#photoPhone.form-control, input#photoEmail.form-control, input#photoAddress.form-control, input#submitName.form-control, input#submitPhone.form-control, input#submitEmail.form-control, input#submitAddress.form-control, input#submitOrg.form-control, input#submitProject.form-control {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
 .editForm {
   display: none;
   margin-bottom: 10px;
@@ -72,7 +80,7 @@ input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#cr
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;
