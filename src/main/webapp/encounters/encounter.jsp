@@ -613,15 +613,15 @@ $(function() {
 					</table>
           </div>
         </div>
-					
-	
-	
-	<!-- main display area -->		
-			
+
+
+
+	<!-- main display area -->
+
 					<div class="container">
 						<div class="row">
-							
-							
+
+
 							  <!-- here lies the photo gallery  -->
   <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
@@ -1070,8 +1070,8 @@ $("a#occurrence").click(function() {
     </div>
 
   </div>
-							
-							
+
+
 							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
 
