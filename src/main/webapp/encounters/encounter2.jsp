@@ -1683,291 +1683,6 @@ $(function() {
         </div>
 <%-- END CONTACT INFORMATION --%>
 
-      <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none"></div>
-
-<%-- START IMAGES --%>
-    <jsp:include page="encounterMediaGallery.jsp" flush="true">
-    	<jsp:param name="encounterNumber" value="<%=num%>" />
-    	<jsp:param name="isOwner" value="<%=isOwner %>" />
-    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-  	</jsp:include>
-
-    <div id="add-image-zone" class="bc4">
-
-      <h2 style="text-align:left">Add image to Encounter</h2>
-
-      <div class="flow-box bc4" style="text-align:center" >
-
-        <div id="file-activity" style="display:none"></div>
-
-        <div id="updone"></div>
-
-        <div id="upcontrols">
-          <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-          <div id="flowbuttons">
-
-            <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-            <button id="upload-button" class="btn" style="display:none">begin upload</button>
-
-          </div>
-        </div>
-      </div>
-    </div>
-<%-- END IMAGES --%>
-  </div>
-  <%-- end left column --%>
-
-  <%-- start right column --%>
-  <div class="col-xs-12 col-sm-6" style="vertical-align:top">
-
-
-    <!-- start DATE section -->
-    <table>
-    <tr>
-    <td width="560px" style="vertical-align:top;">
-
-    <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
-    </h2>
-    <p>
-    <%if(enc.getDateInMilliseconds()!=null){ %>
-      <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-        <%=enc.getDate()%>
-      </a>
-        <%
-    }
-    else{
-    %>
-    <%=encprops.getProperty("unknown") %>
-    <%
-    }
-            		%>
-
-    <br />
-    <em><%=encprops.getProperty("verbatimEventDate")%></em>:
-        <%
-    				if(enc.getVerbatimEventDate()!=null){
-    				%>
-        <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
-        <%
-    				}
-    				else {
-    				%>
-        <%=encprops.getProperty("none") %>
-        <%
-    				}
-
-            		%>
-
-    <!-- end verbatim event date -->
-
-
-
-    <%
-      pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
-    %>
-    <c:if test="${showReleaseDate}">
-      <br /><em><span id="displayReleaseDate"><%=encprops.getProperty("releaseDate") %></span></em>:
-        <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
-        <c:if test="${editable}">
-
-        </c:if>
-      </p>
-    </c:if>
-
-
-    <!-- start releaseDate -->
-    <script type="text/javascript">
-      $(document).ready(function() {
-        $("#AddDate").click(function(event) {
-          event.preventDefault();
-
-          $("#AddDate").hide();
-
-          var encounter = $("#releaseDateEncounter").val();
-          var releasedatepicker = $("#releasedatepickerField").val();
-
-          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "releasedatepicker": releasedatepicker},
-          function() {
-            $("#releaseErrorDiv").hide();
-            $("#releaseDiv").addClass("has-success");
-            $("#releaseCheck").show();
-            $("#displayReleaseDate").html(releasedatepicker);
-          })
-          .fail(function(response) {
-            $("#releaseDiv").addClass("has-error");
-            $("#releaseError, #releaseErrorDiv").show();
-            $("#releaseErrorDiv").html(response.responseText);
-          });
-        });
-
-        $("#releasedatepickerField").click(function() {
-          $("#releaseError, #releaseCheck, #releaseErrorDiv").hide()
-          $("#releaseDiv").removeClass("has-success");
-          $("#releaseDiv").removeClass("has-error");
-          $("#AddDate").show();
-        });
-      });
-    </script>
-
-    <div>
-      <div class="highlight" id="releaseErrorDiv"></div>
-
-      <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
-      <form name="setReleaseDate" clas="editForm">
-        <input type="hidden" name="encounter" value="${num}" id="releaseDateEncounter"/>
-        <div id="releasedatepicker" class="editForm"></div>
-        <div class="form-group row editForm">
-          <div class="col-sm-4">
-            <label><%=encprops.getProperty("setReleaseDate")%></label>
-            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-          </div>
-          <div class="col-sm-5" id="releaseDiv">
-            <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
-            <span class="form-control-feedback" id="releaseCheck">&check;</span>
-            <span class="form-control-feedback" id="releaseError">X</span>
-          </div>
-          <div class="col-sm-3">
-            <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
-          </div>
-        </div>
-      </form>
-
-    </div>
-    <!-- end releaseDate -->
-
-    <br>
-    <!-- start verbatim event date -->
-    <script type="text/javascript">
-      $(document).ready(function() {
-        $("#setVerbatimEventDateBtn").click(function(event) {
-          event.preventDefault();
-
-          $("#setVerbatimEventDateBtn").hide();
-
-          var encounter = $("#verbatimDateEncounter").val();
-          var verbatimEventDate = $("#verbatimEventDateInput").val();
-
-          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "verbatimEventDate": verbatimEventDate},
-          function() {
-            $("#verbatimErrorDiv").hide();
-            $("#verbatimDiv").addClass("has-success");
-            $("#verbatimCheck").show();
-            $("#displayVerbatimDate").html(verbatimEventDate);
-          })
-          .fail(function(response) {
-            $("#verbatimDiv").addClass("has-error");
-            $("#verbatimError, #verbatimErrorDiv").show();
-            $("#verbatimErrorDiv").html(response.responseText);
-          });
-        });
-
-        $("#verbatimEventDateInput").click(function() {
-          $("#verbatimError, #verbatimCheck, #verbatimErrorDiv").hide()
-          $("#verbatimDiv").removeClass("has-success");
-          $("#verbatimDiv").removeClass("has-error");
-          $("#setVerbatimEventDateBtn").show();
-        });
-      });
-    </script>
-    <div>
-      <div class="highlight" id="verbatimErrorDiv"></div>
-
-      <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
-      <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
-        <input name="encounter" type="hidden" value="<%=num%>" id="verbatimDateEncounter">
-        <div class="form-group row">
-          <div class="col-sm-4">
-            <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
-            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-          </div>
-          <div class="col-sm-5 col-xs-10" id="verbatimDiv">
-            <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
-              <span class="form-control-feedback" id="verbatimCheck">&check;</span>
-              <span class="form-control-feedback" id="verbatimError">X</span>
-            </div>
-            <div class="col-sm-3">
-              <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
-            </div>
-          </div>
-        </form>
-    </div>
-
-
-    <!-- start date -->
-    <script type="text/javascript">
-      $(document).ready(function() {
-        $("#addResetDate").click(function(event) {
-          event.preventDefault();
-
-          $("#addResetDate").hide();
-
-          var number = $("#resetDateNumber").val();
-          var datepicker = $("#datepickerField").val();
-
-          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
-          function() {
-            $("#resetDateErrorDiv").hide();
-            $("#resetDateDiv").addClass("has-success");
-            $("#resetDateCheck").show();
-            $("#displayResetDate").html(datepicker);
-          })
-          .fail(function(response) {
-            $("#resetDateDiv").addClass("has-error");
-            $("#resetDateError, #resetDateErrorDiv").show();
-            $("#resetDateErrorDiv").html(response.responseText);
-          });
-        });
-
-        $("#datepickerField").click(function() {
-          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
-          $("#resetDateDiv").removeClass("has-success");
-          $("#resetDateDiv").removeClass("has-error");
-          $("#addResetDate").show();
-        });
-      });
-    </script>
-    <div>
-    <div class="highlight" id="resetDateErrorDiv"></div>
-
-      <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
-      <form name="setencdate" action="" method="post">
-        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
-        <input name="action" type="hidden" value="changeEncounterDate"/>
-        <div id="datepicker" class="editForm"></div>
-        <div class="form-group row editForm">
-          <div class="col-sm-5">
-            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
-            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-          </div>
-          <div class="col-sm-5" id="resetDateDiv">
-            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
-            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
-            <span class="form-control-feedback" id="resetDateError">X</span>
-          </div>
-          <div class="col-sm-2">
-            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
-          </div>
-        </div>
-      </form>
-    </div>
-    </td>
-    </tr>
-    </table>
-
-      <%
-
-  String isLoggedInValue="true";
-  String isOwnerValue="true";
-
-  if(!loggedIn){isLoggedInValue="false";}
-  if(!isOwner){isOwnerValue="false";}
-
-%>
-
-
-
-<br />
 <h2>
 	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
 </h2>
@@ -2384,6 +2099,1171 @@ if(enc.getLocation()!=null){
 %>
 <!-- End Display maximumElevationInMeters -->
 
+<table>
+<tr>
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
+
+<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
+
+
+								<p class="para">
+									Number: <%=num%>
+								</p>
+			<!-- START WORKFLOW ATTRIBUTE -->
+
+
+ 								<%
+
+									String state="";
+									if (enc.getState()!=null){state=enc.getState();}
+									%>
+									<p class="para">
+										 <%=encprops.getProperty("workflowState") %><span id="displayWork"><%=state %></span>
+
+										<%
+										%>
+
+										<%
+										%>
+
+									</p>
+									<%
+									%>
+
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#selectState option[value='<%=state %>']").attr('selected','selected');
+
+                      $("#editWork").click(function(event) {
+                        event.preventDefault();
+
+                        $("#editWork").hide();
+
+                        var number = $("#workNumber").val();
+                        var state = $("#selectState").val();
+
+                        $.post("../EncounterSetState", {"number": number, "state": state},
+                        function() {
+                          $("#workErrorDiv").hide();
+                          $("#workCheck").show();
+                          $("#displayWork").html(state);
+                        })
+                        .fail(function(response) {
+                          $("#workError, #workErrorDiv").show();
+                          $("#workErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#selectState").click(function() {
+                        $("#workerror, #workCheck, #workErrorDiv").hide()
+                        $("#editWork").show();
+                      });
+                    });
+                  </script>
+
+
+                  <div>
+                    <div class="highlight" id="workErrorDiv"></div>
+
+                    <p class="editText"><strong><%=encprops.getProperty("setWorkflowState")%></strong></p>
+
+                    <form name="workflowStateForm" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="workNumber" />
+                      <div class="form-group row">
+                        <div class="col-sm-5">
+                          <select name="state" id="selectState" class="form-control" size="1">
+															<%
+						       								boolean hasMoreStates=true;
+						       								int stateTaxNum=0;
+						       								while(hasMoreStates){
+						       	  								String currentLifeState = "encounterState"+stateTaxNum;
+						       	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
+						       	  									%>
+						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
+						       	  									<%
+						       										stateTaxNum++;
+						          								}
+						          								else{
+						             								hasMoreStates=false;
+						          								}
+
+						       								} //end while
+						       								%>
+						      				</select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input name="<%=encprops.getProperty("set")%>" type="submit" id="editWork" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                          <span class="form-control-feedback" id="workCheck">&check;</span>
+                          <span class="form-control-feedback" id="workError">X</span>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+
+       							<%
+        						// }
+      							%>
+				<!-- END WORKFLOW ATTRIBUTE -->
+
+				<!-- START USER ATTRIBUTE -->
+								<%
+ 								if((CommonConfiguration.showUsersToPublic(context))||(request.getUserPrincipal()!=null)){
+ 								%>
+
+    							<table>
+    								<tr>
+    									<td>
+     										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
+     									</td>
+        								<%
+      									%>
+
+      									<%
+      									%>
+     								</tr>
+     								<tr>
+     									<td>
+                         				<%
+                         				if(enc.getAssignedUsername()!=null){
+
+                        	 				String username=enc.getAssignedUsername();
+                        	 				Shepherd aUserShepherd=new Shepherd("context0");
+                         					if(aUserShepherd.getUser(username)!=null){
+                         					%>
+                                			<%
+
+                         					User thisUser=aUserShepherd.getUser(username);
+                                			String profilePhotoURL="../images/empty_profile.jpg";
+
+                         					if(thisUser.getUserImage()!=null){
+                         						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
+                         					}
+                         					%>
+                     						<%
+                         					String displayName="";
+                         					if(thisUser.getFullName()!=null){
+                         						displayName=thisUser.getFullName();
+                         						%>
+                         					<%
+                         					}
+                                			%>
+
+     								<div>
+                      <div class="row">
+                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+                          <img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
+                        </div>
+                        <div class="col-sm-6">
+                          <%-- <p> --%>
+
+                        <%
+                        if(thisUser.getAffiliation()!=null){
+                        %>
+                        <p><strong><%=displayName %></strong></p>
+                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <%
+                        }
+
+                        if(thisUser.getUserProject()!=null){
+                        %>
+                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <%
+                        }
+
+                        if(thisUser.getUserURL()!=null){
+                            %>
+                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <%
+                          }
+
+                        if(thisUser.getUserStatement()!=null){
+                            %>
+                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+                            <%
+                          }
+                        %>
+                        </div>
+                      </div>
+
+                  </div>
+
+<%
+                         	}
+
+
+                      	else{
+                      	%>
+                      	&nbsp;
+                      	<%
+                      	}
+                        aUserShepherd.rollbackDBTransaction();
+                        aUserShepherd.closeDBTransaction();
+                      	}
+                         				//insert here
+%>
+
+
+<!-- start set username popup -->
+<div>
+  <div class="highlight" id="assignErrorDiv"></div>
+
+  <p class="editText"><strong><%=encprops.getProperty("assignUser")%></strong></p>
+
+  <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="submitter" id="submitterSelect" class="form-control" size="1">
+            <option value=""></option>
+            <%
+
+            Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.beginDBTransaction();
+
+            ArrayList<String> usernames=userShepherd.getAllUsernames();
+
+            int numUsers=usernames.size();
+            for(int i=0;i<numUsers;i++){
+                String thisUsername=usernames.get(i);
+                User thisUser2=userShepherd.getUser(thisUsername);
+                String thisUserFullname=thisUsername;
+                if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
+              %>
+              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+              <%
+            }
+            userShepherd.rollbackDBTransaction();
+            userShepherd.closeDBTransaction();
+            %>
+          </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+                   		<%
+
+                   }
+                   else {
+                   %>
+                   &nbsp;
+                   <%
+                   }
+                  %>
+                  </td>
+
+
+    </tr></table>
+
+<!-- END USER ATTRIBUTE -->
+
+<!-- START TAPIRLINK DISPLAY AND SETTER -->
+<%
+if (isOwner) {
+%>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#tapirApprove").click(function(event) {
+      event.preventDefault();
+
+
+      var number = $("#tapirNumber").val();
+      var action = $("#tapirAction").val();
+
+      $.post("../EncounterSetTapirLinkExposure", {"number": number, "action": action},
+      function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirError").hide();
+        $("#tapirSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirSuccess").hide();
+        $("#tapirError").html(response.responseText);
+      });
+    });
+  });
+</script>
+    <div>
+      <div id="tapirResultDiv">
+        <span id="tapirSuccess" class="successHighlight"></span>
+        <span id="tapirError" class="highlight"></span>
+      </div>
+      <form name="setTapirLink" class="editForm">
+        <input name="action" type="hidden" id="tapirAction" value="tapirLinkExpose" />
+        <input name="number" type="hidden" value="<%=num%>" id="tapirNumber"/>
+        <%
+        String tapirCheckIcon="cancel.gif";
+        if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
+        %>
+        <label>TapirLink:</label>&nbsp;
+        <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
+        &nbsp;
+        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+      </form>
+    </div>
+
+<!-- END TAPIRLINK DISPLAY AND SETTER -->
+<%
+}
+%>
+
+<!-- START AUTOCOMMENTS -->
+
+<!-- start autocomments -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#manualAdd").click(function(event) {
+      event.preventDefault();
+
+      var number = $("#autoNumber").val();
+      var user = $("#autoUser").val();
+      var autocomments = $("#autoComments").val();
+
+      $.post("../EncounterAddComment", {"number": number, "user": user, "action": action},
+      function() {
+        $("#autoCommentErrorDiv").hide();
+      })
+      .fail(function(response) {
+        $("#autoCommentErrorDiv").show();
+        $("#autoCommentErrorDiv").html(response.responseText);
+      });
+    });
+  });
+</script>
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("auto_comments")%></strong></p>
+  <div class="highlight" id="autoCommentErrorDiv"></div>
+    <%
+    String rComments="";
+    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    %>
+
+    <div class="editForm" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
+      <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
+    </div>
+
+    <form name="addComments" class="editForm">
+        <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="autoUser" />
+        <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="autoNumber" />
+        <input name="action" type="hidden" value="enc_comments" id="autoAction" />
+
+        <textarea name="autocomments" cols="50" id="autoComments" class="form-control"></textarea>
+        <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" class="btn btn-sm" id="manualAdd"/>
+
+    </form>
+</div>
+<!-- END AUTOCOMMENTS -->
+
+<!-- START DELETE ENCOUNTER FORM -->
+<%
+if (isOwner) {
+%>
+<table width="100%" border="0" cellpadding="1">
+    <tr>
+      <td height="30" class="para">
+        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" class="editForm" method="post" action="../EncounterDelete">
+              <input name="number" type="hidden" value="<%=num%>" />
+              <%
+              String deleteIcon="cancel.gif";
+              %>
+              <input align="absmiddle" name="approve" type="button" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
+        </form>
+      </td>
+    </tr>
+  </table>
+<!-- END DELETE ENCOUNTER FORM -->
+<%
+}
+%>
+
+</td>
+</tr>
+</table>
+
+
+<%
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+%>
+
+<c:if test="${showMeasurements}">
+<br />
+<%
+  pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
+  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
+%>
+<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
+<c:if test="${editable and !empty measurements}">
+</c:if>
+<table>
+<tr>
+<th class="measurement">
+  <span id="displayMtype"><%=encprops.getProperty("type") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMsize"><%=encprops.getProperty("size") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMunits"><%=encprops.getProperty("units") %></span>
+</th>
+<c:if test="${!empty samplingProtocols}">
+  <th class="measurement">
+    <display id="displayMsample"><%=encprops.getProperty("samplingProtocol") %></span>
+  </th>
+</c:if>
+</tr>
+<c:forEach var="item" items="${measurements}">
+ <%
+    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
+    if (event != null) {
+        pageContext.setAttribute("measurementValue", event.getValue());
+        pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
+    }
+    else {
+        pageContext.setAttribute("measurementValue", null);
+        pageContext.setAttribute("samplingProtocol", null);
+   }
+ %>
+<tr>
+    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
+</tr>
+</c:forEach>
+</table>
+</p>
+
+<%
+%>
+<%-- start measuremnts form--%>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addMeasurements").click(function(event) {
+      event.preventDefault();
+
+      var encounter = $("#autoNumber").val();
+
+      $.post("../EncounterSetMeasurements", {"encounter": encounter},
+      function(response) {
+        $("#measurementResultDiv").show();
+        $("#measurementError").hide();
+        $("#measurementSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#measurementResultDiv").show();
+        $("#measurementSuccess").hide();
+        $("#measurementError").html(response.responseText);
+      });
+    });
+    $("#measurementForm").click(function() {
+      $("#measurementResultDiv").hide();
+    });
+  });
+</script>
+
+
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
+  <div id="measurementResultDiv">
+    <span id="measurementSuccess" class="successHighlight"></span>
+    <span id="measurementError" class="highlight"></span>
+  </div>
+
+    <%
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    %>
+
+    <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editForm">
+      <form name="setMeasurements" class="editForm" id="measurementForm">
+        <input type="hidden" name="encounter" value="${num}" id="measurementEncounter"/>
+        <c:set var="index" value="0"/>
+        <%
+        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+
+        %>
+        <c:forEach items="${items}" var="item">
+          <%
+          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          if (measurement == null) {
+            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+          }
+          pageContext.setAttribute("measurementEvent", measurement);
+          pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
+          %>
+          <tr>
+            <td class="form_label">
+            <c:out value="${item.label}"/>
+            <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
+          </td>
+            <td>
+            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementInput"/>
+            <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
+            <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
+            <c:out value="(${item.unitsLabel})"/>
+            <select name="measurement${index}(samplingProtocol)" id="selectMeasurement">
+              <c:forEach items="${optionDescs}" var="optionDesc">
+                <c:choose>
+                  <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                    <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
+                  </c:when>
+                  <c:otherwise>
+                    <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                  </c:otherwise>
+                </c:choose>
+              </c:forEach>
+            </select>
+          </td>
+        </tr>
+        <c:set var="index" value="${index + 1}"/>
+      </c:forEach>
+      <tr>
+        <td>
+          <input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="addMeasurements"/>
+        </td>
+      </tr>
+    </table>
+    </form>
+</div>
+<!-- end measurements form -->
+
+
+<%
+%>
+
+
+</c:if>
+
+<table>
+<tr>
+<td width="560px" style="vertical-align:top;background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;">
+
+
+
+<c:if test="${showMetalTags}">
+
+<h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
+<%
+  pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
+  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
+%>
+<p class="para"><em><c:out value="${metalTagTitle}"></c:out></em>
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+<%-- &nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+<%
+// }
+%>
+<table>
+<c:forEach var="item" items="${metalTags}">
+ <%
+    MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("item");
+    MetalTag metalTag =  enc.findMetalTagForLocation(metalTagDesc.getLocation());
+    pageContext.setAttribute("number", metalTag == null ? null : metalTag.getTagNumber());
+    pageContext.setAttribute("locationLabel", metalTagDesc.getLocationLabel());
+ %>
+<tr>
+    <td><c:out value="${locationLabel}:"/></td><td><c:out value="${number}"/></td>
+</tr>
+</c:forEach>
+</table>
+</p>
+
+
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+<!-- start metal tag popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setMetalTags").click(function(event) {
+      event.preventDefault();
+
+      var encounter = $("#metalTagsEncounter").val();
+      var tagType = $("#metalTagsType").val()
+
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#tagsResultDiv").show();
+        $("#tagsError").hide();
+        $("#tagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#tagsResultDiv").show();
+        $("#tagsSuccess").hide();
+        $("#tagsError").html(response.responseText);
+      });
+    });
+    $("#tagsForm").click(function() {
+      $("#tagsResultDiv").hide();
+    });
+  });
+</script>
+
+<div>
+  <p class="editTexxt"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
+  <div id="tagsResultDiv">
+    <span id="tagsSuccess" class="successHighlight"></span>
+    <span id="tagsError" class="highlight"></span>
+  </div>
+  <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
+
+  <form name="setMetalTags" class="editForm" id="tagsForm">
+  <input type="hidden" name="tagType" value="metalTags" id="metalTagsType"/>
+  <input type="hidden" name="encounter" value="${num}" id="metalTagsEncounter"/>
+  <table cellpadding="1" cellspacing="0">
+
+  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+     <%
+       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
+       MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
+       if (metalTag == null) {
+           metalTag = new MetalTag();
+       }
+       pageContext.setAttribute("metalTag", metalTag);
+     %>
+     <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
+     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation" class="form-control"/></td></tr>
+  </c:forEach>
+  <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setMetalTags"/></td></tr>
+  </table>
+  </form>
+</div>
+                         		<!-- popup dialog script -->
+<%-- <script>
+var dlgMetal = $("#dialogMetal").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#metal").click(function() {
+  dlgMetal.dialog("open");
+});
+</script> --%>
+<!-- end metal tags popup -->
+<%
+// }
+%>
+</c:if>
+
+<c:if test="${showAcousticTag}">
+<%
+  pageContext.setAttribute("acousticTagTitle", encprops.getProperty("acousticTag"));
+  pageContext.setAttribute("acousticTag", enc.getAcousticTag());
+%>
+<p class="para"><em><c:out value="${acousticTagTitle}"></c:out></em>
+<c:if test="${editable}">
+&nbsp;
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+<%-- <a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+<%
+// }
+%>
+</c:if>
+<table>
+<tr>
+    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
+</tr>
+</table>
+</p>
+
+
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+<!-- start acoustic tag  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setAcousticTags").click(function(event) {
+      event.preventDefault();
+
+      var encounter = $("#acousticTagEncounter").val();
+      var tagType = $("#acousticTagType").val()
+
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#acousticTagsResultDiv").show();
+        $("#acousticTagsError").hide();
+        $("#acousticTagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#acousticTagsResultDiv").show();
+        $("#acousticTagsSuccess").hide();
+        $("#acousticTagsError").html(response.responseText);
+      });
+    });
+    $("#acousticTagsForm").click(function() {
+      $("#acousticTagsResultDiv").hide();
+    });
+  });
+</script>
+
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("resetAcousticTag")%></strong></p>
+  <div id="acousticTagsResultDiv">
+    <span id="acousticTagsSuccess" class="successHighlight"></span>
+    <span id="acousticTagsError" class="highlight"></span>
+  </div>
+  <c:set var="acousticTag" value="${enc.acousticTag}"/>
+   <c:if test="${empty acousticTag}">
+   <%
+     pageContext.setAttribute("acousticTag", new AcousticTag());
+   %>
+   </c:if>
+   <table cellpadding="1" cellspacing="0">
+
+    <tr>
+      <td>
+        <form name="setAcousticTag" class="editForm" id="acousticTagsForm">
+        <input type="hidden" name="encounter" value="${num}" id="acousticTagEncounter"/>
+        <input type="hidden" name="tagType" value="acousticTag" id="acousticTagType"/>
+        <input type="hidden" name="id" value="${acousticTag.id}"/>
+        <table>
+          <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
+          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}" class="form-control" id="acousticTagInput"/></td></tr>
+          <tr><td class="formLabel">ID:</td></tr>
+          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}" id="acousticTagId" class="form-control"/></td></tr>
+          <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setAcousticTags"/></td></tr>
+        </table>
+        </form>
+      </td>
+    </tr>
+ </table>
+</div>
+
+<%
+// }
+%>
+
+</c:if>
+
+
+<c:if test="${showSatelliteTag}">
+<%
+  pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
+  pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
+%>
+<p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+&nbsp;
+<%-- <a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
+<%
+// }
+%>
+<table>
+<tr>
+    <td><%=encprops.getProperty("name") %></td><td><c:out value="${satelliteTag.name}"/></td>
+</tr>
+<tr>
+    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
+</tr>
+<tr>
+    <td>Argos PTT:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
+</tr>
+</table>
+</p>
+
+<%
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+%>
+<!-- start sat tag metadata  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setSatelliteTags").click(function(event) {
+      event.preventDefault();
+
+      var encounter = $("#satelliteTagEncounter").val();
+      var tagType = $("#satelliteTagType").val()
+
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#satelliteTagsResultDiv").show();
+        $("#satelliteTagsError").hide();
+        $("#satelliteTagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#satelliteTagsResultDiv").show();
+        $("#satelliteTagsSuccess").hide();
+        $("#satelliteTagsError").html(response.responseText);
+      });
+    });
+    $("#satelliteTagsForm").click(function() {
+      $("#satelliteTagsResultDiv").hide();
+    });
+  });
+</script>
+
+<div>
+  <p><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
+  <div id="satelliteTagsResultDiv">
+    <span id="satelliteTagsSuccess" class="successHighlight"></span>
+    <span id="satelliteTagsError" class="highlight"></span>
+  </div>
+   <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
+   <c:if test="${empty satelliteTag}">
+   <%
+     pageContext.setAttribute("satelliteTag", new SatelliteTag());
+   %>
+   </c:if>
+   <%
+      pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
+   %>
+   <form name="setSatelliteTag" class="editForm">
+   <input type="hidden" name="tagType" value="satelliteTag" id="satelliteTagType"/>
+   <input type="hidden" name="encounter" value="${num}" id="satelliteTagEncounter"/>
+   <input type="hidden" name="id" value="${satelliteTag.id}" id="satelliteTagId"/>
+   <table cellpadding="1" cellspacing="0">
+
+      <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
+      <tr><td>
+        <select name="satelliteTagName" class="form-control" size="1">
+        <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+          <c:choose>
+              <c:when test="${satelliteTagName eq satelliteTag.name}">
+                  <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
+              </c:when>
+              <c:otherwise>
+                  <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:otherwise>
+          </c:choose>
+        </c:forEach>
+        </select>
+      </td></tr>
+      <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
+      <tr><td><input name="satelliteTagSerial" class="form-control" value="${satelliteTag.serialNumber}" id="satelliteTagSerial"/></td></tr>
+      <tr><td class="formLabel">Argos PTT:</td></tr>
+      <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}" id="satelliteTagArgosPttNumber" class="form-control"/></td></tr>
+      <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setSatelliteTags"/></td></tr>
+   </table>
+   </form>
+</div>
+                         		<!-- popup dialog script -->
+<%-- <script>
+var dlgSat = $("#dialogSat").dialog({
+  autoOpen: false,
+  draggable: false,
+  resizable: false,
+  width: 600
+});
+
+$("a#sat").click(function() {
+  dlgSat.dialog("open");
+});
+</script> --%>
+<!-- end sat tag popup -->
+<%
+// }
+%></c:if>
+</td>
+</tr>
+</table>
+
+      <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none"></div>
+
+
+  </div>
+  <%-- END LEFT COLUMN --%>
+
+  <%-- START RIGHT COLUMN --%>
+  <div class="col-xs-12 col-sm-6" style="vertical-align:top">
+
+    <%-- START IMAGES --%>
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
+        	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="isOwner" value="<%=isOwner %>" />
+        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+      	</jsp:include>
+
+        <div id="add-image-zone" class="bc4">
+
+          <h2 style="text-align:left">Add image to Encounter</h2>
+
+          <div class="flow-box bc4" style="text-align:center" >
+
+            <div id="file-activity" style="display:none"></div>
+
+            <div id="updone"></div>
+
+            <div id="upcontrols">
+              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+              <div id="flowbuttons">
+
+                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+
+              </div>
+            </div>
+          </div>
+        </div>
+    <%-- END IMAGES --%>
+
+
+    <!-- start DATE section -->
+    <table>
+    <tr>
+    <td width="560px" style="vertical-align:top;">
+
+    <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
+    </h2>
+    <p>
+    <%if(enc.getDateInMilliseconds()!=null){ %>
+      <a
+        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        <%=enc.getDate()%>
+      </a>
+        <%
+    }
+    else{
+    %>
+    <%=encprops.getProperty("unknown") %>
+    <%
+    }
+            		%>
+
+    <br />
+    <em><%=encprops.getProperty("verbatimEventDate")%></em>:
+        <%
+    				if(enc.getVerbatimEventDate()!=null){
+    				%>
+        <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
+        <%
+    				}
+    				else {
+    				%>
+        <%=encprops.getProperty("none") %>
+        <%
+    				}
+
+            		%>
+
+    <!-- end verbatim event date -->
+
+
+
+    <%
+      pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
+    %>
+    <c:if test="${showReleaseDate}">
+      <br /><em><span id="displayReleaseDate"><%=encprops.getProperty("releaseDate") %></span></em>:
+        <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
+        <c:if test="${editable}">
+
+        </c:if>
+      </p>
+    </c:if>
+
+
+    <!-- start releaseDate -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#AddDate").click(function(event) {
+          event.preventDefault();
+
+          $("#AddDate").hide();
+
+          var encounter = $("#releaseDateEncounter").val();
+          var releasedatepicker = $("#releasedatepickerField").val();
+
+          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "releasedatepicker": releasedatepicker},
+          function() {
+            $("#releaseErrorDiv").hide();
+            $("#releaseDiv").addClass("has-success");
+            $("#releaseCheck").show();
+            $("#displayReleaseDate").html(releasedatepicker);
+          })
+          .fail(function(response) {
+            $("#releaseDiv").addClass("has-error");
+            $("#releaseError, #releaseErrorDiv").show();
+            $("#releaseErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#releasedatepickerField").click(function() {
+          $("#releaseError, #releaseCheck, #releaseErrorDiv").hide()
+          $("#releaseDiv").removeClass("has-success");
+          $("#releaseDiv").removeClass("has-error");
+          $("#AddDate").show();
+        });
+      });
+    </script>
+
+    <div>
+      <div class="highlight" id="releaseErrorDiv"></div>
+
+      <p class="editText"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
+      <form name="setReleaseDate" clas="editForm">
+        <input type="hidden" name="encounter" value="${num}" id="releaseDateEncounter"/>
+        <div id="releasedatepicker" class="editForm"></div>
+        <div class="form-group row editForm">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setReleaseDate")%></label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5" id="releaseDiv">
+            <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
+            <span class="form-control-feedback" id="releaseCheck">&check;</span>
+            <span class="form-control-feedback" id="releaseError">X</span>
+          </div>
+          <div class="col-sm-3">
+            <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
+          </div>
+        </div>
+      </form>
+
+    </div>
+    <!-- end releaseDate -->
+
+    <br>
+    <!-- start verbatim event date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#setVerbatimEventDateBtn").click(function(event) {
+          event.preventDefault();
+
+          $("#setVerbatimEventDateBtn").hide();
+
+          var encounter = $("#verbatimDateEncounter").val();
+          var verbatimEventDate = $("#verbatimEventDateInput").val();
+
+          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "verbatimEventDate": verbatimEventDate},
+          function() {
+            $("#verbatimErrorDiv").hide();
+            $("#verbatimDiv").addClass("has-success");
+            $("#verbatimCheck").show();
+            $("#displayVerbatimDate").html(verbatimEventDate);
+          })
+          .fail(function(response) {
+            $("#verbatimDiv").addClass("has-error");
+            $("#verbatimError, #verbatimErrorDiv").show();
+            $("#verbatimErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#verbatimEventDateInput").click(function() {
+          $("#verbatimError, #verbatimCheck, #verbatimErrorDiv").hide()
+          $("#verbatimDiv").removeClass("has-success");
+          $("#verbatimDiv").removeClass("has-error");
+          $("#setVerbatimEventDateBtn").show();
+        });
+      });
+    </script>
+    <div>
+      <div class="highlight" id="verbatimErrorDiv"></div>
+
+      <p class="editText"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
+      <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate" method="post" class="editForm">
+        <input name="encounter" type="hidden" value="<%=num%>" id="verbatimDateEncounter">
+        <div class="form-group row">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5 col-xs-10" id="verbatimDiv">
+            <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+              <span class="form-control-feedback" id="verbatimCheck">&check;</span>
+              <span class="form-control-feedback" id="verbatimError">X</span>
+            </div>
+            <div class="col-sm-3">
+              <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
+            </div>
+          </div>
+        </form>
+    </div>
+
+
+    <!-- start date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#addResetDate").click(function(event) {
+          event.preventDefault();
+
+          $("#addResetDate").hide();
+
+          var number = $("#resetDateNumber").val();
+          var datepicker = $("#datepickerField").val();
+
+          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
+          function() {
+            $("#resetDateErrorDiv").hide();
+            $("#resetDateDiv").addClass("has-success");
+            $("#resetDateCheck").show();
+            $("#displayResetDate").html(datepicker);
+          })
+          .fail(function(response) {
+            $("#resetDateDiv").addClass("has-error");
+            $("#resetDateError, #resetDateErrorDiv").show();
+            $("#resetDateErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#datepickerField").click(function() {
+          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
+          $("#resetDateDiv").removeClass("has-success");
+          $("#resetDateDiv").removeClass("has-error");
+          $("#addResetDate").show();
+        });
+      });
+    </script>
+    <div>
+    <div class="highlight" id="resetDateErrorDiv"></div>
+
+      <p class="editText"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
+      <form name="setencdate" action="" method="post">
+        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
+        <input name="action" type="hidden" value="changeEncounterDate"/>
+        <div id="datepicker" class="editForm"></div>
+        <div class="form-group row editForm">
+          <div class="col-sm-5">
+            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5" id="resetDateDiv">
+            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
+            <span class="form-control-feedback" id="resetDateError">X</span>
+          </div>
+          <div class="col-sm-2">
+            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
+          </div>
+        </div>
+      </form>
+    </div>
+    </td>
+    </tr>
+    </table>
+
+      <%
+
+  String isLoggedInValue="true";
+  String isOwnerValue="true";
+
+  if(!loggedIn){isLoggedInValue="false";}
+  if(!isOwner){isOwnerValue="false";}
+
+%>
+
+
+
+<br />
+
+
 
   <br /><br />
  	<!-- START MAP and GPS SETTER -->
@@ -2583,10 +3463,6 @@ if(enc.getLocation()!=null){
           <br/>
           <span class="editText"><%=encprops.getProperty("gpsConverter")%></span><a class="editText" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
         </div>
-
-
-
-
 
      	<%
  		}  //end isOwner
@@ -3285,880 +4161,9 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 <!-- END ADDITIONAL COMMENTS -->
 
 <br />
-<table>
-<tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
 
 
-								<p class="para">
-									Number: <%=num%>
-								</p>
-			<!-- START WORKFLOW ATTRIBUTE -->
-
-
- 								<%
-
-									String state="";
-									if (enc.getState()!=null){state=enc.getState();}
-									%>
-									<p class="para">
-										 <%=encprops.getProperty("workflowState") %><span id="displayWork"><%=state %></span>
-
-										<%
-										%>
-
-										<%
-										%>
-
-									</p>
-									<%
-									%>
-
-                  <script type="text/javascript">
-                    $(document).ready(function() {
-                      $("#selectState option[value='<%=state %>']").attr('selected','selected');
-
-                      $("#editWork").click(function(event) {
-                        event.preventDefault();
-
-                        $("#editWork").hide();
-
-                        var number = $("#workNumber").val();
-                        var state = $("#selectState").val();
-
-                        $.post("../EncounterSetState", {"number": number, "state": state},
-                        function() {
-                          $("#workErrorDiv").hide();
-                          $("#workCheck").show();
-                          $("#displayWork").html(state);
-                        })
-                        .fail(function(response) {
-                          $("#workError, #workErrorDiv").show();
-                          $("#workErrorDiv").html(response.responseText);
-                        });
-                      });
-
-                      $("#selectState").click(function() {
-                        $("#workerror, #workCheck, #workErrorDiv").hide()
-                        $("#editWork").show();
-                      });
-                    });
-                  </script>
-
-
-                  <div>
-                    <div class="highlight" id="workErrorDiv"></div>
-
-                    <p class="editText"><strong><%=encprops.getProperty("setWorkflowState")%></strong></p>
-
-                    <form name="workflowStateForm" class="editForm">
-                      <input name="number" type="hidden" value="<%=num%>" id="workNumber" />
-                      <div class="form-group row">
-                        <div class="col-sm-5">
-                          <select name="state" id="selectState" class="form-control" size="1">
-															<%
-						       								boolean hasMoreStates=true;
-						       								int stateTaxNum=0;
-						       								while(hasMoreStates){
-						       	  								String currentLifeState = "encounterState"+stateTaxNum;
-						       	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
-						       	  									%>
-						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
-						       	  									<%
-						       										stateTaxNum++;
-						          								}
-						          								else{
-						             								hasMoreStates=false;
-						          								}
-
-						       								} //end while
-						       								%>
-						      				</select>
-                        </div>
-                        <div class="col-sm-3">
-                          <input name="<%=encprops.getProperty("set")%>" type="submit" id="editWork" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
-                          <span class="form-control-feedback" id="workCheck">&check;</span>
-                          <span class="form-control-feedback" id="workError">X</span>
-                        </div>
-                      </div>
-                    </form>
-                  </div>
-
-       							<%
-        						// }
-      							%>
-				<!-- END WORKFLOW ATTRIBUTE -->
-
-				<!-- START USER ATTRIBUTE -->
-								<%
- 								if((CommonConfiguration.showUsersToPublic(context))||(request.getUserPrincipal()!=null)){
- 								%>
-
-    							<table>
-    								<tr>
-    									<td>
-     										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
-     									</td>
-        								<%
-      									%>
-
-      									<%
-      									%>
-     								</tr>
-     								<tr>
-     									<td>
-                         				<%
-                         				if(enc.getAssignedUsername()!=null){
-
-                        	 				String username=enc.getAssignedUsername();
-                        	 				Shepherd aUserShepherd=new Shepherd("context0");
-                         					if(aUserShepherd.getUser(username)!=null){
-                         					%>
-                                			<%
-
-                         					User thisUser=aUserShepherd.getUser(username);
-                                			String profilePhotoURL="../images/empty_profile.jpg";
-
-                         					if(thisUser.getUserImage()!=null){
-                         						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
-                         					}
-                         					%>
-                     						<%
-                         					String displayName="";
-                         					if(thisUser.getFullName()!=null){
-                         						displayName=thisUser.getFullName();
-                         						%>
-                         					<%
-                         					}
-                                			%>
-
-     								<div>
-                      <div class="row">
-                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
-                          <img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
-                        </div>
-                        <div class="col-sm-6">
-                          <%-- <p> --%>
-
-                        <%
-                        if(thisUser.getAffiliation()!=null){
-                        %>
-                        <p><strong><%=displayName %></strong></p>
-                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserProject()!=null){
-                        %>
-                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
-                        <%
-                        }
-
-                        if(thisUser.getUserURL()!=null){
-                            %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
-                            <%
-                          }
-
-                        if(thisUser.getUserStatement()!=null){
-                            %>
-                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
-                            <%
-                          }
-                        %>
-                        </div>
-                      </div>
-
-                  </div>
-
-<%
-                         	}
-
-
-                      	else{
-                      	%>
-                      	&nbsp;
-                      	<%
-                      	}
-                        aUserShepherd.rollbackDBTransaction();
-                        aUserShepherd.closeDBTransaction();
-                      	}
-                         				//insert here
-%>
-
-
-<!-- start set username popup -->
-<div>
-  <div class="highlight" id="assignErrorDiv"></div>
-
-  <p class="editText"><strong><%=encprops.getProperty("assignUser")%></strong></p>
-
-  <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post" class="editForm">
-    <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
-    <div class="form-group row">
-      <div class="col-sm-5">
-        <select name="submitter" id="submitterSelect" class="form-control" size="1">
-            <option value=""></option>
-            <%
-
-            Shepherd userShepherd=new Shepherd("context0");
-            userShepherd.beginDBTransaction();
-
-            ArrayList<String> usernames=userShepherd.getAllUsernames();
-
-            int numUsers=usernames.size();
-            for(int i=0;i<numUsers;i++){
-                String thisUsername=usernames.get(i);
-                User thisUser2=userShepherd.getUser(thisUsername);
-                String thisUserFullname=thisUsername;
-                if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
-              %>
-              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-              <%
-            }
-            userShepherd.rollbackDBTransaction();
-            userShepherd.closeDBTransaction();
-            %>
-          </select>
-      </div>
-      <div class="col-sm-3">
-        <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
-      </div>
-    </div>
-  </form>
-</div>
-
-
-                   		<%
-
-                   }
-                   else {
-                   %>
-                   &nbsp;
-                   <%
-                   }
-                  %>
-                  </td>
-
-
-    </tr></table>
-
-<!-- END USER ATTRIBUTE -->
-
-<!-- START TAPIRLINK DISPLAY AND SETTER -->
-<%
-if (isOwner) {
-%>
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#tapirApprove").click(function(event) {
-      event.preventDefault();
-
-
-      var number = $("#tapirNumber").val();
-      var action = $("#tapirAction").val();
-
-      $.post("../EncounterSetTapirLinkExposure", {"number": number, "action": action},
-      function(response) {
-        $("#tapirResultDiv").show();
-        $("#tapirError").hide();
-        $("#tapirSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#tapirResultDiv").show();
-        $("#tapirSuccess").hide();
-        $("#tapirError").html(response.responseText);
-      });
-    });
-  });
-</script>
-    <div>
-      <div id="tapirResultDiv">
-        <span id="tapirSuccess" class="successHighlight"></span>
-        <span id="tapirError" class="highlight"></span>
-      </div>
-      <form name="setTapirLink" class="editForm">
-        <input name="action" type="hidden" id="tapirAction" value="tapirLinkExpose" />
-        <input name="number" type="hidden" value="<%=num%>" id="tapirNumber"/>
-        <%
-        String tapirCheckIcon="cancel.gif";
-        if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
-        %>
-        <label>TapirLink:</label>&nbsp;
-        <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
-        &nbsp;
-        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
-      </form>
-    </div>
-
-<!-- END TAPIRLINK DISPLAY AND SETTER -->
-<%
-}
-%>
-
-<!-- START AUTOCOMMENTS -->
-
-<!-- start autocomments -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#manualAdd").click(function(event) {
-      event.preventDefault();
-
-      var number = $("#autoNumber").val();
-      var user = $("#autoUser").val();
-      var autocomments = $("#autoComments").val();
-
-      $.post("../EncounterAddComment", {"number": number, "user": user, "action": action},
-      function() {
-        $("#autoCommentErrorDiv").hide();
-      })
-      .fail(function(response) {
-        $("#autoCommentErrorDiv").show();
-        $("#autoCommentErrorDiv").html(response.responseText);
-      });
-    });
-  });
-</script>
-<div>
-  <p class="editText"><strong><%=encprops.getProperty("auto_comments")%></strong></p>
-  <div class="highlight" id="autoCommentErrorDiv"></div>
-    <%
-    String rComments="";
-    if(enc.getRComments()!=null){rComments=enc.getRComments();}
-    %>
-
-    <div class="editForm" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
-      <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
-    </div>
-
-    <form name="addComments" class="editForm">
-        <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="autoUser" />
-        <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="autoNumber" />
-        <input name="action" type="hidden" value="enc_comments" id="autoAction" />
-
-        <textarea name="autocomments" cols="50" id="autoComments" class="form-control"></textarea>
-        <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" class="btn btn-sm" id="manualAdd"/>
-
-    </form>
-</div>
-<!-- END AUTOCOMMENTS -->
-
-<!-- START DELETE ENCOUNTER FORM -->
-<%
-if (isOwner) {
-%>
-<table width="100%" border="0" cellpadding="1">
-    <tr>
-      <td height="30" class="para">
-        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" class="editForm" method="post" action="../EncounterDelete">
-              <input name="number" type="hidden" value="<%=num%>" />
-              <%
-              String deleteIcon="cancel.gif";
-              %>
-              <input align="absmiddle" name="approve" type="button" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-<!-- END DELETE ENCOUNTER FORM -->
-<%
-}
-%>
-
-
-<%
-  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-%>
-</td>
-</tr>
-</table>
-
-<c:if test="${showMeasurements}">
-<br />
-<%
-  pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
-%>
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
-<c:if test="${editable and !empty measurements}">
-</c:if>
-<table>
-<tr>
-<th class="measurement">
-  <span id="displayMtype"><%=encprops.getProperty("type") %></span>
-</th>
-<th class="measurement">
-  <span id="displayMsize"><%=encprops.getProperty("size") %></span>
-</th>
-<th class="measurement">
-  <span id="displayMunits"><%=encprops.getProperty("units") %></span>
-</th>
-<c:if test="${!empty samplingProtocols}">
-  <th class="measurement">
-    <display id="displayMsample"><%=encprops.getProperty("samplingProtocol") %></span>
-  </th>
-</c:if>
-</tr>
-<c:forEach var="item" items="${measurements}">
- <%
-    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-    //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
-    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
-    if (event != null) {
-        pageContext.setAttribute("measurementValue", event.getValue());
-        pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
-    }
-    else {
-        pageContext.setAttribute("measurementValue", null);
-        pageContext.setAttribute("samplingProtocol", null);
-   }
- %>
-<tr>
-    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
-</tr>
-</c:forEach>
-</table>
-</p>
-
-<%
-%>
-<%-- start measuremnts form--%>
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#addMeasurements").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#autoNumber").val();
-
-      $.post("../EncounterSetMeasurements", {"encounter": encounter},
-      function(response) {
-        $("#measurementResultDiv").show();
-        $("#measurementError").hide();
-        $("#measurementSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#measurementResultDiv").show();
-        $("#measurementSuccess").hide();
-        $("#measurementError").html(response.responseText);
-      });
-    });
-    $("#measurementForm").click(function() {
-      $("#measurementResultDiv").hide();
-    });
-  });
-</script>
-
-
-<div>
-  <p class="editText"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
-  <div id="measurementResultDiv">
-    <span id="measurementSuccess" class="successHighlight"></span>
-    <span id="measurementError" class="highlight"></span>
-  </div>
-
-    <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
-    %>
-
-    <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editForm">
-      <form name="setMeasurements" class="editForm" id="measurementForm">
-        <input type="hidden" name="encounter" value="${num}" id="measurementEncounter"/>
-        <c:set var="index" value="0"/>
-        <%
-        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
-
-        %>
-        <c:forEach items="${items}" var="item">
-          <%
-          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
-          if (measurement == null) {
-            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
-          }
-          pageContext.setAttribute("measurementEvent", measurement);
-          pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
-          %>
-          <tr>
-            <td class="form_label">
-            <c:out value="${item.label}"/>
-            <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
-          </td>
-            <td>
-            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementInput"/>
-            <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
-            <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
-            <c:out value="(${item.unitsLabel})"/>
-            <select name="measurement${index}(samplingProtocol)" id="selectMeasurement">
-              <c:forEach items="${optionDescs}" var="optionDesc">
-                <c:choose>
-                  <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
-                    <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
-                  </c:when>
-                  <c:otherwise>
-                    <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-                  </c:otherwise>
-                </c:choose>
-              </c:forEach>
-            </select>
-          </td>
-        </tr>
-        <c:set var="index" value="${index + 1}"/>
-      </c:forEach>
-      <tr>
-        <td>
-          <input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="addMeasurements"/>
-        </td>
-      </tr>
-    </table>
-    </form>
-</div>
-<!-- end measurements form -->
-
-
-<%
-%>
-
-
-</c:if>
-
-<table>
-<tr>
-<td width="560px" style="vertical-align:top;background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;">
-
-
-
-<c:if test="${showMetalTags}">
-
-<h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
-<%
-  pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
-  pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
-%>
-<p class="para"><em><c:out value="${metalTagTitle}"></c:out></em>
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<%-- &nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
-<%
-// }
-%>
-<table>
-<c:forEach var="item" items="${metalTags}">
- <%
-    MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("item");
-    MetalTag metalTag =  enc.findMetalTagForLocation(metalTagDesc.getLocation());
-    pageContext.setAttribute("number", metalTag == null ? null : metalTag.getTagNumber());
-    pageContext.setAttribute("locationLabel", metalTagDesc.getLocationLabel());
- %>
-<tr>
-    <td><c:out value="${locationLabel}:"/></td><td><c:out value="${number}"/></td>
-</tr>
-</c:forEach>
-</table>
-</p>
-
-
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start metal tag popup -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setMetalTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#metalTagsEncounter").val();
-      var tagType = $("#metalTagsType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#tagsResultDiv").show();
-        $("#tagsError").hide();
-        $("#tagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#tagsResultDiv").show();
-        $("#tagsSuccess").hide();
-        $("#tagsError").html(response.responseText);
-      });
-    });
-    $("#tagsForm").click(function() {
-      $("#tagsResultDiv").hide();
-    });
-  });
-</script>
-
-<div>
-  <p class="editTexxt"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
-  <div id="tagsResultDiv">
-    <span id="tagsSuccess" class="successHighlight"></span>
-    <span id="tagsError" class="highlight"></span>
-  </div>
-  <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
-
-  <form name="setMetalTags" class="editForm" id="tagsForm">
-  <input type="hidden" name="tagType" value="metalTags" id="metalTagsType"/>
-  <input type="hidden" name="encounter" value="${num}" id="metalTagsEncounter"/>
-  <table cellpadding="1" cellspacing="0">
-
-  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
-     <%
-       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
-       MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
-       if (metalTag == null) {
-           metalTag = new MetalTag();
-       }
-       pageContext.setAttribute("metalTag", metalTag);
-     %>
-     <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
-     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation" class="form-control"/></td></tr>
-  </c:forEach>
-  <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setMetalTags"/></td></tr>
-  </table>
-  </form>
-</div>
-                         		<!-- popup dialog script -->
-<%-- <script>
-var dlgMetal = $("#dialogMetal").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#metal").click(function() {
-  dlgMetal.dialog("open");
-});
-</script> --%>
-<!-- end metal tags popup -->
-<%
-// }
-%>
-</c:if>
-
-<c:if test="${showAcousticTag}">
-<%
-  pageContext.setAttribute("acousticTagTitle", encprops.getProperty("acousticTag"));
-  pageContext.setAttribute("acousticTag", enc.getAcousticTag());
-%>
-<p class="para"><em><c:out value="${acousticTagTitle}"></c:out></em>
-<c:if test="${editable}">
-&nbsp;
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<%-- <a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
-<%
-// }
-%>
-</c:if>
-<table>
-<tr>
-    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty acousticTag ? '' : acousticTag.serialNumber}"/></td>
-</tr>
-<tr>
-    <td>ID:</td><td><c:out value="${empty acousticTag ? '' : acousticTag.idNumber}"/></td>
-</tr>
-</table>
-</p>
-
-
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start acoustic tag  -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setAcousticTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#acousticTagEncounter").val();
-      var tagType = $("#acousticTagType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#acousticTagsResultDiv").show();
-        $("#acousticTagsError").hide();
-        $("#acousticTagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#acousticTagsResultDiv").show();
-        $("#acousticTagsSuccess").hide();
-        $("#acousticTagsError").html(response.responseText);
-      });
-    });
-    $("#acousticTagsForm").click(function() {
-      $("#acousticTagsResultDiv").hide();
-    });
-  });
-</script>
-
-<div>
-  <p class="editText"><strong><%=encprops.getProperty("resetAcousticTag")%></strong></p>
-  <div id="acousticTagsResultDiv">
-    <span id="acousticTagsSuccess" class="successHighlight"></span>
-    <span id="acousticTagsError" class="highlight"></span>
-  </div>
-  <c:set var="acousticTag" value="${enc.acousticTag}"/>
-   <c:if test="${empty acousticTag}">
-   <%
-     pageContext.setAttribute("acousticTag", new AcousticTag());
-   %>
-   </c:if>
-   <table cellpadding="1" cellspacing="0">
-
-    <tr>
-      <td>
-        <form name="setAcousticTag" class="editForm" id="acousticTagsForm">
-        <input type="hidden" name="encounter" value="${num}" id="acousticTagEncounter"/>
-        <input type="hidden" name="tagType" value="acousticTag" id="acousticTagType"/>
-        <input type="hidden" name="id" value="${acousticTag.id}"/>
-        <table>
-          <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}" class="form-control" id="acousticTagInput"/></td></tr>
-          <tr><td class="formLabel">ID:</td></tr>
-          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}" id="acousticTagId" class="form-control"/></td></tr>
-          <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setAcousticTags"/></td></tr>
-        </table>
-        </form>
-      </td>
-    </tr>
- </table>
-</div>
-
-<%
-// }
-%>
-
-</c:if>
-
-
-<c:if test="${showSatelliteTag}">
-<%
-  pageContext.setAttribute("satelliteTagTitle", encprops.getProperty("satelliteTag"));
-  pageContext.setAttribute("satelliteTag", enc.getSatelliteTag());
-%>
-<p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-&nbsp;
-<%-- <a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
-<%
-// }
-%>
-<table>
-<tr>
-    <td><%=encprops.getProperty("name") %></td><td><c:out value="${satelliteTag.name}"/></td>
-</tr>
-<tr>
-    <td><%=encprops.getProperty("serialNumber") %></td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.serialNumber}"/></td>
-</tr>
-<tr>
-    <td>Argos PTT:</td><td><c:out value="${empty satelliteTag ? '' : satelliteTag.argosPttNumber}"/></td>
-</tr>
-</table>
-</p>
-
-<%
-// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start sat tag metadata  -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setSatelliteTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#satelliteTagEncounter").val();
-      var tagType = $("#satelliteTagType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#satelliteTagsResultDiv").show();
-        $("#satelliteTagsError").hide();
-        $("#satelliteTagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#satelliteTagsResultDiv").show();
-        $("#satelliteTagsSuccess").hide();
-        $("#satelliteTagsError").html(response.responseText);
-      });
-    });
-    $("#satelliteTagsForm").click(function() {
-      $("#satelliteTagsResultDiv").hide();
-    });
-  });
-</script>
-
-<div>
-  <p><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
-  <div id="satelliteTagsResultDiv">
-    <span id="satelliteTagsSuccess" class="successHighlight"></span>
-    <span id="satelliteTagsError" class="highlight"></span>
-  </div>
-   <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
-   <c:if test="${empty satelliteTag}">
-   <%
-     pageContext.setAttribute("satelliteTag", new SatelliteTag());
-   %>
-   </c:if>
-   <%
-      pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
-   %>
-   <form name="setSatelliteTag" class="editForm">
-   <input type="hidden" name="tagType" value="satelliteTag" id="satelliteTagType"/>
-   <input type="hidden" name="encounter" value="${num}" id="satelliteTagEncounter"/>
-   <input type="hidden" name="id" value="${satelliteTag.id}" id="satelliteTagId"/>
-   <table cellpadding="1" cellspacing="0">
-
-      <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
-      <tr><td>
-        <select name="satelliteTagName" class="form-control" size="1">
-        <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-          <c:choose>
-              <c:when test="${satelliteTagName eq satelliteTag.name}">
-                  <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
-              </c:when>
-              <c:otherwise>
-                  <option value="${satelliteTagName}">${satelliteTagName}</option>
-              </c:otherwise>
-          </c:choose>
-        </c:forEach>
-        </select>
-      </td></tr>
-      <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-      <tr><td><input name="satelliteTagSerial" class="form-control" value="${satelliteTag.serialNumber}" id="satelliteTagSerial"/></td></tr>
-      <tr><td class="formLabel">Argos PTT:</td></tr>
-      <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}" id="satelliteTagArgosPttNumber" class="form-control"/></td></tr>
-      <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setSatelliteTags"/></td></tr>
-   </table>
-   </form>
-</div>
-                         		<!-- popup dialog script -->
-<%-- <script>
-var dlgSat = $("#dialogSat").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#sat").click(function() {
-  dlgSat.dialog("open");
-});
-</script> --%>
-<!-- end sat tag popup -->
-<%
-// }
-%></c:if>
-</td>
-</tr>
-</table>
 
 <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
 <%
