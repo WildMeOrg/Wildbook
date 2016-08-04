@@ -3629,7 +3629,7 @@ if (isOwner) {
     if(enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
-    <div class="editForm" style="text-align:left;border: 1px solid lightgray;width:575px;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
+    <div class="editForm" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
       <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
     </div>
 
@@ -3814,8 +3814,8 @@ if (isOwner) {
           <input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="addMeasurements"/>
         </td>
       </tr>
+    </table>
     </form>
-  </table>
 </div>
 <!-- end measurements form -->
 
@@ -3828,7 +3828,7 @@ if (isOwner) {
 
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top;background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;">
 
 
 
@@ -3841,11 +3841,11 @@ if (isOwner) {
 %>
 <p class="para"><em><c:out value="${metalTagTitle}"></c:out></em>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-&nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%-- &nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-}
+// }
 %>
 <table>
 <c:forEach var="item" items="${metalTags}">
@@ -3864,38 +3864,66 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start metal tag popup -->
-<div id="dialogMetal" title="<%=encprops.getProperty("resetMetalTags")%>" style="display:none">
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setMetalTags").click(function(event) {
+      event.preventDefault();
 
-        <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
+      var encounter = $("#metalTagsEncounter").val();
+      var tagType = $("#metalTagsType").val()
 
- <form name="setMetalTags" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="metalTags"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#tagsResultDiv").show();
+        $("#tagsError").hide();
+        $("#tagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#tagsResultDiv").show();
+        $("#tagsSuccess").hide();
+        $("#tagsError").html(response.responseText);
+      });
+    });
+    $("#tagsForm").click(function() {
+      $("#tagsResultDiv").hide();
+    });
+  });
+</script>
 
- <c:forEach items="${metalTagDescs}" var="metalTagDesc">
-    <%
-      MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
-      MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
-      if (metalTag == null) {
-          metalTag = new MetalTag();
-      }
-      pageContext.setAttribute("metalTag", metalTag);
-    %>
-    <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
-    <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}"/></td></tr>
- </c:forEach>
- <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
+<div>
+  <p class="editTexxt"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
+  <div id="tagsResultDiv">
+    <span id="tagsSuccess" class="successHighlight"></span>
+    <span id="tagsError" class="highlight"></span>
+  </div>
+  <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
 
+  <form name="setMetalTags" class="editForm" id="tagsForm">
+  <input type="hidden" name="tagType" value="metalTags" id="metalTagsType"/>
+  <input type="hidden" name="encounter" value="${num}" id="metalTagsEncounter"/>
+  <table cellpadding="1" cellspacing="0">
 
+  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+     <%
+       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
+       MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
+       if (metalTag == null) {
+           metalTag = new MetalTag();
+       }
+       pageContext.setAttribute("metalTag", metalTag);
+     %>
+     <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
+     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation" class="form-control"/></td></tr>
+  </c:forEach>
+  <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setMetalTags"/></td></tr>
+  </table>
+  </form>
 </div>
                          		<!-- popup dialog script -->
-<script>
+<%-- <script>
 var dlgMetal = $("#dialogMetal").dialog({
   autoOpen: false,
   draggable: false,
@@ -3906,10 +3934,10 @@ var dlgMetal = $("#dialogMetal").dialog({
 $("a#metal").click(function() {
   dlgMetal.dialog("open");
 });
-</script>
+</script> --%>
 <!-- end metal tags popup -->
 <%
-}
+// }
 %>
 </c:if>
 
@@ -3922,11 +3950,11 @@ $("a#metal").click(function() {
 <c:if test="${editable}">
 &nbsp;
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+<%-- <a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-}
+// }
 %>
 </c:if>
 <table>
@@ -3941,55 +3969,70 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start acoustic tag popup -->
-<div id="dialogAcoustic" title="<%=encprops.getProperty("resetAcousticTag")%>" style="display:none">
+<!-- start acoustic tag  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setAcousticTags").click(function(event) {
+      event.preventDefault();
 
-<c:set var="acousticTag" value="${enc.acousticTag}"/>
- <c:if test="${empty acousticTag}">
- <%
-   pageContext.setAttribute("acousticTag", new AcousticTag());
- %>
- </c:if>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+      var encounter = $("#acousticTagEncounter").val();
+      var tagType = $("#acousticTagType").val()
+
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#acousticTagsResultDiv").show();
+        $("#acousticTagsError").hide();
+        $("#acousticTagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#acousticTagsResultDiv").show();
+        $("#acousticTagsSuccess").hide();
+        $("#acousticTagsError").html(response.responseText);
+      });
+    });
+    $("#acousticTagsForm").click(function() {
+      $("#acousticTagsResultDiv").hide();
+    });
+  });
+</script>
+
+<div>
+  <p class="editText"><strong><%=encprops.getProperty("resetAcousticTag")%></strong></p>
+  <div id="acousticTagsResultDiv">
+    <span id="acousticTagsSuccess" class="successHighlight"></span>
+    <span id="acousticTagsError" class="highlight"></span>
+  </div>
+  <c:set var="acousticTag" value="${enc.acousticTag}"/>
+   <c:if test="${empty acousticTag}">
+   <%
+     pageContext.setAttribute("acousticTag", new AcousticTag());
+   %>
+   </c:if>
+   <table cellpadding="1" cellspacing="0">
 
     <tr>
       <td>
-        <form name="setAcousticTag" method="post" action="../EncounterSetTags">
-        <input type="hidden" name="encounter" value="${num}"/>
-        <input type="hidden" name="tagType" value="acousticTag"/>
+        <form name="setAcousticTag" class="editForm" id="acousticTagsForm">
+        <input type="hidden" name="encounter" value="${num}" id="acousticTagEncounter"/>
+        <input type="hidden" name="tagType" value="acousticTag" id="acousticTagType"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
         <table>
           <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
+          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}" class="form-control" id="acousticTagInput"/></td></tr>
           <tr><td class="formLabel">ID:</td></tr>
-          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
-          <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}" id="acousticTagId" class="form-control"/></td></tr>
+          <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setAcousticTags"/></td></tr>
         </table>
         </form>
       </td>
     </tr>
  </table>
-
-
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgAcoustic = $("#dialogAcoustic").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#acoustic").click(function() {
-  dlgAcoustic.dialog("open");
-});
-</script>
-<!-- end acoustic tag popup -->
 <%
-}
+// }
 %>
 
 </c:if>
@@ -4002,11 +4045,12 @@ $("a#acoustic").click(function() {
 %>
 <p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-&nbsp;<a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+&nbsp;
+<%-- <a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 <%
-}
+// }
 %>
 <table>
 <tr>
@@ -4022,53 +4066,81 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+// if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start sat tag metadata popup -->
-<div id="dialogSat" title="<%=encprops.getProperty("resetSatelliteTag")%>" style="display:none">
+<!-- start sat tag metadata  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setSatelliteTags").click(function(event) {
+      event.preventDefault();
 
- <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
- <c:if test="${empty satelliteTag}">
- <%
-   pageContext.setAttribute("satelliteTag", new SatelliteTag());
- %>
- </c:if>
- <%
-    pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
- %>
- <form name="setSatelliteTag" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="satelliteTag"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <input type="hidden" name="id" value="${satelliteTag.id}"/>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+      var encounter = $("#satelliteTagEncounter").val();
+      var tagType = $("#satelliteTagType").val()
 
-    <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
-    <tr><td>
-      <select name="satelliteTagName">
-      <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-        <c:choose>
-            <c:when test="${satelliteTagName eq satelliteTag.name}">
-                <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
-            </c:when>
-            <c:otherwise>
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-            </c:otherwise>
-        </c:choose>
-      </c:forEach>
-      </select>
-    </td></tr>
-    <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-    <tr><td><input name="satelliteTagSerial" value="${satelliteTag.serialNumber}"/></td></tr>
-    <tr><td class="formLabel">Argos PTT:</td></tr>
-    <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}"/></td></tr>
-    <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
+      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
+      function(response) {
+        $("#satelliteTagsResultDiv").show();
+        $("#satelliteTagsError").hide();
+        $("#satelliteTagsSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#satelliteTagsResultDiv").show();
+        $("#satelliteTagsSuccess").hide();
+        $("#satelliteTagsError").html(response.responseText);
+      });
+    });
+    $("#satelliteTagsForm").click(function() {
+      $("#satelliteTagsResultDiv").hide();
+    });
+  });
+</script>
 
+<div>
+  <p><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
+  <div id="satelliteTagsResultDiv">
+    <span id="satelliteTagsSuccess" class="successHighlight"></span>
+    <span id="satelliteTagsError" class="highlight"></span>
+  </div>
+   <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
+   <c:if test="${empty satelliteTag}">
+   <%
+     pageContext.setAttribute("satelliteTag", new SatelliteTag());
+   %>
+   </c:if>
+   <%
+      pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
+   %>
+   <form name="setSatelliteTag" class="editForm">
+   <input type="hidden" name="tagType" value="satelliteTag" id="satelliteTagType"/>
+   <input type="hidden" name="encounter" value="${num}" id="satelliteTagEncounter"/>
+   <input type="hidden" name="id" value="${satelliteTag.id}" id="satelliteTagId"/>
+   <table cellpadding="1" cellspacing="0">
 
+      <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
+      <tr><td>
+        <select name="satelliteTagName" class="form-control" size="1">
+        <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+          <c:choose>
+              <c:when test="${satelliteTagName eq satelliteTag.name}">
+                  <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
+              </c:when>
+              <c:otherwise>
+                  <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:otherwise>
+          </c:choose>
+        </c:forEach>
+        </select>
+      </td></tr>
+      <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
+      <tr><td><input name="satelliteTagSerial" class="form-control" value="${satelliteTag.serialNumber}" id="satelliteTagSerial"/></td></tr>
+      <tr><td class="formLabel">Argos PTT:</td></tr>
+      <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}" id="satelliteTagArgosPttNumber" class="form-control"/></td></tr>
+      <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setSatelliteTags"/></td></tr>
+   </table>
+   </form>
 </div>
                          		<!-- popup dialog script -->
-<script>
+<%-- <script>
 var dlgSat = $("#dialogSat").dialog({
   autoOpen: false,
   draggable: false,
@@ -4079,10 +4151,10 @@ var dlgSat = $("#dialogSat").dialog({
 $("a#sat").click(function() {
   dlgSat.dialog("open");
 });
-</script>
+</script> --%>
 <!-- end sat tag popup -->
 <%
-}
+// }
 %></c:if>
 </td>
 </tr>

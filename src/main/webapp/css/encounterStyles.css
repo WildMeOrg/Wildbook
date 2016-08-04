@@ -11,7 +11,15 @@ label {
   font-weight: lighter;
 }
 
-input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control, input#lat.form-control, input#longitude.form-control{
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control, input#lat.form-control, input#longitude.form-control, input#metalTagLocation.form-control, input#acousticTagInput.form-control{
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
+input#acousticTagId.form-control, input#satelliteTagSerial.form-control, input#satelliteTagArgosPttNumber.form-control {
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
