@@ -50,13 +50,13 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
 
 
 
-#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck {
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck, #releaseCheck, #verbatimCheck, #resetDateCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError {
+#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError, #releaseError, #verbatimError, #resetDateError {
   display: none;
   color: red;
   font-family: sans-serif;
