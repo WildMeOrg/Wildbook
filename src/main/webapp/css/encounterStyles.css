@@ -11,7 +11,7 @@ label {
   font-weight: lighter;
 }
 
-input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depth.form-control, input#addLocCodeInput.form-control, input#elevation.form-control{
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control{
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
@@ -35,28 +35,32 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
 .editText {
   display: none;
 }
-/*.clickDateText{
-  margin-bottom: 0px;
-  display: none;
-  color: #990000;
-  font-size: 14px;
-}*/
 
 .form-group {
   margin-bottom: 0px;
 }
 
 
-
-
-
-#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck, #releaseCheck, #verbatimCheck, #resetDateCheck, #setLocationCheck, #countryCheck, #locationIDcheck, #depthCheck, #elevationCheck {
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck, #releaseCheck, #verbatimCheck, #resetDateCheck, #setLocationCheck, #countryCheck, #locationIDcheck, #depthCheck, #elevationCheck, #taxCheck, #statusCheck, #sexCheck, #scarCheck {
   display: none;
   color: green;
   font-family: sans-serif;
 }
 
-#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError, #releaseError, #verbatimError, #resetDateError, #setLocationError, #countryError, #locationIDerror, #depthError, #elevationError {
+#behaviorCheck, #lifeCheck, #commentCheck, #patternCheck {
+  display: none;
+  color: green;
+  font-family: sans-serif;
+}
+
+#behaviorError, #lifeError, #commentError, #patternError {
+  display: none;
+  color: red;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError, #releaseError, #verbatimError, #resetDateError, #setLocationError, #countryError, #locationIDerror, #depthError, #elevationError, #taxError, #statusError, #sexError, #scarError {
   display: none;
   color: red;
   font-family: sans-serif;
@@ -67,7 +71,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   display: none;
 }
 
-#dialogIdentity, #setRemoveResultDiv, #altIdErrorDiv {
+#setRemoveResultDiv, #altIdErrorDiv {
   display: none;
 }
 
@@ -84,7 +88,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;
