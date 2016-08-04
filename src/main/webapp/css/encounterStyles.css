@@ -72,7 +72,7 @@ input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#cr
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 15px;
