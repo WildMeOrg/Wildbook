@@ -420,7 +420,7 @@ margin-bottom: 8px !important;
 
 						if (!visible) {
 							String blocker = "";
-							ArrayList collabs = Collaboration.collaborationsForCurrentUser(request);
+							List collabs = Collaboration.collaborationsForCurrentUser(request);
 							Collaboration c = Collaboration.findCollaborationWithUser(enc.getAssignedUsername(), collabs);
 							String cmsg = "<p>" + collabProps.getProperty("deniedMessage") + "</p>";
 							String uid = null;
@@ -627,7 +627,7 @@ $(function() {
     							if (!enc.hasMarkedIndividual()) {
   								%>
     							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=enc.isAssignedToMarkedIndividual()%>
+    								 <%=encprops.getProperty("identified_as") %> <%=enc.getIndividualID()%>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      								%>
@@ -642,7 +642,7 @@ $(function() {
     							%>
     							<p class="para">
 
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.isAssignedToMarkedIndividual()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.isAssignedToMarkedIndividual()%></a>
+      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
       								<%
         							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       								%>
@@ -5150,7 +5150,6 @@ String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
-<p>Looking for photoswipe in <%=pswipedir%></p>
 <jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
 <script src='<%=pswipedir%>/photoswipe.js'></script>
 <script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
