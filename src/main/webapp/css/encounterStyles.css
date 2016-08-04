@@ -128,35 +128,13 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   color: green;
 }
 
-button.btn.btn-sm.btn-block.yesDelete {
-  background-color: #20B845;
-  color: #FFFFFF;
-}
-
-button.btn.btn-sm.btn-block.yesDelete:hover {
-  background-color: #22C449;
-  color: #FFFFFF;
-}
-
-button.btn.btn-sm.btn-block.cancelDelete {
+input.btn.btn-sm.btn-block.deleteEncounterBtn {
   background-color: #D9231A;
   color: #FFFFFF;
+  font-size: 1em;
 }
-
-button.btn.btn-sm.btn-block.cancelDelete:hover {
+input.btn.btn-sm.btn-block.deleteEncounterBtn:hover {
   background-color: #EE261D;
   color: #FFFFFF;
-}
-
-button.btn.btn-sm.btn-block.deleteRelationshipBtn {
-  background-color: #D9231A;
-  color: #FFFFFF;
-}
-button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
-  background-color: #EE261D;
-  color: #FFFFFF;
-}
-
-.setRelationshipResultDiv {
-  padding-bottom: 20px;
+  font-size: 1em;
 }

@@ -3525,8 +3525,6 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
       </div>
       <div class="col-sm-3">
         <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
-        <span class="form-control-feedback" id="assignCheck">&check;</span>
-        <span class="form-control-feedback" id="assignError">X</span>
       </div>
     </div>
   </form>
@@ -3553,39 +3551,113 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 <%
 if (isOwner) {
 %>
-<table width="100%" border="0" cellpadding="1">
-    <tr>
-      <td height="30" class="para">
-        <form name="setTapirLink" method="post" action="../EncounterSetTapirLinkExposure">
-              <input name="action" type="hidden" id="action" value="tapirLinkExpose" />
-              <input name="number" type="hidden" value="<%=num%>" />
-              <%
-              String tapirCheckIcon="cancel.gif";
-              if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
-              %>
-              TapirLink:&nbsp;<input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
-        </form>
-      </td>
-    </tr>
-  </table>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#tapirApprove").click(function(event) {
+      event.preventDefault();
+
+
+      var number = $("#tapirNumber").val();
+      var action = $("#tapirAction").val();
+
+      $.post("../EncounterSetTapirLinkExposure", {"number": number, "action": action},
+      function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirError").hide();
+        $("#tapirSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirSuccess").hide();
+        $("#tapirError").html(response.responseText);
+      });
+    });
+  });
+</script>
+    <div>
+      <div id="tapirResultDiv">
+        <span id="tapirSuccess" class="successHighlight"></span>
+        <span id="tapirError" class="highlight"></span>
+      </div>
+      <form name="setTapirLink" class="editForm">
+        <input name="action" type="hidden" id="tapirAction" value="tapirLinkExpose" />
+        <input name="number" type="hidden" value="<%=num%>" id="tapirNumber"/>
+        <%
+        String tapirCheckIcon="cancel.gif";
+        if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
+        %>
+        <label>TapirLink:</label>&nbsp;
+        <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
+        &nbsp;
+        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+      </form>
+    </div>
+
 <!-- END TAPIRLINK DISPLAY AND SETTER -->
 <%
 }
 %>
 
+<!-- START AUTOCOMMENTS -->
+
+<!-- start autocomments -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#manualAdd").click(function(event) {
+      event.preventDefault();
+
+      var number = $("#autoNumber").val();
+      var user = $("#autoUser").val();
+      var autocomments = $("#autoComments").val();
+
+      $.post("../EncounterAddComment", {"number": number, "user": user, "action": action},
+      function() {
+        $("#autoCommentErrorDiv").hide();
+      })
+      .fail(function(response) {
+        $("#autoCommentErrorDiv").show();
+        $("#autoCommentErrorDiv").html(response.responseText);
+      });
+    });
+  });
+</script>
+<div>
+  <p><strong><%=encprops.getProperty("auto_comments")%></strong></p>
+  <div class="highlight" id="autoCommentErrorDiv"></div>
+    <%
+    String rComments="";
+    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    %>
+
+    <div style="text-align:left;border: 1px solid lightgray;width:575px;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;margin-bottom: 5px;">
+      <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
+    </div>
+
+    <form name="addComments" class="editForm">
+        <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="autoUser" />
+        <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="autoNumber" />
+        <input name="action" type="hidden" value="enc_comments" id="autoAction" />
+
+        <textarea name="autocomments" cols="50" id="autoComments" class="form-control"></textarea>
+        <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" class="btn btn-sm" id="manualAdd"/>
+
+    </form>
+</div>
+<!-- END AUTOCOMMENTS -->
+
 <!-- START DELETE ENCOUNTER FORM -->
 <%
 if (isOwner) {
-%><br />
+%>
 <table width="100%" border="0" cellpadding="1">
     <tr>
       <td height="30" class="para">
-        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" method="post" action="../EncounterDelete">
+        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" class="editForm" method="post" action="../EncounterDelete">
               <input name="number" type="hidden" value="<%=num%>" />
               <%
               String deleteIcon="cancel.gif";
               %>
-              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
+              <input align="absmiddle" name="approve" type="button" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
         </form>
       </td>
     </tr>
@@ -3595,63 +3667,6 @@ if (isOwner) {
 }
 %>
 
-<!-- START AUTOCOMMENTS -->
-<p class="para"><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="40px" width="40px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
-
-<!-- start autocomments popup -->
-<div id="dialogAutoComments" title="<%=encprops.getProperty("auto_comments")%>" style="display:none">
-<table>
-  <tr>
-    <td valign="top">
-
-      <%
-      String rComments="";
-      if(enc.getRComments()!=null){rComments=enc.getRComments();}
-      %>
-
-      <div style="text-align:left;border:1px solid black;width:575px;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-      		<p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
-      </div>
-
-      <%
-      if(isOwner && CommonConfiguration.isCatalogEditable(context)){
-      %>
-      <form action="../EncounterAddComment" method="post" name="addComments">
-        <p class="para">
-          <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user" />
-          <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="number" />
-          <input name="action" type="hidden" value="enc_comments" id="action" />
-		</p>
-        <p>
-          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
-          <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" />
-        </p>
-      </form>
-      <%
-      }
-      %>
-
-
-
-    </td>
-  </tr>
-</table>
-</div>
-
-<script>
-var dlgAutoComments = $("#dialogAutoComments").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#autocomments").click(function() {
-  dlgAutoComments.dialog("open");
-});
-</script>
-<!-- END AUTOCOMMENTS -->
 
 <%
   pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
