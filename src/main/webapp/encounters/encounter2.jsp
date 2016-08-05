@@ -4786,8 +4786,8 @@ if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 	int numTissueSamples=tissueSamples.size();
 
 %>
-<table width="100%" class="tissueSample">
-<tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>
+<table width="100%" class="table table-bordered table-striped tissueSampleTable">
+<tr><th><%=encprops.getProperty("sampleID") %></th><th><%=encprops.getProperty("values") %></th><th><%=encprops.getProperty("analyses") %></th><th><%=encprops.getProperty("editTissueSample") %></th><th><%=encprops.getProperty("removeTissueSample") %></th></tr>
 <%
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
@@ -4816,12 +4816,20 @@ for(int j=0;j<numTissueSamples;j++){
 				%>
 				</span></td>
 				<td style="border-style: none;">
-					<a id="haplo<%=mito.getAnalysisID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+					<a id="haplo<%=mito.getAnalysisID() %>" class="toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
 							<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#haplo<%=mito.getAnalysisID() %>").click(function() {
+      $("#dialogHaplotype<%=mito.getAnalysisID() %>").toggle();
+    });
+  });
+</script>
+
 <div id="dialogHaplotype<%=mito.getAnalysisID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
 <form id="setHaplotype<%=mito.getAnalysisID() %>" action="../TissueSampleSetHaplotype" method="post">
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -4897,7 +4905,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 </div>
 
-<script>
+<%-- <script>
 var dlgHaplotype<%=mito.getAnalysisID() %> = $("#dialogHaplotype<%=mito.getAnalysisID() %>").dialog({
   autoOpen: false,
   draggable: false,
@@ -4909,7 +4917,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
   dlgHaplotype<%=mito.getAnalysisID() %>.dialog("open");
 
 });
-</script>
+</script> --%>
 <!-- end haplotype popup -->
 <%
 }
@@ -4932,12 +4940,21 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td>
+        <td style="border-style: none;">
+          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+        </a>
 
 				<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex popup -->
+<script type="text/javascript">
+  $("#setSex<%=thisSample.getSampleID() %>").click(function() {
+    $("#dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+  });
+
+</script>
 <div id="dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">
 
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
@@ -5011,22 +5028,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </tr>
 </table>
   </form>
-
 </div>
-
-<script>
-var dlgSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#setSex<%=thisSample.getSampleID() %>").click(function() {
-  dlgSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
 <!-- end genetic sex popup -->
 <%
 }
@@ -5068,12 +5070,29 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 
 
 				</td>
-				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a>
+				<td style="border-style: none;">
+          <a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>">
+          <img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+        </a>
+      </td>
+      <td style="border-style: none;">
+        <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
+        <img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" />
+      </a>
 
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+
 <!-- start ms marker popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
+      $("#dialogMSMarkersSet").toggle();
+    });
+  });
+</script>
+
 <div id="dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
@@ -5174,7 +5193,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 	  </form>
 </div>
 
-<script>
+<%-- <script>
 var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").dialog({
   autoOpen: false,
   draggable: false,
@@ -5182,10 +5201,8 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
   width: 600
 });
 
-$("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
-  dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>.dialog("open");
-});
-</script>
+
+</script> --%>
 <!-- end ms markers popup -->
 <%
 }
@@ -5425,9 +5442,16 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+    });
+  });
+</script>
 <div id="dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
 <form id="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<table cellpadding="1" cellspacing="0">
 
   <tr>
     <td>
@@ -5504,31 +5528,32 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 </div>
 
-<%-- <script>
-var dlgHaplotypeAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-  dlgHaplotypeAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-  //$("#setHaplotype").find("input[type=text], textarea").val("");
-
-});
-</script> --%>
 <!-- end haplotype popup -->
 <%
 }
 %>
 
 
-		<p><span class="caption"><a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p>
+      <span class="caption">
+        <a class="msmarkersAdd<%=thisSample.getSampleID()%> toggleBtn">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+        </a>
+        <a class="msmarkersAdd<%=thisSample.getSampleID()%> toggleBtn"><%=encprops.getProperty("addMsMarkers") %></a>
+      </span>
+    </p>
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start sat tag metadata popup -->
+<!-- start sat tag metadata -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
+      $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
+    });
+  });
+</script>
+
 <div id="dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
@@ -5627,20 +5652,6 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </table>
 	  </form>
 </div>
-
-<script>
-var dlgMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
-  dlgMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>.dialog("open");
-  //$("#setMsMarkers").find("input[type=text], textarea").val("");
-});
-</script>
 <!-- end ms markers popup -->
 <%
 }
@@ -5648,12 +5659,29 @@ $("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
 
 
 
-<p><span class="caption"><a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+<p>
+  <span class="caption">
+    <a class="addSex<%=thisSample.getSampleID() %> toggleBtn">
+    <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+  </a>
+  <a class="addSex<%=thisSample.getSampleID() %> toggleBtn"><%=encprops.getProperty("addGeneticSex") %></a>
+</span>
+</p>
 
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+
 <!-- start genetic sex popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addSex<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+
+    });
+  });
+</script>
+
 <div id="dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">
 
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
@@ -5729,32 +5757,34 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   </form>
 
 </div>
-
-<script>
-var dlgSexAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addSex<%=thisSample.getSampleID() %>").click(function() {
-  dlgSexAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
-<!-- end genetic sex popup -->
+<!-- end genetic sex -->
 <%
 }
 %>
 
 
-		<p><span class="caption"><a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
+		<p>
+      <span class="caption">
+      <a class="toggleBtn addBioMeasure<%=thisSample.getSampleID() %>">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+      </a>
+      <a class="toggleBtn addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a>
+    </span>
+  </p>
 
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start genetic sex popup -->
+<!-- start genetic sex -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+
+    });
+  });
+</script>
+
 <div id="dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setBiologicalMeasurement")%>" style="display:none">
   <form name="setBiologicalMeasurement" action="../TissueSampleSetMeasurement" method="post">
 
@@ -5915,20 +5945,6 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </table>
 	 </form>
 </div>
-
-<script>
-var dlgAddBiomeasure<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
-  dlgAddBiomeasure<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
 <!-- end biomeasure popup -->
 <%
 }

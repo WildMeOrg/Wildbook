@@ -150,3 +150,11 @@ input.btn.btn-sm.btn-block.deleteEncounterBtn:hover {
 .toggleBtn {
   cursor: pointer;
 }
+
+.tissueSampleTable th{
+  background-color: #566c73;
+  font-weight: lighter;
+  color: white;
+  border: 1px solid white;
+  text-align: center;
+}
