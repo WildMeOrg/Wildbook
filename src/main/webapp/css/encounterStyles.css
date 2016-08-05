@@ -146,3 +146,7 @@ input.btn.btn-sm.btn-block.deleteEncounterBtn:hover {
   color: #FFFFFF;
   font-size: 1em;
 }
+
+.toggleBtn {
+  cursor: pointer;
+}

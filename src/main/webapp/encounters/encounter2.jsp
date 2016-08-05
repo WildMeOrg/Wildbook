@@ -2303,7 +2303,7 @@ if(enc.getLocation()!=null){
 %>
 
 
-<!-- start set username popup -->
+<!-- start set username -->
 <div>
   <div class="highlight" id="assignErrorDiv"></div>
 
@@ -2703,7 +2703,7 @@ if (isOwner) {
 </script>
 
 <div>
-  <p class="editTexxt"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
+  <p class="editText"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
   <div id="tagsResultDiv">
     <span id="tagsSuccess" class="successHighlight"></span>
     <span id="tagsError" class="highlight"></span>
@@ -2883,7 +2883,7 @@ if (isOwner) {
 </script>
 
 <div>
-  <p><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
+  <p class="editText"><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
   <div id="satelliteTagsResultDiv">
     <span id="satelliteTagsSuccess" class="successHighlight"></span>
     <span id="satelliteTagsError" class="highlight"></span>
@@ -4545,13 +4545,22 @@ if(!isOwner){isOwnerValue="false";}
 <%
 if(loggedIn){
 %>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addBioSample").click(function() {
+      $("#dialogSample").toggle();
+    });
+  });
+</script>
+
+
 <hr />
-<a name="tissueSamples" />
+<a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif" />
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
 </p>
     <p class="para">
-    	<a id="sample" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a id="sample" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
+    	<a class="addBioSample toggleBtn" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
     </p>
 
 <%
@@ -4744,30 +4753,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
             <tr><td colspan="2">
             	<input name="encounter" type="hidden" value="<%=num%>" />
             	<input name="action" type="hidden" value="setTissueSample" />
-            	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="<%=encprops.getProperty("set")%>" />
+            	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
    			</td></tr>
       </td>
     </tr>
   </table>
 </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgSample = $("#dialogSample").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#sample").click(function() {
-  dlgSample.dialog("open");
-  $("#setTissueSample").find("input[type=text], textarea").val("");
-
-
-});
-</script>
-<!-- end add bio sample popup -->
 <%
 }
 
@@ -5413,7 +5405,22 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		}
 		%>
 		</table>
-		<p><span class="caption"><a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
+          $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+        });
+      });
+    </script>
+		<p>
+      <span class="caption">
+        <a class="addHaplotype<%=thisSample.getSampleID() %> toggleBtn">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+        </a>
+      <a class="toggleBtn addHaplotype<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addHaplotype") %></a>
+    </span>
+  </p>
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
@@ -5497,7 +5504,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 </div>
 
-<script>
+<%-- <script>
 var dlgHaplotypeAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
   autoOpen: false,
   draggable: false,
@@ -5510,7 +5517,7 @@ $("a#addHaplotype<%=thisSample.getSampleID() %>").click(function() {
   //$("#setHaplotype").find("input[type=text], textarea").val("");
 
 });
-</script>
+</script> --%>
 <!-- end haplotype popup -->
 <%
 }
