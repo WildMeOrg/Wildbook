@@ -770,7 +770,6 @@ $(function() {
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
                           $("#displayMatchedBy").html(matchType);
-                          console.log(matchType);
 
                         })
                         .fail(function(response) {
@@ -911,8 +910,7 @@ $(function() {
                       var noemail = $("input:checkbox:checked").val();
 
                       $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
-                      function(response) {
-                        console.log(response)
+                      function() {
                         $("#indCreateCheck").show();
                         $("#createSharkDiv").addClass("has-success");
                         $("#displayIndividualID").html(individual);
@@ -2583,46 +2581,16 @@ if (isOwner) {
 <%
 %>
 <%-- start measuremnts form--%>
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#addMeasurements").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#autoNumber").val();
-
-      $.post("../EncounterSetMeasurements", {"encounter": encounter},
-      function(response) {
-        $("#measurementResultDiv").show();
-        $("#measurementError").hide();
-        $("#measurementSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#measurementResultDiv").show();
-        $("#measurementSuccess").hide();
-        $("#measurementError").html(response.responseText);
-      });
-    });
-    $("#measurementForm").click(function() {
-      $("#measurementResultDiv").hide();
-    });
-  });
-</script>
-
-
 <div>
   <p class="editText"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
-  <div id="measurementResultDiv" class="resultMessageDiv">
-    <span id="measurementSuccess" class="successHighlight"></span>
-    <span id="measurementError" class="highlight"></span>
-  </div>
 
     <%
     pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
     %>
 
     <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editForm">
-      <form name="setMeasurements" class="editForm" id="measurementForm">
-        <input type="hidden" name="encounter" value="${num}" id="measurementEncounter"/>
+      <form name="setMeasurements" class="editForm" id="measurementForm" action="../EncounterSetMeasurements" method="post">
+        <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
         List<Measurement> list = (List<Measurement>) enc.getMeasurements();
@@ -2644,7 +2612,7 @@ if (isOwner) {
             <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
           </td>
             <td>
-            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementInput"/>
+            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementEvent${index}"/>
             <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
             <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
             <c:out value="(${item.unitsLabel})"/>
@@ -2716,41 +2684,12 @@ if (isOwner) {
 <%
 %>
 <!-- start metal tag popup -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setMetalTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#metalTagsEncounter").val();
-      var tagType = $("#metalTagsType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#tagsResultDiv").show();
-        $("#tagsError").hide();
-        $("#tagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#tagsResultDiv").show();
-        $("#tagsSuccess").hide();
-        $("#tagsError").html(response.responseText);
-      });
-    });
-    $("#tagsForm").click(function() {
-      $("#tagsResultDiv").hide();
-    });
-  });
-</script>
 
 <div>
   <p class="editText"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
-  <div id="tagsResultDiv" class="resultMessageDiv">
-    <span id="tagsSuccess" class="successHighlight"></span>
-    <span id="tagsError" class="highlight"></span>
-  </div>
   <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
 
-  <form name="setMetalTags" class="editForm" id="tagsForm">
+  <form name="setMetalTags" class="editForm" id="tagsForm" action="../EncounterSetTags" method="post">
   <input type="hidden" name="tagType" value="metalTags" id="metalTagsType"/>
   <input type="hidden" name="encounter" value="${num}" id="metalTagsEncounter"/>
   <table cellpadding="1" cellspacing="0">
@@ -2803,38 +2742,10 @@ if (isOwner) {
 <%
 %>
 <!-- start acoustic tag  -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setAcousticTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#acousticTagEncounter").val();
-      var tagType = $("#acousticTagType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#acousticTagsResultDiv").show();
-        $("#acousticTagsError").hide();
-        $("#acousticTagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#acousticTagsResultDiv").show();
-        $("#acousticTagsSuccess").hide();
-        $("#acousticTagsError").html(response.responseText);
-      });
-    });
-    $("#acousticTagsForm").click(function() {
-      $("#acousticTagsResultDiv").hide();
-    });
-  });
-</script>
 
 <div>
   <p class="editText"><strong><%=encprops.getProperty("resetAcousticTag")%></strong></p>
-  <div id="acousticTagsResultDiv" class="resultMessageDiv">
-    <span id="acousticTagsSuccess" class="successHighlight"></span>
-    <span id="acousticTagsError" class="highlight"></span>
-  </div>
+
   <c:set var="acousticTag" value="${enc.acousticTag}"/>
    <c:if test="${empty acousticTag}">
    <%
@@ -2845,7 +2756,7 @@ if (isOwner) {
 
     <tr>
       <td>
-        <form name="setAcousticTag" class="editForm" id="acousticTagsForm">
+        <form name="setAcousticTag" class="editForm" id="acousticTagsForm" action="../EncounterSetTags" method="post">
         <input type="hidden" name="encounter" value="${num}" id="acousticTagEncounter"/>
         <input type="hidden" name="tagType" value="acousticTag" id="acousticTagType"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
@@ -2896,38 +2807,9 @@ if (isOwner) {
 <%
 %>
 <!-- start sat tag metadata  -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setSatelliteTags").click(function(event) {
-      event.preventDefault();
-
-      var encounter = $("#satelliteTagEncounter").val();
-      var tagType = $("#satelliteTagType").val()
-
-      $.post("../EncounterSetTags", {"encounter": encounter, "tagType": tagType},
-      function(response) {
-        $("#satelliteTagsResultDiv").show();
-        $("#satelliteTagsError").hide();
-        $("#satelliteTagsSuccess").html(response);
-      })
-      .fail(function(response) {
-        $("#satelliteTagsResultDiv").show();
-        $("#satelliteTagsSuccess").hide();
-        $("#satelliteTagsError").html(response.responseText);
-      });
-    });
-    $("#satelliteTagsForm").click(function() {
-      $("#satelliteTagsResultDiv").hide();
-    });
-  });
-</script>
-
 <div>
   <p class="editText"><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
-  <div id="satelliteTagsResultDiv" class="resultMessageDiv">
-    <span id="satelliteTagsSuccess" class="successHighlight"></span>
-    <span id="satelliteTagsError" class="highlight"></span>
-  </div>
+
    <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
    <c:if test="${empty satelliteTag}">
    <%
@@ -2937,7 +2819,7 @@ if (isOwner) {
    <%
       pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
    %>
-   <form name="setSatelliteTag" class="editForm">
+   <form name="setSatelliteTag" class="editForm" action="../EncounterSetTags" method="post">
    <input type="hidden" name="tagType" value="satelliteTag" id="satelliteTagType"/>
    <input type="hidden" name="encounter" value="${num}" id="satelliteTagEncounter"/>
    <input type="hidden" name="id" value="${satelliteTag.id}" id="satelliteTagId"/>
