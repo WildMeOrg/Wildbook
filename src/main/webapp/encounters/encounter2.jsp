@@ -583,7 +583,7 @@ $(function() {
                 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
                 <h1 class="<%=classColor%>" id="headerText">
                 <%=encprops.getProperty("title") %><%=livingStatus %>
-                  <div>
+                  <%-- <div>
                     <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
                     <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
                   </div>
@@ -591,9 +591,7 @@ $(function() {
 
                 <script type="text/javascript">
                 $(document).ready(function() {
-                  var buttons = $("#edit, #closeEdit").on("click", function(){
-                    buttons.toggle();
-                  });
+
   // TOP EDIT BUTTON
                   $("#edit").click(function() {
                     $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError, s#etLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #taxCheck, #taxError, #statusCheck, #statusError, #sexCheck, #sexError, #scarCheck, #scarError, #behaviorCheck, #behaviorError, #lifeCheck, #lifeError, #commentCheck, #commentError, #patternCheck, #patternError, #workCheck, #workError, #assignCheck, #assignError, #latCheck, #longCheck").hide();
@@ -610,7 +608,7 @@ $(function() {
                     $(".noEditText").show();
                   });
                 });
-                </script>
+                </script> --%>
 
 
                 <% }
@@ -654,8 +652,50 @@ $(function() {
 
 
         <!-- START IDENTITY ATTRIBUTE -->
+        <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
+        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
+      </h2>
 
-              <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+
+
+        <script type="text/javascript">
+        $(document).ready(function() {
+          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
+            buttons.toggle();
+          });
+// TOP EDIT BUTTON
+          $("#editIdentity").click(function() {
+            $(".noEditText, #matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
+
+            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+          });
+
+          $("#closeEditIdentity").click(function() {
+            $(".editForm, .editText, .resultMessageDiv").hide();
+            $(".noEditText").show();
+          });
+        });
+        </script>
+
+
+        <% }
+        else {
+         %>
+         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+         <%}%></h1>
+
+
+
+
+
+
+              <%-- <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2> --%>
 
     							<%
     							if (!enc.hasMarkedIndividual()) {
