@@ -108,7 +108,7 @@ public class OccurrenceCreate extends HttpServlet {
 
             //output success statement
             out.println(ServletUtilities.getHeader(request));
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create occurrence <strong>" + myOccurrenceID + "</strong>.");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + ".</a></p>\n");
             out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + ".</strong></a></p>\n");
