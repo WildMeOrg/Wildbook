@@ -587,13 +587,13 @@ $(function() {
 
   <%-- // TOP EDIT BUTTON
                   $("#edit").click(function() {
-                    $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck, #setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError,  #workCheck, #workError, #assignCheck, #assignError, #latCheck, #longCheck").hide();
+                    $(", #setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError,  #workCheck, #workError, #assignCheck, #assignError, #latCheck, #longCheck").hide();
 
-                    $("#AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #editWork, #Assign, #setGPSbutton").show();
+                    $("#AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, , #AddElev, #editWork, #Assign, #setGPSbutton").show();
 
-                    $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, , #depthDiv, #elevationDiv").removeClass("has-error");
+                    $(#depthDiv, #elevationDiv).removeClass("has-error");
 
-                    $(" #submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv, #releaseDiv, #verbatimDiv, #resetDateDiv, #depthDiv, #elevationDiv").removeClass("has-success");
+                    $(#depthDiv, #elevationDiv).removeClass("has-success");
                   }); --%>
 
 
@@ -1270,7 +1270,47 @@ $(function() {
 <%-- START CONTACT INFORMATION --%>
         <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-          <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
+
+          <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+          <h2>
+            <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
+            <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
+            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;">Close Edit</button>
+          </h2>
+
+
+          <script type="text/javascript">
+          $(document).ready(function() {
+            var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
+              buttons.toggle();
+            });
+            $("#editContactBtn").click(function() {
+              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
+
+              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
+
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
+
+            });
+
+            $("#closeEditContact").click(function() {
+              $(".editFormContact, .editTextContact, .resultMessageDiv").hide();
+            });
+          });
+          </script>
+
+
+          <% }
+          else {
+           %>
+           <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
+
+           <%}%>
+
+
+
 
           <p class="para"><em><%=encprops.getProperty("submitter") %></em>
 
@@ -4144,8 +4184,45 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 
 
 
+<!-- START DYNAMIC PROPERTIES -->
 
-<h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+   <%=encprops.getProperty("dynamicProperties") %>
+   <button class="btn btn-md" type="button" name="button" id="editDynamic">Edit</button>
+   <button class="btn btn-md" type="button" name="button" id="closeEditDynamic" style="display:none;">Close Edit</button>
+ </h2>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editDynamic").click(function() {
+    $(".editFormDynamic").show();
+
+  });
+
+  $("#closeEditDynamic").click(function() {
+    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
+
+ <%}%>
+
+
+
+
 <%
 if(isOwner){
 %>
@@ -4174,12 +4251,12 @@ if(isOwner){
 
   <%
 %>
-<!-- start depth popup -->
-<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormLocation">
-  <p class="editTextLocation"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
-  <p class="editTextLocation"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
+<!-- start dynamic form -->
+<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
+  <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
+  <p class="editTextDynamic"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
 
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
+        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
           <input name="name" type="hidden" size="10" value="<%=nm %>" />
           <input name="number" type="hidden" value="<%=num%>" />
           <div class="form-group row">
@@ -4220,10 +4297,9 @@ else{
 	    }
 
 %>
-<!-- start depth popup -->
-<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormLocation">
-  <p class="editTextLocation"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
-    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
+<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormDynamic">
+  <p class="editTextDynamic"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
+    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
       <input name="number" type="hidden" value="<%=num%>" />
       <div class="form-group row">
         <div class="col-sm-3">
