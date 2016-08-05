@@ -35,12 +35,12 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   height: 30px;
 }
 
-.editForm {
+.editForm, .editFormDate, .editFormContact, .editFormLocation, .editFormObservation, .editFormMeta, .editFormDynamic, .editFormMeasure, .editFormTracking {
   display: none;
   margin-bottom: 10px;
 }
 
-.editText {
+.editText, .editTextDate, .editTextContact, .editTextLocation, .editTextObservation, .editTextMeta, .editTextDynamic, .editTextMeasure, .editTextTracking {
   display: none;
 }
 
