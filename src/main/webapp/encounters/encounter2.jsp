@@ -3340,7 +3340,7 @@ if (isOwner) {
  	if((request.getUserPrincipal()!=null)){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
- 		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
+ 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
  	<%
  	}
  	else {
@@ -4128,9 +4128,9 @@ if(enc.getComments()!=null){recordedComments=enc.getComments();}
 <%
 if(isOwner){
 %>
-	<a id="dynamicPropertyAdd" class="launchPopup">
+	<%-- <a id="dynamicPropertyAdd" class="launchPopup">
 		<img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" />
-	</a>
+	</a> --%>
 <%
 }
 
@@ -4148,52 +4148,40 @@ if(isOwner){
 %>
 <p class="para"> <em><%=nm%></em>: <%=vl%>
   <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+    // if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-  <a id="dynamicProperty<%=nm%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+  <%-- <a id="dynamicProperty<%=nm%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a> --%>
 
   <%
-    }
+    // }
   %>
 
   <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start depth popup -->
-<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" style="display:none">
+<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editForm">
+  <p class="editText"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
+  <p class="editText"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
 
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top" class="para">
         <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
-			<p><em><%=encprops.getProperty("setDPMessage") %></em></p>
-			<input name="name" type="hidden" size="10" value="<%=nm %>" />
-          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" value="<%=vl %>"/>
+          <input name="name" type="hidden" size="10" value="<%=nm %>" />
           <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
+          <div class="form-group row">
+            <div class="col-sm-3">
+              <label><%=encprops.getProperty("propertyValue")%>:</label>
+            </div>
+            <div class="col-sm-5">
+              <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
+            </div>
+            <div class="col-sm-4">
+              <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+            </div>
+          </div>
         </form>
-      </td>
-    </tr>
-  </table>
 
 </div>
 
-<script>
-var dlgDP<%=nm %> = $("#dialogDP<%=nm %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#dynamicProperty<%=nm%>").click(function() {
-	dlgDP<%=nm %>.dialog("open");
-});
-</script>
-
 <%
-}
 %>
 
 </p>
@@ -4215,43 +4203,35 @@ else{
 	  <%
 	    }
 
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start depth popup -->
-<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" style="display:none">
-
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top" class="para">
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
-			<%=encprops.getProperty("propertyName")%>:<br/><input name="name" type="text" size="10" maxlength="500" /><br />
-
-          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" /><br />
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-
+<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editForm">
+  <p class="editText"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
+    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
+      <input name="number" type="hidden" value="<%=num%>" />
+      <div class="form-group row">
+        <div class="col-sm-3">
+          <label><%=encprops.getProperty("propertyName")%>:</label>
+        </div>
+        <div class="col-sm-5">
+          <input name="name" type="text" class="form-control" id="addDynPropInput"/>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3">
+          <label><%=encprops.getProperty("propertyValue")%>:</label>
+        </div>
+        <div class="col-sm-5">
+          <input name="value" type="text" class="form-control" id="addDynPropInput2"/>
+        </div>
+      </div>
+      <input name="Set" type="submit" id="addDynPropBtn" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+    </form>
 </div>
 
-<script>
-var dlgDPAdd = $("#dialogDPAdd").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#dynamicPropertyAdd").click(function() {
-	dlgDPAdd.dialog("open");
-});
-</script>
 
 <%
-}
+
 %>
 
 

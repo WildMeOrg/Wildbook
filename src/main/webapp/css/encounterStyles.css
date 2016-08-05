@@ -19,7 +19,7 @@ input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#cr
   height: 30px;
 }
 
-input#acousticTagId.form-control, input#satelliteTagSerial.form-control, input#satelliteTagArgosPttNumber.form-control {
+input#acousticTagId.form-control, input#satelliteTagSerial.form-control, input#satelliteTagArgosPttNumber.form-control, input#addDynPropInput.form-control, input#addDynPropInput2.form-control, input#dynInput.form-control {
   padding-top: 0px;
   padding-bottom: 0px;
   color:  #333;
@@ -96,7 +96,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton, #addDynPropBtn, #dynEdit {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;
@@ -157,4 +157,9 @@ input.btn.btn-sm.btn-block.deleteEncounterBtn:hover {
   color: white;
   border: 1px solid white;
   text-align: center;
+}
+
+.tissueSampleTable {
+  overflow-x: scroll;
+  overflow-y: scroll;
 }
