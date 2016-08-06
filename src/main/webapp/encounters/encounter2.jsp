@@ -583,22 +583,6 @@ $(function() {
                 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
                 <h1 class="<%=classColor%>" id="headerText">
                 <%=encprops.getProperty("title") %><%=livingStatus %>
-
-
-  <%-- // TOP EDIT BUTTON
-                  $("#edit").click(function() {
-                    $(", #setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError,  #workCheck, #workError, #assignCheck, #assignError, #latCheck, #longCheck").hide();
-
-                    $("#AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, , #AddElev, #editWork, #Assign, #setGPSbutton").show();
-
-                    $(#depthDiv, #elevationDiv).removeClass("has-error");
-
-                    $(#depthDiv, #elevationDiv).removeClass("has-success");
-                  }); --%>
-
-
-
-
                 <% }
                 else {
                  %>
@@ -1766,9 +1750,51 @@ $(function() {
         </div>
 <%-- END CONTACT INFORMATION --%>
 
+<%-- START LOCATION --%>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
-	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
+	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/>
+  <%=encprops.getProperty("location") %>
+  <button class="btn btn-md" type="button" name="button" id="editLocation">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditLocation" style="display:none;">Close Edit</button>
 </h2>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
+
+    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
+
+    $("#depthDiv, #elevationDiv").removeClass("has-error");
+
+    $("#depthDiv, #elevationDiv").removeClass("has-success");
+
+  });
+
+  $("#closeEditLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2>
+ 	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
+ </h2>
+
+ <%}%>
+
+
+
 <%
 if(enc.getLocation()!=null){
 %>
@@ -2182,11 +2208,47 @@ if(enc.getLocation()!=null){
 %>
 <!-- End Display maximumElevationInMeters -->
 
+<%-- START METADATA --%>
 <table>
 <tr>
 <td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
+  <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditMeta" style="display:none;">Close Edit</button>
+</h2>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editMeta, #closeEditMeta").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editMeta").click(function() {
+    $(".editFormMeta, .editTextMeta, #editWork, #Assign").show();
+
+    $("#setMetaCheck, #setMetaError, #workCheck, #workError, #assignCheck, #assignError").hide();
+
+  });
+
+  $("#closeEditMeta").click(function() {
+    $(".editFormMeta, .editTextMeta, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
+
+ <%}%>
+
+
+
 
 
 								<p class="para">
@@ -2586,7 +2648,44 @@ if (isOwner) {
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
   pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
 %>
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
+
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
+  <c:out value="${measurementTitle}"></c:out>
+  <button class="btn btn-md" type="button" name="button" id="editMeasure">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditMeasure" style="display:none;">Close Edit</button>
+</h2>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editMeasure, #closeEditMeasure").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editMeasure").click(function() {
+    $(".editFormMeasure, .editTextMeasure, #editWork, #Assign").show();
+  });
+
+  $("#closeEditMeasure").click(function() {
+    $(".editFormMeasure, .editTextMeasure, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2>
+   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
+   <c:out value="${measurementTitle}"></c:out>
+ </h2>
+
+ <%}%>
+
+
+
 <c:if test="${editable and !empty measurements}">
 </c:if>
 <table>
@@ -2715,7 +2814,40 @@ if (isOwner) {
 
 <c:if test="${showMetalTags}">
 
-<h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
+
+
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
+  <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditTracking" style="display:none;">Close Edit</button>
+</h2>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editTracking, #closeEditTracking").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editTracking").click(function() {
+    $(".editFormTracking, .editTextTracking").show();
+  });
+
+  $("#closeEditTracking").click(function() {
+    $(".editFormTracking, .editTextTracking, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
+
+ <%}%>
+
+
 <%
   pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
