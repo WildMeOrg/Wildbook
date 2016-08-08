@@ -103,7 +103,7 @@ System.out.println("truncated to\n" + x);
 */
       List<String> annotUUIDs = fromFancyUUIDList(annotFancyUUIDs);
       //out.println("occID: " + occID + " has annotUUIDs " + annotUUIDs);
-      out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
+      System.out.println("occID: " + occID + " has " + annotUUIDs.size() + " annotUUIDs");
 
 
         //now we have to break this up a little since there are some pretty gigantic sets of annotations, it turns out.  :(
@@ -171,7 +171,7 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
       }
 
       for (String uName : uniqueNames) {
-        out.println("Number Annotations with "+uName+": "+annotGroups.get(uName).size());
+        System.out.println("Number Annotations with "+uName+": "+annotGroups.get(uName).size());
       }
 
       for (String name : uniqueNames) {
@@ -251,6 +251,7 @@ System.out.println("zzzzzzzzzzzzzzzzzz " + occ);
     //myShepherd.closeDBTransaction();
 
 System.out.println(". . . . . . IMPORT COMPLETE . . . . . .");
+out.println("complete");
 
   }
 
