@@ -129,59 +129,34 @@ public class EncounterSetGPS extends HttpServlet {
           if(!locked){
           
             myShepherd.commitDBTransaction();
-            out.println(ServletUtilities.getHeader(request));
+            //out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> The encounter's recorded GPS location has been updated from "+oldGPS+" to "+newGPS+".");
-            out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
             response.setStatus(HttpServletResponse.SC_OK);
-            List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
+            
             out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-                out.println(ServletUtilities.getFooter(context));
+              //  out.println(ServletUtilities.getFooter(context));
             String message="The recorded GPS location for encounter #"+request.getParameter("number")+" has been updated from "+oldGPS+" to "+newGPS+".";
             ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
             }
           else{
             
-            out.println(ServletUtilities.getHeader(request));
+            //out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter GPS location was NOT updated. An error was encountered. Please try this operation again in a few seconds. If this condition persists, contact the webmaster.");
-            out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+            //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-            int allStatesSize=allStates.size();
-            if(allStatesSize>0){
-              for(int i=0;i<allStatesSize;i++){
-                String stateName=allStates.get(i);
-                out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-              }
-            }
-            out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-                out.println(ServletUtilities.getFooter(context));
+            
             
             }
           
         }   
           
         else {
-          out.println(ServletUtilities.getHeader(request));
+          ///out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
           response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-          out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
-          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-          int allStatesSize=allStates.size();
-          if(allStatesSize>0){
-            for(int i=0;i<allStatesSize;i++){
-              String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-            }
-          }
-          out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-              out.println(ServletUtilities.getFooter(context));  
+          //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+request.getParameter("number")+"\">Return to encounter <strong>"+request.getParameter("number")+"</strong></a></p>\n");
+         out.println(ServletUtilities.getFooter(context));  
             
           }
         
