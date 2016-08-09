@@ -127,7 +127,7 @@ public class EncounterAddComment extends HttpServlet {
 
 
     out.close();
-    myShepherd.closeDBTransaction();
+    //myShepherd.closeDBTransaction();
   }
 }
 	

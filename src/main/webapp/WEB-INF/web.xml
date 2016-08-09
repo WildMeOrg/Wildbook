@@ -382,12 +382,7 @@
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
-  <!--
-  <servlet>
-    <servlet-name>EncounterApprove</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
-  </servlet>
-  -->
+
 
   <servlet>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
@@ -1699,12 +1694,7 @@
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
   </servlet-mapping>
 
-  <!--
-  <servlet-mapping>
-    <servlet-name>EncounterApprove</servlet-name>
-    <url-pattern>/EncounterApprove</url-pattern>
-  </servlet-mapping>
-  -->
+
 
   <servlet-mapping>
     <servlet-name>IndividualSetSex</servlet-name>

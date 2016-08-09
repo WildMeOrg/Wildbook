@@ -23,15 +23,18 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
+Shepherd imageShepherd = new Shepherd(context);
+imageShepherd.beginDBTransaction();
+Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 try {
 
 //get the encounter number
 String imageEncNum = request.getParameter("encounterNumber");
 	
 //set up the JDO pieces and Shepherd
-Shepherd imageShepherd = new Shepherd(context);
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+
+
 boolean haveRendered = false;
 
 //let's set up references to our file system components
@@ -499,15 +502,15 @@ System.out.println("trying to fork/create " + thumbPath);
               </tr>
               <tr>
                 <td>
-	                <span class="caption"><%=encprops.getProperty("individualID") %>
+	                <span class="caption"><%=encprops.getProperty("individualID") %>: 
 	                <%
 	                if(imageEnc.getIndividualID()!=null){
-	                %> 
-	                	<a href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
-	                	</a>
+	                %>
+	                <a href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
+	                </a>
 	                <%
-					}
-	                %>	
+	                }
+	                %>
 	                </span>
                 </td>
               </tr>
@@ -731,4 +734,9 @@ catch (Exception e) {
 catch(Exception e){
 	e.printStackTrace();
 }
+finally{
+	imageShepherd.rollbackDBTransaction();
+	imageShepherd.closeDBTransaction();
+}
+kwImagesQuery.closeAll();
 %>

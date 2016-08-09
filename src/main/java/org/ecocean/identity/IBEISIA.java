@@ -1791,12 +1791,14 @@ System.out.println("---------------------------------------------\n needEnc? " +
 
         if (needEnc.size() > 0) {
             Encounter newEnc = new Encounter(needEnc);
+/*  dont need this any more as annot already set times when passed to Encounter() constructor above!
             DateTime dt = null;
             try {
                 dt = iaDateTimeFromAnnotUUID(needEnc.get(0).getId());
             } catch (Exception ex) {}
             if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
 System.out.println(" ============ dt millis = " + dt);
+*/
             System.out.println("INFO: assignFromIA() created " + newEnc + " for " + needEnc.size() + " annots");
             encs.add(newEnc);
         }
@@ -1824,6 +1826,7 @@ System.out.println(" ============ dt millis = " + dt);
             indiv.addEncounter(encs.get(i), "context0");
             encs.get(i).setIndividualID(individualId);
         }
+        indiv.refreshNumberEncounters();
 
         rtn.put("encounters", encs);
         rtn.put("annotations", anns);
@@ -1918,7 +1921,8 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
     }
 
     //a sort of wrapper to the above from the point of view of an api (does saving, json stuff etc)
-    public static JSONObject assignFromIASimple(JSONObject arg, Shepherd myShepherd) {
+    // note: "simpler" will not create new objects and only do straight-up assignments -- it will throw exceptions if too complex
+    public static JSONObject assignFromIAAPI(JSONObject arg, Shepherd myShepherd, boolean simpler) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         if (arg == null) {
             rtn.put("error", "invalid parameters passed. should be { name: N, annotationIds: [a1,a2,a3] }");
@@ -1935,10 +1939,15 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
             String a = annIds.optString(i, null);
             if (a != null) al.add(a);
         }
-        HashMap<String,Object> res = assignFromIANoCreation(indivId, al, myShepherd);
+        myShepherd.beginDBTransaction();
+        HashMap<String,Object> res = null;
+        if (simpler) {
+            res = assignFromIANoCreation(indivId, al, myShepherd);
+        } else {
+            res = assignFromIA(indivId, al, myShepherd);
+        }
 
         rtn.put("success", true);
-        myShepherd.beginDBTransaction();
         if (res.get("newMarkedIndividual") != null) {
             MarkedIndividual ind = (MarkedIndividual)res.get("newMarkedIndividual");
             myShepherd.getPM().makePersistent(ind);
@@ -1965,6 +1974,51 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
         return rtn;
     }
 
+    //wrapper like above, but *only* get annot ids, we ask IA for their names and group accordingly
+    public static JSONObject arbitraryAnnotationsFromIA(JSONArray arg, Shepherd myShepherd) {
+        JSONObject rtn = new JSONObject("{\"success\": false}");
+        if (arg == null) {
+            rtn.put("error", "invalid parameters: pass array of Annotation ids");
+            return rtn;
+        }
+        HashMap<String,JSONObject> map = new HashMap<String,JSONObject>();
+        for (int i = 0 ; i < arg.length() ; i++) {
+            String aid = arg.optString(i, null);
+            if (aid == null) continue;
+            JSONArray auuids = new JSONArray();
+            auuids.put(toFancyUUID(aid));
+            JSONArray namesRes = null;
+            try {
+                namesRes = iaAnnotationNamesFromUUIDs(auuids);
+            } catch (Exception ex) {}
+            if ((namesRes == null) || (namesRes.length() < 1)) {
+                System.out.println("WARNING: arbitraryAnnotationsFromIA() could not get a name for annot " + aid + "; skipping");
+                continue;
+            }
+            String name = namesRes.optString(0, null);
+            if (name == null) {
+                System.out.println("WARNING: arbitraryAnnotationsFromIA() could not get[2] a name for annot " + aid + "; skipping");
+                continue;
+            }
+            if (map.get(name) == null) {
+                JSONObject j = new JSONObject();
+                j.put("name", name);
+                j.put("annotationIds", new JSONArray());
+                map.put(name, j);
+            }
+            map.get(name).getJSONArray("annotationIds").put(aid);
+        }
+System.out.println(map);
+
+        rtn.put("success", true);
+        JSONObject all = new JSONObject();
+        for (String nm : map.keySet()) {
+            all.put(nm, assignFromIAAPI(map.get(nm), myShepherd, false));
+        }
+        rtn.put("reassignments", all);
+        return rtn;
+    }
+
 /*
     these are mostly utility functions to fetch stuff from IA ... some of these may be unused currently but got made during chaostime
 */
@@ -1977,6 +2031,12 @@ System.out.println("assignFromIANoCreation() okay to reassign: " + encs);
 //http://52.37.240.178:5000/api/annot/name/uuid/json/?annot_uuid_list=[{%22__UUID__%22:%22c368747b-a4a8-4f59-900d-a9a529c92bca%22}]&__format__=True
     public static JSONArray iaAnnotationNameUUIDsFromUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/uuid/json/?annot_uuid_list=" + uuids.toString()));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot name uuid from uuids=" + uuids);
+        return rtn.getJSONArray("response");
+    }
+//http://52.37.240.178:5000/api/annot/name/text/json/?annot_uuid_list=[{%22__UUID__%22:%22c368747b-a4a8-4f59-900d-a9a529c92bca%22}]&__format__=True
+    public static JSONArray iaAnnotationNamesFromUUIDs(JSONArray uuids) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/annot/name/text/json/?annot_uuid_list=" + uuids.toString()));
         if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get annot name uuid from uuids=" + uuids);
         return rtn.getJSONArray("response");
     }
