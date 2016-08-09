@@ -82,17 +82,24 @@ public class IBEISIA {
 
         for (MediaAsset ma : mas) {
             if (!needToSend(ma)) continue;
+            ImageAttributes iatt = ma.getImageAttributes();
+            int w = 0;
+            int h = 0;
+            if (iatt != null) {
+                w = (int) iatt.getWidth();
+                h = (int) iatt.getHeight();
+            }
+            //we are *required* to have a width/height to pass to IA, so lets skip...  or fail???  TODO
+            if ((w < 1) || (h < 1)) {
+                throw new RuntimeException("could not use " + ma.toString() + " - unable to find width/height");
+                //continue;  //skip?
+            }
+
+            map.get("image_width_list").add(w);
+            map.get("image_height_list").add(h);
+
             map.get("image_uuid_list").add(toFancyUUID(ma.getUUID()));
             map.get("image_uri_list").add(mediaAssetToUri(ma));
-
-            ImageAttributes iatt = ma.getImageAttributes();
-            if (iatt == null) {
-                map.get("image_width_list").add(0);
-                map.get("image_height_list").add(0);
-            } else {
-                map.get("image_width_list").add((int) iatt.getWidth());
-                map.get("image_height_list").add((int) iatt.getHeight());
-            }
 
             map.get("image_gps_lat_list").add(ma.getLatitude());
             map.get("image_gps_lon_list").add(ma.getLongitude());
@@ -130,10 +137,12 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
+            int[] bbox = ann.getBbox();
+            if (bbox == null) throw new RuntimeException("failed to add " + ann + "; could not getBbox()");
+            map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
             map.get("annot_species_list").add(ann.getSpecies());
-            map.get("annot_bbox_list").add(ann.getBbox());
             markSent(ann);
             ct++;
         }
