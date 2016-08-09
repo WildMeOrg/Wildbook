@@ -24,6 +24,16 @@ myShepherd=new Shepherd(context);
 
 
 //check for and inject a default user 'tomcat' if none exists
+if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
+  System.out.println("WARNING: index.jsp has determined that CommonConfiguration.isWildbookInitialized()==false!");
+  %>
+    <script type="text/javascript">
+      console.log("Wildbook is not initialized!");
+    </script>
+  <%
+  StartupWildbook.initializeWildbook(request, myShepherd);
+}
+
 
 
 %>
@@ -129,7 +139,11 @@ margin-bottom: 8px !important;
         map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
+          mapTypeId: google.maps.MapTypeId.HYBRID,
+          zoomControl: true,
+          scaleControl: false,
+          scrollwheel: false,
+          disableDoubleClickZoom: true,
         });
 
     	  //adding the fullscreen control to exit fullscreen
@@ -330,6 +344,12 @@ int numEncounters=0;
 int numDataContributors=0;
 
 myShepherd.beginDBTransaction();
+
+//String url = "login.jsp";
+//response.sendRedirect(url);
+//RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(url);
+//dispatcher.forward(request, response);
+
 
 try{
 
