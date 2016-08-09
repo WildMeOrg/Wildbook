@@ -2039,7 +2039,7 @@ public class Shepherd {
     try {
       tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return null;
     }
     return tempShark;
@@ -2511,6 +2511,17 @@ public class Shepherd {
       //return false;
     } catch (JDOException jdoe2) {
       jdoe2.printStackTrace();
+      Throwable[] throwables=jdoe2.getNestedExceptions();
+      int numThrowables=throwables.length;
+      for(int i=0;i<numThrowables;i++){
+        Throwable t=throwables[i];
+        if(t instanceof java.sql.SQLException){
+          java.sql.SQLException exc=(java.sql.SQLException)t;
+          java.sql.SQLException g=exc.getNextException();
+          g.printStackTrace();
+        }
+        t.printStackTrace();
+      }
       //return false;
     }
     //added to prevent conflicting calls jah 1/19/04
