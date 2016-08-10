@@ -27,7 +27,7 @@ import java.util.Objects;
 import javax.servlet.ServletContext;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;

@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import org.ecocean.DataCollectionEvent;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.DataCollectionEvent;
+import org.ecocean.datacollection.Measurement;
 
 import javax.servlet.http.HttpServletRequest;
 

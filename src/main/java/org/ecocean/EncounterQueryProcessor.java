@@ -455,7 +455,7 @@ public class EncounterQueryProcessor {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
         }
-        jdoqlVariableDeclaration += " org.ecocean.Measurement measurement" + i;
+        jdoqlVariableDeclaration += " org.ecocean.datacollection.Measurement measurement" + i;
       }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+= measurementFilter.toString();

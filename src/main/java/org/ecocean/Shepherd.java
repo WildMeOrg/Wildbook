@@ -25,6 +25,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.datacollection.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
@@ -3563,12 +3564,12 @@ public class Shepherd {
     q.closeAll();
     return null;
   }
-  
+
   public int getNumAnnotationsForEncounter(String encounterID){
     ArrayList<Annotation> al=getAnnotationsForEncounter(encounterID);
     return al.size();
   }
-  
+
   public ArrayList<Annotation> getAnnotationsForEncounter(String encounterID){
     String filter="SELECT FROM org.ecocean.Annotation WHERE enc.catalogNumber == \""+encounterID+"\" && enc.annotations.contains(this)  VARIABLES org.ecocean.Encounter enc";
     Query query=getPM().newQuery(filter);

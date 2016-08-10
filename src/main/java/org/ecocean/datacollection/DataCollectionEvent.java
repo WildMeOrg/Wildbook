@@ -17,9 +17,11 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package org.ecocean;
+package org.ecocean.datacollection;
 
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
+
 
 /**
  *
@@ -46,6 +48,8 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
 private String correspondingEncounterNumber;
 private String type;
 private String dataCollectionEventID;
+
+private DateTime datetime;
 
 private String samplingProtocol;
 private String samplingEffort;
@@ -101,6 +105,9 @@ public void setCorrespondingEncounterNumber(String encounterNumber){
     this.correspondingEncounterNumber=null;
   }
 }
+
+public DateTime getDateTime(){return datetime;}
+public void setDateTime(DateTime datetime){this.datetime = datetime;}
 
 public String getDataCollectionEventID(){return dataCollectionEventID;}
 public void setDataCollectionEventID(String id){this.dataCollectionEventID=id;}

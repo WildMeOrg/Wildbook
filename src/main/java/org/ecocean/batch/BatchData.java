@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.Measurement;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 

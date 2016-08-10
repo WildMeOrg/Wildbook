@@ -41,6 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.ecocean.*;
+import org.ecocean.datacollection.*;
 import org.ecocean.batch.BatchData;
 import org.ecocean.batch.BatchMedia;
 import org.ecocean.batch.BatchParser;
@@ -320,7 +321,7 @@ public final class BatchUpload extends DispatchServlet {
   public void uploadBatchData(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession();
-      
+
       String context="context0";
       context=ServletUtilities.getContext(req);
 
@@ -486,7 +487,7 @@ public final class BatchUpload extends DispatchServlet {
   public void confirmBatchDataUpload(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     try {
       HttpSession session = req.getSession(false);
-      
+
       String context="context0";
       context=ServletUtilities.getContext(req);
 

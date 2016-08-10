@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.Measurement;
 import org.ecocean.Shepherd;
 
 public class EncounterSetMeasurements extends HttpServlet {

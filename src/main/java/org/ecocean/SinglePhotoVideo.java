@@ -10,6 +10,7 @@ import org.ecocean.genetics.TissueSample;
 import org.ecocean.Encounter;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.media.*;
+import org.ecocean.datacollection.*;
 import org.ecocean.CommonConfiguration;
 
 import org.apache.commons.fileupload.FileItem;
@@ -37,7 +38,7 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   String correspondingStoryID;
 
   public String webURL;
-  
+
   /*
   private String thumbnailFilename;
   private String thumbnailFullFileSystemPath;
@@ -300,7 +301,7 @@ System.out.println("creating MediaAsset for " + this);
         MediaAssetFactory.save(ma, myShepherd);
         return ma;
     }
-    
+
     public String getWebURL(){return webURL;}
     public void setWebURL(String earl){this.webURL=earl;}
 

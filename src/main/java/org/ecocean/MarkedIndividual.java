@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.*;
 
 import org.ecocean.genetics.*;
+import org.ecocean.datacollection.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
@@ -98,7 +99,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
-  
+
   private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
@@ -227,7 +228,7 @@ public class MarkedIndividual implements java.io.Serializable {
 		this.dateFirstIdentified = d;
 		return d;
 	}
-	
+
 	 public String refreshDateLastestSighting() {
 	    Encounter[] sorted = this.getDateSortedEncounters(true);
 	    if (sorted.length < 1) return null;
@@ -1151,7 +1152,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return "";
   }
-  
+
   public String getDateLatestSighting() {
     if (dateTimeLatestSighting != null) {
       return dateTimeLatestSighting;
@@ -1162,7 +1163,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
-  
+
   public void setDateTimeLatestSighting(String time) {
     dateTimeLatestSighting = time;
   }
@@ -1374,7 +1375,7 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     maxYearsBetweenResightings=maxYears;
     }
-  
+
 
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
@@ -1858,24 +1859,24 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-            
-            
-            
+
+
+
             if (j!=null) {
-              
-              
+
+
               //ok, we have a viable candidate
-              
+
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
               //otherwise, just add it to the bottom of the stack
               else{
                 al.add(j);
               }
-              
+
             }
-            
-            
+
+
           }
         }
     //}
@@ -1883,16 +1884,16 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return al;
 
   }
-  
+
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-    
+
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
     if(al.size()>0){return al.get(0);}
     return new JSONObject();
-    
+
 
   }
-  
+
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {

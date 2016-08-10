@@ -41,6 +41,7 @@ import javax.jdo.PersistenceManager;
 import javax.servlet.ServletContext;
 import org.apache.sanselan.ImageReadException;
 import org.ecocean.*;
+import org.ecocean.datacollection.*;
 import org.ecocean.genetics.TissueSample;
 import org.ecocean.servlet.BatchUpload;
 import org.ecocean.mmutil.DataUtilities;
@@ -117,7 +118,7 @@ public final class BatchProcessor implements Runnable {
   private Phase phase = Phase.NONE;
   /** Throwable instance produced by the batch processor (if any). */
   private Throwable thrown;
-  
+
   private String context="context0";
 
   public BatchProcessor(List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale locale, String context) {
@@ -257,7 +258,7 @@ public final class BatchProcessor implements Runnable {
   /**
    * Initializes the {@code BatchProcessorPlugin}, if specified, using reflection.
    * The plugin is specified via {@link CommonConfiguration#getBatchUploadPlugin()}.
-   * @throws Exception 
+   * @throws Exception
    */
   private void setupPlugin(String context) throws Exception {
     String s = CommonConfiguration.getBatchUploadPlugin(context);
@@ -758,7 +759,7 @@ public final class BatchProcessor implements Runnable {
    * @param w width of thumbnail (pixels)
    * @param h height of thumbnail (pixels)
    * @throws ImageReadException
-   * @throws IOException 
+   * @throws IOException
    */
   private static void createThumbnail(File src, File dst, int w, int h) throws ImageReadException, IOException {
     BufferedImage img = MediaUtilities.loadImageAsSRGB(src);

@@ -49,7 +49,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
-import org.ecocean.Measurement;
+import org.ecocean.datacollection.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
 import org.ecocean.ShepherdProperties;

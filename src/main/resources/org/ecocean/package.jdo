@@ -273,7 +273,7 @@
       </field>
 
       <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.Measurement" dependent-element="true"/>
+        <collection element-type="org.ecocean.datacollection.Measurement" dependent-element="true"/>
         <join/>
       </field>
 
@@ -334,59 +334,6 @@
 -->
     </class>
 
-    <class name="DataCollectionEvent" identity-type="application">
-      <inheritance strategy="new-table"/>
-      <field name="correspondingEncounterNumber">
-        <column name="CORRESPONDINGENCOUNTERNUMBER"/>
-      </field>
-
-      <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
-        <column name="DATACOLLECTIONEVENTID"/>
-      </field>
-      <field name="samplingProtocol">
-        <column name="SAMPLINGPROTOCOL"/>
-      </field>
-      <field name="samplingEffort">
-        <column name="SAMPLINGEFFORT"/>
-      </field>
-      <field name="eventStartDate">
-        <column name="EVENTSTARTDATE"/>
-      </field>
-      <field name="eventEndDate">
-        <column name="EVENTENDDATE"/>
-      </field>
-      <field name="fieldNumber">
-        <column name="FIELDNUMBER"/>
-      </field>
-      <field name="fieldNotes">
-        <column name="FIELDNOTES"/>
-      </field>
-
-      <field name="eventRemarks">
-        <column name="EVENTREMARKS"/>
-      </field>
-      <field name="institutionID">
-        <column name="INSTITUTIONID"/>
-      </field>
-      <field name="collectionID">
-        <column name="COLLECTIONID"/>
-      </field>
-      <field name="datasetID">
-        <column name="DATASETID"/>
-      </field>
-      <field name="institutionCode">
-        <column name="INSTITUTIONCODE"/>
-      </field>
-      <field name="collectionCode">
-        <column name="COLLECTIONCODE"/>
-      </field>
-      <field name="datasetName">
-        <column name="DATASETNAME"/>
-      </field>
-      <field name="type">
-        <column name="TYPE"/>
-      </field>
-    </class>
 
     <class name="SinglePhotoVideo" identity-type="application">
       <inheritance strategy="new-table"/>
@@ -413,20 +360,11 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-	  
+
 	  <field name="webURL" persistence-modifier="none"></field>
 
     </class>
 
-    <class name="Measurement" identity-type="application">
-      <inheritance strategy="new-table"/>
-      <field name="value">
-        <column name="VALUE"/>
-      </field>
-      <field name="units">
-        <column name="UNITS"/>
-      </field>
-    </class>
 
     <class name="PatterningPassport" identity-type="datastore">
       <field name="timestampOfLastUpdate">
