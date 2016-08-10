@@ -49,6 +49,7 @@ public class IBEISIA {
     private static String SERVICE_NAME = "IBEISIA";
     private static String IA_UNKNOWN_NAME = "____";
 
+    private static boolean iaPrimed = false;
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
     //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
@@ -2164,6 +2165,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
     }
 
      /*
+     *   DEPRECATED!   see primeIA() instead
      * This static method sends all annotations and media assets for a species in Wildbook to Image Analysis in preparation for future matching.
      * It basically primes the system.
      */
@@ -2247,6 +2249,53 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return results;
     }
     
+
+    public static void primeIA() {
+        iaPrimed = false;
+System.out.println("<<<<< BEFORE");
+        Runnable r = new Runnable() {
+            public void run() {
+System.out.println("-- priming IBEISIA");
+                Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.beginDBTransaction();
+                ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
+System.out.println("anns.size() = " + anns.size());
+                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+                for (Annotation ann : anns) {
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
+                try {
+                    sendMediaAssets(mas);
+                    sendAnnotations(anns);
+                } catch (Exception ex) {
+                    System.out.println("!! IBEISIA.primeIA() failed: " + ex.toString());
+ex.printStackTrace();
+                }
+                myShepherd.rollbackDBTransaction();
+                iaPrimed = true;
+System.out.println("-- priming IBEISIA **complete**");
+            }
+        };
+        new Thread(r).start();
+System.out.println(">>>>>> AFTER");
+    }
+
+    public static boolean isIAPrimed() {
+        return iaPrimed;
+    }
+
+    public static void waitForIAPriming() {
+        int count = 100;
+        while (!isIAPrimed()) {
+            count--;
+            if (count < 0) throw new RuntimeException("waitForIAPriming() gave up! :(");
+System.out.println("waitForIAPriming() patiently waiting");
+            try { Thread.sleep(2000); } catch (java.lang.InterruptedException ex) {}
+        }
+        return;
+    }
 
 
 }
