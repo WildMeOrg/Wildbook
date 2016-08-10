@@ -944,10 +944,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
         //this will try to set from MediaAssetMetadata -- ymmv
         if (!llSet) enc.setLatLonFromAssets();
-
-        /* likewise, we could also use MediaAssetMetadata to attempt to set a date ... if we dont have one???
-        if (__date_not_set_via_form__) enc.setDateFromAssets();
-        */
+        if (enc.getYear() < 1) enc.setDateFromAssets();
 
             String newnum = "";
             if (!spamBot) {
