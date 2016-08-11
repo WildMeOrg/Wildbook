@@ -172,14 +172,14 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 	
 %>
 <li>
-	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a>
+	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataPointID()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a>
 </li>
 <%
 }
 %>
 
 <li>
-	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
+	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataPointID() %>"><%=encprops.getProperty("look4photos") %></a>
 </li>
 
 
@@ -217,7 +217,7 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 <%
             if (CommonConfiguration.isCatalogEditable(context)) {
     %>
-    <a href="../SinglePhotoVideoRemoveKeyword?number=<%=imageEncNum%>&photoName=<%=images.get(myImage).getDataCollectionEventID()%>&keyword=<%=word.getReadableName()%>">
+    <a href="../SinglePhotoVideoRemoveKeyword?number=<%=imageEncNum%>&photoName=<%=images.get(myImage).getDataPointID()%>&keyword=<%=word.getReadableName()%>">
          <%
         }
       %>
@@ -287,7 +287,7 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 
             </select>
             <input name="number" type="hidden" value="<%=imageEncNum%>" />
-            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataCollectionEventID()%>" />
+            <input name="photoName" type="hidden" value="<%=images.get(myImage).getDataPointID()%>" />
             <br />
             <input name="AddKW" type="submit" id="AddKW" value="<%=encprops.getProperty("add") %>" />
           </form>
@@ -327,13 +327,13 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a id="<%=images.get(myImage).getDataCollectionEventID() %>" href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
+    <a id="<%=images.get(myImage).getDataPointID() %>" href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
        title="<%=encprops.getProperty("clickEnlarge")%>">
       <%
       } 
       else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" id="<%=images.get(myImage).getDataCollectionEventID() %>"
+      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" id="<%=images.get(myImage).getDataPointID() %>"
         <%
         if(!isVideo){
         %>
@@ -348,7 +348,7 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
          <%
         }
 
-        String thumbPath = thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataCollectionEventID() + ".jpg";
+        String thumbPath = thisEncounterDir.getAbsolutePath() + "/" + images.get(myImage).getDataPointID() + ".jpg";
         String thumbLocation = "file-" + thumbPath;
         String srcurl = images.get(myImage).getFullFileSystemPath();
         File processedImage = new File(thumbPath);
@@ -424,8 +424,8 @@ System.out.println("trying to fork/create " + thumbPath);
                  fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
         </di:text>
       </di:img>
-      <img id="<%= images.get(myImage).getDataCollectionEventID()%>" width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
-           src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
+      <img id="<%= images.get(myImage).getDataPointID()%>" width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
+           src="<%=encUrlDir%>/<%=(images.get(myImage).getDataPointID()+".jpg")%>" border="0" align="left" valign="left"> <%
 				}
 
       if (request.getParameter("isOwner").equals("true")) {
@@ -448,8 +448,8 @@ System.out.println("trying to fork/create " + thumbPath);
 			String wmDiv = "";
 			String wmText = encprops.getProperty("imgWatermark");
 			if ((wmText != null) && !wmText.equals("")) wmDiv = "<div class=\"img-watermark\">" + wmText + "</div>";
-  %> <div style="position: relative"><img id="img<%=images.get(myImage).getDataCollectionEventID()%> " width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
-          src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left"
+  %> <div style="position: relative"><img id="img<%=images.get(myImage).getDataPointID()%> " width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
+          src="<%=encUrlDir%>/<%=(images.get(myImage).getDataPointID()+".jpg")%>" border="0" align="left"
           valign="left"><%=wmDiv%> <%
 
 	if (session.getAttribute("logged")!=null) {
@@ -608,7 +608,7 @@ System.out.println("trying to fork/create " + thumbPath);
       :</strong> <%=addTextFile%> <%
       if (request.getParameter("isOwner").equals("true") && CommonConfiguration.isCatalogEditable(context)) {
     %> <br/>
-    <a href="../EncounterRemoveImage?number=<%=imageEncNum%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&dcID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("clickremove") %>
+    <a href="../EncounterRemoveImage?number=<%=imageEncNum%>&filename=<%=(addTextFile.replaceAll(" ","%20"))%>&dcID=<%=images.get(myImage).getDataPointID()%>"><%=encprops.getProperty("clickremove") %>
     </a></p>
     <%
       }
@@ -702,7 +702,7 @@ catch (Exception e) {
           <%
             for (int rmi = 0; rmi < imageCount; rmi++) {
           %>
-          <option value="<%=imageEnc.getImages().get(rmi).getDataCollectionEventID()%>"><%=(rmi+1)%></option>
+          <option value="<%=imageEnc.getImages().get(rmi).getDataPointID()%>"><%=(rmi+1)%></option>
           <%
             }
           %>

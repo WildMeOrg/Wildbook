@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
-public class SinglePhotoVideo extends DataCollectionEvent {
+public class SinglePhotoVideo extends DataPoint {
 
   private static final long serialVersionUID = 7999349137348568641L;
   private PatterningPassport patterningPassport;
@@ -153,7 +153,7 @@ System.out.println("full path??? = " + this.fullFileSystemPath + " WRITTEN!");
   public String getCopyrightStatement(){return copyrightStatement;}
   public void setCopyrightStatement(String statement){copyrightStatement=statement;}
 
-   //public String getThumbnailFilename(){return (this.getDataCollectionEventID()+".jpg");}
+   //public String getThumbnailFilename(){return (this.getDataPointID()+".jpg");}
 
   /*
   public void setThumbnailFilename(String newName){this.thumbnailFilename=newName;}
@@ -258,17 +258,17 @@ System.out.println("yes. out. ))");
             //JSONObject jobj = new JSONObject(this);  //ugh JSONObject() is failing on Keywords, so lets start empty
             JSONObject jobj = new JSONObject();
             String urlPath = this.urlPath(request);
-            jobj.put("thumbUrl", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");
+            jobj.put("thumbUrl", urlPath + "/" + this.getDataPointID() + ".jpg");
             if (fullAccess) {  //canAccess (Encounter)?
                 jobj.put("url", urlPath + "/" + this.getFilename());
             } else {
-                jobj.put("url", urlPath + "/" + this.getDataCollectionEventID() + ".jpg");  //no full image when blocked
+                jobj.put("url", urlPath + "/" + this.getDataPointID() + ".jpg");  //no full image when blocked
                 jobj.remove("fullFileSystemPath");
                 jobj.remove("filename");
                 jobj.remove("file");
                 jobj.put("_sanitized", true);
             }
-            jobj.put("dataCollectionEventID", this.getDataCollectionEventID());
+            jobj.put("DataPointID", this.getDataPointID());
             return jobj;
         }
 
@@ -286,8 +286,8 @@ System.out.println("yes. out. ))");
     public MediaAsset toMediaAsset(Shepherd myShepherd, boolean allowDuplicate) {
         AssetStore astore = AssetStore.getDefault(myShepherd);
         org.json.JSONObject sp = astore.createParameters(new File(fullFileSystemPath));
-        sp.put("key", "spv/" + this.getDataCollectionEventID() + "/" + filename);
-        sp.put("sourceSinglePhotoVideoID", this.getDataCollectionEventID());
+        sp.put("key", "spv/" + this.getDataPointID() + "/" + filename);
+        sp.put("sourceSinglePhotoVideoID", this.getDataPointID());
         MediaAsset ma = null;
         if (!allowDuplicate) ma = astore.find(sp, myShepherd);
         if (ma != null) return ma;

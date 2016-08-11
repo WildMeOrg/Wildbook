@@ -151,7 +151,7 @@ public class EncounterSearchExportKML extends HttpServlet{
               List<SinglePhotoVideo> imgs = enc.getImages();
               int imgsNum = imgs.size();
               for (int imgNum = 0; imgNum < imgsNum; imgNum++) {
-                descHTML += ("<br />" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataCollectionEventID() + ".jpg\" /></a>");
+                descHTML += ("<br />" + "<a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?noscript=true&number=" + enc.getEncounterNumber() + "\"><img src=\"http://" + request.getServerName() +"/"+CommonConfiguration.getDataDirectoryName(context) + "/encounters/" + enc.getEncounterNumber() + "/" + imgs.get(imgNum).getDataPointID() + ".jpg\" /></a>");
               }
 
               description.addCDATA(descHTML);

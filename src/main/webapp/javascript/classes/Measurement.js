@@ -1,7 +1,7 @@
 
 wildbook.Model.Measurement = wildbook.Model.BaseClass.extend({
 
-	idAttribute: 'dataCollectionEventID',
+	idAttribute: 'DataPointID',
 
 });
 

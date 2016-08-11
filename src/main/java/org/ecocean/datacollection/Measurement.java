@@ -1,6 +1,6 @@
 package org.ecocean.datacollection;
 
-public class Measurement extends DataCollectionEvent {
+public class Measurement extends DataPoint {
 
   private static final long serialVersionUID = -7934850478287322048L;
 

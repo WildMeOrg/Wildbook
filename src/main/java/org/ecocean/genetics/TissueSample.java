@@ -5,13 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import org.ecocean.datacollection.DataCollectionEvent;
+import org.ecocean.datacollection.DataPoint;
 import org.ecocean.datacollection.Measurement;
 
 import javax.servlet.http.HttpServletRequest;
 
 
-public class TissueSample extends DataCollectionEvent {
+public class TissueSample extends DataPoint {
 
 
   private static final long serialVersionUID = -4918907304313880745L;

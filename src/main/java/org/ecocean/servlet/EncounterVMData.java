@@ -135,8 +135,8 @@ public class EncounterVMData extends HttpServlet {
 						if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 							HashMap i = new HashMap();
 							i.put("fullsizeUrl", "/" + dataDir + cand.dir("") + "/" + s.getFilename());
- 							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + "-mid.jpg");
- 							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataCollectionEventID() + ".jpg");
+ 							i.put("url", "/" + dataDir + cand.dir("") + "/" + s.getDataPointID() + "-mid.jpg");
+ 							i.put("thumbUrl", "/" + dataDir + cand.dir("") + "/" + s.getDataPointID() + ".jpg");
 							List k = s.getKeywords();
 							i.put("keywords", k);
 							images.add(i);
@@ -156,8 +156,8 @@ public class EncounterVMData extends HttpServlet {
 					if (myShepherd.isAcceptableImageFile(s.getFilename())) {
 						HashMap i = new HashMap();
 						i.put("fullsizeUrl", "/" + dataDir + "/" + s.getFilename());
- 						i.put("url", "/" + dataDir + "/" + s.getDataCollectionEventID() + "-mid.jpg");
- 						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataCollectionEventID() + ".jpg");
+ 						i.put("url", "/" + dataDir + "/" + s.getDataPointID() + "-mid.jpg");
+ 						i.put("thumbUrl", "/" + dataDir + "/" + s.getDataPointID() + ".jpg");
 						List k = s.getKeywords();
 						i.put("keywords", k);
 						images.add(i);

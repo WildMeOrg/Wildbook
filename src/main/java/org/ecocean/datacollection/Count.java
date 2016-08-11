@@ -1,6 +1,6 @@
 package org.ecocean.datacollection;
 
-public class Count extends DataCollectionEvent {
+public class Count extends DataPoint {
 
   private Integer value;
 

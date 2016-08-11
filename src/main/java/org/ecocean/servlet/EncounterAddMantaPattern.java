@@ -120,7 +120,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
         encounterNumber = request.getParameter("number");
         try {
           Encounter enc = myShepherd.getEncounter(encounterNumber);
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv = myShepherd.getSinglePhotoVideo(request.getParameter("DataPointID"));
           MantaMatcherUtilities.removeMatcherFiles(spv);
 
           // Clear MMA-compatible flag if appropriate for encounter.
@@ -147,7 +147,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File encDir = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
           
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv = myShepherd.getSinglePhotoVideo(request.getParameter("DataPointID"));
           File spvFile = new File(encDir, spv.getFilename());
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
           // Delete previous matching files.
@@ -223,7 +223,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
           File dirEnc = new File(Encounter.dir(shepherdDataDir, encounterNumber));
           
           
-          spv = myShepherd.getSinglePhotoVideo(request.getParameter("dataCollectionEventID"));
+          spv = myShepherd.getSinglePhotoVideo(request.getParameter("DataPointID"));
           mmFiles = MantaMatcherUtilities.getMatcherFilesMap(spv);
           // Delete previous matching files.
           mmFiles.get("TXT-REGIONAL").delete();
@@ -562,11 +562,11 @@ System.out.println("looks like cr format and target format are the same! -> " + 
             out.println(ServletUtilities.getFooter(context));
           }
           else if (action.equals("rescan")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResults?spv=" + spv.getDataPointID();
             response.sendRedirect(resultsURL);
           }
           else if (action.equals("rescanRegional")) {
-            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataCollectionEventID();
+            String resultsURL = request.getContextPath() + "/MantaMatcher/displayResultsRegional?spv=" + spv.getDataPointID();
             response.sendRedirect(resultsURL);
           }
           else {
