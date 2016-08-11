@@ -1774,19 +1774,22 @@ if(CommonConfiguration.showUsersToPublic(context)){
                          			<%
                          			if(thisUser.getAffiliation()!=null){
                          			%>
-                         			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
+                         			<strong><%=props.getProperty("researcher.affiliation")%></strong> <%=thisUser.getAffiliation() %><br />
                          			<%	
                          			}
                          			
                          			if(thisUser.getUserProject()!=null){
                          			%>
-                         			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
+                         			<strong><%=props.getProperty("researcher.researchProject")%></strong> <%=thisUser.getUserProject() %><br />
                          			<%	
                          			}
                          			
                          			if(thisUser.getUserURL()!=null){
-                             			%>
-                             			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
+                         			  String url = thisUser.getUserURL();
+                         			  if (!url.matches("(?i)http://.*"))
+                         			  url = "http://" + url;
+                         			%>
+                             			<strong><%=props.getProperty("researcher.website")%></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=url%>"><%=thisUser.getUserURL() %></a><br />
                              			<%	
                              			}
                          			
