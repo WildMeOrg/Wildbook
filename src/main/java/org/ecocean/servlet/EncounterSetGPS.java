@@ -30,6 +30,8 @@ import java.util.Locale;
 import java.util.Properties;
 
 import org.ecocean.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 //Set alternateID for this encounter/sighting
@@ -88,9 +90,9 @@ public class EncounterSetGPS extends HttpServlet {
             oldGPS = encprops.getProperty("noValue");
           }
           else{
-            oldGPS = String.format("(%s\\u00b0 %s, %s\\u00b0 %s)", changeMe.getDecimalLatitude(), encprops.getProperty("latitude"), changeMe.getDecimalLongitude(), encprops.getProperty("longitude"));
+            oldGPS = String.format("(%s° %s, %s° %s)", changeMe.getDecimalLatitude(), encprops.getProperty("latitude"), changeMe.getDecimalLongitude(), encprops.getProperty("longitude"));
           }
-          String newGPS = String.format("(%s\\u00b0 %s, %s\\u00b0 %s)", lat, encprops.getProperty("latitude"), longitude, encprops.getProperty("longitude"));
+          String newGPS = String.format("(%s° %s, %s° %s)", lat, encprops.getProperty("latitude"), longitude, encprops.getProperty("longitude"));
           
           try{
           
