@@ -22,7 +22,7 @@ out.println("\n\n"+new java.util.Date().toString()+": Starting to parse excel.")
 
 <html>
 <head>
-<title>Fix Some Fields</title>
+<title>Parse Excel</title>
 
 <style type="text/css">
   body {
@@ -44,7 +44,6 @@ myShepherd.beginDBTransaction();
 //build queries
 
 int numFixes=0;
-String maSetId = "603fd5ce-dbbf-4025-ba25-670219d043b6";
 
 String defaultFileName = "/home/ubuntu/documents/sample_data.xls";
 
@@ -76,25 +75,43 @@ try {
   int rows; // No of rows
   rows = sheet.getPhysicalNumberOfRows();
 
-  int cols = 0; // No of columns
-  int tmp = 0;
-
-  // This trick ensures that we get the data properly even if it doesn't start from first few rows
-  for(int i = 0; i < 10 || i < rows; i++) {
-      row = sheet.getRow(i);
-      if(row != null) {
-          tmp = sheet.getRow(i).getPhysicalNumberOfCells();
-          if(tmp > cols) cols = tmp;
-      }
-  }
+  int cols = sheet.getRow(0).getPhysicalNumberOfCells();
+  int columnInitOffset = 2;
+  cols = cols - columnInitOffset;
   out.println("<p>Num Cols = "+cols+"</p>");
-
+  ProtoField[] pFields = new ProtoField[cols];
   String[] fieldNames = new String[cols];
   String colName;
-  for(int i=0; i<sheet.getRow(0).getPhysicalNumberOfCells(); i++) {
-    colName = sheet.getRow(0).getCell(i).getStringCellValue();
+  for(int i=0; i<(sheet.getRow(0).getPhysicalNumberOfCells()-columnInitOffset); i++) {
+
+    colName = sheet.getRow(0).getCell(i+columnInitOffset).getStringCellValue();
     fieldNames[i] = parseColNameToFieldName(colName);
+    pFields[i] = new ProtoField(sheet, i+columnInitOffset);
+    /*
+    out.println("</br>");
+    out.println("</br>");
+    pFields[i].printFieldDeclaration(out);
+    out.println("</br>");
+    pFields[i].printFieldGetter(out);
+    out.println("</br>");
+    pFields[i].printFieldSetter(out);
+    out.println("</br>");
+    */
+    out.println("</br>");
+    pFields[i].printMeasurementConfigInfo(out, i, "Nest");
+    out.println("</br>");
+
+    String jdoEntry = composePackageJdoEntry(pFields[i].name, pFields[i].type);
+
+    out.println("</br>");
+
+
   }
+
+  System.out.println("a");
+  printJavaToFile(pFields, "testExcel.java");
+  System.out.println("b");
+
 
   String[] fieldType = new String[cols];
   List<Integer> colsWithUnknownType = new ArrayList<Integer>();
@@ -189,11 +206,134 @@ finally{
 
 <%!
 
+private class ProtoField {
+
+  String excelCellName;
+  String name;
+
+  String excelCellType;
+  String type;
+
+  public ProtoField(String excelCellName, String excelCellType) {
+    this.excelCellName =  excelCellName ;
+    this.name = parseName(excelCellName);
+    this.excelCellType =  excelCellType ;
+    this.type = parseType(excelCellType);
+  }
+
+  public ProtoField(HSSFSheet iotSheet, int columnNumber) {
+    this.excelCellName = iotSheet.getRow(0).getCell(columnNumber).getStringCellValue();
+    this.name = parseName(excelCellName);
+    HSSFCell typeCell = iotSheet.getRow(2).getCell(columnNumber);
+    this.type = parseIOTCellType(this.name, typeCell);
+  }
+
+  private String parseName(String excelCellName) {
+    return parseColNameToFieldName(excelCellName);
+  }
+
+  private String parseType(String excelCellType) {
+    return excelCellType;
+  }
+
+
+
+
+  public String composeFieldDeclaration() {
+    return("private "+type+" "+name+";");
+  }
+
+  public void printFieldDeclaration(JspWriter out) throws IOException {
+    out.println(this.composeFieldDeclaration());
+  }
+
+
+  public void printFieldGetter(JspWriter writer) throws IOException {
+    writer.println("</br>public "+type+" get"+capitolizeFirstLetter(name)+"(){");
+    writer.println("</br>\treturn("+name+");");
+    writer.println("</br>}");
+  }
+
+  public void printFieldGetter(PrintWriter writer) throws IOException {
+    writer.println("public "+type+" get"+capitolizeFirstLetter(name)+"(){");
+    writer.println("\treturn("+name+");");
+    writer.println("}");
+  }
+
+
+  public void printFieldSetter(JspWriter writer) throws IOException {
+    writer.println("</br>public void set"+capitolizeFirstLetter(name)+"("+type+" "+name+"){");
+    writer.println("</br>\tthis."+name+" = "+name+";");
+    writer.println("</br>}");
+  }
+
+  public void printFieldSetter(PrintWriter writer) throws IOException {
+    writer.println("public void set"+capitolizeFirstLetter(name)+"("+type+" "+name+"){");
+    writer.println("\tthis."+name+" = "+name+";");
+    writer.println("}");
+  }
+
+  public void printMeasurementConfigInfo(PrintWriter writer, int mNum, String className) throws IOException {
+    writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name));
+    writer.println("measurementUnits"+mNum+"=nounits");
+    writer.println("measurementClasses"+mNum+"="+className);
+    writer.println("measurementType"+mNum+"="+getMeasurementTypeFromJavaType(type));
+  }
+  public void printMeasurementConfigInfo(JspWriter writer, int mNum, String className) throws IOException {
+    writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name)+"</br>");
+    writer.println("measurementUnits"+mNum+"=nounits"+"</br>");
+    writer.println("measurementClasses"+mNum+"="+className+"</br>");
+    writer.println("measurementType"+mNum+"="+getMeasurementTypeFromJavaType(type)+"</br>");
+  }
+
+
+}
+
+public static String getMeasurementTypeFromJavaType(String type) {
+  if (type.toLowerCase().startsWith("int")) return "count";
+  else if (type.toLowerCase().startsWith("double")) return "measurement";
+  else return "observation";
+}
+
+
+
+public static void printJavaToFile(ProtoField[] fields, File outFile) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+  System.out.println("HELLO?");
+  try {
+    PrintWriter writer = new PrintWriter(outFile);
+    System.out.println("Made writer = " + writer);
+    for (ProtoField pField : fields) {
+      writer.println(pField.composeFieldDeclaration());
+    }
+    writer.println("");
+    for (ProtoField pField : fields) {
+      pField.printFieldSetter(writer);
+      pField.printFieldGetter(writer);
+    }
+    writer.close();
+  } catch (Exception e) {
+    System.out.println("ERROR!!");
+    e.printStackTrace();
+  }
+
+}
+
+public static void printJavaToFile(ProtoField[] fields, String fileName) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+
+  File outFile = new File(fileName);
+  System.out.println("File at "+outFile.getAbsolutePath()+", canWrite = "+outFile.canWrite());
+  printJavaToFile(fields, outFile);
+
+}
+
+
+
 public String parseColNameToFieldName(String colName) {
   String[] pieces = colName.split("-|\\.|_|\\s+");
   String result = joinCamelCase(pieces);
   // take out non-alphanumeric chars (there's only a few)
   result = result.replace("(|)|&|","");
+  result = result.replace("#","Num");
   return result;
 }
 
@@ -234,12 +374,21 @@ public void composeCategoricalVarsToPropertiesFile(HSSFSheet sheet, String fileN
   writer.close();
 }
 
+public boolean isCategoricalColumn(HSSFSheet iotSheet, int colNum) {
+  // equivalent to, "Is the fourth cell down empty?"
+  HSSFRow categoryRow = iotSheet.getRow(3);
+  try {
+    HSSFCell cell = categoryRow.getCell(colNum);
+    if (cell != null && cell.getStringCellValue()!=null && !cell.getStringCellValue().equals("")) return true;
+  } catch (Exception e) {}
+  return false;
+}
+
 public Integer[] findCategoricalVarColumns(HSSFSheet iotSheet) {
   ArrayList<Integer> categoricalVarCols = new ArrayList<Integer>();
   HSSFRow categoryRow = iotSheet.getRow(3);
   for (int i = 1; i < categoryRow.getPhysicalNumberOfCells(); i++) {
-    HSSFCell cell = categoryRow.getCell(i);
-    if (cell != null && cell.getStringCellValue()!=null && !cell.getStringCellValue().equals("")) categoricalVarCols.add((Integer) i);
+    if (isCategoricalColumn(iotSheet, i)) categoricalVarCols.add((Integer) i);
   }
   return categoricalVarCols.toArray(new Integer[1]);
 }
@@ -313,6 +462,8 @@ public String mapJavaTypeToJDBCType(String type) {
   // TODO: check that this is correct for our types
   if (type=="String") return "LONGVARCHAR";
   else if (type=="NUMERIC") return "NUMERIC";
+  else if (type=="Double" || type=="double") return "DOUBLE";
+  else if (type=="Integer"|| type=="int") return "INTEGER";
   else return "UNKNOWN";
 }
 
@@ -341,6 +492,8 @@ public static String parseIOTCellType(String fieldName, HSSFCell typeCell) {
 
   String cellContents = typeCell.getStringCellValue();
 
+  if (typeStringRefersToDate(cellContents)) return "DateTime";
+  if (fieldName.contains((CharSequence) "Num")) return "Integer";
   if (cellContents.trim().toLowerCase().equals("ddm"))  return parseIOTDDM(fieldName, typeCell);
   if (cellContents.trim().toLowerCase().equals("text")) return "String";
   if (cellContents.trim().toLowerCase().startsWith("numerical decimal")) return "Double";
@@ -349,14 +502,19 @@ public static String parseIOTCellType(String fieldName, HSSFCell typeCell) {
   return cellContents;
 }
 
+public static boolean typeStringRefersToDate(String type) {
+  // matches dd/mm/yyyy and jj/mm/yyyy
+  return (type.length()>9 && type.charAt(2)=='/' && type.charAt(5)=='/');
+}
+
 public static String parseIOTDDM(String fieldName, HSSFCell typeCell) {
 
-  if (fieldName.contains((CharSequence) "#")) return "int";
+  if (fieldName.contains((CharSequence) "Num")) return "int";
   if (typeCell.getStringCellValue().trim().toLowerCase().startsWith("numerical decimal")) return "double";
 
   if((fieldName.trim().toLowerCase().equals("tumor"))) return "boolean";
 
-  return "did not parse fieldName="+fieldName+" typeCell="+typeCell.getStringCellValue();
+  return "String";
 
 }
 
