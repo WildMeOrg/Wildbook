@@ -272,6 +272,11 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
         }
 */
 
+    } else if (request.getParameter("getReviewCounts") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        getOut = getReviewCounts(request, myShepherd).toString();
+
     } else {
         response.sendError(501, "Unknown command");
         getOut = "Unknown command";
@@ -950,6 +955,24 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         }
         System.out.println("ERROR: IAGateway.sendError() reporting " + code + ": " + msg);
         response.sendError(code, msg);
+    }
+
+
+    private JSONObject getReviewCounts(HttpServletRequest request, Shepherd myShepherd) {
+        JSONObject cts = new JSONObject();
+        String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
+        String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        if (username != null) {
+            filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
+        }
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        cts.put("detection", c.size());
+        filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
+        query = myShepherd.getPM().newQuery(filter);
+        c = (Collection) (query.execute());
+        cts.put("identification", c.size());
+        return cts;
     }
 
 }
