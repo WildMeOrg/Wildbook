@@ -275,7 +275,7 @@
 								User user = request.getParameter("username") != null ? myShepherd.getUser(request.getParameter("username").trim()) : null;
 								for (String role : rolesMap.values()) {
 									String selected = "";
-									if (isEdit && user != null) {
+									if (isEdit && user != null && myShepherd.doesUserHaveRole(request.getParameter("username"), role, "context" + d)) {
 										selected = "selected=\"true\"";
 									}
 									%>
@@ -313,9 +313,8 @@
             <p><%=props.getProperty("resetUserAgreement.describe")%></p>
 
             <form name="UserResetAcceptedUserAgreement" method="post" action="../UserResetAcceptedUserAgreement?context=context0">
-
               <input name="UserResetAcceptedUserAgreementButton" type="submit" id="UserResetAcceptedUserAgreementButton" value="<%=props.get("reset")%>">
-              </p></form>
+						</form>
           </td>
         </tr>
       </table>
