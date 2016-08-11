@@ -30,6 +30,8 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class IBEISIA {
 
@@ -49,7 +51,7 @@ public class IBEISIA {
     private static String SERVICE_NAME = "IBEISIA";
     private static String IA_UNKNOWN_NAME = "____";
 
-    private static boolean iaPrimed = false;
+    private static AtomicBoolean iaPrimed = new AtomicBoolean(false);
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
     private static HashMap<String,Boolean> alreadySentExemplar = new HashMap<String,Boolean>();
@@ -65,6 +67,13 @@ public class IBEISIA {
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
 
+    /*
+        NOTE: good practice is to call IBEISIA.waitForIAPriming(); before any of the sendFoo() or beginFoo() methods, so that some of the
+        time-consuming hassle can finish.  these things should happen upon tomcat startup, but can take a few minutes to run, so there may be
+        cases where IA jobs are started during this time.  technically nothing "bad" happens if a job starts during this process, but it will create
+        a longer wait time.  there is, however, a chance that waitForIAPriming() times out with a RuntimeException thrown.
+    */
+            
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return sendMediaAssets(mas, null);
@@ -72,6 +81,7 @@ public class IBEISIA {
 
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
@@ -132,6 +142,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
             //Annotation ann = new Annotation(ma, species);
 
     public static JSONObject sendAnnotations(ArrayList<Annotation> anns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
@@ -173,6 +184,7 @@ System.out.println("sendAnnotations(): sending " + ct);
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                           JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
@@ -259,6 +271,7 @@ System.out.println("tlist.size()=" + tlist.size());
 
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectAnnotations is not set");
         URL url = new URL(u);
@@ -538,7 +551,7 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
     private static boolean iaCheckMissing(JSONObject res) {
-System.out.println("########## iaCheckMissing res -> " + res);
+/////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
         if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
         boolean tryAgain = false;
@@ -613,6 +626,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     //like below, but you can pass Encounters (which will be mined for Annotations and passed along)
     public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentify() called without IA primed");
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         if ((queryEncs == null) || (queryEncs.size() < 1)) {
@@ -642,6 +656,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
     // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
@@ -2377,15 +2392,15 @@ System.out.println("using qid -> " + qid);
     }
 
     public static void primeIA() {
-        iaPrimed = false;
-System.out.println("<<<<< BEFORE");
+        setIAPrimed(false);
+System.out.println("<<<<< BEFORE : " + isIAPrimed());
+System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
         Runnable r = new Runnable() {
             public void run() {
-System.out.println("-- priming IBEISIA");
                 Shepherd myShepherd = new Shepherd("context0");
                 myShepherd.beginDBTransaction();
                 ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
-System.out.println("anns.size() = " + anns.size());
+System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
                 ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
                 for (Annotation ann : anns) {
                     MediaAsset ma = ann.getDerivedMediaAsset();
@@ -2400,20 +2415,25 @@ System.out.println("anns.size() = " + anns.size());
 ex.printStackTrace();
                 }
                 myShepherd.rollbackDBTransaction();
-                iaPrimed = true;
+                setIAPrimed(true);
 System.out.println("-- priming IBEISIA **complete**");
             }
         };
         new Thread(r).start();
-System.out.println(">>>>>> AFTER");
+System.out.println(">>>>>> AFTER : " + isIAPrimed());
     }
 
-    public static boolean isIAPrimed() {
-        return iaPrimed;
+    public static synchronized boolean isIAPrimed() {
+System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
+        return iaPrimed.get();
+    }
+    public static synchronized void setIAPrimed(boolean b) {
+System.out.println(" ???? setting iaPrimed to " + b);
+        iaPrimed.set(b);
     }
 
     public static void waitForIAPriming() {
-        int count = 100;
+        int count = 150;
         while (!isIAPrimed()) {
             count--;
             if (count < 0) throw new RuntimeException("waitForIAPriming() gave up! :(");
