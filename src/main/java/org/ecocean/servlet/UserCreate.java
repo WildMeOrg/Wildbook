@@ -64,13 +64,13 @@ public class UserCreate extends HttpServlet {
     //set up for response
     response.setContentType("text/html; charset=UTF-8");
     PrintWriter out = response.getWriter();
-    boolean createThisUser = false;
 
     boolean isEdit=false;
     if(request.getParameter("isEdit")!=null){
       isEdit=true;
       //System.out.println("isEdit is TRUE in UserCreate!");
     }
+    boolean createThisUser = !isEdit;
 
     // Prepare for user response.
     String link = "#";
