@@ -102,72 +102,35 @@ public class EncounterSetIdentifiable extends HttpServlet {
       }
       if (!locked) {
         myShepherd.commitDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter #" + request.getParameter("number") + " was successfully added back into the visual database.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        List<String> allStates2=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize2=allStates2.size();
-        if(allStatesSize2>0){
-          for(int i=0;i<allStatesSize2;i++){
-            String stateName=allStates2.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_OK);
+        
+        //out.println(ServletUtilities.getFooter(context));
         String message = "Encounter #" + request.getParameter("number") + " was accepted back into the visual database.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        out.println(ServletUtilities.getHeader(request));
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Encounter #" + request.getParameter("number") + " was NOT successfully added back into the visual database. This encounter is currently being modified by another user. Please try this operation again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        List<String> allStates5=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize5=allStates5.size();
-        if(allStatesSize5>0){
-          for(int i=0;i<allStatesSize5;i++){
-            String stateName=allStates5.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+       
+        //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+        
+        //out.println(ServletUtilities.getFooter(context));
 
 
       }
     } else {
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't know which encounter you're trying to reaccept.");
-      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-      int allStatesSize=allStates.size();
-      if(allStatesSize>0){
-        for(int i=0;i<allStatesSize;i++){
-          String stateName=allStates.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-        }
-      }
-      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-      List<String> allStates3=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-      int allStatesSize3=allStates3.size();
-      if(allStatesSize3>0){
-        for(int i=0;i<allStatesSize3;i++){
-          String stateName=allStates3.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-        }
-      }
-      out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      
+      //out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
+      
+      //out.println(ServletUtilities.getFooter(context));
 
     }
 
