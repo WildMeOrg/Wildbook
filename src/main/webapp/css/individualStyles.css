@@ -39,9 +39,168 @@
 
 #markedIndividualHeader {
   -webkit-text-fill-color: #005589;
-  color: #005589;
 }
 
+/*Edit forms*/
+label {
+  font-weight: lighter;
+}
+
+input#nickname.form-control, input#namer.form-control, input#timeOfBirth.form-control, input#timeOfDeath.form-control, input#alternateid.form-control{
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
+.editForm {
+  display: none;
+  margin-bottom: 10px;
+}
+
+.clickDateText{
+  margin-bottom: 0px;
+  display: none;
+  color: #990000;
+  font-size: 14px;
+}
+
+.form-group {
+  margin-bottom: 0px;
+}
+
+#nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #matchCheck {
+  display: none;
+  color: green;
+  font-family: sans-serif;
+}
+
+#nameError, #namerError, #sexError, #birthError, #deathError, #altIdError, #matchError {
+  display: none;
+  color: red;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+#nicknameErrorDiv, #sexErrorDiv, #birthErrorDiv, #deathErrorDiv, #altIdErrorDiv, #matchErrorDiv {
+  display: none;
+}
+
+.relationshipInput {
+  height: 30px;
+}
+
+.requiredLabel {
+  margin-bottom: 0px;
+}
+
+.highlight {
+  color: #990000;
+}
+
+input.form-control.relationshipInput, select.form-control.relationshipInput {
+  margin-bottom: 10px;
+}
+
+.editFormInput {
+  margin-right: 5px;
+  padding-right: 0px;
+}
+
+.editFormBtn {
+  width: 70px;
+}
+
+#addRelationshipForm {
+  background-color: #e8eff1;
+  padding: 10px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+#Name, #Add, #birthy, #deathy, #AltID, #setMB {
+  margin-bottom: 0px;
+  margin-top: 2px;
+  margin-left: 15px;
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
+
+#addRelationshipBtn {
+  margin-bottom: 20px;
+}
+
+#edit {
+  display: block;
+}
+
+#closeEdit, .confirmDelete {
+  display: none;
+}
+
+#edit, #closeEdit {
+  background-color: white;
+}
+
+#edit:hover, #closeEdit:hover {
+  background-color: #8bff00;
+}
+
+.has-feedback .form-control {
+  padding-right: 30px;
+}
+
+#individual1set, #individual2set {
+  display: none;
+}
+
+.successHighlight {
+  color: green;
+}
+
+button.btn.btn-sm.btn-block.yesDelete {
+  background-color: #20B845;
+  color: #FFFFFF;
+}
+
+button.btn.btn-sm.btn-block.yesDelete:hover {
+  background-color: #22C449;
+  color: #FFFFFF;
+}
+
+button.btn.btn-sm.btn-block.cancelDelete {
+  background-color: #D9231A;
+  color: #FFFFFF;
+}
+
+button.btn.btn-sm.btn-block.cancelDelete:hover {
+  background-color: #EE261D;
+  color: #FFFFFF;
+}
+
+button.btn.btn-sm.btn-block.deleteRelationshipBtn {
+  background-color: #D9231A;
+  color: #FFFFFF;
+}
+button.btn.btn-sm.btn-block.deleteRelationshipBtn:hover {
+  background-color: #EE261D;
+  color: #FFFFFF;
+}
+
+input.btn.btn-md#closeRelationshipForm {
+  background-color: #D9231A;
+  color: #FFFFFF;
+}
+
+input.btn.btn-md#closeRelationshipForm:hover {
+  background-color: #EE261D;
+  color: #FFFFFF;
+}
+
+.setRelationshipResultDiv {
+  padding-bottom: 20px;
+}
 
 /*Hide Diagram Tab Content*/
 #communityTable, #cooccurrenceTable, #bioSamplesTable {
@@ -64,6 +223,11 @@ li.active{
 
 .nav-tabs>li>a:hover {
   background-color: #8aacb8;
+}
+
+/*Social Relationships Table Styles*/
+#relationshipTable th {
+  background-image: none;
 }
 
 /* Family Tree Styles */
@@ -91,7 +255,6 @@ li.active{
 }
 
 /*Bubble Diagram Styles*/
-
 
 .co-occurrences {
   width: 850px;
@@ -141,6 +304,7 @@ button {
 .node circle {
   stroke: none;
 }
+
 
 /*Co-occurrence Table Style*/
 
