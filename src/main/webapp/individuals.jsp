@@ -1513,7 +1513,7 @@ if (request.getParameter("number")!=null) {
                         <%
                       }
                       %>
-                      <img src="<%=profilePhotoURL%>" class="researcherPhoto">
+                      <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL%>" class="researcherPhoto lazyload">
 
                       <div class="researcherInfo" id="info<%=userNum%>">
                         <%
