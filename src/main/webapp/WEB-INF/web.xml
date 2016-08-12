@@ -1050,6 +1050,15 @@
   </servlet-mapping>
 -->
 
+<servlet>
+         <servlet-name>jsp</servlet-name>
+         <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param> 
+            <param-name>mappedfile</param-name>
+             <param-value>false</param-value>
+        </init-param>
+     </servlet> 
+
 	<servlet>
 		<servlet-name>WildbookApi</servlet-name>
 		<servlet-class>org.ecocean.servlet.RestServlet</servlet-class>
