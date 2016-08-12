@@ -1,5 +1,5 @@
 
-<h1><a href="http://www.ibeis.org"><img style="float: left;" align="middle" width="225px" height="225px" src="https://raw.githubusercontent.com/WildbookOrg/Wildbook/master/src/main/webapp/cust/mantamatcher/img/wildbook_logo.png"></a>Wildbook
+<h1><a href="http://www.ibeis.org"><img style="float: left;" align="middle" width="225px" height="225px" src="https://raw.githubusercontent.com/WildbookOrg/Wildbook/master/src/main/webapp/cust/mantamatcher/img/wildbook_logo.png"></a>Wildbook</h1>
 
 
  
