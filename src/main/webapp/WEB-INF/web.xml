@@ -914,10 +914,12 @@
     <servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterSetSize</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
@@ -1646,10 +1648,12 @@
     <url-pattern>/EncounterSetLocation</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetSize</servlet-name>
     <url-pattern>/EncounterSetSize</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterDelete</servlet-name>
