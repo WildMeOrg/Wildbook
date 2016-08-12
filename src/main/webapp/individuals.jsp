@@ -551,7 +551,7 @@ if (request.getParameter("number")!=null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p class="noEditText"><%=props.getProperty("birthdate")  %>: <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
+            <p class="noEditText"><%=props.getProperty("birthdate")  %> <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
 
             <script type="text/javascript">
@@ -636,7 +636,7 @@ if (request.getParameter("number")!=null) {
                   var individual = $("input[name='individual']").val();
                   var timeOfDeath = $("#timeOfDeath").val();
 
-                  $.post("IndividualSetYearOfDeath", {"inividual": individual, "timeOfDeath": timeOfDeath},
+                  $.post("IndividualSetYearOfDeath", {"individual": individual, "timeOfDeath": timeOfDeath},
                   function() {
                     $("#deathErrorDiv").hide();
                     $("#deathDiv").addClass("has-success");
