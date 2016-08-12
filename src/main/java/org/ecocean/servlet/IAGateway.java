@@ -475,6 +475,7 @@ System.out.println(id);
                 res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
             }
 
+            IBEISIA.waitForIAPriming();
             boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -652,6 +653,7 @@ System.out.println("- mark A");
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
 System.out.println("- mark C");
+            IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
 System.out.println("- mark D");

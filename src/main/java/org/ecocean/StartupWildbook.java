@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletContextListener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContext;
+import java.net.URL;
 
 import org.ecocean.*;
 import org.ecocean.media.LocalAssetStore;
@@ -92,8 +93,15 @@ public class StartupWildbook implements ServletContextListener {
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("* StartupWildbook initialized called");
+        ServletContext context = sce.getServletContext(); 
+        URL res = null;
+        try {
+            res = context.getResource("/");
+        } catch (Exception ex) {}
+System.out.println("  StartupWildbook.contextInitialized() res = " + res);
+        //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
+        if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
         IBEISIA.primeIA();
-        //ServletContext context = sce.getServletContext(); 
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
