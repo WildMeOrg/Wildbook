@@ -276,41 +276,39 @@ td.measurement{
 
   <script>
             function initialize() {
-            //alert("Initializing map!");
-              var mapZoom = 1;
-          	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-
-
-              var center = new google.maps.LatLng(10.8, 160.8);
-
-              map = new google.maps.Map(document.getElementById('map_canvas'), {
-                zoom: mapZoom,
-                center: center,
-                mapTypeId: google.maps.MapTypeId.HYBRID,
-                zoomControl: true,
-                scaleControl: false,
-                scrollwheel: false,
-                disableDoubleClickZoom: true,
-        });
-
-        	if(marker!=null){
-			marker.setMap(map);
-			map.setCenter(marker.position);
-
- 			//alert("Setting center!");
-		}
-
-        google.maps.event.addListener(map, 'click', function(event) {
-					//alert("Clicked map!");
-				    placeMarker(event.latLng);
-			  });
-
-
-	//adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+	            //alert("Initializing map!");
+	              var mapZoom = 1;
+	          	
+	              var center = new google.maps.LatLng(10.8, 160.8);
+	
+	              map = new google.maps.Map(document.getElementById('map_canvas'), {
+	                zoom: mapZoom,
+	                center: center,
+	                mapTypeId: google.maps.MapTypeId.HYBRID,
+	                zoomControl: true,
+	                scaleControl: false,
+	                scrollwheel: false,
+	                disableDoubleClickZoom: true,
+	        	});
+	
+	        	if(marker!=null){
+					marker.setMap(map);
+					map.setCenter(marker.position);
+	
+	 			//alert("Setting center!");
+				}
+	
+	        	google.maps.event.addListener(map, 'click', function(event) {
+						//alert("Clicked map!");
+					    placeMarker(event.latLng);
+				  });
+	
+	
+		//adding the fullscreen control to exit fullscreen
+	    	  var fsControlDiv = document.createElement('DIV');
+	    	  var fsControl = new FSControl(fsControlDiv, map);
+	    	  fsControlDiv.index = 1;
+	    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
 
@@ -324,19 +322,8 @@ var encounterNumber = '<%=num%>';
   </script>
 
 <style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-
-  .ui-dialog-titlebar-close { display: none; }
-  code { font-size: 2em; }
-
+	.ui-dialog-titlebar-close { display: none; }
+	code { font-size: 2em; }
 </style>
 
 
@@ -365,16 +352,6 @@ margin-bottom: 8px !important;
 </head>
 
 <style type="text/css">
-
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
 
 
 /* css for timepicker */
@@ -2208,6 +2185,146 @@ if(enc.getLocation()!=null){
 %>
 <!-- End Display maximumElevationInMeters -->
 
+	<!-- START MAP and GPS SETTER -->
+
+    <script type="text/javascript">
+        var markers = [];
+        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
+        //bounds.extend(latLng);
+         	<%
+         	//currently unused programatically
+           	String markerText="";
+
+           	String haploColor="CC0000";
+           	if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   	haploColor=encprops.getProperty("defaultMarkerColor");
+           	}
+
+
+           	%>
+
+       marker = new google.maps.Marker({
+    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   position:latLng,
+    	   map:map
+    	});
+
+	   		<%
+	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		%>
+	   			marker.setVisible(false);
+
+	   		<%
+	   		}
+ 			%>
+
+       markers.push(marker);
+       //map.fitBounds(bounds);
+
+    	//}
+
+
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+
+ 	<%
+ 	if((request.getUserPrincipal()!=null)){
+ 	%>
+ 		<p><%=encprops.getProperty("map_note") %></p>
+ 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
+ 	<%
+ 	}
+ 	else {
+ 	%>
+ 	<p><%=encprops.getProperty("nomap") %></p>
+ 	<%
+ 	}
+ 	%>
+ 	<!-- adding ne submit GPS-->
+
+
+
+ 	<%
+ 	if(isOwner){
+ 		String longy="";
+       	String laty="";
+       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+
+     	%>
+
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $("#setGPSbutton").click(function(event) {
+            event.preventDefault();
+
+            var number = $("#gpsNumber").val();
+            var lat = $("#lat").val();
+            var longitude = $("#longitude").val();
+
+            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
+            function() {
+              $("#latCheck, #longCheck").show();
+            })
+            .fail(function(response) {
+              $("#gpsErrorDiv").show();
+              $("#gpsErrorDiv").html(response.responseText);
+              $("#latCheck, #longCheck").hide();
+            });
+          });
+
+          $("#lat, #longitude, #map_canvas").click(function() {
+            $("#gpsErrorDiv").hide()
+            $("#latCheck, #longCheck").hide();
+          });
+        });
+      </script>
+
+
+     	<a name="gps"></a>
+        <div>
+          <br>
+          <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
+          <form name="resetGPSform" class="editFormLocation">
+            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
+            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
+            <div class="form-group row">
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("latitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
+                <span class="form-control-feedback" id="latCheck">&check;</span>
+              </div>
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("longitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
+                <span class="form-control-feedback" id="longCheck">&check;</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-3">
+                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
+
+              </div>
+            </div>
+          </form>
+
+          <br/>
+          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+        </div>
+
+     	<%
+ 		}  //end isOwner
+     	%>
+<br /> <br />
+ <!--end adding submit GPS-->
+ <!-- END MAP and GPS SETTER -->
+
+
 <%-- START METADATA --%>
 <table>
 <tr>
@@ -3377,213 +3494,7 @@ else {
 
 
   <br /><br />
- 	<!-- START MAP and GPS SETTER -->
-
-    <script type="text/javascript">
-        var markers = [];
-        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
-        //bounds.extend(latLng);
-         	<%
-         	//currently unused programatically
-           	String markerText="";
-
-           	String haploColor="CC0000";
-           	if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   	haploColor=encprops.getProperty("defaultMarkerColor");
-           	}
-
-
-           	%>
-
-       marker = new google.maps.Marker({
-    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
-    	   position:latLng,
-    	   map:map
-    	});
-
-	   		<%
-	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
-	   		%>
-	   			marker.setVisible(false);
-
-	   		<%
-	   		}
- 			%>
-
-       markers.push(marker);
-       //map.fitBounds(bounds);
-
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		//hide header
-    		$("#header_menu").hide();
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen")%>';
-    	    } else {
-    	      controlText.innerHTML = '<%=encprops.getProperty("fullscreen")%>';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
-
-
-
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-
- 	<%
- 	if((request.getUserPrincipal()!=null)){
- 	%>
- 		<p><%=encprops.getProperty("map_note") %></p>
- 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
- 	<%
- 	}
- 	else {
- 	%>
- 	<p><%=encprops.getProperty("nomap") %></p>
- 	<%
- 	}
- 	%>
- 	<!-- adding ne submit GPS-->
-
-
-
- 	<%
- 	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
-     	%>
-
-      <script type="text/javascript">
-        $(document).ready(function() {
-          $("#setGPSbutton").click(function(event) {
-            event.preventDefault();
-
-            var number = $("#gpsNumber").val();
-            var lat = $("#lat").val();
-            var longitude = $("#longitude").val();
-
-            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
-            function() {
-              $("#latCheck, #longCheck").show();
-            })
-            .fail(function(response) {
-              $("#gpsErrorDiv").show();
-              $("#gpsErrorDiv").html(response.responseText);
-              $("#latCheck, #longCheck").hide();
-            });
-          });
-
-          $("#lat, #longitude, #map_canvas").click(function() {
-            $("#gpsErrorDiv").hide()
-            $("#latCheck, #longCheck").hide();
-          });
-        });
-      </script>
-
-
-     	<a name="gps"></a>
-        <div>
-          <br>
-          <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
-          <form name="resetGPSform" class="editFormLocation">
-            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
-            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
-            <div class="form-group row">
-              <div class="col-sm-2">
-                <label><%=encprops.getProperty("latitude")%>:</label>
-              </div>
-              <div class="col-sm-3">
-                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
-                <span class="form-control-feedback" id="latCheck">&check;</span>
-              </div>
-              <div class="col-sm-2">
-                <label><%=encprops.getProperty("longitude")%>:</label>
-              </div>
-              <div class="col-sm-3">
-                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
-                <span class="form-control-feedback" id="longCheck">&check;</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-sm-3">
-                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
-
-              </div>
-            </div>
-          </form>
-
-          <br/>
-          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
-        </div>
-
-     	<%
- 		}  //end isOwner
-     	%>
-<br /> <br />
- <!--end adding submit GPS-->
- <!-- END MAP and GPS SETTER -->
-
+ 
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
