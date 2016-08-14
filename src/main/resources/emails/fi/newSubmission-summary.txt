@@ -1,0 +1,14 @@
+SUBJECT: Uuden havainnon lahetys: @ENCOUNTER_ID@
+
+WWF NORPPA-GALLERIA on ottanut vastaan uuden saimaannorppahavainnon. Loydat sen taalta:
+@ENCOUNTER_LINK@
+
+Paikka:  @ENCOUNTER_LOCATION@
+Aika:  @ENCOUNTER_DATE@
+Sukupuoli:  @ENCOUNTER_SEX@
+Ilmoittaja:  @ENCOUNTER_SUBMITTER_NAME@
+Ilmoittajan e-mail:  @ENCOUNTER_SUBMITTER_EMAIL@
+Kuvaaja:  @ENCOUNTER_PHOTOGRAPHER_NAME@
+Kuvaajan e-mail:  @ENCOUNTER_PHOTOGRAPHER_EMAIL@
+Lisatietoja:  @ENCOUNTER_COMMENTS@
+

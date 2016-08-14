@@ -1,0 +1,12 @@
+SUBJECT: Yksilopaivitys: @INDIVIDUAL_ID@
+
+Hei! 
+
+Seuraamasi norpan yksilotietoihin on tehty muutoksia. Katso teksti alla.
+
+Muutos:
+
+Yksilo: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+@TEXT_CONTENT@    

@@ -1,0 +1,2 @@
+AIHE: Poistettu havainto @ENCOUNTER_ID@
+Havainto @ENCOUNTER_ID@ on poistettu norppagalleriasta kayttajan @USER@ toimesta.

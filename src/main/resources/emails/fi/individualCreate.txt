@@ -1,0 +1,18 @@
+SUBJECT: Havaintopaivitys: @ENCOUNTER_ID@
+
+Hei!
+
+Loysit uuden saimaannorpan! Kuvaamasi saimaannorppa on nyt liitetty uudeksi yksiloksi Norppagalleriaa.
+
+Loydat lisatietoja naista linkeista:
+
+Uusi kirjattu yksilo: @INDIVIDUAL_ID@
+@INDIVIDUAL_LINK@
+
+Havainto: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+Kiitos avustasi saimaannorpan suojelussa!
+
+
+        

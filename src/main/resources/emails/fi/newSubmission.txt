@@ -1,0 +1,14 @@
+SUBJECT: Uusi havaintoilmoitus: @ENCOUNTER_ID@
+Kiitos avustasi saimaannorppatutkimukselle!
+
+Kiitos, etta ilmoitit saimaannorppahavaintosi. Ilmoittamaasi tietoa kaytetaan saimaannorpan suojelun ja tutkimuksen edistamiseen.
+
+Linkki havaintoosi:
+@ENCOUNTER_LINK@
+
+Norppagallerian löydät tästä linkistä:
+
+http://norppagalleria.wwf.fi/
+
+Mikäli lähetit valokuvan, ilmoitamme sinulle myöhemmin kuvaamaasi norppaa koskevia tietoja.
+

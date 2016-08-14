@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+    <style type="text/css">
+html, body {
+	background-image: none;
+	background-color: white;
+}
+
+body {
+  margin: 0px;
+  padding: 0px;
+  text-align: left;
+  font-family: Verdana, Arial, sans-serif;
+  font-size: 14px;
+  height:100%;
+  width:100%;
+}
+img.masthead {
+	margin: none;
+	padding: none;
+	width: 100%;
+}
+div#mailContent {
+	margin: none;
+	padding: 10px 10px;
+	width: auto;
+	text-align: left;
+}
+div#mailContent p span.bold {
+	text-transform: uppercase;
+}
+div#textContent {
+}
+p.wow {
+	font-weight: bold;
+	font-style: italic;
+}
+.caption {
+	margin-top: 0px;
+	padding-top: 0px;
+	font-size: 0.8em;
+}
+.legal {
+	font-style: italic;
+}
+.legal .title {
+	font-weight: bold;
+}
+li.batchError {
+	font-size: 0.8em;
+	color: #c00;
+}
+li.batchWarning {
+	font-size: 0.8em;
+	color: #600;
+}
+#mailHeader{
+	background-color: black;
+  width: 100%
+}
+</style> <link rel="stylesheet" type="text/css" href="http://norppagalleria.wwf.fi/cust/mantamatcher/css/manta.css">
+  </head>
+  <body>
+    <table style="width: 100%; background-color: white;">
+      <tbody>
+
+        <tr>
+          <td width="105px"> <a href="http://norppagalleria.wwf.fi"><img src="http://norppagalleria.wwf.fi/cust/mantamatcher/img/wwf-seal-logo.png"></a>
+          </td>
+          <td>
+            <div id="mailContent" style="width:100%;background-color: white;">
+              @EMAIL_CONTENT@
+              <p>Ystavallisin terveisin,</p>
+			  
+
+              <dl>
+                <dt>WWF NORPPA-GALLERIA</dt>
+              </dl>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="legal caption"><br>
+    </div>
+    <!--@REMOVEME_START@-->
+    <div id="removeMe" class="caption">
+      <p>Tahdotko POISTAA sahkopostiosoitteesi norppagalleriasta? <a href="@REMOVEME_LINK@">Paina alla olevaa linkkia.</a>. Et saa enaa sahkoposti-ilmoituksia norppahavainnoistasi.</p>
+		
+		   
+		
+    </div>
+    <!--@REMOVEME_END@-->
+  </body>
+</html>

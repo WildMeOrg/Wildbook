@@ -1,0 +1,11 @@
+SUBJECT: Havaintopaivitys: @ENCOUNTER_ID@
+Hei!
+Seuraamaasi norppahavaintoon on tehty muutoksia. Katso teksti alla.
+
+Muutos:
+
+Havainto: @ENCOUNTER_ID@
+@ENCOUNTER_LINK@
+
+@TEXT_CONTENT@
+

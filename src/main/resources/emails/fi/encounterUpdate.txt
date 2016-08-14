@@ -1,0 +1,2 @@
+SUBJECT: Havaintopaivitys: @ENCOUNTER_ID@
+@TEXT_CONTENT@

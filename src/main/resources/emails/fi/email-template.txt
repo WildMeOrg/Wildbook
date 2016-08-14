@@ -1,0 +1,15 @@
+SUBJECT: Email from WWF NORPPA GALLERIA
+
+@EMAIL_CONTENT@
+
+Sincerely,
+
+WWF NORPPA-GALLERIA
+
+
+
+@REMOVEME_START@
+Do you want to REMOVE your email address from this database? Click the link
+below to remove it. You will no longer receive updates on your encounters.
+@REMOVEME_LINK@
+@REMOVEME_END@
