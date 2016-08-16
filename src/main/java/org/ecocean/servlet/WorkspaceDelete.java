@@ -28,12 +28,16 @@ public class WorkspaceDelete extends HttpServlet {
     super.init(config);
   }
 
+  public void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+      ServletUtilities.doOptions(request, response);
+  }
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     doPost(request, response);
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    response.setHeader("Access-Control-Allow-Origin", "*");  //allow us stuff from localhost
     String context="context0";
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);

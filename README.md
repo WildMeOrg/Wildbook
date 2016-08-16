@@ -1,11 +1,10 @@
 
-<h1><a href="http://www.ibeis.org"><img style="float: left;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_ibeisproject.svg"></a>Wildbook
-<a href="http://www.wildme.org"><img style="float: lrft;" align="middle" width="130px" height="130px" src="https://cdn.rawgit.com/holmbergius/Wildbook/master/src/main/webapp/cust/mantamatcher/img/logo_wildemeproject.svg"></a></h1>
+<h1><a href="http://www.ibeis.org"><img style="float: left;" align="middle" width="225px" height="225px" src="https://raw.githubusercontent.com/WildbookOrg/Wildbook/master/src/main/webapp/cust/mantamatcher/img/wildbook_logo.png"></a>Wildbook</h1>
 
 
  
 
-Wildbook is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
+Wildbook&reg; is an open source software framework to support mark-recapture, molecular ecology, and social ecology studies. The biological and statistical communities already support a number of excellent tools, such as Program MARK,GenAlEx, and SOCPROG for use in analyzing wildlife data. Wildbook is a complementary software application that:
 
 -provides a scalable and collaborative platform for intelligent wildlife data storage and management, including advanced, consolidated searching
 
