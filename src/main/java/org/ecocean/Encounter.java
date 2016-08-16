@@ -116,6 +116,7 @@ public class Encounter implements java.io.Serializable {
   public String specificEpithet;
   public String lifeStage;
   public String country;
+  public String zebraClass ="";  //via lewa: lactating female, territorial male, etc etc
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
@@ -295,6 +296,13 @@ public class Encounter implements java.io.Serializable {
         this.resetDateInMilliseconds();
     }
 
+
+    public String getZebraClass() {
+        return zebraClass;
+    }
+    public void setZebraClass(String c) {
+        zebraClass = c;
+    }
 
   /**
    * Returns an array of all of the superSpots for this encounter.
