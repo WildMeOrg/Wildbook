@@ -69,11 +69,6 @@ var makeCooccurrenceChart = function(items) {
     });
 };
 
-var getIndividualIDFromEncounterToString = function(encToString) {
-  // return everything between "individualID=" and the next comma after that
-  return encToString.split("individualID=")[1].split(",")[0];
-}
-
 var getData = function(individualID) {
     var occurrenceObjectArray = [];
     var items = [];
@@ -87,23 +82,15 @@ var getData = function(individualID) {
       }
       var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
-        var thisOcc = jsonData[i];
-        var encounterSize = thisOcc.encounters.length;
-        // make encounterArray, containing the individualIDs of every encounter in thisOcc;
+        var encounterSize = jsonData[i].encounters.length;
         for(var j=0; j < encounterSize; j++) {
-          var thisEnc = thisOcc.encounters[j];
-          console.log("thisEnc = "+thisEnc);
-          console.log("thisEnc = "+thisEnc.toString());
-          console.log("thisEnc = "+JSON.stringify(thisEnc));
-          console.log("typeof(thisEnc) = "+typeof(thisEnc));
-          var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
-          if(encounterArray.includes(thisEncIndID)) {
+          if(encounterArray.includes(jsonData[i].encounters[j].individualID)) {
           } else {
-            encounterArray.push(thisEncIndID);
+            encounterArray.push(jsonData[i].encounters[j].individualID);
           }
         }
         occurrenceArray = occurrenceArray.concat(encounterArray);
-        var occurrenceID = thisOcc.encounters[0].occurrenceID;
+        var occurrenceID = jsonData[i].encounters[0].occurrenceID;
         var index = encounterArray.indexOf(individualID.toString());
         if (~index) {
             encounterArray[index] = "";
@@ -112,7 +99,7 @@ var getData = function(individualID) {
         if(encounterArray.length > 0) {
           occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
         } else {
-          occurrenceObject = { occurrenceID: "", occurringWith: "" };
+          occurrenceObject = {occurrenceID: "", occurringWith: ""};
         }
         occurrenceObjectArray.push(occurrenceObject);
         encounterArray = [];
@@ -123,7 +110,6 @@ var getData = function(individualID) {
         dataObject[occurrenceArray[i]] = 0;
         ++dataObject[occurrenceArray[i]];
       }
-
       for (var prop in dataObject) {
         var whale = new Object();
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
@@ -142,14 +128,11 @@ var getSexHaploData = function(individualID, items) {
       console.log("error")
     }
     jsonData = json;
-    //console.log("jsonData: "+JSON.stringify(jsonData));
     for(var i=0; i < jsonData.length; i++) {
       var result = items.filter(function(obj) {
-        return obj.text === jsonData[i].individualID;
+        return obj.text === jsonData[i].individualID
       })[0];
-      if (!result) {
-        continue;
-      }
+      if (!result) continue;
       result.sex = jsonData[i].sex;
       result.haplotype = jsonData[i].localHaplotypeReflection;
     }
@@ -167,7 +150,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
     .data(d3.keys(items[0]))
     .enter().append("th").text(function(d){
       if(d === "text") {
-      return "Occurring With";
+        return "Occurring With";
       } if (d === "count"){
         return "# Co-occurrences";
       } if (d === "behavior") {
@@ -188,15 +171,64 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
         return "Occurring With";
       } if(d === "catalogNumber") {
         return "Catalog Number";
+      } if(d === "roles") {
+        return "Roles";
+      } if(d === "relationshipWith") {
+        return "Relationship With";
+      } if(d === "type") {
+        return "Type";
+      } if(d === "socialUnit") {
+        return "Social Unit";
+      } if(d === "edit") {
+        return "Edit";
+      } if(d === "remove") {
+        return "Remove";
+      } if(d === "relationshipID") {
+        return "Relationship ID";
       }
     })
-    .on("click", function(d){ return refreshTable(d) ;});
+    .on("click", function(d){
+      if(tableHeadLocation != "#relationshipHead") {
+        return refreshTable(d);
+      }
+    });
 
     var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
-    tr.enter().append("tr").attr("class", function(d){return d3.values(d)[0];});
+    tr.enter().append("tr").attr("class", function(d){
+      if(d.relationshipID !=null && d.relationshipID != 'undefined') {
+        return d.relationshipID;
+      }
+      return d3.values(d)[0];
+    });
 
     var td = tr.selectAll("td").data(function(d){return d3.values(d);});
-    td.enter().append("td").text(function(d) {return d;});
+    td.enter().append("td").html(function(d) {
+      if(d == 'TissueSample') {
+        return "<img class='encounterImg' src='images/microscope.gif'/>";
+      } if(d == 'image') {
+        return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
+      } if(d == 'both') {
+        return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
+      }
+      if(typeof d == "object") {
+        if(d.length <= 2) {
+          if(d[0] == 'edit'){
+            return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block editRelationshipBtn' id='edit" + d[1] + "'>Edit</button>";
+          } if(d[0] == 'remove') {
+            return "<button type='button' name='button' value='" + d[1] + "' class='btn btn-sm btn-block deleteRelationshipBtn' id='remove" + d[1] + "'>Remove</button><div class='confirmDelete' value='" + d[1] + "'><p>Are you sure you want to delete this relationship?</p><button class='btn btn-sm btn-block yesDelete' type='button' name='button' value='" +d[1]+ "'>Yes</button><button class='btn btn-sm btn-block cancelDelete' type='button' name='button' value='" + d[1] + "'>No</button></div>"
+            ;
+          }
+          return d[0].italics() + "-" + d[1];
+        }
+        if(d.length > 2) {
+          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
+          }
+        }
+        if(d == "GOS") {
+          return "<a target='_blank' href='socialUnit.jsp?name=" + d + "'>" + d + "</a>"
+        }
+      return d;
+    });
 
     if(sortOn !== null) {
       if(sortOn != previousSort){
@@ -206,10 +238,16 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation) {
         tr.sort(function(a,b){return sort(b[sortOn], a[sortOn]);});
         previousSort = null;
       }
-      td.text(function(d) {return d;});
-      $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
-      $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
-      $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
+      td.html(function(d) {
+        if(d == 'TissueSample') {
+          return "<img class='encounterImg' src='images/microscope.gif'/>";
+        } if(d == 'image') {
+          return "<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>"
+        } if(d == 'both') {
+          return "<img class='encounterImg' src='images/microscope.gif'/><img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>";
+        }
+        return d;
+      });
     }
   }
 
@@ -295,9 +333,129 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl+"/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl+"/individuals.jsp?number=" + selectedWhale);
+    window.open("/individuals.jsp?number=" + selectedWhale);
   }
+
+  var getRelationshipData = function(relationshipID) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.social.Relationship/" + relationshipID, function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+
+      var type = jsonData.type;
+      var individual1 = jsonData.markedIndividualName1;
+      var individual2 = jsonData.markedIndividualName2;
+      var role1 = jsonData.markedIndividualRole1;
+      var role2 = jsonData.markedIndividualRole2;
+      var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
+      var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
+      var socialUnit = jsonData.relatedSocialUnitName;
+      var startTime = new Date(jsonData.startTime);
+      var endTime = new Date(jsonData.endTime);
+      var bidirectional = jsonData.bidirectional;
+
+      $("#addRelationshipForm").show();
+      $("#setRelationship").show();
+
+      $("#individual1set").hide();
+      $("#individual1").show();
+      $("#individual1").val(individual1);
+      $('#role1').val(role1);
+      $("#descriptor1").val(descriptor1);
+      $("#individual2").val(individual2);
+      $("#role2").val(role2);
+      $("#descriptor2").val(descriptor2);
+      $("#socialUnit").val(socialUnit);
+      $("#startTime").val(startTime);
+      $("#endTime").val(endTime);
+      $("#bidirectional").val(bidirectional);
+    });
+  }
+
+  var resetForm = function($form, markedIndividual) {
+    $("#addRelationshipForm").show();
+
+    $form.show();
+    $form.find('input:text, select').val('');
+
+    $("#type option:selected").prop("selected", false);
+    $("#type option:first").prop("selected", "selected");
+    $("#role1 option:selected").prop("selected", false);
+    $("#role1 option:first").prop("selected", "selected");
+    $("#role2 option:selected").prop("selected", false);
+    $("#role2 option:first").prop("selected", "selected");
+
+    $("#individual1").val('');
+    $("#individual1").val(markedIndividual);
+    $("#individual1").hide();
+    $("#individual1set").show();
+  }
+
+  var getRelationshipTableData = function(individualID) {
+  d3.json(wildbookGlobals.baseUrl + "/api/jdoql?SELECT%20FROM%20org.ecocean.social.Relationship%20WHERE%20(this.markedIndividualName1%20==%20%22" + individualID + "%22%20||%20this.markedIndividualName2%20==%20%22" + individualID + "%22)", function(error, json) {
+    if(error) {
+      console.log("error")
+    }
+    var relationshipArray = [];
+    jsonData = json;
+    for(var i = 0; i < jsonData.length; i++) {
+      var relationshipID = jsonData[i]._id;
+      if(jsonData[i].markedIndividualName1 != individualID) {
+        var whaleID = jsonData[i].markedIndividualName1;
+        var markedIndividual = jsonData[i].markedIndividualName2;
+        var relationshipWithRole = jsonData[i].markedIndividualRole1;
+        var markedIndividualRole = jsonData[i].markedIndividualRole2;
+      }
+      if(jsonData[i].markedIndividualName2 != individualID) {
+        var whaleID = jsonData[i].markedIndividualName2;
+        var markedIndividual = jsonData[i].markedIndividualName1;
+        var markedIndividualRole = jsonData[i].markedIndividualRole1;
+        var relationshipWithRole = jsonData[i].markedIndividualRole2;
+      }
+      var relatedSocialUnitName = jsonData[i].relatedSocialUnitName;
+      var type = jsonData[i].type;
+      var relationship = new Object();
+      relationship = {roles: [markedIndividualRole, relationshipWithRole], relationshipWith: [whaleID], type: type, socialUnit: relatedSocialUnitName, edit: ["edit", relationshipID], remove: ["remove", relationshipID]};
+      relationshipArray.push(relationship);
+    }
+    getIndividualData(relationshipArray);
+  });
+}
+
+var getIndividualData = function(relationshipArray) {
+  var relationshipTableData = [];
+  for(var i=0; i < relationshipArray.length; i++) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function(error, json) {
+      if(error) {
+        console.log("error")
+      }
+      jsonData = json;
+      var individualInfo = relationshipArray.filter(function(obj) {
+        return obj.relationshipWith[0] === jsonData.individualID;
+      })[0];
+      individualInfo.relationshipWith[1] = jsonData.nickName;
+      individualInfo.relationshipWith[2] = jsonData.alternateid;
+      individualInfo.relationshipWith[3] = jsonData.sex;
+      individualInfo.relationshipWith[4] = jsonData.localHaplotypeReflection;
+      relationshipTableData.push(individualInfo);
+
+      if(relationshipTableData.length == relationshipArray.length) {
+        for(var j = 0; j < relationshipArray.length; j++) {
+          if(relationshipArray[j].relationshipWith.length == 1) {
+            relationshipArray[j].relationshipWith[1] = jsonData.nickName;
+            relationshipArray[j].relationshipWith[1] = jsonData.nickName;
+            relationshipArray[j].relationshipWith[2] = jsonData.alternateid;
+            relationshipArray[j].relationshipWith[3] = jsonData.sex;
+            relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
+          }
+        }
+        makeTable(relationshipArray, "#relationshipHead", "#relationshipBody");
+      }
+    });
+  }
+}

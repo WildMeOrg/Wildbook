@@ -249,12 +249,31 @@ public class Annotation implements java.io.Serializable {
       this.identificationStatus = status;
     }
 
+    //if this cannot determine a bounding box, then we return null
     public int[] getBbox() {
+        if (getMediaAsset() == null) return null;
+        Feature found = null;
+        for (Feature ft : getFeatures()) {
+            if (ft.isUnity() || ft.isType("org.ecocean.boundingBox")) {
+                found = ft;
+                break;
+            }
+        }
+        if (found == null) return null;
         int[] bbox = new int[4];
-        bbox[0] = x;
-        bbox[1] = y;
-        bbox[2] = width;
-        bbox[3] = height;
+        if (found.isUnity()) {
+            bbox[0] = 0;
+            bbox[1] = 0;
+            bbox[2] = (int)getMediaAsset().getWidth();
+            bbox[3] = (int)getMediaAsset().getHeight();
+            return bbox;
+        }
+        //guess we derive from feature!
+        if (found.getParameters() == null) return null;
+        bbox[0] = found.getParameters().optInt("x", 0);
+        bbox[1] = found.getParameters().optInt("y", 0);
+        bbox[2] = found.getParameters().optInt("width", 0);
+        bbox[3] = found.getParameters().optInt("height", 0);
         return bbox;
     }
 
@@ -289,8 +308,8 @@ public class Annotation implements java.io.Serializable {
         return new ToStringBuilder(this)
                 .append("id", id)
                 .append("species", species)
-/*
                 .append("bbox", getBbox())
+/*
                 //.append("transform", ((getTransformMatrix == null) ? null : Arrays.toString(getTransformMatrix())))
                 .append("transform", Arrays.toString(getTransformMatrix()))
                 .append("asset", mediaAsset)
@@ -351,6 +370,20 @@ public class Annotation implements java.io.Serializable {
     static public ArrayList<Annotation> getExemplars(String species, Shepherd myShepherd) {
 //species = "Balaenoptera acutorostrata";  //for springbreak testing only!!!!!!!  FIXME
         String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar && species == \"" + species + "\"";
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            anns.add((Annotation)it.next());
+        }
+        query.closeAll();
+        return anns;
+    }
+
+    //for *any/all* species
+    static public ArrayList<Annotation> getExemplars(Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar";
         ArrayList<Annotation> anns = new ArrayList<Annotation>();
         Query query = myShepherd.getPM().newQuery(filter);
         Collection c = (Collection) (query.execute());
