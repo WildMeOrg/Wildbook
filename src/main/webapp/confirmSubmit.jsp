@@ -203,7 +203,7 @@ new_message.append("<html><body>");
 
 <p><%=props.getProperty("futureReference") %> <strong><%=number%></strong>.</p>
 
-<%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
+<%=props.getProperty("questions") %> <a href="mailto:photo-id@uef.fi">photo-id@uef.fi</a></p>
 
 <p>
 	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
