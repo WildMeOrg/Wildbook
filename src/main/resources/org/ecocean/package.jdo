@@ -273,7 +273,7 @@
       </field>
 
       <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-        <collection element-type="org.ecocean.datacollection.Measurement" dependent-element="true"/>
+        <collection element-type="org.ecocean.datacollection.MeasurementEvent" dependent-element="true"/>
         <join/>
       </field>
 

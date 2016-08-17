@@ -5,7 +5,7 @@ var wildbook = {
         'MarkedIndividual',
         'SinglePhotoVideo',
         'MediaAsset',
-        'Measurement',
+        'MeasurementEvent',
     ],
 
     Model: {},

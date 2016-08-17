@@ -98,7 +98,7 @@ try {
     out.println("</br>");
     */
     out.println("</br>");
-    pFields[i].printMeasurementConfigInfo(out, i, "Nest");
+    pFields[i].printMeasurementEventConfigInfo(out, i, "Nest");
     out.println("</br>");
 
     String jdoEntry = composePackageJdoEntry(pFields[i].name, pFields[i].type);
@@ -273,23 +273,23 @@ private class ProtoField {
     writer.println("}");
   }
 
-  public void printMeasurementConfigInfo(PrintWriter writer, int mNum, String className) throws IOException {
+  public void printMeasurementEventConfigInfo(PrintWriter writer, int mNum, String className) throws IOException {
     writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name));
     writer.println("measurementUnits"+mNum+"=nounits");
     writer.println("measurementClasses"+mNum+"="+className);
-    writer.println("measurementType"+mNum+"="+getMeasurementTypeFromJavaType(type));
+    writer.println("measurementType"+mNum+"="+getMeasurementEventTypeFromJavaType(type));
   }
-  public void printMeasurementConfigInfo(JspWriter writer, int mNum, String className) throws IOException {
+  public void printMeasurementEventConfigInfo(JspWriter writer, int mNum, String className) throws IOException {
     writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name)+"</br>");
     writer.println("measurementUnits"+mNum+"=nounits"+"</br>");
     writer.println("measurementClasses"+mNum+"="+className+"</br>");
-    writer.println("measurementType"+mNum+"="+getMeasurementTypeFromJavaType(type)+"</br>");
+    writer.println("measurementType"+mNum+"="+getMeasurementEventTypeFromJavaType(type)+"</br>");
   }
 
 
 }
 
-public static String getMeasurementTypeFromJavaType(String type) {
+public static String getMeasurementEventTypeFromJavaType(String type) {
   if (type.toLowerCase().startsWith("int")) return "count";
   else if (type.toLowerCase().startsWith("double")) return "measurement";
   else return "observation";

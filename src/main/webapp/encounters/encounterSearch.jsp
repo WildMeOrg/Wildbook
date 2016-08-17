@@ -1088,11 +1088,11 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 <%
 }
 
-  pageContext.setAttribute("showMeasurement", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMeasurementEvent", CommonConfiguration.showMeasurementEvents(context));
 %>
-<c:if test="${showMeasurement}">
+<c:if test="${showMeasurementEvent}">
 <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
 %>
 <tr><td></td></tr>
 <tr><td><strong><%=encprops.getProperty("measurements") %></strong></td></tr>

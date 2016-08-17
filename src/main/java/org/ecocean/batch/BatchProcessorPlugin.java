@@ -27,7 +27,7 @@ import java.util.Objects;
 import javax.servlet.ServletContext;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
@@ -61,7 +61,7 @@ public abstract class BatchProcessorPlugin {
   /** List of encounters. */
   private final List<Encounter> listEnc;
   /** List of measurements. */
-  private List<Measurement> listMea;
+  private List<MeasurementEvent> listMea;
   /** Map of media-items to batch-photos used during batch processing. */
   private Map<SinglePhotoVideo, BatchMedia> mapPhoto;
   /** List of samples. */
@@ -108,11 +108,11 @@ public abstract class BatchProcessorPlugin {
     return listEnc;
   }
 
-  protected final List<Measurement> getListMea() {
+  protected final List<MeasurementEvent> getListMea() {
     return listMea;
   }
 
-  final void setListMea(List<Measurement> listMea) {
+  final void setListMea(List<MeasurementEvent> listMea) {
     this.listMea = listMea;
   }
 

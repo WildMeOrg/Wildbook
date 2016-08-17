@@ -397,7 +397,7 @@ if(sharky.getLocationID()!=null){
     		<%
     		}
     		//if the encounter has a measurement, show the measurement icon
-    		if(enc.hasMeasurements()){
+    		if(enc.hasMeasurementEvents()){
     		%>	
     			<img src="images/ruler.png" height="32px" width="*" />
         	<%	

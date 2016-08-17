@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import org.ecocean.Encounter;
 import org.ecocean.MarkedIndividual;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.genetics.TissueSample;
 
@@ -38,8 +38,8 @@ public final class BatchData {
   public final List<MarkedIndividual> listInd;
   /** Encounter instances parsed from batch data CSV files. */
   public final List<Encounter> listEnc;
-  /** Measurement instances parsed from batch data CSV files. */
-  public List<Measurement> listMea;
+  /** MeasurementEvent instances parsed from batch data CSV files. */
+  public List<MeasurementEvent> listMea;
   /** BatchMedia instances parsed from batch data CSV files. */
   public List<BatchMedia> listMed;
   /** Map to aid processing of media files. */
@@ -59,7 +59,7 @@ public final class BatchData {
     this.listEnc = listEnc;
   }
 
-  public void setListMea(List<Measurement> listMea) {
+  public void setListMea(List<MeasurementEvent> listMea) {
     if (this.listMea != null)
       throw new RuntimeException("Values already assigned");
     if (listMea == null)

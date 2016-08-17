@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Shepherd;
 import org.ecocean.genetics.*;
 
@@ -63,17 +63,17 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
               //let's determine the units
               String units="";
-              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context)!=null)){
-                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context).intValue();
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementEventType", request.getParameter("measurementType").trim(),context)!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementEventType", request.getParameter("measurementType").trim(),context).intValue();
                 System.out.println("     TissueSampleSetMeasurement index: "+index);
-                if(CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context)!=null){
+                if(CommonConfiguration.getProperty(("biologicalMeasurementEventUnits"+index),context)!=null){
                   System.out.println("Found units!");
-                  units=CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context);
+                  units=CommonConfiguration.getProperty(("biologicalMeasurementEventUnits"+index),context);
                 }
               }
             
               measurement = new BiologicalMeasurement(sampleID, analysisID, encNum, request.getParameter("measurementType"), (new Double(request.getParameter("value"))), units, request.getParameter("samplingProtocol"));
-              if(request.getParameter("measurementType")!=null){measurement.setMeasurementType(request.getParameter("measurementType"));}
+              if(request.getParameter("measurementType")!=null){measurement.setMeasurementEventType(request.getParameter("measurementType"));}
               
               if(request.getParameter("processingLabTaskID")!=null){measurement.setProcessingLabTaskID(request.getParameter("processingLabTaskID"));}
               if(request.getParameter("processingLabName")!=null){measurement.setProcessingLabName(request.getParameter("processingLabName"));}
@@ -95,12 +95,12 @@ public class TissueSampleSetMeasurement extends HttpServlet {
             
               //let's determine the units
               String units="";
-              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context)!=null)){
-                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementType", request.getParameter("measurementType").trim(),context).intValue();
+              if((request.getParameter("measurementType")!=null)&&(CommonConfiguration.getIndexNumberForValue("biologicalMeasurementEventType", request.getParameter("measurementType").trim(),context)!=null)){
+                int index=CommonConfiguration.getIndexNumberForValue("biologicalMeasurementEventType", request.getParameter("measurementType").trim(),context).intValue();
                 System.out.println("     TissueSampleSetMeasurement index: "+index);
-                if(CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context)!=null){
+                if(CommonConfiguration.getProperty(("biologicalMeasurementEventUnits"+index),context)!=null){
                   System.out.println("Found units!");
-                  units=CommonConfiguration.getProperty(("biologicalMeasurementUnits"+index),context);
+                  units=CommonConfiguration.getProperty(("biologicalMeasurementEventUnits"+index),context);
                 }
               }
               

@@ -1364,7 +1364,7 @@ if (request.getParameter("number")!=null) {
                               else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
                               BiologicalMeasurement mito=(BiologicalMeasurement)ga;
                               %>
-                              <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+                              <tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementEventType()%> <%=props.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
                               <%
                                 if(!mito.getSuperHTMLString().equals("")){
                                 %>

@@ -6,7 +6,7 @@ import java.util.List;
 
 
 import org.ecocean.datacollection.DataCollectionEvent;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -91,10 +91,10 @@ public class TissueSample extends DataCollectionEvent {
     return paramValues;
   }
 
-  public boolean hasMeasurements(){
+  public boolean hasMeasurementEvents(){
     if((analyses!=null)&&(analyses.size()>0)){
-      int numMeasurements=analyses.size();
-      for(int i=0;i<numMeasurements;i++){
+      int numMeasurementEvents=analyses.size();
+      for(int i=0;i<numMeasurementEvents;i++){
         GeneticAnalysis m=analyses.get(i);
         if(m.getAnalysisType().equals("BiologicalMeasurement")){
           BiologicalMeasurement f=(BiologicalMeasurement)m;
@@ -105,14 +105,14 @@ public class TissueSample extends DataCollectionEvent {
     return false;
   }
 
-  public boolean hasMeasurement(String measurementType){
+  public boolean hasMeasurementEvent(String measurementType){
     if((analyses!=null)&&(analyses.size()>0)){
-      int numMeasurements=analyses.size();
-      for(int i=0;i<numMeasurements;i++){
+      int numMeasurementEvents=analyses.size();
+      for(int i=0;i<numMeasurementEvents;i++){
         GeneticAnalysis m=analyses.get(i);
         if(m.getAnalysisType().equals("BiologicalMeasurement")){
           BiologicalMeasurement f=(BiologicalMeasurement)m;
-          if((f.getMeasurementType().equals(measurementType))&&(f.getValue()!=null)){return true;}
+          if((f.getMeasurementEventType().equals(measurementType))&&(f.getValue()!=null)){return true;}
         }
       }
     }
@@ -122,8 +122,8 @@ public class TissueSample extends DataCollectionEvent {
   public List<BiologicalMeasurement> getBiologicalMeasurements(){
     ArrayList<BiologicalMeasurement> measures=new ArrayList<BiologicalMeasurement>();
     if((analyses!=null)&&(analyses.size()>0)){
-      int numMeasurements=analyses.size();
-      for(int i=0;i<numMeasurements;i++){
+      int numMeasurementEvents=analyses.size();
+      for(int i=0;i<numMeasurementEvents;i++){
         GeneticAnalysis m=analyses.get(i);
         if(m.getAnalysisType().equals("BiologicalMeasurement")){
           BiologicalMeasurement f=(BiologicalMeasurement)m;
@@ -136,12 +136,12 @@ public class TissueSample extends DataCollectionEvent {
 
   public BiologicalMeasurement getBiologicalMeasurement(String type){
     if((analyses!=null)&&(analyses.size()>0)){
-      int numMeasurements=analyses.size();
-      for(int i=0;i<numMeasurements;i++){
+      int numMeasurementEvents=analyses.size();
+      for(int i=0;i<numMeasurementEvents;i++){
         GeneticAnalysis m=analyses.get(i);
         if(m.getAnalysisType().equals("BiologicalMeasurement")){
           BiologicalMeasurement f=(BiologicalMeasurement)m;
-          if((f.getValue()!=null)&&(f.getMeasurementType()!=null)&&(f.getMeasurementType().equals(type))){return f;}
+          if((f.getValue()!=null)&&(f.getMeasurementEventType()!=null)&&(f.getMeasurementEventType().equals(type))){return f;}
         }
       }
     }

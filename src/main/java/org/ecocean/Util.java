@@ -42,9 +42,9 @@ import com.reijns.I3S.Point2D;
 
 public class Util {
 
-  //Measurement static values
+  //MeasurementEvent static values
   private static final String MEASUREMENT = "measurement";
-  private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementType";
+  private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementEventType";
   private static final String UNITS = MEASUREMENT + "Units";
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
@@ -53,8 +53,8 @@ public class Util {
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
 
-  public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
-    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
+  public static List<MeasurementEventDesc> findMeasurementEventDescs(String langCode,String context) {
+    List<MeasurementEventDesc> list = new ArrayList<MeasurementEventDesc>();
     List<String> types = CommonConfiguration.getIndexedPropertyValues(MEASUREMENT,context);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedPropertyValues(UNITS,context);
@@ -63,14 +63,14 @@ public class Util {
         String unit = units.get(i);
         String typeLabel = findLabel(type, langCode,context);
         String unitsLabel = findLabel(unit, langCode,context);
-        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
+        list.add(new MeasurementEventDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
   }
 
-  public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
-    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
+  public static List<MeasurementEventDesc> findBiologicalMeasurementDescs(String langCode, String context) {
+    List<MeasurementEventDesc> list = new ArrayList<MeasurementEventDesc>();
     List<String> types = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENT,context);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENTUNITS,context);
@@ -79,7 +79,7 @@ public class Util {
         String unit = units.get(i);
         String typeLabel = findLabel(type, langCode, context);
         String unitsLabel = findLabel(unit, langCode, context);
-        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
+        list.add(new MeasurementEventDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
@@ -204,13 +204,13 @@ public class Util {
     return sb.toString();
   }
 
-  public static class MeasurementDesc {
+  public static class MeasurementEventDesc {
     private String type;
     private String label;
     private String units;
     private String unitsLabel;
 
-    private MeasurementDesc(String type, String label, String units, String unitsLabel) {
+    private MeasurementEventDesc(String type, String label, String units, String unitsLabel) {
       this.type = type;
       this.label = label;
       this.units = units;

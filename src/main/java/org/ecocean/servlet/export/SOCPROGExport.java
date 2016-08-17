@@ -15,7 +15,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import jxl.write.*;
 import jxl.*;
 
-import org.ecocean.Util.MeasurementDesc;
+import org.ecocean.Util.MeasurementEventDesc;
 
 
 //adds spots to a new encounter
@@ -156,19 +156,19 @@ public class SOCPROGExport extends HttpServlet{
         Label popLabel9 = new Label(6, 0, "RecaptureStatus");
         sheet2.addCell(popLabel9);
 
-        List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
-        int numMeasurementTypes=measurementTypes.size();
-        for(int j=0;j<numMeasurementTypes;j++){
+        List<MeasurementEventDesc> measurementTypes=Util.findMeasurementEventDescs("en",context);
+        int numMeasurementEventTypes=measurementTypes.size();
+        for(int j=0;j<numMeasurementEventTypes;j++){
           String measureName=measurementTypes.get(j).getType();
           Label popLabelX = new Label((j+7), 0, measureName);
           sheet2.addCell(popLabelX);
         }
 
-        List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
-        int numBioMeasurementTypes=bioMeasurementTypes.size();
-        for(int j=0;j<numBioMeasurementTypes;j++){
-          String measureName=bioMeasurementTypes.get(j).getType();
-          Label popLabelX = new Label((j+7+numMeasurementTypes), 0, measureName);
+        List<MeasurementEventDesc> bioMeasurementEventTypes=Util.findBiologicalMeasurementDescs("en",context);
+        int numBioMeasurementEventTypes=bioMeasurementEventTypes.size();
+        for(int j=0;j<numBioMeasurementEventTypes;j++){
+          String measureName=bioMeasurementEventTypes.get(j).getType();
+          Label popLabelX = new Label((j+7+numMeasurementEventTypes), 0, measureName);
           sheet2.addCell(popLabelX);
         }
 
@@ -302,21 +302,21 @@ public class SOCPROGExport extends HttpServlet{
                       sheet2.addCell(popLabel9a);
 
 
-                      for(int m=0;m<numMeasurementTypes;m++){
+                      for(int m=0;m<numMeasurementEventTypes;m++){
                         String measureName=measurementTypes.get(m).getType();
-                        if((enc.hasMeasurement(measureName))&&(enc.getMeasurement(measureName)!=null)){
-                          Measurement mmnt=enc.getMeasurement(measureName);
+                        if((enc.hasMeasurementEvent(measureName))&&(enc.getMeasurementEvent(measureName)!=null)){
+                          MeasurementEvent mmnt=enc.getMeasurementEvent(measureName);
                           jxl.write.Number popLabelX = new jxl.write.Number((m+7), count, mmnt.getValue(),numbersFormat);
                           sheet2.addCell(popLabelX);
                         }
                       }
 
-                      for(int m=0;m<numBioMeasurementTypes;m++){
-                        String measureName=bioMeasurementTypes.get(m).getType();
+                      for(int m=0;m<numBioMeasurementEventTypes;m++){
+                        String measureName=bioMeasurementEventTypes.get(m).getType();
                         if(enc.hasBiologicalMeasurement(measureName)){
                           BiologicalMeasurement bm=enc.getBiologicalMeasurement(measureName);
                           if((bm!=null)&&(bm.getValue()!=null)){
-                            jxl.write.Number popLabelX = new jxl.write.Number((m+7+numMeasurementTypes), count, bm.getValue(),numbersFormat);
+                            jxl.write.Number popLabelX = new jxl.write.Number((m+7+numMeasurementEventTypes), count, bm.getValue(),numbersFormat);
                             sheet2.addCell(popLabelX);
                           }
                         }

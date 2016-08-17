@@ -1052,18 +1052,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 </fieldset>
 <%
-    pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+    pageContext.setAttribute("showMeasurementEvents", CommonConfiguration.showMeasurementEvents(context));
 %>
-<c:if test="${showMeasurements}">
+<c:if test="${showMeasurementEvents}">
 <hr>
  <fieldset>
 <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
     pageContext.setAttribute("samplingProtocols", Util.findSamplingProtocols(langCode,context));
 %>
 
  <div class="form-group">
-           <h3>Measurements</h3>
+           <h3>MeasurementEvents</h3>
 
 
 <div class="col-xs-12 col-lg-8"> 

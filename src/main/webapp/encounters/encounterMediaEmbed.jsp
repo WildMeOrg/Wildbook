@@ -3,7 +3,7 @@
 org.ecocean.media.*,
 org.ecocean.*,
 org.ecocean.identity.IBEISIA,
-org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, org.datanucleus.api.rest.orgjson.JSONObject, org.datanucleus.api.rest.orgjson.JSONArray, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
+org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementEvent, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, org.datanucleus.api.rest.orgjson.JSONObject, org.datanucleus.api.rest.orgjson.JSONArray, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--

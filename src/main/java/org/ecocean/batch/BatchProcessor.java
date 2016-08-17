@@ -73,7 +73,7 @@ public final class BatchProcessor implements Runnable {
   /** List of encounters. */
   private final List<Encounter> listEnc;
   /** List of measurements. */
-  private List<Measurement> listMea;
+  private List<MeasurementEvent> listMea;
   /** Map of media-items to batch-media used during batch processing. */
   private Map<SinglePhotoVideo, BatchMedia> mapMedia;
   /** List of samples. */
@@ -134,7 +134,7 @@ public final class BatchProcessor implements Runnable {
     this.context=context;
   }
 
-  public void setListMea(List<Measurement> listMea) {
+  public void setListMea(List<MeasurementEvent> listMea) {
     this.listMea = listMea;
   }
 
@@ -476,8 +476,8 @@ public final class BatchProcessor implements Runnable {
           if (CommonConfiguration.getProperty("encounterState1", context) != null)
             enc.setState(CommonConfiguration.getProperty("encounterState1", context));
           // Assign encounter ID to associated measurements.
-          if (enc.getMeasurements() != null) {
-            for (Measurement x : enc.getMeasurements()) {
+          if (enc.getMeasurementEvents() != null) {
+            for (MeasurementEvent x : enc.getMeasurementEvents()) {
               x.setCorrespondingEncounterNumber(enc.getEncounterNumber());
             }
           }

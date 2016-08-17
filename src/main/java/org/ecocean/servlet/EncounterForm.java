@@ -49,7 +49,7 @@ import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
 import org.ecocean.Encounter;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
 import org.ecocean.ShepherdProperties;
@@ -151,8 +151,8 @@ private final String UPLOAD_DIRECTORY = "/tmp";
   }
 
 
-  private List<Measurement> getMeasurements(HashMap fv, String encID, String context) {
-    List<Measurement> list = new ArrayList<Measurement>();
+  private List<MeasurementEvent> getMeasurementEvents(HashMap fv, String encID, String context) {
+    List<MeasurementEvent> list = new ArrayList<MeasurementEvent>();
         //List<String> keys = Arrays.asList("weight", "length", "height");  //TODO programatically build from form
 
     //dynamically adapt to project-specific measurements
@@ -165,7 +165,7 @@ private final String UPLOAD_DIRECTORY = "/tmp";
             if (value.length() > 0) {
                 try {
                     Double doubleVal = Double.valueOf(value);
-                    list.add(new Measurement(encID, key, doubleVal, units, samplingProtocol));
+                    list.add(new MeasurementEvent(encID, key, doubleVal, units, samplingProtocol));
                 }
                 catch(Exception ex) {
                     //TODO was reporting via comments, but now how to handle?
@@ -186,7 +186,7 @@ got regular field (measurement(height))=(333)
 got regular field (measurement(heightunits))=(meters)
 got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
 
-      Map<String, Object> measurements = theForm.getMeasurements();
+      Map<String, Object> measurements = theForm.getMeasurementEvents();
       for (String key : measurements.keySet()) {
         if (!key.endsWith("units") && !key.endsWith("samplingProtocol")) {
           String value = ((String) measurements.get(key)).trim();
@@ -195,8 +195,8 @@ got regular field (measurement(heightsamplingProtocol))=(samplingProtocol0)
               Double doubleVal = Double.valueOf(value);
               String units = (String) measurements.get(key + "units");
               String samplingProtocol = (String) measurements.get(key + "samplingProtocol");
-              Measurement measurement = new Measurement(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
-              enc.addMeasurement(measurement);
+              MeasurementEvent measurement = new MeasurementEvent(enc.getEncounterNumber(), key, doubleVal, units, samplingProtocol);
+              enc.addMeasurementEvent(measurement);
             }
             catch(Exception ex) {
               enc.addComments("<p>Reported measurement " + key + " was problematic: " + value + "</p>");
@@ -673,9 +673,9 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
         enc.addMetalTag(metalTag);
       }
 
-      List<Measurement> measurements = getMeasurements(fv, encID, context);
-      for (Measurement measurement : measurements) {
-        enc.setMeasurement(measurement, myShepherd);
+      List<MeasurementEvent> measurements = getMeasurementEvents(fv, encID, context);
+      for (MeasurementEvent measurement : measurements) {
+        enc.setMeasurementEvent(measurement, myShepherd);
       }
 
 

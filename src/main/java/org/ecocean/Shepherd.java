@@ -3434,21 +3434,21 @@ public class Shepherd {
 
 
 
-  public Measurement getMeasurementOfTypeForEncounter(String type, String encNum) {
+  public MeasurementEvent getMeasurementEventOfTypeForEncounter(String type, String encNum) {
     String filter = "type == \""+type+"\" && correspondingEncounterNumber == \""+encNum+"\"";
-    Extent encClass = pm.getExtent(Measurement.class, true);
+    Extent encClass = pm.getExtent(MeasurementEvent.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c)).get(0);}
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<MeasurementEvent>(c)).get(0);}
     else{return null;}
   }
 
-  public ArrayList<Measurement> getMeasurementsForEncounter(String encNum) {
+  public ArrayList<MeasurementEvent> getMeasurementEventsForEncounter(String encNum) {
     String filter = "correspondingEncounterNumber == \""+encNum+"\"";
-    Extent encClass = pm.getExtent(Measurement.class, true);
+    Extent encClass = pm.getExtent(MeasurementEvent.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c));}
+    if((c!=null)&&(c.size()>0)){return (new ArrayList<MeasurementEvent>(c));}
     else{return null;}
   }
 

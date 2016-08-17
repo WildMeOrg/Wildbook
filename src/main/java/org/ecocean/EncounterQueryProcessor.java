@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.ecocean.Util.MeasurementDesc;
+import org.ecocean.Util.MeasurementEventDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
@@ -392,13 +392,13 @@ public class EncounterQueryProcessor {
     //end country filters
 
 
-    // Measurement filters-----------------------------------------------
-    List<MeasurementDesc> measurementDescs = Util.findMeasurementDescs("en",context);
+    // MeasurementEvent filters-----------------------------------------------
+    List<MeasurementEventDesc> measurementDescs = Util.findMeasurementEventDescs("en",context);
     String measurementPrefix = "measurement";
     StringBuilder measurementFilter = new StringBuilder(); //"( collectedData.contains(measurement) && (");
-    boolean atLeastOneMeasurement = false;
+    boolean atLeastOneMeasurementEvent = false;
     int measurementsInQuery = 0;
-    for (MeasurementDesc measurementDesc : measurementDescs) {
+    for (MeasurementEventDesc measurementDesc : measurementDescs) {
       String valueParamName= measurementPrefix + measurementDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
       if (value != null) {
@@ -431,7 +431,7 @@ public class EncounterQueryProcessor {
             prettyPrint.append(operator);
             prettyPrint.append(value);
             prettyPrint.append("<br/>");
-            if (atLeastOneMeasurement) {
+            if (atLeastOneMeasurementEvent) {
               measurementFilter.append("&&");
             }
             String measurementVar = "measurement" + measurementsInQuery++;
@@ -439,12 +439,12 @@ public class EncounterQueryProcessor {
             measurementFilter.append( "("+measurementVar + ".value " + operator + " " + value+")");
             measurementFilter.append(" && (" + measurementVar + ".type == ");
             measurementFilter.append("\"" + measurementDesc.getType() + "\")");
-            atLeastOneMeasurement = true;
+            atLeastOneMeasurementEvent = true;
           }
         }
       }
     }
-    if (atLeastOneMeasurement) {
+    if (atLeastOneMeasurementEvent) {
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";";
       }
@@ -455,7 +455,7 @@ public class EncounterQueryProcessor {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
         }
-        jdoqlVariableDeclaration += " org.ecocean.datacollection.Measurement measurement" + i;
+        jdoqlVariableDeclaration += " org.ecocean.datacollection.MeasurementEvent measurement" + i;
       }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
         filter+= measurementFilter.toString();
@@ -468,21 +468,21 @@ public class EncounterQueryProcessor {
 
 
     // BiologicalMeasurement filters-----------------------------------------------
-    List<MeasurementDesc> bioMeasurementDescs = Util.findBiologicalMeasurementDescs("en",context);
-    String bioMeasurementPrefix = "biomeasurement";
-    StringBuilder bioMeasurementFilter = new StringBuilder();
-    bioMeasurementFilter.append("tissueSamples.contains(dce322) ");
-    boolean bioAtLeastOneMeasurement = false;
-    int bioMeasurementsInQuery = 0;
+    List<MeasurementEventDesc> bioMeasurementEventDescs = Util.findBiologicalMeasurementDescs("en",context);
+    String bioMeasurementEventPrefix = "biomeasurement";
+    StringBuilder bioMeasurementEventFilter = new StringBuilder();
+    bioMeasurementEventFilter.append("tissueSamples.contains(dce322) ");
+    boolean bioAtLeastOneMeasurementEvent = false;
+    int bioMeasurementEventsInQuery = 0;
 
 
-    for (MeasurementDesc measurementDesc : bioMeasurementDescs) {
-      String valueParamName= bioMeasurementPrefix + measurementDesc.getType() + "(value)";
+    for (MeasurementEventDesc measurementDesc : bioMeasurementEventDescs) {
+      String valueParamName= bioMeasurementEventPrefix + measurementDesc.getType() + "(value)";
       String value = request.getParameter(valueParamName);
       if (value != null) {
         value = value.trim();
         if ( value.length() > 0) {
-          String operatorParamName = bioMeasurementPrefix + measurementDesc.getType() + "(operator)";
+          String operatorParamName = bioMeasurementEventPrefix + measurementDesc.getType() + "(operator)";
           String operatorParamValue = request.getParameter(operatorParamName);
           if (operatorParamValue == null) {
             operatorParamValue = "";
@@ -509,22 +509,22 @@ public class EncounterQueryProcessor {
             prettyPrint.append(operator);
             prettyPrint.append(value);
             prettyPrint.append("<br/>");
-            if (bioAtLeastOneMeasurement) {
-              bioMeasurementFilter.append("&&");
+            if (bioAtLeastOneMeasurementEvent) {
+              bioMeasurementEventFilter.append("&&");
             }
-            String measurementVar = "biomeasurement" + bioMeasurementsInQuery++;
-            bioMeasurementFilter.append(" & dce322.analyses.contains(" + measurementVar + ")  ");
-            bioMeasurementFilter.append( " && ( "+measurementVar + ".value " + operator + " " + value+" )");
-            bioMeasurementFilter.append(" && ( " + measurementVar + ".measurementType == ");
-            bioMeasurementFilter.append("\"" + measurementDesc.getType() + "\" )");
-            bioAtLeastOneMeasurement = true;
+            String measurementVar = "biomeasurement" + bioMeasurementEventsInQuery++;
+            bioMeasurementEventFilter.append(" & dce322.analyses.contains(" + measurementVar + ")  ");
+            bioMeasurementEventFilter.append( " && ( "+measurementVar + ".value " + operator + " " + value+" )");
+            bioMeasurementEventFilter.append(" && ( " + measurementVar + ".measurementType == ");
+            bioMeasurementEventFilter.append("\"" + measurementDesc.getType() + "\" )");
+            bioAtLeastOneMeasurementEvent = true;
           }
         }
       }
     }
 
 
-    if (bioAtLeastOneMeasurement) {
+    if (bioAtLeastOneMeasurementEvent) {
       if(jdoqlVariableDeclaration.length() > 0){
         jdoqlVariableDeclaration += ";org.ecocean.genetics.TissueSample dce322;";
       }
@@ -533,17 +533,17 @@ public class EncounterQueryProcessor {
       }
 
 
-      for (int i = 0; i < bioMeasurementsInQuery; i++) {
+      for (int i = 0; i < bioMeasurementEventsInQuery; i++) {
         if (i > 0) {
           jdoqlVariableDeclaration += "; ";
         }
         jdoqlVariableDeclaration += "org.ecocean.genetics.BiologicalMeasurement biomeasurement" + i;
       }
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+= bioMeasurementFilter.toString();
+        filter+= bioMeasurementEventFilter.toString();
       }
       else{
-        filter+=(" && "+ bioMeasurementFilter.toString());
+        filter+=(" && "+ bioMeasurementEventFilter.toString());
       }
     }
     // end BiologicalMeasurement filters

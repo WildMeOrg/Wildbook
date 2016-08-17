@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Shepherd;
 import org.ecocean.tag.AcousticTag;
 import org.ecocean.tag.MetalTag;

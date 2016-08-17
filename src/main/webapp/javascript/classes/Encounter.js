@@ -4,7 +4,7 @@ wildbook.Model.Encounter = wildbook.Model.BaseClass.extend({
 	idAttribute: 'catalogNumber',   //TODO put this in classDefinitions from java (somehow)
 
 	refClass: {
-		measurements: 'Measurements',
+		measurements: 'MeasurementEvents',
 		images: 'MediaAssets',
 	},
 

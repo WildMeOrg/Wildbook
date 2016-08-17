@@ -119,7 +119,7 @@ public final class BatchUpload extends DispatchServlet {
   private static final String[] BTF = {
     "batchIndividuals.csv",
     "batchEncounters.csv",
-    "batchMeasurements.csv",
+    "batchMeasurementEvents.csv",
     "batchMedia.csv",
     "batchSamples.csv"
   };
@@ -397,14 +397,14 @@ public final class BatchUpload extends DispatchServlet {
       Map<SinglePhotoVideo, BatchMedia> mapMedia = null;
       List<MarkedIndividual> listInd = null;
       List<Encounter> listEnc = null;
-      List<Measurement> listMea = null;
+      List<MeasurementEvent> listMea = null;
       List<BatchMedia> listMed = null;
       List<TissueSample> listSam = null;
       if (errors.isEmpty()) {
         // Parse data files & check for errors.
         BatchParser bp = new BatchParser(loc, batchFiles[0], batchFiles[1]);
         if (batchFiles[2] != null)
-          bp.setFileMeasurements(batchFiles[2]);
+          bp.setFileMeasurementEvents(batchFiles[2]);
         if (batchFiles[3] != null)
           bp.setFileMedia(batchFiles[3]);
         if (batchFiles[4] != null)
@@ -412,7 +412,7 @@ public final class BatchUpload extends DispatchServlet {
         if (bp.parseBatchData()) {
           List<Map<String, Object>> dataInd = bp.getIndividualData();
           List<Map<String, Object>> dataEnc = bp.getEncounterData();
-          List<Map<String, Object>> dataMea = bp.getMeasurementData();
+          List<Map<String, Object>> dataMea = bp.getMeasurementEventData();
           List<Map<String, Object>> dataMed = bp.getMediaData();
           List<Map<String, Object>> dataSam = bp.getSampleData();
 
@@ -605,7 +605,7 @@ public final class BatchUpload extends DispatchServlet {
           HttpServletResponse res,
           List<MarkedIndividual> listInd,
           List<Encounter> listEnc,
-          List<Measurement> listMea,
+          List<MeasurementEvent> listMea,
           List<BatchMedia> listMed,
           List<TissueSample> listSam,
           List<String> errors, ResourceBundle bundle) throws IOException {
@@ -761,13 +761,13 @@ public final class BatchUpload extends DispatchServlet {
     List<String> listMU = CommonConfiguration.getIndexedPropertyValues("measurementUnits",context);
 
     // Check/assign measurements.
-    Set<Measurement> badMeaNoEnc = new LinkedHashSet<Measurement>();
+    Set<MeasurementEvent> badMeaNoEnc = new LinkedHashSet<MeasurementEvent>();
     Set<String> badMeaInvalidEnc = new LinkedHashSet<String>();
     Set<String> badMeaInvalidType = new LinkedHashSet<String>();
     Set<String> badMeaInvalidUnits = new LinkedHashSet<String>();
     Set<String> badMeaInvalidProtocol = new LinkedHashSet<String>();
     if (listMea != null) {
-      for (Measurement x : listMea) {
+      for (MeasurementEvent x : listMea) {
         String encID = x.getCorrespondingEncounterNumber();
         if (encID == null || "".equals(encID)) {
           badMeaNoEnc.add(x);
@@ -775,7 +775,7 @@ public final class BatchUpload extends DispatchServlet {
           // Ensure encounter matches one already parsed.
           try {
             Encounter enc = mapEnc.get(x.getCorrespondingEncounterNumber());
-            enc.setMeasurement(x,shepherd);
+            enc.setMeasurementEvent(x,shepherd);
             // TODO: Fill shared data from encounter?
           } catch (Exception ex) {
             badMeaInvalidEnc.add(x.getCorrespondingEncounterNumber());
@@ -1179,10 +1179,10 @@ public final class BatchUpload extends DispatchServlet {
   /**
    * Parses data from parsed CSV files into measurements.
    * @param dataMea map of parsed CSV data
-   * @return a list of {@code Measurement}
+   * @return a list of {@code MeasurementEvent}
    */
-  private static List<Measurement> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
-    List<Measurement> list = new ArrayList<Measurement>();
+  private static List<MeasurementEvent> parseMea(List<Map<String, Object>> dataMea, List<String> errors, ResourceBundle bundle) {
+    List<MeasurementEvent> list = new ArrayList<MeasurementEvent>();
     if (dataMea == null)
       return list;
     String pre = "measurement.";
@@ -1193,7 +1193,7 @@ public final class BatchUpload extends DispatchServlet {
       String units = (String)map.get(pre + "units");
       Double val = (Double)map.get(pre + "value");
       String protocol = (String)map.get(pre + "protocol");
-      Measurement x = new Measurement(encNum, type, val, units, protocol);
+      MeasurementEvent x = new MeasurementEvent(encNum, type, val, units, protocol);
       list.add(x);
     }
 

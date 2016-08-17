@@ -965,7 +965,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public double avgLengthInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth) {
 
     double avgLength = 0;
-    int numMeasurements = 0;
+    int numMeasurementEvents = 0;
 
     int endYear = m_endYear;
     int endMonth = m_endMonth;
@@ -990,38 +990,38 @@ public class MarkedIndividual implements java.io.Serializable {
       if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
         if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
-          numMeasurements++;
+          numMeasurementEvents++;
         }
       } else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth)) {
         if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
-          numMeasurements++;
+          numMeasurementEvents++;
         }
       } else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
         if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
-          numMeasurements++;
+          numMeasurementEvents++;
         }
       } else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
         if ((temp.getSizeAsDouble()!=null)&&(temp.getSize() > 0)) {
           avgLength += temp.getSize();
-          numMeasurements++;
+          numMeasurementEvents++;
         }
       }
 
 
     }
-    if (numMeasurements > 0) {
-      return (avgLength / numMeasurements);
+    if (numMeasurementEvents > 0) {
+      return (avgLength / numMeasurementEvents);
     } else {
       return 0.0;
     }
   }
 
-  public Double getAverageMeasurementInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
+  public Double getAverageMeasurementEventInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
 
-    double avgMeasurement = 0;
-    int numMeasurements = 0;
+    double avgMeasurementEvent = 0;
+    int numMeasurementEvents = 0;
     int endYear = m_endYear;
     int endMonth = m_endMonth;
     int startYear = m_startYear;
@@ -1042,36 +1042,36 @@ public class MarkedIndividual implements java.io.Serializable {
 
     for (int c = 0; c < encounters.size(); c++) {
       Encounter temp = (Encounter) encounters.get(c);
-      if(temp.hasMeasurement(measurementType)){
-        List<Measurement> measures=temp.getMeasurements();
+      if(temp.hasMeasurementEvent(measurementType)){
+        List<MeasurementEvent> measures=temp.getMeasurementEvents();
         if ((temp.getYear() > startYear) && (temp.getYear() < endYear)) {
-          if (temp.getMeasurement(measurementType)!=null) {
-            avgMeasurement += temp.getMeasurement(measurementType).getValue();
-            numMeasurements++;
+          if (temp.getMeasurementEvent(measurementType)!=null) {
+            avgMeasurementEvent += temp.getMeasurementEvent(measurementType).getValue();
+            numMeasurementEvents++;
           }
         }
         else if ((temp.getYear() == startYear) && (temp.getYear() < endYear) && (temp.getMonth() >= startMonth)) {
-          if (temp.getMeasurement(measurementType)!=null){
-            avgMeasurement += temp.getMeasurement(measurementType).getValue();
-            numMeasurements++;
+          if (temp.getMeasurementEvent(measurementType)!=null){
+            avgMeasurementEvent += temp.getMeasurementEvent(measurementType).getValue();
+            numMeasurementEvents++;
           }
         }
         else if ((temp.getYear() > startYear) && (temp.getYear() == endYear) && (temp.getMonth() <= endMonth)) {
-          if (temp.getMeasurement(measurementType)!=null) {
-            avgMeasurement += temp.getMeasurement(measurementType).getValue();
-            numMeasurements++;
+          if (temp.getMeasurementEvent(measurementType)!=null) {
+            avgMeasurementEvent += temp.getMeasurementEvent(measurementType).getValue();
+            numMeasurementEvents++;
           }
         }
         else if ((temp.getYear() >= startYear) && (temp.getYear() <= endYear) && (temp.getMonth() >= startMonth) && (temp.getMonth() <= endMonth)) {
-          if (temp.getMeasurement(measurementType)!=null) {
-            avgMeasurement += temp.getMeasurement(measurementType).getValue();
-            numMeasurements++;
+          if (temp.getMeasurementEvent(measurementType)!=null) {
+            avgMeasurementEvent += temp.getMeasurementEvent(measurementType).getValue();
+            numMeasurementEvents++;
           }
         }
       }
     }
-    if (numMeasurements > 0) {
-      return (new Double(avgMeasurement / numMeasurements));
+    if (numMeasurementEvents > 0) {
+      return (new Double(avgMeasurementEvent / numMeasurementEvents));
     }
     else {
       return null;
@@ -1080,8 +1080,8 @@ public class MarkedIndividual implements java.io.Serializable {
 
   public Double getAverageBiologicalMeasurementInPeriod(int m_startYear, int m_startMonth, int m_endYear, int m_endMonth, String measurementType) {
 
-    double avgMeasurement = 0;
-    int numMeasurements = 0;
+    double avgMeasurementEvent = 0;
+    int numMeasurementEvents = 0;
     int endYear = m_endYear;
     int endMonth = m_endMonth;
     int startYear = m_startYear;
@@ -1108,38 +1108,38 @@ public class MarkedIndividual implements java.io.Serializable {
         for(int h=0;h<numTissueSamples;h++){
           TissueSample temp=samples.get(h);
 
-          if(temp.hasMeasurement(measurementType)){
+          if(temp.hasMeasurementEvent(measurementType)){
             List<BiologicalMeasurement> measures=temp.getBiologicalMeasurements();
             if ((enc.getYear() > startYear) && (enc.getYear() < endYear)) {
               if (temp.getBiologicalMeasurement(measurementType)!=null) {
-                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
-                numMeasurements++;
+                avgMeasurementEvent += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurementEvents++;
               }
             }
             else if ((enc.getYear() == startYear) && (enc.getYear() < endYear) && (enc.getMonth() >= startMonth)) {
               if (temp.getBiologicalMeasurement(measurementType)!=null){
-                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
-                numMeasurements++;
+                avgMeasurementEvent += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurementEvents++;
               }
             }
             else if ((enc.getYear() > startYear) && (enc.getYear() == endYear) && (enc.getMonth() <= endMonth)) {
               if (temp.getBiologicalMeasurement(measurementType)!=null) {
-                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
-                numMeasurements++;
+                avgMeasurementEvent += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurementEvents++;
               }
             }
             else if ((enc.getYear() >= startYear) && (enc.getYear() <= endYear) && (enc.getMonth() >= startMonth) && (enc.getMonth() <= endMonth)) {
               if (temp.getBiologicalMeasurement(measurementType)!=null) {
-                avgMeasurement += temp.getBiologicalMeasurement(measurementType).getValue();
-                numMeasurements++;
+                avgMeasurementEvent += temp.getBiologicalMeasurement(measurementType).getValue();
+                numMeasurementEvents++;
               }
             }
           }
         }
       }
     }
-    if (numMeasurements > 0) {
-      return (new Double(avgMeasurement / numMeasurements));
+    if (numMeasurementEvents > 0) {
+      return (new Double(avgMeasurementEvent / numMeasurementEvents));
     }
     else {
       return null;

@@ -39,7 +39,7 @@ public abstract class DataCollectionEvent implements java.io.Serializable {
 *   -PhotoVideoCollectionEvent class for managing photo and video data
 *   -GeneticCollectionEvent for managing haplotype and microsatellite marker data taken during an Encounter instance
 *   -TrackingDataEvent for managing SAT and PAT archival tag files related to an Encounter instance
-*   -MeasurementCollectionEvent for morphometric data (e.g., length, width, height)
+*   -MeasurementEventCollectionEvent for morphometric data (e.g., length, width, height)
 */
 
 /**

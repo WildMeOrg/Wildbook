@@ -165,7 +165,7 @@ public class BatchParser {
    * Sets the CSV file containing definitions of measurements.
    * @param csvMea File instance containing data to be parsed
    */
-  public void setFileMeasurements(File csvMea) {
+  public void setFileMeasurementEvents(File csvMea) {
     this.csvMea = csvMea;
   }
 
@@ -209,7 +209,7 @@ public class BatchParser {
   /**
    * @return the list of maps of field keys to field values for measurements
    */
-  public List<Map<String, Object>> getMeasurementData() {
+  public List<Map<String, Object>> getMeasurementEventData() {
     return meaValueMap;
   }
 

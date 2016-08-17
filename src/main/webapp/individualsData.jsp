@@ -150,7 +150,7 @@ if(sharky.getAlternateID()!=null){
     	henc.put("location", enc.getLocation());
 	if ((enc.getMedia()!=null) && (enc.getMedia().size()>0)) henc.put("hasImages", true);
    	if ((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)) henc.put("hasTissueSamples", true);
-   	if (enc.hasMeasurements()) henc.put("hasMeasurements", true);
+   	if (enc.hasMeasurementEvents()) henc.put("hasMeasurementEvents", true);
 	henc.put("catalogNumber", enc.getEncounterNumber());
  	henc.put("alternateID", enc.getAlternateID());
 	henc.put("sex", enc.getSex());

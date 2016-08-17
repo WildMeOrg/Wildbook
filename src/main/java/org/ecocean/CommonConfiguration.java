@@ -477,8 +477,8 @@ public class CommonConfiguration {
     return useTapirLink;
   }
 
-  public static boolean showMeasurements(String context) {
-    return showCategory("showMeasurements",context);
+  public static boolean showMeasurementEvents(String context) {
+    return showCategory("showMeasurementEvents",context);
   }
 
   public static boolean showMetalTags(String context) {
@@ -569,8 +569,8 @@ public class CommonConfiguration {
 
 
   private static boolean showCategory(final String category, String context) {
-    String showMeasurements = getProperty(category,context);
-    return !Boolean.FALSE.toString().equals(showMeasurements);
+    String showMeasurementEvents = getProperty(category,context);
+    return !Boolean.FALSE.toString().equals(showMeasurementEvents);
   }
 
 

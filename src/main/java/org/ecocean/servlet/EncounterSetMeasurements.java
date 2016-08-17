@@ -18,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
-import org.ecocean.datacollection.Measurement;
+import org.ecocean.datacollection.MeasurementEvent;
 import org.ecocean.Shepherd;
 
 public class EncounterSetMeasurements extends HttpServlet {
@@ -54,11 +54,11 @@ public class EncounterSetMeasurements extends HttpServlet {
       try {
         while (requestEventValues != null) {
           list.add(requestEventValues);
-          Measurement measurement;
+          MeasurementEvent measurement;
           if (requestEventValues.id == null || requestEventValues.id.trim().length() == 0) {
             // New Event -- the user didn't enter any values the first time.
-            measurement = new Measurement(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
-            enc.setMeasurement(measurement, myShepherd);
+            measurement = new MeasurementEvent(encNum, requestEventValues.type, requestEventValues.value, requestEventValues.units, requestEventValues.samplingProtocol);
+            enc.setMeasurementEvent(measurement, myShepherd);
             //log the new measurement addition
             enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Added measurement:<br><i>" + requestEventValues.type + " "+requestEventValues.value+" "+requestEventValues.units+" ("+requestEventValues.samplingProtocol+")</i></p>");
             
@@ -67,7 +67,7 @@ public class EncounterSetMeasurements extends HttpServlet {
             
             
               
-            measurement  = myShepherd.findDataCollectionEvent(Measurement.class, requestEventValues.id);
+            measurement  = myShepherd.findDataCollectionEvent(MeasurementEvent.class, requestEventValues.id);
             
             String oldValue="null";
             if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}

@@ -10,7 +10,7 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,org.ecocean.Measurement,
+         org.ecocean.Util,org.ecocean.MeasurementEvent,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          javax.jdo.Extent, javax.jdo.Query,
@@ -3159,8 +3159,8 @@ $("a#autocomments").click(function() {
 <!-- END AUTOCOMMENTS -->
 
 <%
-  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMeasurementEvents", CommonConfiguration.showMeasurementEvents(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurementEvents(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
@@ -3168,11 +3168,11 @@ $("a#autocomments").click(function() {
 </tr>
 </table>
 
-<c:if test="${showMeasurements}">
+<c:if test="${showMeasurementEvents}">
 <br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
+  pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
 %>
 <h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
 <c:if test="${editable and !empty measurements}">
@@ -3184,9 +3184,9 @@ $("a#autocomments").click(function() {
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
-    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-    //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
-    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
+    MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
+    //MeasurementEvent event =  enc.findMeasurementEventOfType(measurementDesc.getType());
+    MeasurementEvent event=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -3207,25 +3207,25 @@ $("a#autocomments").click(function() {
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
-<div id="dialogMeasure" title="<%=encprops.getProperty("setMeasurements")%>" style="display:none">
+<div id="dialogMeasure" title="<%=encprops.getProperty("setMeasurementEvents")%>" style="display:none">
  <%
-   pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+   pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
  %>
 
        <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-        <form name="setMeasurements" method="post" action="../EncounterSetMeasurements">
+        <form name="setMeasurementEvents" method="post" action="../EncounterSetMeasurements">
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-          List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+          List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurementEvents();
 
         %>
         <c:forEach items="${items}" var="item">
         <%
-          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
+          MeasurementEvent measurement = enc.findMeasurementEventOfType(measurementDesc.getType());
           if (measurement == null) {
-              measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+              measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
@@ -4625,7 +4625,7 @@ $("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
 			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
 				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementEventType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
 				<%
 				if(!mito.getSuperHTMLString().equals("")){
 				%>
@@ -4663,16 +4663,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
 
 
      		<%
-     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventType",context);
  			int numProps=values.size();
- 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -4685,7 +4685,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -4723,7 +4723,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -4795,7 +4795,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" />
       <input name="encounter" type="hidden" value="<%=num%>" />
       <input name="action" type="hidden" value="setBiologicalMeasurement" />
-      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="<%=encprops.getProperty("set")%>" />
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementEventAnalysis" value="<%=encprops.getProperty("set")%>" />
 
 </td>
 </tr>
@@ -5185,16 +5185,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
 
 
      		<%
-     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventType",context);
  			int numProps=values.size();
- 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -5207,7 +5207,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -5245,7 +5245,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -5317,7 +5317,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" />
       <input name="encounter" type="hidden" value="<%=num%>" />
       <input name="action" type="hidden" value="setBiologicalMeasurement" />
-      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="<%=encprops.getProperty("set")%>" />
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementEventAnalysis" value="<%=encprops.getProperty("set")%>" />
 
 </td>
 </tr>

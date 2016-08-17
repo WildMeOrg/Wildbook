@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics" %>
+         import="org.ecocean.servlet.ServletUtilities,java.text.DecimalFormat,javax.jdo.*,org.ecocean.genetics.*,java.util.*,java.net.URI, org.ecocean.*,org.ecocean.Util.MeasurementEventDesc,org.apache.commons.math.stat.descriptive.SynchronizedSummaryStatistics" %>
 
 
   <%
@@ -40,15 +40,15 @@
     int numResultsWithHaplotype=0;
     
 	//prep for measurements summary
-	List<MeasurementDesc> measurementTypes=Util.findMeasurementDescs("en",context);
-	int numMeasurementTypes=measurementTypes.size();
-	SynchronizedSummaryStatistics[] measurementValues=new SynchronizedSummaryStatistics[numMeasurementTypes];
-	SynchronizedSummaryStatistics[] measurementValuesMales=new SynchronizedSummaryStatistics[numMeasurementTypes];
-	SynchronizedSummaryStatistics[] measurementValuesFemales=new SynchronizedSummaryStatistics[numMeasurementTypes];
-	SynchronizedSummaryStatistics[] measurementValuesNew=new SynchronizedSummaryStatistics[numMeasurementTypes];
-	SynchronizedSummaryStatistics[] measurementValuesResights=new SynchronizedSummaryStatistics[numMeasurementTypes];
-	String[] smallestIndies=new String[numMeasurementTypes];
-	String[] largestIndies=new String[numMeasurementTypes];
+	List<MeasurementEventDesc> measurementTypes=Util.findMeasurementEventDescs("en",context);
+	int numMeasurementEventTypes=measurementTypes.size();
+	SynchronizedSummaryStatistics[] measurementValues=new SynchronizedSummaryStatistics[numMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] measurementValuesMales=new SynchronizedSummaryStatistics[numMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] measurementValuesFemales=new SynchronizedSummaryStatistics[numMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] measurementValuesNew=new SynchronizedSummaryStatistics[numMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] measurementValuesResights=new SynchronizedSummaryStatistics[numMeasurementEventTypes];
+	String[] smallestIndies=new String[numMeasurementEventTypes];
+	String[] largestIndies=new String[numMeasurementEventTypes];
 	for(int b=0;b<measurementValues.length;b++){
 		measurementValues[b]=new SynchronizedSummaryStatistics();
 		measurementValuesMales[b]=new SynchronizedSummaryStatistics();
@@ -61,21 +61,21 @@
 
 	
 	//prep for biomeasurements summary
-	List<MeasurementDesc> bioMeasurementTypes=Util.findBiologicalMeasurementDescs("en",context);
-	int numBioMeasurementTypes=bioMeasurementTypes.size();
-	SynchronizedSummaryStatistics[] bioMeasurementValues=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
-	SynchronizedSummaryStatistics[] bioMeasurementValuesMales=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
-	SynchronizedSummaryStatistics[] bioMeasurementValuesFemales=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
-	SynchronizedSummaryStatistics[] bioMeasurementValuesNew=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
-	SynchronizedSummaryStatistics[] bioMeasurementValuesResights=new SynchronizedSummaryStatistics[numBioMeasurementTypes];
-	String[] bioSmallestIndies=new String[numBioMeasurementTypes];
-	String[] bioLargestIndies=new String[numBioMeasurementTypes];
-	for(int b=0;b<bioMeasurementValues.length;b++){
-		bioMeasurementValues[b]=new SynchronizedSummaryStatistics();
-		bioMeasurementValuesMales[b]=new SynchronizedSummaryStatistics();
-		bioMeasurementValuesFemales[b]=new SynchronizedSummaryStatistics();
-		bioMeasurementValuesNew[b]=new SynchronizedSummaryStatistics();
-		bioMeasurementValuesResights[b]=new SynchronizedSummaryStatistics();
+	List<MeasurementEventDesc> bioMeasurementEventTypes=Util.findBiologicalMeasurementDescs("en",context);
+	int numBioMeasurementEventTypes=bioMeasurementEventTypes.size();
+	SynchronizedSummaryStatistics[] bioMeasurementEventValues=new SynchronizedSummaryStatistics[numBioMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementEventValuesMales=new SynchronizedSummaryStatistics[numBioMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementEventValuesFemales=new SynchronizedSummaryStatistics[numBioMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementEventValuesNew=new SynchronizedSummaryStatistics[numBioMeasurementEventTypes];
+	SynchronizedSummaryStatistics[] bioMeasurementEventValuesResights=new SynchronizedSummaryStatistics[numBioMeasurementEventTypes];
+	String[] bioSmallestIndies=new String[numBioMeasurementEventTypes];
+	String[] bioLargestIndies=new String[numBioMeasurementEventTypes];
+	for(int b=0;b<bioMeasurementEventValues.length;b++){
+		bioMeasurementEventValues[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementEventValuesMales[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementEventValuesFemales[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementEventValuesNew[b]=new SynchronizedSummaryStatistics();
+		bioMeasurementEventValuesResights[b]=new SynchronizedSummaryStatistics();
 		bioSmallestIndies[b]="";
 		bioLargestIndies[b]="";
 	}
@@ -169,35 +169,35 @@
  		if(thisEnc.hasGeneticSex()){numResultsWithGeneticSex++;}
  		
  		//measurement
-		for(int b=0;b<numMeasurementTypes;b++){
-			if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
+		for(int b=0;b<numMeasurementEventTypes;b++){
+			if(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType())!=null){
 				
-					measurementValues[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+					measurementValues[b].addValue(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 					
 					//smallest vs largest analysis
-					if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
+					if(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()<=measurementValues[b].getMin()){
 						smallestIndies[b]=thisEnc.getIndividualID();
 					}
-					else if(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
+					else if(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue()>=measurementValues[b].getMax()){
 						largestIndies[b]=thisEnc.getIndividualID();
 					}
 					
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
-						measurementValuesMales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						measurementValuesMales[b].addValue(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 					}
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
-						measurementValuesFemales[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						measurementValuesFemales[b].addValue(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 					}
 					
 					//first sights vs resights analysis
 					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
-						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						 measurementValuesResights[b].addValue(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 							
 				 		   
 					 }
 					 else{
-						 measurementValuesNew[b].addValue(thisEnc.getAverageMeasurementInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
+						 measurementValuesNew[b].addValue(thisEnc.getAverageMeasurementEventInPeriod(year1, month1, year2, month2, measurementTypes.get(b).getType()).doubleValue());
 							
 					 }
 					
@@ -207,37 +207,37 @@
 		}
 		
  		//biomeasurement tabulation
-		for(int b=0;b<numBioMeasurementTypes;b++){
-			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType())!=null){
+		for(int b=0;b<numBioMeasurementEventTypes;b++){
+			if(thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementEventTypes.get(b).getType())!=null){
 				
-					double val=thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementTypes.get(b).getType()).doubleValue();
+					double val=thisEnc.getAverageBiologicalMeasurementInPeriod(year1, month1, year2, month2, bioMeasurementEventTypes.get(b).getType()).doubleValue();
 				
-					bioMeasurementValues[b].addValue(val);
-					//System.out.println(bioMeasurementTypes.get(b).getType()+":"+val);
+					bioMeasurementEventValues[b].addValue(val);
+					//System.out.println(bioMeasurementEventTypes.get(b).getType()+":"+val);
 					//smallest vs largest analysis
-					if(val<=bioMeasurementValues[b].getMin()){
+					if(val<=bioMeasurementEventValues[b].getMin()){
 						bioSmallestIndies[b]=thisEnc.getIndividualID();
 					}
-					else if(val>=bioMeasurementValues[b].getMax()){
+					else if(val>=bioMeasurementEventValues[b].getMax()){
 						bioLargestIndies[b]=thisEnc.getIndividualID();
 					}
 					
 					//males versus females analysis
 					if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("male"))){
-						bioMeasurementValuesMales[b].addValue(val);
+						bioMeasurementEventValuesMales[b].addValue(val);
 					}
 					else if((thisEnc.getSex()!=null)&&(thisEnc.getSex().equals("female"))){
-						bioMeasurementValuesFemales[b].addValue(val);
+						bioMeasurementEventValuesFemales[b].addValue(val);
 					}
 					
 					//first sights vs resights analysis
 					 if(thisEnc.getEarliestSightingTime()<(new GregorianCalendar(year1,(month1-1),day1)).getTimeInMillis()){
-						 bioMeasurementValuesResights[b].addValue(val);
+						 bioMeasurementEventValuesResights[b].addValue(val);
 							
 				 		   
 					 }
 					 else{
-						 bioMeasurementValuesNew[b].addValue(val);
+						 bioMeasurementEventValuesNew[b].addValue(val);
 							
 					 }
 					
@@ -598,7 +598,7 @@ if(maxTimeBetweenResights>0){
  		//measurement
 		
 		if(measurementTypes.size()>0){
-			for(int b=0;b<numMeasurementTypes;b++){
+			for(int b=0;b<numMeasurementEventTypes;b++){
 			%>
 				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(measurementTypes.get(b).getType()+".label")%>: 
 				<% 
@@ -635,27 +635,27 @@ if(maxTimeBetweenResights>0){
 		}
 %>
 
-<p><strong><%=encprops.getProperty("bioMeasurements") %></strong></p>
+<p><strong><%=encprops.getProperty("bioMeasurementEvents") %></strong></p>
 <%
  		//measurement
 		
-		if(bioMeasurementTypes.size()>0){
-			for(int b=0;b<numBioMeasurementTypes;b++){
+		if(bioMeasurementEventTypes.size()>0){
+			for(int b=0;b<numBioMeasurementEventTypes;b++){
 			%>
-				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getType()+".label")%>: 
+				<p><%=encprops.getProperty("mean") %> <%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getType()+".label")%>: 
 				<% 
 				
 				//now report averages
-				if(bioMeasurementValues[b].getN()>0){
+				if(bioMeasurementEventValues[b].getN()>0){
 				%>
-				&nbsp;<%=df.format(bioMeasurementValues[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementValues[b].getN() %><br />
+				&nbsp;<%=df.format(bioMeasurementEventValues[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValues[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValues[b].getN() %><br />
 				<ul>
-					<li><%=encprops.getProperty("largest") %> <%=df.format(bioMeasurementValues[b].getMax()) %> <%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=bioLargestIndies[b] %>"><%=bioLargestIndies[b] %></a>)</li>
-					<li><%=encprops.getProperty("smallest") %> <%=df.format(bioMeasurementValues[b].getMin()) %> <%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=bioSmallestIndies[b] %>"><%=bioSmallestIndies[b] %></a>)</li>
-					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementValuesMales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesMales[b].getN() %></li>
-					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementValuesFemales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesFemales[b].getN() %></li>
-					<li><%=encprops.getProperty("meanNew") %> <%=df.format(bioMeasurementValuesNew[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesNew[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesNew[b].getN() %></li>
-					<li><%=encprops.getProperty("meanResight") %> <%=df.format(bioMeasurementValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementValuesResights[b].getStandardDeviation()) %>) N=<%=bioMeasurementValuesResights[b].getN() %></li>	
+					<li><%=encprops.getProperty("largest") %> <%=df.format(bioMeasurementEventValues[b].getMax()) %> <%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=bioLargestIndies[b] %>"><%=bioLargestIndies[b] %></a>)</li>
+					<li><%=encprops.getProperty("smallest") %> <%=df.format(bioMeasurementEventValues[b].getMin()) %> <%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<a href="individuals.jsp?number=<%=bioSmallestIndies[b] %>"><%=bioSmallestIndies[b] %></a>)</li>
+					<li><%=encprops.getProperty("meanMales") %> <%=df.format(bioMeasurementEventValuesMales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesMales[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesMales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanFemales") %> <%=df.format(bioMeasurementEventValuesFemales[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesFemales[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesFemales[b].getN() %></li>
+					<li><%=encprops.getProperty("meanNew") %> <%=df.format(bioMeasurementEventValuesNew[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesNew[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesNew[b].getN() %></li>
+					<li><%=encprops.getProperty("meanResight") %> <%=df.format(bioMeasurementEventValuesResights[b].getMean()) %>&nbsp;<%=measurementLabels.getProperty(bioMeasurementEventTypes.get(b).getUnits()+".label") %> (<%=encprops.getProperty("standardDeviation") %> <%=df.format(bioMeasurementEventValuesResights[b].getStandardDeviation()) %>) N=<%=bioMeasurementEventValuesResights[b].getN() %></li>	
 				</ul>
 				<%
 				}

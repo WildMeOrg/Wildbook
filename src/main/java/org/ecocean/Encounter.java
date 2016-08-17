@@ -239,7 +239,7 @@ public class Encounter implements java.io.Serializable {
   private List<SinglePhotoVideo> images;
   //private ArrayList<MediaAsset> media;
   private ArrayList<Annotation> annotations;
-  private List<Measurement> measurements;
+  private List<MeasurementEvent> measurements;
   private List<MetalTag> metalTags;
   private AcousticTag acousticTag;
   private SatelliteTag satelliteTag;
@@ -419,7 +419,7 @@ public class Encounter implements java.io.Serializable {
     return measurementUnit;
   }
 
-  public String getMeasurementUnit() {
+  public String getMeasurementEventUnit() {
     return measurementUnit;
   }
 
@@ -1955,16 +1955,16 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void removeSinglePhotoVideo(SinglePhotoVideo num){images.remove(num);}
 
 
-    public void setMeasurement(Measurement measurement, Shepherd myShepherd){
+    public void setMeasurementEvent(MeasurementEvent measurement, Shepherd myShepherd){
 
       //if measurements are null, set the empty list
-      if(measurements==null){measurements=new ArrayList<Measurement>();}
+      if(measurements==null){measurements=new ArrayList<MeasurementEvent>();}
 
       //now start checking for existence of a previous measurement
 
       //if we have it but the new value is null, remove the measurement
-      if((this.hasMeasurement(measurement.getType()))&&(measurement.getValue()==null)){
-        Measurement m=this.getMeasurement(measurement.getType());
+      if((this.hasMeasurementEvent(measurement.getType()))&&(measurement.getValue()==null)){
+        MeasurementEvent m=this.getMeasurementEvent(measurement.getType());
         measurements.remove(m);
         myShepherd.getPM().deletePersistent(m);
         myShepherd.commitDBTransaction();
@@ -1972,15 +1972,15 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
 
       //just add the measurement it if we did not have it before
-      else if(!this.hasMeasurement(measurement.getType())){
+      else if(!this.hasMeasurementEvent(measurement.getType())){
         measurements.add(measurement);
         myShepherd.commitDBTransaction();
         myShepherd.beginDBTransaction();
       }
 
       //if we had it before then just update the value
-      else if((this.hasMeasurement(measurement.getType()))&&(measurement!=null)){
-        Measurement m=this.getMeasurement(measurement.getType());
+      else if((this.hasMeasurementEvent(measurement.getType()))&&(measurement!=null)){
+        MeasurementEvent m=this.getMeasurementEvent(measurement.getType());
         m.setValue(measurement.getValue());
         m.setSamplingProtocol(measurement.getSamplingProtocol());
         myShepherd.commitDBTransaction();
@@ -1988,13 +1988,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       }
 
     }
-    public void removeMeasurement(int num){measurements.remove(num);}
-    public List<Measurement> getMeasurements(){return measurements;}
-    public void removeMeasurement(Measurement num){measurements.remove(num);}
-    public Measurement findMeasurementOfType(String type) {
-      List<Measurement> measurements = getMeasurements();
+    public void removeMeasurementEvent(int num){measurements.remove(num);}
+    public List<MeasurementEvent> getMeasurementEvents(){return measurements;}
+    public void removeMeasurementEvent(MeasurementEvent num){measurements.remove(num);}
+    public MeasurementEvent findMeasurementEventOfType(String type) {
+      List<MeasurementEvent> measurements = getMeasurementEvents();
       if (measurements != null) {
-        for (Measurement measurement : measurements) {
+        for (MeasurementEvent measurement : measurements) {
           if (type.equals(measurement.getType())) {
             return measurement;
           }
@@ -2220,22 +2220,22 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public Double getLatitudeAsDouble(){return decimalLatitude;}
     public Double getLongitudeAsDouble(){return decimalLongitude;}
 
-    public boolean hasMeasurements(){
+    public boolean hasMeasurementEvents(){
       if((measurements!=null)&&(measurements.size()>0)){
-        int numMeasurements=measurements.size();
-        for(int i=0;i<numMeasurements;i++){
-          Measurement m=measurements.get(i);
+        int numMeasurementEvents=measurements.size();
+        for(int i=0;i<numMeasurementEvents;i++){
+          MeasurementEvent m=measurements.get(i);
           if(m.getValue()!=null){return true;}
         }
       }
       return false;
     }
 
-    public boolean hasMeasurement(String type){
+    public boolean hasMeasurementEvent(String type){
       if((measurements!=null)&&(measurements.size()>0)){
-        int numMeasurements=measurements.size();
-        for(int i=0;i<numMeasurements;i++){
-          Measurement m=measurements.get(i);
+        int numMeasurementEvents=measurements.size();
+        for(int i=0;i<numMeasurementEvents;i++){
+          MeasurementEvent m=measurements.get(i);
           if((m.getValue()!=null)&&(m.getType().equals(type))){return true;}
         }
       }
@@ -2263,11 +2263,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
      * @param type
      * @return
      */
-    public Measurement getMeasurement(String type){
+    public MeasurementEvent getMeasurementEvent(String type){
       if((measurements!=null)&&(measurements.size()>0)){
-        int numMeasurements=measurements.size();
-        for(int i=0;i<numMeasurements;i++){
-          Measurement m=measurements.get(i);
+        int numMeasurementEvents=measurements.size();
+        for(int i=0;i<numMeasurementEvents;i++){
+          MeasurementEvent m=measurements.get(i);
           if((m.getValue()!=null)&&(m.getType().equals(type))){return m;}
         }
       }
@@ -2280,12 +2280,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       for(int y=0;y<numTissueSamples;y++){
         TissueSample ts=tissueSamples.get(y);
         if((ts.getGeneticAnalyses()!=null)&&(ts.getGeneticAnalyses().size()>0)){
-          int numMeasurements=ts.getGeneticAnalyses().size();
-          for(int i=0;i<numMeasurements;i++){
+          int numMeasurementEvents=ts.getGeneticAnalyses().size();
+          for(int i=0;i<numMeasurementEvents;i++){
             GeneticAnalysis m=ts.getGeneticAnalyses().get(i);
             if(m.getAnalysisType().equals("BiologicalMeasurement")){
               BiologicalMeasurement f=(BiologicalMeasurement)m;
-              if((f.getMeasurementType().equals(type))&&(f.getValue()!=null)){return f;}
+              if((f.getMeasurementEventType().equals(type))&&(f.getValue()!=null)){return f;}
             }
           }
         }
@@ -2330,13 +2330,13 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
             //these are for convenience, like .hasImages above (for use in table building e.g.)
             if ((this.getTissueSamples() != null) && (this.getTissueSamples().size() > 0)) jobj.put("hasTissueSamples", true);
-            if (this.hasMeasurements()) jobj.put("hasMeasurements", true);
+            if (this.hasMeasurementEvents()) jobj.put("hasMeasurementEvents", true);
 /*
             String context="context0";
             context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
             if ((myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getAllTissueSamplesForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasTissueSamples", true);
-            if ((myShepherd.getMeasurementsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurements", true);
+            if ((myShepherd.getMeasurementEventsForEncounter(this.getCatalogNumber())!=null) && (myShepherd.getMeasurementEventsForEncounter(this.getCatalogNumber()).size()>0)) jobj.put("hasMeasurementEvents", true);
 */
 
             jobj.put("_imagesNote", ".images have been deprecated!  long live MediaAssets!  (see: .annotations)");
