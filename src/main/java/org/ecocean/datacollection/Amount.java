@@ -17,6 +17,14 @@ public class Amount extends DataPoint {
     this.units = units;
   }
 
+  public Amount(String name, Double value, String units) {
+    super.setID(Util.generateUUID());
+    super.setName(name);
+    this.value = value;
+    this.units = units;
+  }
+
+
   public Double getValue() {
     return value;
   }

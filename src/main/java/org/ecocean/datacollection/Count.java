@@ -17,6 +17,14 @@ public class Count extends DataPoint {
     this.units = units;
   }
 
+  public Count(String name, Integer value, String units) {
+    super.setID(Util.generateUUID());
+    super.setName(name);
+    this.value = value;
+    this.units = units;
+  }
+
+
   public Integer getValue() {
     return value;
   }

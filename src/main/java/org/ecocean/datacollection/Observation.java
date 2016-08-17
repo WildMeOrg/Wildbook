@@ -15,6 +15,13 @@ public class Observation extends DataPoint {
     this.value = value;
   }
 
+  public Observation(String name, String value) {
+    super.setID(Util.generateUUID());
+    super.setName(name);
+    this.value = value;
+  }
+
+
   public String getValue() {
     return value;
   }
