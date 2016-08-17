@@ -81,8 +81,8 @@ File encounterDir = new File(encountersDir, num);
 						script += cmdResize.replaceAll("%width", "100").replaceAll("%height", "75").replaceAll("%imagesource", imageSource).replaceAll("%imagetarget", epath + File.separator + "thumb.jpg") + "\n";
 					}
 
-					script += cmdWatermark.replaceAll("%width", "250").replaceAll("%height", "200").replaceAll("%imagesource", imageSource).replaceAll("%imagetarget", epath + File.separator + spv.getDataPointID() + ".jpg") + "\n";
-					script += cmdResize.replaceAll("%width", "1024").replaceAll("%height", "768").replaceAll("%imagesource", imageSource).replaceAll("%imagetarget", epath + File.separator + spv.getDataPointID() + "-mid.jpg") + "\n";
+					script += cmdWatermark.replaceAll("%width", "250").replaceAll("%height", "200").replaceAll("%imagesource", imageSource).replaceAll("%imagetarget", epath + File.separator + spv.getDataCollectionEventID() + ".jpg") + "\n";
+					script += cmdResize.replaceAll("%width", "1024").replaceAll("%height", "768").replaceAll("%imagesource", imageSource).replaceAll("%imagetarget", epath + File.separator + spv.getDataCollectionEventID() + "-mid.jpg") + "\n";
 					count++;
 				}
 				script += "\nchown tomcat:tomcat " + epath + File.separator + "*\n";

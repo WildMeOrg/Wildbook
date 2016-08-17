@@ -3231,7 +3231,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
         %>
             <tr>
-              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.DataPointID}"/></td>
+              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.DataCollectionEventID}"/></td>
               <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
                   <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
                   <select name="measurement${index}(samplingProtocol)">

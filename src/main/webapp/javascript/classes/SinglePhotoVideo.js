@@ -1,7 +1,7 @@
 
 wildbook.Model.SinglePhotoVideo = wildbook.Model.BaseClass.extend({
 
-	idAttribute: 'DataPointID',
+	idAttribute: 'DataCollectionEventID',
 
 	//note: these assume .encounter is set -- which is only sure if we were loaded via .getImages() on parent encounter  TODO
 
@@ -11,11 +11,11 @@ wildbook.Model.SinglePhotoVideo = wildbook.Model.BaseClass.extend({
 	},
 
 	urlSmall: function() {
-		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/' + this.get('DataPointID') + '.jpg';
+		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/' + this.get('DataCollectionEventID') + '.jpg';
 	},
 
 	urlMid: function() {
-		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/' + this.get('DataPointID') + '-mid.jpg';
+		return wildbookGlobals.dataUrl + '/encounters/' + this.subdir() + '/' + this.get('DataCollectionEventID') + '-mid.jpg';
 	},
 
 	subdir: function() { //recycling!  (really "Encounter subdir")

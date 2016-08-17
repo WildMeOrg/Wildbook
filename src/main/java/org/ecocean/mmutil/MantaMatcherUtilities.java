@@ -65,14 +65,14 @@ public final class MantaMatcherUtilities {
       throw new NullPointerException("Invalid file specified: null");
     Map<String, File> map = getMatcherFilesMap(spv.getFile());
     // MMA input files.
-    map.put("MMA-INPUT", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaInput.txt"));
-    map.put("MMA-INPUT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaInputRegional.txt"));
+    map.put("MMA-INPUT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInput.txt"));
+    map.put("MMA-INPUT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaInputRegional.txt"));
     // MMA results files: global.
-    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaOutput.txt"));
-    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaOutput.csv"));
+    map.put("TXT", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.txt"));
+    map.put("CSV", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutput.csv"));
     // MMA results files: regional.
-    map.put("TXT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaOutputRegional.txt"));
-    map.put("CSV-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataPointID() + "_mmaOutputRegional.csv"));
+    map.put("TXT-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.txt"));
+    map.put("CSV-REGIONAL", new File(spv.getFile().getParentFile(), spv.getDataCollectionEventID() + "_mmaOutputRegional.csv"));
     return map;
   }
 

@@ -232,7 +232,7 @@ margin-bottom: 8px !important;
 						String matchSPVID = "";
 						if (match != null) {
 							matchFilename = match.getFilename();
-							matchSPVID=match.getDataPointID();
+							matchSPVID=match.getDataCollectionEventID();
 							imgUrl = "/" + dataDir + "/" + matchFilename;
 							//List k = match.getKeywords();
 						}

@@ -28,14 +28,14 @@ import org.joda.time.DateTime;
  *
  * @author jholmber
  */
-public abstract class DataPoint implements java.io.Serializable {
+public abstract class DataCollectionEvent implements java.io.Serializable {
   private static final long serialVersionUID = -4268335414161281405L;
 
 
 /**
-* DataPoint is an abstract base class that provides registration fields
+* DataCollectionEvent is an abstract base class that provides registration fields
 * for common metadata related to data that may be collected about an individual during an Encounter instance
-* of wildlife data in the field. The following types of classes are expected to extend DataPoint:
+* of wildlife data in the field. The following types of classes are expected to extend DataCollectionEvent:
 *   -PhotoVideoCollectionEvent class for managing photo and video data
 *   -GeneticCollectionEvent for managing haplotype and microsatellite marker data taken during an Encounter instance
 *   -TrackingDataEvent for managing SAT and PAT archival tag files related to an Encounter instance
@@ -47,7 +47,7 @@ public abstract class DataPoint implements java.io.Serializable {
  */
 private String correspondingEncounterNumber;
 private String type;
-private String DataPointID;
+private String DataCollectionEventID;
 
 private DateTime datetime;
 
@@ -70,14 +70,14 @@ private String datasetName;
  * Empty constructor required for JDO persistence
  *
  */
-public DataPoint(){}
+public DataCollectionEvent(){}
 
-public DataPoint(String correspondingEncounterNumber, String type){
+public DataCollectionEvent(String correspondingEncounterNumber, String type){
 	this.correspondingEncounterNumber=correspondingEncounterNumber;
 	this.type=type;
 }
 
-public DataPoint(String correspondingEncounterNumber, String type, HttpServletRequest request){
+public DataCollectionEvent(String correspondingEncounterNumber, String type, HttpServletRequest request){
   this.correspondingEncounterNumber=correspondingEncounterNumber;
   this.type=type;
 
@@ -110,8 +110,8 @@ public void setCorrespondingEncounterNumber(String encounterNumber){
 public DateTime getDateTime(){return datetime;}
 public void setDateTime(DateTime datetime){this.datetime = datetime;}
 
-public String getDataPointID(){return DataPointID;}
-public void setDataPointID(String id){this.DataPointID=id;}
+public String getDataCollectionEventID(){return DataCollectionEventID;}
+public void setDataCollectionEventID(String id){this.DataCollectionEventID=id;}
 
 public String getSamplingProtocol(){return samplingProtocol;}
 public void setSamplingProtocol(String protocol){this.samplingProtocol=protocol;}

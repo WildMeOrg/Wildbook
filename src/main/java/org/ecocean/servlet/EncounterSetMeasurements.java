@@ -67,7 +67,7 @@ public class EncounterSetMeasurements extends HttpServlet {
             
             
               
-            measurement  = myShepherd.findDataPoint(Measurement.class, requestEventValues.id);
+            measurement  = myShepherd.findDataCollectionEvent(Measurement.class, requestEventValues.id);
             
             String oldValue="null";
             if(measurement.getValue()!=null){oldValue=measurement.getValue().toString();}

@@ -5,11 +5,11 @@ import java.util.ArrayList;
 import org.ecocean.*;
 
 
-// a DataSheet is a DataPoint attached to a set of DataAtoms
+// a DataSheet is a DataCollectionEvent attached to a set of DataAtoms
 // this way we can organize a set of measurements, counts,
 // and observations that were taken by researchers in one
 // time and place.
-public class DataSheet extends DataPoint {
+public class DataSheet extends DataCollectionEvent {
 
   private String id;
 

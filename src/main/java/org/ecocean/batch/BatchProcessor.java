@@ -647,13 +647,13 @@ public final class BatchProcessor implements Runnable {
               if (!MediaUtilities.isAcceptableImageFile(spv.getFile()))
                 continue;
               src = spv.getFile();
-              dst = new File(src.getParentFile(), spv.getDataPointID() + ".jpg");
+              dst = new File(src.getParentFile(), spv.getDataCollectionEventID() + ".jpg");
               if (dst.exists()) {
-                log.info(String.format("Thumbnail image %s already exists", spv.getDataPointID()));
+                log.info(String.format("Thumbnail image %s already exists", spv.getDataCollectionEventID()));
               } else {
                 try {
                   createThumbnailWithOverlay(src, dst, 250, 200, copyText);
-//                  log.trace(String.format("Created thumbnail for media item %s", spv.getDataPointID()));
+//                  log.trace(String.format("Created thumbnail for media item %s", spv.getDataCollectionEventID()));
                 }
                 catch (Exception ex) {
                   log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);

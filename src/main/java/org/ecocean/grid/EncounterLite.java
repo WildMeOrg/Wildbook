@@ -3840,8 +3840,8 @@ System.out.println("hit top at i=" + i);
             int numOldSpots=oldSpots.size();
             
             //initialize our output series
-            ArrayList<Point> theEncDataPoints=new ArrayList<Point>();
-            ArrayList<Point> theEnc2DataPoints=new ArrayList<Point>();
+            ArrayList<Point> theEncDataCollectionEvents=new ArrayList<Point>();
+            ArrayList<Point> theEnc2DataCollectionEvents=new ArrayList<Point>();
             
           
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
@@ -3858,7 +3858,7 @@ System.out.println("hit top at i=" + i);
             java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
             //System.out.println("Swale Dist1: "+oldLine.ptLineDist(thePoint)/oldLineWidth);
             double[] myDub={0,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
-            theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+            theEncDataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
             
             
           }
@@ -3925,7 +3925,7 @@ System.out.println("hit top at i=" + i);
               SuperSpot newSpot=new SuperSpot(xCoordFraction,yCoord);
               
               //NEW_VALUES[i]=yCoord;
-              //theEnc2DataPoints.addPoint(new DataPoint(i,yCoord));
+              //theEnc2DataCollectionEvents.addPoint(new DataCollectionEvent(i,yCoord));
               
               if(newSpot.getCentroidX()>newRightmostSpot.getCentroidX()){newRightmostSpot=newSpot;}
               if(newSpot.getCentroidX()<newLeftmostSpot.getCentroidX()){newLeftmostSpot=newSpot;}
@@ -3934,14 +3934,14 @@ System.out.println("hit top at i=" + i);
               double[] myDub={0,yCoord,i};
               //System.out.println("Swale Dist2: "+yCoord);
               
-              theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+              theEnc2DataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
               
               
             }
         catch(Exception e){
            System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
           double[] myDub={0,0,i};
-          theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+          theEnc2DataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
           
         }
             
@@ -3952,8 +3952,8 @@ System.out.println("hit top at i=" + i);
           SwaleOperator swaleOp=new SwaleOperator(penalty,reward,epsilon);
           
           //DistanceOperator op  = (DistanceOperator)Class.forName("core.distance.SwaleOperator").newInstance();
-          Trajectory oldSeries=new Trajectory(0,theEncDataPoints,swaleOp);
-          Trajectory newSeries=new Trajectory(1,theEnc2DataPoints,swaleOp);
+          Trajectory oldSeries=new Trajectory(0,theEncDataCollectionEvents,swaleOp);
+          Trajectory newSeries=new Trajectory(1,theEnc2DataCollectionEvents,swaleOp);
           
           
           //java.lang.Double matchResult=new java.lang.Double(swaleComp.similarity(oldSerie, newSerie));
@@ -4333,8 +4333,8 @@ System.out.println("hit top at i=" + i);
             int numOldSpots=oldSpots.size();
             
             //initialize our output series
-            ArrayList<Point> theEncDataPoints=new ArrayList<Point>();
-            ArrayList<Point> theEnc2DataPoints=new ArrayList<Point>();
+            ArrayList<Point> theEncDataCollectionEvents=new ArrayList<Point>();
+            ArrayList<Point> theEnc2DataCollectionEvents=new ArrayList<Point>();
             
           
           SuperSpot[] oldReferenceSpots=theEnc.getLeftReferenceSpots();
@@ -4351,7 +4351,7 @@ System.out.println("hit top at i=" + i);
             java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
             //System.out.println("Swale Dist1: "+oldLine.ptLineDist(thePoint)/oldLineWidth);
             double[] myDub={0,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
-            theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+            theEncDataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
             
             
           }
@@ -4418,7 +4418,7 @@ System.out.println("hit top at i=" + i);
               SuperSpot newSpot=new SuperSpot(xCoordFraction,yCoord);
               
               //NEW_VALUES[i]=yCoord;
-              //theEnc2DataPoints.addPoint(new DataPoint(i,yCoord));
+              //theEnc2DataCollectionEvents.addPoint(new DataCollectionEvent(i,yCoord));
               
               if(newSpot.getCentroidX()>newRightmostSpot.getCentroidX()){newRightmostSpot=newSpot;}
               if(newSpot.getCentroidX()<newLeftmostSpot.getCentroidX()){newLeftmostSpot=newSpot;}
@@ -4427,14 +4427,14 @@ System.out.println("hit top at i=" + i);
               double[] myDub={0,yCoord,i};
               //System.out.println("Swale Dist2: "+yCoord);
               
-              theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+              theEnc2DataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
               
               
             }
         catch(Exception e){
             System.out.println("Hit an exception with spot: ["+theSpot.getCentroidX()+","+theSpot.getCentroidY()+"]");
           double[] myDub={0,0,i};
-          theEnc2DataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+          theEnc2DataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
           
         }
             
@@ -4445,8 +4445,8 @@ System.out.println("hit top at i=" + i);
           EuclideanOperator eucOp=new EuclideanOperator();
           
           //DistanceOperator op  = (DistanceOperator)Class.forName("core.distance.SwaleOperator").newInstance();
-          Trajectory oldSeries=new Trajectory(0,theEncDataPoints,eucOp);
-          Trajectory newSeries=new Trajectory(1,theEnc2DataPoints,eucOp);
+          Trajectory oldSeries=new Trajectory(0,theEncDataCollectionEvents,eucOp);
+          Trajectory newSeries=new Trajectory(1,theEnc2DataCollectionEvents,eucOp);
           
           
           //java.lang.Double matchResult=new java.lang.Double(swaleComp.similarity(oldSerie, newSerie));

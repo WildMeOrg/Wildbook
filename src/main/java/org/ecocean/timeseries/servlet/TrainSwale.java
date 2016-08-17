@@ -108,7 +108,7 @@ public class TrainSwale extends HttpServlet {
                           System.out.println("..."+i);
                           
                         //initialize our output series
-                          ArrayList<Point> theEncDataPoints=new ArrayList<Point>();
+                          ArrayList<Point> theEncDataCollectionEvents=new ArrayList<Point>();
                           
                         
                           int label=0;
@@ -162,11 +162,11 @@ public class TrainSwale extends HttpServlet {
                                     java.awt.geom.Point2D.Double thePoint=new java.awt.geom.Point2D.Double(theSpot.getCentroidX(),theSpot.getCentroidY());
                                     double[] myDub={i,(oldLine.ptLineDist(thePoint)/oldLineWidth),i};
                                     
-                                    theEncDataPoints.add( new org.ecocean.timeseries.core.Point( myDub ) );
+                                    theEncDataCollectionEvents.add( new org.ecocean.timeseries.core.Point( myDub ) );
                                     
                                   }
                                 
-                                  Trajectory oldSeries=new Trajectory(0,theEncDataPoints,op);
+                                  Trajectory oldSeries=new Trajectory(0,theEncDataCollectionEvents,op);
                                   trajectories.add(oldSeries);
                                 
                                 

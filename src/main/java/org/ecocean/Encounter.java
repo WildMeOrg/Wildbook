@@ -234,7 +234,7 @@ public class Encounter implements java.io.Serializable {
   private String submitterProject;
 
   //hold submittedData
-  //private List<DataPoint> collectedData;
+  //private List<DataCollectionEvent> collectedData;
   private List<TissueSample> tissueSamples;
   private List<SinglePhotoVideo> images;
   //private ArrayList<MediaAsset> media;
@@ -716,7 +716,7 @@ public class Encounter implements java.io.Serializable {
   */
 
   /*
-  public void removeDataPoint(DataPoint dce) {
+  public void removeDataCollectionEvent(DataCollectionEvent dce) {
    collectedData.remove(dce);
   }
 */
@@ -1036,7 +1036,7 @@ public class Encounter implements java.io.Serializable {
         for (SinglePhotoVideo spv : images) {
             MediaAsset ma = spv.toMediaAsset(myShepherd);
             if (ma == null) {
-                System.out.println("WARNING: Encounter.generateAnnotations() could not create MediaAsset from SinglePhotoVideo " + spv.getDataPointID() + "; skipping");
+                System.out.println("WARNING: Encounter.generateAnnotations() could not create MediaAsset from SinglePhotoVideo " + spv.getDataCollectionEventID() + "; skipping");
                 continue;
             }
             if (haveMedia.contains(ma)) {
@@ -1061,11 +1061,11 @@ public class Encounter implements java.io.Serializable {
             File idir = new File(spv.getFullFileSystemPath()).getParentFile();
             //now we iterate through flavors that could be derived
             //TODO is it bad to assume ".jpg" ? i forget!
-            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataPointID() + ".jpg"), "spv/" + spv.getDataPointID() + "/" + spv.getDataPointID() + ".jpg", ma, "_watermark");
-            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataPointID() + "-mid.jpg"), "spv/" + spv.getDataPointID() + "/" + spv.getDataPointID() + "-mid.jpg", ma, "_mid");
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + ".jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + ".jpg", ma, "_watermark");
+            addMediaIfNeeded(myShepherd, new File(idir, spv.getDataCollectionEventID() + "-mid.jpg"), "spv/" + spv.getDataCollectionEventID() + "/" + spv.getDataCollectionEventID() + "-mid.jpg", ma, "_mid");
 
             // note: we "assume" thumb was created from 0th spv, cuz we simply dont know but want it living somewhere
-            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(idir, "/thumb.jpg"), "spv/" + spv.getDataPointID() + "/thumb.jpg", ma, "_thumb");
+            if (!thumbDone) addMediaIfNeeded(myShepherd, new File(idir, "/thumb.jpg"), "spv/" + spv.getDataCollectionEventID() + "/thumb.jpg", ma, "_thumb");
             thumbDone = true;
         }
 
@@ -1893,34 +1893,34 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     	else{submitterOrganization=null;}
     }
 
-   // public List<DataPoint> getCollectedData(){return collectedData;}
+   // public List<DataCollectionEvent> getCollectedData(){return collectedData;}
 
     /*
-    public ArrayList<DataPoint> getCollectedDataOfType(String type){
-      ArrayList<DataPoint> filteredList=new ArrayList<DataPoint>();
+    public ArrayList<DataCollectionEvent> getCollectedDataOfType(String type){
+      ArrayList<DataCollectionEvent> filteredList=new ArrayList<DataCollectionEvent>();
       int cdSize=collectedData.size();
       System.out.println("cdSize="+cdSize);
       for(int i=0;i<cdSize;i++){
         System.out.println("i="+i);
-        DataPoint tempDCE=collectedData.get(i);
+        DataCollectionEvent tempDCE=collectedData.get(i);
         if(tempDCE.getType().equals(type)){filteredList.add(tempDCE);}
       }
       return filteredList;
     }
     */
     /*
-    public <T extends DataPoint> List<T> getCollectedDataOfClass(Class<T> clazz) {
-      List<DataPoint> collectedData = getCollectedData();
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClass(Class<T> clazz) {
+      List<DataCollectionEvent> collectedData = getCollectedData();
       List<T> result = new ArrayList<T>();
-      for (DataPoint DataPoint : collectedData) {
-        if (DataPoint.getClass().isAssignableFrom(clazz)) {
-          result.add((T) DataPoint);
+      for (DataCollectionEvent DataCollectionEvent : collectedData) {
+        if (DataCollectionEvent.getClass().isAssignableFrom(clazz)) {
+          result.add((T) DataCollectionEvent);
         }
       }
       return result;
     }
 
-    public <T extends DataPoint> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
+    public <T extends DataCollectionEvent> List<T> getCollectedDataOfClassAndType(Class<T> clazz, String type) {
       List<T> collectedDataOfClass = getCollectedDataOfClass(clazz);
       List<T> result = new ArrayList<T>();
       for (T t : collectedDataOfClass) {
@@ -1931,11 +1931,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       return result;
     }
 
-    public void addCollectedDataPoint(DataPoint dce){
-      if(collectedData==null){collectedData=new ArrayList<DataPoint>();}
+    public void addCollectedDataCollectionEvent(DataCollectionEvent dce){
+      if(collectedData==null){collectedData=new ArrayList<DataCollectionEvent>();}
       if(!collectedData.contains(dce)){collectedData.add(dce);}
     }
-    public void removeCollectedDataPoint(int num){collectedData.remove(num);}
+    public void removeCollectedDataCollectionEvent(int num){collectedData.remove(num);}
     */
 
     public void addTissueSample(TissueSample dce){
@@ -2484,9 +2484,9 @@ thus, we have to treat it as a special case.
 			//TODO some day this will be a structure/definition that lives in a config file or on MediaAsset, etc.  for now, ya get hard-coded
 
 			//this will first try watermark version, then regular
-			ok &= (spv.scaleToWatermark(context, 250, 200, encDir + File.separator + spv.getDataPointID() + ".jpg", "") || spv.scaleTo(context, 250, 200, encDir + File.separator + spv.getDataPointID() + ".jpg"));
+			ok &= (spv.scaleToWatermark(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg", "") || spv.scaleTo(context, 250, 200, encDir + File.separator + spv.getDataCollectionEventID() + ".jpg"));
 
-			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataPointID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
+			ok &= spv.scaleTo(context, 1024, 768, encDir + File.separator + spv.getDataCollectionEventID() + "-mid.jpg");  //for use in VM tool etc. (bandwidth friendly?)
 			return ok;
 		}
 

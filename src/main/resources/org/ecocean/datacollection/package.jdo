@@ -6,14 +6,14 @@
 
 
 
-  <class name="DataPoint" identity-type="application">
+  <class name="DataCollectionEvent" identity-type="application">
     <inheritance strategy="new-table"/>
     <field name="correspondingEncounterNumber">
       <column name="CORRESPONDINGENCOUNTERNUMBER"/>
     </field>
 
-    <field name="DataPointID" primary-key="true" value-strategy="native">
-      <column name="DataPointID"/>
+    <field name="DataCollectionEventID" primary-key="true" value-strategy="native">
+      <column name="DataCollectionEventID"/>
     </field>
     <field name="samplingProtocol">
       <column name="SAMPLINGPROTOCOL"/>

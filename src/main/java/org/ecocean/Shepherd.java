@@ -770,22 +770,22 @@ public class Shepherd {
     return tempEnc;
   }
 
-  public <T extends DataPoint> T findDataPoint(Class<T> clazz, String num) {
-    T DataPoint = null;
+  public <T extends DataCollectionEvent> T findDataCollectionEvent(Class<T> clazz, String num) {
+    T DataCollectionEvent = null;
     try {
-      DataPoint = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
+      DataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
     } catch (Exception e) {
     }
-    return DataPoint;
+    return DataCollectionEvent;
   }
 
   public <T extends GeneticAnalysis> T findGeneticAnalysis(Class<T> clazz, String num) {
-    T DataPoint = null;
+    T DataCollectionEvent = null;
     try {
-      DataPoint = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
+      DataCollectionEvent = (T) pm.getObjectById((pm.newObjectIdInstance(clazz, num.trim())), true);
     } catch (Exception e) {
     }
-    return DataPoint;
+    return DataCollectionEvent;
   }
 
 
@@ -1857,7 +1857,7 @@ public class Shepherd {
       String filename=webURL.substring(lastIndex);
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
       spv.setWebURL(webURL);
-      spv.setDataPointID(ma.getUUID());
+      spv.setDataCollectionEventID(ma.getUUID());
       myArray.add(spv);
     }
     return myArray;
