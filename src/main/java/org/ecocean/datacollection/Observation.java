@@ -24,7 +24,7 @@ public class Observation extends DataPoint {
   }
 
   public String toString() {
-    return "\""+value+"\"";
+    return "\""+value+"\"".replace("null","");
   }
 
 }

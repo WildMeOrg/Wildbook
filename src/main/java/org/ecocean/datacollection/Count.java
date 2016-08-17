@@ -30,7 +30,7 @@ public class Count extends DataPoint {
   }
 
   public String toString() {
-    return (value.toString()+units);
+    return ((value.toString()+units).replace("null",""));
   }
 
 }
