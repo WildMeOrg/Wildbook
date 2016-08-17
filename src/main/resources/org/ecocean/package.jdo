@@ -570,5 +570,31 @@
 
 	</class>
 
+  <class name="Nest" identity-type="application" table="NEST">
+    <field name="id" primary-key="true">
+      <column name="ID"/>
+    </field>
+    <field name="dataSheets" persistence-modifier="persistent">
+      <collection element-type="org.ecocean.datacollection.DataSheet"/>
+      <column name="DATASHEETS"/>
+      <join/>
+    </field>
+
+    <field name="locationID" persistence-modifier="persistent" >
+      <column name="LOCATIONID"/>
+    </field>
+    <field name="locationNote" persistence-modifier="persistent" >
+      <column name="LOCATIONNOTE"/>
+    </field>
+    <field name="latitude" persistence-modifier="persistent" >
+      <column name="LATITUDE"/>
+    </field>
+    <field name="longitude" persistence-modifier="persistent" >
+      <column name="LONGITUDE"/>
+    </field>
+
+  </class>
+
+
   </package>
 </jdo>
