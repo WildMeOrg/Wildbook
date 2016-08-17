@@ -106,6 +106,7 @@ public void setCorrespondingEncounterNumber(String encounterNumber){
   }
 }
 
+
 public DateTime getDateTime(){return datetime;}
 public void setDateTime(DateTime datetime){this.datetime = datetime;}
 

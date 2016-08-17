@@ -47,6 +47,11 @@ public class TissueSample extends DataPoint {
     analyses=new ArrayList<GeneticAnalysis>();
   }
 
+  // datapoint methods
+  public void setValue(Object o){}
+  public String getValue(){return getHTMLString();}
+
+
   public void addGeneticAnalysis(GeneticAnalysis ga){
     if(!analyses.contains(ga)){analyses.add(ga);}
   }

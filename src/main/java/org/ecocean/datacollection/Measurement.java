@@ -5,7 +5,6 @@ public class Measurement extends DataPoint {
   private static final long serialVersionUID = -7934850478287322048L;
 
   private Double value;
-
   private String units;
 
   public Measurement() {
@@ -22,9 +21,8 @@ public class Measurement extends DataPoint {
     return value;
   }
 
-  public void setValue(Double value) {
-    if(value==null){this.value=null;}
-    else{this.value = value;}
+  public void setValue(Object value) {
+    this.value = (Double) value;
   }
 
   public String getUnits() {

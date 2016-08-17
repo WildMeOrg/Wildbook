@@ -62,13 +62,35 @@
 
   <class name="Measurement" identity-type="application">
     <inheritance strategy="new-table"/>
-    <field name="value">
+    <field name="value" persistence-modifier="persistent">
       <column name="VALUE"/>
     </field>
-    <field name="units">
+    <field name="units" persistence-modifier="persistent">
       <column name="UNITS"/>
     </field>
   </class>
+
+  <class name="DataAtom" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="id" persistence-modifier="persistent" primary-key="true">
+      <column name="ID"/>
+    </field>
+    <field name="name" persistence-modifier="persistent">
+      <column name="NAME"/>
+    </field>
+  </class>
+
+  <class name="DataSheet" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="id" persistence-modifier="persistent">
+      <column name="ID"/>
+    </field>
+    <field name="data" persistence-modifier="persistent" default-fetch-group="true">
+      <collection element-type="org.ecocean.datacollection.DataAtom"/>
+      <join/>
+    </field>
+  </class>
+
 
   <class name="Count" identity-type="application">
     <inheritance strategy="new-table"/>
@@ -80,8 +102,12 @@
     </field>
   </class>
 
-
-
+  <class name="Observation" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
 
 </package>
 </jdo>

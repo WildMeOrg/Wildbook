@@ -1,6 +1,8 @@
 package org.ecocean.datacollection;
 
-public class Count extends DataPoint {
+import org.ecocean.Util;
+
+public class Count extends DataAtom {
 
   private Integer value;
 
@@ -9,9 +11,8 @@ public class Count extends DataPoint {
   public Count() {
   }
 
-  public Count(String correspondingEncounterNumber, String type, Integer value, String units, String samplingProtocol) {
-    super(correspondingEncounterNumber, type);
-    super.setSamplingProtocol(samplingProtocol);
+  public Count(Integer value, String units) {
+    super.setID(Util.generateUUID());
     this.value = value;
     this.units = units;
   }
@@ -20,9 +21,8 @@ public class Count extends DataPoint {
     return value;
   }
 
-  public void setValue(Integer value) {
-    if(value==null){this.value=null;}
-    else{this.value = value;}
+  public void setValue(Object value) {
+    this.value = (Integer) value;
   }
 
   public String getUnits() {
