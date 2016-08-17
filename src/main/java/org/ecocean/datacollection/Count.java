@@ -2,7 +2,7 @@ package org.ecocean.datacollection;
 
 import org.ecocean.Util;
 
-public class Count extends DataAtom {
+public class Count extends DataPoint {
 
   private Integer value;
 

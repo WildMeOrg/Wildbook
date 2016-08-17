@@ -3,7 +3,7 @@ package org.ecocean.datacollection;
 import org.ecocean.Util;
 
 
-public class Observation extends DataAtom {
+public class Observation extends DataPoint {
 
   private String value;
 

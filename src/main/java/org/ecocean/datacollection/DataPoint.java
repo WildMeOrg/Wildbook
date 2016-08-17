@@ -1,12 +1,12 @@
 package org.ecocean.datacollection;
 
-public abstract class DataAtom implements java.io.Serializable {
+public abstract class DataPoint implements java.io.Serializable {
 
   private Object value;
   private String id;
   private String name; //e.g. "length"
 
-  public DataAtom() {
+  public DataPoint() {
   }
 
   public abstract Object getValue();
