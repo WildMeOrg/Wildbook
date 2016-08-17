@@ -766,6 +766,32 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
+    //piggybacks off metadata, so that must be set first, otherwise it matches corresponding mime type (major/minor), case-insensitive
+    //note: for return values, we standardize on all-lowercase. so there.
+    public boolean isMimeTypeMajor(String type) {
+        if (type == null) return false;
+        return type.toLowerCase().equals(this.getMimeTypeMajor());
+    }
+    public boolean isMimeTypeMinor(String type) {
+        if (type == null) return false;
+        return type.toLowerCase().equals(this.getMimeTypeMinor());
+    }
+    public String getMimeTypeMajor() {
+        String[] mt = this.getMimeType();
+        if ((mt == null) || (mt.length < 1)) return null;
+        return mt[0];
+    }
+    public String getMimeTypeMinor() {
+        String[] mt = this.getMimeType();
+        if ((mt == null) || (mt.length < 2)) return null;
+        return mt[1];
+    }
+    public String[] getMimeType() {
+        if (this.metadata == null) return null;
+        String mt = this.metadata.getAttributes().optString("contentType", null);  //note: getAttributes always  returns a JSONObject (even if empty)
+        if (mt == null) return null;
+        return mt.toLowerCase().split("/");
+    }
 
     //note: we are going to assume Metadata "will just be there" so no magical updates. if it is null, it is null.
     // this implies basically that it is set once when the MediaAsset is created, so make sure that happens, *cough*
