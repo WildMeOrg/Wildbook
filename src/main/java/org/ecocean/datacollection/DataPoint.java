@@ -10,6 +10,8 @@ public abstract class DataPoint implements java.io.Serializable {
   }
 
   public abstract Object getValue();
+  public abstract String toString();
+
 
   public String getName(){
     return name;
