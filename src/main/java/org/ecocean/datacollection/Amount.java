@@ -29,4 +29,8 @@ public class Amount extends DataPoint {
     return units;
   }
 
+  public String toString() {
+    return (value.toString()+units);
+  }
+
 }

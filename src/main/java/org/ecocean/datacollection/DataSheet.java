@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.ArrayList;
 import org.ecocean.*;
 
+import org.apache.commons.lang3.StringUtils;
+
+
 
 // a DataSheet is a DataCollectionEvent attached to a set of DataPoints
 // this way we can organize a set of measurements, counts,
@@ -38,6 +41,11 @@ public class DataSheet extends DataCollectionEvent {
 
   public String getID() {
     return id;
+  }
+
+  public String toString() {
+    return("DataSheet "+id+": ["+StringUtils.join(data, ", ")+ "]");
+
   }
 
 }

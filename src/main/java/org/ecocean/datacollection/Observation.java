@@ -23,4 +23,8 @@ public class Observation extends DataPoint {
     this.value = value;
   }
 
+  public String toString() {
+    return "\""+value+"\"";
+  }
+
 }
