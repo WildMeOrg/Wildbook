@@ -790,9 +790,13 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         try {
             url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FidentificationReviewPost%3D" + taskId + "&callback_method=POST";
 System.out.println("url --> " + url);
-getOut = "(( " + url + " ))";
+//getOut = "(( " + url + " ))";
             URL u = new URL(url);
             JSONObject rtn = RestClient.get(u);
+            if (IBEISIA.iaCheckMissing(res.optJSONObject("response"))) {  //we had to send missing images/annots, so lets try again (note: only once)
+System.out.println("trying again:\n" + u.toString());
+                rtn = RestClient.get(u);
+            }
             if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                 !rtn.getJSONObject("status").optBoolean("success", false)) {
                 getOut = "<div error-code=\"555\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";

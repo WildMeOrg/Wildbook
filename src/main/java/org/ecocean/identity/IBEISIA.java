@@ -545,7 +545,7 @@ WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException
 org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
-    private static boolean iaCheckMissing(JSONObject res) {
+    public static boolean iaCheckMissing(JSONObject res) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
         if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
@@ -559,7 +559,7 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
                 for (int i = 0 ; i < list.length() ; i++) {
                     String uuid = fromFancyUUID(list.getJSONObject(i));
 System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
-                    //TODO $##@*&!! need to have a way to load MediaAsset by uuid.  i knew it. :(
+                    //TODO actually send the mediaasset duh ... future-jon, please fix this
                 }
             }
         }
