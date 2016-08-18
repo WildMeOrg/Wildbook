@@ -66,6 +66,8 @@ public class DataSheet extends DataCollectionEvent {
         dp = new Count(dpName, (Integer) null, dpUnit);
       } else if (dpType.equals("amount")) {
         dp = new Amount(dpName, (Double) null, dpUnit);
+      } else if (dpType.equals("longcount")) {
+        dp = new LongCount(dpName, (Long) null, dpUnit);
       }
       if (dp!=null) data.add(dp);
 

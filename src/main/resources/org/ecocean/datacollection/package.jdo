@@ -102,6 +102,17 @@
     </field>
   </class>
 
+  <class name="LongCount" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+    <field name="units">
+      <column name="UNITS"/>
+    </field>
+  </class>
+
+
   <class name="Amount" identity-type="application">
     <inheritance strategy="new-table"/>
     <field name="value">
