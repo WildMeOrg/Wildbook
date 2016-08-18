@@ -81,7 +81,7 @@ try {
   out.println("<p>Num Cols = "+cols+"</p>");
   ProtoField[] pFields = new ProtoField[cols];
   DataSheet dSheet = new DataSheet(Util.generateUUID());
-
+  List<DataPoint> dPoints = new ArrayList<DataPoint>();
 
   String[] fieldNames = new String[cols];
   String colName;
@@ -97,7 +97,7 @@ try {
     out.println("</br>");
 
 
-    dSheet.addData(pFields[i].toDataPoint());
+    dSheet.addData(parsedPoint);
     /*
     out.println("</br>");
     out.println("</br>");
@@ -121,6 +121,7 @@ try {
 
   System.out.println("a");
   printJavaToFile(pFields, "testExcel.java");
+  printConfigToFile(pFields, "testExcel.config");
   System.out.println("b");
   out.println("DataSheet.toString() = "+dSheet.toString());
 
@@ -323,6 +324,30 @@ public static String getMeasurementEventTypeFromJavaType(String type) {
   else return "observation";
 }
 
+public static void printConfigToFile(ProtoField[] fields, File outFile) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+  System.out.println("HELLO?");
+  try {
+    PrintWriter writer = new PrintWriter(outFile);
+    System.out.println("Made writer = " + writer);
+    for (int i=0; i < fields.length; i++) {
+      fields[i].printMeasurementEventConfigInfo(writer, i, "nest");
+      writer.println("");
+    }
+    writer.close();
+  } catch (Exception e) {
+    System.out.println("ERROR!!");
+    e.printStackTrace();
+  }
+
+}
+
+public static void printConfigToFile(ProtoField[] fields, String fileName) throws FileNotFoundException, UnsupportedEncodingException, IOException {
+
+  File outFile = new File(fileName);
+  System.out.println("File at "+outFile.getAbsolutePath()+", canWrite = "+outFile.canWrite());
+  printConfigToFile(fields, outFile);
+
+}
 
 
 public static void printJavaToFile(ProtoField[] fields, File outFile) throws FileNotFoundException, UnsupportedEncodingException, IOException {
