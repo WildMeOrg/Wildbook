@@ -11,6 +11,7 @@ public abstract class DataPoint implements java.io.Serializable {
 
   public abstract Object getValue();
   public abstract String toString();
+  public abstract String toLabeledString(); // this makes it easy to check what type of DataPoint a given datapoint is
 
 
   public String getName(){
