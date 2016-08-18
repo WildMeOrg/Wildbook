@@ -38,7 +38,7 @@ public class Amount extends DataPoint {
   }
 
   public String toString() {
-    return ((this.getName()+": "+value.toString()+units).replaceAll("null",""));
+    return ("Amount: "(this.getName()+": "+value+units).replaceAll("null",""));
   }
 
 }
