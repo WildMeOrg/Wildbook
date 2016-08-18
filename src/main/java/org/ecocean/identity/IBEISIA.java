@@ -30,6 +30,8 @@ import org.joda.time.DateTime;
 import org.apache.commons.lang3.StringUtils;
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class IBEISIA {
 
@@ -49,14 +51,28 @@ public class IBEISIA {
     private static String SERVICE_NAME = "IBEISIA";
     private static String IA_UNKNOWN_NAME = "____";
 
+    private static AtomicBoolean iaPrimed = new AtomicBoolean(false);
     private static HashMap<Integer,Boolean> alreadySentMA = new HashMap<Integer,Boolean>();
     private static HashMap<String,Boolean> alreadySentAnn = new HashMap<String,Boolean>();
+    private static HashMap<String,Boolean> alreadySentExemplar = new HashMap<String,Boolean>();
     //private static HashMap<String,String> identificationMatchingState = new HashMap<String,String>();
     private static HashMap<String,String> identificationUserActiveTaskId = new HashMap<String,String>();
+
+    //cache-like, in order to speed up IA; TODO make this some kind of smarter class
+    private static HashMap<String,String> cacheAnnotIndiv = new HashMap<String,String>();
+    private static HashMap<String,ArrayList<JSONObject>> targetIdsListCache = new HashMap<String,ArrayList<JSONObject>>();
+    private static HashMap<String,ArrayList<String>> targetNameListCache = new HashMap<String,ArrayList<String>>();
 
     private static String iaBaseURL = null;  //gets set the first time it is needed by iaURL()
 
     //public static JSONObject post(URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException {
+
+    /*
+        NOTE: good practice is to call IBEISIA.waitForIAPriming(); before any of the sendFoo() or beginFoo() methods, so that some of the
+        time-consuming hassle can finish.  these things should happen upon tomcat startup, but can take a few minutes to run, so there may be
+        cases where IA jobs are started during this time.  technically nothing "bad" happens if a job starts during this process, but it will create
+        a longer wait time.  there is, however, a chance that waitForIAPriming() times out with a RuntimeException thrown.
+    */
 
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
@@ -65,6 +81,7 @@ public class IBEISIA {
 
     //other is a HashMap of additional properties to build lists out of (e.g. Encounter ids and so on), that do not live in/on MediaAsset
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas, HashMap<MediaAsset,HashMap<String,Object>> other) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendMediaAssets() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddImages is not set");
         URL url = new URL(u);
@@ -124,6 +141,7 @@ System.out.println("sendMediaAssets(): sending " + ct);
             //Annotation ann = new Annotation(ma, species);
 
     public static JSONObject sendAnnotations(ArrayList<Annotation> anns) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendAnnotations() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlAddAnnotations is not set");
         URL url = new URL(u);
@@ -160,9 +178,11 @@ System.out.println("sendAnnotations(): sending " + ct);
         return res;
     }
 
+    //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                           JSONObject userConfidence, String baseUrl)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
@@ -181,7 +201,9 @@ System.out.println("sendAnnotations(): sending " + ct);
         ArrayList<String> tnlist = new ArrayList<String>();
 
 ///note: for names here, we make the gigantic assumption that they individualID has been migrated to uuid already!
+        String species = null;
         for (Annotation ann : qanns) {
+            if (species == null) species = ann.getSpecies();
             qlist.add(toFancyUUID(ann.getUUID()));
 /* jonc now fixed it so we can have null/unknown ids... but apparently this needs to be "____" (4 underscores) ; also names are now just strings (not uuids)
             //TODO i guess (???) we need some kinda ID for query annotations (even tho we dont know who they are); so wing it?
@@ -189,9 +211,24 @@ System.out.println("sendAnnotations(): sending " + ct);
 */
             qnlist.add(IA_UNKNOWN_NAME);
         }
-        for (Annotation ann : tanns) {
+
+        boolean setExemplarCaches = false;
+        if (tanns == null) {
+System.out.println("--- exemplar!");
+            if (targetNameListCache.get(species) == null) {
+System.out.println("     gotta compute :(");
+                tanns = Annotation.getExemplars(species, myShepherd);
+                setExemplarCaches = true;
+            } else {
+System.out.println("     free ride :)");
+                tlist = targetIdsListCache.get(species);
+                tnlist = targetNameListCache.get(species);
+            }
+        }
+
+        if (tanns != null) for (Annotation ann : tanns) {
             tlist.add(toFancyUUID(ann.getUUID()));
-            String indivId = ann.findIndividualId(myShepherd);
+            String indivId = annotGetIndiv(ann, myShepherd);
 /*  see note above about names
             if (Util.isUUID(indivId)) {
                 tnlist.add(toFancyUUID(indivId));
@@ -210,6 +247,10 @@ System.out.println("sendAnnotations(): sending " + ct);
         }
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
 
+        if (setExemplarCaches) {
+           targetIdsListCache.put(species, tlist);
+           targetNameListCache.put(species, tnlist);
+        }
         map.put("query_annot_uuid_list", qlist);
         map.put("database_annot_uuid_list", tlist);
         map.put("query_annot_name_list", qnlist);
@@ -225,6 +266,7 @@ System.out.println(map);
 
 
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectAnnotations is not set");
         URL url = new URL(u);
@@ -503,8 +545,8 @@ WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException
 org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
-    private static boolean iaCheckMissing(JSONObject res) {
-System.out.println("########## iaCheckMissing res -> " + res);
+    public static boolean iaCheckMissing(JSONObject res) {
+/////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
         if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
         boolean tryAgain = false;
@@ -517,7 +559,7 @@ System.out.println("########## iaCheckMissing res -> " + res);
                 for (int i = 0 ; i < list.length() ; i++) {
                     String uuid = fromFancyUUID(list.getJSONObject(i));
 System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
-                    //TODO $##@*&!! need to have a way to load MediaAsset by uuid.  i knew it. :(
+                    //TODO actually send the mediaasset duh ... future-jon, please fix this
                 }
             }
         }
@@ -579,6 +621,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
     //like below, but you can pass Encounters (which will be mined for Annotations and passed along)
     public static JSONObject beginIdentify(ArrayList<Encounter> queryEncs, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentify() called without IA primed");
         JSONObject results = new JSONObject();
         results.put("success", false);  //pessimism!
         if ((queryEncs == null) || (queryEncs.size() < 1)) {
@@ -599,12 +642,16 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             if (enc.getAnnotations() != null) tanns.addAll(enc.getAnnotations());
         }
 
-        return beginIdentifyAnnotations(qanns, tanns, null, null, myShepherd, species, taskID, baseUrl, context);
+        JSONObject queryConfigDict = queryConfigDict();
+
+        return beginIdentifyAnnotations(qanns, tanns, queryConfigDict, null, myShepherd, species, taskID, baseUrl, context);
     }
 
     //actually ties the whole thing together and starts a job with all the pieces needed
+    // note: if tanns is null, that means we get all exemplar for species
     public static JSONObject beginIdentifyAnnotations(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
                                                       JSONObject userConfidence, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
+        if (!isIAPrimed()) System.out.println("WARNING: beginIdentifyAnnotations() called without IA primed");
         //TODO possibly could exclude qencs from tencs?
         String jobID = "-1";
         JSONObject results = new JSONObject();
@@ -622,11 +669,24 @@ System.out.println("iaCheckMissing -> " + tryAgain);
                 if (ma != null) mas.add(ma);
             }
 
+            boolean isExemplar = false;
+            if (tanns == null) {
+                isExemplar = true;
+                if ((alreadySentExemplar.get(species) == null) || !alreadySentExemplar.get(species)) {
+System.out.println("   ... have to set tanns.  :(");
+                    tanns = Annotation.getExemplars(species, myShepherd);
+                    alreadySentExemplar.put(species, true);
+                }
+            }
+
+System.out.println("- mark 2");
+            if (tanns != null) {
             for (Annotation ann : tanns) {
                 allAnns.add(ann);
                 MediaAsset ma = ann.getDerivedMediaAsset();
                 if (ma == null) ma = ann.getMediaAsset();
                 if (ma != null) mas.add(ma);
+            }
             }
 
 /*
@@ -637,6 +697,8 @@ System.out.println(allAnns);
 */
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
+
+            if (isExemplar) tanns = null;  //reset it for sendIdentify() below
 
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
@@ -2127,17 +2189,26 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return (Double)null;
     }
 
+    public static boolean iaEnabled(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null);
+    }
+    public static boolean iaEnabled() {
+        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0") != null);
+    }
+
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
+        boolean enabled = iaEnabled(request);
+        rtn.put("timestamp", System.currentTimeMillis());
+        rtn.put("iaEnabled", enabled);
+        if (!enabled) return rtn;
+
         String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
-        if (utest == null) {
-            rtn.put("iaURL", (String)null);
-            rtn.put("iaEnabled", false);
-        } else {
-            URL iau = iaURL(context, "");
-            rtn.put("iaURL", iau.toString());
-            rtn.put("iaEnabled", true);
+        URL iau = iaURL(context, "");
+        rtn.put("iaURL", iau.toString());
+        rtn.put("iaEnabled", true);
 /*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
             try {
                 // these 2 seem borked
@@ -2149,11 +2220,9 @@ System.out.println(">>>>>>>> age -> " + rtn);
                 if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbInfo", r.getString("response"));
             } catch (Exception ex) {}
 */
-            JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
-            settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
-            rtn.put("settings", settings);
-        }
-        rtn.put("timestamp", System.currentTimeMillis());
+        JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
+        settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
+        rtn.put("settings", settings);
         return rtn;
     }
 
@@ -2164,6 +2233,7 @@ System.out.println(">>>>>>>> age -> " + rtn);
     }
 
      /*
+     *   DEPRECATED!   see primeIA() instead
      * This static method sends all annotations and media assets for a species in Wildbook to Image Analysis in preparation for future matching.
      * It basically primes the system.
      */
@@ -2247,6 +2317,132 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return results;
     }
     
+
+/*
+status: {
+_action: "getJobResult",
+_response: {
+response: {
+json_result: {
+query_annot_uuid_list: [
+{
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+],
+query_config_dict: { },
+inference_dict: {
+annot_pair_dict: {
+review_pair_list: [
+{
+prior_matching_state: {
+p_match: 0.9470680954707609,
+p_nomatch: 0.05293190452923913,
+p_notcomp: 0
+},
+annot_uuid_2: {
+__UUID__: "b889b610-55aa-4407-8b02-b5632839a201"
+},
+annot_uuid_1: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+},
+annot_uuid_key: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+}
+],
+confidence_list: [
+0.7994795279514134
+]
+},
+*/
+    //qid (query id) can be null, in which case the first one we find is good enough
+    public static JSONArray simpleResultsFromAnnotPairDict(JSONObject apd, String qid) {
+        if (apd == null) return null;
+        JSONArray rlist = apd.optJSONArray("review_pair_list");
+        JSONArray clist = apd.optJSONArray("confidence_list");
+        if ((rlist == null) || (rlist.length() < 1)) return null;
+        if (qid == null) qid = fromFancyUUID(rlist.getJSONObject(0).optJSONObject("annot_uuid_key"));
+System.out.println("using qid -> " + qid);
+        JSONArray res = new JSONArray();
+        for (int i = 0 ; i < rlist.length() ; i++) {
+            if (rlist.optJSONObject(i) == null) continue;
+            if (!qid.equals(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_key")))) continue;
+            JSONArray s = new JSONArray();
+            s.put(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")));
+            s.put(clist.optDouble(i, 0.0));
+            res.put(s);
+        }
+        if (res.length() < 1) return null;
+        return res;
+    }
+
+    //stub to pick algorithm to be used etc. 
+    public static JSONObject queryConfigDict() {
+        return null;
+        // this is trailing edge matching but takes foreeeevvvver
+        //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+    }
+
+    private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        String id = cacheAnnotIndiv.get(ann.getId());
+        if (id != null) return id;
+        id = ann.findIndividualId(myShepherd);
+        cacheAnnotIndiv.put(ann.getId(), id);
+        return id;
+    }
+
+    public static void primeIA() {
+        setIAPrimed(false);
+        if (!iaEnabled()) return;
+System.out.println("<<<<< BEFORE : " + isIAPrimed());
+System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
+        Runnable r = new Runnable() {
+            public void run() {
+                Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.beginDBTransaction();
+                ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
+System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
+                ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+                for (Annotation ann : anns) {
+                    MediaAsset ma = ann.getDerivedMediaAsset();
+                    if (ma == null) ma = ann.getMediaAsset();
+                    if (ma != null) mas.add(ma);
+                }
+                try {
+                    sendMediaAssets(mas);
+                    sendAnnotations(anns);
+                } catch (Exception ex) {
+                    System.out.println("!! IBEISIA.primeIA() failed: " + ex.toString());
+ex.printStackTrace();
+                }
+                myShepherd.rollbackDBTransaction();
+                setIAPrimed(true);
+System.out.println("-- priming IBEISIA **complete**");
+            }
+        };
+        new Thread(r).start();
+System.out.println(">>>>>> AFTER : " + isIAPrimed());
+    }
+
+    public static synchronized boolean isIAPrimed() {
+System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
+        return iaPrimed.get();
+    }
+    public static synchronized void setIAPrimed(boolean b) {
+System.out.println(" ???? setting iaPrimed to " + b);
+        iaPrimed.set(b);
+    }
+
+    public static void waitForIAPriming() {
+        int count = 150;
+        while (!isIAPrimed()) {
+            count--;
+            if (count < 0) throw new RuntimeException("waitForIAPriming() gave up! :(");
+System.out.println("waitForIAPriming() patiently waiting");
+            try { Thread.sleep(2000); } catch (java.lang.InterruptedException ex) {}
+        }
+        return;
+    }
 
 
 }

@@ -381,6 +381,20 @@ public class Annotation implements java.io.Serializable {
         return anns;
     }
 
+    //for *any/all* species
+    static public ArrayList<Annotation> getExemplars(Shepherd myShepherd) {
+        String filter = "SELECT FROM org.ecocean.Annotation WHERE this.isExemplar";
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        Iterator it = c.iterator();
+        while (it.hasNext()) {
+            anns.add((Annotation)it.next());
+        }
+        query.closeAll();
+        return anns;
+    }
+
     public String findIndividualId(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc == null) return null;
