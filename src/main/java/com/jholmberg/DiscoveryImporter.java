@@ -513,7 +513,7 @@ public class DiscoveryImporter {
                 myShepherd.beginDBTransaction();
                 
                 
-                Annotation annot=new Annotation(ma, Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()));
+                Annotation annot=new Annotation(Util.taxonomyString(enc.getGenus(), enc.getSpecificEpithet()), ma);
                 myShepherd.getPM().makePersistent(annot);
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
