@@ -69,8 +69,10 @@ public class DataSheet extends DataCollectionEvent {
       } else if (dpType.equals("longcount")) {
         dp = new LongCount(dpName, (Long) null, dpUnit);
       }
-      if (dp!=null) data.add(dp);
-
+      if (dp!=null) {
+        dp.setNumber(i);
+        data.add(dp);
+      }
     }
     return new DataSheet(data);
   }
