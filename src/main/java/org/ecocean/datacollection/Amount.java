@@ -33,6 +33,15 @@ public class Amount extends DataPoint {
     this.value = value;
   }
 
+  public Double[] getCategories(String context) {
+    String[] strings = super.getCategoriesAsStrings(context);
+    Double[] res = new Double[strings.length];
+    for (int i=0; i<strings.length; i++) {
+      res[i] = Double.valueOf(strings[i]);
+    }
+    return res;
+  }
+
   public String getUnits() {
     return units;
   }

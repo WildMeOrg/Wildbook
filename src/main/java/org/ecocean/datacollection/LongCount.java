@@ -34,6 +34,16 @@ public class LongCount extends DataPoint {
     this.value = (Long) value;
   }
 
+  public Long[] getCategories(String context) {
+    String[] strings = super.getCategoriesAsStrings(context);
+    Long[] res = new Long[strings.length];
+    for (int i=0; i<strings.length; i++) {
+      res[i] = Long.valueOf(strings[i]);
+    }
+    return res;
+  }
+
+
   public String getUnits() {
     return (units);
   }
