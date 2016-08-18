@@ -563,6 +563,7 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
 System.out.println("about to do enc()");
 
             Encounter enc = new Encounter(day, month, year, hour, minutes, guess, getVal(fv, "location"), getVal(fv, "submitterName"), getVal(fv, "submitterEmail"), null);
+            boolean llSet = false;
             //Encounter enc = new Encounter();
             //System.out.println("Submission detected date: "+enc.getDate());
             String encID = enc.generateEncounterNumber();
@@ -590,7 +591,7 @@ System.out.println("enc ?= " + enc.toString());
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
                     ma.updateMetadata();
-                    newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                    newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }
@@ -603,7 +604,7 @@ System.out.println("enc ?= " + enc.toString());
                 if ((maSet != null) && (maSet.getMediaAssets() != null) && (maSet.getMediaAssets().size() > 0)) {
                     int num = maSet.getMediaAssets().size();
                     for (MediaAsset ma : maSet.getMediaAssets()) {
-                        newAnnotations.add(new Annotation(ma, Util.taxonomyString(genus, specificEpithet)));
+                        newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
                     }
                     session.setAttribute("filesOKMessage", num + " " + ((num == 1) ? "file" : "files"));
                 }
@@ -666,20 +667,7 @@ System.out.println("socialFile copy: " + sf.toString() + " ---> " + targetFile.t
               enc.setLifeStage(fv.get("lifeStage").toString());
           }
 
-      //add WWF-specific fields for data and photographer privacy
-      if (fv.get("showPicture") != null) {
-        enc.setDynamicProperty("PublicView","Yes");
-      }
-      else{
-        enc.setDynamicProperty("PublicView","No");
-      }
-      if (fv.get("showPhotographerName") != null) {
-        enc.setDynamicProperty("ShowPhotographer","Yes");
-      }
-      else{
-        enc.setDynamicProperty("ShowPhotographer","No");
-      }
-      //end WWF privacy fields
+
 
       List<MetalTag> metalTags = getMetalTags(fv);
       for (MetalTag metalTag : metalTags) {
@@ -829,6 +817,7 @@ System.out.println("depth --> " + fv.get("depth").toString());
           double degrees2 = (new Double(fv.get("longitude").toString())).doubleValue();
           double position2 = degrees2;
           enc.setDWCDecimalLongitude(position2);
+            llSet = true;
 
 
         } catch (Exception e) {
@@ -838,70 +827,6 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
 
       }
-///////////////// note: this huge block seems to have been commented out for a while, left in for prosperity.  ??   -jon 2014 06 02
-      //if (!(longitude.equals(""))) {
-        //enc.setGPSLongitude(longitude + "&deg; " + gpsLongitudeMinutes + "\' " + gpsLongitudeSeconds + "\" " + longDirection);
-
-        //try {
-
-
-          /*
-          if (!gpsLongitudeMinutes.equals("")) {
-            double minutes2 = ((new Double(gpsLongitudeMinutes)).doubleValue()) / 60;
-            position += minutes2;
-          }
-          if (!gpsLongitudeSeconds.equals("")) {
-            double seconds = ((new Double(gpsLongitudeSeconds)).doubleValue()) / 3600;
-            position += seconds;
-          }
-          if (longDirection.toLowerCase().equals("west")) {
-            position = position * -1;
-          }
-          */
-
-
-
-        //} catch (Exception e) {
-        //  System.out.println("EncounterSetGPS: problem setting decimal longitude!");
-         // e.printStackTrace();
-        //}
-      //}
-
-      //if one is not set, set all to null
-      /*
-      if ((longitude.equals("")) || (lat.equals(""))) {
-        enc.setGPSLongitude("");
-        enc.setGPSLongitude("");
-      //let's handle the GPS
-        if (!(lat.equals(""))) {
-
-
-            try {
-                enc.setDWCDecimalLatitude(new Double(lat));
-            }
-            catch(Exception e) {
-              System.out.println("EncounterSetGPS: problem setting decimal latitude!");
-              e.printStackTrace();
-            }
-
-
-        }
-        if (!(longitude.equals(""))) {
-
-          try {
-            enc.setDWCDecimalLongitude(new Double(longitude));
-          }
-          catch(Exception e) {
-            System.out.println("EncounterSetGPS: problem setting decimal longitude!");
-            e.printStackTrace();
-          }
-        }
-        enc.setDWCDecimalLatitude(-9999.0);
-        enc.setDWCDecimalLongitude(-9999.0);
-      }
-      */
-      //finish the GPS
-
 
       //enc.setMeasureUnits("Meters");
       enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
@@ -1016,6 +941,10 @@ System.out.println("depth --> " + fv.get("depth").toString());
       //System.out.println("I set the date as a LONG to: "+enc.getDWCDateAddedLong());
       enc.setDWCDateLastModified(strOutputDateTime);
 
+
+        //this will try to set from MediaAssetMetadata -- ymmv
+        if (!llSet) enc.setLatLonFromAssets();
+        if (enc.getYear() < 1) enc.setDateFromAssets();
 
             String newnum = "";
             if (!spamBot) {

@@ -36,6 +36,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.datanucleus.api.rest.orgjson.JSONException;
+
+
 /**
  * <code>Shepherd</code>	is the main	information	retrieval, processing, and persistence class to	be used	for	all	shepherd project applications.
  * The <code>shepherd</code>	class interacts directly with the database and	all	persistent objects stored within it.
@@ -125,6 +128,39 @@ public class Shepherd {
     return (uniqueID);
   }
 
+  public String storeNewAnnotation(Annotation enc) {
+    //enc.setOccurrenceID(uniqueID);
+    beginDBTransaction();
+    try {
+      pm.makePersistent(enc);
+      commitDBTransaction();
+      System.out.println("I successfully persisted a new Annotation in Shepherd.storeNewAnnotation().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Annotation in Shepherd.storeNewAnnotation().");
+      e.printStackTrace();
+      return "fail";
+    }
+    return (enc.getId());
+}
+
+  public String storeNewWorkspace(Workspace wSpace) {
+    beginDBTransaction();
+    try {
+      pm.makePersistent(wSpace);
+      commitDBTransaction();
+      System.out.println("I successfully persisted a new Workspace in Shepherd.storeNewWorkspace().");
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new workspace in shepherd.storeNewWorkspace().");
+      System.out.println("     id:" + wSpace.id);
+      e.printStackTrace();
+      return "fail";
+    }
+    return (String.valueOf(wSpace.id));
+  }
+
+
     public void storeNewOccurrence(Occurrence enc) {
       //enc.setOccurrenceID(uniqueID);
       beginDBTransaction();
@@ -139,6 +175,9 @@ public class Shepherd {
       }
 
   }
+
+
+
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
 
@@ -222,6 +261,10 @@ public class Shepherd {
   public void throwAwayEncounter(Encounter enc) {
     String number = enc.getEncounterNumber();
     pm.deletePersistent(enc);
+  }
+
+  public void throwAwayWorkspace(Workspace wSpace) {
+    pm.deletePersistent(wSpace);
   }
 
   public void throwAwayTissueSample(TissueSample genSample) {
@@ -314,15 +357,154 @@ public class Shepherd {
   }
 
   public MediaAsset getMediaAsset(String num) {
-    MediaAsset tempEnc = null;
+    MediaAsset tempMA = null;
     try {
-      tempEnc = ((MediaAsset) (pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.trim()), true)));
+      tempMA = ((MediaAsset) (pm.getObjectById(pm.newObjectIdInstance(MediaAsset.class, num.trim()), true)));
     } catch (Exception nsoe) {
       return null;
     }
-    return tempEnc;
+    return tempMA;
   }
 
+  public MediaAssetSet getMediaAssetSet(String num) {
+    MediaAssetSet tempMA = null;
+    try {
+      tempMA = ((MediaAssetSet) (pm.getObjectById(pm.newObjectIdInstance(MediaAssetSet.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempMA;
+  }
+
+
+  public Workspace getWorkspace(int id) {
+    Workspace tempWork = null;
+    try {
+      tempWork = (Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, id)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempWork;
+  }
+  // finds the workspace that user 'owner' created and named 'name'
+  public Workspace getWorkspaceForUser(String name, String owner) {
+    String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\"");
+    String filter = "this.name == \""+name+"\" && this.owner == "+quotedOwner;
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    Collection results = (Collection) (workspaceQuery.execute());
+    if (!results.isEmpty()) {
+      return (Workspace) (results.iterator().next());
+    }
+    return null;
+  }
+
+  // Returns all of a user's workspaces.
+  public ArrayList<Workspace> getWorkspacesForUser(String owner) {
+    String filter = "this.owner == \""+owner+"\"";
+    if (owner==null) {
+      filter = "this.owner == null";
+    }
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    workspaceQuery.setOrdering("accessed descending");
+
+    try {
+      Collection results = (Collection) (workspaceQuery.execute());
+      ArrayList<Workspace> resultList = new ArrayList<Workspace>();
+      if (results!=null) {
+        resultList = new ArrayList<Workspace>(results);
+      }
+      workspaceQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+  // Returns all of a user's workspaces.
+  public ArrayList<MediaAsset> getMediaAssetsForOwner(String owner) {
+
+    String enquotedOwner = (owner==null || owner.equals("")) ? "null" : "\""+owner+"\"";
+    String filter = "accessControl.username == " + enquotedOwner;
+
+    Extent allMediaAssets = pm.getExtent(MediaAsset.class, true);
+    Query mediaAssetQuery = pm.newQuery(allMediaAssets, filter);
+
+    try {
+      Collection results = (Collection) (mediaAssetQuery.execute());
+      ArrayList<MediaAsset> resultList = new ArrayList<MediaAsset>();
+      if (results!=null) {
+        resultList = new ArrayList<MediaAsset>(results);
+      }
+      mediaAssetQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+  public ArrayList<MediaAsset> getMediaAssetsForOwner(String owner, String status) {
+
+    String enquotedOwner = (owner==null || owner.equals("")) ? "null" : "\""+owner+"\"";
+
+    String enquotedStatus = (status==null || status.equals("")) ? "null" : "\""+status+"\"";
+
+    String filter = "accessControl.username == " + enquotedOwner +" && detectionStatus == "+enquotedStatus;
+    Extent allMediaAssets = pm.getExtent(MediaAsset.class, true);
+    Query mediaAssetQuery = pm.newQuery(allMediaAssets, filter);
+
+    try {
+      Collection results = (Collection) (mediaAssetQuery.execute());
+      ArrayList<MediaAsset> resultList = new ArrayList<MediaAsset>();
+      if (results!=null) {
+        resultList = new ArrayList<MediaAsset>(results);
+      }
+      mediaAssetQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
+
+  // like above but filters on Workspace.isImageSet
+  /*
+  public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) {
+    String quotedOwner = (owner==null) ? "null" : ("\""+owner+"\'");
+
+    String isImageSetBit = isImageSet ? "1" : "0";
+
+    String filter = "this.owner == "+quotedOwner+" && this.isImageSet == "+isImageSetBit;
+
+    Extent allWorkspaces = pm.getExtent(Workspace.class, true);
+    Query workspaceQuery = pm.newQuery(allWorkspaces, filter);
+    workspaceQuery.setOrdering("accessed descending");
+
+    try {
+      Collection results = (Collection) (workspaceQuery.execute());
+      ArrayList<Workspace> resultList = new ArrayList<Workspace>();
+      if (results!=null) {
+        resultList = new ArrayList<Workspace>(results);
+      }
+      workspaceQuery.closeAll();
+      return resultList;
+    } catch (Exception npe) {
+      npe.printStackTrace();
+      return null;
+    }
+  }*/
+  public ArrayList<Workspace> getWorkspacesForUser(String owner, boolean isImageSet) throws JSONException {
+    ArrayList<Workspace> unfilteredSpaces = getWorkspacesForUser(owner);
+    ArrayList<Workspace> filteredSpaces = new ArrayList<Workspace>();
+    for (Workspace wSpace : unfilteredSpaces) {
+      if (wSpace!=null && (wSpace.computeIsImageSet() == isImageSet)) {filteredSpaces.add(wSpace);}
+    }
+    return filteredSpaces;
+  }
 
   public Relationship getRelationship(String type, String indie1,String indie2) {
     Relationship tempRel = null;
@@ -704,6 +886,16 @@ public class Shepherd {
     return true;
   }
 
+  public boolean isWorkspace(String num) {
+    try {
+      Workspace tempSpace = ((org.ecocean.Workspace) (pm.getObjectById(pm.newObjectIdInstance(Workspace.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      //nsoe.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
 
   public boolean isCommunity(String comName) {
     try {
@@ -995,6 +1187,19 @@ public class Shepherd {
       return null;
     }
   }
+
+  public Iterator getAllAnnotationsNoQuery() {
+    try {
+      Extent annClass = pm.getExtent(Annotation.class, true);
+      Iterator it = annClass.iterator();
+      return it;
+    } catch (Exception npe) {
+      System.out.println("Error encountered when trying to execute getAllAnnotationsNoQuery. Returning a null iterator.");
+      npe.printStackTrace();
+      return null;
+    }
+  }
+
 
   public Iterator getAllMediaAssets() {
     try {
@@ -1650,6 +1855,7 @@ public class Shepherd {
       int lastIndex=webURL.lastIndexOf("/")+1;
       String filename=webURL.substring(lastIndex);
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
+      spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
       myArray.add(spv);
     }
@@ -1817,12 +2023,23 @@ public class Shepherd {
     return tempShark;
   }
 
+  public MarkedIndividual getMarkedIndividualQuiet(String name) {
+    MarkedIndividual indiv = null;
+    try {
+      indiv = ((org.ecocean.MarkedIndividual) (pm.getObjectById(pm.newObjectIdInstance(MarkedIndividual.class, name.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return indiv;
+  }
+
+
   public Occurrence getOccurrence(String id) {
     Occurrence tempShark = null;
     try {
       tempShark = ((org.ecocean.Occurrence) (pm.getObjectById(pm.newObjectIdInstance(Occurrence.class, id.trim()), true)));
     } catch (Exception nsoe) {
-      nsoe.printStackTrace();
+      //nsoe.printStackTrace();
       return null;
     }
     return tempShark;
@@ -1889,6 +2106,21 @@ public class Shepherd {
     Iterator it = list.iterator();
     return it;
   }
+
+  public Iterator getAllWorkspaces() {
+    Extent allWorkspaces = null;
+    try {
+      allWorkspaces = pm.getExtent(Workspace.class, true);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+    }
+    Query spaces = pm.newQuery(allWorkspaces);
+    Collection c = (Collection) (spaces.execute());
+    ArrayList list = new ArrayList(c);
+    Iterator it = list.iterator();
+    return it;
+  }
+
 
   public List<MarkedIndividual> getAllMarkedIndividualsFromLocationID(String locCode) {
     Extent allSharks = null;
@@ -2279,6 +2511,17 @@ public class Shepherd {
       //return false;
     } catch (JDOException jdoe2) {
       jdoe2.printStackTrace();
+      Throwable[] throwables=jdoe2.getNestedExceptions();
+      int numThrowables=throwables.length;
+      for(int i=0;i<numThrowables;i++){
+        Throwable t=throwables[i];
+        if(t instanceof java.sql.SQLException){
+          java.sql.SQLException exc=(java.sql.SQLException)t;
+          java.sql.SQLException g=exc.getNextException();
+          g.printStackTrace();
+        }
+        t.printStackTrace();
+      }
       //return false;
     }
     //added to prevent conflicting calls jah 1/19/04
@@ -3180,9 +3423,12 @@ public class Shepherd {
     ArrayList al=new ArrayList(results);
     q.closeAll();
     int numResults=al.size();
-    for(int i=0;i<numResults;i++){occurrenceIDs.add((String)al.get(i));}
+    for(int i=0;i<numResults;i++) {
+      occurrenceIDs.add((String)al.get(i));
+    }
     //System.out.println("zzzOccurrences for "+individualID+": "+occurrenceIDs.toString());
     return occurrenceIDs;
+
   }
 
 

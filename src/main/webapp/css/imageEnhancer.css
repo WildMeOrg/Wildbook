@@ -17,8 +17,10 @@
     right: 4px;
     bottom: 4px;
     width: 5%;
-    min-width: 15px;
-    max-width: 40px;
+    height: 0;
+    padding-bottom: 5%;
+    /*min-width: 20px;
+    max-width: 40px;*/
     background: url(../images/hamburger-menu.svg) no-repeat;
     background-size: 100% auto;
     opacity: 0.4;
@@ -77,9 +79,9 @@
 
 .image-enhancer-keyword-wrapper {
     position: absolute;
-    right: -2em;
-    width: 7em;
-    top: 10px;
+    left: 0.5em;
+    width: 8em;
+    top: 0.3em;
 }
 
 .image-enhancer-keyword, .iek-new-wrapper {
@@ -96,11 +98,20 @@
     background-color: #FFF;
     border: solid 1px #333;
 }
+.iek-new-wrapper {
+  text-align: center;
+}
+
 .image-enhancer-keyword-wrapper:hover .iek-new-wrapper {
-    background-color: #FF4;
+    background-color: #FFF;
     border: solid 1px #333;
     height: auto !important;
     padding-bottom: 7px;
+}
+
+.image-enhancer-keyword-wrapper:hover .iek-new-form input {
+  margin-top: 5px;
+  width: 100%;
 }
 
 .iek-remove {
@@ -124,22 +135,17 @@
 
 
 
-.iek-new-form {
+.iek-new-form, .iek-new-wrapper.iek-autohide {
     display: none;
 }
 
-.iek-new-wrapper:hover .iek-new-form {
+.image-enhancer-keyword-wrapper:hover .iek-new-form, .image-enhancer-keyword-wrapper:hover .iek-new-wrapper.iek-autohide {
     display: block;
 }
 
-
-.iek-new-wrapper.iek-autohide {
-    display: none;
+.image-enhancer-menu:hover {
+  cursor: pointer;
 }
-.image-enhancer-keyword-wrapper:hover .iek-new-wrapper.iek-autohide {
-    display: block;
-}
-
 
 .image-enhancer-overlay-message {
     margin: 20px;
@@ -151,6 +157,3 @@
     top: 50%;
     transform: translateY(-75%);
 }
-
-
-

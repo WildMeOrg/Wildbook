@@ -219,7 +219,7 @@ td.tdw:hover div {
 
 
 
-<div class="container-fluid maincontent">
+<div class="container maincontent">
 
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
@@ -263,7 +263,7 @@ td.tdw:hover div {
 
 <script type="text/javascript">
 
-	var needIAStatus = <%=("unapproved".equals(request.getParameter("state")) ? "true" : "false")%>;
+	var needIAStatus = false;
 /*
 
 

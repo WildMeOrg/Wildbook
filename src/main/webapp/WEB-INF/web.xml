@@ -35,6 +35,10 @@
   metadata-complete="true">
 
 
+<listener>
+    <description>ServletContextListener</description>
+    <listener-class>org.ecocean.StartupWildbook</listener-class>
+</listener>
 
   <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
   <description>
@@ -140,8 +144,6 @@
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
-				/individualSearchResults.jsp = authc
-				/individuals.jsp = authc
 				/individualSearchResultsExport.jsp = authc, roles[researcher]
 				 /encounters/exportSearchResults.jsp = authc, roles[researcher]
 				/encounters/searchComparison.jsp = authc, roles[researcher]
@@ -302,11 +304,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>IAGateway</servlet-name>
-    <servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
-  </servlet>
-
-  <servlet>
     <servlet-name>EncounterSetAlternateID</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetAlternateID</servlet-class>
   </servlet>
@@ -369,12 +366,11 @@
     <servlet-name>KeywordHandler</servlet-name>
     <servlet-class>org.ecocean.servlet.KeywordHandler</servlet-class>
   </servlet>
-  
-    <servlet>
-     <servlet-name>RestKeyword</servlet-name>
-     <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
-   </servlet>
 
+  <servlet>
+    <servlet-name>RestKeyword</servlet-name>
+    <servlet-class>org.ecocean.servlet.RestKeyword</servlet-class>
+  </servlet>
 
     <servlet>
       <servlet-name>ImportSRGD</servlet-name>
@@ -382,14 +378,17 @@
   </servlet>
 
   <servlet>
+    <servlet-name>ImportIA</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportIA</servlet-class>
+  </servlet>
+
+
+  <servlet>
     <servlet-name>IndividualAddFile</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddFile</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>EncounterApprove</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
-  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
@@ -505,9 +504,14 @@
         <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
   </servlet>
 
-      <servlet>
-        <servlet-name>MediaAssetCreate</servlet-name>
-        <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  <servlet>
+    <servlet-name>MediaAssetCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MediaAssetsForUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
   <servlet>
     <servlet-name>MediaAssetAttach</servlet-name>
@@ -910,10 +914,12 @@
     <servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterSetSize</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
@@ -1021,6 +1027,12 @@
     <servlet-class>org.ecocean.servlet.IAGateway</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>IAGlobals</servlet-name>
+    <servlet-class>org.ecocean.servlet.IAGlobals</servlet-class>
+  </servlet>
+
+
 <!--  disabling!  plz now use only org.ecocean.servlet.RestServlet (as it supports silo security)
   <servlet>
     <servlet-name>DataNucleus</servlet-name>
@@ -1037,6 +1049,15 @@
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 -->
+
+<servlet>
+         <servlet-name>jsp</servlet-name>
+         <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param> 
+            <param-name>mappedfile</param-name>
+             <param-value>false</param-value>
+        </init-param>
+     </servlet> 
 
 	<servlet>
 		<servlet-name>WildbookApi</servlet-name>
@@ -1064,6 +1085,36 @@
     <servlet-class>org.ecocean.servlet.TranslateQuery</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>WorkspaceServer</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspaceServer</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>WorkspacesForUser</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspacesForUser</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>WorkspaceDelete</servlet-name>
+    <servlet-class>org.ecocean.servlet.WorkspaceDelete</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MediaAssetContext</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetContext</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>MediaAssetModify</servlet-name>
+    <servlet-class>org.ecocean.servlet.MediaAssetModify</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>OccurrenceClusterMASet</servlet-name>
+    <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
+  </servlet>
+
 
 <servlet-mapping>
 <servlet-name>WildbookApi</servlet-name>
@@ -1080,6 +1131,37 @@
 <servlet-mapping>
   <servlet-name>TranslateQuery</servlet-name>
   <url-pattern>/TranslateQuery</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspaceServer</servlet-name>
+  <url-pattern>/WorkspaceServer</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspacesForUser</servlet-name>
+  <url-pattern>/WorkspacesForUser</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>WorkspaceDelete</servlet-name>
+  <url-pattern>/WorkspaceDelete</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>OccurrenceClusterMASet</servlet-name>
+  <url-pattern>/OccurrenceClusterMASet</url-pattern>
+</servlet-mapping>
+
+
+<servlet-mapping>
+  <servlet-name>MediaAssetContext</servlet-name>
+  <url-pattern>/MediaAssetContext</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>MediaAssetModify</servlet-name>
+  <url-pattern>/MediaAssetModify</url-pattern>
 </servlet-mapping>
 
 
@@ -1172,10 +1254,16 @@
             <url-pattern>/UserInfo</url-pattern>
   </servlet-mapping>
 
-     <servlet-mapping>
-            <servlet-name>MediaAssetCreate</servlet-name>
-            <url-pattern>/MediaAssetCreate</url-pattern>
-  </servlet-mapping>
+    <servlet-mapping>
+      <servlet-name>MediaAssetCreate</servlet-name>
+      <url-pattern>/MediaAssetCreate</url-pattern>
+    </servlet-mapping>
+
+      <servlet-mapping>
+             <servlet-name>MediaAssetsForUser</servlet-name>
+             <url-pattern>/MediaAssetsForUser</url-pattern>
+      </servlet-mapping>
+
 
       <servlet-mapping>
          <servlet-name>MediaAssetAttach</servlet-name>
@@ -1285,11 +1373,11 @@
             <servlet-name>ImportSRGD</servlet-name>
             <url-pattern>/ImportSRGD</url-pattern>
   </servlet-mapping>
-  
-     <servlet-mapping>
-     <servlet-name>RestKeyword</servlet-name>
-     <url-pattern>/RestKeyword</url-pattern>
-   </servlet-mapping>
+
+  <servlet-mapping>
+      <servlet-name>ImportIA</servlet-name>
+      <url-pattern>/ImportIA</url-pattern>
+  </servlet-mapping>
 
 
     <servlet-mapping>
@@ -1560,10 +1648,12 @@
     <url-pattern>/EncounterSetLocation</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetSize</servlet-name>
     <url-pattern>/EncounterSetSize</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterDelete</servlet-name>
@@ -1616,10 +1706,7 @@
     <url-pattern>/EncounterSetTapirLinkExposure</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>EncounterApprove</servlet-name>
-    <url-pattern>/EncounterApprove</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>IndividualSetSex</servlet-name>
@@ -1668,6 +1755,11 @@
   <servlet-mapping>
     <servlet-name>KeywordHandler</servlet-name>
     <url-pattern>/KeywordHandler</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>RestKeyword</servlet-name>
+    <url-pattern>/RestKeyword</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
@@ -1803,6 +1895,12 @@
     <url-pattern>/GridHeartbeatReceiver</url-pattern>
     <url-pattern>/gridHeartbeatReceiver</url-pattern>
     </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>IAGlobals</servlet-name>
+    <url-pattern>/IAGlobals</url-pattern>
+  </servlet-mapping>
+
 
 
     <servlet>

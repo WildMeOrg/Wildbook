@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
 
@@ -159,6 +160,8 @@ public abstract class AssetStore implements java.io.Serializable {
 
     public abstract URL webURL(MediaAsset ma);
 
+    public abstract String getFilename(MediaAsset ma);  //this should be null if there is no such thing.  "filename" is subjective here (e.g. youtube id?)
+
     public abstract MediaAsset create(JSONObject params);
 
     //this should be unique (as possible) for a combination of params -- used for searching, see find()
@@ -279,9 +282,9 @@ public abstract class AssetStore implements java.io.Serializable {
         ma.addLabel("_" + type);
         ma.setParentId(parent.getId());
 
-        if ((opts != null) && (opts.get("annotation") != null)) {
-            Annotation ann = (Annotation)opts.get("annotation");
-            ma.addDerivationMethod("annotation", ann.getId());
+        if ((opts != null) && (opts.get("feature") != null)) {
+            Feature ft = (Feature)opts.get("feature");
+            ma.addDerivationMethod("feature", ft.getId());
         }
 
         return ma;
@@ -320,17 +323,36 @@ public abstract class AssetStore implements java.io.Serializable {
                 transformArray = (float[])opts.get("transformArray");
                 break;
 */
-            case "annotation":
+            case "feature":
                 needsTransform = true;
-                Annotation ann = (Annotation)opts.get("annotation");
-                if (ann == null) throw new IOException("updateChild() has 'annotation' type without an Annotation passed in via opts");
-                width = ann.getWidth();
-                height = ann.getHeight();
-                transformArray = ann.getTransformMatrixClean();
-                if (!ann.needsTransform()) {  //above would be set to identity matrix, so lets set offsets only
-                    transformArray[4] = (float)ann.getX();
-                    transformArray[5] = (float)ann.getY();
+                Feature ft = (Feature)opts.get("feature");
+                if (ft == null) throw new IOException("updateChild() has 'feature' type without a Feature passed in via opts");
+
+                /*
+                    right now we only handle bbox (xywh) and transforms ... so we kinda get ugly here
+                    in the future, all this would be place with better FeatureType-specific magic.  :/  TODO !?
+                */
+                JSONObject params = ft.getParameters();
+System.out.println("updateChild() is trying feature! --> params = " + params);
+                width = (int)Math.round(params.optDouble("width", -1));
+                height = (int)Math.round(params.optDouble("height", -1));
+                if ((width < 0) || (height < 0)) throw new IOException("updateChild() could not get w/h for feature " + ft + " parameters " + params);
+
+                transformArray = new float[]{1,0,0,1,0,0};
+                if (params.optJSONArray("transformMatrix") != null) {
+                    JSONArray tarr = params.optJSONArray("transformMatrix");
+                    for (int i = 0 ; i < tarr.length() ; i++) {
+                        if (i > 5) break;  //fail!
+                        transformArray[i] = (float)tarr.optDouble(i, 0);
+                    }
                 }
+
+                if (Util.isIdentityMatrix(transformArray)) {
+                    //lets set offsets only (ImageMagick shell script will basically ignore most of matrix)
+                    transformArray[4] = (float)params.optDouble("x", 0);
+                    transformArray[5] = (float)params.optDouble("y", 0);
+                }
+System.out.println("got transformArray -> " + transformArray);
                 break;
             default:
                 throw new IOException("updateChild() type " + type + " unknown");
@@ -438,8 +460,12 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
     /**
      *  should create the ("base") set of parameters for the specific store-type based on file.
      *  note this can take into account store-specific config settings (like bucket for S3)
+     *   (optional) "grouping" acts sort of like a common subdir to put it under (**if** available for that store!)
      */
-    public abstract JSONObject createParameters(final File file);
+    public abstract JSONObject createParameters(final File file, final String grouping);
+    public JSONObject createParameters(final File file) {
+        return createParameters(file, null);
+    }
 
     public abstract void deleteFrom(final MediaAsset ma);
 

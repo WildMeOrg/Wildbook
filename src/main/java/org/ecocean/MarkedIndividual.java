@@ -28,6 +28,7 @@ import org.ecocean.security.Collaboration;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.text.DecimalFormat;
 
@@ -58,6 +59,9 @@ public class MarkedIndividual implements java.io.Serializable {
 
   //sex of the MarkedIndividual
   private String sex = "unknown";
+
+  private String genus = "";
+  private String specificEpithet;
 
   //unused String that allows groups of MarkedIndividuals by optional parameters
   private String seriesCode = "None";
@@ -94,7 +98,7 @@ public class MarkedIndividual implements java.io.Serializable {
   private Vector interestedResearchers = new Vector();
 
   private String dateTimeCreated;
-
+  
   private String dateTimeLatestSighting;
 
   //FOR FAST QUERY PURPOSES ONLY - DO NOT MANUALLY SET
@@ -120,6 +124,8 @@ public class MarkedIndividual implements java.io.Serializable {
       this.sex = enc.getSex();
     }
     //numUnidentifiableEncounters = 0;
+    setTaxonomyFromEncounters();
+    setSexFromEncounters();
     maxYearsBetweenResightings=0;
   }
 
@@ -157,6 +163,8 @@ public class MarkedIndividual implements java.io.Serializable {
         numberEncounters++;
         refreshDependentProperties(context);
       }
+      setTaxonomyFromEncounters();  //will only set if has no value
+      setSexFromEncounters();       //likewise
       return isNew;
 
  }
@@ -219,7 +227,7 @@ public class MarkedIndividual implements java.io.Serializable {
 		this.dateFirstIdentified = d;
 		return d;
 	}
-
+	
 	 public String refreshDateLastestSighting() {
 	    Encounter[] sorted = this.getDateSortedEncounters(true);
 	    if (sorted.length < 1) return null;
@@ -228,6 +236,8 @@ public class MarkedIndividual implements java.io.Serializable {
 	    this.dateTimeLatestSighting=last.getDate();
 	    return last.getDate();
 	  }
+
+
 
 
 	public String refreshThumbnailUrl(String context) {
@@ -670,6 +680,60 @@ public class MarkedIndividual implements java.io.Serializable {
 
   }
 
+    public String getGenus() {
+        return genus;
+    }
+
+    public void setGenus(String newGenus) {
+        genus = newGenus;
+    }
+
+    public String getSpecificEpithet() {
+        return specificEpithet;
+    }
+
+    public void setSpecificEpithet(String newEpithet) {
+        specificEpithet = newEpithet;
+    }
+
+    public String getTaxonomyString() {
+        return Util.taxonomyString(getGenus(), getSpecificEpithet());
+    }
+
+    ///this is really only for when dont have a value set; i.e. it should not be run after set on the instance;
+    /// therefore we dont allow that unless you pass boolean true to force it
+    ///  TODO we only pick first one - perhaps smarter would be to check all encounters and pick dominant one?
+    public String setTaxonomyFromEncounters(boolean force) {
+        if (!force && ((genus != null) || (specificEpithet != null))) return getTaxonomyString();
+        if ((encounters == null) || (encounters.size() < 1)) return getTaxonomyString();
+        for (Encounter enc : encounters) {
+            if ((enc.getGenus() != null) && (enc.getSpecificEpithet() != null)) {
+                genus = enc.getGenus();
+                specificEpithet = enc.getSpecificEpithet();
+                return getTaxonomyString();
+            }
+        }
+        return getTaxonomyString();
+    }
+    public String setTaxonomyFromEncounters() {
+        return setTaxonomyFromEncounters(false);
+    }
+
+    //similar to above
+    public String setSexFromEncounters(boolean force) {
+        if (!force && (sex != null)) return getSex();
+        if ((encounters == null) || (encounters.size() < 1)) return getSex();
+        for (Encounter enc : encounters) {
+            if (enc.getSex() != null) {
+                sex = enc.getSex();
+                return getSex();
+            }
+        }
+        return getSex();
+    }
+    public String setSexFromEncounters() {
+        return setSexFromEncounters(false);
+    }
 
   public double getLastEstimatedSize() {
     double lastSize = 0;
@@ -1087,7 +1151,7 @@ public class MarkedIndividual implements java.io.Serializable {
     }
     return "";
   }
-
+  
   public String getDateLatestSighting() {
     if (dateTimeLatestSighting != null) {
       return dateTimeLatestSighting;
@@ -1098,7 +1162,7 @@ public class MarkedIndividual implements java.io.Serializable {
   public void setDateTimeCreated(String time) {
     dateTimeCreated = time;
   }
-
+  
   public void setDateTimeLatestSighting(String time) {
     dateTimeLatestSighting = time;
   }
@@ -1310,7 +1374,7 @@ public class MarkedIndividual implements java.io.Serializable {
       }
     maxYearsBetweenResightings=maxYears;
     }
-
+  
 
 
   public String sidesSightedInPeriod(int m_startYear, int m_startMonth, int m_startDay, int m_endYear, int m_endMonth, int m_endDay, String locCode) {
@@ -1349,19 +1413,11 @@ public class MarkedIndividual implements java.io.Serializable {
       return "0";
     }
   }
-/**
-Returns the first genus-species pair found in the Encounter objects for this MarkedIndividual.
-@return a String if found or null if no genus-species pair is found
-*/
-public String getGenusSpecies(){
-	    for (int c = 0; c < encounters.size(); c++) {
-	      	Encounter temp = (Encounter) encounters.get(c);
-			if((temp.getGenus()!=null)&&(temp.getSpecificEpithet()!=null)){return (temp.getGenus()+" "+temp.getSpecificEpithet());}
 
-    	}
-		return null;
+    public String getGenusSpecies(){
+        return getTaxonomyString();
+    }
 
-}
 
 /**
 Returns the first haplotype found in the Encounter objects for this MarkedIndividual.
@@ -1744,73 +1800,99 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             jobj.remove("timeOfDeath");
             jobj.remove("timeOfBirth");
             jobj.remove("maxYearsBetweenResightings");
-            jobj.remove("numUnidentifiableEncounters");
+            //jobj.remove("numUnidentifiableEncounters");
             jobj.remove("nickName");
             jobj.remove("nickNamer");
             jobj.put("_sanitized", true);
             return jobj;
         }
 
+  // Returns a somewhat rest-like JSON object containing the metadata
+  public JSONObject uiJson(HttpServletRequest request) throws JSONException {
+    JSONObject jobj = new JSONObject();
+    jobj.put("individualID", this.getIndividualID());
+    jobj.put("url", this.getUrl(request));
+    jobj.put("sex", this.getSex());
+    jobj.put("nickname", this.nickName);
+
+    Vector<String> encIDs = new Vector<String>();
+    for (Encounter enc : this.encounters) {
+      encIDs.add(enc.getCatalogNumber());
+    }
+    jobj.put("encounterIDs", encIDs.toArray());
+    return sanitizeJson(request, jobj);
+  }
+
+  public String getUrl(HttpServletRequest request) {
+    return "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID();
+  }
+
+
+  /**
+  * returns an array of the MediaAsset sanitized JSON, because whenever UI queries our DB (regardless of class query),
+  * all they want in return are MediaAssets
+  * TODO: decorate with metadata
+  **/
+  public org.datanucleus.api.rest.orgjson.JSONArray sanitizeMedia(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
+    org.datanucleus.api.rest.orgjson.JSONArray resultArray = new org.datanucleus.api.rest.orgjson.JSONArray();
+    for(int i=0;i<encounters.size();i++) {
+      Encounter tempEnc=(Encounter)encounters.get(i);
+      Util.concatJsonArrayInPlace(resultArray, tempEnc.sanitizeMedia(request));
+    }
+    return resultArray;
+  }
+
+
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
-    boolean haveProfilePhoto=false;
+    //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
-      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
         if ((anns == null) || (anns.size() < 1)) {
           continue;
         }
         for (Annotation ann: anns) {
-          if (!ann.isTrivial()) continue;
+          //if (!ann.isTrivial()) continue;
           MediaAsset ma = ann.getMediaAsset();
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-
-
-
+            
+            
+            
             if (j!=null) {
-
-              // add photographer info
-              if((enc.getDynamicPropertyValue("ShowPhotographer")==null)||(enc.getDynamicPropertyValue("ShowPhotographer").equals("Yes"))){
-                j.put("photographer", enc.getPhotographerName());
-              }
-
-
-
-
-
+              
+              
               //ok, we have a viable candidate
-
+              
               //put ProfilePhotos at the beginning
-              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);haveProfilePhoto=true;}
-              //put any Right keywords at the top but after a profile photo
-              else if(ma.hasKeyword("Right")){
-                if(haveProfilePhoto){al.add(1, j);}
-                else{al.add(0, j);}
-              }
+              if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
               //otherwise, just add it to the bottom of the stack
               else{
                 al.add(j);
               }
-
+              
             }
-
-
+            
+            
           }
         }
-    }
+    //}
     }
     return al;
+
   }
-
+  
   public org.datanucleus.api.rest.orgjson.JSONObject getExemplarImage(HttpServletRequest req) throws JSONException {
-
+    
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=getExemplarImages(req);
     if(al.size()>0){return al.get(0);}
     return new JSONObject();
+    
 
   }
+  
 
   // WARNING! THIS IS ONLY CORRECT IF ITS LOGIC CORRESPONDS TO getExemplarImage
   public String getExemplarPhotographer() {
@@ -1865,5 +1947,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		this.refreshDateLastestSighting();
 	}
 
+
+    public String toString() {
+        return new ToStringBuilder(this)
+                .append("individualID", individualID)
+                .append("species", getGenusSpecies())
+                .append("sex", getSex())
+                .append("numEncounters", numberEncounters)
+                .append("numLocations", numberLocations)
+                .toString();
+    }
 
 }

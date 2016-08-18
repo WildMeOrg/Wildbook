@@ -9,7 +9,7 @@
             <field name="taskID" persistence-modifier="persistent" />
             <field name="timestamp" persistence-modifier="persistent" />
             <field name="serviceName" persistence-modifier="persistent" />
-            <field name="objectID" persistence-modifier="persistent" />
+            <field name="objectIDs" serialized="true" persistence-modifier="persistent" />
             <field name="serviceJobID" persistence-modifier="persistent" />
 
 		<field name="status" persistence-modifier="persistent">
@@ -17,26 +17,27 @@
 		</field>
 	</class>
 
-
-
-	<class name="Feature" identity-type="application">
-		<field name="id" primary-key="true">
-			<column length="36" />
+<!--
+	<class name="IBEISIAIdentificationMatchingStateIdKey">
+       		<field name="annId1">
+        	  	<column allows-null="false" primary-key="true" />
 		</field>
-		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.identity.FeatureType" allows-null="false" />
-            	<field name="revision" persistence-modifier="persistent">
-                	<column jdbc-type="BIGINT" allows-null="false"/>
-            	</field>
-		<property name="parametersAsString" persistence-modifier="persistent">
-                	<column jdbc-type="LONGVARCHAR" name="parameters" />
-		</property>
+       		<field name="annId2">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
 	</class>
 
-	<class name="FeatureType" identity-type="application">
-		<field name="id" primary-key="true">
-			<column length="255" />
+	<class name="IBEISIAIdentificationMatchingState" objectid-class="IBEISIAIdentificationMatchingStateIdKey" >
+-->
+
+	<class name="IBEISIAIdentificationMatchingState">
+       		<field name="annId1">
+        	  	<column allows-null="false" primary-key="true" />
 		</field>
-		<field name="description" persistence-modifier="persistent" />
+       		<field name="annId2">
+        	  	<column allows-null="false" primary-key="true" />
+		</field>
+            <field name="state" />
 	</class>
 
 

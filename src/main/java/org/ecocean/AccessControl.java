@@ -1,3 +1,7 @@
+/*
+   note: in currenct incarnation, "anonymous" has username == null
+   this should be assigned for "anonymous-owned" objects (as opposed to a null AccessControl value
+*/
 package org.ecocean;
 
 import org.json.JSONObject;
@@ -14,7 +18,7 @@ public class AccessControl implements java.io.Serializable {
     }
 
     public AccessControl(final String username) {
-        this(-1, username);
+        this.username = username;
     }
 
     public AccessControl(final int id, final String username) {
@@ -22,8 +26,27 @@ public class AccessControl implements java.io.Serializable {
         this.username = username;
     }
 
-    public static AccessControl fromRequest(HttpServletRequest request) {
-        if (request.getUserPrincipal() == null) return new AccessControl();
-        return new AccessControl(request.getUserPrincipal().getName());
+    public AccessControl(final HttpServletRequest request) {
+        this.username = simpleUserString(request);
+    }
+
+    public boolean isAnonymous() {
+        return (username == null);
+    }
+
+    public static JSONObject userAsJSONObject(final HttpServletRequest request) {
+        JSONObject uj = new JSONObject();
+        if (request.getUserPrincipal() == null) {
+            uj.put("username", (String)null);
+            uj.put("anonymous", true);
+        } else {
+            uj.put("username", request.getUserPrincipal().getName());
+        }
+        return uj;
+    }
+
+    //null when not logged in
+    public static String simpleUserString(final HttpServletRequest request) {
+        return ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
 }

@@ -18,22 +18,24 @@
 
 package org.ecocean.media;
 
+import org.ecocean.Occurrence;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.ImageAttributes;
 import org.ecocean.Keyword;
 import org.ecocean.Annotation;
+import org.ecocean.AccessControl;
 import org.ecocean.Shepherd;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
+import org.ecocean.identity.IdentityServiceLog;
+import org.ecocean.identity.IBEISIA;
 //import org.ecocean.Encounter;
-import org.ecocean.identity.Feature;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
 //import java.time.LocalDateTime;
 import org.joda.time.DateTime;
 import java.util.Date;
-import java.text.SimpleDateFormat;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -73,13 +75,19 @@ public class MediaAsset implements java.io.Serializable {
     static final long serialVersionUID = 8844223450447974780L;
     protected int id = MediaAssetFactory.NOT_SAVED;
 
+    protected String uuid = null;
+
     protected AssetStore store;
     protected String parametersAsString;
     protected JSONObject parameters;
 
+    protected Occurrence occurrence;
+
     protected Integer parentId;
 
     protected long revision;
+
+    protected AccessControl accessControl = null;
 
     protected JSONObject derivationMethod = null;
 
@@ -92,6 +100,17 @@ public class MediaAsset implements java.io.Serializable {
     protected ArrayList<Keyword> keywords;
 
     protected String hashCode;
+
+    protected String detectionStatus;
+    protected String identificationStatus;
+
+    protected Double userLatitude;
+    protected Double userLongitude;
+
+    protected DateTime userDateTime;
+
+
+
 
     //protected MediaAssetType type;
     //protected Integer submitterid;
@@ -131,6 +150,7 @@ public class MediaAsset implements java.io.Serializable {
                       final JSONObject params)
     {
         this.id = id;
+        this.setUUID();
         this.store = store;
         this.parameters = params;
         if (params != null) this.parametersAsString = params.toString();
@@ -138,6 +158,15 @@ public class MediaAsset implements java.io.Serializable {
         this.setHashCode();
     }
 
+    public AccessControl getAccessControl() {
+        return accessControl;
+    }
+    public void setAccessControl(AccessControl ac) {
+        accessControl = ac;
+    }
+    public void setAccessControl(HttpServletRequest request) {
+        this.setAccessControl(new AccessControl(request));
+    }
 
     private URL getUrl(final AssetStore store, final Path path) {
         if (store == null) {
@@ -162,16 +191,61 @@ public class MediaAsset implements java.io.Serializable {
     }
     public void setId(int i) {
         id = i;
-    }   
+    }
+
+    public Occurrence getOccurrence() {
+      return this.occurrence;
+    }
+
+    public String getOccurrenceID() {
+      if (this.occurrence == null) return null;
+      return this.occurrence.getOccurrenceID();
+    }
+
+    public void setOccurrence(Occurrence occ) {
+      this.occurrence = occ;
+    }
+
+    public String getDetectionStatus() {
+      return this.detectionStatus;
+    }
+    public void setDetectionStatus(String status) {
+      this.detectionStatus = status;
+    }
+    public String getIdentificationStatus() {
+      return this.identificationStatus;
+    }
+    public void setIdentificationStatus(String status) {
+      this.identificationStatus = status;
+    }
 
     //this is for Annotation mostly?  provides are reproducible uuid based on the MediaAsset id
     public String getUUID() {
+        if (uuid != null) return uuid;
         //UUID v3 seems to take an arbitrary bytearray in, so we construct one that is basically "Ma____" where "____" is the int id
-        return generateUUIDv3((byte)77, (byte)97);
+        return generateUUIDFromId();
+    }
+    public void setUUID(String u) {
+        uuid = u;
+    }
+    /* note: this is used for *new* MediaAssets (via constructor), so we want it to *always* give us something.
+       this we try to get a value no matter what.  in 99% of the cases, a new MediaAsset will have id = -1, so generateUUIDv3() will fail.
+       thus this essentially will almost always use a v4 uuid (random).  so be it! */
+    private void setUUID() {
+        uuid = this.generateUUIDFromId();
+        if (uuid == null) uuid = Util.generateUUID();
     }
 
-    private String generateUUIDv3(byte b1, byte b2) {
+    //note this function will not allow "invalid" (< 0) ids... so see above for hack for new MediaAssets
+    public String generateUUIDFromId() {
+        if (this.id == MediaAssetFactory.NOT_SAVED) return null;
+        if (this.id < 0) return null;
+        return this.generateUUIDv3(this.id, (byte)77, (byte)97);
+    }
+
+    public static String generateUUIDv3(int id, byte b1, byte b2) {
         if (id == MediaAssetFactory.NOT_SAVED) return null;
+        if (id < 0) return null;
         byte[] b = new byte[6];
         b[0] = b1;
         b[1] = b2;
@@ -281,6 +355,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
     }
 
+    //this is store-specific, and null should be interpreted to mean "i guess i dont really have one"
+    // in some cases, this might be some sort of unique-ish identifier (e.g. youtube id), so ymmv
+    public String getFilename() {
+        if (store == null) return null;
+        return store.getFilename(this);
+    }
+
     public ArrayList<String> getLabels() {
         return labels;
     }
@@ -300,7 +381,10 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
     public void addFeature(Feature f) {
         if (features == null) features = new ArrayList<Feature>();
-        if (!features.contains(f)) features.add(f);
+        if (!features.contains(f)) {
+            features.add(f);
+            f.asset = this;
+        }
     }
 
     //kinda sorta really only for Encounter.findAllMediaByFeatureId()
@@ -355,6 +439,8 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
+
+
     /**
      this function resolves (how???) various difference in "when" this image was taken.  it might use different metadata (in EXIF etc) and/or
      human-input (e.g. perhaps encounter data might trump it?)   TODO wtf should we do?
@@ -362,36 +448,97 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
               then (b) crawl metadata.exif for something date-y
     */
     public DateTime getDateTime() {
+        if (this.userDateTime != null) return this.userDateTime;
         if (getMetadata() == null) return null;
         String adt = getMetadata().getAttributes().optString("dateTime", null);
         if (adt != null) return DateTime.parse(adt);  //lets hope it is in iso8601 format like it should be!
         //meh, gotta find it the hard way then...
-        HashMap<String,String> matches = getMetadata().findRecurse(".*date.*");
-        if ((matches == null) || (matches.size() < 1)) return null;
-        String dateString = (String)matches.values().toArray()[0];
-        if (dateString == null) return null;
-        SimpleDateFormat dateParser = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");  //note: exif doesnt carry tz :(
-        Date dt = null;
-        try {
-            dt = dateParser.parse(dateString);
-        } catch (java.text.ParseException ex) {
-            return null;
-        }
-        return new DateTime(dt);
+        return getMetadata().getDateTime();
+    }
+
+    public void setUserDateTime(DateTime dt) {
+      this.userDateTime = dt;
+    }
+
+    public DateTime getUserDateTime() {
+      return this.userDateTime;
     }
 
     /**
       like getDateTime() this is considered "definitive" -- so it must resolve differences in metadata vs other (e.g. encounter etc) values
     */
-    public Double getLatitude() {
-        return null;
+    public Double getUserLatitude() {
+        return this.userLatitude;
     }
+
+    public Double getLatitude() {
+        if (this.userLatitude != null) return this.userLatitude;
+        if (getMetadata() == null) return null;
+        double lat = getMetadata().getAttributes().optDouble("latitude");
+        if (!Double.isNaN(lat)) return lat;
+        return getMetadata().getLatitude();
+    }
+
+
+    public void setUserLatitude(Double lat) {
+      this.userLatitude = lat;
+    }
+
+    public Double getUserLongitude() {
+        return this.userLongitude;
+    }
+
     public Double getLongitude() {
-        return null;
+        if (this.userLongitude != null) return this.userLongitude;
+        if (getMetadata() == null) return null;
+        double lon = getMetadata().getAttributes().optDouble("longitude");
+        if (!Double.isNaN(lon)) return lon;
+        return getMetadata().getLongitude();
+    }
+
+
+    public void setUserLongitude(Double lon) {
+      this.userLongitude = lon;
+    }
+
+    //note: default behavior will add this to the features on this MediaAsset -- can pass false to disable
+    //TODO expand to handle things other than images (some day)
+    public Feature generateUnityFeature() {
+        return generateUnityFeature(true);
+    }
+    public Feature generateUnityFeature(boolean addToMediaAsset) {
+        Feature f = new Feature();
+        if (addToMediaAsset) this.addFeature(f);
+        return f;
+    }
+
+    //if unity feature is appropriate, generates that; otherwise does a boundingBox one
+    public Feature generateFeatureFromBbox(double w, double h, double x, double y) {
+        Feature f = null;
+        if ((x != 0) || (y != 0) || (w != this.getWidth()) || (h != this.getHeight())) {
+            JSONObject p = new JSONObject();
+            p.put("width", w);
+            p.put("height", h);
+            p.put("x", x);
+            p.put("y", y);
+            f = new Feature("org.ecocean.boundingBox", p);
+            this.addFeature(f);
+        } else {
+            f = this.generateUnityFeature();
+        }
+        return f;
+    }
+
+    public ArrayList<Annotation> getAnnotations() {
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();
+        if ((this.getFeatures() == null) || (this.getFeatures().size() < 1)) return anns;
+        for (Feature f : this.getFeatures()) {
+            if (f.getAnnotation() != null) anns.add(f.getAnnotation());
+        }
+        return anns;
     }
 
 /*
-    public ArrayList<Annotation> getAnnotations() {
         return annotations;
     }
 
@@ -404,7 +551,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
     //TODO check if it is already here?  maybe?
     public Annotation addTrivialAnnotation(String species) {
-        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well 
+        Annotation ann = new Annotation(this, species);  //this will add it to our .annotations collection as well
         String newId = generateUUIDv3((byte)65, (byte)110);  //set Annotation UUID relative to our ID  An___
         if (newId != null) ann.setId(newId);
         return ann;
@@ -448,7 +595,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
      * asset is not web-accessible.
      */
     public URL webURL() {
-      
+
         if (store == null) {
           System.out.println("MediaAsset "+this.getUUID()+" has no store!");
           return null;
@@ -571,14 +718,13 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
 
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
-            return sanitizeJson(request, jobj, false);
+            return sanitizeJson(request, jobj, true);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
-              //if (jobj.get("parametersAsString") != null) jobj.put("parameters", new org.datanucleus.api.rest.orgjson.JSONObject(jobj.getString("parametersAsString")));
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
@@ -586,10 +732,24 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+            ArrayList<Feature> fts = getFeatures();
+            if ((fts != null) && (fts.size() > 0)) {
+                org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
+                for (int i = 0 ; i < fts.size() ; i++) {
+                    org.datanucleus.api.rest.orgjson.JSONObject jf = new org.datanucleus.api.rest.orgjson.JSONObject();
+                    Feature ft = fts.get(i);
+                    jf.put("id", ft.getId());
+                    jf.put("type", ft.getType());
+                    JSONObject p = ft.getParameters();
+                    if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
+                    jarr.put(jf);
+                }
+                jobj.put("features", jarr);
+            }
             jobj.put("url", webURLString());
             if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
-                //hactacular, but if it works....
-                jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
+                //jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
+                jobj.put("metadata", Util.toggleJSONObject(getMetadata().getData().getJSONObject("attributes")));
             }
             DateTime dt = getDateTime();
             if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
@@ -607,6 +767,14 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 }
                 jobj.put("children", k);
             }
+
+            if (fullAccess) {
+              jobj.put("userLatitude",this.getLatitude());
+              jobj.put("userLongitude",this.getLongitude());
+              jobj.put("userDateTime",this.getUserDateTime());
+            }
+
+            jobj.put("occurrenceID",this.getOccurrenceID());
 
             if (this.getLabels() != null) jobj.put("labels", this.getLabels());
 
@@ -753,7 +921,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
       }
       return false;
     }
- 
+
 
     //if we dont have the Annotation... which kinda sucks but okay
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
@@ -827,5 +995,33 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
-}
+    public void refreshIAStatus(Shepherd myShepherd) {
+        String s = IBEISIA.parseDetectionStatus(Integer.toString(this.getId()), myShepherd);
+        if (s != null) this.setDetectionStatus(s);
 
+        String cumulative = null;
+        for (Annotation ann : this.getAnnotations()) {
+            s = IBEISIA.parseIdentificationStatus(ann.getId(), myShepherd);
+            if ((s != null) && ((cumulative == null) || !s.equals("complete"))) cumulative = s;
+        }
+        if (cumulative != null) this.setIdentificationStatus(cumulative);
+    }
+
+
+    public JSONObject getIAStatus() {
+        JSONObject rtn = new JSONObject();
+
+        JSONObject j = new JSONObject();
+        j.put("status", getDetectionStatus());
+        rtn.put("detection", j);
+
+        j = new JSONObject();
+        j.put("status", getIdentificationStatus());
+        rtn.put("identification", j);
+        return rtn;
+    }
+
+
+
+
+}

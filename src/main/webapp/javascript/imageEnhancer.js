@@ -68,22 +68,37 @@ console.info('assigning event %s', e);
 
     wrapperSizeSetFromImg: function(el) {
         var img = el.find('img');
-        var w = el.find('.image-enhancer-wrapper');
-console.log('img = %o / w = %o', img, w);
-console.log('img.length -----> %o', img.length);
-console.log(' .complete? %o', img.prop('complete'));
-        if (!img.length || !w.length) return;
+        img.on('load', function(ev) {
+            var ji = $(ev.target);
+console.log(' ><<<<<<<<>>>>>>>>>>>>> %o', ji);
+            var id = ji.data('enh-mediaassetid');
+            var w = el.find('#image-enhancer-wrapper-' + id);
+//console.log('img = %o / w = %o', img, w);
+//console.log('img.length -----> %o', img.length);
+//console.log(' .complete? %o', img.prop('complete'));
 //console.warn('img => %o', img);
 //console.warn('%d x %d', img.width(), img.height());
-        w.css('width', img.width());
-        w.css('height', img.height());
+            w.css('width', ji.width());
+            w.css('height', ji.height());
+        });
+    },
+
+    squareElement: function(el) {
+      el.css('height', el.css('width'));
+      el.css('bottom', el.css('height')+7);
+    },
+
+    squareImageEnhancerMenu: function() {
+      imageEnhancer.squareElement($('div.image-enhancer-menu'));
     },
 
     initMenu: function(el) {
 console.warn('menu -> %o', el);
         el.append('<div class="image-enhancer-menu" />');
         var m = el.find('.image-enhancer-menu');
-        m.css('height', m.css('width'));
+        console.log(".width() = "+$(m).width());
+        console.log(".css('width') = "+m.css('width'));
+        //imageEnhancer.squareElement(m);
         m.on('click', function(ev) {
             imageEnhancer.clickMenu(ev);
             ev.stopPropagation();
@@ -114,7 +129,8 @@ console.warn('menu -> %o', el);
             mh += '<div class="menu-item" data-i="-1"><i>test item (debug == true)</i></div>';
         }
         mh += '</div>';
-        jQuery(el).append(mh).on('mouseout', function(ev) {
+
+        jQuery(el).append(mh);/*.on('mouseout', function(ev) {
             var e = ev.toElement || ev.relatedTarget;
             if (!e || !e.parentNode) return;
             var k = jQuery(e.parentNode).closest('.image-enhancer-wrapper');
@@ -123,7 +139,7 @@ console.warn('menu -> %o', el);
             //if (!e || !e.parentNode || jQuery(e.parentNode).hasClass('image-enhancer-menu-open')) return;
             //console.log('OUT!!!!!!!!!!!! parent=%o currentTarget=%o', e.parentNode, ev.currentTarget);
             imageEnhancer.closeMenu(ev.currentTarget);
-        });
+        });*/
         jQuery(el).find('.menu-item').on('click', function(ev) {
             imageEnhancer.clickMenuItem(ev);
         });
@@ -178,7 +194,3 @@ console.log('i=%o; ev: %o, enhancer: %o', i, ev, enh);
         return true;
     }
 };
-
-
-
-

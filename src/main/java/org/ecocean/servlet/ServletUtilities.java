@@ -36,7 +36,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 
 import javax.jdo.Query;
-//import javax.servlet.http.HttpServlet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

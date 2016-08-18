@@ -36,6 +36,8 @@ public class SinglePhotoVideo extends DataCollectionEvent {
   //Use for Story objects
   String correspondingStoryID;
 
+  public String webURL;
+  
   /*
   private String thumbnailFilename;
   private String thumbnailFullFileSystemPath;
@@ -298,5 +300,8 @@ System.out.println("creating MediaAsset for " + this);
         MediaAssetFactory.save(ma, myShepherd);
         return ma;
     }
+    
+    public String getWebURL(){return webURL;}
+    public void setWebURL(String earl){this.webURL=earl;}
 
 }

@@ -225,7 +225,7 @@ margin-bottom: 8px !important;
     
 <script type="text/javascript">
 //alert("Prepping map functions.");
-var center = new google.maps.LatLng(64.9446882, 19.9927423);
+var center = new google.maps.LatLng(0, 0);
 
 var map;
 
@@ -244,7 +244,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
   function initialize() {
 	//alert("initializing map!");
 	//overlaysSet=false;
-	var mapZoom = 5;
+	var mapZoom = 1;
 	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 	  map = new google.maps.Map(document.getElementById('map_canvas'), {

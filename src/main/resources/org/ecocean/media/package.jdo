@@ -7,6 +7,9 @@
 
 	<class name="MediaAsset" identity-type="application">
 		<field name="id" primary-key="true" value-strategy="identity"/>
+		<field name="uuid">
+			<index name="MEDIAASSET_UUID_INDEX" unique="true" />
+		</field>
 		<field name="store" persistence-modifier="persistent" element-type="org.ecocean.media.AssetStore" />
 		<field name="parentId" persistence-modifier="persistent">
 			<column jdbc-type="INT" allows-null="true"/>
@@ -14,13 +17,15 @@
             	<field name="revision" persistence-modifier="persistent">
                 	<column jdbc-type="BIGINT" allows-null="false"/>
             	</field>
-		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" />
+		<field name="metadata" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAssetMetadata" default-fetch-group="true" />
 		<field name="parametersAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="parameters" />
 		</field>
 		<property name="derivationMethodAsString" persistence-modifier="persistent">
                 	<column jdbc-type="LONGVARCHAR" name="derivationMethod" />
 		</property>
+
+    <field name="occurrence"/>
 
 <!--
 		<field name="annotations" mapped-by="mediaAsset">
@@ -35,8 +40,8 @@
 
 		<field name="labels" serialized="true" column="LABELS" />
 
-            	<field name="features" persistence-modifier="persistent" default-fetch-group="false">
-                	<collection element-type="org.ecocean.identity.Feature" dependent-element="true" />
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" mapped-by="asset" >
+                	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
                 	<join />
             	</field>
 
@@ -87,9 +92,30 @@
             	</field>
 	</class>
 
-<!--
-    //protected AssetStoreType type = AssetStoreType.LOCAL;
-    //protected AssetStoreConfig config;
--->
+	<class name="Feature" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="36" />
+		</field>
+		<field name="type" persistence-modifier="persistent" element-type="org.ecocean.media.FeatureType" allows-null="true" />
+            	<field name="revision" persistence-modifier="persistent">
+                	<column jdbc-type="BIGINT" allows-null="false"/>
+            	</field>
+		<property name="parametersAsString" persistence-modifier="persistent">
+                	<column jdbc-type="LONGVARCHAR" name="parameters" />
+		</property>
+
+		<field name="annotation" />
+		<field name="asset" />
+	</class>
+
+	<class name="FeatureType" identity-type="application">
+		<field name="id" primary-key="true">
+			<column length="255" />
+		</field>
+		<field name="description" persistence-modifier="persistent" />
+	</class>
+
+
+
     </package>
 </jdo>

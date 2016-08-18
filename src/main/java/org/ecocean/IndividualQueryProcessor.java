@@ -600,12 +600,13 @@ public class IndividualQueryProcessor {
     if(request.getParameter("hasPhoto")!=null){
           prettyPrint.append("Has at least one photo.");
 
-            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc464) && enc464.annotations.contains(photo2) && photo2.mediaAsset != null ";}
-            else if (filter.indexOf("enc464.annotations.contains(photo2)")==-1){filter+=(" && encounters.contains(enc464) && enc464.annotations.contains(photo2) && photo2.mediaAsset != null ");}
+            if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){filter+="encounters.contains(enc464) && enc464.annotations.contains(annot2) && annot2.features.contains(feat2) && feat2.asset != null ";}
+            else if (filter.indexOf("enc464.annotations.contains(photo2)")==-1){filter+=(" && encounters.contains(enc464) && enc464.annotations.contains(annot2) && annot2.features.contains(feat2) && feat2.asset != null ");}
 
             prettyPrint.append("<br />");
             if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc464")){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc464";}
-            if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo2")){jdoqlVariableDeclaration+=";org.ecocean.Annotation photo2";}
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation annot2")){jdoqlVariableDeclaration+=";org.ecocean.Annotation annot2";}
+            if(!jdoqlVariableDeclaration.contains("org.ecocean.media.Feature feat2")){jdoqlVariableDeclaration+=";org.ecocean.media.Feature feat2";}
 
     }
     //end hasPhoto filters-----------------------------------------------
@@ -685,15 +686,16 @@ public class IndividualQueryProcessor {
 
                 if(filter.indexOf("enc3_"+kwIter+".annotations.contains(photo"+kwIter+")")==-1){filter+=" && enc3_"+kwIter+".annotations.contains(photo"+kwIter+")";}
 
-                if(filter.indexOf("photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")")==-1){filter+=" && photo"+kwIter+".mediaAsset.keywords.contains(word"+kwIter+")";}
+                if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
+
+                
+                if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
             
-
-
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3_"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3_"+kwIter;}
-
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
+              if(!jdoqlVariableDeclaration.contains("org.ecocean.media.Feature feat"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.media.Feature feat"+kwIter;}
 
 
             }
@@ -1306,7 +1308,6 @@ public class IndividualQueryProcessor {
       Query query=myShepherd.getPM().newQuery(filter);
       if((order!=null)&&(!order.trim().equals(""))){
         query.setOrdering(order);
-        System.out.println("Setting individualQuery order to: "+order);
       }
       try{
 
@@ -1336,7 +1337,7 @@ public class IndividualQueryProcessor {
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName DESC, individualID DESC", paramMap);
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           //keyword and then individualID ascending
         }
         //process over to Vector

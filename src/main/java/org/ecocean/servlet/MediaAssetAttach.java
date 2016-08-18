@@ -81,7 +81,7 @@ public class MediaAssetAttach extends HttpServlet {
     // ATTACH MEDIAASSET TO ENCOUNTER
     if (args.optString("attach")!=null && args.optString("attach").equals("true")) {
       if (!alreadyAttached) {
-        enc.addMediaAsset(ma, context);
+        enc.addMediaAsset(ma);
         res.put("action","attach");
         res.put("success",true);
       }

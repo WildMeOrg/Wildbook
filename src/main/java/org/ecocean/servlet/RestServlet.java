@@ -205,6 +205,7 @@ public class RestServlet extends HttpServlet
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
+      resp.setHeader("Access-Control-Allow-Origin", "*");
       getPMF(req);
         // Retrieve any fetch group that needs applying to the fetch
         String fetchParam = req.getParameter("fetch");
@@ -465,14 +466,13 @@ public class RestServlet extends HttpServlet
 
     protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException
     {
-        resp.addHeader("Allow", " GET, HEAD, POST, PUT, TRACE, OPTIONS");
-        resp.setContentLength(0);
+        ServletUtilities.doOptions(req, resp);
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
     throws ServletException, IOException
     {
-
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         getPMF(req);
         if (req.getContentLength() < 1)
         {
@@ -520,8 +520,9 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
+                        boolean restAccessOk = true;  //nope! now we are letting anyone in (go spring break! woohoo!)
                         //boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-                        boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
+                        //boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
@@ -855,7 +856,7 @@ System.out.println("got Exception trying to invoke restAccess: " + ex.toString()
                           //nothing to do
                       }
                       if (restAccess == null) return true;  //if method doesnt exist, counts as good
-          
+
           System.out.println("<<<<<<<<<< we have restAccess() on our object.... invoking!\n");
                       //when .restAccess() is called, it should throw an exception to signal not allowed
                       try {

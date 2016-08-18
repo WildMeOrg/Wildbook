@@ -35,7 +35,7 @@ myShepherd = new Shepherd(context);
 response.setHeader("Content-type", "application/javascript");
 
 String jobID = request.getParameter("jobid");
-System.out.println("IBEIS-IA callback got jobid=" + jobID);
+System.out.println("==================================================== IBEIS-IA callback got jobid=" + jobID);
 if ((jobID == null) || jobID.equals("")) {
 //System.out.println("fake fail * * * * * * * * * *");
 	out.println("{\"success\": false, \"error\": \"invalid Job ID\"}");
@@ -78,7 +78,6 @@ System.out.println("except? " + ex.toString());
 	}
 
 System.out.println(statusResponse.toString());
-System.out.println(">>>>---");
 	JSONObject jlog = new JSONObject();
 	jlog.put("jobID", jobID);
 
@@ -98,6 +97,7 @@ System.out.println(">>>>---");
 
 	JSONObject all = new JSONObject();
 	all.put("jobStatus", jlog);
+System.out.println(">>>>------[ jobID = " + jobID + " -> taskID = " + taskID + " ]----------------------------------------------------");
 
 try {
 	if ((statusResponse != null) && statusResponse.has("status") &&
@@ -114,13 +114,17 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		rlog.put("_response", resultResponse);
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
+
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, myShepherd);
+System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
- System.out.println("whoops got exception: " + ex.toString());
+	System.out.println("whoops got exception: " + ex.toString());
+	ex.printStackTrace();
 }
 
 	all.put("_timestamp", System.currentTimeMillis());
-System.out.println("-------- >>> " + all.toString());
+System.out.println("-------- >>> " + all.toString() + "\n##################################################################");
 	return;
 
 }

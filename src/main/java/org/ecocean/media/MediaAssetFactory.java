@@ -4,8 +4,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import org.ecocean.Shepherd;
 import org.json.JSONObject;
+import org.ecocean.Util;
 
 import javax.jdo.*;
 
@@ -37,6 +39,16 @@ public class MediaAssetFactory {
         } catch (javax.jdo.JDOObjectNotFoundException ex) {
             return null;
         }
+    }
+
+    public static MediaAsset loadByUuid(final String uuid, Shepherd myShepherd) {
+        if (!Util.isUUID(uuid)) return null;
+        Query query = myShepherd.getPM().newQuery(MediaAsset.class);
+        query.setFilter("uuid=='" + uuid + "'");
+        List results = (List)query.execute();
+        //uuid column is constrained unique, so should always get 0 or 1
+        if (results.size() < 1) return null;
+        return (MediaAsset)results.get(0);
     }
 
 /*

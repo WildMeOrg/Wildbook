@@ -5,7 +5,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.FileOutputStream;
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.io.UnsupportedEncodingException;
@@ -40,6 +43,7 @@ public class RestClient {
 
     //IBEIS-specifically, data gets posted as name-value pairs where name comes from the keys
     private static JSONObject anyMethod(String method, URL url, JSONObject data) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+System.out.println("TRYING anyMethod(" + method + ") url -> " + url);
         //System.setProperty("http.keepAlive", "false");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setReadTimeout(12000);
@@ -107,6 +111,86 @@ System.out.println("!!!!!!!!!!!!!!!!!!! [url = " + url.toString() + "] bad respo
 */
     }
 
+    public static JSONObject postStream(URL url, InputStream in) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setReadTimeout(12000);
+        conn.setConnectTimeout(12000);
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        //conn.setRequestProperty("Authorization", getAuthorizationHeader(url.toString()));
+        OutputStream os = conn.getOutputStream();
+
+        byte[] buffer = new byte[10240];
+        int len;
+//System.out.println("OK, begin<");
+        while ((len = in.read(buffer)) != -1) {
+            os.write(buffer, 0, len);
+//System.out.write(buffer, 0, len);
+        }
+        in.close();
+        os.flush();
+        os.close();
+        conn.connect();
+
+        boolean success = true;
+        if ((conn.getResponseCode() != HttpURLConnection.HTTP_OK)) {
+            //conn.disconnnect();
+System.out.println("!!!!!!!!!!!!!!!!!!! bad response code = " + conn.getResponseCode());
+            success = false;
+        }
+
+        if (!success) {
+            JSONObject rtn = new JSONObject();
+            rtn.put("error", conn.getResponseCode());
+            return rtn;
+        }
+
+/*
+InputStream is = request.getInputStream();
+byte buffer[] = new byte[10240];
+int i;
+System.out.println("before....");
+while ((i = is.read(buffer)) > 0) {
+    System.out.write(buffer, 0, i);
+}
+*/
+
+        BufferedReader br = null;
+/*
+        if (success) {
+            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        } else {
+            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+        }
+*/
+        try {
+            br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
+        } catch (IOException ioe) {
+            success = false;
+            br = new BufferedReader(new InputStreamReader((conn.getErrorStream())));
+        }
+
+        String output;
+        String jtext = "";
+        while ((output = br.readLine()) != null) {
+            jtext += output;
+        }
+        br.close();
+        //conn.disconnect();
+/*
+        if (!success) {
+            System.out.println("========= anyMethod failed with code=" + conn.getResponseCode() + "\n" + jtext + "\n============");
+            throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+        }
+*/
+
+        if (jtext.equals("")) return null;
+System.out.println("======================== postStream -> " + jtext);
+        return new JSONObject(jtext);
+    }
+
 
     ///TODO this chunk below is IBEIS-specific -- need to generalize for RestClient to be universal
 
@@ -149,4 +233,18 @@ System.out.println("!!!!!!!!!!!!!!!!!!! [url = " + url.toString() + "] bad respo
 //////System.out.println("------- getPostDataString=(\n" + result.toString() + "\n)--------\n");
         return result.toString();
     }
+
+
+    public static void writeToFile(URL url, File file) throws IOException {
+        InputStream is = url.openStream();
+        OutputStream os = new FileOutputStream(file);
+        byte[] b = new byte[2048];
+        int length;
+        while ((length = is.read(b)) != -1) {
+            os.write(b, 0, length);
+        }
+        is.close();
+        os.close();
+    }
+
 }

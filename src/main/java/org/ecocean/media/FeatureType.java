@@ -16,42 +16,15 @@
  * along with Wildbook.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.ecocean.identity;
+package org.ecocean.media;
 
-/*
-import org.ecocean.CommonConfiguration;
-import org.ecocean.ImageAttributes;
-import org.ecocean.Keyword;
-import org.ecocean.Annotation;
-import org.ecocean.Encounter;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Files;
-//import java.time.LocalDateTime;
-import org.joda.time.DateTime;
-import java.util.Date;
-import java.util.Set;
-import java.util.HashMap;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import java.util.UUID;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-//import java.io.FileInputStream;
-import javax.jdo.Query;
-
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
-
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
-import java.util.Iterator;
-*/
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.ecocean.Shepherd;
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.jdo.Extent;
+import javax.jdo.Query;
 
 
 /**
@@ -61,6 +34,9 @@ import org.ecocean.Shepherd;
  */
 public class FeatureType implements java.io.Serializable {
     static final long serialVersionUID = 8844233450443974780L;
+
+    private static ArrayList<FeatureType> allTypes;
+
     protected String id = null;  //TODO maybe should take on form of "org.ecocean.flukeTrailingEdge" or something?
 
     protected String description = null;
@@ -88,10 +64,36 @@ public class FeatureType implements java.io.Serializable {
         description = d;
     }
 
-
-    //TODO should probably have this loaded once like AssetStores
+    public static FeatureType load(final String id) {
+        for (FeatureType ft : getAll()) {
+            if (ft.getId().equals(id)) return ft;
+        }
+        return null;
+    }
+    //the myShepherd version is to call when initAll(myShepherd) has not been called to pre-populate allTypes (on same persistence manager
     public static FeatureType load(final String id, Shepherd myShepherd) {
         return ((FeatureType) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(FeatureType.class, id), true)));
+    }
+
+
+    public static ArrayList<FeatureType> getAll() {
+        if (allTypes == null) throw new RuntimeException("FeatureType.initAll() has not been called");
+        return allTypes;
+    }
+
+    public static ArrayList<FeatureType> initAll(Shepherd myShepherd) {
+System.out.println("#### initAll()");
+        myShepherd.beginDBTransaction();
+        allTypes = new ArrayList<FeatureType>();
+        Extent ext = myShepherd.getPM().getExtent(FeatureType.class, true);
+        Query q = myShepherd.getPM().newQuery(ext);
+        Collection c = (Collection) (q.execute());
+        for (Object f : c) {
+System.out.println("  - " + (FeatureType)f);
+            allTypes.add((FeatureType)f);
+        }
+        myShepherd.rollbackDBTransaction();
+        return allTypes;
     }
 
     public String toString() {

@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.MediaAsset,
-org.ecocean.identity.Feature,
+org.ecocean.media.Feature,
 org.json.JSONArray,
 org.json.JSONObject,
 java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File,org.ecocean.neural.TrainNetwork" %>
