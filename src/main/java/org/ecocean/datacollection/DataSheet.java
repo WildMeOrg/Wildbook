@@ -35,21 +35,26 @@ public class DataSheet extends DataCollectionEvent {
   }
 
   public static DataSheet fromCommonConfig(String className, String context) throws IOException {
+
     List<String> dpNames = CommonConfiguration.getIndexedPropertyValues("datapoint",context);
-    List<String> dpUnits = CommonConfiguration.getIndexedPropertyValues("datapointUnit",context);
-    List<String> dpClasses = CommonConfiguration.getIndexedPropertyValues("datapointClass",context);
+    List<String> dpUnits = CommonConfiguration.getIndexedPropertyValues("datapointUnits",context);
+    List<String> dpClasses = CommonConfiguration.getIndexedPropertyValues("datapointClasses",context);
     List<String> dpTypes = CommonConfiguration.getIndexedPropertyValues("datapointType",context);
 
     if (dpNames.size()!=dpUnits.size() || dpNames.size()!= dpClasses.size() || dpNames.size() != dpTypes.size()){
+      System.out.println("dpNames.size(): "+dpNames.size());
+      System.out.println("dpUnits.size(): "+dpUnits.size());
+      System.out.println("dpClasses.size(): "+dpClasses.size());
+      System.out.println("dpTypes.size(): "+dpTypes.size());
       throw new IOException("datapoint, datapointUnit, datapointClass, and/or datapointType lists are unequal lengths in commonConfiguration.properties");
     }
 
+    System.out.println("Number of datapoint config files: "+dpNames.size());
 
     List<DataPoint> data = new ArrayList<DataPoint>();
     DataPoint dp;
     for (int i=0; i<dpNames.size(); i++) {
       if (!classIsInConfigClassList(className, dpClasses.get(i))) continue;
-
       dp = null;
       String dpType = dpTypes.get(i);
       String dpName = dpNames.get(i);
@@ -67,6 +72,8 @@ public class DataSheet extends DataCollectionEvent {
     }
     return new DataSheet(data);
   }
+
+
   private static boolean classIsInConfigClassList(String className, String classList) {
     List<String> classNames = Arrays.asList(className.split(","));
     return classNames.contains(className);
@@ -87,6 +94,7 @@ public class DataSheet extends DataCollectionEvent {
   }
 
   public String toString() {
+    if (data==null) return ("DataSheet "+id+": null data");
     return("DataSheet "+id+": ["+StringUtils.join(data, ", ")+ "]");
 
   }
