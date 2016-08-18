@@ -74,7 +74,7 @@ public class DataSheet extends DataCollectionEvent {
         data.add(dp);
         if (dp.isCategorical(context)) {
           System.out.println("DataPoint "+dp.getName()+" is categorical!");
-          System.out.println("           its possible values are "+dp.getCategoriesAsStrings(context));
+          System.out.println("           its possible values are "+StringUtils.join(dp.getCategoriesAsStrings(context), ", "));
         }
       }
     }
