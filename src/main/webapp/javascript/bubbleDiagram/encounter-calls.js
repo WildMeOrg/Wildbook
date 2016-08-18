@@ -71,7 +71,9 @@ var makeCooccurrenceChart = function(items) {
 
 var getIndividualIDFromEncounterToString = function(encToString) {
   // return everything between "individualID=" and the next comma after that
-  return encToString.split("individualID=")[1].split(",")[0];
+  var id = encToString.split("individualID=")[1].split(",")[0];
+  if (id == '<null>') return false;
+  return id;
 }
 
 var getData = function(individualID) {
@@ -97,6 +99,7 @@ var getData = function(individualID) {
           console.log("thisEnc = "+JSON.stringify(thisEnc));
           console.log("typeof(thisEnc) = "+typeof(thisEnc));
           var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
+          if (!thisEncIndID) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
             encounterArray.push(thisEncIndID);
