@@ -88,7 +88,6 @@ var getData = function(individualID) {
         console.log("error")
       }
       var jsonData = json;
-console.log(json);
       for(var i=0; i < jsonData.length; i++) {
         var thisOcc = jsonData[i];
         var encounterSize = thisOcc.encounters.length;
@@ -98,7 +97,6 @@ console.log(json);
           //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
 //console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
           if (!thisEncIndID) continue;  //unknown indiv -> false
-          //if(encounterArray.includes(jsonData[i].encounters[j].individualID)) {
           if(encounterArray.includes(thisEncIndID)) {
           } else {
             encounterArray.push(thisEncIndID);
