@@ -41,4 +41,9 @@ public class Count extends DataPoint {
     return ((this.getName()+": "+value+units).replaceAll("null",""));
   }
 
+  public String toLabeledString() {
+    return ("count-"+(this.getName()+": "+value+units).replaceAll("null",""));
+  }
+
+
 }

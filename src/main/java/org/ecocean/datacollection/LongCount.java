@@ -42,4 +42,9 @@ public class LongCount extends DataPoint {
     return ((this.getName()+": "+value+units).replaceAll("null",""));
   }
 
+  public String toLabeledString() {
+    return ("longcount-"+(this.getName()+": "+value+units).replaceAll("null",""));
+  }
+
+
 }

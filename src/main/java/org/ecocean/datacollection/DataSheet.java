@@ -100,5 +100,14 @@ public class DataSheet extends DataCollectionEvent {
     return("DataSheet "+id+": ["+StringUtils.join(data, ", ")+ "]");
 
   }
+  public String toLabeledString() {
+    if (data==null) return ("DataSheet "+id+": null data");
+    List<String> labeledNames = new ArrayList<String>();
+    for (DataPoint dp: data) {
+      labeledNames.add(dp.toLabeledString());
+    }
+    return("DataSheet "+id+": ["+StringUtils.join(labeledNames, ", ")+ "]");
+  }
+
 
 }

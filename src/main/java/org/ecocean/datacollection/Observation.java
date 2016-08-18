@@ -33,5 +33,9 @@ public class Observation extends DataPoint {
   public String toString() {
     return ((this.getName()+": \""+value+"\"").replace("null",""));
   }
+  public String toLabeledString() {
+    return ("observation-"+(this.getName()+": \""+value+"\"").replace("null",""));
+  }
+
 
 }

@@ -41,4 +41,9 @@ public class Amount extends DataPoint {
     return ((this.getName()+": "+value+units).replaceAll("null",""));
   }
 
+  public String toLabeledString() {
+    return ("amount-"+(this.getName()+": "+value+units).replaceAll("null",""));
+  }
+
+
 }
