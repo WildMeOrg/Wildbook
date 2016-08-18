@@ -76,7 +76,7 @@ try {
   rows = sheet.getPhysicalNumberOfRows();
 
   int cols = sheet.getRow(0).getPhysicalNumberOfCells();
-  int columnInitOffset = 2;
+  int columnInitOffset = 6;
   cols = cols - columnInitOffset;
   out.println("<p>Num Cols = "+cols+"</p>");
   ProtoField[] pFields = new ProtoField[cols];
