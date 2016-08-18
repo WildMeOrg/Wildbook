@@ -3,7 +3,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.joda.time.LocalDateTime,
 org.joda.time.format.DateTimeFormatter,
 org.joda.time.format.ISODateTimeFormat,java.net.*,
-org.ecocean.grid.*,
+org.ecocean.grid.*,org.ecocean.datacollection.*,
 java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException, org.ecocean.*,org.ecocean.servlet.*,org.ecocean.servlet.ServletUtilities,org.ecocean.media.*,javax.jdo.*, java.lang.StringBuffer, java.util.Vector, java.util.Iterator, java.lang.NumberFormatException, org.apache.poi.hssf.usermodel.*, org.apache.poi.poifs.filesystem.POIFSFileSystem, org.apache.poi.ss.usermodel.Cell, org.apache.poi.ss.usermodel.Row, org.apache.poi.xssf.usermodel.XSSFSheet, org.apache.poi.xssf.usermodel.XSSFWorkbook,org.apache.commons.lang.StringUtils;
 
 
@@ -80,6 +80,9 @@ try {
   cols = cols - columnInitOffset;
   out.println("<p>Num Cols = "+cols+"</p>");
   ProtoField[] pFields = new ProtoField[cols];
+  DataSheet dSheet = new DataSheet(Util.generateUUID());
+
+
   String[] fieldNames = new String[cols];
   String colName;
   for(int i=0; i<(sheet.getRow(0).getPhysicalNumberOfCells()-columnInitOffset); i++) {
@@ -87,6 +90,14 @@ try {
     colName = sheet.getRow(0).getCell(i+columnInitOffset).getStringCellValue();
     fieldNames[i] = parseColNameToFieldName(colName);
     pFields[i] = new ProtoField(sheet, i+columnInitOffset);
+
+    DataPoint parsedPoint = pFields[i].toDataPoint();
+    out.println("</br>");
+    out.println(parsedPoint.toString());
+    out.println("</br>");
+
+
+    dSheet.addData(pFields[i].toDataPoint());
     /*
     out.println("</br>");
     out.println("</br>");
@@ -111,6 +122,7 @@ try {
   System.out.println("a");
   printJavaToFile(pFields, "testExcel.java");
   System.out.println("b");
+  out.println("DataSheet.toString() = "+dSheet.toString());
 
 
   String[] fieldType = new String[cols];
@@ -236,6 +248,22 @@ private class ProtoField {
     return excelCellType;
   }
 
+  public DataPoint toDataPoint() {
+    DataPoint dp;
+    if (this.type.equals("Double")) {
+      dp = new Amount(0.0,null);
+    } else if (this.type.equals("String")) {
+      dp = new Observation(null);
+    } else if (this.type.equals("Integer")) {
+      dp = new Count(0, null);
+    } else {
+      dp = new Observation("Well this didn't work");
+    }
+
+    dp.setName(name);
+    return dp;
+  }
+
 
 
 
@@ -274,16 +302,16 @@ private class ProtoField {
   }
 
   public void printMeasurementEventConfigInfo(PrintWriter writer, int mNum, String className) throws IOException {
-    writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name));
-    writer.println("measurementUnits"+mNum+"=nounits");
-    writer.println("measurementClasses"+mNum+"="+className);
-    writer.println("measurementType"+mNum+"="+getMeasurementEventTypeFromJavaType(type));
+    writer.println("datapoint"+mNum+"="+capitolizeFirstLetter(name));
+    writer.println("datapointUnits"+mNum+"=nounits");
+    writer.println("datapointClasses"+mNum+"="+className);
+    writer.println("datapointType"+mNum+"="+getMeasurementEventTypeFromJavaType(type));
   }
   public void printMeasurementEventConfigInfo(JspWriter writer, int mNum, String className) throws IOException {
-    writer.println("measurement"+mNum+"="+capitolizeFirstLetter(name)+"</br>");
-    writer.println("measurementUnits"+mNum+"=nounits"+"</br>");
-    writer.println("measurementClasses"+mNum+"="+className+"</br>");
-    writer.println("measurementType"+mNum+"="+getMeasurementEventTypeFromJavaType(type)+"</br>");
+    writer.println("datapoint"+mNum+"="+capitolizeFirstLetter(name)+"</br>");
+    writer.println("datapointUnits"+mNum+"=nounits"+"</br>");
+    writer.println("datapointClasses"+mNum+"="+className+"</br>");
+    writer.println("datapointType"+mNum+"="+getMeasurementEventTypeFromJavaType(type)+"</br>");
   }
 
 
@@ -291,7 +319,7 @@ private class ProtoField {
 
 public static String getMeasurementEventTypeFromJavaType(String type) {
   if (type.toLowerCase().startsWith("int")) return "count";
-  else if (type.toLowerCase().startsWith("double")) return "measurement";
+  else if (type.toLowerCase().startsWith("double")) return "amount";
   else return "observation";
 }
 
