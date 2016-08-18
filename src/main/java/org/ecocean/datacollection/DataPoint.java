@@ -1,5 +1,7 @@
 package org.ecocean.datacollection;
 
+import org.ecocean.CommonConfiguration;
+
 public abstract class DataPoint implements java.io.Serializable {
 
   private Object value;
@@ -31,8 +33,23 @@ public abstract class DataPoint implements java.io.Serializable {
     this.id = id;
   }
 
-  public Integer getNumber() {return number;}
-  public void setNumber(Integer n) {number = n;}
+  public Integer getNumber() {
+    return number;
+  }
+  protected void setNumber(Integer n) {
+    number = n;
+  }
+
+  public boolean isCategorical(String context) {
+    return (number != null || CommonConfiguration.getProperty(name + number +"Values", context) != null);
+  }
+
+  public String[] getCategoriesAsStrings(String context) {
+    String allVals = CommonConfiguration.getProperty(name + number +"Values", context);
+    if (allVals==null || allVals.equals("")) return new String[0];
+    return allVals.split(",\\s*");
+  }
+
 
   // setter is not abstract so that its argument is typed (not Object)
 
