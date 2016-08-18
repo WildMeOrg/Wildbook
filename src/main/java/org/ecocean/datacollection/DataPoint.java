@@ -41,11 +41,13 @@ public abstract class DataPoint implements java.io.Serializable {
   }
 
   public boolean isCategorical(String context) {
-    return (number != null || CommonConfiguration.getProperty(name + number +"Values", context) != null);
+    String lookupName = "datapoint"+number+"Values";
+    String val = CommonConfiguration.getProperty(lookupName, context);
+    return (number != null && val != null);
   }
 
   public String[] getCategoriesAsStrings(String context) {
-    String allVals = CommonConfiguration.getProperty(name + number +"Values", context);
+    String allVals = CommonConfiguration.getProperty("datapoint"+number+"Values", context);
     if (allVals==null || allVals.equals("")) return new String[0];
     return allVals.split(",\\s*");
   }
