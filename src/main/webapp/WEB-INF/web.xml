@@ -35,6 +35,10 @@
   metadata-complete="true">
 
 
+<listener>
+    <description>ServletContextListener</description>
+    <listener-class>org.ecocean.StartupWildbook</listener-class>
+</listener>
 
   <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
   <description>
@@ -910,10 +914,12 @@
     <servlet-class>org.ecocean.servlet.EncounterSetDynamicProperty</servlet-class>
   </servlet>
 
+  <!--
   <servlet>
     <servlet-name>EncounterSetSize</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetSize</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>EncounterVMData</servlet-name>
@@ -1043,6 +1049,15 @@
     <url-pattern>/rest/*</url-pattern>
   </servlet-mapping>
 -->
+
+<servlet>
+         <servlet-name>jsp</servlet-name>
+         <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+    <init-param> 
+            <param-name>mappedfile</param-name>
+             <param-value>false</param-value>
+        </init-param>
+     </servlet> 
 
 	<servlet>
 		<servlet-name>WildbookApi</servlet-name>
@@ -1633,10 +1648,12 @@
     <url-pattern>/EncounterSetLocation</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetSize</servlet-name>
     <url-pattern>/EncounterSetSize</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterDelete</servlet-name>
