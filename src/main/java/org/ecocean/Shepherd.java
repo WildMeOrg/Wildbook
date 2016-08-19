@@ -2804,13 +2804,14 @@ public class Shepherd {
               boolean hasKeyword = false;
               if ((keywords == null) || (keywords.length == 0)) {
                 hasKeyword = true;
-              } else {
+              } 
+              else {
                 int numKeywords = keywords.length;
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
 
-                    if (images.get(i).getKeywords().contains(word)) {
+                    if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                     //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
