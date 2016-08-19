@@ -1848,6 +1848,7 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
+      
       MediaAsset ma=al.get(i).getMediaAsset();
       AssetStore as=ma.getStore();
       String fullFileSystemPath=as.localPath(ma).toString();
@@ -1857,7 +1858,20 @@ public class Shepherd {
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
       spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
+      
+      //add Keywords
+      if(ma.getKeywords()!=null){
+        ArrayList<Keyword> alkw=ma.getKeywords();
+        int numKeywords=alkw.size();
+        for(int y=0;y<numKeywords;y++){
+          Keyword kw=alkw.get(y);
+          spv.addKeyword(kw);
+        }
+      }
+      
       myArray.add(spv);
+      
+      
     }
     return myArray;
   }
