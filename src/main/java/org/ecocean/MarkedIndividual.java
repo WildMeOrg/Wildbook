@@ -1861,7 +1861,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
             
             
-            if (j!=null) {
+            if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
               
               //ok, we have a viable candidate
