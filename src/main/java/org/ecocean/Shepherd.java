@@ -2732,7 +2732,7 @@ public class Shepherd {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
 
-                  if (images.get(i).getKeywords().contains(word)) {
+                  if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                   //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
