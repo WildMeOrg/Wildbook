@@ -1847,7 +1847,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
-      //if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
+      if((enc.getDynamicPropertyValue("PublicView")==null)||(enc.getDynamicPropertyValue("PublicView").equals("Yes"))){
         ArrayList<Annotation> anns = enc.getAnnotations();
         if ((anns == null) || (anns.size() < 1)) {
           continue;
@@ -1878,7 +1878,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
           }
         }
-    //}
+    }
     }
     return al;
 
