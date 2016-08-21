@@ -77,6 +77,10 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	height: 5em;
 }
 
+#link {
+	clear: both;
+}
+
 #results {
 	display: inline-block;
 }
@@ -336,7 +340,7 @@ console.info('waiting to try again...');
 		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
 			'">' + res.matchAnnotations[0].encounter.catalogNumber +
-			'</a> id ' + res.matchAnnotations[0].encounter.individualID + altIDString +
+			'</a> id ' + (res.matchAnnotations[0].encounter.individualID || 'unknown') + altIDString +
 			') - score ' + res.matchAnnotations[0].score + approvalButtons(res.queryAnnotation, res.matchAnnotations));
 		updateMatch(res.matchAnnotations[0]);
 		return;
@@ -350,14 +354,14 @@ console.info('waiting to try again...');
 	var h = '<p><b>' + res.matchAnnotations.length + ' matches</b></p><ul>';
 	for (var i = 0 ; i < res.matchAnnotations.length ; i++) {
       // a little handling of the alternate ID
-      var altIDString = res.matchAnnotations[i].encounter.otherCatalogNumbers;
-      if (altIDString && altIDString.length > 0) {
-        altIDString = ' (altID: '+altIDString+')';
-      }
+      var altIDString = res.matchAnnotations[i].encounter.otherCatalogNumbers || '';
+	if (altIDString && altIDString.length > 0) {
+		altIDString = ' (altID: '+altIDString+')';
+	}
 		h += '<li data-i="' + i + '"><a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[i].encounter.catalogNumber + '">' +
 			res.matchAnnotations[i].encounter.catalogNumber + altIDString + '</a> (' +
-			res.matchAnnotations[i].encounter.individualID + '), score = ' +
+			(res.matchAnnotations[i].encounter.individualID || 'unidentified') + '), score = ' +
 			res.matchAnnotations[i].score + '</li>';
 	}
 	h += '</ul><div>' + approvalButtons(res.queryAnnotation, res.matchAnnotations) + '</div>';
