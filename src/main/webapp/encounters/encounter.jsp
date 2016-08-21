@@ -2737,7 +2737,7 @@ if (isOwner) {
               <%
               String deleteIcon="cancel.gif";
               %>
-              <input align="absmiddle" name="approve" type="button" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
+              <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
         </form>
       </td>
     </tr>
