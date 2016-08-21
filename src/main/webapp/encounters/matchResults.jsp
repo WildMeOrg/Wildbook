@@ -328,10 +328,10 @@ console.info('waiting to try again...');
 		return;
 	}
 	if (res.matchAnnotations.length == 1) {
-    var altIDString = res.matchAnnotations[0].encounter.otherCatalogNumbers;
-    if (altIDString && altIDString.length > 0) {
-      altIDString = ', altID '+altIDString;
-    }
+		var altIDString = res.matchAnnotations[0].encounter.otherCatalogNumbers || '';
+		if (altIDString && altIDString.length > 0) {
+      			altIDString = ', altID '+altIDString;
+    		}
 
 		$('#results').html('One match found (<a target="_new" href="encounter.jsp?number=' +
 			res.matchAnnotations[0].encounter.catalogNumber +
