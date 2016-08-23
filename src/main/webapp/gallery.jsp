@@ -296,22 +296,55 @@ myShepherd.beginDBTransaction();
 	</div>
 
 </section>
+
+<style type="text/css">
+  nav.gallery-nav div ul.nav>li>a {
+    color: white;
+		font-family: 'UniversLTW01-59UltraCn',sans-serif;
+		font-weight: 300;
+		font-size: 1.6em;
+  }
+  /* overwrites a weird WB edge-case color */
+  nav.gallery-nav div ul.nav>li>a.dropdown-toggle[aria-expanded=false]:focus {
+    background-color: initial;
+  }
+  nav.gallery-nav div ul.nav>li.dropdown>ul.dropdown-menu>li>a {
+    display: block !important;
+  }
+
+</style>
+
 <nav class="navbar navbar-default gallery-nav">
   <div class="container-fluid">
-    <a class="btn-link" style="color: white;
-								font-family: 'UniversLTW01-59UltraCn',sans-serif;
-								font-weight: 300;
-								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uudet norpat</a>&nbsp;
+    <ul class="nav navbar-nav" >
 
-    <a  class="btn-link" style="color: white;
-								font-family: 'UniversLTW01-59UltraCn',sans-serif;
-								font-weight: 300;
-								font-size: 1.6em;" href="gallery.jsp?sort=numberLocations">Havainnot alueittain</a>&nbsp;
+      <li>
+    <a class="btn-link" href="gallery.jsp?sort=dateTimeLatestSighting">Uudet norpat</a>
+      </li>
+    <li class="dropdown">
+      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Havainnot alueittain <span class="caret"></span></a>
+      <ul class="dropdown-menu" role="menu">
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=HV"> Haukivesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=JV"> Joutenvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PEV"> Pyyvesi – Enonvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KV"> Kolovesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PV"> Pihlajavesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PUV"> Puruvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=KS"> Lepist&ouml;nselk&auml; – Katosselk&auml; – Haapaselk&auml;</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=LL"> Luonteri – Lietvesi</a></li>
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=ES"> Etel&auml;-Saimaa</a></li>
+         </ul>
+    </li>
 
+    <li>
    <a  class="btn-link" style="color: white;
 								font-family: 'UniversLTW01-59UltraCn',sans-serif;
 								font-weight: 300;
 								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Kuvatuimmat norpat</a>
+      </li>
+
+
+    </ul>
 
   </div>
 </nav>
@@ -319,7 +352,11 @@ myShepherd.beginDBTransaction();
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
 
-    <% if(request.getParameter("locationCodeField")!=null) {%>
+    <%
+    int numVisible = 0;
+    int neededRows = 0;
+    int numSightings = 0;
+    if(request.getParameter("locationCodeField")!=null) {%>
 
       <style>
         .row#location-header {
@@ -333,8 +370,8 @@ myShepherd.beginDBTransaction();
 
       <div class="row" id="location-header">
       <%
-      String locCode=request.getParameter("locationCodeField")
-       		.replaceAll("PS","Pohjois-Saimaa")
+      String locID = request.getParameter("locationCodeField");
+      String locCode=locID.replaceAll("PS","Pohjois-Saimaa")
   	   		.replaceAll("HV","Haukivesi")
             .replaceAll("JV","Joutenvesi")
          	.replaceAll("PEV","Pyyvesi - Enonvesi")
@@ -344,15 +381,20 @@ myShepherd.beginDBTransaction();
 			.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
 			.replaceAll("LL","Luonteri – Lietvesi")
 			.replaceAll("ES","Etel&auml;-Saimaa");
+      numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
+      numVisible = rIndividuals.size();
+      neededRows = numVisible/2;
+
       %>
 
         <h2><%=locCode %></h2>
+        <h3><em><%=numSightings%> tunnistettua norppaa (<%=numVisible%> avoin kaikille)</em></h3>
       </div>
     <% } %>
 
       <%
       int maxRows=(int)numIndividualsOnPage/2;
-      for (int i = 0; i < rIndividuals.size()/2 && i < maxRows; i++) {
+      for (int i = 0; i < neededRows && i < maxRows; i++) {
         %>
         <div class="row gunit-row">
         <%
@@ -503,7 +545,7 @@ myShepherd.beginDBTransaction();
                       %>
                       <%=props.getProperty("birthdate")%>: <%=timeOfBirth%>
                     </li>
-                     
+
                       <%
                       String timeOfDeath=props.getProperty("unknown");
                       //System.out.println("Time of birth is: "+sharky.getTimeOfBirth());
@@ -517,7 +559,7 @@ myShepherd.beginDBTransaction();
                       	<%
                       }
                       %>
-                       
+
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
