@@ -383,26 +383,31 @@ myShepherd.beginDBTransaction();
 			.replaceAll("ES","Etel&auml;-Saimaa");
       numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
       numVisible = rIndividuals.size();
-      neededRows = numVisible/2;
+      neededRows = (numVisible+1)/2;
+
+      String numVisibleDisclaimer = (numVisible!=numSightings) ? ("("+numVisible+" avoin kaikille)") : "";
 
       %>
 
         <h2><%=locCode %></h2>
-        <h3><em><%=numSightings%> tunnistettua norppaa (<%=numVisible%> avoin kaikille)</em></h3>
+        <h3><em><%=numSightings%> tunnistettua norppaa <%=numVisibleDisclaimer%></em></h3>
       </div>
     <% } %>
 
       <%
       int maxRows=(int)numIndividualsOnPage/2;
+      System.out.println("");
+      System.out.println("");
+      System.out.println("maxRows="+maxRows+" and neededRows="+neededRows);
       for (int i = 0; i < neededRows && i < maxRows; i++) {
         %>
         <div class="row gunit-row">
         <%
         MarkedIndividual[] pair = new MarkedIndividual[2];
-        if(rIndividuals.get(i*2)!=null){
+        if((i*2)<numVisible && rIndividuals.get(i*2)!=null){
         	pair[0]=rIndividuals.get(i*2);
         }
-        if(rIndividuals.get(i*2)!=null){
+        if((i*2+1)<numVisible && rIndividuals.get(i*2+1)!=null){
         	pair[1]=rIndividuals.get(i*2+1);
         }
 
@@ -411,9 +416,13 @@ myShepherd.beginDBTransaction();
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
         String[] pairMediaAssetID = new String[2];
+        System.out.println("c");
+
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
+          System.out.println("d"+j);
         	if(pair[j]!=null){
+            System.out.println("e"+j);
           MarkedIndividual indie = pair[j];
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
@@ -443,6 +452,7 @@ myShepherd.beginDBTransaction();
           <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
           <%
         }
+        System.out.println("f"+j);
         }
         %>
         </div>
@@ -450,6 +460,7 @@ myShepherd.beginDBTransaction();
         <%
         // now a second row containing each individual's info panel (hidden at first)
         for (int j=0; j<2; j++) {
+          if(pair[j]==null) continue;
           %>
           <div class="col-sm-12 gallery-info" id="ginfo<%=i*2+j%>" style="display: none">
 
