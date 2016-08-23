@@ -301,7 +301,7 @@ myShepherd.beginDBTransaction();
     <a class="btn-link" style="color: white;
 								font-family: 'UniversLTW01-59UltraCn',sans-serif;
 								font-weight: 300;
-								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uusimmat havainnot</a>&nbsp;
+								font-size: 1.6em;" href="gallery.jsp?sort=dateTimeLatestSighting">Uudet norpat</a>&nbsp;
 
     <a  class="btn-link" style="color: white;
 								font-family: 'UniversLTW01-59UltraCn',sans-serif;
@@ -311,7 +311,7 @@ myShepherd.beginDBTransaction();
    <a  class="btn-link" style="color: white;
 								font-family: 'UniversLTW01-59UltraCn',sans-serif;
 								font-weight: 300;
-								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Parhaiten tunnetut yksil&ouml;t</a>
+								font-size: 1.6em;" href="gallery.jsp?sort=numberEncounters">Kuvatuimmat norpat</a>
 
   </div>
 </nav>

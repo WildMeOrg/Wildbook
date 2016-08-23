@@ -382,7 +382,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
                       </li>
 
                       <li>
-                        <a href="gallery.jsp">GALLERIA</a>
+                        <a href="http://norppagalleria.wwf.fi/gallery.jsp">GALLERIA</a>
                       </li>
 
                       <% } %>
