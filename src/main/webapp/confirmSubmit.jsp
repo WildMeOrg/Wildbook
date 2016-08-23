@@ -17,6 +17,7 @@ context=ServletUtilities.getContext(request);
 	String filesBadMessage = "";
 	if (session.getAttribute("filesBadMessage") != null) { filesBadMessage = session.getAttribute("filesBadMessage").toString(); }
 
+	
 //setup our Properties object to hold all properties
   Properties props = new Properties();
   //String langCode = "en";
@@ -199,7 +200,13 @@ new_message.append("<html><body>");
 <p><strong><%=props.getProperty("thankYou") %></strong></p>
 
 <p><strong><%=props.getProperty("confirmFilesOK") %>:</strong> <%=filesOKMessage %></p>
-<p><strong><%=props.getProperty("confirmFilesBad") %>:</strong> <%=filesBadMessage %></p>
+<%
+if((!filesBadMessage.equals(""))&&(!filesBadMessage.equals("none"))){
+%>
+	<p><strong><%=props.getProperty("confirmFilesBad") %>:</strong> <%=filesBadMessage %></p>
+<%
+}
+%>
 
 <p><%=props.getProperty("futureReference") %> <strong><%=number%></strong>.</p>
 
