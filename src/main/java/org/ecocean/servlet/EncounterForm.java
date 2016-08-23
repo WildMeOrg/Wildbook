@@ -836,7 +836,14 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
       enc.setPhotographerPhone(getVal(fv, "photographerPhone"));
       enc.setPhotographerAddress(getVal(fv, "photographerAddress"));
-      enc.setPhotographerName(getVal(fv, "photographerName"));
+      
+      if((getVal(fv, "photographerName")!=null)&&(!getVal(fv, "photographerName").trim().equals(""))){
+        enc.setPhotographerName(getVal(fv, "photographerName"));
+      }
+      else{
+        enc.setPhotographerName(getVal(fv, "submitterName"));
+      }
+      
       enc.setPhotographerEmail(getVal(fv, "photographerEmail"));
       enc.addComments("<p>Submitted on " + (new java.util.Date()).toString() + " from address: " + request.getRemoteHost() + "</p>");
       //enc.approved = false;
