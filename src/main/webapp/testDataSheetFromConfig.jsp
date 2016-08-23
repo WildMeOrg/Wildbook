@@ -26,9 +26,9 @@ int numFixes=0;
 
 try{
 
-  DataSheet dSheet = DataSheet.fromCommonConfig("nest", context);
-  out.println("DataSheet.toLabeledString() = "+dSheet.toLabeledString());
-
+  Nest nest = Nest.nestWithConfigDataSheet(context);
+  boolean saved = myShepherd.storeNewNest(nest);
+  out.println("I made a nest, saved="+saved+", and its DataSheet.toLabeledString() = "+nest.getDataSheets().get(0).toLabeledString());
 
 }
 catch(Exception e){

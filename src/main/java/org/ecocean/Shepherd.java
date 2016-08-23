@@ -178,6 +178,22 @@ public class Shepherd {
   }
 
 
+  public boolean storeNewNest(Nest indie) {
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Nest in Shepherd.storeNewMarkedIndividual().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+
 
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {
