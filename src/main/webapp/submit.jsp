@@ -763,8 +763,8 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       <a class="help-block" href="privacy.jsp"><%=props.getProperty("privacy") %></a>
   	</div>
 <div class="col-xs-12 col-lg-12">
-      	<input type="checkbox" name="showPicture" value="showPicture" checked> Saako ottamasi kuva n&auml;ky&auml; norppagalleriassa?<br>
-  		<input type="checkbox" name="showPhotographerName" value="showPhotographerName" checked> Saako nimesi n&auml;ky&auml; kuvan yhteydess&auml;?<br>
+      	<input type="checkbox" name="showPicture" value="showPicture" checked> L&auml;hett&auml;m&auml;ni kuva saa n&auml;ky&auml; norppagalleriassa<br>
+  		<input type="checkbox" name="showPhotographerName" value="showPhotographerName" checked> Kuvaajan nimi saa n&auml;ky&auml; kuvan yhteydess&auml;<br>
   
 	  </div>
     </div>
