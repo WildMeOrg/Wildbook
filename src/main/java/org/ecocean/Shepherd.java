@@ -177,7 +177,6 @@ public class Shepherd {
 
   }
 
-
   public boolean storeNewNest(Nest indie) {
 
     beginDBTransaction();
@@ -186,12 +185,47 @@ public class Shepherd {
       commitDBTransaction();
     } catch (Exception e) {
       rollbackDBTransaction();
-      System.out.println("I failed to create a new Nest in Shepherd.storeNewMarkedIndividual().");
+      System.out.println("I failed to create a new Nest in Shepherd.storeNewNest().");
       e.printStackTrace();
       return false;
     }
     return true;
   }
+
+  public boolean storeNewDataSheet(DataSheet indie) {
+
+    for (DataPoint dp: indie.getData()) {
+      storeNewDataPoint(dp);
+    }
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new DataSheet in Shepherd.storeNewDataSheet().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public boolean storeNewDataPoint(DataPoint indie) {
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Nest in Shepherd.storeNewDataPoint().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
 
 
 

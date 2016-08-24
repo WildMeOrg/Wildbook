@@ -26,9 +26,19 @@ int numFixes=0;
 
 try{
 
-  Nest nest = Nest.nestWithConfigDataSheet(context);
+  DataSheet fromConfig = DataSheet.fromCommonConfig("nest", context);
+  System.out.println("I made the DataSheet, now to persist it");
+  boolean dSheetSaved = myShepherd.storeNewDataSheet(fromConfig);
+  System.out.println("DataSheet persisted!");
+
+
+  Nest nest = new Nest(fromConfig);
+
   boolean saved = myShepherd.storeNewNest(nest);
+  System.out.println("I made a nest, saved="+saved+", and its DataSheet.toLabeledString() = "+nest.getDataSheets().get(0).toLabeledString());
   out.println("I made a nest, saved="+saved+", and its DataSheet.toLabeledString() = "+nest.getDataSheets().get(0).toLabeledString());
+  //out.println("I made a nest and its DataSheet.toLabeledString() = "+nest.getDataSheets().get(0).toLabeledString());
+  //System.out.println("I made a nest and its DataSheet.toLabeledString() = "+nest.getDataSheets().get(0).toLabeledString());
 
 }
 catch(Exception e){
