@@ -427,6 +427,17 @@ public class Shepherd {
     return tempMA;
   }
 
+  public Encounter getNest(String num) {
+    Nest tempEnc = null;
+    try {
+      tempEnc = ((Nest) (pm.getObjectById(pm.newObjectIdInstance(Nest.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+
+
 
   public Workspace getWorkspace(int id) {
     Workspace tempWork = null;
