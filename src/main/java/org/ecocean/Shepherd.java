@@ -427,7 +427,7 @@ public class Shepherd {
     return tempMA;
   }
 
-  public Encounter getNest(String num) {
+  public Nest getNest(String num) {
     Nest tempEnc = null;
     try {
       tempEnc = ((Nest) (pm.getObjectById(pm.newObjectIdInstance(Nest.class, num.trim()), true)));
