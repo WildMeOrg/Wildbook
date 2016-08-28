@@ -853,29 +853,11 @@ $(function() {
                     });
                     </script>
 
-                    <div id="setRemoveResultDiv" class="resultMessageDiv">
-                      <span class="highlight" id="removeErrorDiv"></span>
-                      <span class="successHighlight" id="removeSuccessDiv"></span>
-                    </div>
-                    <div class="editText" id="manageIdentityMessage">
-                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                    </div>
-                    <form class="editForm" id="removeShark" name="removeShark">
-                      <div class="form-group row">
-                        <div class="col-sm-12 col-xs-10">
-                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
-                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
-                          <input name="action" type="hidden" value="remove" />
-                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
-                        </div>
-                      </div>
-                    </form>
-                    <br>
-									<%
 
-									if(!enc.hasMarkedIndividual()) {
-									%>
+					<%
+	
+					if(!enc.hasMarkedIndividual()) {
+					%>
 
                   <script type="text/javascript">
                   $(document).ready(function() {
@@ -942,6 +924,30 @@ $(function() {
                   </form>
 								<%
 								}
+									else{
+										%>
+										
+										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
+                      <span class="highlight" id="removeErrorDiv"></span>
+                      <span class="successHighlight" id="removeSuccessDiv"></span>
+                    </div>
+                    <div class="editText" id="manageIdentityMessage">
+                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                    </div>
+                    <form class="editForm" id="removeShark" name="removeShark">
+                      <div class="form-group row">
+                        <div class="col-sm-12 col-xs-10">
+                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
+                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
+                          <input name="action" type="hidden" value="remove" />
+                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                        </div>
+                      </div>
+                    </form>
+                    <br>
+									<%	
+									}
 								%>
 							</div>
 
