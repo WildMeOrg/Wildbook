@@ -115,6 +115,11 @@ public class ClassEditTemplate {
     return splitCamelCase(withoutGet);
   }
 
+  public static String getClassNamePrefix(Class class) {
+    String name = Class.getName();
+    return ((name.length()>2) ? name.substring(0,3).toLowerCase() : name.toLowerCase() );
+  }
+
   public static String inputElemName(Method getMeth, String classNamePrefix) {
     String fieldName = getMeth.getName().substring(3);
     return ("oldValue-"+classNamePrefix+":"+fieldName);

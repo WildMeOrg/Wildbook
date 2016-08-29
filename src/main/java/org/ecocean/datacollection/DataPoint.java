@@ -52,7 +52,6 @@ public abstract class DataPoint implements java.io.Serializable {
     return allVals.split(",\\s*");
   }
 
-
   // setter is not abstract so that its argument is typed (not Object)
 
 
