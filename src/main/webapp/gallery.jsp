@@ -226,9 +226,10 @@ myShepherd.beginDBTransaction();
   <section class="container-fluid main-section front-gallery galleria">
 
     <%
-    int numVisible = 0;
-    int neededRows = 0;
+    int numVisible = rIndividuals.size();
+    int neededRows = (numVisible+1)/2;
     int numSightings = 0;
+
     if(request.getParameter("locationCodeField")!=null) {%>
 
       <style>
@@ -256,8 +257,6 @@ myShepherd.beginDBTransaction();
 			.replaceAll("ES","Etel&auml;-Saimaa");
       numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
       System.out.println("rIndividuals.size() 2 ="+rIndividuals.size());
-      numVisible = rIndividuals.size();
-      neededRows = (numVisible+1)/2;
 
       String numVisibleDisclaimer = (numVisible!=numSightings) ? ("("+numVisible+" avoin kaikille)") : "";
 
