@@ -562,6 +562,7 @@ jQuery(function($) {
       <div class="crop-outer">
         <div class="crop" title="&copy; K39 / WWF">
 		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Pullervo_2013_3.jpg" alt="&copy; K39 / WWF"/></a>
+		      <p class="image-copyright"> &copy; UEF / WWF </p>
           <!---->
         </div>
       </div>
@@ -583,6 +584,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; M. Auttila / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Terttu_2.JPG" alt="&copy; M. Auttila / WWF"/></a>
+      	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
   </div>
@@ -601,6 +603,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; Sanna Sihvonen / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Teemu_2.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
+      	<p class="image-copyright"> &copy; Juha Taskinen / WWF </p>
       </div>
     </div>
   </div>
@@ -619,6 +622,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; Kunnasranta / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Ritva_2.JPG" alt="&copy; Kunnasranta / WWF"/></a>
+      	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
   </div>
@@ -636,6 +640,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; K39 / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Arka_2.jpg" alt="&copy; K39 / WWF"/></a>
+      	<p class="image-copyright"> &copy; Juha Taskinen / WWF </p>
       </div>
     </div>
   </div>
@@ -646,6 +651,7 @@ jQuery(function($) {
 	  <p class=pfooter-link>
 	    <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
 	  </p>
+	  
 	</div>
 </div>
 
@@ -655,6 +661,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; K53A / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Mitro_1.jpg" alt="&copy; K53A / WWF"/></a>
+      	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
   </div>
