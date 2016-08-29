@@ -40,6 +40,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 String sortString="";
 if(request.getParameter("sort")!=null){
 	sortString="&sort="+request.getParameter("sort");
+  System.out.println("gallery.jsp got sortString="+sortString);
 }
 //locationCodeField
 String locationCodeFieldString="";
@@ -108,6 +109,8 @@ rIndividuals = result.getResult();
 //handle any null errors better
 if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
+System.out.println("rIndividuals.size() 1 ="+rIndividuals.size());
+
 //if not logged in, filter out animals that have PublicView=no on all encounters
 //if(request.getUserPrincipal()==null){
 	for(int q=0;q<rIndividuals.size();q++){
@@ -128,142 +131,12 @@ if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
 
+System.out.println("rIndividuals.size() 1.5 ="+rIndividuals.size());
+
+
 
 %>
 
-
-<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
-<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
-
-
-<style>
-  section.main-section.galleria div.row.gunit-row {
-    background:#e1e1e1;
-    padding-top:15px;
-  }
-
-  .gunit-row {
-    position: relative;
-  }
-
-  .gallery-info {
-    background: #4a494a;
-    padding: 15px;
-  }
-  .gallery-info h2 {
-    color: #16696d;
-  }
-  .gallery-info table {
-    width: 100%;
-  }
-  .gallery-info td {
-    width:50%;
-  }
-
-  .gallery-unit .crop, .gallery-inner .crop {
-    text-align: center;
-    overflow: hidden;
-  }
-
-  // seal-scrolling css
-  .gallery-inner {
-    position: relative;
-  }
-  .seal-scroll {
-    cursor:pointer;
-    position: absolute;
-    top: 40%;
-  }
-  .seal-scroll.scroll-fwd {
-    right: 10%;
-  }
-  .seal-scroll.scroll-back {
-    left: 10%;
-  }
-
-  .super-crop.seal-gallery-pic {
-    display: none;
-  }
-  .super-crop.seal-gallery-pic.active {
-    display: block;
-  }
-
-  p.image-copyright {
-    	text-align: right;
-    	position: absolute;
-    	top: 5px;
-    	right: 25px;
-    	color: #fff;
-    	font-size: 0.8rem;
-  }
-  .gallery-inner p.image-copyright {
-    top: 30px;
-    right: 110px;
-  }
-  @media(max-width: 768px) {
-    .gallery-unit p.image-copyright {
-      display: none;
-    }
-    .gallery-inner p.image-copyright {
-      right: 35px;
-    }
-  }
-
-
-  .galleryh2 {
-    color: #16696d !important;
-    font-weight: 700 !important;
-    font-size: 36px !important;
-    line-height: 1.3em !important;
-    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
-    padding: 27px;
-  }
-
-
-  .gallery-inner {
-    background: #fff;
-    padding: 10px;
-  }
-
-  @media(min-width: 768px) {
-    .gallery-inner {
-      margin-left: 75px;
-      margin-right: 75px;
-    }
-  }
-
-  .gallery-inner img {
-    display: block;
-    margin: auto;
-  }
-  .gallery-nav {
-    margin-bottom: 0;
-  }
-  div.arrow-up {
-  	width: 0;
-  	height: 0;
-  	border-left: 15px solid transparent;  /* left arrow slant */
-  	border-right: 15px solid transparent; /* right arrow slant */
-  	border-bottom: 15px solid #4a494a; /* bottom, add background color here */
-  	font-size: 0;
-  	line-height: 0;
-    position: absolute;
-    bottom: 0;
-  }
-  div.arrow-up.left {
-    left: 25%;
-  }
-  div.arrow-up.right {
-    left: 75%;
-  }
-
-
-  .gallery-unit {
-    cursor: pointer;
-    cursor: hand;
-  }
-
-</style>
 
 
 
@@ -382,6 +255,7 @@ myShepherd.beginDBTransaction();
 			.replaceAll("LL","Luonteri – Lietvesi")
 			.replaceAll("ES","Etel&auml;-Saimaa");
       numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
+      System.out.println("rIndividuals.size() 2 ="+rIndividuals.size());
       numVisible = rIndividuals.size();
       neededRows = (numVisible+1)/2;
 
@@ -694,6 +568,141 @@ myShepherd=null;
   var gallery = {};
 
 </script>
+
+<script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
+<script src="cust/mantamatcher/js/richmarker-compiled.js"></script>
+
+
+<style>
+  section.main-section.galleria div.row.gunit-row {
+    background:#e1e1e1;
+    padding-top:15px;
+  }
+
+  .gunit-row {
+    position: relative;
+  }
+
+  .gallery-info {
+    background: #4a494a;
+    padding: 15px;
+  }
+  .gallery-info h2 {
+    color: #16696d;
+  }
+  .gallery-info table {
+    width: 100%;
+  }
+  .gallery-info td {
+    width:50%;
+  }
+
+  .gallery-unit .crop, .gallery-inner .crop {
+    text-align: center;
+    overflow: hidden;
+  }
+
+  // seal-scrolling css
+  .gallery-inner {
+    position: relative;
+  }
+  .seal-scroll {
+    cursor:pointer;
+    position: absolute;
+    top: 40%;
+  }
+  .seal-scroll.scroll-fwd {
+    right: 10%;
+  }
+  .seal-scroll.scroll-back {
+    left: 10%;
+  }
+
+  .super-crop.seal-gallery-pic {
+    display: none;
+  }
+  .super-crop.seal-gallery-pic.active {
+    display: block;
+  }
+
+  p.image-copyright {
+    	text-align: right;
+    	position: absolute;
+    	top: 5px;
+    	right: 25px;
+    	color: #fff;
+    	font-size: 0.8rem;
+  }
+  .gallery-inner p.image-copyright {
+    top: 30px;
+    right: 110px;
+  }
+  @media(max-width: 768px) {
+    .gallery-unit p.image-copyright {
+      display: none;
+    }
+    .gallery-inner p.image-copyright {
+      right: 35px;
+    }
+  }
+
+
+  .galleryh2 {
+    color: #16696d !important;
+    font-weight: 700 !important;
+    font-size: 36px !important;
+    line-height: 1.3em !important;
+    font-family: "UniversLTW01-59UltraCn",Helvetica,Arial,sans-serif !important;
+    padding: 27px;
+  }
+
+
+  .gallery-inner {
+    background: #fff;
+    padding: 10px;
+  }
+
+  @media(min-width: 768px) {
+    .gallery-inner {
+      margin-left: 75px;
+      margin-right: 75px;
+    }
+  }
+
+  .gallery-inner img {
+    display: block;
+    margin: auto;
+  }
+  .gallery-nav {
+    margin-bottom: 0;
+  }
+  div.arrow-up {
+  	width: 0;
+  	height: 0;
+  	border-left: 15px solid transparent;  /* left arrow slant */
+  	border-right: 15px solid transparent; /* right arrow slant */
+  	border-bottom: 15px solid #4a494a; /* bottom, add background color here */
+  	font-size: 0;
+  	line-height: 0;
+    position: absolute;
+    bottom: 0;
+  }
+  div.arrow-up.left {
+    left: 25%;
+  }
+  div.arrow-up.right {
+    left: 75%;
+  }
+
+
+  .gallery-unit {
+    cursor: pointer;
+    cursor: hand;
+  }
+
+</style>
+
+
 
 
 <jsp:include page="footer.jsp" flush="true"/>
