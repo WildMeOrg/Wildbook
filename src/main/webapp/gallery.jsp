@@ -40,7 +40,6 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 String sortString="";
 if(request.getParameter("sort")!=null){
 	sortString="&sort="+request.getParameter("sort");
-  System.out.println("gallery.jsp got sortString="+sortString);
 }
 //locationCodeField
 String locationCodeFieldString="";
@@ -109,8 +108,6 @@ rIndividuals = result.getResult();
 //handle any null errors better
 if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
-System.out.println("rIndividuals.size() 1 ="+rIndividuals.size());
-
 //if not logged in, filter out animals that have PublicView=no on all encounters
 //if(request.getUserPrincipal()==null){
 	for(int q=0;q<rIndividuals.size();q++){
@@ -130,9 +127,6 @@ System.out.println("rIndividuals.size() 1 ="+rIndividuals.size());
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
-
-System.out.println("rIndividuals.size() 1.5 ="+rIndividuals.size());
-
 
 
 %>
@@ -256,7 +250,6 @@ myShepherd.beginDBTransaction();
 			.replaceAll("LL","Luonteri – Lietvesi")
 			.replaceAll("ES","Etel&auml;-Saimaa");
       numSightings = myShepherd.getNumMarkedIndividualsSightedAtLocationID(locID);
-      System.out.println("rIndividuals.size() 2 ="+rIndividuals.size());
 
       String numVisibleDisclaimer = (numVisible!=numSightings) ? ("("+numVisible+" avoin kaikille)") : "";
 
@@ -269,9 +262,6 @@ myShepherd.beginDBTransaction();
 
       <%
       int maxRows=(int)numIndividualsOnPage/2;
-      System.out.println("");
-      System.out.println("");
-      System.out.println("maxRows="+maxRows+" and neededRows="+neededRows);
       for (int i = 0; i < neededRows && i < maxRows; i++) {
         %>
         <div class="row gunit-row">
@@ -289,13 +279,10 @@ myShepherd.beginDBTransaction();
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
         String[] pairMediaAssetID = new String[2];
-        System.out.println("c");
 
         // construct a panel showing each individual
         for (int j=0; j<2; j++) {
-          System.out.println("d"+j);
         	if(pair[j]!=null){
-            System.out.println("e"+j);
           MarkedIndividual indie = pair[j];
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
@@ -325,7 +312,6 @@ myShepherd.beginDBTransaction();
           <div id="arrow<%=i*2+j%>" class="arrow-up <%=(j==0) ? "left" : "right"%> " style="display: none"></div>
           <%
         }
-        System.out.println("f"+j);
         }
         %>
         </div>
