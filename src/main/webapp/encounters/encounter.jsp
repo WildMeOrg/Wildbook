@@ -2712,14 +2712,14 @@ if (isOwner) {
   });
 </script>
 <div>
-  <p class="editTextMeta"><strong><%=encprops.getProperty("auto_comments")%></strong></p>
+  <p ><strong><%=encprops.getProperty("auto_comments")%></strong></p>
   <div class="highlight resultMessageDiv" id="autoCommentErrorDiv"></div>
     <%
     String rComments="";
     if(enc.getRComments()!=null){rComments=enc.getRComments();}
     %>
 
-    <div id="autoCommentsDiv" class="editFormMeta" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
+    <div id="autoCommentsDiv" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
       <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
 
     </div>
@@ -2748,7 +2748,7 @@ if (isOwner) {
               <%
               String deleteIcon="cancel.gif";
               %>
-              <input align="absmiddle" name="approve" type="button" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
+              <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
         </form>
       </td>
     </tr>

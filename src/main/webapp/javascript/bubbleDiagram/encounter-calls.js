@@ -69,6 +69,13 @@ var makeCooccurrenceChart = function(items) {
     });
 };
 
+var getIndividualIDFromEncounterToString = function(encToString) {
+  // return everything between "individualID=" and the next comma after that
+  var id = encToString.split("individualID=")[1].split(",")[0];
+  if (id == '<null>') return false;
+  return id;
+}
+
 var getData = function(individualID) {
     var occurrenceObjectArray = [];
     var items = [];
@@ -82,11 +89,17 @@ var getData = function(individualID) {
       }
       var jsonData = json;
       for(var i=0; i < jsonData.length; i++) {
-        var encounterSize = jsonData[i].encounters.length;
+        var thisOcc = jsonData[i];
+        var encounterSize = thisOcc.encounters.length;
+        // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-          if(encounterArray.includes(jsonData[i].encounters[j].individualID)) {
+          var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
+          //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
+//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+          if (!thisEncIndID) continue;  //unknown indiv -> false
+          if(encounterArray.includes(thisEncIndID)) {
           } else {
-            encounterArray.push(jsonData[i].encounters[j].individualID);
+            encounterArray.push(thisEncIndID);
           }
         }
         occurrenceArray = occurrenceArray.concat(encounterArray);
