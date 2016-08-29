@@ -454,6 +454,17 @@ myShepherd.beginDBTransaction();
                      %>
                       Alue: <%=wheres%>
                     </li>
+                    <%
+                    String yearRange="";
+                    if(pair[j].getEarliestSightingYear()<5000){
+                    	int earlyYear=pair[j].getEarliestSightingYear();
+                    	yearRange=""+earlyYear;
+                    	if((pair[j].getDateSortedEncounters()[0].getYear()>0)&&(pair[j].getDateSortedEncounters()[0].getYear()!=earlyYear)){
+                    		yearRange=yearRange+"-"+pair[j].getDateSortedEncounters()[0].getYear();
+                    	}
+                    }
+                    %>
+                    <li>Havaittu vuosina: <%=yearRange %></li>
                     
                   </ul>
                 </td>
