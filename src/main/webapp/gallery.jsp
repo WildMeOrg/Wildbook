@@ -433,6 +433,28 @@ myShepherd.beginDBTransaction();
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
+                     <li>
+                     <%
+                     String wheres="";
+                     ArrayList<String> locIDs=pair[j].participatesInTheseLocationIDs();
+                     int numLocIDs=locIDs.size();
+                     for(int q=0;q<numLocIDs;q++){
+                    	 wheres=wheres+locIDs.get(q).replaceAll("PS","Pohjois-Saimaa")
+                    	  	   		.replaceAll("HV","Haukivesi")
+                    	            .replaceAll("JV","Joutenvesi")
+                    	         	.replaceAll("PEV","Pyyvesi - Enonvesi")
+                    				.replaceAll("KV","Kolovesi")
+                    				.replaceAll("PV","Pihlajavesi")
+                    				.replaceAll("PUV","Puruvesi")
+                    				.replaceAll("KS","Lepist&ouml;nselk&auml; - Katosselk&auml; - Haapaselk&auml;")
+                    				.replaceAll("LL","Luonteri – Lietvesi")
+                    				.replaceAll("ES","Etel&auml;-Saimaa");
+                     }
+                     if(wheres.endsWith(",")){wheres = wheres.substring(0, wheres.length()-1);}
+                     %>
+                      Alue: <%=wheres%>
+                    </li>
+                    
                   </ul>
                 </td>
               </tr></table>
