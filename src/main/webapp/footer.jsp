@@ -171,7 +171,7 @@
 									<p>Yhteisty&ouml;ss&auml;:</p>
 									</br>
 
-									<a href="http://www.uef.fi/web/norppa"><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png"></a>
+									<a href="https://www.uef.fi/fi/web/norppa"><img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab1.png"></a>
 									<a href="http://www.metsa.fi/saimaannorppa">
 										<img class="second" border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/collab2.png">
 									</a>
