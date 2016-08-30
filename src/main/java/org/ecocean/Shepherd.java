@@ -407,6 +407,8 @@ public class Shepherd {
     return tempEnc;
   }
 
+
+
   public MediaAsset getMediaAsset(String num) {
     MediaAsset tempMA = null;
     try {
@@ -436,6 +438,17 @@ public class Shepherd {
     }
     return tempEnc;
   }
+
+  public DataPoint getDataPoint(String id) {
+    DataPoint tempEnc = null;
+    try {
+      tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, num.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+
 
 
 
