@@ -9,6 +9,8 @@ import java.lang.reflect.InvocationTargetException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
+import org.ecocean.datacollection.DataPoint;
+
 /*
  * An almost entirely static / functional class for printing html UI elements
  * for editing class fields on pages such as occurrence.jsp. Note that this
@@ -115,15 +117,26 @@ public class ClassEditTemplate {
     return splitCamelCase(withoutGet);
   }
 
-  public static String getClassNamePrefix(Class class) {
-    String name = Class.getName();
+  public static String getClassNamePrefix(Class classy) {
+    String name = classy.getName();
     return ((name.length()>2) ? name.substring(0,3).toLowerCase() : name.toLowerCase() );
+  }
+
+  private static String constructInputElemName(String classNamePrefix, String fieldName) {
+    return ("oldValue-"+classNamePrefix+":"+fieldName);
+
   }
 
   public static String inputElemName(Method getMeth, String classNamePrefix) {
     String fieldName = getMeth.getName().substring(3);
-    return ("oldValue-"+classNamePrefix+":"+fieldName);
+    return constructInputElemName(classNamePrefix, fieldName);
   }
+
+  public static String inputElemName(DataPoint dp, String classNamePrefix) {
+    String fieldName = dp.getName();
+    return constructInputElemName(classNamePrefix, fieldName);
+  }
+
 
 
   public static boolean isDisplayableGetter(Method method) {
@@ -174,7 +187,23 @@ public class ClassEditTemplate {
 
   }
 
-  // custom method to replicate a very specific table row format on this page
+  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
+    String classNamePrefix = ""; // e.g. "occ"
+    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
+    else classNamePrefix = className.toLowerCase();
+
+    String printValue;
+    if (getMethod.invoke(obj)==null) printValue = "";
+    else printValue = getMethod.invoke(obj).toString();
+    String fieldName = prettyFieldNameFromGetMethod(getMethod);
+    String inputName = inputElemName(getMethod, classNamePrefix);
+
+    //System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
+    printOutClassFieldModifierRow(fieldName, printValue, inputName, out);
+
+  }
+
   public static void printOutClassFieldModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
@@ -188,8 +217,13 @@ public class ClassEditTemplate {
     String inputName = inputElemName(getMethod, classNamePrefix);
 
     //System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
+    printOutClassFieldModifierRow(fieldName, printValue, inputName, out);
+
+  }
 
 
+  // custom method to replicate a very specific table row format on this page
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
     out.println("<tr data-original-value=\""+printValue+"\">");
     out.println("\t<td>"+fieldName+"</td>");
@@ -200,16 +234,14 @@ public class ClassEditTemplate {
     out.println("/>");
     out.println("\t</td>");
 
-
-
     out.println("<td class=\"undo-container\">");
     out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
     out.println("</td>");
 
-
-
     out.println("\n</tr>");
   }
+
+
 
   public static void printUnmodifiableField(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
@@ -222,15 +254,16 @@ public class ClassEditTemplate {
     else printValue = getMethod.invoke(obj).toString();
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
 
-    //System.out.println("printUnmodifiableField on class "+className+" "+printValue+" "+fieldName);
+    printUnmodifiableField(fieldName, printValue, out);
+  }
 
-
-
+  public static void printUnmodifiableField(String fieldName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     out.println("\n<tr>");
     out.println("\n\t<td>"+fieldName+"</td>");
     out.println("\n\t<td>"+printValue+"</td>");
     out.println("\n</tr>");
   }
+
 
 
 
