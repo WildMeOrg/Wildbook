@@ -4,6 +4,8 @@ package org.ecocean.datacollection;
 import org.ecocean.Util;
 import org.ecocean.ClassEditTemplate;
 
+import java.io.IOException;
+
 public class Amount extends DataPoint {
 
   private Double value;
@@ -55,28 +57,4 @@ public class Amount extends DataPoint {
   public String toLabeledString() {
     return ("amount-"+(this.getName()+": "+value+units).replaceAll("null",""));
   }
-
-  public void printOutClassFieldModifierRow(javax.servlet.jsp.JspWriter out, Class superClass) throws IOException, IllegalAccessException, InvocationTargetException {
-
-    String printVal = (value!=null) ? value.toString() : "";
-    String fieldName = ClassEditTemplate.prettyFieldNameFromGetMethod(getMethod);
-
-    String inputName = inputElemName(getMethod, classNamePrefix);
-
-    out.println("<tr data-original-value=\""+printValue+"\">");
-    out.println("\t<td>"+fieldName+"</td>");
-    out.println("\t<td>");
-    out.println("\t\t<input ");
-    out.println("name=\""+inputName+"\" ");
-    out.println("value=\""+printValue+"\"");
-    out.println("/>");
-    out.println("\t</td>");
-    out.println("<td class=\"undo-container\">");
-    out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
-    out.println("</td>");
-    out.println("\n</tr>");
-  }
-
-
-
 }
