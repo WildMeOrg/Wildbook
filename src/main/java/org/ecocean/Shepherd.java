@@ -442,7 +442,7 @@ public class Shepherd {
   public DataPoint getDataPoint(String id) {
     DataPoint tempEnc = null;
     try {
-      tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, num.trim()), true)));
+      tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, id.trim()), true)));
     } catch (Exception nsoe) {
       return null;
     }
