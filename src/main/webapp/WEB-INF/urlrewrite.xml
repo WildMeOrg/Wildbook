@@ -8,7 +8,8 @@
     http://www.tuckey.org/urlrewrite/
 
 -->
-<urlrewrite>
+<urlrewrite use-query-string="true">
+
 <!--
     <rule>
         <note>
@@ -23,7 +24,7 @@
         <name>Domain Name Check</name>
         <condition name="host" operator="notequal">www.flukebook.org</condition>
         <from>^(.*)$</from>
-        <to type="redirect">http://www.flukebook.org/context$1</to>
+        <to type="redirect">http://www.flukebook.org$1</to>
     </rule>
 
 <!--
