@@ -52,15 +52,4 @@ public abstract class DataPoint implements java.io.Serializable {
     if (allVals==null || allVals.equals("")) return new String[0];
     return allVals.split(",\\s*");
   }
-
-  // Below functions deal with printing UI elements to html
-  // and follow the same conventions as ClassEditTemplate.java, classEditTemplate.js and classEditTemplate.css
-
-  public static String inputElemName(Method getMeth, String classNamePrefix) {
-    String fieldName = getMeth.getName().substring(3);
-    return ("oldValue-"+classNamePrefix+":"+fieldName);
-  }
-
-
-
 }
