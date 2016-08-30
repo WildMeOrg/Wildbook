@@ -201,7 +201,10 @@ if (request.getParameter("number")!=null) {
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
+
+
 <script type="text/javascript">
+
 
   $(document).ready( function() {
   	// wildbook.init(function() { doTable(); });
@@ -256,10 +259,6 @@ if (request.getParameter("number")!=null) {
       });
 
       setTimeout(function() {
-      $("td:contains('TissueSample')").html("<img class='encounterSample' src='images/microscope.gif'/>");
-      $("td:contains('image')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>");
-      $("td:contains('both')").html("<img class='encounterImg' src='images/Crystal_Clear_filesystem_folder_image.png'/>").append("<img class='encounterSample' src='images/microscope.gif'/>");
-
       $('#encountTable tr').click(function() {
         selectedWhale = ($(this).attr("class"));
         goToEncounterURL(selectedWhale);
@@ -273,6 +272,23 @@ if (request.getParameter("number")!=null) {
       $("#encountTable th:nth-child(1)").attr("class", "hide");
 
     }, 6000);
+
+    var buttons = $("#edit, #closeEdit").on("click", function(){
+        buttons.toggle();
+    })
+
+    $("#edit").click(function() {
+      $(".noEditText, #nameCheck, #namerCheck, #sexCheck, #birthCheck, #deathCheck, #altIdCheck, #nameError, #namerError, #sexError, #birthError, #deathError, #altIdError").hide();
+      $(".editForm, .clickDateText, #Name, #Add, #birthy, #deathy, #AltID").show();
+      $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-success");
+      $("#nameDiv, #namerDiv, #birthDiv, #deathDiv, #altIdDiv").removeClass("has-error");
+    });
+
+    $("#closeEdit").click(function() {
+      $(".editForm").hide();
+      $(".clickDateText").hide();
+      $(".noEditText").show();
+    });
   });
 
 </script>
@@ -300,19 +316,31 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader"><%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></h1>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+
+            <div>
+              <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+            </div>
+            <%}%></h1>
+
+
 
             <%
 
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%></h1>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <div>
+              <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+            </div>
+            <%}%></h1>
           <%
           }
         }
           %>
-          <%-- <p class="caption"><em><%=props.getProperty("description") %></em></p> --%>
 
       <%-- Social Media Buttons --%>
       <div>
@@ -350,84 +378,137 @@ if (request.getParameter("number")!=null) {
               }
               %>
 
-              <p><%=nickname %>: <%=myNickname%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="nickname" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%></p>
+              <p class="noEditText"><%=nickname %>: <span id="displayNickname"><%=myNickname%></span></p>
 
-              <p><%=nicknamer %>: <%=myNicknamer%></p>
+              <script type="text/javascript">
+                $(document).ready(function() {
+
+                  $("#Name").click(function(event) {
+                    event.preventDefault();
+
+                    $("#Name").hide();
+
+                    var individual = $("input[name='individual']").val();
+                    var nickname = $("#nickname").val();
+                    var namer = $("#namer").val();
+
+                    $.post("IndividualSetNickName", {"individual": individual, "nickname": nickname, "namer": namer},
+                    function() {
+                      $("#nicknameErrorDiv").hide();
+                      $("#nameDiv, #namerDiv").addClass("has-success");
+                      $("#nameCheck, #namerCheck").show();
+
+                      $("#headerDisplayNickname, #displayNickname").html(nickname);
+                    })
+                    .fail(function(response) {
+                      $("#nameDiv, #namerDiv").addClass("has-error");
+                      $("#nameError, #namerError, #nicknameErrorDiv").show();
+                      $("#nicknameErrorDiv").html(response.responseText);
+                    });
+                  });
+
+                  $("#nickname, #namer").click(function() {
+                    $("#nameError, #nameCheck, #namerCheck, #namerError, #nicknameErrorDiv").hide()
+                    $("#nameDiv, #namerDiv").removeClass("has-success");
+                    $("#nameDiv, #namerDiv").removeClass("has-error");
+                    $("#Name").show();
+                  });
+                });
+              </script>
+
+                <%-- Edit nickname form --%>
+                <p id="checkIndividualValue"></p>
+                <div class="highlight" id="nicknameErrorDiv"></div>
+                  <form name="nameShark" class="editForm">
+                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>">
+                      <div class="form-group has-feedback row" id="nameDiv">
+                        <div class="col-sm-4">
+                          <label><%=nickname %>:</label>
+                        </div>
+                        <div class="col-sm-7 editFormInput">
+                          <input class="form-control" name="nickname" type="text" id="nickname" value="<%=myNickname%>" placeholder="<%=nickname %>">
+                          <span class="form-control-feedback" id="nameCheck">&check;</span>
+                          <span class="form-control-feedback" id="nameError">X</span>
+                        </div>
+                      </div>
+
+                      <div class="form-group has-feedback row" id="namerDiv">
+                        <div class="col-sm-4">
+                          <label><%=nicknamer %>:</label>
+                        </div>
+                        <div class="col-sm-7 editFormInput">
+                          <input class="form-control" name="namer" type="text" id="namer" value="<%=myNicknamer%>" placeholder="<%=nicknamer %>">
+                          <span class="form-control-feedback" id="namerCheck">&check;</span>
+                          <span class="form-control-feedback" id="namerError">X</span>
+                        </div>
+                        <input class="btn btn-sm editFormBtn" type="submit" name="Name" id="Name" value="<%=update %>">
+                      </div>
+                  </form>
+                  <%-- End edit nickname form --%>
+
               <%
             }
             %>
-            <!-- Now prep the nickname popup dialog -->
-            <div id="dialogNickname" title="<%=setNickname %>" style="display:none">
-              <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-                <tr>
-                  <td align="left" valign="top">
-                    <form name="nameShark" method="post" action="IndividualSetNickName">
-                    <input name="individual" type="hidden"
-                    value="<%=request.getParameter("number")%>"> <%=nickname %>:
-                    <input name="nickname" type="text" id="nickname" size="15"
-                    maxlength="50"><br> <%=nicknamer %>: <input name="namer" type="text" id="namer" size="15" maxlength="50"><br> <input
-                    name="Name" type="submit" id="Name" value="<%=update %>"></form>
-                  </td>
-                </tr>
-              </table>
-            </div>
-            <!-- nickname popup dialog script -->
-            <script>
-              var dlgNick = $("#dialogNickname").dialog({
-                autoOpen: false,
-                draggable: false,
-                resizable: false,
-                width: 500
-              });
-
-              $("a#nickname").click(function() {
-                dlgNick.dialog("open");
-              });
-            </script>
             <%
             String sexValue="";
             if(sharky.getSex()!=null){sexValue=sharky.getSex();}
             %>
-            <p><%=sex %>: <%=sexValue %> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a id="sex" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%><br />
-            <%
-              //edit sex
-              if (CommonConfiguration.isCatalogEditable(context) && isOwner) {%>
+            <p class="noEditText"><%=sex %>: <span id="displaySex"><%=sexValue %></span></p>
 
-              <!-- Now prep the sex popup dialog -->
-              <div id="dialogSex" title="<%=setsex %>" style="display:none">
-                <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
 
-                  <tr>
-                    <td align="left" valign="top">
-                      <form name="setxsexshark" action="IndividualSetSex" method="post">
+                $("#Add").click(function(event) {
+                  event.preventDefault();
+                  $("#Add").hide();
 
-                        <select name="selectSex" size="1" id="selectSex">
-                          <option value="unknown"><%=props.getProperty("unknown") %></option>
-                          <option value="male"><%=props.getProperty("male") %></option>
-                          <option value="female"><%=props.getProperty("female") %></option>
-                        </select><br> <input name="individual" type="hidden" value="<%=name%>" id="individual" />
-                        <input name="Add" type="submit" id="Add" value="<%=update %>" />
-                      </form>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            <!-- sex popup dialog script -->
-            <script>
-              var dlgSex = $("#dialogSex").dialog({
-              autoOpen: false,
-              draggable: false,
-              resizable: false,
-              width: 500
-              });
+                  var individual = $("input[name='individual']").val();
+                  var sex = $("#newSex").val();
 
-              $("a#sex").click(function() {
-              dlgSex.dialog("open");
+                  $.post("IndividualSetSex", {"individual": individual, "selectSex": sex},
+                  function() {
+                    $("#sexErrorDiv").hide();
+                    $("#sexCheck").show();
+                    $("#displaySex").html(sex);
+                    $("svg.bubbleChart").remove();
+                    getData(individual);
+
+                  })
+                  .fail(function(response) {
+                    $("#sexError, #sexErrorDiv").show();
+                    $("#sexErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#newSex").click(function() {
+                  $("#sexError, #sexCheck, #sexErrorDiv").hide()
+                  $("#Add").show();
+                });
               });
             </script>
-            <%}%>
-          </p>
+
+          <div class="highlight" id="sexErrorDiv"></div>
+          <form name="setxsexshark" class="editForm">
+            <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
+            <div class="form-group row" id="selectSex">
+              <div class="col-sm-4">
+                <label><%=sex %>: </label>
+              </div>
+              <div class="col-sm-7 col-xs-11 editFormInput">
+                <select id="newSex" name="selectSex" size="1" class="form-control">
+                  <option value="unknown"><%=props.getProperty("unknown") %></option>
+                  <option value="male"><%=props.getProperty("male") %></option>
+                  <option value="female"><%=props.getProperty("female") %></option>
+                </select>
+              </div>
+              <input class="btn btn-sm editFormBtn" name="Add" type="submit" id="Add" value="<%=update %>">
+                <span id="sexCheck">&check;</span>
+                <span id="sexError">X</span>
+            </div>
+          </form>
+          <%-- End edit sex form --%>
 
           <%
             if(CommonConfiguration.showProperty("showTaxonomy",context)){
@@ -462,52 +543,63 @@ if (request.getParameter("number")!=null) {
             //if(displayTimeOfBirth.indexOf("-")!=-1){displayTimeOfBirth=displayTimeOfBirth.substring(0,displayTimeOfBirth.indexOf("-"));}
 
             %>
-            <p><%=props.getProperty("birthdate")  %>:
-            <%=displayTimeOfBirth%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="birthdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-            </p>
+            <p class="noEditText"><%=props.getProperty("birthdate")  %> <span id="displayBirth"><%=displayTimeOfBirth%></span></p>
 
-            <!-- Now prep the birth date popup dialog -->
-            <div id="dialogBirthDate" title="<%=props.getProperty("setBirthDate") %>" style="display:none">
-              <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
-                <tr><td align="left" valign="top">
-                  <strong>
-                    <font color="#990000"> <%=props.getProperty("clickDate")%>
-                  </font>
-                </strong>
-                <br /><%=props.getProperty("dateFormat")%>
-                <br /> <font size="-1"><%=props.getProperty("leaveBlank")%></font>
-              </td></tr>
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#birthy").click(function(event) {
+                  event.preventDefault();
 
-              <tr>
-                <td align="left" valign="top">
-                  <form name="set_birthdate" method="post" action="IndividualSetYearOfBirth">
+                  $("#birthy").hide();
 
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-                    <%=props.getProperty("birthdate")  %>:
-                    <input name="timeOfBirth" type="text" id="timeOfBirth" size="15" maxlength="150" value="<%=timeOfBirth %>" />
+                  var individual = $("input[name='individual']").val();
+                  var timeOfBirth = $("#timeOfBirth").val();
 
-                    <br /> <input name="birthy" type="submit" id="birthy" value="<%=update %>"></form>
-                  </td>
-                </tr>
-              </table>
+                  $.post("IndividualSetYearOfBirth", {"individual": individual, "timeOfBirth": timeOfBirth},
+                  function() {
+                    $("#birthErrorDiv").hide();
+                    $("#birthDiv").addClass("has-success");
+                    $("#birthCheck").show();
+                    $("#displayBirth").html(timeOfBirth);
+                  })
+                  .fail(function(response) {
+                    $("#birthDiv").addClass("has-error");
+                    $(".birthDateText").hide();
+                    $("#birthError, #birthErrorDiv").show();
+                    $("#birthErrorDiv").html(response.responseText);
+                  });
+                });
 
-            </div>
-            <!-- birth date popup dialog script -->
-            <script>
-              var dlgBirthDate = $("#dialogBirthDate").dialog({
-              autoOpen: false,
-              draggable: false,
-              resizable: false,
-              width: 600
-              });
-
-              $("a#birthdate").click(function() {
-              dlgBirthDate.dialog("open");
+                $("#timeOfBirth").click(function() {
+                  $("#birthError, #birthCheck, #birthErrorDiv").hide()
+                  $("#birthDiv").removeClass("has-success");
+                  $("#birthDiv").removeClass("has-error");
+                  $("#birthy, .birthDateText").show();
+                });
               });
             </script>
-            </p>
-            <!-- end birth date -->
+
+            <%-- Edit birth date form --%>
+            <div class="highlight" id="birthErrorDiv"></div>
+            <p class="clickDateText birthDateText"><%=props.getProperty("clickDate")%></p>
+            <p class="clickDateText birthDateText"><%=props.getProperty("leaveBlank")%></p>
+
+            <form class="editForm" name="set_birthdate">
+              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>"/>
+              <div class="form-group has-feedback row" id="birthDiv">
+                <div class="col-sm-4">
+                  <label><%=props.getProperty("birthdate")  %>:</label>
+                </div>
+                <div class="col-sm-7 editFormInput">
+                  <input class="form-control" name="timeOfBirth" type="text" id="timeOfBirth" value="<%=timeOfBirth %>" placeholder="2013-12-21">
+                  <span class="form-control-feedback" id="birthCheck">&check;</span>
+                  <span class="form-control-feedback" id="birthError">X</span>
+                </div>
+                  <input class="btn btn-sm editFormBtn" name="birthy" type="submit" id="birthy" value="<%=update %>">
+              </div>
+            </form>
+            <%-- End edit birth date form --%>
 
           <!-- start death date -->
           <a name="deathdate"></a>
@@ -524,49 +616,62 @@ if (request.getParameter("number")!=null) {
             //if(displayTimeOfDeath.indexOf("-")!=-1){displayTimeOfDeath=displayTimeOfDeath.substring(0,displayTimeOfDeath.indexOf("-"));}
 
             %>
-            <p><%=props.getProperty("deathdate")  %>:
-            <%=displayTimeOfDeath%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="deathdate"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-            </p>
+            <p class="noEditText"><%=props.getProperty("deathdate")  %>: <span id="displayDeath"><%=displayTimeOfDeath%></span></p>
 
-            <!-- Now prep the death date popup dialog -->
-            <div id="dialogDeathDate" title="<%=props.getProperty("setDeathDate") %>" style="display:none">
-              <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#deathy").click(function(event) {
+                  event.preventDefault();
 
-                <tr><td align="left" valign="top">
-                  <strong>
-                    <font color="#990000"> <%=props.getProperty("clickDate")%>
-                  </font>
-                </strong>
-                <br /><%=props.getProperty("dateFormat")%>
-                <br /> <font size="-1"><em><%=props.getProperty("leaveBlank")%></em></font>
+                  $("#deathy").hide();
 
-              </td></tr>
+                  var individual = $("input[name='individual']").val();
+                  var timeOfDeath = $("#timeOfDeath").val();
 
-              <tr>
-                <td align="left" valign="top">
-                  <form name="set_deathdate" method="post" action="IndividualSetYearOfDeath">
-                    <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
-                    <%=props.getProperty("deathdate")  %>:
-                    <input name="timeOfDeath" type="text" id="timeOfDeath" size="15" maxlength="150" value="<%=timeOfDeath %>" /><br /> <input name="deathy" type="submit" id="deathy" value="<%=update %>"></form>
-                  </td>
-                </tr>
-              </table>
+                  $.post("IndividualSetYearOfDeath", {"individual": individual, "timeOfDeath": timeOfDeath},
+                  function() {
+                    $("#deathErrorDiv").hide();
+                    $("#deathDiv").addClass("has-success");
+                    $("#deathCheck").show();
+                    $("#displayDeath").html(timeOfDeath);
+                  })
+                  .fail(function(response) {
+                    $("#deathDiv").addClass("has-error");
+                    $(".deathDateText").hide();
+                    $("#deathError, #deathErrorDiv").show();
+                    $("#deathErrorDiv").html(response.responseText);
+                  });
+                });
 
-            </div>
-            <!-- death date popup dialog script -->
-            <script>
-              var dlgDeathDate = $("#dialogDeathDate").dialog({
-              autoOpen: false,
-              draggable: false,
-              resizable: false,
-              width: 600
-              });
-
-              $("a#deathdate").click(function() {
-              dlgDeathDate.dialog("open");
+                $("#timeOfDeath").click(function() {
+                  $("#deathError, #deathCheck, #deathErrorDiv").hide()
+                  $("#deathDiv").removeClass("has-success");
+                  $("#deathDiv").removeClass("has-error");
+                  $("#deathy, .deathDateText").show();
+                });
               });
             </script>
-            </p>
+
+            <%-- Edit death date form --%>
+            <div class="highlight" id="deathErrorDiv"></div>
+            <p class="clickDateText deathDateText"><%=props.getProperty("clickDate")%></p>
+            <p class="clickDateText deathDateText"><%=props.getProperty("leaveBlank")%></p>
+
+            <form class="editForm" name="set_deathdate">
+              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <div class="form-group has-feedback row" id="deathDiv">
+                <div class="col-sm-4">
+                  <label><%=props.getProperty("deathdate")  %>:</label>
+                </div>
+                <div class="col-sm-7 editFormInput">
+                  <input class="form-control" name="timeOfDeath" type="text" id="timeOfDeath" value="<%=timeOfDeath %>" placeholder="2013-12-21"/>
+                  <span class="form-control-feedback" id="deathCheck">&check;</span>
+                  <span class="form-control-feedback" id="deathError">X</span>
+                </div>
+                  <input class="btn btn-sm editFormBtn" name="deathy" type="submit" id="deathy" value="<%=update %>">
+              </div>
+            </form>
+            <%-- End edit death date form --%>
           <!-- end death date -->
 
           <a name="alternateid"></a>
@@ -577,38 +682,59 @@ if (request.getParameter("number")!=null) {
             }
 
             %>
-            <p> <%=alternateID %>:
-            <%=altID%> <%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%><a style="color:blue;cursor: pointer;" id="alternateID"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-          </p>
-          <!-- Now prep the alternateId popup dialog -->
-          <div id="dialogAlternateID" title="<%=setAlternateID %>" style="display:none">
-            <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+            <p class="noEditText"><%=alternateID %>: <span id="displayAltID"><%=altID%></span></p>
 
-            <tr>
-              <td align="left" valign="top">
-                <form name="set_alternateid" method="post" action="IndividualSetAlternateID">
-                  <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" /> <%=alternateID %>:
-                  <input name="alternateid" type="text" id="alternateid" size="15" maxlength="150" value="<%=altID %>" /><br /> <input name="Name" type="submit" id="Name" value="<%=update %>"></form>
-                </td>
-              </tr>
-            </table>
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#AltID").click(function(event) {
+                  event.preventDefault();
 
-          </div>
-          <!-- alternateId popup dialog script -->
-          <script>
-            var dlg = $("#dialogAlternateID").dialog({
-            autoOpen: false,
-            draggable: false,
-            resizable: false,
-            width: 600
-            });
+                  $("#AltID").hide();
 
-            $("a#alternateID").click(function() {
-            dlg.dialog("open");
-            });
-          </script>
+                  var individual = $("input[name='individual']").val();
+                  var alternateid = $("#alternateid").val();
+
+                  $.post("IndividualSetAlternateID", {"individual": individual, "alternateid": alternateid},
+                  function() {
+                    $("#altIdErrorDiv").hide();
+                    $("#altIdDiv").addClass("has-success");
+                    $("#altIdCheck").show();
+                    $("#displayAltID").html(alternateid);
+                  })
+                  .fail(function(response) {
+                    $("#altIdDiv").addClass("has-error");
+                    $("#altIdError, #altIdErrorDiv").show();
+                    $("#altIdErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#alternateid").click(function() {
+                  $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
+                  $("#altIdDiv").removeClass("has-success");
+                  $("#altIdDiv").removeClass("has-error");
+                  $("#AltID").show();
+                });
+              });
+            </script>
+
+            <%-- Start alt id form --%>
+            <div class="highlight" id="altIdErrorDiv"></div>
+            <form name="set_alternateid" class="editForm">
+              <input name="individual" type="hidden" value="<%=request.getParameter("number")%>" />
+              <div class="form-group has-feedback row" id="altIdDiv">
+                <div class="col-sm-4">
+                  <label><%=alternateID %>:</label>
+                </div>
+                <div class="col-sm-7 editFormInput">
+                  <input class="form-control" name="alternateid" type="text" id="alternateid" value="<%=altID %>" placeholder="<%=alternateID %>"/>
+                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
+                  <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
+                  <input class="btn btn-sm editFormBtn" name="AltID" type="submit" id="AltID" value="<%=update %>">
+              </div>
+            </form>
+            <%-- End alt id form --%>
         </div>
-
       </div>
       <%-- End Descriptions --%>
     </div>
@@ -693,316 +819,248 @@ if (request.getParameter("number")!=null) {
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
-        <p class="para">
-        	<a id="addRelationship" class="launchPopup">
-        		<img align="absmiddle" width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit_add.png"/>
-        	</a>
-        	<a id="addRelationship" class="launchPopup">
-        		<%=props.getProperty("addRelationship") %>
-        	</a>
-        </p>
+
+        <input class="btn btn-md" type="button" name="button" id="addRelationshipBtn" value="<%=props.getProperty("addRelationship") %>">
+
+
         <%
         }
         %>
+        <script type="text/javascript">
+          $(document).ready(function() {
+            $("#addRelationshipBtn").click(function() {
+              $("#addRelationshipForm").show();
+              resetForm($('#setRelationship'), "<%=sharky.getIndividualID()%>");
+              $("#setRelationshipResultDiv").hide();
+            });
 
-        <!-- start relationship popup code -->
+            $("#closeRelationshipForm").click(function() {
+              $("#addRelationshipForm").hide();
+            });
+
+            $("#EditRELATIONSHIP").click(function(event) {
+              event.preventDefault();
+
+              var type = $("#type").val();
+              var markedIndividualName1 = $("#individual1").val();
+              var markedIndividualRole1 = $("#role1").val();
+              var markedIndividualName2 = $("#individual2").val();
+              var markedIndividualRole2 = $("#role2").val();
+              var relatedCommunityName = $("#relatedCommunityName").val();
+              var startTime = $("#startTime").val();
+              var endTime = $("#endTime").val();
+              var markedIndividual1DirectionalDescriptor = $("#descriptor1").val();
+              var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
+              var bidirectional = $("#bidirectional").val();
+
+              $.post("RelationshipCreate", {
+                "type": type,
+                "markedIndividualName1": markedIndividualName1,
+                "markedIndividualRole1": markedIndividualRole1,
+                "markedIndividualName2": markedIndividualName2,
+                "markedIndividualRole2": markedIndividualRole2,
+                "relatedCommunityName": relatedCommunityName,
+                "startTime": startTime,
+                "endTime": endTime,
+                "markedIndividual1DirectionalDescriptor": markedIndividual1DirectionalDescriptor,
+                "markedIndividual2DirectionalDescriptor": markedIndividual2DirectionalDescriptor,
+                "bidirectional": bidirectional
+              },
+              function(response) {
+                $("#setRelationshipResultDiv").show();
+                $("#relationshipSuccessDiv").html(response);
+                $("#relationshipErrorDiv").empty();
+                $("#addRelationshipForm").hide();
+                <% String relationshipIndividualID = sharky.getIndividualID();%>
+                getRelationshipTableData("<%=relationshipIndividualID%>");
+                $("#communityTable").empty();
+                $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+              })
+              .fail(function(response) {
+                $("#setRelationshipResultDiv").show();
+                $("#relationshipErrorDiv").html(response.responseText);
+                $("#relationshipSuccessDiv").empty();
+                $("#addRelationshipForm").hide();
+              });
+            });
+
+          });
+        </script>
+
         <%
         if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         %>
-        <div id="dialogRelationship" title="<%=props.getProperty("setRelationship")%>" style="display:none; z-index: 99999 !important">
+          <div id="setRelationshipResultDiv">
+            <span class="highlight" id="relationshipErrorDiv"></span>
+            <span class="successHighlight" id="relationshipSuccessDiv"></span>
+          </div>
+          <div id="addRelationshipForm">
 
-        <form id="setRelationship" action="RelationshipCreate" method="post">
-        <table cellspacing="2" bordercolor="#FFFFFF">
+          <h4><%=props.getProperty("setRelationship")%></h4>
 
-        <%
-        	String markedIndividual1Name="";
-        String markedIndividual2Name="";
-        String markedIndividual1Role="";
-        String markedIndividual2Role="";
-        String type="";
-        String startTime="";
-        String endTime="";
-        String bidirectional="";
-        String markedIndividual1DirectionalDescriptor="";
-        String markedIndividual2DirectionalDescriptor="";
-        String communityName="";
+          <form id="setRelationship">
+            <%
+            String markedIndividual1Name="";
+            String markedIndividual2Name="";
+            String markedIndividual1Role="";
+            String markedIndividual2Role="";
+            String type="";
+            String startTime="";
+            String endTime="";
+            String bidirectional="";
+            String markedIndividual1DirectionalDescriptor="";
+            String markedIndividual2DirectionalDescriptor="";
+            String communityName="";
 
-        //if(myShepherd.isRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"),false)){
+                %>
 
-        	if(request.getParameter("persistenceID")!=null){
+            <div class="form-group row">
+              <div  class="col-xs-3 col-sm-2">
+                <label class="requiredLabel"><%=props.getProperty("type")%></label>
+                <p class="highlight"><small><%=props.getProperty("required")%></small></p>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <select required name="type" class="form-control relationshipInput" id="type">
+                  <%
+                  List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
+                  int numTypes=types.size();
+                  for(int g=0;g<numTypes;g++){
 
-        	//Relationship myRel=myShepherd.getRelationship(request.getParameter("type"), request.getParameter("markedIndividualName1"), request.getParameter("markedIndividualName2"), request.getParameter("markedIndividualRole1"), request.getParameter("markedIndividualRole2"));
+                    String selectedText="";
+                    if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
+                    %>
+                    <option <%=selectedText%>><%=types.get(g)%></option>
+                    <%
+                  }
+                  %>
+                </select>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
+                <p><small class="highlight"><%=props.getProperty("required")%></small></p>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <p id="individual1set"><%=sharky.getIndividualID()%></p>
+                <input required class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
+              </div>
 
-        	Object identity = myShepherd.getPM().newObjectIdInstance(org.ecocean.social.Relationship.class, request.getParameter("persistenceID"));
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label class="requiredLabel"><%=props.getProperty("individualRole1")%></label>
+                <p class="highlight"><small><%=props.getProperty("required")%></small></p>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <select id="role1" required class="form-control relationshipInput" name="markedIndividualRole1">
+                  <%
+                  List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
+                  int numRoles=roles.size();
+                  for(int g=0;g<numRoles;g++){
 
-        	Relationship myRel=(Relationship)myShepherd.getPM().getObjectById(identity);
+                    String selectedText="";
+                    if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+                    %>
+                    <option <%=selectedText%>><%=roles.get(g)%></option>
+                    <%
+                  }
+                  %>
+                </select>
+              </div>
+              <div class="col-xs-2 col-sm-1">
+                <label><%=props.getProperty("markedIndividual1DirectionalDescriptor")%></label>
+              </div>
+              <div class="col-xs-7 col-sm-3">
+                <input id="descriptor1" class="form-control relationshipInput" name="markedIndividual1DirectionalDescriptor" type="text" value="<%=markedIndividual1DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label><%=props.getProperty("individualID2")%></label>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <input class="form-control relationshipInput" type="text" id="individual2" placeholder="<%=props.getProperty("individualID2")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label class="requiredLabel"><%=props.getProperty("individualRole2")%></label>
+                <p class="highlight"><small><%=props.getProperty("required")%></small></p>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <select id="role2" required class="form-control relationshipInput" name="markedIndividualRole2">
+                  <%
+                  for(int g=0;g<numRoles;g++){
 
-        	if(myRel.getMarkedIndividualName1()!=null){
-        		markedIndividual1Name=myRel.getMarkedIndividualName1();
-        	}
-        	if(myRel.getMarkedIndividualName2()!=null){
-        		markedIndividual2Name=myRel.getMarkedIndividualName2();
-        	}
-        	if(myRel.getMarkedIndividualRole1()!=null){
-        		markedIndividual1Role=myRel.getMarkedIndividualRole1();
-        	}
-        	if(myRel.getMarkedIndividualRole2()!=null){
-        		markedIndividual2Role=myRel.getMarkedIndividualRole2();
-        	}
-        	if(myRel.getType()!=null){
-        		type=myRel.getType();
-        	}
-        	if(myRel.getMarkedIndividual1DirectionalDescriptor()!=null){
-        		markedIndividual1DirectionalDescriptor=myRel.getMarkedIndividual1DirectionalDescriptor();
-        	}
-        	if(myRel.getMarkedIndividual2DirectionalDescriptor()!=null){
-        		markedIndividual2DirectionalDescriptor=myRel.getMarkedIndividual2DirectionalDescriptor();
-        	}
-
-        	if(myRel.getStartTime()>-1){
-        		startTime=(new DateTime(myRel.getStartTime())).toString();
-        	}
-        	if(myRel.getEndTime()>-1){
-        		endTime=(new DateTime(myRel.getEndTime())).toString();
-        	}
-
-        	if(myRel.getBidirectional()!=null){
-        		bidirectional=myRel.getBidirectional().toString();
-        	}
-
-        	if(myRel.getRelatedSocialUnitName()!=null){
-        		communityName=myRel.getRelatedSocialUnitName();
-        	}
-
-
-        }
-        %>
-
-            <tr>
-              	<td width="200px">
-                  <strong><%=props.getProperty("type")%></strong><br />
-                  <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
-                <td>
-                	<select name="type">
-        			<%
-        				List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
-        				int numTypes=types.size();
-        				for(int g=0;g<numTypes;g++){
-
-        					String selectedText="";
-        					if(type.equals(types.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=types.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select>
-
-
-                </td>
-             </tr>
-             <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("individualID1")%></strong><br />
-                   <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
-                   </td>
-                  <td>
-
-                     <%
-                               	if((markedIndividual1Name.equals(""))&&(markedIndividual2Name.equals(""))){
-                               %>
-                       			<%=sharky.getIndividualID()%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-
-                       		<%
-                       			               			}
-                       			               		            else if(!markedIndividual1Name.equals(sharky.getIndividualID())){
-                       			               		%>
-                		<input name="markedIndividualName1" type="text" size="20" maxlength="100" value="<%=markedIndividual1Name%>" />
-               		<%
-                			}
-                		        	else{
-                		%>
-               			<%=markedIndividual1Name%><input type="hidden" name="markedIndividualName1" value="<%=sharky.getIndividualID()%>"/>
-               		<%
-               			}
-               		%>
-               </td>
-           	</tr>
-           	<tr>
-             	<td>
-                  <strong><%=props.getProperty("individualRole1")%></strong>
-                  <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div>
-                 </td>
-                 <td>
-
-                 <select name="markedIndividualRole1">
-        			<%
-        				List<String> roles=CommonConfiguration.getIndexedPropertyValues("relationshipRole",context);
-        				int numRoles=roles.size();
-        				for(int g=0;g<numRoles;g++){
-
-        					String selectedText="";
-        					if(markedIndividual1Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=roles.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select>
-
-                 </td>
-
-                 <td>
-                 	<%=props.getProperty("markedIndividual1DirectionalDescriptor")%>
-                 </td>
-                 <td>
-                 	<input name="markedIndividual1DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual1DirectionalDescriptor%>" />
-                 </td>
-
-           	</tr>
-
-            <tr>
-             	<td><strong><%=props.getProperty("individualID2")%></strong></td>
-                <td>
-           			<%
-           				if(!markedIndividual2Name.equals(sharky.getIndividualID())){
-           			%>
-                		<input name="markedIndividualName2" type="text" size="20" maxlength="100" value="<%=markedIndividual2Name%>" />
-               		<%
-                			}
-                		        	else{
-                		%>
-               			<%=markedIndividual2Name%><input type="hidden" name="markedIndividualName2" value="<%=sharky.getIndividualID()%>"/>
-               		<%
-               			}
-               		%>
-               </td>
-           	</tr>
-           	<tr>
-             	<td>
-
-                  <strong><%=props.getProperty("individualRole2")%></strong>
-                  <br /> <div style="font-size: smaller;">(<%=props.getProperty("required")%>)</div></td>
-                  <td>
-                  	<select name="markedIndividualRole2">
-        			<%
-        				for(int g=0;g<numRoles;g++){
-
-        					String selectedText="";
-        					if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
-        			%>
-                  		<option <%=selectedText%>><%=roles.get(g)%></option>
-                  	<%
-                  		}
-                  	%>
-                  	</select></td>
-               <td>
-                 	<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>
-                 </td>
-                 <td>
-                 	<input name="markedIndividual2DirectionalDescriptor" type="text" size="20" maxlength="100" value="<%=markedIndividual2DirectionalDescriptor%>" />
-                 </td>
-           	</tr>
-
-           <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("relatedCommunityName")%></strong></td><td><input name="relatedCommunityName" type="text" size="20" maxlength="100" value="<%=communityName%>" />
-               </td>
-           	</tr>
-
-           	   <tr>
-             	<td>
-
-                  <strong><%=props.getProperty("startTime")%></strong></td>
-                  <td><input name="startTime" type="text" size="20" maxlength="100" value="<%=startTime%>" />
-               </td>
-               </tr>
-               <tr>
-               <td>
-
-                 <strong><%=props.getProperty("endTime")%></strong></td>
-                  <td><input name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" />
-               </td>
-
-           	</tr>
-
-           	<tr>
-             	<td>
-
-                  <strong><%=props.getProperty("bidirectional")%></strong>
-               </td>
-               <td>
-                  	<select name="bidirectional">
-
-
-                  		<option value=""></option>
-                  		<%
-                  			String selected="";
-                  		          	if(bidirectional.equals("true")){
-                  		          		selected="selected=\"selected\"";
-                  		          	}
-                  		%>
-                  		<option value="true" <%=selected%>>true</option>
-                  		<%
-                  			selected="";
-                  		          	if(bidirectional.equals("false")){
-                  		          		selected="selected=\"selected\"";
-                  		          	}
-                  		%>
-                  		<option value="false" <%=selected%>>false</option>
-                  	</select>
-
-               </td>
-           	</tr>
-
-
-            <tr><td colspan="2">
-                    	<input name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>" />
-           			</td>
-           	</tr>
-
-
-              </td>
-            </tr>
-          </table>
-
-          <%
-            	if(request.getParameter("persistenceID")!=null){
-            %>
-          	<input name="persistenceID" type="hidden" value="<%=request.getParameter("persistenceID")%>"/>
-          <%
-          	}
-          %>
-
-        </form>
+                    String selectedText="";
+                    if(markedIndividual2Role.equals(roles.get(g))){selectedText="selected=\"selected\"";}
+                    %>
+                    <option <%=selectedText%>><%=roles.get(g)%></option>
+                    <%
+                  }
+                  %>
+                </select>
+              </div>
+              <div class="col-xs-2 col-sm-1">
+                <label><%=props.getProperty("markedIndividual2DirectionalDescriptor")%></label>
+              </div>
+              <div class="col-xs-7 col-sm-3">
+                <input id="descriptor2" class="form-control relationshipInput" name="markedIndividual2DirectionalDescriptor" type="text" value="<%=markedIndividual2DirectionalDescriptor%>" placeholder="<%=props.getProperty("markedIndividual2DirectionalDescriptor")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label><%=props.getProperty("relatedCommunityName")%></label>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <input id="relatedCommunityName" class="form-control relationshipInput" name="relatedCommunityName" type="text" value="<%=communityName%>" placeholder="<%=props.getProperty("relatedCommunityName")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label><%=props.getProperty("startTime")%></label>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="<%=props.getProperty("startTime")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label><%=props.getProperty("endTime")%></label>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="<%=props.getProperty("endTime")%>"/>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-xs-3 col-sm-2">
+                <label><%=props.getProperty("bidirectional")%></label>
+              </div>
+              <div class="col-xs-9 col-sm-3">
+                <select id="bidirectional" name="bidirectional" class="form-control relationshipInput">
+                  <option value=""></option>
+                  <%
+                  String selected="";
+                  if(bidirectional.equals("true")){
+                    selected="selected=\"selected\"";
+                  }
+                  %>
+                  <option value="true" <%=selected%>>true</option>
+                  <%
+                  selected="";
+                  if(bidirectional.equals("false")){
+                    selected="selected=\"selected\"";
+                  }
+                  %>
+                  <option value="false" <%=selected%>>false</option>
+                </select>
+              </div>
+            </div>
+            <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
+            <input class="btn btn-md" type="button" id="closeRelationshipForm" value="Cancel">
+          </form>
         </div>
-          <!-- popup dialog script -->
-        <script>
-          var dlgRel = $("#dialogRelationship").dialog({
-            autoOpen: false,
-            draggable: false,
-            resizable: false,
-            width: 600
-          });
-
-          $("a#addRelationship").click(function() {
-            dlgRel.dialog("open");
-            //$("#setRelationship").find("input[type=text], textarea").val("");
-
-
-          });
-        </script>
-        <%
-           	}
-
-           //setup the javascript to handle displaying an edit tissue sample dialog box
-           if( (request.getParameter("edit")!=null) && request.getParameter("edit").equals("relationship")){
-           %>
-        <script>
-        dlgRel.dialog("open");
-        </script>
 
         <%
           	}
@@ -1014,7 +1072,7 @@ if (request.getParameter("number")!=null) {
           if(relationships.size()>0){
           %>
 
-        <div role="navigation">
+        <div role="navigation" id="socialNavigation">
           <ul class="nav nav-tabs">
             <li id="familyDiagramTab"  class="active">
               <a href="#familyDiagram">Familial Diagram</a>
@@ -1028,111 +1086,96 @@ if (request.getParameter("number")!=null) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-
-          setupFamilyTree(<%=individualID%>);
+            setupFamilyTree(<%=individualID%>);
           </script>
         </div>
 
+        <%
+        if (!(isOwner && CommonConfiguration.isCatalogEditable(context))) {
+        %>
+
+        <script type="text/javascript">
+          setTimeout(function() {
+            $("#relationshipTable td:nth-child(5)").attr("class", "hide");
+            $("#relationshipTable th:nth-child(5)").attr("class", "hide");
+            $("#relationshipTable td:nth-child(6)").attr("class", "hide");
+            $("#relationshipTable th:nth-child(6)").attr("class", "hide");
+          }, 5000)
+        </script>
+
+        <%
+        }
+        %>
+
+        <script type="text/javascript">
+          getRelationshipTableData("<%=individualID%>");
+
+          $(document).ready(function() {
+            setTimeout(function() {
+              var deletedMarkedIndividualName2 = "";
+              var deletedType = "";
+              $(document).on('click', '.editRelationshipBtn', function () {
+                $("#setRelationshipResultDiv").hide();
+                var relationshipID = ($(this).attr("value"));
+                getRelationshipData(relationshipID);
+              });
+
+              $(document).on('click', '.deleteRelationshipBtn', function () {
+                var relationshipID = ($(this).attr("value"));
+                $("#addRelationshipForm").hide();
+                $("#remove" + relationshipID).hide();
+                $("div[value='" + relationshipID + "']").show();
+              });
+
+              $(document).on('click', '.yesDelete', function(event) {
+                event.preventDefault();
+
+                var $row = $(this).closest("tr"),
+                    $td1 = $row.find("td:nth-child(2)"),
+                    $td2 = $row.find("td:nth-child(3)");
+
+                $.each($td1, function() {
+                    var tableData = ($(this).text().match(/[A-Z][a-z]+|[0-9]+/g));
+                    deletedMarkedIndividualName2 = tableData[0];
+                });
+
+                $.each($td2, function() {
+                  deletedType = ($(this).text());
+                });
+
+                var relationshipID = ($(this).attr("value"));
+                var persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
+                var deletedMarkedIndividualName1 = "<%=individualID%>";
+                $("div[value='" + relationshipID + "']").hide();
+                $("#remove" + relationshipID).show();
+
+                $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
+                function(response) {
+                  $("#communityTable").empty();
+                  $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
+                  getRelationshipTableData("<%=individualID%>");
+                  $("#setRelationshipResultDiv").show();
+                  $("#relationshipSuccessDiv").html(response);
+                })
+                .fail(function(response) {
+                  $("#setRelationshipResultDiv").show();
+                  $("#relationshipErrorDiv").html(response.responseText);
+                });
+              });
+
+              $(".cancelDelete").click(function() {
+                var relationshipID = ($(this).attr("value"));
+                $("div[value='" + relationshipID + "']").hide();
+                $("#remove" + relationshipID).show();
+              });
+            }, 5000);
+          });
+        </script>
+
         <div id="communityTable" class="mygrid-wrapper-div">
-          <table width="100%" class="table table-striped table-bordered table-sm">
-          <th><%=props.getProperty("roles")%></th><th><%=props.get("relationshipWith")%></th><th><%=props.getProperty("type")%></th><th><%=props.getProperty("community")%></th>
-          <%
-          	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-          %>
-          <th><%=props.getProperty("numSightingsTogether")%></th>
-          <th><%=props.getProperty("edit")%></th><th><%=props.getProperty("remove")%></th>
-          <%
-          	}
-          %>
-
-          </tr>
-          <%
-          	int numRels=relationships.size();
-          for(int f=0;f<numRels;f++){
-          	Relationship myRel=relationships.get(f);
-          	String indieName1=myRel.getMarkedIndividualName1();
-          	String indieName2=myRel.getMarkedIndividualName2();
-          	String otherIndyName=indieName2;
-          	String thisIndyRole="";
-          	String otherIndyRole="";
-          	if(myRel.getMarkedIndividualRole1()!=null){thisIndyRole=myRel.getMarkedIndividualRole1();}
-          	if(myRel.getMarkedIndividualRole2()!=null){otherIndyRole=myRel.getMarkedIndividualRole2();}
-          	if(otherIndyName.equals(sharky.getIndividualID())){
-          		otherIndyName=indieName1;
-          		thisIndyRole=myRel.getMarkedIndividualRole2();
-          		otherIndyRole=myRel.getMarkedIndividualRole1();
-          	}
-          	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
-          	String type="";
-          	if(myRel.getType()!=null){type=myRel.getType();}
-
-          	String community="";
-          	if(myRel.getRelatedSocialUnitName()!=null){community=myRel.getRelatedSocialUnitName();}
-          %>
-          	<tr>
-          	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
-          	<td>
-          	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
-          		<%
-          		if(otherIndy.getNickName()!=null){
-          		%>
-          		<br /><%=props.getProperty("nickname") %>: <%=otherIndy.getNickName()%>
-          		<%
-          		}
-          		if(otherIndy.getAlternateID()!=null){
-          		%>
-          		<br /><%=props.getProperty("alternateID") %>: <%=otherIndy.getAlternateID()%>
-          		<%
-          		}
-          		if(otherIndy.getSex()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("sex") %>: <%=otherIndy.getSex() %></span>
-          		<%
-          		}
-
-          		if(otherIndy.getHaplotype()!=null){
-          		%>
-          			<br /><span class="caption"><%=props.getProperty("haplotype") %>: <%=otherIndy.getHaplotype() %></span>
-          		<%
-          		}
-          		%>
-          	</td>
-          	<td><%=type %></td>
-          	<td><a href="socialUnit.jsp?name=<%=community%>"><%=community %></a></td>
-
-          	<%
-          	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-
-          		String persistenceID=myShepherd.getPM().getObjectId(myRel).toString();
-
-          		//int bracketLocation=persistenceID.indexOf("[");
-          		//persistenceID=persistenceID.substring(0,bracketLocation);
-
-          	%>
-          	<td>
-          	<%=myShepherd.getNumCooccurrencesBetweenTwoMarkedIndividual(otherIndy.getIndividualID(),sharky.getIndividualID()) %>
-
-          	</td>
-
-
-
-          	<td>
-          		<a href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>&edit=relationship&type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img width="24px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a>
-          	</td>
-          	<td>
-          		<a onclick="return confirm('Are you sure you want to delete this relationship?');" href="RelationshipDelete?type=<%=myRel.getType()%>&markedIndividualName1=<%=myRel.getMarkedIndividualName1() %>&markedIndividualRole1=<%=myRel.getMarkedIndividualRole1() %>&markedIndividualName2=<%=myRel.getMarkedIndividualName2() %>&markedIndividualRole2=<%=myRel.getMarkedIndividualRole2()%>&persistenceID=<%=persistenceID%>"><img style="border-style: none;" src="images/cancel.gif" /></a>
-          	</td>
-          	<%
-          	}
-          	%>
-
-          	</tr>
-          <%
-
-
-          }
-          %>
-
+          <table id="relationshipTable" class="table table-bordered table-sm table-striped">
+              <thead id="relationshipHead"></thead>
+              <tbody id="relationshipBody"></tbody>
           </table>
         </div>
         <br/>
@@ -1140,7 +1183,7 @@ if (request.getParameter("number")!=null) {
         }
         else {
         %>
-        	<p class="para"><%=props.getProperty("noSocial") %></p><br />
+        	<p id="noCurrentData" class="para"><%=props.getProperty("noSocial") %></p><br/>
         <%
         }
         //
@@ -1156,8 +1199,10 @@ if (request.getParameter("number")!=null) {
 
         <script type="text/javascript">
         // <% String individualID = sharky.getIndividualID();%>
-        getData("<%=individualID%>");
-        // getTableData(<%=individualID%>);
+        $(document).ready(function() {
+
+          getData("<%=individualID%>");
+        });
         </script>
 
         <%
@@ -1468,7 +1513,7 @@ if (request.getParameter("number")!=null) {
                         <%
                       }
                       %>
-                      <img src="<%=profilePhotoURL%>" class="researcherPhoto">
+                      <img src="cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=profilePhotoURL%>" class="researcherPhoto lazyload">
 
                       <div class="researcherInfo" id="info<%=userNum%>">
                         <%
