@@ -314,6 +314,11 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
         }
 */
 
+    } else if (request.getParameter("getReviewCounts") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        getOut = getReviewCounts(request, myShepherd).toString();
+
     } else {
         response.sendError(501, "Unknown command");
         getOut = "Unknown command";
@@ -635,7 +640,6 @@ System.out.println("+ starting ident task " + annTaskId);
         try {
             String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
             //TODO we might want to cache this examplars list (per species) yes?
-System.out.println("- mark A");
 
             ///note: this can all go away if/when we decide not to need limitTargetSize
             ArrayList<Annotation> exemplars = null;  
@@ -652,7 +656,6 @@ System.out.println("- mark A");
 
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
-System.out.println("- mark C");
             IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
@@ -790,9 +793,13 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         try {
             url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FidentificationReviewPost%3D" + taskId + "&callback_method=POST";
 System.out.println("url --> " + url);
-getOut = "(( " + url + " ))";
+//getOut = "(( " + url + " ))";
             URL u = new URL(url);
             JSONObject rtn = RestClient.get(u);
+            if (IBEISIA.iaCheckMissing(res.optJSONObject("response"))) {  //we had to send missing images/annots, so lets try again (note: only once)
+System.out.println("trying again:\n" + u.toString());
+                rtn = RestClient.get(u);
+            }
             if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                 !rtn.getJSONObject("status").optBoolean("success", false)) {
                 getOut = "<div error-code=\"555\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
@@ -1008,5 +1015,21 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
     }
 
 
+    private JSONObject getReviewCounts(HttpServletRequest request, Shepherd myShepherd) {
+        JSONObject cts = new JSONObject();
+        String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
+        String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        if (username != null) {
+            filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
+        }
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        cts.put("detection", c.size());
+        filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
+        query = myShepherd.getPM().newQuery(filter);
+        c = (Collection) (query.execute());
+        cts.put("identification", c.size());
+        return cts;
+    }
 
 }
