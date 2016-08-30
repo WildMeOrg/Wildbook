@@ -4,7 +4,8 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List" %>
+                 java.util.List,
+                 java.util.Locale" %>
 
 
 <!-- Add reCAPTCHA -->
@@ -579,27 +580,17 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreCountries=true;
-                         int taxNum=0;
-
-                         while(hasMoreCountries){
-                               String currentCountry = "country"+taxNum;
-                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-                                   <%
-                                 taxNum++;
-                            }
-                            else{
-                               hasMoreCountries=false;
-                            }
-
-                       }
-
-     %>
-   </select>
+            <%
+            String[] locales = Locale.getISOCountries();
+			for (String countryCode : locales) {
+				Locale obj = new Locale("", countryCode);
+				String currentCountry = obj.getDisplayCountry();
+                %>
+			<option value="<%=currentCountry %>"><%=currentCountry%></option>
+            <%
+            }
+			%>
+   		</select>
       </div>
     </div>
 
