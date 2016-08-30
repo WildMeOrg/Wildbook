@@ -750,7 +750,7 @@ $(function() {
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href') = '../individuals.jsp?number=' + individual;
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                           $("#displayMatchedBy").html(matchType);
 
                         })
@@ -878,7 +878,7 @@ $(function() {
                         $("#indCreateCheck").show();
                         $("#createSharkDiv").addClass("has-success");
                         $("#displayIndividualID").html(individual);
-                        $('#displayIndividualID').closest('a').prop('href') = '../individuals.jsp?number=' + individual;
+                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                       })
                       .fail(function(response) {
                         $("#individualCreateErrorDiv, #indCreateError").show();
