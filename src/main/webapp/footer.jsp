@@ -211,7 +211,7 @@
                   <p class="col-sm-8 col-md-8 col-lg-8">
                      <a href="http://www.wildbook.org" target="_blank">Wildbook v.<%=ContextConfiguration.getVersion() %></a> </small>
                   </p>
-                  <a href="http://www.wildme.org/wildbook" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
+                  <a href="http://www.wildbook.org" class="col-sm-4 col-md-4 col-lg-4" title="This site is Powered by Wildbook">
                      <img src="<%=urlLoc %>/images/logo_wildbook.png" alt=" logo" class="pull-right" />
 
 
@@ -231,6 +231,17 @@
 				  ga('send', 'pageview');
 
 			</script>
+			
+			<!-- Google Tag Manager -->
+			<noscript><iframe src="//www.googletagmanager.com/ns.html?id=GTM-WFV5GB"
+			height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+			<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push(
+			{'gtm.start': new Date().getTime(),event:'gtm.js'}
+			);var f=d.getElementsByTagName(s)[0],
+			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+			'//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+			})(window,document,'script','dataLayer','GTM-WFV5GB');</script>
+			<!-- End Google Tag Manager -->
 
         </footer>
         <!-- /footer -->
