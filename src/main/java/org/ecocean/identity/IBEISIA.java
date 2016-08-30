@@ -2436,6 +2436,8 @@ confidence_list: [
 ]
 },
 */
+  
+    /*
     //qid (query id) can be null, in which case the first one we find is good enough
     public static JSONArray simpleResultsFromAnnotPairDict(JSONObject apd, String qid) {
         if (apd == null) return null;
@@ -2456,14 +2458,16 @@ System.out.println("using qid -> " + qid);
         if (res.length() < 1) return null;
         return res;
     }
-
+    */
+/*
     //stub to pick algorithm to be used etc. 
     public static JSONObject queryConfigDict() {
         return null;
         // this is trailing edge matching but takes foreeeevvvver
         //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
     }
-
+*/
+    /*
     private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
         String id = cacheAnnotIndiv.get(ann.getId());
         if (id != null) return id;
@@ -2471,7 +2475,7 @@ System.out.println("using qid -> " + qid);
         cacheAnnotIndiv.put(ann.getId(), id);
         return id;
     }
-
+*/
     public static void primeIA() {
         setIAPrimed(false);
         if (!iaEnabled()) return;
