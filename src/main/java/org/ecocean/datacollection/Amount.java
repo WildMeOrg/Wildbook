@@ -38,6 +38,7 @@ public class Amount extends DataPoint {
   }
 
   public String getValueString() {
+    if (value==null) return "";
     return value.toString();
   }
 

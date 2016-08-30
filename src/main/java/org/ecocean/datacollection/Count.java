@@ -34,6 +34,7 @@ public class Count extends DataPoint {
   }
 
   public String getValueString() {
+    if (value==null) return "";
     return value.toString();
   }
 

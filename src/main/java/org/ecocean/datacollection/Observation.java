@@ -27,6 +27,7 @@ public class Observation extends DataPoint {
   }
 
   public String getValueString() {
+    if (value==null) return "";
     return value;
   }
 
