@@ -195,7 +195,7 @@ public class ClassEditTemplate {
 
     String printValue = dp.getValueString();
     String fieldName = dp.getName();
-    String inputName = inputElemName(getMethod, classNamePrefix);
+    String inputName = inputElemName(dp, classNamePrefix);
 
     //System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
     printOutClassFieldModifierRow(fieldName, printValue, inputName, out);
@@ -212,7 +212,7 @@ public class ClassEditTemplate {
     if (getMethod.invoke(obj)==null) printValue = "";
     else printValue = getMethod.invoke(obj).toString();
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
-    String inputName = inputElemName(dp, classNamePrefix);
+    String inputName = inputElemName(getMethod, classNamePrefix);
 
     //System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
     printOutClassFieldModifierRow(fieldName, printValue, inputName, out);
