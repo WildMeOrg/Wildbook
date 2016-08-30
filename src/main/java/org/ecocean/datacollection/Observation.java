@@ -26,6 +26,10 @@ public class Observation extends DataPoint {
     return value;
   }
 
+  public String getValueString() {
+    return value;
+  }
+
   // returns an array of possible values, or an empty array if any value is allowed
   public String[] getCategories(String context) {
     return super.getCategoriesAsStrings(context);

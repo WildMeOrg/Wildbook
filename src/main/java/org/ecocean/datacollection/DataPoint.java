@@ -14,6 +14,7 @@ public abstract class DataPoint implements java.io.Serializable {
   }
 
   public abstract Object getValue();
+  public abstract String getValueString();
   public abstract String toString();
   public abstract String toLabeledString(); // this makes it easy to check what type of DataPoint a given datapoint is
 
@@ -52,7 +53,14 @@ public abstract class DataPoint implements java.io.Serializable {
     return allVals.split(",\\s*");
   }
 
-  // setter is not abstract so that its argument is typed (not Object)
+  // Below functions deal with printing UI elements to html
+  // and follow the same conventions as ClassEditTemplate.java, classEditTemplate.js and classEditTemplate.css
+
+  public static String inputElemName(Method getMeth, String classNamePrefix) {
+    String fieldName = getMeth.getName().substring(3);
+    return ("oldValue-"+classNamePrefix+":"+fieldName);
+  }
+
 
 
 }

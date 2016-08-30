@@ -33,6 +33,10 @@ public class Count extends DataPoint {
     this.value = (Integer) value;
   }
 
+  public String getValueString() {
+    return value.toString();
+  }
+
   public Integer[] getCategories(String context) {
     String[] strings = super.getCategoriesAsStrings(context);
     Integer[] res = new Integer[strings.length];
