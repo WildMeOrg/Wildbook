@@ -73,7 +73,7 @@ public class IBEISIA {
         cases where IA jobs are started during this time.  technically nothing "bad" happens if a job starts during this process, but it will create
         a longer wait time.  there is, however, a chance that waitForIAPriming() times out with a RuntimeException thrown.
     */
-            
+
     //a convenience way to send MediaAssets with no (i.e. with only the "trivial") Annotation
     public static JSONObject sendMediaAssets(ArrayList<MediaAsset> mas) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         return sendMediaAssets(mas, null);
@@ -550,7 +550,7 @@ WARN: IBEISIA.beginIdentity() failed due to an exception: org.json.JSONException
 org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
 */
     //should return true if we attempted to add missing and caller should try again
-    private static boolean iaCheckMissing(JSONObject res) {
+    public static boolean iaCheckMissing(JSONObject res) {
 /////System.out.println("########## iaCheckMissing res -> " + res);
 //if (res != null) throw new RuntimeException("fubar!");
         if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
@@ -564,7 +564,7 @@ org.json.JSONException: JSONObject["missing_image_annot_list"] not found.
                 for (int i = 0 ; i < list.length() ; i++) {
                     String uuid = fromFancyUUID(list.getJSONObject(i));
 System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
-                    //TODO $##@*&!! need to have a way to load MediaAsset by uuid.  i knew it. :(
+                    //TODO actually send the mediaasset duh ... future-jon, please fix this
                 }
             }
         }
@@ -687,12 +687,12 @@ System.out.println("   ... have to set tanns.  :(");
 
 System.out.println("- mark 2");
             if (tanns != null) {
-                for (Annotation ann : tanns) {
-                    allAnns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma != null) mas.add(ma);
-                }
+            for (Annotation ann : tanns) {
+                allAnns.add(ann);
+                MediaAsset ma = ann.getDerivedMediaAsset();
+                if (ma == null) ma = ann.getMediaAsset();
+                if (ma != null) mas.add(ma);
+            }
             }
 
 /*
@@ -2199,6 +2199,14 @@ System.out.println(">>>>>>>> age -> " + rtn);
         return (Double)null;
     }
 
+    public static boolean iaEnabled(HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context) != null);
+    }
+    public static boolean iaEnabled() {
+        return (CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", "context0") != null);
+    }
+
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
@@ -2391,8 +2399,82 @@ System.out.println("using qid -> " + qid);
         return id;
     }
 
+/*
+status: {
+_action: "getJobResult",
+_response: {
+response: {
+json_result: {
+query_annot_uuid_list: [
+{
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+],
+query_config_dict: { },
+inference_dict: {
+annot_pair_dict: {
+review_pair_list: [
+{
+prior_matching_state: {
+p_match: 0.9470680954707609,
+p_nomatch: 0.05293190452923913,
+p_notcomp: 0
+},
+annot_uuid_2: {
+__UUID__: "b889b610-55aa-4407-8b02-b5632839a201"
+},
+annot_uuid_1: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+},
+annot_uuid_key: {
+__UUID__: "ea272459-c82c-4f37-9800-045965fd1393"
+}
+}
+],
+confidence_list: [
+0.7994795279514134
+]
+},
+*/
+    //qid (query id) can be null, in which case the first one we find is good enough
+    public static JSONArray simpleResultsFromAnnotPairDict(JSONObject apd, String qid) {
+        if (apd == null) return null;
+        JSONArray rlist = apd.optJSONArray("review_pair_list");
+        JSONArray clist = apd.optJSONArray("confidence_list");
+        if ((rlist == null) || (rlist.length() < 1)) return null;
+        if (qid == null) qid = fromFancyUUID(rlist.getJSONObject(0).optJSONObject("annot_uuid_key"));
+System.out.println("using qid -> " + qid);
+        JSONArray res = new JSONArray();
+        for (int i = 0 ; i < rlist.length() ; i++) {
+            if (rlist.optJSONObject(i) == null) continue;
+            if (!qid.equals(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_key")))) continue;
+            JSONArray s = new JSONArray();
+            s.put(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")));
+            s.put(clist.optDouble(i, 0.0));
+            res.put(s);
+        }
+        if (res.length() < 1) return null;
+        return res;
+    }
+
+    //stub to pick algorithm to be used etc. 
+    public static JSONObject queryConfigDict() {
+        return null;
+        // this is trailing edge matching but takes foreeeevvvver
+        //return new JSONObject("{\"pipeline_root\": \"BC_DTW\"}");
+    }
+
+    private static String annotGetIndiv(Annotation ann, Shepherd myShepherd) {
+        String id = cacheAnnotIndiv.get(ann.getId());
+        if (id != null) return id;
+        id = ann.findIndividualId(myShepherd);
+        cacheAnnotIndiv.put(ann.getId(), id);
+        return id;
+    }
+
     public static void primeIA() {
         setIAPrimed(false);
+        if (!iaEnabled()) return;
 System.out.println("<<<<< BEFORE : " + isIAPrimed());
 System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet().size());
         Runnable r = new Runnable() {

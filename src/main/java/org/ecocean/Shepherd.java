@@ -1848,6 +1848,7 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
+      
       MediaAsset ma=al.get(i).getMediaAsset();
       AssetStore as=ma.getStore();
       String fullFileSystemPath=as.localPath(ma).toString();
@@ -1857,7 +1858,20 @@ public class Shepherd {
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
       spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
+      
+      //add Keywords
+      if(ma.getKeywords()!=null){
+        ArrayList<Keyword> alkw=ma.getKeywords();
+        int numKeywords=alkw.size();
+        for(int y=0;y<numKeywords;y++){
+          Keyword kw=alkw.get(y);
+          spv.addKeyword(kw);
+        }
+      }
+      
       myArray.add(spv);
+      
+      
     }
     return myArray;
   }
@@ -2732,7 +2746,7 @@ public class Shepherd {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
 
-                  if (images.get(i).getKeywords().contains(word)) {
+                  if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                   //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
@@ -2804,13 +2818,14 @@ public class Shepherd {
               boolean hasKeyword = false;
               if ((keywords == null) || (keywords.length == 0)) {
                 hasKeyword = true;
-              } else {
+              } 
+              else {
                 int numKeywords = keywords.length;
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
 
-                    if (images.get(i).getKeywords().contains(word)) {
+                    if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                     //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {

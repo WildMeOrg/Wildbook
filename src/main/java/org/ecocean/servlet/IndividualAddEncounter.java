@@ -158,7 +158,7 @@ public class IndividualAddEncounter extends HttpServlet {
               // Notify administrator address
               Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
               String mailTo = CommonConfiguration.getAutoEmailAddress(context);
-              NotificationMailer mailer = new NotificationMailer(context, null, mailTo, emailTemplate, tagMap);
+              NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, emailTemplate, tagMap);
               mailer.appendToSubject(" (sent to submitters)");
       			  es.execute(mailer);
 
@@ -174,7 +174,7 @@ public class IndividualAddEncounter extends HttpServlet {
                 if (!"".equals(emailTo)) {
                   tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                   tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                  es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
+                  es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
                 }
               }
 
@@ -184,7 +184,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (String emailTo : cOthers) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
+                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
               }
 
               // Notify adopters
@@ -197,7 +197,7 @@ public class IndividualAddEncounter extends HttpServlet {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
                 tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
-                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate + "-adopter", tagMap));
+                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate + "-adopter", tagMap));
               }
 
               String rssTitle = request.getParameter("individual") + " Resight";

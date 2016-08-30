@@ -70,11 +70,10 @@ var makeCooccurrenceChart = function(items) {
 };
 
 var getIndividualIDFromEncounterToString = function(encToString) {
-  return encToString.individualID;
-  //  THE BELOW VERSION OF THIS FUNCTION WORKS IF ON A BRANCH WHERE,
-  //  a RESTed Occurrence's Encounters are stored as Enc.toString(), rather than RESTed Encounters themselves.
   // return everything between "individualID=" and the next comma after that
-  // return encToString.split("individualID=")[1].split(",")[0];
+  var id = encToString.split("individualID=")[1].split(",")[0];
+  if (id == '<null>') return false;
+  return id;
 }
 
 var getData = function(individualID) {
@@ -94,19 +93,17 @@ var getData = function(individualID) {
         var encounterSize = thisOcc.encounters.length;
         // make encounterArray, containing the individualIDs of every encounter in thisOcc;
         for(var j=0; j < encounterSize; j++) {
-          var thisEnc = thisOcc.encounters[j];
-          console.log("thisEnc = "+thisEnc);
-          console.log("thisEnc = "+thisEnc.toString());
-          console.log("thisEnc = "+JSON.stringify(thisEnc));
-          console.log("typeof(thisEnc) = "+typeof(thisEnc));
-          var thisEncIndID = getIndividualIDFromEncounterToString(thisEnc);
+          var thisEncIndID = getIndividualIDFromEncounterToString(thisOcc.encounters[j]);
+          //var thisEncIndID = jsonData[i].encounters[j].individualID;   ///only when we fix thisOcc.encounters to be real json   :(
+//console.info('i=%d, j=%d, -> %o', i, j, thisEncIndID);
+          if (!thisEncIndID) continue;  //unknown indiv -> false
           if(encounterArray.includes(thisEncIndID)) {
           } else {
             encounterArray.push(thisEncIndID);
           }
         }
         occurrenceArray = occurrenceArray.concat(encounterArray);
-        var occurrenceID = thisOcc.encounters[0].occurrenceID;
+        var occurrenceID = jsonData[i].encounters[0].occurrenceID;
         var index = encounterArray.indexOf(individualID.toString());
         if (~index) {
             encounterArray[index] = "";
@@ -115,7 +112,7 @@ var getData = function(individualID) {
         if(encounterArray.length > 0) {
           occurrenceObject = {occurrenceID: occurrenceID, occurringWith: encounterArray.filter(function(e){return e}).join(", ")};
         } else {
-          occurrenceObject = { occurrenceID: "", occurringWith: "" };
+          occurrenceObject = {occurrenceID: "", occurringWith: ""};
         }
         occurrenceObjectArray.push(occurrenceObject);
         encounterArray = [];
@@ -126,7 +123,6 @@ var getData = function(individualID) {
         dataObject[occurrenceArray[i]] = 0;
         ++dataObject[occurrenceArray[i]];
       }
-
       for (var prop in dataObject) {
         var whale = new Object();
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
@@ -145,10 +141,9 @@ var getSexHaploData = function(individualID, items) {
       console.log("error")
     }
     jsonData = json;
-    //console.log("jsonData: "+JSON.stringify(jsonData));
     for(var i=0; i < jsonData.length; i++) {
       var result = items.filter(function(obj) {
-        return obj.text === jsonData[i].individualID;
+        return obj.text === jsonData[i].individualID
       })[0];
       if (!result) continue;
       result.sex = jsonData[i].sex;
@@ -351,11 +346,11 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   }
 
   var goToEncounterURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl+"/encounters/encounter.jsp?number=" + selectedWhale);
+    window.open("/encounters/encounter.jsp?number=" + selectedWhale);
   }
 
   var goToWhaleURL = function(selectedWhale) {
-    window.open(wildbookGlobals.baseUrl+"/individuals.jsp?number=" + selectedWhale);
+    window.open("/individuals.jsp?number=" + selectedWhale);
   }
 
   var getRelationshipData = function(relationshipID) {

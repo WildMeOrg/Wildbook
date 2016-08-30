@@ -99,6 +99,7 @@ maLib.cascadiaCaptionFunction = function(maJson) {
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
 maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
+    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
   maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
@@ -506,6 +507,35 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
     openPhotoSwipe( hashData.pid ,  galleryElements[ hashData.gid - 1 ], true, true );
   }
 };
+
+maLib.isImage = function(maJson) {
+    if (maJson.metadata && maJson.metadata.contentType) return (maJson.metadata.contentType.substring(0,6) == "image/");
+    //kind of a little tricky cuz there is some legacy data with no metadata let alone mimetype, sooooooo
+    var regex = new RegExp("\\.(jpe?g|png|gif)$", "i");
+    if (!maJson.url) return false;
+    return regex.test(maJson.url);
+}
+
+maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
+    if (maLib.isImage(maJson)) return false;
+    var caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
+    var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
+    if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
+        intoElem.append('<div><video style="width: 100%;" controls>' +
+        '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
+        '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
+        '</video><div class="video-caption">' + caption + '</div></div>');
+    } else {
+        var filename = maJson.url;
+        var i = filename.lastIndexOf("/");
+        if (i >= 0) filename = filename.substring(i + 1);
+        intoElem.append('<div style="text-align: center;"><a style="padding: 10px; background-color: #AAA; margin: 10px;" target="_new" href="' +
+        maJson.url + '">open file <b>' + filename + '</b></a><div class="unknown-caption">' + caption + '</div></div>');
+    }
+    return true;
+}
+
+
 
 
 

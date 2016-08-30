@@ -17,6 +17,13 @@ import java.util.Date;
 
 import org.ecocean.*;
 
+
+/**
+ * A wildbook Workspace is a persisted/named TranslateQuery.
+ * This servlet lets the user create (POST) workspaces, and
+ * retrieve (GET) the MediaAssets contained in a workspace selected by name
+ **/
+
 public class WorkspaceServer extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
@@ -28,7 +35,7 @@ public class WorkspaceServer extends HttpServlet {
   }
 
   /**
-   * retrieves a workspace object
+   * retrieves an existing workspace object (or rather, its MediaAssets)
    * @requestParameter id identifies the workspace
    * @returns the output of the query described by that workspace (a MediaAsset JSONArray)
    **/
