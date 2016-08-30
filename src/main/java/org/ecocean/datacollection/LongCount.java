@@ -30,13 +30,17 @@ public class LongCount extends DataPoint {
     return value;
   }
 
+  public String getValueString() {
+    if (value==null) return "";
+    return value.toString();
+  }
+
   public void setValue(Object value) {
     this.value = (Long) value;
   }
 
-  public String getValueString() {
-    if (value==null) return "";
-    return value.toString();
+  public void setValueFromString(String str) {
+    setValue(Long.valueOf(str));
   }
 
   public Long[] getCategories(String context) {

@@ -37,6 +37,11 @@ public class Amount extends DataPoint {
     this.value = value;
   }
 
+  public void setValueFromString(String str) {
+    setValue(Double.valueOf(str));
+  }
+
+
   public String getValueString() {
     if (value==null) return "";
     return value.toString();

@@ -40,6 +40,11 @@ public class Observation extends DataPoint {
     this.value = value;
   }
 
+  public void setValueFromString(String str) {
+    setValue(str);
+  }
+
+
   public String toString() {
     return ((this.getName()+": \""+value+"\"").replace("null",""));
   }
