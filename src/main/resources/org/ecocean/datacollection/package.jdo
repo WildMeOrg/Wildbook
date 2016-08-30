@@ -78,6 +78,9 @@
     <field name="name" persistence-modifier="persistent">
       <column name="NAME"/>
     </field>
+    <field name="units">
+      <column name="UNITS"/>
+    </field>
   </class>
 
   <class name="DataSheet" identity-type="application">
@@ -97,18 +100,12 @@
     <field name="value">
       <column name="VALUE"/>
     </field>
-    <field name="units">
-      <column name="UNITS"/>
-    </field>
   </class>
 
   <class name="LongCount" identity-type="application">
     <inheritance strategy="new-table"/>
     <field name="value">
       <column name="VALUE"/>
-    </field>
-    <field name="units">
-      <column name="UNITS"/>
     </field>
   </class>
 
@@ -117,9 +114,6 @@
     <inheritance strategy="new-table"/>
     <field name="value">
       <column name="VALUE"/>
-    </field>
-    <field name="units">
-      <column name="UNITS"/>
     </field>
   </class>
 

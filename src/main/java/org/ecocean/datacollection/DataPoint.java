@@ -7,6 +7,7 @@ public abstract class DataPoint implements java.io.Serializable {
   private Object value;
   private String id;
   private String name; //e.g. "length"
+  private String units; // e.g. "cm"
 
   private Integer number; // Serves as reference if parsed from the datapoint fields in commonConfiguration.properties
 
@@ -40,6 +41,14 @@ public abstract class DataPoint implements java.io.Serializable {
   }
   protected void setNumber(Integer n) {
     number = n;
+  }
+
+  public String getUnits() {
+    return units;
+  }
+
+  public void setUnits(String units) {
+    this.units = units;
   }
 
   public boolean isCategorical(String context) {

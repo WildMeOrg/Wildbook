@@ -13,17 +13,16 @@ public class Count extends DataPoint {
 
   public Count(Integer value, String units) {
     super.setID(Util.generateUUID());
+    super.setUnits(units);
     this.value = value;
-    this.units = units;
   }
 
   public Count(String name, Integer value, String units) {
     super.setID(Util.generateUUID());
     super.setName(name);
+    super.setUnits(units);
     this.value = value;
-    this.units = units;
   }
-
 
   public Integer getValue() {
     return value;
@@ -36,7 +35,6 @@ public class Count extends DataPoint {
   public void setValueFromString(String str) {
     setValue(Integer.valueOf(str));
   }
-
 
   public String getValueString() {
     if (value==null) return "";
@@ -52,17 +50,12 @@ public class Count extends DataPoint {
     return res;
   }
 
-
-  public String getUnits() {
-    return units;
-  }
-
   public String toString() {
-    return ((this.getName()+": "+value+units).replaceAll("null",""));
+    return ((this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 
   public String toLabeledString() {
-    return ("count-"+(this.getName()+": "+value+units).replaceAll("null",""));
+    return ("count-"+(this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 
 

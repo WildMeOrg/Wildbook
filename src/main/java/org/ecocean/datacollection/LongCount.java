@@ -14,6 +14,7 @@ public class LongCount extends DataPoint {
 
   public LongCount(Long value, String units) {
     super.setID(Util.generateUUID());
+    super.setUnits(units);
     this.value = value;
     this.units = units;
   }
@@ -21,8 +22,8 @@ public class LongCount extends DataPoint {
   public LongCount(String name, Long value, String units) {
     super.setID(Util.generateUUID());
     super.setName(name);
+    super.setUnits(units);
     this.value = value;
-    this.units = units;
   }
 
 
@@ -52,17 +53,12 @@ public class LongCount extends DataPoint {
     return res;
   }
 
-
-  public String getUnits() {
-    return (units);
-  }
-
   public String toString() {
-    return ((this.getName()+": "+value+units).replaceAll("null",""));
+    return ((this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 
   public String toLabeledString() {
-    return ("longcount-"+(this.getName()+": "+value+units).replaceAll("null",""));
+    return ("longcount-"+(this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 
 

@@ -10,22 +10,20 @@ public class Amount extends DataPoint {
 
   private Double value;
 
-  private String units;
-
   public Amount() {
   }
 
   public Amount(Double value, String units) {
     super.setID(Util.generateUUID());
+    super.setUnits(units);
     this.value = value;
-    this.units = units;
   }
 
   public Amount(String name, Double value, String units) {
     super.setID(Util.generateUUID());
     super.setName(name);
+    super.setUnits(units);
     this.value = value;
-    this.units = units;
   }
 
 
@@ -56,15 +54,11 @@ public class Amount extends DataPoint {
     return res;
   }
 
-  public String getUnits() {
-    return units;
-  }
-
   public String toString() {
-    return ((this.getName()+": "+value+units).replaceAll("null",""));
+    return ((this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 
   public String toLabeledString() {
-    return ("amount-"+(this.getName()+": "+value+units).replaceAll("null",""));
+    return ("amount-"+(this.getName()+": "+value+super.getUnits()).replaceAll("null",""));
   }
 }
