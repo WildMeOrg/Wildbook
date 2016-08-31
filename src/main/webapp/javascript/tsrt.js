@@ -46,6 +46,29 @@ function SortTable(opts) {
 		}
 	};
 
+        this.refreshValue = function(i, col) {
+            this.values[i][col] = this.valueAt(this.opts.data[i], col);
+        };
+
+	this.refreshSort = function(col) {
+		var s = [];
+		for (var i = 0 ; i < this.opts.data.length ; i++) {
+			s.push(this.sortValueAt(this.opts.data[i], col) + '       ' + i);
+		}
+		s.sort(this.opts.columns[col].sortFunction);
+		var si = [];
+		for (var i = 0 ; i < s.length ; i++) {
+			s[i] = s[i].slice(-7) - 0;
+			si[s[i]] = i;
+		}
+		this.sorts[col] = s;
+		this.sortsInd[col] = si;
+                this._sortCache = [];
+                this._sortCacheRev = [];
+	};
+
+
+
 
 //TODO cache the full slice until filter changes (per column)
 //TODO when no filter, just return the sorts[col]
@@ -53,6 +76,9 @@ function SortTable(opts) {
 		if ((end == undefined) || (end > this.matchesFilter.length)) end = this.matchesFilter.length;
 		if ((start == undefined) || (start > this.matchesFilter.length)) start = 0;
 console.log('start %o end %o', start, end);
+
+                if (col < 0) return this.matchesFilter.slice(start, end);  //means do not sort, so return as passed basically
+
 		var at = -1;
 		var s = [];
 /*

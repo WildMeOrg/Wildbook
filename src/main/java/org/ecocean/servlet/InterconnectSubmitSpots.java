@@ -140,6 +140,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
             refs.add(new SuperSpot(ref3x, ref3y));
 
 
+/*  TODO no more spots on Encounter -- FIXME
             if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
               side = "right";
               enc.setRightSpots(superSpotArray2);
@@ -151,6 +152,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
               enc.setLeftReferenceSpots(refs);
               enc.setNumLeftSpots(superSpotArray2.size());
             }
+*/
             String user = "Unknown User";
             if (request.getRemoteUser() != null) {
               user = request.getRemoteUser();

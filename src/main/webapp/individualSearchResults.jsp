@@ -7,12 +7,12 @@
 
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
     //let's load out properties
     Properties props = new Properties();
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
     //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
     props = ShepherdProperties.getProperties("individualSearchResults.properties", langCode,context);
 
@@ -74,7 +74,7 @@
       listNum = rIndividuals.size();
     }
   %>
- 
+
 <style type="text/css">
   #tabmenu {
     color: #000;
@@ -94,7 +94,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial", sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -114,15 +114,15 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
     color: #000;
     border-bottom: 1px solid #8DBDD8;
   }
-  
-  
+
+
 </style>
 
 
@@ -146,7 +146,7 @@
         <%=props.getProperty("title")%>
       </h1>
 
- 
+
 <ul id="tabmenu">
 
 
@@ -182,11 +182,11 @@
   <%
 
     //set up the statistics counters
-    
+
 
     Vector histories = new Vector();
     int rIndividualsSize=rIndividuals.size();
-    
+
     int count = 0;
     int numNewlyMarked = 0;
 
@@ -253,7 +253,7 @@ var colDefn = [
 	},
 	{
 		key: 'individual',
-		label: 'Individual',
+		label: '<%=props.getProperty("markedIndividual")%>',
 		value: _colIndividual,
 		sortValue: function(o) { return o.individualID.toLowerCase(); },
 		//sortFunction: function(a,b) {},
@@ -261,26 +261,26 @@ var colDefn = [
 
 	{
 		key: 'numberEncounters',
-		label: 'Encounters',
+		label: '<%=props.getProperty("numEncounters")%>',
 		value: _colNumberEncounters,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'maxYearsBetweenResightings',
-		label: 'Max yrs between resights',
+		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'sex',
-		label: 'Sex',
+		label: '<%=props.getProperty("sex")%>',//'Sex',
 	},
 	{
 		key: 'numberLocations',
-		label: 'No. Locations sighted',
+		label: '<%=props.getProperty("numLocationsSighted")%>',
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}
-	
+
 ];
 
 
@@ -640,7 +640,7 @@ console.log(t);
 
 </script>
 
-<p>
+<p class="table-filter-text">
 <input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
 <input type="button" value="filter" />
 <input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />
@@ -727,6 +727,3 @@ console.log(t);
 
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
-
-
-

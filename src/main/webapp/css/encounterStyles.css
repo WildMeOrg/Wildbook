@@ -1,0 +1,165 @@
+#mainHeader {
+  background-color: #e8e8e8;
+}
+
+#headerText {
+  -webkit-text-fill-color: #005589;
+}
+
+/*Edit forms*/
+label {
+  font-weight: lighter;
+}
+
+input#alternateid.form-control, input#add2OccurrenceInput.form-control, input#createOccurrenceInput.form-control, input#individualAddEncounterInput.form-control, input#createSharkIndividual.form-control, input#verbatimEventDateInput.form-control, input#releasedatepickerField.form-control, input#datepickerField.form-control, input#depthInput.form-control, input#addLocCodeInput.form-control, input#elevation.form-control, input#colorCode.form-control, input#lat.form-control, input#longitude.form-control, input#metalTagLocation.form-control, input#acousticTagInput.form-control{
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
+input#acousticTagId.form-control, input#satelliteTagSerial.form-control, input#satelliteTagArgosPttNumber.form-control, input#addDynPropInput.form-control, input#addDynPropInput2.form-control, input#dynInput.form-control {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
+input#informOthers.form-control, input#photoName.form-control, input#photoPhone.form-control, input#photoEmail.form-control, input#photoAddress.form-control, input#submitName.form-control, input#submitPhone.form-control, input#submitEmail.form-control, input#submitAddress.form-control, input#submitOrg.form-control, input#submitProject.form-control {
+  padding-top: 2px;
+  padding-bottom: 2px;
+  color:  #333;
+  font-size: 1em;
+  height: 30px;
+}
+
+.editForm, .editFormDate, .editFormContact, .editFormLocation, .editFormObservation, .editFormMeta, .editFormDynamic, .editFormMeasure, .editFormTracking {
+  display: none;
+  margin-bottom: 10px;
+}
+
+.editText, .editTextDate, .editTextContact, .editTextLocation, .editTextObservation, .editTextMeta, .editTextDynamic, .editTextMeasure, .editTextTracking {
+  display: none;
+}
+
+.form-group {
+  margin-bottom: 0px;
+}
+
+
+#matchCheck, #altIdCheck, #matchedByCheck, #individualCheck, #matchedByCheck, #indCreateCheck, #altIdCheck, #createOccurCheck, #addOccurCheck,#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informCheck, #releaseCheck, #verbatimCheck, #resetDateCheck, #setLocationCheck, #countryCheck, #locationIDcheck, #depthCheck, #elevationCheck, #taxCheck, #statusCheck, #sexCheck, #scarCheck {
+  display: none;
+  color: green;
+  font-family: sans-serif;
+}
+
+#behaviorCheck, #lifeCheck, #commentCheck, #patternCheck, #workCheck, #assignCheck, #latCheck, #longCheck {
+  display: none;
+  color: green;
+  font-family: sans-serif;
+}
+
+#behaviorError, #lifeError, #commentError, #patternError, #workError, #assignError {
+  display: none;
+  color: red;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+#matchError, #altIdError, #matchedByError, #individualError, #matchedByError, #indCreateError, #altIdError, #createOccurError, #addOccurError,#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #informError, #releaseError, #verbatimError, #resetDateError, #setLocationError, #countryError, #locationIDerror, #depthError, #elevationError, #taxError, #statusError, #sexError, #scarError {
+  display: none;
+  color: red;
+  font-family: sans-serif;
+  font-weight: bold;
+}
+
+#matchErrorDiv {
+  display: none;
+}
+
+#setRemoveResultDiv, #altIdErrorDiv {
+  display: none;
+}
+
+.highlight {
+  color: #990000;
+}
+
+.editFormInput {
+  margin-right: 5px;
+  padding-right: 0px;
+}
+
+.editFormBtn {
+  width: 70px;
+}
+
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton, #addDynPropBtn, #dynEdit, #createOccur {
+  margin-bottom: 0px;
+  margin-top: 2px;
+  margin-left: 0px;
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
+
+#Add, #createSharkBtn {
+  margin-bottom: 0px;
+  margin-top: 2px;
+  padding-top: 0px;
+  padding-bottom: 2px;
+}
+
+#edit {
+  display: block;
+}
+
+#closeEdit, .confirmDelete {
+  display: none;
+}
+
+#edit, #closeEdit {
+  background-color: white;
+}
+
+#edit:hover, #closeEdit:hover {
+  background-color: #8bff00;
+}
+
+.has-feedback .form-control {
+  padding-right: 30px;
+}
+
+
+.successHighlight {
+  color: green;
+}
+
+input.btn.btn-sm.btn-block.deleteEncounterBtn {
+  background-color: #D9231A;
+  color: #FFFFFF;
+  font-size: 1em;
+}
+input.btn.btn-sm.btn-block.deleteEncounterBtn:hover {
+  background-color: #EE261D;
+  color: #FFFFFF;
+  font-size: 1em;
+}
+
+.toggleBtn {
+  cursor: pointer;
+}
+
+.tissueSampleTable th{
+  background-color: #566c73;
+  font-weight: lighter;
+  color: white;
+  border: 1px solid white;
+  text-align: center;
+}
+
+.tissueSampleTable {
+  overflow-x: scroll;
+  overflow-y: scroll;
+}

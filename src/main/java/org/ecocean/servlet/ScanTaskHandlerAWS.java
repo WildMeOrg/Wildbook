@@ -58,7 +58,9 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 		PrintWriter out = response.getWriter();
 		String action=request.getParameter("action");
 		System.out.println("scanTaskHandler action is: "+action);
-
+		
+		
+    
 	
 
 		if(action!=null){
@@ -120,11 +122,17 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					out.println(ServletUtilities.getFooter(context));
 				}
 			}
-
+			
+			
+			
+			//add new task
 			else if ((action.equals("addTask"))&&(request.getParameter("encounterNumber")!=null)) {
 
 				myShepherd.getPM().setIgnoreCache(true);
 
+				String jdoql="";
+
+				
 				boolean locked=false;
 				//String readableName="";
 				boolean successfulStore=false;
@@ -155,7 +163,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				System.out.println("scanTaskHandler: Checking whether this is a new scanTask...");
 
 				myShepherd.beginDBTransaction();
-
+				Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+        String genus="";
+        String species="";
+        if(enc.getGenus()!=null){genus=enc.getGenus();}
+        if(enc.getSpecificEpithet()!=null){species=enc.getSpecificEpithet();}
 
 				String sideIdentifier="L";
 
@@ -193,7 +205,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 						//check if this encounter has the needed spots to create the task
 						boolean hasNeededSpots=false;
-						Encounter enc=myShepherd.getEncounter(request.getParameter("encounterNumber"));
+						
+						//if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)&&(!enc.getGenus().trim().equals(""))&&(!enc.getSpecificEpithet().trim().equals(""))){
+						//  jdoql="SELECT FROM org.ecocean.ENCOUNTER WHERE genus == '"+enc.getGenus()+"' && specificEpithet == '"+enc.getSpecificEpithet()+"' ";
+						//}
+						
 						if((rightScan.equals("true"))&&(enc.getRightSpots()!=null)){hasNeededSpots=true;}
 						else if(enc.getSpots()!=null){hasNeededSpots=true;}
 
@@ -203,7 +219,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-							st.setNumComparisons(numComparisons-1);
+							//st.setNumComparisons(numComparisons-1);
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
 							successfulStore=myShepherd.storeNewTask(st);
@@ -235,19 +251,15 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					                //check if this is a restart
 					                //if it is, delete the old work items
-					          
 					                if(request.getParameter("restart")!=null){
 					                  ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
 					                  ScanTask restartTask=myShepherd.getScanTask(taskIdentifier);
 					                  if(restartTask.getUniqueNumber().startsWith("scanR")){
 					                    isRightScan=true;
 					                    writeThis=restartTask.getWriteThis();
-					                    numComparisons=myShepherd.getNumEncountersWithSpotData(true);
 
 					                  }
-					                  else{numComparisons=myShepherd.getNumEncountersWithSpotData(false);}
 					                  st.setFinished(false);
-					                  st.setNumComparisons(numComparisons-1);
 					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
@@ -258,7 +270,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                }
 
 
-					                myShepherd.commitDBTransaction();
+					                myShepherd.rollbackDBTransaction();
 					                myShepherd.closeDBTransaction();
 
 
@@ -283,7 +295,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 					try{
 					  
-					  String jdoql="";
+					  
 					  if(request.getParameter("jdoql")!=null){jdoql=request.getParameter("jdoql");}
 					  
 					  System.out.println("jdoql is: "+jdoql);
@@ -295,7 +307,14 @@ public class ScanTaskHandlerAWS extends HttpServlet {
             es.execute(new EC2RequestThread());
 						
             //now build our jobs for the task
-						es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql));
+            if(jdoql.equals("")){
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species, getServletContext(), request));
+              
+            }
+            else{
+              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null, getServletContext(), request));
+            }
+						
 
 						
 
@@ -352,395 +371,6 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				}
 			}
 
-
-			else if (action.equals("addTuningTask")) {
-
-				//myShepherd.getPM().setIgnoreCache(true);
-
-				boolean locked=false;
-				//String readableName="";
-				boolean successfulStore=false;
-
-				int maxNumWorkItems = 99999999;
-				if((request.getParameter("maxNumWorkItems")!=null)&&(!request.getParameter("maxNumWorkItems").equals(""))){
-					maxNumWorkItems = Integer.parseInt(request.getParameter("maxNumWorkItems"));
-				}
-
-				//set up our properties
-				java.util.Properties props2=new java.util.Properties();
-				String secondRun="true";
-				String rightScan="false";
-				boolean isRightScan=false;
-				boolean writeThis=true;
-				//String uniqueNum="";
-				if(request.getParameter("writeThis")==null) {
-					writeThis=false;
-				}
-				if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-					rightScan="true";
-					isRightScan=true;
-				}
-				props2.setProperty("epsilon", "0.01");
-				props2.setProperty("R", "8");
-				props2.setProperty("Sizelim", "0.85");
-				props2.setProperty("maxTriangleRotation", "10");
-				props2.setProperty("C", "0.99");
-				props2.setProperty("secondRun", secondRun);
-				props2.setProperty("rightScan", rightScan);
-
-				//let's check if a scanTask for this exists
-				System.out.println("scanTaskHandler: Checking whether this is a new scanTask...");
-
-				myShepherd.beginDBTransaction();
-
-
-				String sideIdentifier="L";
-
-				if(rightScan.equals("true")){
-					sideIdentifier="R";
-					//numComparisons=myShepherd.getNumEncountersWithSpotData(true);
-				}
-				else{
-					//numComparisons=myShepherd.getNumEncountersWithSpotData(false);
-				}
-				String taskIdentifier="TuningTask";
-				ScanTask st=new ScanTask();
-
-				//let's do a check to see if too many scanTasks are in the queue
-				int taskLimit=gm.getScanTaskLimit();
-				int currentNumScanTasks=myShepherd.getNumUnfinishedScanTasks();
-				myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
-				System.out.println("currentNumScanTasks is: "+currentNumScanTasks);
-				//int currentNumScanTasks=0;
-				if(currentNumScanTasks<taskLimit){
-
-					Vector leftSharks=myShepherd.getPossibleTrainingIndividuals();
-					Vector rightSharks=myShepherd.getRightPossibleTrainingIndividuals();
-
-					int numComparisons=0;
-
-					//calculate the number of comparisons that can be made
-					int numLeftSharks=leftSharks.size();
-					for(int i=0;i<numLeftSharks;i++){
-						MarkedIndividual s=(MarkedIndividual)leftSharks.get(i);
-						int numTrainable=s.getNumberTrainableEncounters();
-						//int numCompareEncounters=s.getNumberTrainableEncounters();
-						//for(int j=(numCompareEncounters-1);j>1;j--){
-						//	numCompareEncounters=numCompareEncounters*j;
-						//}
-						//numCompareEncounters=numCompareEncounters/(2*(numTrainable-2));
-						//numComparisons=numComparisons+numCompareEncounters;
-						numComparisons=numComparisons+combinations(numTrainable,2);
-
-					}
-					int numRightSharks=rightSharks.size();
-					for(int i=0;i<numRightSharks;i++){
-						MarkedIndividual s=(MarkedIndividual)rightSharks.get(i);
-						int numCompareEncounters=s.getNumberRightTrainableEncounters();
-						//for(int j=(numCompareEncounters-1);j>1;j--){
-							//numCompareEncounters=numCompareEncounters*j;
-						//}
-						//numComparisons=numComparisons+numCompareEncounters;
-						numComparisons=numComparisons+combinations(numCompareEncounters,2);
-					}
-
-
-
-					System.out.println("scanTaskHandler: Under the limit, so proceeding to check for condiions for creating a new scanTask...");
-					if((!myShepherd.isScanTask(taskIdentifier))){
-						//System.out.println("scanTaskHandler: This scanTask does not exist, so go create it...");
-
-
-						st=new ScanTask(myShepherd, taskIdentifier, props2, "TuningTask", writeThis);
-
-						if(numComparisons<(2*maxNumWorkItems)){
-							st.setNumComparisons(numComparisons);
-						}
-						else{
-							st.setNumComparisons((2*maxNumWorkItems));
-						}
-
-
-						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
-						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
-						if(!successfulStore){
-
-							System.out.println("scanTaskHandler: Unsuccessful TuningTask store...");
-
-							myShepherd.rollbackDBTransaction();
-							myShepherd.closeDBTransaction();
-							locked=true;
-						}
-						else{
-							System.out.println("scanTaskHandler: Successful TuningTask store...");
-
-							myShepherd.commitDBTransaction();
-							myShepherd.closeDBTransaction();
-							myShepherd=new Shepherd(context);
-
-
-						}
-
-
-					} 
-					else if(myShepherd.isScanTask(taskIdentifier)) {
-
-						System.out.println("scanTaskHandler: This is an existing scanTask...");
-
-
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-
-						String rightFilter="";
-						if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-							rightFilter="&rightSide=true";
-						}
-
-						//if it exists already, advance to the scan page to assist it
-						response.sendRedirect("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/workAppletScan.jsp?writeThis=true&number="+taskIdentifier+rightFilter);
-					}
-					else{
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-					}
-				}
-
-				if(!locked&&successfulStore) {
-
-					try{
-
-
-						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						es.execute(new TuningTaskCreationThread(taskIdentifier, writeThis, maxNumWorkItems,context));
-
-
-					}
-					catch(Exception e) {
-						System.out.println("I failed while constructing the workItems for a new scanTask.");
-						e.printStackTrace();
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-					}
-					if(!locked){
-						System.out.println("Trying to commit the add of the scanWorkItems");
-
-
-
-						//myShepherd.commitDBTransaction();
-						//myShepherd.closeDBTransaction();
-						System.out.println("I committed the workItems!");
-
-						String rightFilter="L";
-						String rightURL="";
-						if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-							rightFilter="R";
-							rightURL="&rightSide=true";
-
-						}
-
-						//confirm success
-						out.println(ServletUtilities.getHeader(request));
-						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp?task="+taskIdentifier+"#"+taskIdentifier+"\">Return to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter(context));
-					}
-					else{
-						out.println(ServletUtilities.getHeader(request));
-						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter(context));
-
-					}
-				}
-				else {
-							out.println(ServletUtilities.getHeader(request));
-							out.println("<strong>Failure:</strong> I have NOT added this scanTask to the queue.");
-							if(currentNumScanTasks<taskLimit){
-								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
-							}
-							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-							out.println(ServletUtilities.getFooter(context));
-				}
-			}
-
-
-
-			else if (action.equals("addFalseMatchTask")) {
-
-				boolean locked=false;
-				boolean successfulStore=false;
-
-				int maxNumWorkItems = 99999999;
-				if((request.getParameter("maxNumWorkItems")!=null)&&(!request.getParameter("maxNumWorkItems").equals(""))){
-					maxNumWorkItems = Integer.parseInt(request.getParameter("maxNumWorkItems"));
-				}
-
-				//set up our properties
-				java.util.Properties props2=new java.util.Properties();
-				String secondRun="true";
-				String rightScan="false";
-				boolean isRightScan=false;
-				boolean writeThis=true;
-				if(request.getParameter("writeThis")==null) {
-					writeThis=false;
-				}
-				if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-					rightScan="true";
-					isRightScan=true;
-				}
-				props2.setProperty("epsilon", "0.01");
-				props2.setProperty("R", "8");
-				props2.setProperty("Sizelim", "0.85");
-				props2.setProperty("maxTriangleRotation", "10");
-				props2.setProperty("C", "0.99");
-				props2.setProperty("secondRun", secondRun);
-				props2.setProperty("rightScan", rightScan);
-
-				//let's check if a scanTask for this exists
-				System.out.println("scanTaskHandler: Checking whether this is a new False Match scanTask...");
-
-				myShepherd.beginDBTransaction();
-
-
-				String sideIdentifier="L";
-
-				if(rightScan.equals("true")){
-					sideIdentifier="R";
-				}
-
-				String taskIdentifier="FalseMatchTask";
-				ScanTask st=new ScanTask();
-
-				//let's do a check to see if too many scanTasks are in the queue
-				int taskLimit=gm.getScanTaskLimit();
-				int currentNumScanTasks=myShepherd.getNumUnfinishedScanTasks();
-				myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
-				System.out.println("currentNumScanTasks is: "+currentNumScanTasks);
-				//int currentNumScanTasks=0;
-				if(currentNumScanTasks<taskLimit){
-
-					//Vector leftSharks=myShepherd.getPossibleTrainingSharks();
-					//Vector rightSharks=myShepherd.getRightPossibleTrainingSharks();
-
-					int numComparisons=maxNumWorkItems*2;
-
-
-
-					System.out.println("scanTaskHandler: Under the limit, so proceeding to check for condiions for creating a new scanTask...");
-					if((!myShepherd.isScanTask(taskIdentifier))){
-						//System.out.println("scanTaskHandler: This scanTask does not exist, so go create it...");
-
-
-						st=new ScanTask(myShepherd, taskIdentifier, props2, "FalseMatchTask", writeThis);
-						st.setNumComparisons(numComparisons);
-						if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
-						System.out.println("scanTaskHandler: About to create a TuningTask...");
-						successfulStore=myShepherd.storeNewTask(st);
-						if(!successfulStore){
-
-							System.out.println("scanTaskHandler: Unsuccessful FalseMatchTask store...");
-
-							myShepherd.rollbackDBTransaction();
-							myShepherd.closeDBTransaction();
-							locked=true;
-						}
-						else{
-							System.out.println("scanTaskHandler: Successful FalseMatchTask store...");
-
-							myShepherd.commitDBTransaction();
-							myShepherd.closeDBTransaction();
-							myShepherd=new Shepherd(context);
-
-
-						}
-
-
-					} else if(myShepherd.isScanTask(taskIdentifier)) {
-
-						System.out.println("scanTaskHandler: This is an existing scanTask...");
-
-
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-
-						String rightFilter="";
-						if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-							rightFilter="&rightSide=true";
-						}
-
-						//if it exists already, advance to the scan page to assist it
-						response.sendRedirect("http://"+CommonConfiguration.getURLLocation(request)+"/encounters/workAppletScan.jsp?writeThis=true&number="+taskIdentifier+rightFilter);
-					}
-					else{
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-					}
-				}
-
-				if(!locked&&successfulStore) {
-
-					try{
-
-
-						ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-						//es.execute(new FalseMatchCreationThread(maxNumWorkItems,taskIdentifier,context));
-
-
-					}
-					catch(Exception e) {
-						System.out.println("I failed while constructing the workItems for a new scanTask.");
-						e.printStackTrace();
-						myShepherd.rollbackDBTransaction();
-						myShepherd.closeDBTransaction();
-						locked=true;
-					}
-					if(!locked){
-						System.out.println("Trying to commit the add of the scanWorkItems");
-
-
-
-						//myShepherd.commitDBTransaction();
-						//myShepherd.closeDBTransaction();
-						System.out.println("I committed the workItems!");
-
-						String rightFilter="L";
-						String rightURL="";
-						if((request.getParameter("rightSide")!=null)&&(request.getParameter("rightSide").equals("true"))) {
-							rightFilter="R";
-							rightURL="&rightSide=true";
-
-						}
-
-						//confirm success
-						out.println(ServletUtilities.getHeader(request));
-						out.println("<strong>Success:</strong> Your scan was successfully added to the sharkGrid!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp"+"\">Return to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter(context));
-					}
-					else{
-						out.println(ServletUtilities.getHeader(request));
-						out.println("<strong>Failure:</strong> The scan could not be created or was not fully created!");
-						out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-						out.println(ServletUtilities.getFooter(context));
-
-					}
-				}
-				else {
-							out.println(ServletUtilities.getHeader(request));
-							out.println("<strong>Failure:</strong> I have NOT added this scanTask to the queue.");
-							if(currentNumScanTasks<taskLimit){
-								out.println("The unfinished task limit of "+taskLimit+" has been filled. Please try adding the task to the queue again after existing tasks have finished.");
-							}
-							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
-							out.println(ServletUtilities.getFooter(context));
-				}
-			}
 
 
 			//delete all scan-related items

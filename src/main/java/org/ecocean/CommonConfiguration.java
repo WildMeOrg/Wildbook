@@ -147,7 +147,7 @@ public class CommonConfiguration {
     return getServerURI(req, contextPath).toASCIIString();
   }
 
-  
+
   public static String getMailHost(String context) {
     String s = getProperty("mailHost", context);
     return s != null ? s.trim() : s;
@@ -191,6 +191,15 @@ public class CommonConfiguration {
   public static String getSizelim(String context) {
     return getProperty("sizelim",context).trim();
   }
+
+    public static String getUploadTmpDir(String context) {
+        String dir = getProperty("uploadTmpDir", context);
+        if (dir == null) {
+            dir = System.getProperty("java.io.tmpdir");
+            System.out.println("WARNING: no uploadTmpDir property specified in CommonConfiguration; using " + dir + " as default; this may introduce insecurities.");
+        }
+        return dir.trim();
+    }
 
   public static String getMaxTriangleRotation(String context) {
     return getProperty("maxTriangleRotation",context).trim();
@@ -279,7 +288,23 @@ public class CommonConfiguration {
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
-  
+
+  public static ArrayList<String> getSequentialPropertyValues(String propertyPrefix, String context){
+    Properties myProps=initialize(context);
+    //System.out.println(myProps.toString());
+    ArrayList<String> returnThese=new ArrayList<String>();
+
+    //System.out.println("Looking for: "+propertyPrefix);
+
+    int iter=0;
+    while(myProps.getProperty(propertyPrefix+iter)!=null){
+      //System.out.println("Found: "+propertyPrefix+iter);
+      returnThese.add(myProps.getProperty((propertyPrefix+iter)));
+      iter++;
+    }
+
+    return returnThese;
+  }
 
   /*
    * This method is used to determined the show/hide condition of an element of the UI.
@@ -308,8 +333,8 @@ public class CommonConfiguration {
     }
     return canAdopt;
   }
-  
-  
+
+
   /**
    * This configuration option defines whether batch upload of {@link MarkedIndividual} or {@link Encounter} objects are allowed.
    *
@@ -320,7 +345,7 @@ public class CommonConfiguration {
   }
 
 
-  
+
   /**
    * Helper method to parse boolean from string.
    * @param s string to parse
@@ -371,7 +396,7 @@ public class CommonConfiguration {
   }
 
 
-  
+
 
   public static boolean sendEmailNotifications(String context) {
     initialize(context);
@@ -576,7 +601,7 @@ public class CommonConfiguration {
     }
     return showUsersToPublic;
   }
-  
+
   /**
    * Gets the directory for holding website data ('shepherd_data_dir').
    * @param sc ServletContext as reference for finding directory
@@ -623,8 +648,8 @@ public class CommonConfiguration {
       throw new FileNotFoundException("Unable to find/create folder: " + f.getAbsolutePath());
     return f;
   }
-  
-  
+
+
   public static boolean isIntegratedWithWildMe(String context){
     
     initialize(context);
@@ -634,6 +659,16 @@ public class CommonConfiguration {
     }
     return integrated;
   }
-  
-  
+
+
+  // This can/should be ever-expanded with different conditions;
+  // This function is called to determine if StartupWildbook.initializeWildbook() should be called
+  public static boolean isWildbookInitialized(Shepherd myShepherd) {
+    List<User> users = myShepherd.getAllUsers();
+    if (users.size() == 0) return false;
+
+    return true;
+  }
+
+
 }
