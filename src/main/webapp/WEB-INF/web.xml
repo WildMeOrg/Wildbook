@@ -1169,6 +1169,11 @@
     <servlet-name>WorkspaceServer</servlet-name>
     <servlet-class>org.ecocean.servlet.WorkspaceServer</servlet-class>
   </servlet>
+  
+    <servlet>
+    <servlet-name>UserInfo</servlet-name>
+    <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
+  </servlet>
 
 
   <servlet>
