@@ -681,6 +681,7 @@ jQuery(function($) {
     <div class="crop-outer">
       <div class="crop" title="&copy; UEF / WWF">
         <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2801_cropped.jpg" alt="&copy; UEF / WWF"/></a>
+      	<p class="image-copyright"> &copy; WWF </p>
       </div>
     </div>
   </div>

@@ -256,7 +256,7 @@ myShepherd.beginDBTransaction();
       %>
 
         <h2><%=locCode %></h2>
-        <h3><em><%=numSightings%> tunnistettua yksil&ouml;&auml;</em></h3>
+        <h3><em><%=numSightings%> tunnistettua yksil&ouml;&auml; (Kaikki eiv&auml;t n&auml;y galleriassa)</em></h3>
       </div>
     <% } %>
 

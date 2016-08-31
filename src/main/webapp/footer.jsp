@@ -194,14 +194,14 @@
 										<h2 style="color:#000;"> Rakennamme tulevaisuuden, jossa ihmiset ja luonto el&auml;v&auml;t tasapainossa</h2>
 
 											<ul class="nav">
-																			<li><a href="/yksityisyydensuoja_tekijanoikeudet/">Yksityisyyden suoja ja tekijänoikeudet</a></li>
-							<li><a href="http://www.wwf.fi/kerayslupa/">Keräyslupa ja rekisteriseloste</a></li>
-							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/tyopaikat/">Työpaikat</a></li>
+																			
+							<li><a href="http://norppagalleria.wwf.fi/submit.jsp">Rekisteriseloste</a></li>
+							
 							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/">Yhteystiedot</a></li>
 							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/palaute/" onClick="ga('send', 'event', {'eventCategory': 'feedback', 'eventAction': 'fee_step1_footer_', 'eventLabel': 'lnk'});" >Palaute</a></li>
 											</ul>
 										</br>
-										<small class="copyright source-org vcard" itemprop="copyrightHolder">Copyright © <span itemprop="copyrightYear">2014</span> <span class="org fn" itemprop="creator">WWF Suomi</span>, valokuvien tekijänoikeudet kuvien yhteydessä</small>
+										<small class="copyright source-org vcard" itemprop="copyrightHolder">Copyright © <span itemprop="copyrightYear">2016</span> <span class="org fn" itemprop="creator">WWF Suomi</span>, valokuvien tekijänoikeudet kuvien yhteydessä</small>
 									</div>
 
 								</div>
