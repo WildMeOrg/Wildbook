@@ -381,7 +381,7 @@ myShepherd.beginDBTransaction();
                 	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
                 </a>
 
-                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=WWF:n Norppagalleriassa voit tutustua kaikkiin tunnistettuihin saimaannorppiin. +http://norppagalleria.wwf.fi/"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
                 <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
