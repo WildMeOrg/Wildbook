@@ -43,8 +43,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
+<script type="text/javascript" src="../javascript/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
 
 </head>
 

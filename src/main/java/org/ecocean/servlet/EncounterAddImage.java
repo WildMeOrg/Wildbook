@@ -133,7 +133,8 @@ public class EncounterAddImage extends HttpServlet {
 
           SinglePhotoVideo newSPV = new SinglePhotoVideo(encounterNumber,(new File(fullPathFilename)));
           enc.addSinglePhotoVideo(newSPV);
-					enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath), newSPV, false);
+        ///// NOT YET -->  enc.refreshAssetFormats(myShepherd);
+					//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath), newSPV, false);
           enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + "Submitted new encounter image graphic: " + fileName + ".</p>");
           positionInList = enc.getAdditionalImageNames().size();
         } catch (Exception le) {

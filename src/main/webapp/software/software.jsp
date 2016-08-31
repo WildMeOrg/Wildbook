@@ -33,24 +33,21 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-
 <jsp:include page="../header.jsp" flush="true"/>
 <div class="container maincontent">
-
-      
-          <h1 class="intro">Client Software</h1>
-        
-        <p>Click on a link below to download the appropriate software
-          client.</p>
+          <h1>Client Software</h1>
+     
+        <p>Click on a link below to download the appropriate software client for use with Wildbook.</p>
 
 
 
         <p><a href="GridClient.zip"><strong>Grid Client</strong></a><br/>
-          <em>Purpose</em>: Spot pattern comparison in the Wildbook Framework<br/>
+          <em>Purpose</em>: Pattern comparison in the Wildbook Framework<br/>
           <em>Requirements</em>: <a href="http://www.java.com/en/download/index.jsp">Java 7</a>
         </p>
 
 
-     </div>
-
+      </div>
+    
     <jsp:include page="../footer.jsp" flush="true"/>
+  

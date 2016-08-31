@@ -1,607 +1,636 @@
-<!DOCTYPE jdo PUBLIC
-    "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN"
-    "http://java.sun.com/dtd/jdo_2_0.dtd">
+<!DOCTYPE jdo PUBLIC "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" "http://java.sun.com/dtd/jdo_2_0.dtd">
 
 <jdo>
-    <package name="org.ecocean">
+  <package name="org.ecocean">
 
-		 <class name="Adoption" identity-type="application">
-            <field name="adopterName" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="adopterAddress" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="adopterEmail" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="adopterImage" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="adopterQuote" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="adoptionStartDate" persistence-modifier="persistent">
-                <column length="100" />
-            </field>
-            <field name="adoptionEndDate" persistence-modifier="persistent">
-                <column length="100" />
-            </field>
-            <field name="adoptionManager" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="individual" persistence-modifier="persistent">
-                <column length="100" />
-            </field>
-            <field name="encounter" persistence-modifier="persistent">
-                <column length="100" />
-            </field>
-            <field name="adoptionType" persistence-modifier="persistent">
-                <column length="100" />
-            </field>
-            <field name="notes" persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="id" persistence-modifier="persistent"
-                primary-key="true">
-                <column length="100" />
-            </field>
-        </class>
+    <class name="Adoption" identity-type="application">
+      <field name="adopterName" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="adopterAddress" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="adopterEmail" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="adopterImage" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="adopterQuote" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="adoptionStartDate" persistence-modifier="persistent">
+        <column length="100"/>
+      </field>
+      <field name="adoptionEndDate" persistence-modifier="persistent">
+        <column length="100"/>
+      </field>
+      <field name="adoptionManager" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="individual" persistence-modifier="persistent">
+        <column length="100"/>
+      </field>
+      <field name="encounter" persistence-modifier="persistent">
+        <column length="100"/>
+      </field>
+      <field name="adoptionType" persistence-modifier="persistent">
+        <column length="100"/>
+      </field>
+      <field name="notes" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="id" persistence-modifier="persistent" primary-key="true">
+        <column length="100"/>
+      </field>
+    </class>
 
+    <class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
+      <field name="individualID" primary-key="true">
+        <column length="100"/>
+      </field>
+      <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Encounter"/>
+        <join/>
+      </field>
 
-<class name="MarkedIndividual" identity-type="application" table="MARKEDINDIVIDUAL">
-			<field name="individualID" primary-key="true">
-				<column length="100"/>
-			</field>
-			<field name="comments" persistence-modifier="persistent" default-fetch-group="false" >
-				<column jdbc-type="LONGVARCHAR" />
-			</field>
-            		<field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
-                		<collection element-type="org.ecocean.Encounter"/>
-				<join/>
-            		</field>
-            		
-            		<field name="dataFiles" persistence-modifier="persistent">
-                		<collection element-type="java.lang.String"/>
-            		</field>
-            		<field name="interestedResearchers" persistence-modifier="persistent" >
-                		<collection element-type="java.lang.String"/>
-            		</field>
-            	
-		        <field name="dateTimeCreated" persistence-modifier="persistent" >
-				            		<column jdbc-type="LONGVARCHAR" />
-		        </field>
-		        <field name="alternateid" persistence-modifier="persistent">
-				<column length="512"/>
-			</field>
-			
-			<field name="maxYearsBetweenResightings" persistence-modifier="persistent">
-				<column jdbc-type="INTEGER" allows-null="true" />
-			</field>
-			
-			  <field name="timeOfDeath" persistence-modifier="persistent">
-			                <column jdbc-type="BIGINT" allows-null="true" />
-            		</field>
-              		<field name="timeOfBirth" persistence-modifier="persistent">
-	                    <column jdbc-type="BIGINT" allows-null="true" />
-            		</field>
+      <field name="dataFiles" persistence-modifier="persistent">
+        <collection element-type="java.lang.String"/>
+      </field>
+      <field name="interestedResearchers" persistence-modifier="persistent">
+        <collection element-type="java.lang.String"/>
+      </field>
 
-					<field name="numberLocations" persistence-modifier="persistent">
-						<column jdbc-type="INTEGER" allows-null="true" />
-					</field>
-					<field name="thumbnailUrl" persistence-modifier="persistent">
-						<column allows-null="true" />
-					</field>
-		            	
-		            	        		<fetch-group name="allSharks_min">
-				            		<field name="encounters"/>
-				        		</fetch-group>
-			<fetch-group name="count" />
+      <field name="dateTimeCreated" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="alternateid" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
-		</class>
-		
-		<class name="Occurrence" identity-type="application" table="OCCURRENCE">
-					<field name="occurrenceID" primary-key="true">
-						<column length="100"/>
-					</field>
-				
-		            		<field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
-		                		<collection element-type="org.ecocean.Encounter"/>
-						<join/>
-		            		</field>
-		            		
-		            		<field name="comments" persistence-modifier="persistent" default-fetch-group="false">
-						<column jdbc-type="LONGVARCHAR" />
-					</field>
-		            		
-		            		<field name="groupBehavior" persistence-modifier="persistent">
-					                <column length="1024" allows-null="true" />
-					            </field>
-					            
-					            <field name="individualCount" persistence-modifier="persistent">
-						    				<column jdbc-type="INTEGER" allows-null="true" />
-			</field>
+      <field name="maxYearsBetweenResightings" persistence-modifier="persistent">
+        <column jdbc-type="INTEGER" allows-null="true"/>
+      </field>
 
-		            		
-				            	
-					<fetch-group name="count" />
-		
-		</class>
-		
-		
+      <field name="timeOfDeath" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      <field name="timeOfBirth" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
 
-        <class name="Encounter" identity-type="application" table="ENCOUNTER">
-            <field name="catalogNumber" primary-key="true">
-                <column length="100" />
-            </field>
-            <field name="otherCatalogNumbers"
-                persistence-modifier="persistent" default-fetch-group="true">
-                <column length="1024" allows-null="true" />
-            </field>
-            <field name="informothers" persistence-modifier="persistent"
-                default-fetch-group="true">
-                <column length="1024" allows-null="true" />
-            </field>
+      <field name="numberLocations" persistence-modifier="persistent">
+        <column jdbc-type="INTEGER" allows-null="true"/>
+      </field>
+      <field name="thumbnailUrl" persistence-modifier="persistent">
+        <column allows-null="true"/>
+      </field>
 
+      <fetch-group name="allSharks_min">
+        <field name="encounters"/>
+      </fetch-group>
+      <fetch-group name="count"/>
 
-            <field name="dateInMilliseconds" persistence-modifier="persistent">
-                <column jdbc-type="BIGINT" allows-null="true" />
-            </field>
-			
-			<field name="dwcDateAddedLong" persistence-modifier="persistent">
-                <column jdbc-type="BIGINT" allows-null="true" />
-            </field>
+    </class>
 
-            <field name="releaseDateLong" persistence-modifier="persistent">
-                <column jdbc-type="BIGINT" allows-null="true"/>
-            </field>
+    <class name="Occurrence" identity-type="application" table="OCCURRENCE">
+      <field name="occurrenceID" primary-key="true">
+        <column length="100"/>
+      </field>
 
-            <field name="maximumDepthInMeters"
-                persistence-modifier="persistent">
-                <column jdbc-type="DOUBLE" allows-null="true" />
-            </field>
+      <field name="encounters" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Encounter"/>
+        <join/>
+      </field>
 
-            <field name="maximumElevationInMeters"
-                persistence-modifier="persistent">
-                <column jdbc-type="DOUBLE" allows-null="true" />
-            </field>
+      <field name="comments" persistence-modifier="persistent" default-fetch-group="false">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
 
+      <field name="groupBehavior" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
 
-            <field name="occurrenceRemarks" persistence-modifier="persistent"
-                default-fetch-group="true">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
+      <field name="individualCount" persistence-modifier="persistent">
+        <column jdbc-type="INTEGER" allows-null="true"/>
+      </field>
 
-            <field name="verbatimLocality" persistence-modifier="persistent">
-                <column length="1024" />
-            </field>
-            
-            <field name="country" persistence-modifier="persistent">
-	                    <column length="512" />
-            </field>
+      <field name="assets" persistence-modifier="persistent" default-fetch-group="false" mapped-by="occurrence" >
+          <collection element-type="org.ecocean.media.MediaAsset" dependent-element="true" />
+          <join />
+      </field>
 
+      <fetch-group name="count"/>
 
-            <field name="genus" persistence-modifier="persistent">
-                <column length="128" />
-            </field>
-            <field name="specificEpithet" persistence-modifier="persistent">
-                <column length="128" />
-            </field>
-            
-              <field name="state" persistence-modifier="persistent">
-	                    <column length="128" />
-            </field>
+    </class>
 
-            <field name="photographerEmail" persistence-modifier="persistent">
-                <column length="256" />
-            </field>
-            <field name="photographerName" persistence-modifier="persistent">
-                <column length="256" />
-            </field>
-            
-            <field name="guid" persistence-modifier="persistent">
-	                    <column length="256" />
-            </field>
-            
-            <field name="recordedBy" persistence-modifier="persistent">
-                <column length="256" />
-            </field>
+    <class name="Encounter" identity-type="application" table="ENCOUNTER">
+      <field name="catalogNumber" primary-key="true">
+        <column length="100"/>
+      </field>
+      <field name="otherCatalogNumbers" persistence-modifier="persistent" default-fetch-group="true">
+        <column length="1024" allows-null="true"/>
+      </field>
+      <field name="informothers" persistence-modifier="persistent" default-fetch-group="true">
+        <column length="1024" allows-null="true"/>
+      </field>
 
-            <field name="hashedSubmitterEmail"
-                persistence-modifier="persistent">
-                <column length="512" />
-            </field>
+      <field name="dateInMilliseconds" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
 
-            <field name="hashedPhotographerEmail"
-                persistence-modifier="persistent">
-                <column length="512" />
-            </field>
+      <field name="dwcDateAddedLong" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
 
-            <field name="hashedInformOthers" persistence-modifier="persistent">
-                <column length="512" />
-            </field>
+      <field name="releaseDateLong" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
 
-            <field name="submitterEmail" persistence-modifier="persistent">
-                <column length="256" />
-            </field>
+      <field name="maximumDepthInMeters" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
 
-            <field name="livingStatus" persistence-modifier="persistent">
-                <column length="256" />
-            </field>
+      <field name="maximumElevationInMeters" persistence-modifier="persistent">
+        <column jdbc-type="DOUBLE" allows-null="true"/>
+      </field>
 
-            <field name="behavior" persistence-modifier="persistent">
-                <column length="1024" allows-null="true" />
-            </field>
+      <field name="occurrenceRemarks" persistence-modifier="persistent" default-fetch-group="true">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
 
-            <field name="eventID" persistence-modifier="persistent"
-                default-fetch-group="true">
-                <column length="1024" allows-null="true" />
-            </field>
+      <field name="verbatimLocality" persistence-modifier="persistent">
+        <column length="1024"/>
+      </field>
 
-            <field name="dynamicProperties" persistence-modifier="persistent"
-                default-fetch-group="true">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="identificationRemarks"
-                persistence-modifier="persistent">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
+      <field name="country" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
+      <field name="genus" persistence-modifier="persistent">
+        <column length="128"/>
+      </field>
+      <field name="specificEpithet" persistence-modifier="persistent">
+        <column length="128"/>
+      </field>
 
-            <field name="researcherComments" persistence-modifier="persistent"
-                default-fetch-group="false">
-                <column jdbc-type="LONGVARCHAR" />
-            </field>
-            <field name="additionalImageNames"
-                persistence-modifier="persistent" default-fetch-group="false">
-                <collection element-type="java.lang.String" />
-            </field>
-            <field name="interestedResearchers"
-                persistence-modifier="persistent" default-fetch-group="false">
-                <collection element-type="java.lang.String" />
-            </field>
-            <field name="spots" persistence-modifier="persistent">
-                <collection element-type="SuperSpot" />
-                <join />
-            </field>
-            <field name="rightSpots" persistence-modifier="persistent">
-                <collection element-type="SuperSpot" />
-                <join />
-            </field>
-            <field name="leftReferenceSpots" persistence-modifier="persistent">
-                <collection element-type="SuperSpot" />
-                <join />
-            </field>
-            <field name="rightReferenceSpots"
-                persistence-modifier="persistent">
-                <collection element-type="SuperSpot" />
-                <join />
-            </field>
+      <field name="state" persistence-modifier="persistent">
+        <column length="128"/>
+      </field>
 
+      <field name="photographerEmail" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
+      <field name="photographerName" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
 
-            <field name="tissueSamples" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.genetics.TissueSample"
-                    dependent-element="true" />
-                <join />
-            </field>
+      <field name="guid" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
 
-            <field name="images" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.SinglePhotoVideo"
-                    dependent-element="true" />
-                <join />
-            </field>
+      <field name="recordedBy" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
 
+      <field name="hashedSubmitterEmail" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
-            <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.Measurement"
-                    dependent-element="true" />
-                <join />
-            </field>
-            
-            <field name="metalTags" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.tag.MetalTag" dependent-element="true"/>
-                <join/>
-            </field>
+      <field name="hashedPhotographerEmail" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
-            <field name="acousticTag" persistence-modifier="persistent">
-            </field>
+      <field name="hashedInformOthers" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
-            <field name="satelliteTag" persistence-modifier="persistent">
-            </field>
+      <field name="submitterEmail" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
 
-            <fetch-group name="allSharks_min">
-                <field name="approved" />
-            </fetch-group>
-            <fetch-group name="count" />
-        </class>
+      <field name="livingStatus" persistence-modifier="persistent">
+        <column length="256"/>
+      </field>
 
+      <field name="behavior" persistence-modifier="persistent">
+        <column length="1024" allows-null="true"/>
+      </field>
 
-        <class name="Keyword" identity-type="application" table="KEYWORD">
-            <field name="indexname" primary-key="true"
-                value-strategy="native">
-                <column length="100" />
-            </field>
-                    	<field name="photos" persistence-modifier="persistent">
-	                    		<collection element-type="java.lang.String"/>
+      <field name="eventID" persistence-modifier="persistent" default-fetch-group="true">
+        <column length="1024" allows-null="true"/>
+      </field>
+
+      <field name="dynamicProperties" persistence-modifier="persistent" default-fetch-group="true">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="identificationRemarks" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+
+      <field name="researcherComments" persistence-modifier="persistent" default-fetch-group="false">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="additionalImageNames" persistence-modifier="persistent" default-fetch-group="false">
+        <collection element-type="java.lang.String"/>
+      </field>
+      <field name="interestedResearchers" persistence-modifier="persistent" default-fetch-group="false">
+        <collection element-type="java.lang.String"/>
+      </field>
+      <field name="spots" persistence-modifier="persistent">
+        <collection element-type="SuperSpot"/>
+        <join/>
+      </field>
+      <field name="rightSpots" persistence-modifier="persistent">
+        <collection element-type="SuperSpot"/>
+        <join/>
+      </field>
+      <field name="leftReferenceSpots" persistence-modifier="persistent">
+        <collection element-type="SuperSpot"/>
+        <join/>
+      </field>
+      <field name="rightReferenceSpots" persistence-modifier="persistent">
+        <collection element-type="SuperSpot"/>
+        <join/>
+      </field>
+
+      <field name="tissueSamples" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.genetics.TissueSample" dependent-element="true"/>
+        <join/>
+      </field>
+
+      <field name="images" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.SinglePhotoVideo" dependent-element="true"/>
+        <join/>
+      </field>
+
+      <field name="annotations" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Annotation" dependent-element="true"/>
+        <join/>
+      </field>
+
+      <field name="measurements" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Measurement" dependent-element="true"/>
+        <join/>
+      </field>
+
+      <field name="metalTags" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.tag.MetalTag" dependent-element="true"/>
+        <join/>
+      </field>
+
+      <field name="acousticTag" persistence-modifier="persistent"></field>
+
+      <field name="satelliteTag" persistence-modifier="persistent"></field>
+
+      <fetch-group name="allSharks_min">
+        <field name="approved"/>
+      </fetch-group>
+      <fetch-group name="count"/>
+    </class>
+
+    <class name="Keyword" identity-type="application" table="KEYWORD">
+      <field name="indexname" primary-key="true" value-strategy="native">
+        <column length="100"/>
+      </field>
+      <field name="photos" persistence-modifier="persistent">
+        <collection element-type="java.lang.String"/>
+      </field>
+
+      <fetch-group name="count"/>
+    </class>
+
+    <class name="SuperSpot">
+      <datastore-identity strategy="increment"/>
+    </class>
+
+    <class name="Annotation" identity-type="application">
+      <field name="id" primary-key="true">
+        <column length="36"/>
+      </field>
+		<field name="isExemplar">
+<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+			<column default-value="0" />
+-->
+			<column default-value="false" />
+		</field>
+
+            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
+                	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
+                	<join />
             	</field>
 
-            <fetch-group name="count" />
-        </class>
+      <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
+      <!--
+		<field name="annot_xtl" />
+		<field name="annot_ytl" />
+		<field name="annot_width" />
+		<field name="annot_height" />
+		<field name="annot_theta" />
+		<field name="species_text" />
+-->
+    </class>
 
+    <class name="DataCollectionEvent" identity-type="application">
+      <inheritance strategy="new-table"/>
+      <field name="correspondingEncounterNumber">
+        <column name="CORRESPONDINGENCOUNTERNUMBER"/>
+      </field>
 
+      <field name="dataCollectionEventID" primary-key="true" value-strategy="native">
+        <column name="DATACOLLECTIONEVENTID"/>
+      </field>
+      <field name="samplingProtocol">
+        <column name="SAMPLINGPROTOCOL"/>
+      </field>
+      <field name="samplingEffort">
+        <column name="SAMPLINGEFFORT"/>
+      </field>
+      <field name="eventStartDate">
+        <column name="EVENTSTARTDATE"/>
+      </field>
+      <field name="eventEndDate">
+        <column name="EVENTENDDATE"/>
+      </field>
+      <field name="fieldNumber">
+        <column name="FIELDNUMBER"/>
+      </field>
+      <field name="fieldNotes">
+        <column name="FIELDNOTES"/>
+      </field>
 
-        <class name="SuperSpot">
-        	 <datastore-identity strategy="increment"/>
-        </class>
+      <field name="eventRemarks">
+        <column name="EVENTREMARKS"/>
+      </field>
+      <field name="institutionID">
+        <column name="INSTITUTIONID"/>
+      </field>
+      <field name="collectionID">
+        <column name="COLLECTIONID"/>
+      </field>
+      <field name="datasetID">
+        <column name="DATASETID"/>
+      </field>
+      <field name="institutionCode">
+        <column name="INSTITUTIONCODE"/>
+      </field>
+      <field name="collectionCode">
+        <column name="COLLECTIONCODE"/>
+      </field>
+      <field name="datasetName">
+        <column name="DATASETNAME"/>
+      </field>
+      <field name="type">
+        <column name="TYPE"/>
+      </field>
+    </class>
 
+    <class name="SinglePhotoVideo" identity-type="application">
+      <inheritance strategy="new-table"/>
+      <field name="correspondingUsername">
+        <column name="CORRESPONDINGUSERNAME"/>
+      </field>
+      <field name="filename">
+        <column name="FILENAME"/>
+      </field>
+      <field name="fullFileSystemPath">
+        <column name="FULLFILESYSTEMPATH"/>
+      </field>
 
-        <class name="DataCollectionEvent" identity-type="application">
-            <inheritance strategy="new-table" />
-            <field name="correspondingEncounterNumber">
-                <column name="CORRESPONDINGENCOUNTERNUMBER" />
-            </field>
+      <field name="copyrightOwner">
+        <column name="COPYRIGHTOWNER"/>
+      </field>
+      <field name="copyrightStatement">
+        <column name="COPYRIGHTSTATEMENT"/>
+      </field>
 
-            <field name="dataCollectionEventID" primary-key="true"
-                value-strategy="native">
-                <column name="DATACOLLECTIONEVENTID" />
-            </field>
-            <field name="samplingProtocol">
-                <column name="SAMPLINGPROTOCOL" />
-            </field>
-            <field name="samplingEffort">
-                <column name="SAMPLINGEFFORT" />
-            </field>
-            <field name="eventStartDate">
-                <column name="EVENTSTARTDATE" />
-            </field>
-            <field name="eventEndDate">
-                <column name="EVENTENDDATE" />
-            </field>
-            <field name="fieldNumber">
-                <column name="FIELDNUMBER" />
-            </field>
-            <field name="fieldNotes">
-                <column name="FIELDNOTES" />
-            </field>
+      <field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
+        <collection element-type="org.ecocean.Keyword"/>
+        <join/>
+      </field>
 
-            <field name="eventRemarks">
-                <column name="EVENTREMARKS" />
-            </field>
-            <field name="institutionID">
-                <column name="INSTITUTIONID" />
-            </field>
-            <field name="collectionID">
-                <column name="COLLECTIONID" />
-            </field>
-            <field name="datasetID">
-                <column name="DATASETID" />
-            </field>
-            <field name="institutionCode">
-                <column name="INSTITUTIONCODE" />
-            </field>
-            <field name="collectionCode">
-                <column name="COLLECTIONCODE" />
-            </field>
-            <field name="datasetName">
-                <column name="DATASETNAME" />
-            </field>
-            <field name="type">
-                <column name="TYPE" />
-            </field>
-        </class>
+      <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
+	  
+	  <field name="webURL" persistence-modifier="none"></field>
 
-        <class name="SinglePhotoVideo" identity-type="application">
-            <inheritance strategy="new-table" />
-			 <field name="correspondingUsername">
-                <column name="CORRESPONDINGUSERNAME" />
-            </field>
-            <field name="filename">
-                <column name="FILENAME" />
-            </field>
-            <field name="fullFileSystemPath">
-                <column name="FULLFILESYSTEMPATH" />
-            </field>
+    </class>
 
-            <field name="copyrightOwner">
-                <column name="COPYRIGHTOWNER" />
-            </field>
-            <field name="copyrightStatement">
-                <column name="COPYRIGHTSTATEMENT" />
-            </field>
+    <class name="Measurement" identity-type="application">
+      <inheritance strategy="new-table"/>
+      <field name="value">
+        <column name="VALUE"/>
+      </field>
+      <field name="units">
+        <column name="UNITS"/>
+      </field>
+    </class>
 
-            <field name="keywords" persistence-modifier="persistent" default-fetch-group="true">
-                <collection element-type="org.ecocean.Keyword" />
-                <join />
-            </field>
-			
-			 <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-        </class>
+    <class name="PatterningPassport" identity-type="datastore">
+      <field name="timestampOfLastUpdate">
+        <column jdbc-type="BIGINT"/>
+      </field>
+      <field name="encounterUrl">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="mediaUrl">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="patterningPassportXmlUrl">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+    </class>
 
-        <class name="Measurement" identity-type="application">
-            <inheritance strategy="new-table" />
-            <field name="value">
-                <column name="VALUE" />
-            </field>
-            <field name="units">
-                <column name="UNITS" />
-            </field>
-        </class>
-		
-		<class name="PatterningPassport" identity-type="datastore">
-			<field name="timestampOfLastUpdate">
-				<column jdbc-type="BIGINT" />
-			</field>
-			<field name="encounterUrl">
-				<column jdbc-type="LONGVARCHAR" />
-			</field>
-			<field name="mediaUrl">
-				<column jdbc-type="LONGVARCHAR" />
-			</field>
-			<field name="patterningPassportXmlUrl">
-				<column jdbc-type="LONGVARCHAR" />
-			</field>
-		</class>
-		
-		
-		
-		<class name="org.ecocean.security.Collaboration" identity-type="application" table="COLLABORATIONS">
-			<field name="id" primary-key="true" >
-				<column name="ID" />
-			</field>
-			<field name="username1">
-				<column name="USERNAME1" />
-			</field>
-			<field name="username2" >
-				<column name="USERNAME2" />
-			</field>
-			<field name="dateTimeCreated">
-				<column  jdbc-type="BIGINT" allows-null="true" />
-			</field>
-			<field name="state">
-				<column name="STATE" />
-			</field>
-		</class>
+    <class name="org.ecocean.security.Collaboration" identity-type="application" table="COLLABORATIONS">
+      <field name="id" primary-key="true">
+        <column name="ID"/>
+      </field>
+      <field name="username1">
+        <column name="USERNAME1"/>
+      </field>
+      <field name="username2">
+        <column name="USERNAME2"/>
+      </field>
+      <field name="dateTimeCreated">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+      <field name="state">
+        <column name="STATE"/>
+      </field>
+    </class>
 
+    <class name="User" identity-type="application" table="USERS">
 
-		<class name="User" identity-type="application" table="USERS">
-		            
-					 
-		            <field name="fullName">
-		                <column name="FULLNAME" />
-		            </field>
-		            
-		            <field name="emailAddress">
-		                <column name="EMAILADDRESS" />
-		            </field>
-		
-		            <field name="physicalAddress">
-			    	<column name="PHYSICALADDRESS" />
-		            </field>
-		            
-		            
-		            <field name="phoneNumber">
-		                <column name="PHONENUMBER" />
-		            </field>
-		            
-		             <field name="affiliation">
-			    	<column name="AFFILIATION" />
-		            </field>
-		            
-		            <field name="notes">
-			    	<column name="NOTES" />
-		            </field>
-		            
-		            <field name="dateInMilliseconds" persistence-modifier="persistent">
-			                    <column jdbc-type="BIGINT" allows-null="true" />
-            			</field>
-            			
-            			  <field name="userID" persistence-modifier="persistent">
-							                    <column jdbc-type="BIGINT" allows-null="true" />
-            			</field>
-		
-		            <field name="username" primary-key="true" column="username">
-			    				<column length="100"/>
-			</field>
-			
-			<field name="password" column="password">
-						    				<column jdbc-type="LONGVARCHAR" />
-			</field>
-			            <field name="salt" persistence-modifier="persistent">
-			                <column jdbc-type="LONGVARCHAR" />
-			                
-			                
-			<field name="userStatement">
-									<column jdbc-type="LONGVARCHAR" />
-			</field>
-			
-			<field name="userProject">
-				<column length="256"/>
-		        </field>
-		        
-		        <field name="userURL">	
-		        	<column length="256"/>
-		        </field>
-		        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
-				</field>
-		 					
-			<field name="lastLogin" persistence-modifier="persistent">
-				<column jdbc-type="BIGINT" allows-null="true" />
-		        </field>
-			                
-         
-					
-					</field>
-		 </class>
-		 
-		 
-		 		<class name="Role" identity-type="datastore" table="USER_ROLES">
-		 		            
-		 			
-		 		
-		 		            <field name="username" column="username">
-		 			    				<column length="100"/>
-		 			</field>
-		 			 <field name="rolename" column="ROLE_NAME">
-							 			    				<column length="100"/>
-		 			</field>
-					
-					<field name="context" column="CONTEXT">
-							 			    				<column length="100"/>
-		 			</field>
-		 		
-		 		
-		 </class>
-        
-		
-			<class name="Story" identity-type="application" table="STORY">
-		            
+      <field name="fullName">
+        <column name="FULLNAME"/>
+      </field>
 
-		            <field name="storyID" primary-key="true" column="STORY_ID">
-			    				<column length="100"/>
-					</field>
-					
-					 <field name="storyTellerName" column="STORY_TELLER_NAME">
-			    				<column length="100"/>
-					</field>
-					
-					<field name="storyTellerEmail" column="STORY_TELLER_EMAIL">
-			    				<column length="100"/>
-					</field>
-					
-					<field name="storyMediaURL" column="STORY_MEDIA_URL">
-			    				<column length="256"/>
-					</field>
-					
-					<field name="storyText">
-									<column jdbc-type="LONGVARCHAR" />
-					</field>
-					
-					<field name="correspondingEncounterNumber">
-			    				<column length="256"/>
-					</field>
-					
-					<field name="correspondingMarkedIndividualID">
-			    				<column length="256"/>
-					</field>
-					
-					<field name="correspondingOccurrenceID">
-			    				<column length="256"/>
-					</field>
-					
-					<field name="correspondingSocialUnitName">
-			    				<column length="256"/>
-					</field>
-					
-					  <field name="correspondingThumbnailSinglePhotoVideo" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo">
-				</field>
-					
-			</class>		
-		
+      <field name="emailAddress">
+        <column name="EMAILADDRESS"/>
+      </field>
 
+      <field name="physicalAddress">
+        <column name="PHYSICALADDRESS"/>
+      </field>
 
+      <field name="phoneNumber">
+        <column name="PHONENUMBER"/>
+      </field>
 
-        
-		
-		
-    </package>
+      <field name="affiliation">
+        <column name="AFFILIATION"/>
+      </field>
+
+      <field name="notes">
+        <column name="NOTES"/>
+      </field>
+
+      <field name="dateInMilliseconds" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+
+      <field name="userID" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="true"/>
+      </field>
+
+      <field name="username" primary-key="true" column="username">
+        <column length="100"/>
+      </field>
+
+      <field name="password" column="password">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+      <field name="salt" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR"/>
+
+        <field name="userStatement">
+          <column jdbc-type="LONGVARCHAR"/>
+        </field>
+
+        <field name="userProject">
+          <column length="256"/>
+        </field>
+
+        <field name="userURL">
+          <column length="256"/>
+        </field>
+        <field name="userImage" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"></field>
+
+        <field name="lastLogin" persistence-modifier="persistent">
+          <column jdbc-type="BIGINT" allows-null="true"/>
+        </field>
+
+      </field>
+    </class>
+
+    <class name="Role" identity-type="datastore" table="USER_ROLES">
+
+      <field name="username" column="username">
+        <column length="100"/>
+      </field>
+      <field name="rolename" column="ROLE_NAME">
+        <column length="100"/>
+      </field>
+
+      <field name="context" column="CONTEXT">
+        <column length="100"/>
+      </field>
+
+    </class>
+
+    <class name="Story" identity-type="application" table="STORY">
+
+      <field name="storyID" primary-key="true" column="STORY_ID">
+        <column length="100"/>
+      </field>
+
+      <field name="storyTellerName" column="STORY_TELLER_NAME">
+        <column length="100"/>
+      </field>
+
+      <field name="storyTellerEmail" column="STORY_TELLER_EMAIL">
+        <column length="100"/>
+      </field>
+
+      <field name="storyMediaURL" column="STORY_MEDIA_URL">
+        <column length="256"/>
+      </field>
+
+      <field name="storyText">
+        <column jdbc-type="LONGVARCHAR"/>
+      </field>
+
+      <field name="correspondingEncounterNumber">
+        <column length="256"/>
+      </field>
+
+      <field name="correspondingMarkedIndividualID">
+        <column length="256"/>
+      </field>
+
+      <field name="correspondingOccurrenceID">
+        <column length="256"/>
+      </field>
+
+      <field name="correspondingSocialUnitName">
+        <column length="256"/>
+      </field>
+
+      <field name="correspondingThumbnailSinglePhotoVideo" persistence-modifier="persistent" element-type="org.ecocean.SinglePhotoVideo"></field>
+
+    </class>
+
+    <class name="WBQuery" identity-type="application">
+      <field name="id" jdbc-type="BIGINT" primary-key="true" value-strategy="identity"/>
+      <field name="revision" persistence-modifier="persistent">
+        <column jdbc-type="BIGINT" allows-null="false"/>
+      </field>
+      <field name="name"/>
+      <field name="parametersAsString" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR" name="parameters"/>
+      </field>
+      <field name="owner" persistence-modifier="persistent" element-type="org.ecocean.AccessControl"/>
+    </class>
+
+    <class name="Workspace" identity-type="application" table="WORKSPACE">
+      <field name="id" primary-key="true" jdbc-type="BIGINT" value-strategy="identity"/>
+      <field name="name"/>
+      <field name="owner"/>
+      <field name="created"/>
+      <field name="modified"/>
+      <field name="accessed"/>
+
+      <field name="queryAsString" persistence-modifier="persistent">
+        <column jdbc-type="LONGVARCHAR" name="queryAsString"/>
+      </field>
+    </class>
+
+    <class name="AccessControl" identity-type="application">
+      <field name="id" jbc-type="BIGINT" primary-key="true" value-strategy="identity"/>
+      <field name="username"/>
+    </class>
+
+	<class name="Resolver" identity-type="application">
+		<field name="id" primary-key="true" value-strategy="identity">
+			<column name="ID" />
+		</field>
+		<field name="type" />
+		<field name="modified" />
+		<field name="parameters" />
+		<field name="results" />
+		<field name="status" />
+		<field name="resultObjects" persistence-modifier="none"/>
+
+		<field name="children" mapped-by="parent">
+			<collection element-type="org.ecocean.Resolver" />
+		</field>
+		<field name="parent">
+			<column name="PARENT_ID" />
+		</field>
+
+	</class>
+
+  </package>
 </jdo>

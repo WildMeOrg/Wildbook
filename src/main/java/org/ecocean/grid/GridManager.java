@@ -22,6 +22,16 @@ package org.ecocean.grid;
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.neural.TrainNetwork;
+
+
+import org.ecocean.servlet.ServletUtilities;
+
+//train weka
+import weka.core.Attribute;
+import weka.core.Instances;
+import weka.core.Instance;
+import weka.classifiers.Evaluation;
 
 
 import org.ecocean.servlet.ServletUtilities;
