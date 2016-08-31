@@ -132,7 +132,7 @@ public class ClassEditTemplate {
     return constructInputElemName(classNamePrefix, fieldName);
   }
 
-  public static String inputElemName(DataPoint dp, int dataSheetNum, String classNamePrefix) {
+  public static String inputElemName(DataPoint dp, String classNamePrefix) {
     String fieldName = dp.getName();
     return constructInputElemName(classNamePrefix+"-dp-"+dp.getID(), fieldName);
   }
@@ -187,7 +187,7 @@ public class ClassEditTemplate {
 
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, String units, int dataSheetNum, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, String units, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     System.out.println("    beginning printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out)");
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
@@ -198,7 +198,7 @@ public class ClassEditTemplate {
     if (printValue == null) System.out.println("It's really null! I knew it!");
     //if (printValue.equals("null")) printValue = "";
     String fieldName = dp.getName();
-    String inputName = inputElemName(dp, dataSheetNum, classNamePrefix);
+    String inputName = inputElemName(dp, classNamePrefix);
 
     System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
     printOutClassFieldModifierRow(fieldName, printValue, units, inputName, out);
