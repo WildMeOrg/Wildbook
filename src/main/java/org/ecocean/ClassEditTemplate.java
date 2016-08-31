@@ -187,7 +187,7 @@ public class ClassEditTemplate {
 
   }
 
-  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, String units, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     System.out.println("    beginning printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out)");
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
