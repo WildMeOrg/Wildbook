@@ -276,6 +276,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
+/*   generic IA stuff, skipped for whaleshark
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
       if (isGenusSpeciesSet()) {
@@ -304,8 +305,20 @@ function doImageEnhancer(sel) {
 			tid
 		]);
 	}
+*/
 
 	opt.menu.push(
+            [
+		'begin scan',
+		function(enh) {
+			if (!enh || !enh.imgEl || !enh.imgEl.context) {
+				alert('could not determine id');
+				return;
+			}
+			var mid = enh.imgEl.context.id.substring(11);
+			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
+		}
+            ],
             [
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }
