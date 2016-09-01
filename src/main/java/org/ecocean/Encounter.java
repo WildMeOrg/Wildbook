@@ -1772,6 +1772,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	else{genus=null;}
+    updateAnnotationTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -1781,7 +1782,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	else{specificEpithet=null;}
+    updateAnnotationTaxonomy();
   }
+
+    private void updateAnnotationTaxonomy() {
+        //TODO make this, duh
+    }
 
     public String getTaxonomyString() {
         return Util.taxonomyString(getGenus(), getSpecificEpithet());
