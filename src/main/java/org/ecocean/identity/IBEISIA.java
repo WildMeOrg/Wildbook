@@ -614,7 +614,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.toString();
+            return ma.webURL().toString();  //a better last gasp hope
         }
     }
 

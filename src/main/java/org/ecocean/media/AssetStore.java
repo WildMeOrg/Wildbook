@@ -461,6 +461,7 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
      *  should create the ("base") set of parameters for the specific store-type based on file.
      *  note this can take into account store-specific config settings (like bucket for S3)
      *   (optional) "grouping" acts sort of like a common subdir to put it under (**if** available for that store!)
+     *  can (should?) just return null for read-only stores?
      */
     public abstract JSONObject createParameters(final File file, final String grouping);
     public JSONObject createParameters(final File file) {
