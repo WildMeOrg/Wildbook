@@ -81,6 +81,12 @@
 		</inheritance>
 	</class>
 
+ 	<class name="URLAssetStore">
+ 		<inheritance strategy="superclass-table">
+ 			<discriminator value="URL"/>
+ 		</inheritance>
+ 	</class>
+
 
 	<class name="MediaAssetSet">
 		<field name="id" primary-key="true">
