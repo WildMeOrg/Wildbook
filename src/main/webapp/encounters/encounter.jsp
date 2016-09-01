@@ -2683,7 +2683,9 @@ if (isOwner) {
 %>
 
 <!-- START AUTOCOMMENTS -->
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <!-- start autocomments -->
 <script type="text/javascript">
   $(document).ready(function() {
@@ -2731,6 +2733,10 @@ if (isOwner) {
 
     </form>
 </div>
+
+<%
+}
+%>
 <!-- END AUTOCOMMENTS -->
 
 <!-- START DELETE ENCOUNTER FORM -->
