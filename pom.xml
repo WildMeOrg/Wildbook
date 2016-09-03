@@ -618,11 +618,11 @@
           </execution>
     		<execution>
       			<id>Git Version Stamper</id>
-      			<phase>install</phase>
+      			<phase>clean</phase>
       			<goals>
         			<goal>exec</goal>
       			</goals>
-      			<configuration>
+      			<configuration> <!-- note: this is unix-centric... so thats probably bad -->
         			<executable>${basedir}/config/git-json-info.sh</executable>
 				<workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
       			</configuration>
