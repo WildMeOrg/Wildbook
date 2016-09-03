@@ -3500,10 +3500,10 @@ public class Shepherd {
     Query q = pm.newQuery(encClass, filter);
     q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
-    if((c!=null)&&(c.size()>0)){
-
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
       int numAdded=0;
-      while(numAdded<numToReturn){
+      while(numAdded<max){
         ArrayList<Encounter> results=new ArrayList<Encounter>(c);
         matchingEncounters.add(results.get(numAdded));
         numAdded++;
