@@ -2534,6 +2534,7 @@ throw new Exception();
 		return true;
 	}
 
+///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
             Encounter returnEnc=null;
