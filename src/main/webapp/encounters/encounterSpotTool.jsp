@@ -20,7 +20,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,
+org.ecocean.media.MediaAsset,
+org.ecocean.media.MediaAssetFactory,
+org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -33,11 +36,15 @@ String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
 
-
-String imageID = request.getParameter("imageID");
-SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(imageID);
-String num = spv.getCorrespondingEncounterNumber();
-Encounter enc = myShepherd.getEncounter(num);
+int imageID = Integer.parseInt(request.getParameter("imageID"));
+MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
+if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
+Encounter enc = null;
+for (Annotation ann : ma.getAnnotations()) {
+	enc = Encounter.findByAnnotation(ann, myShepherd);
+	if (enc != null) break;
+}
+if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -50,7 +57,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 */
 
-String imgSrc = spv.asUrl(enc, baseDir);
+String imgSrc = ma.webURL().toString();
 
 
 //handle some cache-related security
@@ -203,7 +210,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 
-var encounterNumber = '<%=num%>';
+var encounterNumber = '<%=enc.getCatalogNumber()%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
 	updateSpotCounts();
