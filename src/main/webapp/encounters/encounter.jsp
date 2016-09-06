@@ -3195,27 +3195,33 @@ else {
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
 
-        <div id="add-image-zone" class="bc4">
-
-          <h2 style="text-align:left">Add image to Encounter</h2>
-
-          <div class="flow-box bc4" style="text-align:center" >
-
-            <div id="file-activity" style="display:none"></div>
-
-            <div id="updone"></div>
-
-            <div id="upcontrols">
-              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-              <div id="flowbuttons">
-
-                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-
-              </div>
-            </div>
-          </div>
-        </div>
+		<%
+		if(isOwner){
+		%>
+	        <div id="add-image-zone" class="bc4">
+	
+	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
+	
+	          <div class="flow-box bc4" style="text-align:center" >
+	
+	            <div id="file-activity" style="display:none"></div>
+	
+	            <div id="updone"></div>
+	
+	            <div id="upcontrols">
+	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+	              <div id="flowbuttons">
+	
+	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+	
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+        <%
+        }
+        %>
     <%-- END IMAGES --%>
 
 
