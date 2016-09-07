@@ -461,5 +461,10 @@ public class Util {
         return ll.toString();
     }
 
+    // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
+    public static int getNumSections(int collectionSize, int itemsPerSection) {
+      return (collectionSize - 1)/itemsPerSection + 1;
+    }
+
 
 }

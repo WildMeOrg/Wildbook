@@ -155,7 +155,7 @@ public class ClassEditTemplate {
     }
   }
 
-  public static void printDateTimeSetterRow(Object obj, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
+  public static void printDateTimeSetterRow(Object obj, String objID, javax.servlet.jsp.JspWriter out) throws NoSuchMethodException, IOException, IllegalAccessException, InvocationTargetException {
     Method getDateTime = obj.getClass().getMethod("getDateTime");
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
@@ -178,7 +178,7 @@ public class ClassEditTemplate {
     out.println("\t<td>");
     // hidden input for setting default va a la http://stackoverflow.com/a/11904956
     //out.println("\t\t<input type=\"hidden\" id=\"datepicker\" />");
-    out.println("<input class=\"form-control\" type=\"text\" id=\"datepicker\"");
+    out.println("<input class=\"form-control datepicker\" type=\"text\"");
     out.println("name=\""+inputName+"\" ");
     out.println("value=\""+printValue+"\"");
     out.println("/>");
@@ -188,7 +188,6 @@ public class ClassEditTemplate {
   }
 
   public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    System.out.println("    beginning printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out)");
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -197,11 +196,10 @@ public class ClassEditTemplate {
     String printValue = dp.getValueString();
     if (printValue == null) System.out.println("It's really null! I knew it!");
     //if (printValue.equals("null")) printValue = "";
-    String fieldName = dp.getName();
+    String fieldName = splitCamelCase(dp.getName());
     String inputName = inputElemName(dp, classNamePrefix);
 
-    System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
-    printOutClassFieldModifierRow(fieldName, printValue, units, inputName, out);
+    printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
   }
 
   public static void printOutClassFieldModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
@@ -216,7 +214,6 @@ public class ClassEditTemplate {
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    System.out.println("printOutClassFieldModifierRow on class "+classNamePrefix+": "+className+" "+printValue+" "+fieldName+" "+inputName);
     printOutClassFieldModifierRow(fieldName, printValue, null, inputName, out);
 
   }
@@ -226,8 +223,8 @@ public class ClassEditTemplate {
   public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
 
     out.println("<tr data-original-value=\""+printValue+"\">");
-    out.println("\t<td>"+fieldName+"</td>");
-    out.println("\t<td>");
+    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
+    out.println("\t<td class=\"value\">");
     out.println("\t\t<input ");
     out.println("name=\""+inputName+"\" ");
     out.println("value=\""+printValue+"\"");

@@ -45,4 +45,18 @@ $(document).ready(function() {
 		$('.submit .note').html('changes made. please save.');
     console.log('Change detected on form. ChangedFields = '+JSON.stringify(changedFields));
 	});
+
+  $( ".datepicker" ).datetimepicker({
+    changeMonth: true,
+    changeYear: true,
+    dateFormat: 'yy-mm-dd',
+    maxDate: '+1d',
+    controlType: 'select',
+    alwaysSetTime: false
+  });
+  $( ".datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
+
+
+
+
 });

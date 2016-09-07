@@ -87,7 +87,9 @@ public class DataSheet extends DataCollectionEvent {
     return classNames.contains(className);
   }
 
-
+  public int size() {
+    return data.size();
+  }
 
   public void addData(DataPoint datom) {
     this.data.add(datom);
