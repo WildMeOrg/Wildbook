@@ -470,27 +470,27 @@ if(occ.getIndividualCount()!=null){
 <table  class="occurrence-field-edit">
 
   <%
-  ClassEditTemplate.writeEditableFieldRow((Object) occ, "habitat", out);
+  ClassEditTemplate.printOutClassFieldModifierRow((Object) occ, "habitat", out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
   String[] groupFields = {"groupSize", "groupBehavior", "numTerMales", "numBachMales", "numLactFemales", "numNonLactFemales"};
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, groupFields, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
   String[] locationFields = {"locationID", "decimalLatitude", "decimalLongitude"};
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, locationFields, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, new String[]{"distance", "bearing"}, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, new String[]{"distance", "bearing"}, out);
   %>
 
 </table>
