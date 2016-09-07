@@ -86,7 +86,7 @@ maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
     partArray = partArray[partArray.length-1].split('.');
-    return encodeURI(partArray[0]);
+    return partArray[0];
   }
   return "Test caption, do not read";
 
