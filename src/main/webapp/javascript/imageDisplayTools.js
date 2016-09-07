@@ -16,7 +16,7 @@ var maLib = {};
  */
 maLib.maJsonToFigureElem = function(maJson, intoElem) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -106,8 +106,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   caption = caption || '';
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
 
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -150,8 +149,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
   colSize = colSize || 6;
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -222,6 +220,7 @@ maLib.testExtraction = function(maJson) {
     nChildren = 'undefined';
   }
   console.log('\t'+maJson.id+' has nChildren = '+nChildren);
+console.log(maJson);
 
   console.log('\t'+maJson.id+' has child watermark url: '+maLib.getChildUrl(maJson, '_watermark'));
 
@@ -231,8 +230,7 @@ maLib.testExtraction = function(maJson) {
 
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -538,9 +536,20 @@ maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
 
 
 
+maLib.getUrl = function(maJson) {
+    url = maJson.url;
+    if (!url) return;
+    if (!wildbookGlobals.username) {
+        var wmUrl = maLib.getChildUrl(maJson, '_watermark');
+        if (wmUrl) url = wmUrl;
+    }
+console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
+    url = wildbook.cleanUrl(url);
+    return url;
+}
 
 function mkImg(maJson) {
-    var url = wildbook.cleanUrl(maJson.url);
+    var url = maLib.getUrl(maJson);
     return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
 }
 
