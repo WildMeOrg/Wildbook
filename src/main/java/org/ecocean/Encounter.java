@@ -674,6 +674,10 @@ public class Encounter implements java.io.Serializable {
     return imageNamesOnly;
   }
 
+  public String getImageOriginalName() {
+    return getPrimaryMediaAsset().getFilename();
+  }
+
   /**
    * Adds another image to the collection of images for this encounter.
    * These images should be the additional or non-side shots.
