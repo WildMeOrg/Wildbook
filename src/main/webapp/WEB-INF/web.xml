@@ -141,6 +141,7 @@
 				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
+				/SubmitSpotsAndImage = authc, roles[imageProcessor]
 	
 		/GenePopExport = authc, roles[researcher]
 		
@@ -1148,6 +1149,11 @@
 		<url-pattern>/PrimeIBEISImageAnalysisForSpecies</url-pattern>
 	</servlet-mapping>
 
+  <servlet>
+    <servlet-name>SubmitSpotsAndImage</servlet-name>
+    <servlet-class>org.ecocean.servlet.SubmitSpotsAndImage</servlet-class>
+  </servlet>
+
   <!-- TranslateQuery -->
   <servlet>
     <servlet-name>TranslateQuery</servlet-name>
@@ -1221,6 +1227,11 @@
         <url-pattern>/CRCExportReport</url-pattern>
   </servlet-mapping>
 
+
+<servlet-mapping>
+  <servlet-name>SubmitSpotsAndImage</servlet-name>
+  <url-pattern>/SubmitSpotsAndImage</url-pattern>
+</servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>TranslateQuery</servlet-name>
