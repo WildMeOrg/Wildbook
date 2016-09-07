@@ -362,7 +362,7 @@ public class Encounter implements java.io.Serializable {
   }
 
   public int getNumRightSpots() {
-    return (rightSpots == null) ? 0 : spots.size();
+    return (rightSpots == null) ? 0 : rightSpots.size();
 /*
     ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
     if(fakeRightSpots!=null){return fakeRightSpots.size();}
