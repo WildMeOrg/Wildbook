@@ -141,6 +141,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 
 #imageTools-control {
+	margin: 6px;
 	position: absolute;
 	top: 402px;
 	left: 0;
@@ -478,6 +479,7 @@ function spotsSave() {
 	if (sp.length < 1) return;
 //TODO verify we really have all we need (like when we updateSaveButton())
 
+	$('#imageTools-spot-type-picker').hide();
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');
 
@@ -535,7 +537,7 @@ console.log(sdata);
 		data: JSON.stringify(sdata),
 		contentType: 'application/javascript',
 		dataType: 'json',
-		success: function(d) { console.warn('complete! %o', d); },
+		success: function(d) { allGood(d); },
 		error: function(a,b,c) {
 			console.error('%o %o %o', a,b,c);
 			$('#imageTools-buttons').show();
@@ -546,6 +548,7 @@ console.log(sdata);
 }
 
 
+/*  old non-MA cruft
 function sendImage(d) {
 	console.info('SUCCESS saving spots: %o', d);
 	$('#imageTools-message').html('saving image...');
@@ -564,9 +567,16 @@ function sendImage(d) {
 		type: 'POST'
 	});
 }
+*/
 
 
 function allGood(d) {
+	if (!d.success) {
+		console.error("error api return %o", d);
+		$('#imageTools-buttons').show();
+		$('#imageTools-message').html(d.error || 'error saving');
+		return;
+	}
 	console.info('SUCCESS saving image: %o', d);
 	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
 }
