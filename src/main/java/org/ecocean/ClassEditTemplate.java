@@ -9,8 +9,6 @@ import java.lang.reflect.InvocationTargetException;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
-import org.ecocean.datacollection.DataPoint;
-
 /*
  * An almost entirely static / functional class for printing html UI elements
  * for editing class fields on pages such as occurrence.jsp. Note that this
@@ -132,13 +130,6 @@ public class ClassEditTemplate {
     return constructInputElemName(classNamePrefix, fieldName);
   }
 
-  public static String inputElemName(DataPoint dp, String classNamePrefix) {
-    String fieldName = dp.getName();
-    return constructInputElemName(classNamePrefix+"-dp-"+dp.getID(), fieldName);
-  }
-
-
-
   public static boolean isDisplayableGetter(Method method) {
     try {
       String methName = method.getName();
@@ -185,21 +176,6 @@ public class ClassEditTemplate {
     out.println("\t</td>");
 
 
-  }
-
-  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
-    String classNamePrefix = ""; // e.g. "occ"
-    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
-    else classNamePrefix = className.toLowerCase();
-
-    String printValue = dp.getValueString();
-    if (printValue == null) System.out.println("It's really null! I knew it!");
-    //if (printValue.equals("null")) printValue = "";
-    String fieldName = splitCamelCase(dp.getName());
-    String inputName = inputElemName(dp, classNamePrefix);
-
-    printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
   }
 
   public static void printOutClassFieldModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
