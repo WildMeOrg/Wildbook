@@ -1,6 +1,14 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, org.ecocean.social.*, com.google.gson.Gson" %>
 
+
+<%!
+	public String cleanString(Object obj) {
+		if (obj == null) return "";
+		return obj.toString();
+	}
+%>
+
 <%
 
 String blocker = "";
@@ -180,6 +188,13 @@ context=ServletUtilities.getContext(request);
       Occurrence occ = myShepherd.getOccurrence(name);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 
+      Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+      int total = dateSortedEncs.length;
+      HashMap<String,Encounter> encById = new HashMap<String,Encounter>();
+      for (int i = 0; i < total; i++) {
+        Encounter enc = dateSortedEncs[i];
+        encById.put(enc.getCatalogNumber(), enc);
+      }
 
 			List collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = occ.canUserAccess(request);
@@ -703,35 +718,22 @@ $("a#indies").click(function() {
   <%=props.getProperty("numencounters") %>
 </p>
 
-<table id="results" width="100%">
+<table style="border-spacing: 0;" id="results" width="100%">
   <tr class="lineitem">
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>File name</strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
-    <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
-    <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Age first sighted</strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Class</strong></td>
 
-    	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=props.getProperty("spots") %></strong>
-    	</td>
-    <%
-    }
-    %>
-   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
- <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
+ <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Mother of</strong></td>
 
   </tr>
   <%
-    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
 
-    int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
 
@@ -739,17 +741,26 @@ $("a#indies").click(function() {
         String imgName = "";
 				String encSubdir = enc.subdir();
 
+				MarkedIndividual indiv = null;
+    		if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+					indiv = myShepherd.getMarkedIndividual(enc.getIndividualID());
+				}
+
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
 
   %>
-  <tr>
-      <td class="lineitem"><%=enc.getDate()%>
+  <tr id="row-enc-<%=enc.getEncounterNumber()%>" class="enc-row" data-id="<%=enc.getEncounterNumber()%>" data-indiv="<%=((indiv == null) ? "" : enc.getIndividualID())%>">
+      <td class="lineitem enc-date">
+<%=enc.getDate()%>
+			</td>
+			<td class="lineitem enc-filename">
+<div title="<%=enc.getImageOriginalName()%>"><%=((enc.getImageOriginalName() == null) ? "" : enc.getImageOriginalName())%></div>
     </td>
     <td class="lineitem">
     	<%
-    	if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+    	if (indiv != null) {
     	%>
-    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+    	<a target="_new" onClick="event.stopPropagation(); return true;" href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     	<%
     	}
     	else{
@@ -759,14 +770,7 @@ $("a#indies").click(function() {
     	}
     	%>
     </td>
-    <%
-    String location="&nbsp;";
-    if(enc.getLocation()!=null){
-    	location=enc.getLocation();
-    }
-    %>
-    <td class="lineitem"><%=location%>
-    </td>
+<!--
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
 
@@ -797,72 +801,47 @@ $("a#indies").click(function() {
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
-
-    <%
-      if (enc.getAlternateID() != null) {
-    %>
-    <td class="lineitem"><%=enc.getAlternateID()%>
-    </td>
-    <%
-    } else {
-    %>
-    <td class="lineitem"><%=props.getProperty("none")%>
-    </td>
-    <%
-      }
-    %>
-
+-->
 
 <%
 String sexValue="&nbsp;";
 if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
-    <td class="lineitem"><%=sexValue %></td>
-
-    <%
-      if (CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
-    <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-    <td class="lineitem">&nbsp;</td>
-    <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">LR</td>
-    <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-    <td class="lineitem">L</td>
-    <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">R</td>
-    <%
-        }
-      }
-    %>
+    <td data-prop="sex" class="col-sex lineitem"><%=sexValue %></td>
 
 
-    <td class="lineitem">
-    <%
-    if(enc.getBehavior()!=null){
-    %>
-    <%=enc.getBehavior() %>
-    <%
-    }
-    else{
-    %>
-    &nbsp;
-    <%
-    }
-    %>
-    </td>
+<%
+	String ageAFS = "";
+	if (indiv != null) {
+		ageAFS = cleanString(indiv.getAgeAtFirstSighting());
+	}
+%>
+<td class="col-ageAtFirstSighting lineitem" data-prop="ageAtFirstSighting"><%=ageAFS%></td>
 
-  <td class="lineitem">
+<td class="col-zebraClass lineitem" data-prop="zebraClass"><%=cleanString(enc.getZebraClass())%></td>
+
+  <td class="col-relationships lineitem">
     <%
-    if(enc.getHaplotype()!=null){
-    %>
-    <%=enc.getHaplotype() %>
-    <%
-    }
-    else{
-    %>
-    &nbsp;
-    <%
-    }
+	String iid = enc.getIndividualID();
+	if ((iid != null) && !iid.equals("") && !iid.equals("Unassigned")) {
+		ArrayList<Relationship> rels = myShepherd.getAllRelationshipsForMarkedIndividual(iid);
+		if ((rels != null) && (rels.size() > 0)) {
+			for (Relationship r : rels) {
+				String partner = r.getMarkedIndividualName1();
+				String role = r.getMarkedIndividualRole2();
+				String type = r.getType();
+				if (partner.equals(iid)) {
+					partner = r.getMarkedIndividualName2();
+					role = r.getMarkedIndividualRole1();
+				}
+				if (!role.equals("mother")) continue;  //for lewa, only showing offspring of mother
+			%><span data-partner="<%=partner%>" class="relationship relType-<%=type%> relRole-<%=role%>"><%=partner%></span> <%
+  			}
+		}
+  //private String markedIndividualName2;
+  //private String markedIndividualRole2;
+			%><span class="relationship-none" title="add a relationship" onClick="return relAdd(event);">add</span><%
+	}
     %>
     </td>
   </tr>
