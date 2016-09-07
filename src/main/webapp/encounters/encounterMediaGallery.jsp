@@ -309,7 +309,7 @@ function doImageEnhancer(sel) {
 
 	opt.menu.push(
             [
-		'begin scan',
+		'spot mapping',
 		function(enh) {
 			if (!enh || !enh.imgEl || !enh.imgEl.context) {
 				alert('could not determine id');
