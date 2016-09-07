@@ -87,7 +87,8 @@ public class SubmitSpotsAndImage extends HttpServlet {
     if (refSpots == null) throw new IOException("invalid refSpots");
 
     AssetStore store = AssetStore.getDefault(myShepherd);
-    JSONObject params = store.createParameters(new File(Util.hashDirectories(encId, "/") + "/" + maId + "-spots-" + (rightSide ? "right" : "left") + ".jpg"));
+    //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
+    JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
 System.out.println("====> params = " + params);
     MediaAsset ma = store.create(params);
     ma.copyInBase64(json.optString("imageData", null));
