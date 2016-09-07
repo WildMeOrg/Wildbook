@@ -65,9 +65,55 @@ context=ServletUtilities.getContext(request);
       color: #000000;
       font-weight: bold;
     }
+    .col-relationships {
+    	width: 170px;
+    }
 
+    .enc-filename div {
+    	color: #666;
+    	font-size: 0.9em;
+    	width: 120px;
+    	padding-left: 3px;
+    	overflow-x: hidden;
+    	white-space: nowrap;
+    }
 
+    .relationship-none {
+    	position: relative;
+    	border-radius: 4px;
+    	padding: 2px 8px 2px 8px;
+    	background-color: #DDD;
+    	color: #AAA;
+    }
 
+    .relationship {
+    	border-radius: 4px;
+    	padding: 2px 8px 2px 8px;
+    	background-color: #888;
+    	color: #DDD;
+    }
+    .relationship:hover {
+    	background-color: #F98;
+    	color: #333;
+    }
+
+    .rel-partner {
+    	background-color: #FAA;
+    }
+
+    #relationships-form {
+    	width: 200px;
+    	z-index: 300;
+    	background-color: #FFC;
+    	position: absolute;
+    	left: -200px;
+    	top: 3px;
+    	display: none;
+    	padding: 3px;
+    	border: solid 2px #444;
+    	border-radius: 4px;
+    }
+    
     div.scroll {
       height: 200px;
       overflow: auto;
@@ -208,17 +254,8 @@ context=ServletUtilities.getContext(request);
 
         ClassEditTemplate.saveUpdatedFields((Object) occ, request, myShepherd);
 
-        /*
-        System.out.println("OCCURRENCE.JSP: Saving updated info...");
 
-        Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
-        int total = dateSortedEncs.length;
-
-        HashMap<String,Encounter> encById = new HashMap<String,Encounter>();
-        for (int i = 0; i < total; i++) {
-          Encounter enc = dateSortedEncs[i];
-          encById.put(enc.getCatalogNumber(), enc);
-        }
+        System.out.println("OCCURRENCE.JSP: Saving ADDITIONAL updated info...");
 
         ArrayList<Encounter> changedEncs = new ArrayList<Encounter>();
         //myShepherd.beginDBTransaction();
@@ -226,6 +263,8 @@ context=ServletUtilities.getContext(request);
         while (en.hasMoreElements()) {
           String pname = (String)en.nextElement();
           if (pname.indexOf("occ:") == 0) {
+            // taken care of by ClassEditTemplate.saveUpdatedFields((Object) occ, request, myShepherd);
+            /*
             String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
             String getterName = "get" + methodName.substring(3);
             String value = request.getParameter(pname);
@@ -277,7 +316,7 @@ context=ServletUtilities.getContext(request);
               } catch (Exception ex) {
                 System.out.println(methodName + " -> " + ex.toString());
               }
-            }
+            }*/
 
           } // encounter-related fields
             else if (pname.indexOf(":") > -1) {
@@ -298,7 +337,7 @@ context=ServletUtilities.getContext(request);
                 }
 
 
-              } /*else if (methodName.equals("setAgeAtFirstSighting")) {  //need a Double, sets on individual
+              } else if (methodName.equals("setAgeAtFirstSighting")) {  //need a Double, sets on individual
                 Double dbl = null;
                 try {
                   dbl = Double.parseDouble(value);
@@ -337,7 +376,6 @@ context=ServletUtilities.getContext(request);
 
         myShepherd.commitDBTransaction();
         System.out.println("OCCURRENCE.JSP: Transaction committed");
-        */
       }
 
 
@@ -1337,6 +1375,17 @@ else {
 %>
 </div><!-- end maintext -->
 </div><!-- end main-wide -->
+
+<div id="relationships-form" onClick="event.stopPropagation(); return false;">
+	<div class="rel-sub">
+	<b>Mother</b> of individual ID:<br />
+	<input type="text" id="rel-child-id" />
+	</div>
+
+	<input type="button" value="OK" onClick="return relSave(event)" />
+
+	<input type="button" value="cancel" onClick="return relCancel(event)" />
+</div>
 
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
