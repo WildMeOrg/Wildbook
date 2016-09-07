@@ -508,7 +508,7 @@ jQuery(function($) {
 </script>
 
 
-<section class="hero container-fluid main-section relative" title="&copy; Juha Taskinen / WWF">
+<section class="hero container-fluid main-section relative" >
   <div class="container-fluid relative">
     <div class="col-lg-12 bc4">
       <h2 class="jumboesque">Kuvasitko <br/> Saimaannorpan?</h2>
@@ -560,8 +560,8 @@ jQuery(function($) {
 		<div class="col-md-6">
       <!---->
       <div class="crop-outer">
-        <div class="crop" title="&copy; K39 / WWF">
-		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Pullervo_2013_3.jpg" alt="&copy; K39 / WWF"/></a>
+        <div class="crop" >
+		      <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Pullervo_2013_3.jpg" /></a>
 		      <p class="image-copyright"> &copy; UEF / WWF </p>
           <!---->
         </div>
@@ -582,8 +582,8 @@ jQuery(function($) {
  <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; M. Auttila / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Terttu_2.JPG" alt="&copy; M. Auttila / WWF"/></a>
+      <div class="crop" >
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Terttu_2.JPG" /></a>
       	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
@@ -601,8 +601,8 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; Sanna Sihvonen / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Teemu_2.jpg" alt="&copy; Sanna Sihvonen / WWF"/></a>
+      <div class="crop" >
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Teemu_2.jpg" /></a>
       	<p class="image-copyright"> &copy; Juha Taskinen / WWF </p>
       </div>
     </div>
@@ -620,8 +620,8 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; Kunnasranta / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Ritva_2.JPG" alt="&copy; Kunnasranta / WWF"/></a>
+      <div class="crop" >
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Ritva_2.JPG" /></a>
       	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
@@ -638,8 +638,8 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; K39 / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Arka_2.jpg" alt="&copy; K39 / WWF"/></a>
+      <div class="crop">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Arka_2.jpg" /></a>
       	<p class="image-copyright"> &copy; Juha Taskinen / WWF </p>
       </div>
     </div>
@@ -659,8 +659,8 @@ jQuery(function($) {
 <div class="row grey-outline">
 	<div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; K53A / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Mitro_1.jpg" alt="&copy; K53A / WWF"/></a>
+      <div class="crop">
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/Mitro_1.jpg" /></a>
       	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
@@ -679,9 +679,9 @@ jQuery(function($) {
 
   <div class="col-md-6">
     <div class="crop-outer">
-      <div class="crop" title="&copy; UEF / WWF">
-        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2801_cropped.jpg" alt="&copy; UEF / WWF"/></a>
-      	<p class="image-copyright"> &copy; WWF </p>
+      <div class="crop" >
+        <a href="http://norppagalleria.wwf.fi:80/gallery.jsp"><img src="cust/mantamatcher/img/front-slider/enc_2801_cropped.jpg" /></a>
+      	<p class="image-copyright"> &copy; UEF / WWF </p>
       </div>
     </div>
   </div>
@@ -689,7 +689,7 @@ jQuery(function($) {
   <div class="col-md-6 full-height per-seal-info">
     <h2 class="greenish">Siiri</h2>
     <p>Siiri oli toinen Norppalivess&auml; n&auml;hdyist&auml; saimaannorpista. Se on tavattu samalla lepokivell&auml; jo kolmena per&auml;kk&auml;isen&auml; vuotena. Vuonna 2015 Siiri oli It&auml;-Suomen yliopiston tutkijoilla l&auml;hetinseurannassa, jolloin sen liikkeist&auml; saatiin t&auml;rke&auml;&auml; tietoa.</p>
-    <p class=pfooter-link>
+    <p class="pfooter-link">
       <a href="http://norppagalleria.wwf.fi:80/gallery.jsp">Siirry galleriaan >></a>
     </p>
   </div>

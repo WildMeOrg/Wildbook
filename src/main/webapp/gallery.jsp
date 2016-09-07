@@ -191,6 +191,7 @@ myShepherd.beginDBTransaction();
     <li class="dropdown">
       <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Havainnot alueittain <span class="caret"></span></a>
       <ul class="dropdown-menu" role="menu">
+        <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PS"> Pohjois-Saimaa</a></li>
         <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=HV"> Haukivesi</a></li>
         <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=JV"> Joutenvesi</a></li>
         <li><a href="<%=urlLoc %>/gallery.jsp?locationCodeField=PEV"> Pyyvesi – Enonvesi</a></li>
@@ -256,7 +257,7 @@ myShepherd.beginDBTransaction();
       %>
 
         <h2><%=locCode %></h2>
-        <h3><em><%=numSightings%> tunnistettua yksil&ouml;&auml; (Kaikki eiv&auml;t n&auml;y galleriassa)</em></h3>
+        <h3><em><%=numSightings%> tunnistettua yksil&ouml;&auml; (kaikki eiv&auml;t n&auml;y galleriassa)</em></h3>
       </div>
     <% } %>
 
