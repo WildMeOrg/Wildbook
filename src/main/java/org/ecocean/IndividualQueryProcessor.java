@@ -1333,11 +1333,11 @@ public class IndividualQueryProcessor {
           else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
           
           else{
-            allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName ascending", paramMap);
+            allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           }
         }
         else{
-          allSharks=myShepherd.getAllMarkedIndividuals(query, "nickName ascending", paramMap);
+          allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           //keyword and then individualID ascending
         }
         //process over to Vector

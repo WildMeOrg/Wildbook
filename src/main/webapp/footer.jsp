@@ -195,7 +195,7 @@
 
 											<ul class="nav">
 																			
-							<li><a href="http://norppagalleria.wwf.fi/submit.jsp">Rekisteriseloste</a></li>
+							<li><a href="http://norppagalleria.wwf.fi/privacy.jsp">Rekisteriseloste</a></li>
 							
 							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/">Yhteystiedot</a></li>
 							&nbsp;&nbsp;&nbsp;&nbsp;<li><a href="http://www.wwf.fi/wwf-suomi/yhteystiedot/palaute/" onClick="ga('send', 'event', {'eventCategory': 'feedback', 'eventAction': 'fee_step1_footer_', 'eventLabel': 'lnk'});" >Palaute</a></li>
