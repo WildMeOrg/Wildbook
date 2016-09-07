@@ -141,6 +141,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 
 #imageTools-control {
+	margin: 6px;
 	position: absolute;
 	top: 402px;
 	left: 0;
@@ -211,6 +212,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 var encounterNumber = '<%=enc.getCatalogNumber()%>';
+var mediaAssetId = '<%=imageID%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
 	updateSpotCounts();
@@ -477,10 +479,21 @@ function spotsSave() {
 	if (sp.length < 1) return;
 //TODO verify we really have all we need (like when we updateSaveButton())
 
+	$('#imageTools-spot-type-picker').hide();
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
+	var sdata = { encId: encounterNumber, mediaAssetId: mediaAssetId, rightSide: (side == 'right'), spots: [], refSpots: [] };
+	sdata.imageToolValues = {
+		scale: itool.scale,
+		rotation: itool.rotation,
+		rect: itool.rect,
+		_finalScale: scale
+	};
+	sdata.imageData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+
+/*
 	var pdata = 'number=' + encounterNumber;
 	if (side == 'right') pdata += '&rightSide=true';
 	var scount = 0;
@@ -497,14 +510,34 @@ function spotsSave() {
 			pdata += '&' + sp[i].type + 'y=' + xy[1];
 		}
 	}
+*/
+	for (var i = 0 ; i < sp.length ; i++) {
+		var xy = itool.xyOrigToWork(sp[i].xy);
+		xy[0] *= scale;
+		xy[1] *= scale;
+		var regex = new RegExp(/^ref(\d+)$/);
+		var m = regex.exec(sp[i].type);
+		if (sp[i].type == 'spot') {
+			sdata.spots.push(xy);
+		} else if (m) {  //refN
+			var ind = m[1] - 1;  //("ref1" -> 0)
+			sdata.refSpots[ind] = xy;
+		} else {  //not sure if we will have other types, but....
+			var key = sp[i].type + 'Spots';
+			if (!sdata[key]) sdata[key] = [];
+			sdata[key].push(xy);
+		}
+	}
 
-console.log(pdata);
+console.log(sdata);
 
 
 	$.ajax({
-		url: '../SubmitSpots',
-		data: pdata,
-		success: function(d) { sendImage(d); },
+		url: '../SubmitSpotsAndImage',
+		data: JSON.stringify(sdata),
+		contentType: 'application/javascript',
+		dataType: 'json',
+		success: function(d) { allGood(d); },
 		error: function(a,b,c) {
 			console.error('%o %o %o', a,b,c);
 			$('#imageTools-buttons').show();
@@ -515,6 +548,7 @@ console.log(pdata);
 }
 
 
+/*  old non-MA cruft
 function sendImage(d) {
 	console.info('SUCCESS saving spots: %o', d);
 	$('#imageTools-message').html('saving image...');
@@ -533,9 +567,16 @@ function sendImage(d) {
 		type: 'POST'
 	});
 }
+*/
 
 
 function allGood(d) {
+	if (!d.success) {
+		console.error("error api return %o", d);
+		$('#imageTools-buttons').show();
+		$('#imageTools-message').html(d.error || 'error saving');
+		return;
+	}
 	console.info('SUCCESS saving image: %o', d);
 	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
 }

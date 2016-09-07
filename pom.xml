@@ -596,6 +596,19 @@
               <goal>exec</goal>
             </goals>
           </execution>
+
+    		<execution>
+      			<id>Git Version Stamper</id>
+      			<phase>clean</phase>
+      			<goals>
+        			<goal>exec</goal>
+      			</goals>
+      			<configuration> <!-- note: this is unix-centric... so thats probably bad -->
+        			<executable>${basedir}/config/git-json-info.sh</executable>
+				<workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
+      			</configuration>
+    		</execution>
+
         </executions>
       </plugin>
 
