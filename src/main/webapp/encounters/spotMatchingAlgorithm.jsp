@@ -1,4 +1,7 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*,
+org.ecocean.media.MediaAsset,
+java.net.URL,
+org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -90,6 +93,10 @@ try {
   <p class="para"><strong><em>Extracted Spots</em></strong></p>
   		<%
 		//kick off a scan
+		MediaAsset spotMA = null;
+		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
+		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotMA = allSpotMAs.get(0);
+System.out.println("found spotMA: " + spotMA);
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
 		
@@ -345,8 +352,6 @@ try {
 
 								}
 									
-								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
-								String filelocR="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getRightSpotImageFileName());
 					%>
 
 <p class="para"><strong><em>Spot data image files used for matching</em></strong><br/> 
@@ -399,7 +404,8 @@ var spotJson = {};
 
 	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
-  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
+  if ((enc.getNumSpots() > 0) && (spotMA != null)) {
+	URL spotMAUrl = spotMA.webURL();
       spots = enc.getSpots();
 			spotJsonLeft = "[";
 			for (SuperSpot s : spots) {
@@ -409,14 +415,15 @@ var spotJson = {};
 %>
 <td valign="top" class="spot-td spot-td-left"><div>Left-side</div>
 <div id="spot-image-wrapper-left">
-	<img src="<%=fileloc%>" alt="image" id="spot-image-left" />
+	<img src="<%=spotMAUrl%>" alt="image" id="spot-image-left" />
 	<canvas id="spot-image-canvas-left"></canvas>
 </div>
 </td> 
   <%
     }
 
-    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
+    if ((enc.getNumRightSpots() > 0) && (spotMA != null)) {
+	URL spotMAUrl = spotMA.webURL();
       spots = enc.getRightSpots();
 			spotJsonRight = "[";
 			for (SuperSpot s : spots) {
@@ -426,7 +433,7 @@ var spotJson = {};
   %>
 <td valign="top" class="spot-td spot-td-right"><div>Right-side</div>
 <div id="spot-image-wrapper-right">
-	<img src="<%=filelocR%>" alt="image" id="spot-image-right"  />
+	<img src="<%=spotMAUrl%>" alt="image" id="spot-image-right"  />
 	<canvas id="spot-image-canvas-right"></canvas>
 </div>
 </td> 
