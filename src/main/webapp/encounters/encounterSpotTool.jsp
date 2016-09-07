@@ -211,6 +211,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 var encounterNumber = '<%=enc.getCatalogNumber()%>';
+var mediaAssetId = '<%=imageID%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
 	updateSpotCounts();
@@ -481,6 +482,16 @@ function spotsSave() {
 	$('#imageTools-message').html('saving spot data...');
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
+	var sdata = { encId: encounterNumber, mediaAssetId: mediaAssetId, rightSide: (side == 'right'), spots: [], refSpots: [] };
+	sdata.imageToolValues = {
+		scale: itool.scale,
+		rotation: itool.rotation,
+		rect: itool.rect,
+		_finalScale: scale
+	};
+	sdata.imageData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+
+/*
 	var pdata = 'number=' + encounterNumber;
 	if (side == 'right') pdata += '&rightSide=true';
 	var scount = 0;
@@ -497,14 +508,34 @@ function spotsSave() {
 			pdata += '&' + sp[i].type + 'y=' + xy[1];
 		}
 	}
+*/
+	for (var i = 0 ; i < sp.length ; i++) {
+		var xy = itool.xyOrigToWork(sp[i].xy);
+		xy[0] *= scale;
+		xy[1] *= scale;
+		var regex = new RegExp(/^ref(\d+)$/);
+		var m = regex.exec(sp[i].type);
+		if (sp[i].type == 'spot') {
+			sdata.spots.push(xy);
+		} else if (m) {  //refN
+			var ind = m[1] - 1;  //("ref1" -> 0)
+			sdata.refSpots[ind] = xy;
+		} else {  //not sure if we will have other types, but....
+			var key = sp[i].type + 'Spots';
+			if (!sdata[key]) sdata[key] = [];
+			sdata[key].push(xy);
+		}
+	}
 
-console.log(pdata);
+console.log(sdata);
 
 
 	$.ajax({
-		url: '../SubmitSpots',
-		data: pdata,
-		success: function(d) { sendImage(d); },
+		url: '../SubmitSpotsAndImage',
+		data: JSON.stringify(sdata),
+		contentType: 'application/javascript',
+		dataType: 'json',
+		success: function(d) { console.warn('complete! %o', d); },
 		error: function(a,b,c) {
 			console.error('%o %o %o', a,b,c);
 			$('#imageTools-buttons').show();
