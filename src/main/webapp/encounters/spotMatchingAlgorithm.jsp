@@ -192,7 +192,7 @@ try {
   			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
   			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
 
-  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
+  	//if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
   				
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
@@ -206,9 +206,9 @@ try {
 	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
 	  		<%
 	  		}
-		}
+		//}
 	  		
-  	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
+  	//if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
 			
 	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
@@ -223,10 +223,10 @@ try {
 	  		}
 	  		
 	  		
-  	}
+  	//}
 
 
-		} //if use spot pattern reognition
+		} //if use spot pattern recognition
 		else{
 		%>
 		<p>No spots have been added.</p>
