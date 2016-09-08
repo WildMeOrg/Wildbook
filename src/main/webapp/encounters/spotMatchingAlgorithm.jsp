@@ -93,10 +93,12 @@ try {
   <p class="para"><strong><em>Extracted Spots</em></strong></p>
   		<%
 		//kick off a scan
-		MediaAsset spotMA = null;
-		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
-		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotMA = allSpotMAs.get(0);
-System.out.println("found spotMA: " + spotMA);
+		MediaAsset spotLeftMA = null;
+		MediaAsset spotRightMA = null;
+		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotLeft");
+		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
+		allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
+		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(0);
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
 		
@@ -280,7 +282,7 @@ System.out.println("found spotMA: " + spotMA);
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
-		 				System.out.println("     uploadedFile exists!");
+		 				//System.out.println("     uploadedFile exists!");
 		 				
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
@@ -404,8 +406,8 @@ var spotJson = {};
 
 	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
-  if ((enc.getNumSpots() > 0) && (spotMA != null)) {
-	URL spotMAUrl = spotMA.webURL();
+  if ((enc.getNumSpots() > 0) && (spotLeftMA != null)) {
+	URL spotMAUrl = spotLeftMA.webURL();
       spots = enc.getSpots();
 			spotJsonLeft = "[";
 			for (SuperSpot s : spots) {
@@ -422,8 +424,8 @@ var spotJson = {};
   <%
     }
 
-    if ((enc.getNumRightSpots() > 0) && (spotMA != null)) {
-	URL spotMAUrl = spotMA.webURL();
+    if ((enc.getNumRightSpots() > 0) && (spotRightMA != null)) {
+	URL spotMAUrl = spotRightMA.webURL();
       spots = enc.getRightSpots();
 			spotJsonRight = "[";
 			for (SuperSpot s : spots) {
