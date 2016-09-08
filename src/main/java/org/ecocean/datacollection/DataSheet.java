@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.IOException;
 
-
 import org.ecocean.*;
 
 import org.apache.commons.lang3.StringUtils;
@@ -68,6 +67,8 @@ public class DataSheet extends DataCollectionEvent {
         dp = new Amount(dpName, (Double) null, dpUnit);
       } else if (dpType.equals("longcount")) {
         dp = new LongCount(dpName, (Long) null, dpUnit);
+      } else if (dpType.equals("instant")) {
+        dp = new Instant(dpName, (DateTime) null, dpUnit);
       }
       if (dp!=null) {
         dp.setNumber(i);
