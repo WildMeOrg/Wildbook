@@ -81,7 +81,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    System.out.println("Starting scanWorkItemResultsHandler!!");
+    //System.out.println("Starting scanWorkItemResultsHandler!!");
 
     //set up a shepherd for DB transactions
     String context="context0";
@@ -125,7 +125,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       
       if(returnedResults!=null){returnedSize=returnedResults.size();}
 
-      System.out.println(".....trying to check in # results:  "+returnedSize);
+      //System.out.println(".....trying to check in # results:  "+returnedSize);
 
       //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
       int numComplete=0;
