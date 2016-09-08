@@ -41,7 +41,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
   boolean finished = false;
   GridManager gm;
   String context="context0";
-  String jdoql="SELECT FROM org.ecocean.Encounter WHERE spots != null";
+  String jdoql="SELECT FROM org.ecocean.Encounter WHERE numSpotsLeft > 0";
 
   /**
    * Constructor to create a new thread object
@@ -59,7 +59,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
       this.jdoql=jdoql;
     }
     else if(rightSide){
-      jdoql="SELECT FROM org.ecocean.Encounter WHERE rightSpots != null";
+      jdoql="SELECT FROM org.ecocean.Encounter WHERE numSpotsRight > 0";
     }
  
     
