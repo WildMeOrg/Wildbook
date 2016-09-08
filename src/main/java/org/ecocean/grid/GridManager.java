@@ -454,23 +454,28 @@ public class GridManager {
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
+    try{
     
-    //System.out.println("GM checking in a scan result!");
-
-    if (!doneContains(swir)) {
-      done.add(swir);
-      numCompletedWorkItems++;
-    } else {
-      numCollisions++;
+      //System.out.println("GM checking in a scan result!");
+  
+      if (!doneContains(swir)) {
+        done.add(swir);
+        numCompletedWorkItems++;
+      } 
+      else {
+        numCollisions++;
+      }
+      //if(!done.contains(swir)){done.add(swir);}
+  
+      if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
+        removeWorkItem(swir.getUniqueNumberWorkItem());
+      } 
+      else {
+        ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
+        swi.setDone(true);
+      }
     }
-    //if(!done.contains(swir)){done.add(swir);}
-
-    if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
-      removeWorkItem(swir.getUniqueNumberWorkItem());
-    } else {
-      ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
-      swi.setDone(true);
-    }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public boolean doneContains(ScanWorkItemResult swir) {
