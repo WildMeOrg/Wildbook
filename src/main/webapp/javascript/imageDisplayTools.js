@@ -92,6 +92,11 @@ maLib.cascadiaCaptionFunction = function(maJson) {
 
 }
 
+maLib.blankCaptionFunction = function(maJson) {
+  return "";
+}
+
+
 /**
  * Like the above, but with also writes a labeled html caption,
  * which = maCaptionFunction(maJson)
@@ -102,7 +107,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
     if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
-  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
   caption = caption || '';
 
   // TODO: copy into html figure element
@@ -335,7 +340,7 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
         if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
             size = [imgEl.naturalWidth, imgEl.naturalHeight];
         }
- 
+
           // create slide object
           item = {
               src: linkEl.getAttribute('href'),
