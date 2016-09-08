@@ -24,6 +24,7 @@ package org.ecocean.media;
 public enum AssetStoreType {
     LOCAL,
     S3,
-    URL
-    // TODO Azure, YouTube, SCP...
+    URL,
+    YouTube
+    // TODO Azure, SCP...
 }

@@ -156,7 +156,7 @@ public class URLAssetStore extends AssetStore {
 
     private String urlFromParameters(JSONObject params) {
         if (params == null) return null;
-        return params.optString("url");
+        return params.optString("url", null);
     }
 
     public static void fetchFileFromURL(URL srcUrl, File targetFile) throws IOException {
