@@ -61,8 +61,8 @@ public class Nest implements java.io.Serializable {
     return this.dataSheets.remove(datasheet);
   }
 
-  public boolean remove(int i) {
-    return this.dataSheets.remove(i);
+  public void remove(int i) {
+    this.dataSheets.remove(i);
   }
 
   public int countSheets() {
