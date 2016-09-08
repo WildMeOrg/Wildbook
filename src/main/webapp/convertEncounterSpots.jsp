@@ -108,7 +108,7 @@ org.ecocean.flukeEdge.referenceSpots | {"spots":[[480.9483406090681,912.40229024
 		out.println("Encounter " + enc.getEncounterNumber() + " has empty left reference spots; skipping");
 		continue;
 	}
-	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_spot");
+	MediaAsset spotMA = MediaAsset.findOneByLabel(enc.getMedia(), myShepherd, "_spotLeft");
 	if (spotMA == null) {
 		out.println("Encounter " + enc.getEncounterNumber() + " has no corresponding spot MediaAsset; skipping");
 		continue;
