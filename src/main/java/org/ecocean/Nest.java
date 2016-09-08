@@ -57,6 +57,20 @@ public class Nest implements java.io.Serializable {
     return dataSheets.get(i);
   }
 
+  public boolean remove(DataSheet datasheet) {
+    return this.dataSheets.remove(datasheet);
+  }
+
+  public boolean remove(int i) {
+    return this.dataSheets.remove(i);
+  }
+
+  public int countSheets() {
+    return this.dataSheets.size();
+  }
+
+
+
   public void setLocationID(String locationID) {
     this.locationID = locationID;
   }
