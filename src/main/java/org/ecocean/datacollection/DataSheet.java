@@ -69,6 +69,8 @@ public class DataSheet extends DataCollectionEvent {
         dp = new LongCount(dpName, (Long) null, dpUnit);
       } else if (dpType.equals("instant")) {
         dp = new Instant(dpName, (DateTime) null, dpUnit);
+      } else if (dpType.equals("check")) {
+        dp = new Check(dpName, (Boolean) null, dpUnit);
       }
       if (dp!=null) {
         dp.setNumber(i);
