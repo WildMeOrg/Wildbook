@@ -18,6 +18,7 @@ import org.joda.time.DateTime;
 public class DataSheet extends DataCollectionEvent {
 
   private String id;
+  private String name; // informal e.g. "emergence data collection sheet"
 
   private List<DataPoint> data;
 
@@ -104,6 +105,14 @@ public class DataSheet extends DataCollectionEvent {
 
   public String getID() {
     return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String toString() {
