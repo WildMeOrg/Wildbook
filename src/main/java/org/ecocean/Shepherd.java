@@ -3471,9 +3471,13 @@ public class Shepherd {
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
+    
+    if(c!=null){
+    Iterator it=c.iterator();
     samples.closeAll();
-    if((c!=null)&&(c.size()>0)){return c.iterator();}
-    else{return null;}
+    return it;
+    }
+    else{samples.closeAll();return null;}
   }
 
   public User getRandomUserWithPhotoAndStatement(){
