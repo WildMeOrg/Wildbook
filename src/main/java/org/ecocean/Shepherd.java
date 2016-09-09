@@ -3471,6 +3471,7 @@ public class Shepherd {
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
+    samples.closeAll();
     if((c!=null)&&(c.size()>0)){return c.iterator();}
     else{return null;}
   }
