@@ -130,7 +130,7 @@ else{
   <%
   Iterator<ScanTask> it = null;
   if(request.getParameter("showAll")!=null){it=myShepherd.getAllScanTasksNoQuery();}
-  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}
+  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}
   	
     
     
@@ -244,7 +244,7 @@ else{
   <%
     Iterator it2 = null;
   if(request.getParameter("showAll")!=null){it2=myShepherd.getAllScanTasksNoQuery();}
-  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}	
+  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}	
   
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {

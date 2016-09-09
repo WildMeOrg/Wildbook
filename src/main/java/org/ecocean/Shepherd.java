@@ -3466,14 +3466,14 @@ public class Shepherd {
     else{return null;}
   }
 
-  public Iterator<ScanTask> getAllScanTasksForUser(String user) {
+  public ArrayList<ScanTask> getAllScanTasksForUser(String user) {
     String filter = "submitter == \""+user+"\"";
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
     
     if(c!=null){
-    Iterator it=c.iterator();
+    ArrayList<ScanTask> it=new ArrayList<ScanTask>(c);
     samples.closeAll();
     return it;
     }
