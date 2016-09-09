@@ -188,6 +188,10 @@ public class ClassEditTemplate {
   }
 
   public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    printOutClassFieldModifierRow(obj, dp, out, "context0");
+  }
+
+  public static void printOutClassFieldModifierRow(Object obj, DataPoint dp, javax.servlet.jsp.JspWriter out, String context) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
     String classNamePrefix = ""; // e.g. "occ"
     if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
@@ -199,8 +203,14 @@ public class ClassEditTemplate {
     String fieldName = splitCamelCase(dp.getName());
     String inputName = inputElemName(dp, classNamePrefix);
 
-    printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+    if (dp.isCategorical(context)) {
+      //printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out);
+      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+    } else {
+      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+    }
   }
+
 
   public static void printOutClassFieldModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
@@ -214,32 +224,81 @@ public class ClassEditTemplate {
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    printOutClassFieldModifierRow(fieldName, printValue, null, inputName, out);
+    printOutClassFieldModifierRow(fieldName, printValue, (String) null, inputName, out);
 
   }
 
 
   // custom method to replicate a very specific table row format on this page
   public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out);
 
-    out.println("<tr data-original-value=\""+printValue+"\">");
-    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
+    printFieldLabelCell(fieldName, out);
+    printInputCell(inputName, printValue, out);
+    printUnitsCell(units, out);
+    printUndoCell(out);
+
+    out.println("\n</tr>");
+  }
+
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out);
+
+    printFieldLabelCell(fieldName, out);
+    printSelectCell(inputName, printValue, possibleValues, out);
+    printUndoCell(out);
+
+    out.println("\n</tr>");
+  }
+
+
+  public static void printInput(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("\t\t<input name=\""+inputName+"\" value=\""+printValue+"\" />");
+  }
+  public static void printInputCell(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("\t<td class=\"value\">");
-    out.println("\t\t<input ");
-    out.println("name=\""+inputName+"\" ");
-    out.println("value=\""+printValue+"\"");
-    out.println("/>");
-    out.println("\t</td>");
+    printInput(inputName, printValue, out);
+    out.println("</td>");
+  }
 
+  public static void printSelectCell(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("\t<td class=\"value\">");
+    printSelect(inputName, printValue, possibleValues, out);
+    out.println("</td>");
+  }
+
+  public static void printSelect(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<select name=\""+inputName+"\">");
+    for (String possibleValue : possibleValues) printOption(possibleValue, printValue, out);
+    out.println("</select>");
+  }
+  public static void printOption(String possibleValue, String currentValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("\t<option ");
+    if (possibleValue!=null && possibleValue.equals(currentValue)) {
+      out.print("selected=\"selected\"");
+    }
+    out.print("> "+possibleValue+" </option>");
+  }
+
+
+  public static void printFieldLabelCell(String fieldName, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("\t<td class=\"fieldName\">"+fieldName+"</td>");
+  }
+
+  public static void printUndoCell(javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("<td class=\"undo-container\">");
     out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
     out.println("</td>");
+  }
 
+  public static void printUnitsCell(String units, javax.servlet.jsp.JspWriter out) throws IOException {
     if (units!=null && !units.equals("")) {
       out.println("<td>"+units+"</td>");
     }
+  }
 
-    out.println("\n</tr>");
+  public static void printFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
   }
 
 
