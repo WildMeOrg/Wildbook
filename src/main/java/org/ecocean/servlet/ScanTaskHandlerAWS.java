@@ -257,6 +257,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
 
+					                //let the GridManager know the size
+					                  System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
+					                  gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+					                  
+					                  
 					                }
 					                else{
 					                  locked = true;
