@@ -459,7 +459,7 @@ single scan are allowed to exceed the total.</span>
 </table>
 <h3>Creation/deletion threads</h3>
 
-<p>Number of tasks creating/deleteing: <%=es.getActiveCount()%>
+<p>Number of tasks creating/deleting: <%=es.getActiveCount()%>
   (<%=(es.getTaskCount() - es.getCompletedTaskCount())%>
   total in queue)<br> <br>
 
@@ -478,97 +478,7 @@ single scan are allowed to exceed the total.</span>
   myShepherd.closeDBTransaction();
 
   
- if(request.isUserInRole("machinelearning")){ 
-%>
 
-
-<h2>Build Weka Instances</h2>
-<p><em>(resource intensive: use only in offline Wildbooks)</em></p>
-
-<form id="arffForm" 
-	  action="../GenerateARFF4Species" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Train Classifier by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-
-
-
-
-
-<h2>Sequence Weighted ALignmEnt (SWALE) Tuning</h2>
-<p><em>(use only in offline Wildbooks)</em></p>
-
-<form id="swaleForm" 
-	  action="../TrainSwale" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     hasMoreTax=true;
-                     taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Tune Swale Performance by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-<%
-}
 %>
 
 </div>
