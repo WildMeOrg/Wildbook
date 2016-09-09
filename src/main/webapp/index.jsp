@@ -217,8 +217,8 @@ margin-bottom: 8px !important;
  		}
  		catch(Exception e){e.printStackTrace();}
  		finally{
- 			myShepherd.rollbackDBTransaction();
- 			myShepherd.closeDBTransaction();
+ 			//myShepherd.rollbackDBTransaction();
+ 			//myShepherd.closeDBTransaction();
  		}
  	 	%>
  	 
@@ -326,14 +326,14 @@ margin-bottom: 8px !important;
 int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
-Shepherd secondShepherd=new Shepherd(context);
-
+//Shepherd myShepherd=new Shepherd(context);
+myShepherd.beginDBTransaction();
 try{
-	secondShepherd.beginDBTransaction();
+	
     
-    numMarkedIndividuals=secondShepherd.getNumMarkedIndividuals();
-    numEncounters=secondShepherd.getNumEncounters();
-    numDataContributors=secondShepherd.getNumUsers();
+    numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
+    numEncounters=myShepherd.getNumEncounters();
+    numDataContributors=myShepherd.getNumUsers();
 
     
 }
@@ -341,8 +341,8 @@ catch(Exception e){
     e.printStackTrace();
 }
 finally{
-	secondShepherd.rollbackDBTransaction();
-	secondShepherd.closeDBTransaction();
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
 }
 %>
 
@@ -460,10 +460,10 @@ You too can assist with whale shark research, by submitting photos and sighting 
         
             <!-- Random user profile to select -->
             <%
-            Shepherd thirdShepherd=new Shepherd(context);
-            thirdShepherd.beginDBTransaction();
+            //Shepherd myShepherd=new Shepherd(context);
+            //myShepherd.beginDBTransaction();
 			try{					
-	            User featuredUser=thirdShepherd.getRandomUserWithPhotoAndStatement();
+	            User featuredUser=myShepherd.getRandomUserWithPhotoAndStatement();
 	            if(featuredUser!=null){
 	                String profilePhotoURL="images/empty_profile.jpg";
 	                if(featuredUser.getUserImage()!=null){
@@ -495,8 +495,8 @@ You too can assist with whale shark research, by submitting photos and sighting 
 			}
 			catch(Exception e){e.printStackTrace();}
 			finally{
-	            thirdShepherd.rollbackDBTransaction();
-	            thirdShepherd.closeDBTransaction();	
+	            //myShepherd.rollbackDBTransaction();
+	            //myShepherd.closeDBTransaction();	
 			}
             %>
             
@@ -507,12 +507,12 @@ You too can assist with whale shark research, by submitting photos and sighting 
                     <ul class="encounter-list list-unstyled">
                        
                        <%
-                       Shepherd fourthShepherd=new Shepherd(context);
+                       //Shepherd myShepherd=new Shepherd(context);
                        
                        
-                       fourthShepherd.beginDBTransaction();
+                       //myShepherd.beginDBTransaction();
                        try{
-                    	   List<Encounter> latestIndividuals=fourthShepherd.getMostRecentIdentifiedEncountersByDate(3);
+                    	   List<Encounter> latestIndividuals=myShepherd.getMostRecentIdentifiedEncountersByDate(3);
                            int numResults=latestIndividuals.size();
                        
 	                       for(int i=0;i<numResults;i++){
@@ -540,8 +540,8 @@ You too can assist with whale shark research, by submitting photos and sighting 
                        }
                        catch(Exception e){e.printStackTrace();}
                        finally{
-	                       fourthShepherd.rollbackDBTransaction();
-	                       fourthShepherd.closeDBTransaction();
+	                       //myShepherd.rollbackDBTransaction();
+	                       //myShepherd.closeDBTransaction();
                        }
                         %>
                        
@@ -554,8 +554,8 @@ You too can assist with whale shark research, by submitting photos and sighting 
                     <h2>Top spotters (past 30 days)</h2>
                     <ul class="encounter-list list-unstyled">
                     <%
-                    Shepherd fifthShepherd=new Shepherd(context);
-                    fifthShepherd.beginDBTransaction();
+                    //Shepherd myShepherd=new Shepherd(context);
+                    //myShepherd.beginDBTransaction();
                     
                     try{
 	                    //System.out.println("Date in millis is:"+(new org.joda.time.DateTime()).getMillis());
@@ -563,7 +563,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 	                    
 	                    //System.out.println("  I think my startTime is: "+startTime);
 	                    
-	                    Map<String,Integer> spotters = fifthShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
+	                    Map<String,Integer> spotters = myShepherd.getTopUsersSubmittingEncountersSinceTimeInDescendingOrder(startTime);
 	                    int numUsersToDisplay=3;
 	                    if(spotters.size()<numUsersToDisplay){numUsersToDisplay=spotters.size();}
 	                    Iterator<String> keys=spotters.keySet().iterator();
@@ -571,9 +571,9 @@ You too can assist with whale shark research, by submitting photos and sighting 
 	                    while((keys.hasNext())&&(numUsersToDisplay>0)){
 	                          String spotter=keys.next();
 	                          int numUserEncs=values.next().intValue();
-	                          if(fifthShepherd.getUser(spotter)!=null){
+	                          if(myShepherd.getUser(spotter)!=null){
 	                        	  String profilePhotoURL="images/empty_profile.jpg";
-	                              User thisUser=fifthShepherd.getUser(spotter);
+	                              User thisUser=myShepherd.getUser(spotter);
 	                              if(thisUser.getUserImage()!=null){
 	                              	profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName(context)+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
 	                              } 
@@ -601,8 +601,8 @@ You too can assist with whale shark research, by submitting photos and sighting 
                     }
                     catch(Exception e){e.printStackTrace();}
                     finally{
-                    	fifthShepherd.rollbackDBTransaction();
-                        fifthShepherd.closeDBTransaction();
+                    	//myShepherd.rollbackDBTransaction();
+                        //myShepherd.closeDBTransaction();
                     }
                     
                    
@@ -674,10 +674,10 @@ You too can assist with whale shark research, by submitting photos and sighting 
                 <a href="adoptashark.jsp" title="">Learn more about adopting an individual animal in our study</a>
             </div>
             <%
-            Shepherd sixthShepherd=new Shepherd(context);
-            sixthShepherd.beginDBTransaction();
+            //Shepherd myShepherd=new Shepherd(context);
+            //myShepherd.beginDBTransaction();
             try{
-	            Adoption adopt=sixthShepherd.getRandomAdoptionWithPhotoAndStatement();
+	            Adoption adopt=myShepherd.getRandomAdoptionWithPhotoAndStatement();
 	            if(adopt!=null){
 	            %>
 	            	<div class="adopter-badge focusbox col-xs-12 col-sm-6 col-md-6 col-lg-6">
@@ -705,8 +705,8 @@ You too can assist with whale shark research, by submitting photos and sighting 
             }
             catch(Exception e){e.printStackTrace();}
             finally{
-	            sixthShepherd.rollbackDBTransaction();
-	            sixthShepherd.closeDBTransaction();
+	            myShepherd.rollbackDBTransaction();
+	            myShepherd.closeDBTransaction();
             }
             %>
             
