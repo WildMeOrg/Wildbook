@@ -223,6 +223,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 								myShepherd=new Shepherd(context);
 								
 								//let the GridManager know the size
+								System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
 								gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
 								
 							}
