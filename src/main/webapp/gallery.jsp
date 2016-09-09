@@ -143,7 +143,7 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-myShepherd.beginDBTransaction();
+//myShepherd.beginDBTransaction();
 
 %>
 
@@ -511,6 +511,7 @@ myShepherd.beginDBTransaction();
 </div>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>
