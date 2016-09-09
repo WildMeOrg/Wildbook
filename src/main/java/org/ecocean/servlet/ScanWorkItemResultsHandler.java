@@ -159,8 +159,8 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
         //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
-        if ((numComplete > 0) && (gm.getRemainingWorkItemsForTask(scanTaskID).size()==0)) {
-            
+        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+          
           
           
           if(!tasksCompleted.contains(scanTaskID)){
