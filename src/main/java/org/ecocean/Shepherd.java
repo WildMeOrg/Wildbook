@@ -3472,7 +3472,11 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Measurement.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c)).get(0);}
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<Measurement> al=new ArrayList<Measurement>(c);
+      samples.closeAll();
+      return (al).get(0);
+    }
     else{return null;}
   }
 
@@ -3481,7 +3485,11 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Measurement.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    if((c!=null)&&(c.size()>0)){return (new ArrayList<Measurement>(c));}
+    if((c!=null)&&(c.size()>0)){
+      ArrayList<Measurement> al=new ArrayList<Measurement>(c);
+      samples.closeAll();
+      return (al);
+    }
     else{return null;}
   }
 
