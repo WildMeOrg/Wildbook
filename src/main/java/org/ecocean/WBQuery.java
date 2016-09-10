@@ -102,7 +102,7 @@ public class WBQuery implements java.io.Serializable {
 
     //this *should* magically return a List of the proper classed object. good luck with that!
     public List<Object> doQuery(Shepherd myShepherd) throws RuntimeException {
-      List<Object> out=new ArrayList<Object>;
+      List<Object> out=new ArrayList<Object>();
       Query query = toQuery(myShepherd);
       Collection c = (Collection) query.execute();
       if(c!=null){out=new ArrayList<Object>(c);}
