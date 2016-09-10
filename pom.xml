@@ -426,6 +426,12 @@
 </dependency>
 
 <dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-dbcp2</artifactId>
+    <version>2.1</version>
+</dependency>
+
+<dependency>
     <groupId>org.tuckey</groupId>
     <artifactId>urlrewritefilter</artifactId>
     <version>4.0.3</version>
