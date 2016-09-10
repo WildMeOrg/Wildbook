@@ -2268,6 +2268,11 @@ if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
 }
 %>
 </p>
+
+<p class="para">Class:
+<%=enc.getZebraClass()%>
+</p>
+
 <%
 if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
 %>
