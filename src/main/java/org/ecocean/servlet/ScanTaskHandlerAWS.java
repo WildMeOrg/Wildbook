@@ -221,6 +221,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 								myShepherd.commitDBTransaction();
 								myShepherd.closeDBTransaction();
 								myShepherd=new Shepherd(context);
+								
+								//let the GridManager know the size
+								System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
+								gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+								
 							}
 						}
 						else {
@@ -252,6 +257,11 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                  successfulStore=true;
 					                  System.out.println("I have kicked off the cleanup thread.");
 
+					                //let the GridManager know the size
+					                  System.out.println("Setting GM scanTaskSize: "+taskIdentifier+": "+numComparisons);
+					                  gm.addScanTaskSize(taskIdentifier, (numComparisons-1));
+					                  
+					                  
 					                }
 					                else{
 					                  locked = true;
@@ -352,7 +362,8 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 				}
 			}
 
-
+			
+			 /*
 			else if (action.equals("addTuningTask")) {
 
 				//myShepherd.getPM().setIgnoreCache(true);
@@ -565,10 +576,10 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
 							out.println(ServletUtilities.getFooter(context));
 				}
-			}
+			}*/
 
 
-
+			/*
 			else if (action.equals("addFalseMatchTask")) {
 
 				boolean locked=false;
@@ -741,6 +752,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 							out.println(ServletUtilities.getFooter(context));
 				}
 			}
+			*/
 
 
 			//delete all scan-related items

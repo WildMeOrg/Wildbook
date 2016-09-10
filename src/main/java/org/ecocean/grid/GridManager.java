@@ -26,7 +26,7 @@ import org.ecocean.Shepherd;
 
 import org.ecocean.servlet.ServletUtilities;
 
-
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -55,6 +55,8 @@ public class GridManager {
   private int numCollisions = 0;
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
+  
+  public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
@@ -517,8 +519,8 @@ public class GridManager {
     try{
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	int iter = toDo.size();
-    	for (int i = 0; i < iter; i++) {
-      		if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+    	for (int i = 0; i < toDo.size(); i++) {
+      		if ((toDo.get(i)!=null)&&(toDo.get(i).getTaskIdentifier().equals(taskID))) {
       		  	num++;
       		}
     	}
@@ -621,7 +623,11 @@ public class GridManager {
   }
   */
   
-
+  public void addScanTaskSize(String scanTaskID, int size){
+    scanTaskSizes.put(scanTaskID, new Integer(size));
+  }
+  
+  public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
     
 
 }
