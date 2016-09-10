@@ -1138,7 +1138,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
                 ma.addDerivationMethod("historicSpotImageConversion", true);
                 ma.updateMinimalMetadata();
 //System.out.println("params? " + ma.getParameters());
-                ma.addLabel("_spotLeft");
+                ma.addLabel("_spot");
                 ma.addLabel("_annotation");
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());

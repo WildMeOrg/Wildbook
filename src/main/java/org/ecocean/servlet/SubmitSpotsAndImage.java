@@ -92,7 +92,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
 System.out.println("====> params = " + params);
     MediaAsset ma = store.create(params);
     ma.copyInBase64(json.optString("imageData", null));
-    ma.addLabel("_spot" + (rightSide ? "Right" : "Left"));
+    ma.addLabel("_spot" + (rightSide ? "Right" : ""));  //we are sticking with "legacy" '_spot' for left
     ma.setParentId(maId);
     ma.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
     //ma.updateMinimalMetadata();

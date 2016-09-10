@@ -95,7 +95,7 @@ try {
 		//kick off a scan
 		MediaAsset spotLeftMA = null;
 		MediaAsset spotRightMA = null;
-		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotLeft");
+		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
 		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
 		allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
 		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(0);
