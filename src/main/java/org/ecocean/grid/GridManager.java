@@ -519,7 +519,7 @@ public class GridManager {
     try{
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	int iter = toDo.size();
-    	for (int i = 0; i < iter; i++) {
+    	for (int i = 0; i < toDo.size(); i++) {
       		if ((toDo.get(i)!=null)&&(toDo.get(i).getTaskIdentifier().equals(taskID))) {
       		  	num++;
       		}
