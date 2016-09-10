@@ -1127,6 +1127,7 @@ public class Shepherd {
     return c.iterator();
   }
 
+  /*
   public Iterator getUnassignedEncountersIncludingUnapproved() {
     String filter = "this.individualID == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1134,6 +1135,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individualID == null && this.state != \"unidentifiable\"";
@@ -1416,6 +1418,7 @@ public class Shepherd {
   }
   */
 
+  /*
   public Iterator getAvailableScanWorkItems(Query query,int pageSize, long timeout) {
     Collection c;
     //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
@@ -1456,7 +1459,8 @@ public class Shepherd {
       return null;
     }
   }
-
+*/
+  /*
   public List getID4AvailableScanWorkItems(Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
@@ -1480,6 +1484,7 @@ public class Shepherd {
       return null;
     }
   }
+  */
 
   public List getPairs(Query query, int pageSize) {
     Collection c;
@@ -1495,6 +1500,7 @@ public class Shepherd {
     }
   }
 
+  /*
   public List getID4AvailableScanWorkItems(String taskID, Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
@@ -1518,6 +1524,7 @@ public class Shepherd {
       return null;
     }
   }
+  */
 
   public List<String> getAdopterEmailsForMarkedIndividual(Query query,String shark) {
     Collection c;
@@ -2117,6 +2124,7 @@ public class Shepherd {
     Query sharks = pm.newQuery(encClass);
     Collection c = (Collection) (sharks.execute());
     ArrayList list = new ArrayList(c);
+    sharks.closeAll();
     Iterator it = list.iterator();
     return it;
   }
@@ -2131,6 +2139,7 @@ public class Shepherd {
     Query spaces = pm.newQuery(allWorkspaces);
     Collection c = (Collection) (spaces.execute());
     ArrayList list = new ArrayList(c);
+    spaces.closeAll();
     Iterator it = list.iterator();
     return it;
   }
@@ -2153,6 +2162,7 @@ public class Shepherd {
       MarkedIndividual indie=(MarkedIndividual)list.get(i);
       if(indie.wasSightedInLocationCode(locCode)){newList.add(indie);}
     }
+    sharks.closeAll();
     return newList;
   }
 
@@ -2606,7 +2616,9 @@ public class Shepherd {
       Query acceptedKeywords = pm.newQuery(allKeywords);
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      it = c.iterator();
+      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      acceptedKeywords.closeAll();
+      it = al.iterator();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2631,6 +2643,7 @@ public class Shepherd {
     catch (Exception npe) {
       //System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
+      users.closeAll();
       return null;
     }
   }
@@ -2655,7 +2668,11 @@ public class Shepherd {
       allOccurs = pm.getExtent(Occurrence.class, true);
       Query acceptedOccurs = pm.newQuery(allOccurs);
       Collection c = (Collection) (acceptedOccurs.execute());
-      it = c.iterator();
+      ArrayList al=new ArrayList(c);
+      acceptedOccurs.closeAll();
+      it = al.iterator();
+      
+      
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2671,6 +2688,7 @@ public class Shepherd {
       Query acceptedKeywords = pm.newQuery(allKeywords);
       Collection c = (Collection) (acceptedKeywords.execute());
       it=new ArrayList<Role>(c);
+      acceptedKeywords.closeAll();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return it;
@@ -2684,7 +2702,8 @@ public class Shepherd {
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      it = c.iterator();
+      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      it = al.iterator();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
