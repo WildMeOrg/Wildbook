@@ -86,7 +86,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
     //set up a shepherd for DB transactions
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
     String nodeIdentifier = request.getParameter("nodeIdentifier");
     GridManager gm = GridManagerFactory.getGridManager();
     
@@ -156,16 +156,21 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
         numTaskTot = numComplete + numGenerated;
         
-        ScanTask st=myShepherd.getScanTask(scanTaskID);
+        //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
-        if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+        //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+          
           
           
           if(!tasksCompleted.contains(scanTaskID)){
           
-            
+            Shepherd myShepherd=new Shepherd(context);
+            myShepherd.beginDBTransaction();
+            ScanTask st=myShepherd.getScanTask(scanTaskID);
             if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             tasksCompleted.add(scanTaskID);
           }
           
@@ -224,10 +229,6 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       e.printStackTrace();
       inputFromApplet.close();
       //statusText="failure";
-    }
-    finally{
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
     }
 
 

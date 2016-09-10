@@ -63,7 +63,7 @@ public class SiteSearch extends HttpServlet {
     public void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
         String context="context0";
         context=ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
+        
         //set up for response
         response.setContentType("text/json");
         PrintWriter out = response.getWriter();
@@ -78,7 +78,7 @@ public class SiteSearch extends HttpServlet {
 
         ArrayList<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
         String filter;
-        Query query;
+        
 
         //
         // Query on Individuals
@@ -92,44 +92,56 @@ public class SiteSearch extends HttpServlet {
                 
                 
                 ;
-
-        query = myShepherd.getPM().newQuery(MarkedIndividual.class);
-        query.setFilter(filter);
-
-        //
-        // Check to make sure our query is fine, log error if not.
-        //
-        if (logger.isDebugEnabled()) {
-            logger.debug(filter);
-            try {
-                query.compile();
-            } catch (Throwable ex) {
-                logger.error("Bad query", ex);
-            }
+        
+        Query query=null;;
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.beginDBTransaction();
+        try{ 
+          query = myShepherd.getPM().newQuery(MarkedIndividual.class);
+          query.setFilter(filter);
+  
+          //
+          // Check to make sure our query is fine, log error if not.
+          //
+          if (logger.isDebugEnabled()) {
+              logger.debug(filter);
+              try {
+                  query.compile();
+              } catch (Throwable ex) {
+                  logger.error("Bad query", ex);
+              }
+          }
+  
+          @SuppressWarnings("unchecked")
+          List<MarkedIndividual> individuals = (List<MarkedIndividual>) query.execute();
+  
+          for (MarkedIndividual ind : individuals) {
+              HashMap<String, String> hm = new HashMap<String, String>();
+              if (StringUtils.isBlank(ind.getNickName())) {
+                  hm.put("label", ind.getIndividualID());
+              } else {
+                  hm.put("label", ind.getNickName() + " (" + ind.getIndividualID() + ")");
+              }
+              hm.put("value", ind.getIndividualID());
+              hm.put("type", "individual");
+  
+              //
+              // TODO: Read species from db. See SimpleIndividual
+              //
+              if(ind.getGenusSpecies()!=null){
+                hm.put("species", ind.getGenusSpecies());
+              }
+              list.add(hm);
+          }
+          //query.closeAll();
         }
-
-        @SuppressWarnings("unchecked")
-        List<MarkedIndividual> individuals = (List<MarkedIndividual>) query.execute();
-
-        for (MarkedIndividual ind : individuals) {
-            HashMap<String, String> hm = new HashMap<String, String>();
-            if (StringUtils.isBlank(ind.getNickName())) {
-                hm.put("label", ind.getIndividualID());
-            } else {
-                hm.put("label", ind.getNickName() + " (" + ind.getIndividualID() + ")");
-            }
-            hm.put("value", ind.getIndividualID());
-            hm.put("type", "individual");
-
-            //
-            // TODO: Read species from db. See SimpleIndividual
-            //
-            if(ind.getGenusSpecies()!=null){
-              hm.put("species", ind.getGenusSpecies());
-            }
-            list.add(hm);
+        catch(Exception e){}
+        finally{
+          if(query!=null){query.closeAll();}
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
         }
-        query.closeAll();
+         
 
         /*
         //

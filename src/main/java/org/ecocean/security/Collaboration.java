@@ -130,10 +130,13 @@ public class Collaboration implements java.io.Serializable {
 		}
 //System.out.println("qry -> " + queryString);
 		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
     //ArrayList got = myShepherd.getAllOccurrences(query);
 		List returnMe=myShepherd.getAllOccurrences(query);
 		query.closeAll();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
     return returnMe;
 	}
 
