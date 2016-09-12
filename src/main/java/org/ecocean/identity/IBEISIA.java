@@ -188,6 +188,8 @@ System.out.println("sendAnnotations(): sending " + ct);
         URL url = new URL(u);
 
         Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("IBEISIA.sendIdentify");
+        myShepherd.beginDBTransaction();
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
@@ -261,6 +263,8 @@ System.out.println("===================================== qlist & tlist ========
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
         return RestClient.post(url, new JSONObject(map));
     }
 
