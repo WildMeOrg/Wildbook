@@ -3646,7 +3646,7 @@ public class Shepherd {
   }
   
   //used to describe where this Shepherd is and what it is supposed to be doing
-  public void setAction(String action){
+  public void setAction(String newAction){
     
     String state="";
     
@@ -3655,7 +3655,7 @@ public class Shepherd {
       ShepherdPMF.removeShepherdState(shepherdID+"_"+action);
     }
     this.action=action;
-    ShepherdPMF.setShepherdState(shepherdID+"_"+action, state);
+    ShepherdPMF.setShepherdState(action+"_"+newAction, state);
   }
 
   public String getAction(){return action;}
