@@ -268,7 +268,9 @@ public class RestServlet extends HttpServlet
                         
                     }
                     pm.close();
-                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
+                    //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    
                     
                 }
                 return;
