@@ -69,6 +69,7 @@ import org.ecocean.*;
 		String context="context0";
     //context=ServletUtilities.getContext(request);
 		Shepherd myShepherd=new Shepherd(context);
+		myShepherd.setAction("LoginUser.class1");
 		myShepherd.beginDBTransaction();
 		
 		try{
@@ -93,7 +94,7 @@ import org.ecocean.*;
 		  myShepherd.rollbackDBTransaction();
 		}
 		
-		myShepherd.closeDBTransaction();
+		//myShepherd.closeDBTransaction();
     String hashedPassword=ServletUtilities.hashAndSaltPassword(password, salt);
     //System.out.println("Authenticating hashed password: "+hashedPassword+" including salt "+salt);
 		

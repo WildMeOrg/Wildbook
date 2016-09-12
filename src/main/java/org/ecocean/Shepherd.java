@@ -70,6 +70,9 @@ public class Shepherd {
   public static Vector matches = new Vector();
   //private PersistenceManagerFactory pmf;
   private String localContext;
+  
+  private String action="undefined";
+  private String shepherdID="";
 
 
   /**
@@ -81,6 +84,9 @@ public class Shepherd {
       localContext=context;
       try {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+        this.shepherdID=Util.generateUUID();
+        
+        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
       }
       catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -2208,6 +2214,7 @@ public class Shepherd {
 
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
+      q.closeAll();
       return num;
     }
     q.closeAll();
@@ -2224,6 +2231,7 @@ public class Shepherd {
 
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
+      q.closeAll();
       return num;
     }
     q.closeAll();
@@ -2495,10 +2503,13 @@ public class Shepherd {
       if (pm == null || pm.isClosed()) {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         pm.currentTransaction().begin();
+        ShepherdPMF.setShepherdState(action, "begin");
       } else if (!pm.currentTransaction().isActive()) {
 
         pm.currentTransaction().begin();
       }
+      ShepherdPMF.setShepherdState(action+""+shepherdID, "begin");
+      
 
     }
     catch (JDOUserException jdoe) {
@@ -2521,6 +2532,9 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
+        ShepherdPMF.setShepherdState(action+""+shepherdID, "commit");
+        
+        
         //return true;
         //System.out.println("A transaction has been successfully committed.");
       } else {
@@ -2571,7 +2585,11 @@ public class Shepherd {
     try {
       if ((pm != null) && (!pm.isClosed())) {
         pm.close();
+        ShepherdPMF.setShepherdState(shepherdID, "close");
+        
       }
+      ShepherdPMF.setShepherdState(action+""+shepherdID, "close");
+      
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
       System.out.println("I hit an error trying to close a DBTransaction.");
@@ -2597,6 +2615,8 @@ public class Shepherd {
       } else {
         //System.out.println("You are trying to rollback an inactive transaction.");
       }
+      ShepherdPMF.setShepherdState(action+""+shepherdID, "rollback");
+      
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -3032,7 +3052,7 @@ public class Shepherd {
     return fileName.matches("^(.+)\\.(?i:jpe?g|jpe|png|gif)$");
   }
 
-  public boolean isAcceptableVideoFile(String fileName) {
+  static public boolean isAcceptableVideoFile(String fileName) {
     Objects.requireNonNull(fileName);
     return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
   }
@@ -3624,7 +3644,20 @@ public class Shepherd {
     query.closeAll();
     return al;
   }
+  
+  //used to describe where this Shepherd is and what it is supposed to be doing
+  public void setAction(String action){
+    
+    String state=ShepherdPMF.getShepherdState(action+""+shepherdID);
+    ShepherdPMF.removeShepherdState(action+""+shepherdID);
+    
+    this.action=action;
+    ShepherdPMF.setShepherdState(action+""+shepherdID, state);
+  }
 
+  public String getAction(){return action;}
+  
+  
 
 
 } //end Shepherd class

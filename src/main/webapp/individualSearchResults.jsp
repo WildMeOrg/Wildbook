@@ -56,6 +56,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualSearchResults.jsp");
 
 
 

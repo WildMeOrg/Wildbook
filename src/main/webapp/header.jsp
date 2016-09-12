@@ -112,6 +112,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 	                      if(request.getUserPrincipal()!=null){
 	                    	  Shepherd myShepherd = new Shepherd(context);
+	                    	  myShepherd.setAction("header.jsp");
 
 	                          try{
 	                        	  myShepherd.beginDBTransaction();

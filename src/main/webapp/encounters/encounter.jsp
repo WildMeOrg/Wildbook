@@ -126,8 +126,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+  myShepherd.setAction("encounter.jsp");
+  //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+  //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
@@ -6137,11 +6138,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 <%
 
-kwQuery.closeAll();
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-kwQuery=null;
-myShepherd=null;
+//kwQuery.closeAll();
+
 
 }
 catch(Exception e){
@@ -6151,6 +6149,12 @@ catch(Exception e){
 
 
 <%
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	//kwQuery=null;
+	myShepherd=null;
 }
 
 	}  //end if this is an encounter
