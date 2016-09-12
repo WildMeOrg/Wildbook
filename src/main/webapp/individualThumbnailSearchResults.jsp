@@ -42,6 +42,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualThumbnailSearchResults.jsp");
 
     //Iterator allIndividuals;
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();

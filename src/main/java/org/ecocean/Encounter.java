@@ -2178,9 +2178,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return all;
     }
 
@@ -2496,8 +2498,12 @@ thus, we have to treat it as a special case.
                 MediaAsset ma = getPrimaryMediaAsset();
                 if (ma == null) return null;
                 Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("Encounter.class.getThumbnailUrl");
+                myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
                 if ((kids != null) && (kids.size() > 0)) ma = kids.get(0);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return ma.webURL().toString();
 	}
 

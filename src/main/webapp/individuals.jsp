@@ -1482,6 +1482,7 @@ if (request.getParameter("number")!=null) {
           <%
           if(CommonConfiguration.showUsersToPublic(context)){
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("individuals.jsp2");
             userShepherd.beginDBTransaction();
             %>
               <p><strong><%=props.getProperty("collaboratingResearchers") %></strong></p>

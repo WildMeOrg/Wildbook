@@ -12,6 +12,7 @@ java.util.List
 //set up persistence
 String context="context0";
 Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("getKeywordImages.jsp");
 
 //response object
 response.setContentType("application/json");

@@ -573,6 +573,7 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
                 Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
                 try{
                   for (int i = 0 ; i < list.length() ; i++) {
@@ -836,6 +837,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 //System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
         IdentityServiceLog log = new IdentityServiceLog(taskID, objectIDs, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.log");
         myShepherd.beginDBTransaction();
         try{
           log.save(myShepherd);
@@ -2403,7 +2405,7 @@ System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet
         Runnable r = new Runnable() {
             public void run() {
                 Shepherd myShepherd = new Shepherd("context0");
-                myShepherd.setAction("IBEISIA.class");
+                myShepherd.setAction("IBEISIA.class.run");
                 myShepherd.beginDBTransaction();
                 ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
 System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");

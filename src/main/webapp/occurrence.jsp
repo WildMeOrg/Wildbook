@@ -42,6 +42,7 @@ context=ServletUtilities.getContext(request);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("occurrence.jsp");
 
 
 

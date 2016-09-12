@@ -45,6 +45,7 @@
     encprops = ShepherdProperties.getProperties("thumbnailSearchResults.properties", langCode, context);
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("thumbnailSearchResults.jsp");
 
     List<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 

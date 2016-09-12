@@ -126,7 +126,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounter.jsp");
+  myShepherd.setAction("encounter.jsp1");
   //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
@@ -2499,6 +2499,7 @@ else {
 
                         	 				String username=enc.getAssignedUsername();
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
+                        	 				aUserShepherd.setAction("encounter.jsp2");
                          					if(aUserShepherd.getUser(username)!=null){
                          					%>
                                 			<%
@@ -2589,6 +2590,7 @@ else {
             <%
 
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("encounter.jsp3");
             userShepherd.beginDBTransaction();
 
             ArrayList<String> usernames=userShepherd.getAllUsernames();
