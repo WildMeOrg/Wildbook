@@ -173,15 +173,11 @@ import org.ecocean.*;
 			//username provided was not found
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage() );
-			myShepherd.rollbackDBTransaction();
-			myShepherd.closeDBTransaction();
 			
 		} 
 		catch (IncorrectCredentialsException ex) {
 			//password provided did not match password found in database
 			//for the username provided
-		  myShepherd.rollbackDBTransaction();
-		  myShepherd.closeDBTransaction();
 			ex.printStackTrace();
 			request.setAttribute("error", ex.getMessage());
 		}
@@ -189,9 +185,14 @@ import org.ecocean.*;
 		catch (Exception ex) {
 			
 			ex.printStackTrace();
+			 
 			
 			request.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
 			
+		}
+		finally{
+		  myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
 		}
 		
 		
