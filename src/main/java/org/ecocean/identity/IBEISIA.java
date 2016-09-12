@@ -2399,6 +2399,7 @@ System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet
         Runnable r = new Runnable() {
             public void run() {
                 Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("IBEISIA.class");
                 myShepherd.beginDBTransaction();
                 ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
 System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
@@ -2416,6 +2417,7 @@ System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
 ex.printStackTrace();
                 }
                 myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 setIAPrimed(true);
 System.out.println("-- priming IBEISIA **complete**");
             }
