@@ -86,7 +86,7 @@ public class Shepherd {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         this.shepherdID=Util.generateUUID();
         
-        ShepherdPMF.setShepherdState(shepherdID+"_"+action, "new");
+        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
       }
       catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -2508,7 +2508,7 @@ public class Shepherd {
 
         pm.currentTransaction().begin();
       }
-      ShepherdPMF.setShepherdState(action+""+shepherdID, "begin");
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
       
 
     }
@@ -2532,7 +2532,7 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
-        ShepherdPMF.setShepherdState(action+""+shepherdID, "commit");
+        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
         
         
         //return true;
@@ -2588,7 +2588,7 @@ public class Shepherd {
         ShepherdPMF.setShepherdState(shepherdID, "close");
         
       }
-      ShepherdPMF.setShepherdState(action+""+shepherdID, "close");
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
       
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
@@ -2615,7 +2615,7 @@ public class Shepherd {
       } else {
         //System.out.println("You are trying to rollback an inactive transaction.");
       }
-      ShepherdPMF.setShepherdState(action+""+shepherdID, "rollback");
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "rollback");
       
 
     } catch (JDOUserException jdoe) {
