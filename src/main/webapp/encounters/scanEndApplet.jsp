@@ -39,6 +39,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String num = request.getParameter("number");
 	String encSubdir = Encounter.subdir(num);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("scanEndApplet.jsp");
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   }
@@ -448,7 +449,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-//myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
     myShepherd = null;
     doc = null;
     root = null;

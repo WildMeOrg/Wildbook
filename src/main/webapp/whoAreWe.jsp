@@ -38,6 +38,7 @@
 	if(CommonConfiguration.showUsersToPublic(context)){
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("whoAreWe.jsp");
     myShepherd.beginDBTransaction();
     List<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {

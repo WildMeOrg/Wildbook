@@ -35,6 +35,7 @@ org.ecocean.security.Collaboration" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("encounterSpotTool.jsp");
 
 int imageID = Integer.parseInt(request.getParameter("imageID"));
 MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
