@@ -2503,7 +2503,6 @@ public class Shepherd {
       if (pm == null || pm.isClosed()) {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         pm.currentTransaction().begin();
-        ShepherdPMF.setShepherdState(action, "begin");
       } else if (!pm.currentTransaction().isActive()) {
 
         pm.currentTransaction().begin();
@@ -2532,7 +2531,6 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
-        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
         
         
         //return true;
@@ -2541,7 +2539,8 @@ public class Shepherd {
         System.out.println("You are trying to commit an inactive transaction.");
         //return false;
       }
-
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
+      
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2585,10 +2584,10 @@ public class Shepherd {
     try {
       if ((pm != null) && (!pm.isClosed())) {
         pm.close();
-        ShepherdPMF.setShepherdState(shepherdID, "close");
         
       }
-      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
+      //ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
+      ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
       
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
@@ -3650,12 +3649,12 @@ public class Shepherd {
     
     String state="";
     
-    if(ShepherdPMF.getShepherdState(shepherdID+"_"+action)!=null){
-      state=ShepherdPMF.getShepherdState(shepherdID+"_"+action);
-      ShepherdPMF.removeShepherdState(shepherdID+"_"+action);
+    if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
+      state=ShepherdPMF.getShepherdState(action+"_"+shepherdID);
+      ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
     }
     this.action=newAction;
-    ShepherdPMF.setShepherdState(action+"_"+action, state);
+    ShepherdPMF.setShepherdState(action+"_"+shepherdID, state);
   }
 
   public String getAction(){return action;}
