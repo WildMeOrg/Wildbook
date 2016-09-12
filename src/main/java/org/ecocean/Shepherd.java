@@ -3648,11 +3648,14 @@ public class Shepherd {
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String action){
     
-    String state=ShepherdPMF.getShepherdState(action+""+shepherdID);
-    ShepherdPMF.removeShepherdState(action+""+shepherdID);
+    String state="";
     
+    if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
+      state=ShepherdPMF.getShepherdState(action+""+shepherdID);
+      ShepherdPMF.removeShepherdState(action+""+shepherdID);
+    }
     this.action=action;
-    ShepherdPMF.setShepherdState(action+""+shepherdID, state);
+    ShepherdPMF.setShepherdState(action+"_"+shepherdID, state);
   }
 
   public String getAction(){return action;}
