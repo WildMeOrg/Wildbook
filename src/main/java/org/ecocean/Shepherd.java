@@ -3654,8 +3654,8 @@ public class Shepherd {
       state=ShepherdPMF.getShepherdState(shepherdID+"_"+action);
       ShepherdPMF.removeShepherdState(shepherdID+"_"+action);
     }
-    this.action=action;
-    ShepherdPMF.setShepherdState(action+"_"+newAction, state);
+    this.action=newAction;
+    ShepherdPMF.setShepherdState(action+"_"+action, state);
   }
 
   public String getAction(){return action;}
