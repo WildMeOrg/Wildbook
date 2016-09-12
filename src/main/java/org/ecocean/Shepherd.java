@@ -86,7 +86,7 @@ public class Shepherd {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         this.shepherdID=Util.generateUUID();
         
-        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
+        ShepherdPMF.setShepherdState(shepherdID+"_"+action, "new");
       }
       catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -3650,12 +3650,12 @@ public class Shepherd {
     
     String state="";
     
-    if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
-      state=ShepherdPMF.getShepherdState(action+""+shepherdID);
-      ShepherdPMF.removeShepherdState(action+""+shepherdID);
+    if(ShepherdPMF.getShepherdState(shepherdID+"_"+action)!=null){
+      state=ShepherdPMF.getShepherdState(shepherdID+"_"+action);
+      ShepherdPMF.removeShepherdState(shepherdID+"_"+action);
     }
     this.action=action;
-    ShepherdPMF.setShepherdState(action+"_"+shepherdID, state);
+    ShepherdPMF.setShepherdState(shepherdID+"_"+action, state);
   }
 
   public String getAction(){return action;}
