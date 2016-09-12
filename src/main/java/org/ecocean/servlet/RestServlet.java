@@ -229,6 +229,8 @@ public class RestServlet extends HttpServlet
                 try
                 {
                     pm.currentTransaction().begin();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");
+                    
 
                     Query query = pm.newQuery("JDOQL", queryString);
                     if (fetchParam != null)
@@ -254,14 +256,20 @@ public class RestServlet extends HttpServlet
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "commit");
+                    
                 }
                 finally
                 {
                     if (pm.currentTransaction().isActive())
                     {
                         pm.currentTransaction().rollback();
+                        ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "rollback");
+                        
                     }
                     pm.close();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
+                    
                 }
                 return;
             }
