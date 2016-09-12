@@ -74,7 +74,8 @@ import org.scribe.oauth.*;
 		
 		String context = "context0";
 		Shepherd myShepherd = new Shepherd(context);
-		//myShepherd.beginDBTransaction();
+		myShepherd.setAction("LoginUserSocial.class");
+		myShepherd.beginDBTransaction();
 
 		String socialType = request.getParameter("type");
 		String username = "";
@@ -105,8 +106,11 @@ import org.scribe.oauth.*;
 					session.setAttribute("error", "don't have a user associated with this Facebook account");
         	//response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
         	response.sendRedirect("login.jsp");
+        	myShepherd.rollbackDBTransaction();
+        	myShepherd.closeDBTransaction();
 					return;
-				} else {  //we found a matching user!
+				} 
+				else {  //we found a matching user!
 					username = fbuser.getUsername();
 					hashedPassword = fbuser.getPassword();
 System.out.println("found a user that matched fb id: " + username);
@@ -120,12 +124,17 @@ System.out.println("*** trying redirect?");
 				} catch (Exception ex) {
 					System.out.println("caught exception on facebook processing: " + ex.toString());
 				}
+				myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 				return;
 			}
 
 
 
-    } else if ("flickr".equals(socialType)) {
+    } 
+		
+		
+		else if ("flickr".equals(socialType)) {
         String overif = request.getParameter("oauth_verifier");
         String otoken = request.getParameter("oauth_token");
 
@@ -142,6 +151,8 @@ System.out.println("*** trying redirect?");
             session.setAttribute("requestToken", requestToken);
             String authorizationUrl = service.getAuthorizationUrl(requestToken) + "&perms=read";
             response.sendRedirect(authorizationUrl);
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
 
         } else {
@@ -173,6 +184,8 @@ System.out.println("-----------------------------------------otoken= " + otoken)
             if (fuser == null) {
                 session.setAttribute("error", "don't have a user associated with this Flickr account");
                 response.sendRedirect("login.jsp");
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             } else {  //we found a matching user!
                 username = fuser.getUsername();
@@ -182,10 +195,13 @@ System.out.println("found a user that matched flickr id: " + username);
         }
 
 
-		} else {
+		} 
+		else {
 			session.setAttribute("error", "invalid type");
      	//response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
      	response.sendRedirect("login.jsp");
+     	myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
 			return;
 		}
 
@@ -209,6 +225,10 @@ System.out.println("found a user that matched flickr id: " + username);
 		} catch (Exception ex) {
 			ex.printStackTrace();
 			session.setAttribute("error", "Login NOT SUCCESSFUL - cause not known!");
+		}
+		finally{
+		  myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
 		}
 
 
