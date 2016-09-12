@@ -150,6 +150,8 @@ public class ShepherdPMF {
   }
   
   public static void setShepherdState(String shepherdID, String state){
+    if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
+
     shepherds.put(shepherdID, state);
   }
   
