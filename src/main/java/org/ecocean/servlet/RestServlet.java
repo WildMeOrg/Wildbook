@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.ecocean.ShepherdPMF;
+import org.ecocean.Util;
 
 import java.lang.reflect.Method;
 
@@ -221,6 +222,10 @@ public class RestServlet extends HttpServlet
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 PersistenceManager pm = pmf.getPersistenceManager();
+                String servletID=Util.generateUUID();
+                ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                
+                
                 try
                 {
                     pm.currentTransaction().begin();
