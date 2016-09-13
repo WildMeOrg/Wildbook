@@ -374,10 +374,7 @@
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
   
-   <servlet>
-          <servlet-name>GenerateQRCodeImage</servlet-name>
-          <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
-    </servlet>
+
   
   
   
@@ -688,10 +685,7 @@
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
   
-        <servlet>
-        <servlet-name>ningalooPradel</servlet-name>
-        <servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
-  </servlet>
+
   
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
@@ -876,10 +870,7 @@
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
 
-  <servlet>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
-  </servlet>
+
   
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
@@ -898,10 +889,6 @@
 
 
 
-      <servlet>
-           <servlet-name>MozPradel</servlet-name>
-    	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
-  </servlet> 
   
  
 
@@ -931,10 +918,7 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
-    <servlet>
-      <servlet-name>NingalooByMonthsSonification</servlet-name>
-      <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
-  </servlet>
+
 
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
@@ -1075,10 +1059,7 @@
     <servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
   </servlet>
   
-      <servlet>
-           <servlet-name>MozRobustByMonths</servlet-name>
-    	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
-  </servlet>
+
 
   <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
@@ -1438,15 +1419,7 @@
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
 
- <servlet-mapping>
-       <servlet-name>ningalooRobustByMonths</servlet-name>
-       <url-pattern>/ningalooRobustByMonths</url-pattern>
-  </servlet-mapping>
-  
-    <servlet-mapping>
-         <servlet-name>ningalooPradel</servlet-name>
-         <url-pattern>/CJS</url-pattern>
-  </servlet-mapping>
+
 
   <!--
   <servlet-mapping>
@@ -1691,10 +1664,7 @@
   </servlet-mapping>
   
   
-    <servlet-mapping>
-      <servlet-name>GenerateQRCodeImage</servlet-name>
-      <url-pattern>/GenerateQRCodeImage</url-pattern>
-  </servlet-mapping>
+  
   
   
   
@@ -1757,10 +1727,7 @@
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
   
-      <servlet-mapping>
-           <servlet-name>MozPradel</servlet-name>
-           <url-pattern>/MozPradel</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocation</servlet-name>
@@ -1795,10 +1762,7 @@
     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
 
-   <servlet-mapping>
-         <servlet-name>MozRobustByMonths</servlet-name>
-         <url-pattern>/MozRobustByMonths</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
@@ -1810,10 +1774,7 @@
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
   
-    <servlet-mapping>
-      <servlet-name>NingalooByMonthsSonification</servlet-name>
-      <url-pattern>/NingalooByMonthsSonification</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>MassExposeGBIF</servlet-name>
