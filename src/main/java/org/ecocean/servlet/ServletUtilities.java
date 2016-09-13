@@ -137,6 +137,7 @@ public class ServletUtilities {
    */
   public static void informInterestedParties(HttpServletRequest request, String encounterNumber, String message, String context) {
     Shepherd shep = new Shepherd(context);
+    shep.setAction("ServletUtilities.class.informInterestedParties");
     shep.beginDBTransaction();
     if (shep.isEncounter(encounterNumber)) {
       Encounter enc = shep.getEncounter(encounterNumber);
@@ -170,6 +171,7 @@ public class ServletUtilities {
    */
   public static void informInterestedIndividualParties(HttpServletRequest request, String individualID, String message, String context) {
     Shepherd shep = new Shepherd(context);
+    shep.setAction("ServletUtilities.informInterestedIndividualParties.class");
     shep.beginDBTransaction();
     if (shep.isMarkedIndividual(individualID)) {
       MarkedIndividual ind = shep.getMarkedIndividual(individualID);

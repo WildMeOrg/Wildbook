@@ -57,6 +57,7 @@ public class EncounterGetPatterningPassport extends HttpServlet {
     File encountersDir = new File(shepherdDataDir.getAbsolutePath() + "/encounters");
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterGetPatterningPassport.class");
     myShepherd.beginDBTransaction();
 
     responseMsg += "GetPatterningPassport<p/>";
