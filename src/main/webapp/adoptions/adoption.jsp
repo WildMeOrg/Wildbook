@@ -15,6 +15,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("adoption.jsp");
+  myShepherd.beginDBTransaction();
   int count = myShepherd.getNumAdoptions();
   Adoption tempAD = null;
 
@@ -431,6 +432,9 @@ context=ServletUtilities.getContext(request);
 </table>
 <%
   }
+  
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 %>
 </div>
 
