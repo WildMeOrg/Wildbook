@@ -155,6 +155,7 @@ td.tdw:hover div {
 
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("searchResultsAnalysis.jsp");
 
 
     //kick off the transaction

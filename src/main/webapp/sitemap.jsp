@@ -11,6 +11,7 @@ context=ServletUtilities.getContext(request);
 
   //Shepherd
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("sitemap.jsp");
 
 
 

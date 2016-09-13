@@ -3,6 +3,7 @@
 org.ecocean.servlet.ServletUtilities,
 org.ecocean.media.*,
 java.util.Map,
+java.util.List,
 java.io.BufferedReader,
 java.io.IOException,
 java.io.InputStream,
@@ -11,14 +12,48 @@ java.io.File,
 java.util.Collection,
 java.util.ArrayList,
 org.json.JSONObject,
-org.ecocean.identity.Feature,
-org.ecocean.identity.FeatureType,
+org.ecocean.media.Feature,
+org.ecocean.media.FeatureType,
 javax.jdo.Query,
 javax.jdo.Extent,
 java.util.HashMap,
 
 org.ecocean.media.*
               "
+%>
+
+
+<%!
+ArrayList<SuperSpot> getOLDLeftReferenceSpots(Encounter enc, Shepherd myShepherd) {
+    String queryString = "SELECT FROM org.ecocean.SuperSpot WHERE enc.leftReferenceSpots.contains(this) && enc.catalogNumber == \"" + enc.getCatalogNumber() + "\" VARIABLES org.ecocean.Encounter enc";
+System.out.println(queryString);
+    Query query = myShepherd.getPM().newQuery(queryString);
+    return asSpots((List)query.execute());
+}
+ArrayList<SuperSpot> getOLDSpots(Encounter enc, Shepherd myShepherd) {
+    String queryString = "SELECT FROM org.ecocean.SuperSpot WHERE enc.spots.contains(this) && enc.catalogNumber == \"" + enc.getCatalogNumber() + "\" VARIABLES org.ecocean.Encounter enc";
+System.out.println(queryString);
+    Query query = myShepherd.getPM().newQuery(queryString);
+    return asSpots((List)query.execute());
+}
+ArrayList<SuperSpot> getOLDRightSpots(Encounter enc, Shepherd myShepherd) {
+    String queryString = "SELECT FROM org.ecocean.SuperSpot WHERE enc.rightSpots.contains(this) && enc.catalogNumber == \"" + enc.getCatalogNumber() + "\" VARIABLES org.ecocean.Encounter enc";
+System.out.println(queryString);
+    Query query = myShepherd.getPM().newQuery(queryString);
+    return asSpots((List)query.execute());
+}
+
+
+ArrayList<SuperSpot> asSpots(List results) {
+	if ((results == null) || (results.size() < 1)) return null;
+	ArrayList<SuperSpot> rtn = new ArrayList<SuperSpot>();
+	for (Object obj : results) {
+		rtn.add((SuperSpot)obj);
+	}
+	return rtn;
+}
+
+
 %>
 
 
@@ -36,6 +71,8 @@ String baseDir = ServletUtilities.dataDir("context0", rootDir);
 
 
 /// set up all FeatureTypes we have
+FeatureType.initAll(myShepherd);
+/*
 HashMap<String,FeatureType> ftypes = new HashMap<String,FeatureType>();
 Extent allFT = myShepherd.getPM().getExtent(FeatureType.class, true);
 Query ftQuery = myShepherd.getPM().newQuery(allFT);
@@ -44,6 +81,7 @@ for (Object f : c) {
 	FeatureType ft = (FeatureType) f;
 	ftypes.put(ft.getId(), ft);
 }
+*/
 
 myShepherd.beginDBTransaction();
 
@@ -65,7 +103,7 @@ org.ecocean.flukeEdge.referenceSpots | {"spots":[[480.9483406090681,912.40229024
 */
 
 } else {
-	ArrayList<SuperSpot> refSpots = enc.getLeftReferenceSpots();
+	ArrayList<SuperSpot> refSpots = getOLDLeftReferenceSpots(enc, myShepherd);
 	if ((refSpots == null) || (refSpots.size() < 1)) {
 		out.println("Encounter " + enc.getEncounterNumber() + " has empty left reference spots; skipping");
 		continue;
@@ -82,29 +120,35 @@ org.ecocean.flukeEdge.referenceSpots | {"spots":[[480.9483406090681,912.40229024
 	}
 
 	boolean isDorsalFin = false;
-	String featureTypePrefix = "org.ecocean.flukeEdge";
+	String featureTypePrefix = "org.ecocean.whaleshark";
 
+/*
 	if (refSpots.size() != 3) {
 		isDorsalFin = true;
 		featureTypePrefix = "org.ecocean.dorsalEdge";
 	}
+*/
 
 	JSONObject params = new JSONObject();
 	params.put("spots", SuperSpot.listToJSONArray(refSpots));
-	spotMA.addFeature(new Feature(ftypes.get(featureTypePrefix + ".referenceSpots"), params));
+	spotMA.addFeature(new Feature(featureTypePrefix + ".referenceSpots", params));
 
 	boolean hasSpots = false;
 	params = new JSONObject();
-	if (enc.getNumSpots() > 0) {
+	ArrayList<SuperSpot> spotsL = getOLDSpots(enc, myShepherd);
+System.out.println("spotsL -> " + spotsL);
+	if ((spotsL != null) && (spotsL.size() > 0)) {
 		hasSpots = true;
-		params.put("spotsLeft", SuperSpot.listToJSONArray(enc.getSpots()));
+		params.put("spotsLeft", SuperSpot.listToJSONArray(spotsL));
 	}
-	if (enc.getNumRightSpots() > 0) {
+	ArrayList<SuperSpot> spotsR = getOLDRightSpots(enc, myShepherd);
+System.out.println("spotsR -> " + spotsR);
+	if ((spotsR != null) && (spotsR.size() > 0)) {
 		hasSpots = true;
-		params.put("spotsRight", SuperSpot.listToJSONArray(enc.getRightSpots()));
+		params.put("spotsRight", SuperSpot.listToJSONArray(spotsR));
 	}
 
-	if (hasSpots) spotMA.addFeature(new Feature(ftypes.get(featureTypePrefix + ".edgeSpots"), params));
+	if (hasSpots) spotMA.addFeature(new Feature(featureTypePrefix + ".spots", params));
 
 	out.println("Encounter " + enc.getEncounterNumber() + " SUCCESS: " + spotMA.getFeatures() + " added to " + spotMA);
 

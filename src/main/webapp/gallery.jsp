@@ -86,8 +86,8 @@ try {
 } catch (Exception nfe) {
 }
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("gallery.jsp");
 
 int numResults = 0;
 
@@ -262,7 +262,7 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-myShepherd.beginDBTransaction();
+//myShepherd.beginDBTransaction();
 
 %>
 
@@ -514,6 +514,7 @@ myShepherd.beginDBTransaction();
 </div>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>

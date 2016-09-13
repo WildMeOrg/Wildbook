@@ -24,6 +24,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd adoptShepherd = new Shepherd(context);
+  adoptShepherd.setAction("encounterAdoptionEmbed.jsp");
   String num = request.getParameter("encounterNumber");
 
   try {

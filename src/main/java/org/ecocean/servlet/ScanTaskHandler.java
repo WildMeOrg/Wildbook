@@ -26,7 +26,6 @@ import org.ecocean.Shepherd;
 import org.ecocean.grid.*;
 
 import javax.jdo.FetchPlan;
-import javax.jdo.Query;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,7 +34,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
 import java.util.Vector;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -66,6 +64,7 @@ public class ScanTaskHandler extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ScanTaskHandler.class");
     GridManager gm = GridManagerFactory.getGridManager();
     //set up for response
     response.setContentType("text/html");
@@ -160,15 +159,6 @@ public class ScanTaskHandler extends HttpServlet {
         System.out.println("scanTaskHandler: Checking whether this is a new scanTask...");
 
         myShepherd.beginDBTransaction();
-        
-        Encounter enc = myShepherd.getEncounter(request.getParameter("encounterNumber"));
-        String genus="";
-        String species="";
-        if(enc.getGenus()!=null){genus=enc.getGenus();}
-        if(enc.getSpecificEpithet()!=null){species=enc.getSpecificEpithet();}
-
-        String jdoql="";
-
 
 
         String sideIdentifier = "L";
@@ -190,16 +180,13 @@ public class ScanTaskHandler extends HttpServlet {
         //int currentNumScanTasks=0;
         if (currentNumScanTasks < taskLimit) {
 
-          /*
-          Query query=null;
-          Collection c=null;
-         String keywordQueryString="SELECT FROM org.ecocean.Encounter WHERE spots != null && genus == '"+genus+"' && specificEpithet == '"+species+"'";
-         query=myShepherd.getPM().newQuery(keywordQueryString);
-         c = (Collection) (query.execute());
-           int numComparisons = c.size();
-           query.closeAll();
-           */
-              
+          int numComparisons = 0;
+          if (rightScan.equals("true")) {
+            //sideIdentifier="R";
+            numComparisons = myShepherd.getNumEncountersWithSpotData(true);
+          } else {
+            numComparisons = myShepherd.getNumEncountersWithSpotData(false);
+          }
           myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
 
           System.out.println("scanTaskHandler: Under the limit, so proceeding to check for condiions for creating a new scanTask...");
@@ -208,6 +195,7 @@ public class ScanTaskHandler extends HttpServlet {
 
             //check if this encounter has the needed spots to create the task
             boolean hasNeededSpots = false;
+            Encounter enc = myShepherd.getEncounter(request.getParameter("encounterNumber"));
             if ((rightScan.equals("true")) && (enc.getRightSpots() != null)) {
               hasNeededSpots = true;
             } else if (enc.getSpots() != null) {
@@ -220,7 +208,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
               st = new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
-              //st.setNumComparisons(numComparisons - 1);
+              st.setNumComparisons(numComparisons - 1);
               if (request.getRemoteUser() != null) {
                 st.setSubmitter(request.getRemoteUser());
               }
@@ -275,18 +263,8 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            
-          //launch EC2 instances
-            es.execute(new EC2RequestThread());
-            
-            //now build our jobs for the task
-            if(jdoql.equals("")){
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, genus, species, getServletContext(), request));
-              
-            }
-            else{
-              es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context, jdoql, null, null, getServletContext(), request));
-            }
+            es.execute(new ScanWorkItemCreationThread(taskIdentifier, isRightScan, request.getParameter("encounterNumber"), writeThis,context,""));
+
 
           } catch (Exception e) {
             System.out.println("I failed while constructing the workItems for a new scanTask.");
@@ -538,10 +516,7 @@ public class ScanTaskHandler extends HttpServlet {
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp\">Go to sharkGrid administration.</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
         }
-      } 
-      
-      /*
-      else if (action.equals("addFalseMatchTask")) {
+      } else if (action.equals("addFalseMatchTask")) {
 
         boolean locked = false;
         boolean successfulStore = false;
@@ -660,7 +635,7 @@ public class ScanTaskHandler extends HttpServlet {
 
 
             ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
-            es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
+            //es.execute(new FalseMatchCreationThread(maxNumWorkItems, taskIdentifier,context));
 
 
           } catch (Exception e) {
@@ -708,7 +683,7 @@ public class ScanTaskHandler extends HttpServlet {
           out.println(ServletUtilities.getFooter(context));
         }
       }
-      */
+
 
       //delete all scan-related items
       else if (action.equals("removeAllWorkItems")) {

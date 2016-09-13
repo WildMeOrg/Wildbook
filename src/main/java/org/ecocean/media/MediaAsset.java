@@ -759,6 +759,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             //note? warning? i guess this will traverse... gulp?
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAsset.class");
             myShepherd.beginDBTransaction();
             ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
@@ -790,6 +791,9 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
 
             return jobj;
         }
@@ -1022,7 +1026,6 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         rtn.put("identification", j);
         return rtn;
     }
-
 
     //takes base64 string and turns to binary content and copies that in as normal
     public void copyInBase64(String b64) throws IOException {

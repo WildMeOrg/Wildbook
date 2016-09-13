@@ -36,14 +36,14 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 public class CommonConfiguration {
-
+  
   private static final String COMMON_CONFIGURATION_PROPERTIES = "commonConfiguration.properties";
-
+  
   //class setup
   //private static Properties props = new Properties();
-
+  
   //private static volatile int propsSize = 0;
-
+  
   //private static String currentContext;
 
 
@@ -55,7 +55,7 @@ public class CommonConfiguration {
   }
 
 
-
+  
   public static synchronized Properties loadProps(String context) {
       InputStream resourceAsStream = null;
       Properties props=new Properties();
@@ -71,8 +71,8 @@ public class CommonConfiguration {
 
     return props;
   }
-
-
+  
+  
 
   private static Properties loadOverrideProps(String shepherdDataDir) {
     File configDir = new File("webapps/"+shepherdDataDir+"/WEB-INF/classes/bundles");
@@ -85,7 +85,7 @@ public class CommonConfiguration {
       //System.out.println("Fixing the bin issue in CommonConfiguration.");
       //System.out.println("The fix absolute path is: "+configDir.getAbsolutePath());
     }
-
+    
     if(!configDir.exists()){configDir.mkdirs();}
     File configFile = new File(configDir, COMMON_CONFIGURATION_PROPERTIES);
     if (configFile.exists()) {
@@ -212,10 +212,10 @@ public class CommonConfiguration {
   public static String getHTMLDescription(String context) {
     return getProperty("htmlDescription",context).trim();
   }
-
+  
   public static int getMaxMediaSizeInMegabytes(String context){
     int maxSize=10;
-
+    
     try{
       String sMaxSize=getProperty("maxMediaSize", context);
       if(sMaxSize!=null){
@@ -284,7 +284,7 @@ public class CommonConfiguration {
   public static String getProperty(String name, String context) {
     return initialize(context).getProperty(name);
   }
-
+  
   public static Enumeration<?> getPropertyNames(String context) {
     return initialize(context).propertyNames();
   }
@@ -476,23 +476,23 @@ public class CommonConfiguration {
     }
     return useTapirLink;
   }
-
+  
   public static boolean showMeasurements(String context) {
     return showCategory("showMeasurements",context);
   }
-
+  
   public static boolean showMetalTags(String context) {
     return showCategory("showMetalTags",context);
   }
-
+  
   public static boolean showAcousticTag(String context) {
     return showCategory("showAcousticTag",context);
   }
-
+  
   public static boolean showSatelliteTag(String context) {
     return showCategory("showSatelliteTag",context);
   }
-
+  
   public static boolean showReleaseDate(String context) {
     return showCategory("showReleaseDate",context);
   }
@@ -545,7 +545,7 @@ public class CommonConfiguration {
     }
     return list;
   }
-
+  
   public static Integer getIndexNumberForValue(String baseKey, String checkValue, String context){
     System.out.println("getIndexNumberForValue started for baseKey "+baseKey+" and checkValue "+checkValue);
     boolean hasMore = true;
@@ -566,28 +566,28 @@ public class CommonConfiguration {
     }
     return null;
   }
-
-
+  
+  
   private static boolean showCategory(final String category, String context) {
     String showMeasurements = getProperty(category,context);
     return !Boolean.FALSE.toString().equals(showMeasurements);
   }
 
-
-
+  
+  
   public static String getDataDirectoryName(String context) {
     initialize(context);
     String dataDirectoryName="shepherd_data_dir";
-
+    
     //new context code here
-
+    
     //if(props.getProperty("dataDirectoryName")!=null){return props.getProperty("dataDirectoryName").trim();}
-
+    
     if((ContextConfiguration.getDataDirForContext(context)!=null)&&(!ContextConfiguration.getDataDirForContext(context).trim().equals(""))){dataDirectoryName=ContextConfiguration.getDataDirForContext(context);}
-
+    
     return dataDirectoryName;
   }
-
+  
   /**
    * This configuration option defines whether information about User objects associated with Encounters and MarkedIndividuals will be displayed to web site viewers.
    *
@@ -651,7 +651,7 @@ public class CommonConfiguration {
 
 
   public static boolean isIntegratedWithWildMe(String context){
-
+    
     initialize(context);
     boolean integrated = true;
     if ((getProperty("isIntegratedWithWildMe",context) != null) && (getProperty("isIntegratedWithWildMe",context).equals("false"))) {

@@ -23,7 +23,6 @@ package org.ecocean.grid;
 
 import java.util.ArrayList;
 import java.util.Vector;
-import weka.core.Utils;
 
 
 /**
@@ -45,30 +44,6 @@ public class MatchObject implements java.io.Serializable {
   //add I3S match values
   public Vector Points = new Vector();
   public double i3sMatchValue;
-  
-  public Double leftFastDTWResult;
-  public Double rightFastDTWResult;
-  
- public String fastDTWPath="";
-  
-  public Double geroMatchDistance;
-  
-  public Double intersectionCount=0.0;
-  public String anglesOfIntersection="";
-  
-  public Double proportionValue=0.0;
-  
-  public Double msmValue=0.0;
-  
-  public Double swaleValue=0.0;
-  public Double euclideanDistanceValue=0.0;
-  
-  public Double dateDiff=0.0;
-  
-  public Double patterningCodeDiff=0.0;
-  
-  public Double ibeisColor;
-
 
   //used for JDO enhance
   public MatchObject() {
@@ -257,8 +232,7 @@ public class MatchObject implements java.io.Serializable {
   }
 
   public double getI3SMatchValue() {
-    if(i3sMatchValue<1000000000){return i3sMatchValue;}
-    return weka.core.Utils.missingValue();
+    return i3sMatchValue;
   }
 
   public void setI3SValues(Vector map2, double i3sMatchValue) {
@@ -281,46 +255,5 @@ public class MatchObject implements java.io.Serializable {
   public String getTaskID() {
     return this.taskID;
   }
-  
-  public Double getLeftFastDTWResult(){return leftFastDTWResult;}
-  public void setLeftFastDTWResult(Double value){leftFastDTWResult=value;}
-  
-  public Double getRightFastDTWResult(){return rightFastDTWResult;}
-  public void setRightFastDTWResult(Double value){rightFastDTWResult=value;}
-  
-  public Double getGeroMatchDistance(){return geroMatchDistance;}
-  public void setGeroMatchDistance(Double value){geroMatchDistance=value;}
-  
-  public String getFastDTWPath(){return fastDTWPath;}
-  
-  public void setFastDTWPath(String path){this.fastDTWPath=path;}
-  
-  public void setIntersectionCount(Double count){intersectionCount=count;}
-  public Double getIntersectionCount(){return intersectionCount;}
-  
-  public String getAnglesOfIntersection(){return anglesOfIntersection;}
-  public void setAnglesOfIntersections(String angles){this.anglesOfIntersection=angles;}
-  
-  public void setProportionValue(Double value){proportionValue=value;}
-  public Double getProportionValue(){return proportionValue;}
-  
-  public void setMSMSValue(Double value){msmValue=value;}
-  public Double getMSMValue(){return msmValue;}
-  
-  public void setSwaleValue(Double value){swaleValue=value;}
-  public Double getSwaleValue(){return swaleValue;}
-  
-  public void setDateDiff(Double value){dateDiff=value;}
-  public Double getDateDiff(){return dateDiff;}
-  
-  public void setEuclideanDistanceValue(Double value){euclideanDistanceValue=value;}
-  public Double getEuclideanDistanceValue(){return euclideanDistanceValue;}
-  
-  public void setPatterningCodeDiffValue(Double value){patterningCodeDiff=value;}
-  public Double getPatterningCodeDiff(){return patterningCodeDiff;}
-  
-  public void setIBEISColorValue(Double value){ibeisColor=value;}
-  public Double getIBEISColorValue(){return ibeisColor;}
 
-  
 }
