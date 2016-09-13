@@ -24,7 +24,9 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd adoptShepherd = new Shepherd(context);
+  adoptShepherd.setAction("individualAdoptionEmbed.jsp");
   String name = request.getParameter("name");
+  adoptShepherd.beginDBTransaction();
 
   try {
 %>
@@ -180,7 +182,8 @@ context=ServletUtilities.getContext(request);
 
 
 <%
-  } catch (Exception e) {
+  } 
+  catch (Exception e) {
   }
   adoptShepherd.rollbackDBTransaction();
   adoptShepherd.closeDBTransaction();

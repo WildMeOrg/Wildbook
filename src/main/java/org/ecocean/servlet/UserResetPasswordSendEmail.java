@@ -95,6 +95,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
 
         
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("UserResetPasswordSendEmail.class");
         
         
       

@@ -14,6 +14,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("adoption.jsp");
   int count = myShepherd.getNumAdoptions();
   Adoption tempAD = null;
 

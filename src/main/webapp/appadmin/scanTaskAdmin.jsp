@@ -9,6 +9,7 @@ String context=ServletUtilities.getContext(request);
 
 //get a shepherd
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("scanTaskAdmin.jsp");
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
@@ -63,6 +64,16 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 %>
 
+<style>
+td, th {
+    border: 1px solid black;font-size: 10pt;
+
+}
+table {
+    border-collapse: collapse;
+}
+</style>
+
 <jsp:include page="../header.jsp" flush="true" />
      <div class="container maincontent">
 <h1>Grid Administration
@@ -113,21 +124,21 @@ else{
     <th><strong>Identifier</strong></th>
     <th><strong>User</strong></th>
     <th><strong>Completion</strong></th>
-    <th><strong>Actions</strong></th>
+    <th colspan="2"><strong>Actions</strong></th>
   </tr>
   </thead>
   <tbody>
   <%
-  Iterator it = null;
+  Iterator<ScanTask> it = null;
   if(request.getParameter("showAll")!=null){it=myShepherd.getAllScanTasksNoQuery();}
-  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}
+  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}
   	
     
     
     
     int scanNum = 0;
     while ((it!=null)&&(it.hasNext())) {
-      ScanTask st = (ScanTask) it.next();
+      ScanTask st = it.next();
       if (!st.hasFinished()) {
         scanNum++;
         int numTotal = st.getNumComparisons();
@@ -162,7 +173,7 @@ else{
 
         %> <input name="scanNum<%=scanNum%>_WriteResult" type="submit"
                   id="scanNum<%=scanNum%>_WriteResult" value="Write Result"></form>
-      <br> <%
+       <%
       }
       boolean hasPermissionForThisEncounter=false;
       if ((request.isUserInRole("admin")) || (request.getRemoteUser().equals(st.getSubmitter()))) {hasPermissionForThisEncounter=true;}
@@ -178,7 +189,8 @@ else{
                                                                                      id="taskID"
                                                                                      value="<%=st.getUniqueNumber()%>"><input
         name="delete" type="submit" id="delete" value="Delete"></form>
-        <br />
+        </td>
+        <td>
         <%
         if(request.isUserInRole("admin")){
         %>
@@ -233,7 +245,7 @@ else{
   <%
     Iterator it2 = null;
   if(request.getParameter("showAll")!=null){it2=myShepherd.getAllScanTasksNoQuery();}
-  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}	
+  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}	
   
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {
@@ -448,7 +460,7 @@ single scan are allowed to exceed the total.</span>
 </table>
 <h3>Creation/deletion threads</h3>
 
-<p>Number of tasks creating/deleteing: <%=es.getActiveCount()%>
+<p>Number of tasks creating/deleting: <%=es.getActiveCount()%>
   (<%=(es.getTaskCount() - es.getCompletedTaskCount())%>
   total in queue)<br> <br>
 
@@ -467,141 +479,7 @@ single scan are allowed to exceed the total.</span>
   myShepherd.closeDBTransaction();
 
   
- if(request.isUserInRole("machinelearning")){ 
-%>
 
-
-<h2>IBEIS</h2>
-
-<p>Send annotations and media assets for a single species to the Image Analysis ID server to train it for matching individuals from the current catalog.</p>
-<form id="arffForm" 
-	  action="../PrimeIBEISImageAnalysisForSpecies" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Send Training Data to IBEIS 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-
-<!--
-<p><em>(resource intensive: use only in offline Wildbooks)</em></p>
-
-<form id="arffForm" 
-	  action="../GenerateARFF4Species" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     hasMoreTax=true;
-                     //int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Train Classifier by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-
-
-
-
-
-<h2>Sequence Weighted ALignmEnt (SWALE) Tuning</h2>
-<p><em>(use only in offline Wildbooks)</em></p>
-
-<form id="swaleForm" 
-	  action="../TrainSwale" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     hasMoreTax=true;
-                     taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Tune Swale Performance by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
--->
-
-
-<%
-}
 %>
 
 </div>

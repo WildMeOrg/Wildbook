@@ -6,6 +6,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   String number = request.getParameter("id");
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("adoptionSuccess.jsp");
 
 
   //String langCode = "en";

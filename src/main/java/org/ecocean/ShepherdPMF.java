@@ -31,12 +31,16 @@ import java.util.Properties;
 
 import java.util.TreeMap;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 
 public class ShepherdPMF {
 
   //private static PersistenceManagerFactory pmf;
   //private static String currentContext="context0";
   private static TreeMap<String,PersistenceManagerFactory> pmfs=new TreeMap<String,PersistenceManagerFactory>();
+
+  private static ConcurrentHashMap<String,String> shepherds=new ConcurrentHashMap<String, String>();
 
 
   public synchronized static PersistenceManagerFactory getPMF(String context) {
@@ -144,5 +148,29 @@ public class ShepherdPMF {
     }
     return myProps;
   }
+  
+  public static void setShepherdState(String shepherdID, String state){
+    if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
+
+    shepherds.put(shepherdID, state);
+  }
+  
+  public static void removeShepherdState(String shepherdID){
+    if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
+
+    shepherds.remove(shepherdID);
+  }
+  
+  public static String getShepherdState(String shepherdID){
+    if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
+
+    return shepherds.get(shepherdID);
+  }
+  
+  public static ConcurrentHashMap<String,String> getAllShepherdStates(){
+    if(shepherds==null) shepherds=new ConcurrentHashMap<String, String>();
+    return shepherds;
+  }
+  
 
 }

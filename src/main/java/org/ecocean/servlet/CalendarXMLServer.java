@@ -67,6 +67,7 @@ public class CalendarXMLServer extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("CalendarXMLServer.class");
     
     
     int numResults=0;

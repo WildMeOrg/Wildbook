@@ -22,21 +22,11 @@ package org.ecocean.grid;
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
-import org.ecocean.neural.TrainNetwork;
 
 
 import org.ecocean.servlet.ServletUtilities;
 
-//train weka
-import weka.core.Attribute;
-import weka.core.Instances;
-import weka.core.Instance;
-import weka.classifiers.Evaluation;
-
-
-import org.ecocean.servlet.ServletUtilities;
-
-
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -65,6 +55,8 @@ public class GridManager {
   private int numCollisions = 0;
   public int maxGroupSize = 100;
   public int numCompletedWorkItems = 0;
+  
+  public ConcurrentHashMap<String,Integer> scanTaskSizes=new ConcurrentHashMap<String, Integer>();
 
   //Modified Groth algorithm parameters
   private String epsilon = "0.01";
@@ -464,23 +456,28 @@ public class GridManager {
   }
 
   public synchronized void checkinResult(ScanWorkItemResult swir) {
+    try{
     
-    //System.out.println("GM checking in a scan result!");
-
-    if (!doneContains(swir)) {
-      done.add(swir);
-      numCompletedWorkItems++;
-    } else {
-      numCollisions++;
+      //System.out.println("GM checking in a scan result!");
+  
+      if (!doneContains(swir)) {
+        done.add(swir);
+        numCompletedWorkItems++;
+      } 
+      else {
+        numCollisions++;
+      }
+      //if(!done.contains(swir)){done.add(swir);}
+  
+      if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
+        removeWorkItem(swir.getUniqueNumberWorkItem());
+      } 
+      else {
+        ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
+        swi.setDone(true);
+      }
     }
-    //if(!done.contains(swir)){done.add(swir);}
-
-    if ((!swir.getUniqueNumberTask().equals("TuningTask")) && (!swir.getUniqueNumberTask().equals("FalseMatchTask"))) {
-      removeWorkItem(swir.getUniqueNumberWorkItem());
-    } else {
-      ScanWorkItem swi = getWorkItem(swir.getUniqueNumberWorkItem());
-      swi.setDone(true);
-    }
+    catch(Exception e){e.printStackTrace();}
   }
 
   public boolean doneContains(ScanWorkItemResult swir) {
@@ -522,8 +519,8 @@ public class GridManager {
     try{
       if(toDo==null){toDo = new ArrayList<ScanWorkItem>();}
     	int iter = toDo.size();
-    	for (int i = 0; i < iter; i++) {
-      		if (toDo.get(i).getTaskIdentifier().equals(taskID)) {
+    	for (int i = 0; i < toDo.size(); i++) {
+      		if ((toDo.get(i)!=null)&&(toDo.get(i).getTaskIdentifier().equals(taskID))) {
       		  	num++;
       		}
     	}
@@ -626,7 +623,11 @@ public class GridManager {
   }
   */
   
-
+  public void addScanTaskSize(String scanTaskID, int size){
+    scanTaskSizes.put(scanTaskID, new Integer(size));
+  }
+  
+  public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
     
 
 }
