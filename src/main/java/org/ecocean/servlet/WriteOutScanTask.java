@@ -63,6 +63,7 @@ public class WriteOutScanTask extends HttpServlet {
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("WriteOutScanTask.class");
     PrintWriter out = null;
     GridManager gm = GridManagerFactory.getGridManager();
 
@@ -126,7 +127,7 @@ public class WriteOutScanTask extends HttpServlet {
 
 
         myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        
 
         //let's cleanup after a successful commit
         ThreadPoolExecutor es = SharkGridThreadExecutorService.getExecutorService();
@@ -153,6 +154,7 @@ public class WriteOutScanTask extends HttpServlet {
         statusText = "failure";
       }
       finally{
+        myShepherd.closeDBTransaction();
         response.setContentType("text/plain");
         out = response.getWriter();
         out.println(statusText);

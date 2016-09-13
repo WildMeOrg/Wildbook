@@ -95,6 +95,7 @@ public class SiteSearch extends HttpServlet {
         
         Query query=null;;
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("SiteSearch.class");
         myShepherd.beginDBTransaction();
         try{ 
           query = myShepherd.getPM().newQuery(MarkedIndividual.class);

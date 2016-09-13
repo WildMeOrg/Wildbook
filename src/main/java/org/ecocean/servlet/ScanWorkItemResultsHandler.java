@@ -166,6 +166,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
           if(!tasksCompleted.contains(scanTaskID)){
           
             Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("ScanWorkItemResultsHandler.class");
             myShepherd.beginDBTransaction();
             ScanTask st=myShepherd.getScanTask(scanTaskID);
             if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
