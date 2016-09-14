@@ -84,6 +84,7 @@ public class UserSelfUpdate extends HttpServlet {
       
       
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("UserSelfUpdate.class");
       
       User newUser=myShepherd.getUser(username);
       

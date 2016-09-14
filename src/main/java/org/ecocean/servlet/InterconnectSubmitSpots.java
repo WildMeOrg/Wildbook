@@ -80,6 +80,7 @@ public class InterconnectSubmitSpots extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("InterconnectSubmitSpots.class");
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     String num = " ";

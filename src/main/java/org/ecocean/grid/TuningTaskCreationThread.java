@@ -113,7 +113,7 @@ public class TuningTaskCreationThread implements Runnable, ISharkGridThread {
             Encounter enc2 = (Encounter) encs.get(k);
             String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2,"");
+            ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2);
             //String uniqueNum=swi.getUniqueNumber();
 
             //change
@@ -161,7 +161,7 @@ public class TuningTaskCreationThread implements Runnable, ISharkGridThread {
             Encounter enc2 = (Encounter) encs.get(k);
             String wiIdentifier = taskID + "_" + (new Integer(count)).toString();
             //add the workItem
-            ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2,"");
+            ScanWorkItem swi = new ScanWorkItem(enc, enc2, wiIdentifier, taskID, props2);
             swi.rightScan = true;
 
             if (numAdded < maxNumWorkItems) {

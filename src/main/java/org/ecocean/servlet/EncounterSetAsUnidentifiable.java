@@ -62,6 +62,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetAsUnidentifiable.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

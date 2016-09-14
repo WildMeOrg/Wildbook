@@ -19,16 +19,14 @@
 
 package org.ecocean.servlet;
 
-import org.ecocean.Encounter;
-import org.ecocean.MarkedIndividual;
-import org.ecocean.Shepherd;
+
+
 import org.ecocean.grid.GridManager;
 import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.grid.GridNode;
 import org.ecocean.grid.ScanWorkItem;
 
-import javax.jdo.Extent;
-import javax.jdo.Query;
+
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -38,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Iterator;
+
 import java.util.Vector;
 
 //import java.io.PrintWriter;
@@ -58,7 +56,7 @@ public class ScanAppletSupport extends HttpServlet {
     //public synchronized void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
     response.setContentType("application/octet-stream");
     GridManager gm = GridManagerFactory.getGridManager();
     //String supportedAppletVersion = gm.getSupportedAppletVersion();
@@ -80,25 +78,28 @@ public class ScanAppletSupport extends HttpServlet {
           //System.out.println("scanAppletSupport: Cleared the second hurdle in scanAppletSupport");
 
 
-          getWorkItemGroup(myShepherd, request, response, gm);
+          getWorkItemGroup(request, response, gm);
         }
         //new workItem-based support -- return an individual scanWorkItem
         //else if ((request.getParameter("action")!=null)&&(request.getParameter("action").equals("getWorkItem"))) {
         //getWorkItem(myShepherd, request, response);
         //}
         //following two methods used for the old individual scan applet
+        /*
         else if ((request.getParameter("action") != null) && (request.getParameter("action").equals("getEncountersWithSpotData"))) {
           getEncountersWithSpotData(myShepherd, request, response);
-        } else if ((request.getParameter("action") != null) && (request.getParameter("action").equals("getEncounter")) && (request.getParameter("number") != null)) {
+        } 
+        else if ((request.getParameter("action") != null) && (request.getParameter("action").equals("getEncounter")) && (request.getParameter("number") != null)) {
           getEncounter(myShepherd, request, response);
         }
+        */
       }
     //}
   } //end doPost method
 
 
   //used for the old non-grid applet -- sends a String Vector of appropriate encounters to scan back to the old applet
-  public void getEncountersWithSpotData(Shepherd myShepherd, HttpServletRequest request, HttpServletResponse response) {
+  /*public void getEncountersWithSpotData(Shepherd myShepherd, HttpServletRequest request, HttpServletResponse response) {
     //System.out.println("Processing get encounters request for applet...");
     //int total=myShepherd.getNumEncounters();
     Vector encountersWithSpotData = new Vector();
@@ -141,7 +142,9 @@ public class ScanAppletSupport extends HttpServlet {
     encountersWithSpotData = null;
     System.out.println("Done!");
   }
+  */
 
+  /*
   //used for the old non-grid applet -- sends the appropriate encounter to scan back to the old applet
   public void getEncounter(Shepherd myShepherd, HttpServletRequest request, HttpServletResponse response) {
     Encounter transmitEnc = null;
@@ -151,9 +154,10 @@ public class ScanAppletSupport extends HttpServlet {
     myShepherd.rollbackDBTransaction();
     myShepherd.closeDBTransaction();
   }
+  */
 
 
-  public void getWorkItemGroup(Shepherd myShepherd, HttpServletRequest request, HttpServletResponse response, GridManager gm) {
+  public void getWorkItemGroup(HttpServletRequest request, HttpServletResponse response, GridManager gm) {
     //how long to wait for a scanWorkItem to be marked as done before reclaiming it for processing by another agent
     long checkoutTimeout = gm.getCheckoutTimeout();
 
@@ -164,10 +168,10 @@ public class ScanAppletSupport extends HttpServlet {
     if ((request.getParameter("newEncounterNumber") != null) && (!request.getParameter("newEncounterNumber").equals(""))) {
 
       //System.out.println("newEncounterNumber has been specified");
-      Extent encClass = myShepherd.getPM().getExtent(ScanWorkItem.class, true);
-        Query query = myShepherd.getPM().newQuery(encClass);
+      //Extent encClass = myShepherd.getPM().getExtent(ScanWorkItem.class, true);
+        //Query query = myShepherd.getPM().newQuery(encClass);
       try {
-        myShepherd.beginDBTransaction();
+        //myShepherd.beginDBTransaction();
 
         int totalWorkItems = gm.getNumWorkItemsCompleteForTask(request.getParameter("newEncounterNumber")) + gm.getNumWorkItemsIncompleteForTask(request.getParameter("newEncounterNumber"));
         //change
@@ -187,11 +191,11 @@ public class ScanAppletSupport extends HttpServlet {
         Vector holdSWIs = new Vector();
 
         //get the items to transmit
-        getUniqueWorkItems(myShepherd, holdSWIs, request, query, groupSize, checkoutTimeout, force, totalWorkItems, totalWorkItemsComplete, gm);
+        getUniqueWorkItems(holdSWIs, request, groupSize, checkoutTimeout, force, totalWorkItems, totalWorkItemsComplete, gm);
 
 
         //transmit result and clean up
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         boolean transmitSuccess = sendObject(response, holdSWIs);
         if (transmitSuccess) {
           nd.setLastCheckout(System.currentTimeMillis());
@@ -200,10 +204,10 @@ public class ScanAppletSupport extends HttpServlet {
       } catch (Exception e) {
         System.out.println("Error while dishing out a targeted workItemGroup!");
         e.printStackTrace();
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.rollbackDBTransaction();
+        //myShepherd.closeDBTransaction();
       }
-      query.closeAll();
+      //query.closeAll();
 
 
     } //end if targeted
@@ -214,7 +218,7 @@ public class ScanAppletSupport extends HttpServlet {
       //System.out.println("I'm in scanAppletSupport, generic request, just starting...");
 
       try {
-        myShepherd.beginDBTransaction();
+        //myShepherd.beginDBTransaction();
 
         //System.out.println("I'm in scanAppletSupport, generic request, opened a db CONNECTION...");
 
@@ -223,10 +227,10 @@ public class ScanAppletSupport extends HttpServlet {
 
 
         //get the items to transmit
-        getUniqueWorkItemsGeneric(foundTask, gm, nd, myShepherd, holdResults, request, groupSize, checkoutTimeout, false, 1, 1);
+        getUniqueWorkItemsGeneric(foundTask, gm, nd, holdResults, request, groupSize, checkoutTimeout, false, 1, 1);
 
 
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         boolean transmitSuccess = sendObject(response, holdResults);
         if (transmitSuccess) nd.setLastCheckout(System.currentTimeMillis());
 
@@ -235,8 +239,8 @@ public class ScanAppletSupport extends HttpServlet {
         e.printStackTrace();
         System.out.println("I'm in scanAppletSupport, generic request, caught an exception...");
 
-        myShepherd.rollbackDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.rollbackDBTransaction();
+        //myShepherd.closeDBTransaction();
         //myShepherd.closeDBTransaction();
       }
 
@@ -268,7 +272,7 @@ public class ScanAppletSupport extends HttpServlet {
     }
   }
 
-  public synchronized void getUniqueWorkItems(Shepherd myShepherd, Vector holdSWIs, HttpServletRequest request, Query query, int groupSize, long checkoutTimeout, boolean force, int totalWorkItems, int totalWorkItemsComplete, GridManager gm) {
+  public synchronized void getUniqueWorkItems(Vector holdSWIs, HttpServletRequest request, int groupSize, long checkoutTimeout, boolean force, int totalWorkItems, int totalWorkItemsComplete, GridManager gm) {
 
     String id = request.getParameter("newEncounterNumber");
 
@@ -311,10 +315,10 @@ public class ScanAppletSupport extends HttpServlet {
       rightScan = swi.rightScan;
       holdSWIs.add(swi);
     }
-    query.closeAll();
+    //query.closeAll();
     if (hasWork) {
       //query.closeAll();
-      myShepherd.commitDBTransaction();
+      //myShepherd.commitDBTransaction();
     } else {
       //query.closeAll();
       if ((totalWorkItems != totalWorkItemsComplete) || (totalWorkItems == 0)) {
@@ -325,14 +329,14 @@ public class ScanAppletSupport extends HttpServlet {
         scanWI.setWorkItemsCompleteInTask(-1);
         scanWI.rightScan = rightScan;
 
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
 
         holdSWIs.add(scanWI);
       } else {
 
         //tell the applet to go for it and look at the result
-        query.closeAll();
-        myShepherd.rollbackDBTransaction();
+        //query.closeAll();
+        //myShepherd.rollbackDBTransaction();
 
 
         ScanWorkItem scanWI = new ScanWorkItem();
@@ -349,7 +353,7 @@ public class ScanAppletSupport extends HttpServlet {
 
   }
 
-  public synchronized void getUniqueWorkItemsGeneric(boolean foundTask, GridManager gm, GridNode nd, Shepherd myShepherd, Vector holdResults, HttpServletRequest request, int groupSize, long checkoutTimeout, boolean force, int totalWorkItems, int totalWorkItemsComplete) {
+  public synchronized void getUniqueWorkItemsGeneric(boolean foundTask, GridManager gm, GridNode nd, Vector holdResults, HttpServletRequest request, int groupSize, long checkoutTimeout, boolean force, int totalWorkItems, int totalWorkItemsComplete) {
 
     //change
     //get a list of unfinished scanWorkItems
@@ -403,7 +407,7 @@ public class ScanAppletSupport extends HttpServlet {
     if (foundTask) {
       //query.closeAll();
 
-      myShepherd.commitDBTransaction();
+      //myShepherd.commitDBTransaction();
 
     } else {
       //System.out.println("I'm in scanAppletSupport, generic request, returning a blank return item...");
@@ -411,7 +415,7 @@ public class ScanAppletSupport extends HttpServlet {
       //tell the node to go back to a conservative load since we're not sure how intensive the next set of work might be
       nd.setGroupSize(gm.getGroupSize());
 
-      myShepherd.rollbackDBTransaction();
+      //myShepherd.rollbackDBTransaction();
 
 
       //if there is nothing to send, send a blank workItem

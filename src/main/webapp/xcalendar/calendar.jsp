@@ -85,6 +85,7 @@ calprops = ShepherdProperties.getProperties("calendar.properties", langCode, con
 			int nowYear = cal.get(Calendar.YEAR);
 			int nowMonth = cal.get(Calendar.MONTH)+1;
 			Shepherd myShepherd = new Shepherd(context);
+			myShepherd.setAction("calendar.jsp");
 			myShepherd.beginDBTransaction();
 			try{
 				
