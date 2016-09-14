@@ -126,8 +126,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+  myShepherd.setAction("encounter.jsp1");
+  //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+  //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
@@ -2498,6 +2499,7 @@ else {
 
                         	 				String username=enc.getAssignedUsername();
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
+                        	 				aUserShepherd.setAction("encounter.jsp2");
                          					if(aUserShepherd.getUser(username)!=null){
                          					%>
                                 			<%
@@ -2588,6 +2590,7 @@ else {
             <%
 
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("encounter.jsp3");
             userShepherd.beginDBTransaction();
 
             ArrayList<String> usernames=userShepherd.getAllUsernames();
@@ -6137,11 +6140,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 <%
 
-kwQuery.closeAll();
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-kwQuery=null;
-myShepherd=null;
+//kwQuery.closeAll();
+
 
 }
 catch(Exception e){
@@ -6151,6 +6151,12 @@ catch(Exception e){
 
 
 <%
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	//kwQuery=null;
+	myShepherd=null;
 }
 
 	}  //end if this is an encounter

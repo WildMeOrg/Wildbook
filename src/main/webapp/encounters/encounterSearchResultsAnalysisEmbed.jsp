@@ -51,6 +51,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("encounterSearchResultsAnalysisEmbed.jsp");
 
 
     

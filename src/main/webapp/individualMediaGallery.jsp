@@ -30,6 +30,7 @@ java.util.*" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
+myShepherd.setAction("individualMediaGallery.jsp");
 imageShepherd.beginDBTransaction();
 String encNum = request.getParameter("encounterNumber");
 String indID = request.getParameter("individualID");

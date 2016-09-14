@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
 
 public class WBQuery implements java.io.Serializable {
@@ -100,14 +102,14 @@ public class WBQuery implements java.io.Serializable {
 
     //this *should* magically return a List of the proper classed object. good luck with that!
     public List<Object> doQuery(Shepherd myShepherd) throws RuntimeException {
-      List<Object> out;
+      List<Object> out=new ArrayList<Object>();
       Query query = toQuery(myShepherd);
-      out = (List<Object>) query.execute();
-
+      Collection c = (Collection) query.execute();
+      if(c!=null){out=new ArrayList<Object>(c);}
       System.out.println("calling doQuery on WBQuery with params = "+parametersAsString);
 
       // closing the query for some reason makes out inaccessible
-      //query.closeAll();
+      query.closeAll();
       return out;
     }
 

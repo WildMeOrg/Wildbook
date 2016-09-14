@@ -30,6 +30,7 @@
     
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualSearchResultsAnalysis.jsp");
     
     DecimalFormat df = new DecimalFormat("#.##");
 

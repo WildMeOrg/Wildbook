@@ -44,6 +44,7 @@ public class ShepherdRealm extends AuthorizingRealm {
         String context="context0";
        
             Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("ShepherdRealm.class.doGetAuthenticationInfo");
             myShepherd.beginDBTransaction();
         
             String password = "";
@@ -74,6 +75,7 @@ public class ShepherdRealm extends AuthorizingRealm {
 
     String password = null;
     Shepherd myShepherd=new Shepherd("context0");
+    myShepherd.setAction("ShepherdRealm.class.getPasswordForUser");
     myShepherd.beginDBTransaction();
     if(myShepherd.getUser(username)!=null){
       User user=myShepherd.getUser(username);
@@ -93,6 +95,7 @@ public class ShepherdRealm extends AuthorizingRealm {
         if(context!=null){actualContext=context;}
         
         Shepherd myShepherd=new Shepherd("context0");
+        myShepherd.setAction("ShepherdRealm.class.getRolenamesForUsersInContext");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(username)!=null){
           

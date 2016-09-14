@@ -16,7 +16,7 @@ var maLib = {};
  */
 maLib.maJsonToFigureElem = function(maJson, intoElem) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -86,11 +86,16 @@ maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
     partArray = partArray[partArray.length-1].split('.');
-    return encodeURI(partArray[0]);
+    return partArray[0];
   }
   return "Test caption, do not read";
 
 }
+
+maLib.blankCaptionFunction = function(maJson) {
+  return "";
+}
+
 
 /**
  * Like the above, but with also writes a labeled html caption,
@@ -102,12 +107,11 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
     if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
-  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
   caption = caption || '';
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
 
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -150,8 +154,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
   colSize = colSize || 6;
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -222,6 +225,7 @@ maLib.testExtraction = function(maJson) {
     nChildren = 'undefined';
   }
   console.log('\t'+maJson.id+' has nChildren = '+nChildren);
+console.log(maJson);
 
   console.log('\t'+maJson.id+' has child watermark url: '+maLib.getChildUrl(maJson, '_watermark'));
 
@@ -231,8 +235,7 @@ maLib.testExtraction = function(maJson) {
 
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -337,7 +340,7 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
         if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
             size = [imgEl.naturalWidth, imgEl.naturalHeight];
         }
- 
+
           // create slide object
           item = {
               src: linkEl.getAttribute('href'),
@@ -538,9 +541,20 @@ maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
 
 
 
+maLib.getUrl = function(maJson) {
+    url = maJson.url;
+    if (!url) return;
+    if (!wildbookGlobals.username) {
+        var wmUrl = maLib.getChildUrl(maJson, '_watermark');
+        if (wmUrl) url = wmUrl;
+    }
+console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
+    url = wildbook.cleanUrl(url);
+    return url;
+}
 
 function mkImg(maJson) {
-    var url = wildbook.cleanUrl(maJson.url);
+    var url = maLib.getUrl(maJson);
     return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
 }
 
