@@ -60,6 +60,7 @@ public class UserAddProfileImage extends HttpServlet {
     String context="context0";
     //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserAddProfileImage.class");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");

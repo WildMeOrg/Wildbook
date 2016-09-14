@@ -9,6 +9,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("confirmSubmit.jsp");
 	//HttpSession session = request.getSession(false);
 
 

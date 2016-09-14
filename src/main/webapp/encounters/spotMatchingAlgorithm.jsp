@@ -33,6 +33,7 @@ String encNum = request.getParameter("encounterNumber");
 
 
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("spotMatchingAlgorithm.jsp");
 		  
 //let's set up references to our file system components
 		 

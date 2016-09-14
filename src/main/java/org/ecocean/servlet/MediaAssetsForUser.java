@@ -51,6 +51,8 @@ public class MediaAssetsForUser extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.beginDBTransaction();
+    myShepherd.setAction("MediaAssetsForUser.class");
     PrintWriter out = response.getWriter();
 
     JSONArray assets = new JSONArray();

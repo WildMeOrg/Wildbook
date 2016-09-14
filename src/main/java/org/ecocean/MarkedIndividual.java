@@ -1912,6 +1912,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
 		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.setAction("MarkedIndividual.class");
+		myShepherd.beginDBTransaction();
 
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
   	ArrayList<String> uids = this.getAllAssignedUsers();
@@ -1933,6 +1935,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
 			collabClass = "new";
 			data = data.substring(1);
 		}
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
 		return "<div class=\"row-lock " + collabClass + " collaboration-button\" data-multiuser=\"" + data + "\">&nbsp;</div>";
 	}
 

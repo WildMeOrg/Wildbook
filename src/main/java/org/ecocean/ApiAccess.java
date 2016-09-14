@@ -118,6 +118,8 @@ System.out.println(key);
 		String context = "context0";
 		context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ApiAccess.class");
+    myShepherd.beginDBTransaction();
 		String username = "";
 		if (request.getUserPrincipal() != null) username = request.getUserPrincipal().getName();
 		List<Role> roleObjs = myShepherd.getAllRolesForUserInContext(username, context);
@@ -125,10 +127,14 @@ System.out.println(key);
 		for (Role r : roleObjs) {
 			roles.add(r.getRolename());
 		}
-System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
+		System.out.println("[class " + cname + "] roles for user '" + username + "': " + roles);
 
 		NodeList nlist = this.configDoc.getDocumentElement().getElementsByTagName("class");
-		if (nlist.getLength() < 1) return perm;
+		if (nlist.getLength() < 1) {
+		  myShepherd.rollbackDBTransaction();
+		  myShepherd.closeDBTransaction();
+		  return perm;
+		}
 
 		for (int i = 0 ; i < nlist.getLength() ; i++) {
 			Node n = nlist.item(i);
@@ -136,7 +142,11 @@ System.out.println("[class " + cname + "] roles for user '" + username + "': " +
 				Element el = (Element) n;
 				if (el.getAttribute("name").equals(cname)) {
 					Node p = el.getElementsByTagName("properties").item(0);
-					if (p == null) return perm;
+					if (p == null) {     
+					  myShepherd.rollbackDBTransaction();
+					  myShepherd.closeDBTransaction();
+					  return perm;
+					}
 //System.out.println("ok in " + cname);
 					Element propsEl = (Element) p;
 					NodeList props = propsEl.getElementsByTagName("property");
@@ -163,6 +173,8 @@ System.out.println("[class " + cname + "] roles for user '" + username + "': " +
 		}
 
 System.out.println(perm);
+    myShepherd.rollbackDBTransaction();
+    myShepherd.closeDBTransaction();
 		return perm;
 	}
 

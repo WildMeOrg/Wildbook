@@ -63,6 +63,7 @@ public class MediaAssetAttach extends HttpServlet {
     String context = "context0";
     context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("MediaAssetAttach.class");
     PrintWriter out = response.getWriter();
 
     try {

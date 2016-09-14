@@ -34,12 +34,12 @@
 	   version="3.0"
   metadata-complete="true">
 
-<!--
+
 <listener>
     <description>ServletContextListener</description>
     <listener-class>org.ecocean.StartupWildbook</listener-class>
 </listener>
--->
+
 
 
   <display-name>Shepherd Project Framework for Mark-Recapture Studies</display-name>
@@ -447,11 +447,12 @@
   </servlet>
 
 
-
+<!--
   <servlet>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetIdentifiable</servlet-class>
   </servlet>
+  -->
 
   <servlet>
     <servlet-name>EncounterSetBehavior</servlet-name>
@@ -1447,10 +1448,12 @@
          <url-pattern>/CJS</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>EncounterSetIdentifiable</servlet-name>
     <url-pattern>/EncounterSetIdentifiable</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>EncounterSetDynamicProperty</servlet-name>

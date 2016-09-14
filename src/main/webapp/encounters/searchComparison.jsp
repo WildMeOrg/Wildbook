@@ -86,6 +86,7 @@ margin-bottom: 8px !important;
   int firstYear = 1980;
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("searchComparison.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();

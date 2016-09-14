@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.ecocean.ShepherdPMF;
+import org.ecocean.Util;
 
 import java.lang.reflect.Method;
 
@@ -221,9 +222,15 @@ public class RestServlet extends HttpServlet
                 // GET "/query?the_query_details" or GET "/jdoql?the_query_details" where "the_query_details" is "SELECT FROM ... WHERE ... ORDER BY ..."
                 String queryString = URLDecoder.decode(req.getQueryString(), "UTF-8");
                 PersistenceManager pm = pmf.getPersistenceManager();
+                String servletID=Util.generateUUID();
+                ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "new");
+                
+                
                 try
                 {
                     pm.currentTransaction().begin();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "begin");
+                    
 
                     Query query = pm.newQuery("JDOQL", queryString);
                     if (fetchParam != null)
@@ -249,14 +256,22 @@ public class RestServlet extends HttpServlet
                     resp.setHeader("Content-Type", "application/json");
                     resp.setStatus(200);
                     pm.currentTransaction().commit();
+                    ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "commit");
+                    
                 }
                 finally
                 {
                     if (pm.currentTransaction().isActive())
                     {
                         pm.currentTransaction().rollback();
+                        ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "rollback");
+                        
                     }
                     pm.close();
+                    //ShepherdPMF.setShepherdState("RestServlet.class"+"_"+servletID, "close");
+                    ShepherdPMF.removeShepherdState("RestServlet.class"+"_"+servletID);
+                    
+                    
                 }
                 return;
             }

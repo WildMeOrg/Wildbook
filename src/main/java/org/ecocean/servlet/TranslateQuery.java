@@ -74,6 +74,7 @@ public class TranslateQuery extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TranslateQuery.class");
 
     // set up response type: should this be JSON?
     response.setContentType("text/plain");

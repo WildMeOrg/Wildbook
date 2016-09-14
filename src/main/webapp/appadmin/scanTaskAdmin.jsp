@@ -9,6 +9,7 @@ String context=ServletUtilities.getContext(request);
 
 //get a shepherd
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("scanTaskAdmin.jsp");
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();

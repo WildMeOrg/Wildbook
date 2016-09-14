@@ -71,6 +71,7 @@ public class SubmitSpotsAndImage extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("SubmitSpotsAndImage.class");
 
     myShepherd.beginDBTransaction();
     JSONObject json = ServletUtilities.jsonFromHttpServletRequest(request);
@@ -107,6 +108,7 @@ System.out.println("created???? " + ma);
         enc.setLeftReferenceSpots(refSpots);
     }
     myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
 
     JSONObject rtn = new JSONObject("{\"success\": true}");
     rtn.put("spotAssetId", ma.getId());

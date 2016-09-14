@@ -61,6 +61,7 @@ public class RestKeyword extends HttpServlet {
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RestKeyword.class");
 
         JSONObject jin = ServletUtilities.jsonFromHttpServletRequest(request);
         JSONObject jout = new JSONObject("{\"success\": false}");
@@ -166,6 +167,7 @@ System.out.println("getKeywords() -> " + ma.getKeywords());
                     jout.put("results", jassigned);
                     jout.put("success", true);
                     myShepherd.commitDBTransaction();
+                    myShepherd.closeDBTransaction();
                 }
             }
 
@@ -178,6 +180,7 @@ System.out.println("getKeywords() -> " + ma.getKeywords());
         out.println(jout.toString());
         out.flush();
         out.close();
+        
     }
 
 
