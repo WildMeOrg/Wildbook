@@ -77,6 +77,7 @@ public class UserResetPassword extends HttpServlet {
 
     if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))))) {
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("UserResetPassword.class");
       try{
           
           String username=request.getParameter("username").trim();

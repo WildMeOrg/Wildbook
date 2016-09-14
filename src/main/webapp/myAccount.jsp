@@ -34,6 +34,7 @@ if (session.getAttribute("message") != null) {
   	
   	
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("myAccount.jsp");
   	//get the available user roles
   	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
 	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);

@@ -35,6 +35,8 @@ org.ecocean.security.Collaboration" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("encounterSpotTool.jsp");
+myShepherd.beginDBTransaction();
 
 int imageID = Integer.parseInt(request.getParameter("imageID"));
 MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
@@ -638,6 +640,12 @@ $(document).ready(function() {
 <div style="height: 800px;"></div>
 
 </div>
+
+<%
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
+
+%>
 
 
 <jsp:include page="../footer.jsp" flush="true"/>

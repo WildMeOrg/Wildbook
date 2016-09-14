@@ -52,6 +52,7 @@ public class ScanTaskHandlerAWS extends HttpServlet {
     
 	  
 	  Shepherd myShepherd=new Shepherd(context);
+	  myShepherd.setAction("ScanTaskHandlerAWS.class");
 		GridManager gm=GridManagerFactory.getGridManager();
 		//set up for response
 		response.setContentType("text/html");

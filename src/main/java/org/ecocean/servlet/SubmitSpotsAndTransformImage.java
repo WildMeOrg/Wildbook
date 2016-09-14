@@ -59,6 +59,7 @@ public class SubmitSpotsAndTransformImage extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("SubmitSpotsAndTransformImage.class");
     response.setContentType("application/json");
     PrintWriter out = response.getWriter();
 

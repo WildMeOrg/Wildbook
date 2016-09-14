@@ -19,6 +19,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("exportSearchResults.jsp");
 
     //set up the vector for matching encounters
     Vector rEncounters = new Vector();

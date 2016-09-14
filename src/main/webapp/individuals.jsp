@@ -78,6 +78,7 @@ context=ServletUtilities.getContext(request);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("individuals.jsp");
 
 
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -1481,6 +1482,7 @@ if (request.getParameter("number")!=null) {
           <%
           if(CommonConfiguration.showUsersToPublic(context)){
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("individuals.jsp2");
             userShepherd.beginDBTransaction();
             %>
               <p><strong><%=props.getProperty("collaboratingResearchers") %></strong></p>

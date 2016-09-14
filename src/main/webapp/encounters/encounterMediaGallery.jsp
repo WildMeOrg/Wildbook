@@ -31,6 +31,7 @@ java.util.*" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
+imageShepherd.setAction("encounterMediaGallery.jsp");
 imageShepherd.beginDBTransaction();
 String encNum = request.getParameter("encounterNumber");
 Properties encprops = new Properties();

@@ -18,6 +18,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("socialUnit.jsp");
 
 
 

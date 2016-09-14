@@ -82,6 +82,7 @@ public class ScanWorkItemCreationThread implements Runnable, ISharkGridThread {
 
   public void createThem() {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("ScanWorkItemCreationThread.class");
     GridManager gm = GridManagerFactory.getGridManager();
 
     String secondRun = "true";
