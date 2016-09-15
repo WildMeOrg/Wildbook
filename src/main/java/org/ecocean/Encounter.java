@@ -2513,14 +2513,18 @@ thus, we have to treat it as a special case.
 	public String getThumbnailUrl(String context) {
                 MediaAsset ma = getPrimaryMediaAsset();
                 if (ma == null) return null;
+                String url = null;
                 Shepherd myShepherd = new Shepherd(context);
                 myShepherd.setAction("Encounter.class.getThumbnailUrl");
                 myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
-                if ((kids != null) && (kids.size() > 0)) ma = kids.get(0);
+                if ((kids == null) || (kids.size() < 0)) return null;
+                ma = kids.get(0);
+                if (ma.webURL() == null) return null;
+                url = ma.webURL().toString();
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
-                return ma.webURL().toString();
+                return url;
 	}
 
         //this probably needs a better name and should allow for something more like an ordered list; that said,
