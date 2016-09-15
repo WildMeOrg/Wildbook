@@ -160,6 +160,7 @@ public class OccurrenceCreate extends HttpServlet {
       out.println("<strong>Error:</strong> I didn't receive enough data to create a new occurrence from this encounter.");
       //out.println(ServletUtilities.getFooter(context));
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      myShepherd.closeDBTransaction();
     }
 
 
