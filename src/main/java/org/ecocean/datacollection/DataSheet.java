@@ -103,6 +103,10 @@ public class DataSheet extends DataCollectionEvent {
     return data;
   }
 
+  public DataPoint get(int i) {
+    return data.get(i);
+  }
+
   public String getID() {
     return id;
   }
@@ -112,7 +116,7 @@ public class DataSheet extends DataCollectionEvent {
   }
 
   public void setName(String name) {
-    this.name = name;
+    this.name = name;898</DataPoint></String></dpNames></DataPoint></DataPoint></String></String></String></String></DataPoint></DataPoint></DataPoint>
   }
 
   public String toString() {
