@@ -13,6 +13,9 @@ import java.util.UUID;
 import org.json.JSONObject;
 import org.json.JSONException;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+
 //EXIF-related imports
 import java.io.File;
 import java.io.InputStream;
@@ -464,6 +467,25 @@ public class Util {
     // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
     public static int getNumSections(int collectionSize, int itemsPerSection) {
       return (collectionSize - 1)/itemsPerSection + 1;
+    }
+
+    public static String prettyPrintDateTime(DateTime dt) {
+      System.out.println("prettyPrintDateTime:");
+      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
+      boolean isOnlyDate = dateTimeIsOnlyDate(dt);
+      String currentToString = dt.toString();
+      if (isOnlyDate) {
+        currentToString = currentToString.split("T")[0];
+      }
+      return (currentToString);
+    }
+
+    public static boolean dateTimeIsOnlyDate(DateTime dt) {
+      try {
+        return (dt.millisOfDay().get()==0);
+      } catch (Exception e) {
+        return false;
+      }
     }
 
 
