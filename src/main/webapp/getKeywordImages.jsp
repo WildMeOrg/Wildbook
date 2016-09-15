@@ -24,6 +24,14 @@ JSONObject returnMe = new JSONObject();
 
 String rootWebappPath = getServletContext().getRealPath("/");
 
+int maxSize=9999999;
+if(request.getParameter("maxSize")!=null){
+	try{
+		maxSize=(new Integer(request.getParameter("maxSize"))).intValue();
+	}
+	catch(Exception e){}
+}
+
 myShepherd.beginDBTransaction();
 
 
@@ -55,6 +63,12 @@ try{
 		//Keyword word=myShepherd.getKeyword(indexName);
 		
 		String filter="SELECT FROM org.ecocean.media.MediaAsset WHERE keywords.contains(word0) && word0.indexname == \""+indexName+"\" VARIABLES org.ecocean.Keyword word0";
+		
+		if(indexName.equals("nofilter")){
+			filter="SELECT FROM org.ecocean.media.MediaAsset WHERE uuid != null";
+			
+		}
+		
 		Query query=myShepherd.getPM().newQuery(filter);
 		Collection c=(Collection)query.execute();
 		List<MediaAsset> photos=new ArrayList<MediaAsset>(c);
@@ -63,10 +77,11 @@ try{
 		//List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
 		int numPhotos=photos.size();
 		JSONArray all = new JSONArray();
-		for(int i=0;i<numPhotos;i++){
+		for(int i=0;((i<numPhotos)&&(i<maxSize));i++){
 			MediaAsset spv=photos.get(i);
 			//String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
 			String encNum="";
+			String individualID="";
 			
 			//try to find the corresponding encounter number
 			String encFilter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && annotations.contains(photo0) && photo0.features.contains(feat0) && feat0.asset.uuid == \""+spv.getUUID()+"\" VARIABLES org.ecocean.Annotation photo0;org.ecocean.media.Feature feat0";
@@ -74,8 +89,11 @@ try{
 			Collection d=(Collection)encQuery.execute();
 					if((d!=null)&&(d.size()>0)){
 						ArrayList<Encounter> encs=new ArrayList<Encounter>(d);
-						encNum=encs.get(0).getCatalogNumber();
-						
+						Encounter enc=encs.get(0);
+						encNum=enc.getCatalogNumber();
+						if(enc.getIndividualID()!=null){
+							individualID=enc.getIndividualID();
+						}
 						
 					}
 			encQuery.closeAll();
@@ -85,7 +103,11 @@ try{
 			
 			JSONObject jsonKW = new JSONObject();
 			jsonKW.put("url", path);
+			jsonKW.put("uuid", spv.getUUID());
 			jsonKW.put("correspondingEncounterNumber", encNum);
+			if(!individualID.equals("")){
+				jsonKW.put("individualID", individualID);	
+			}
 			all.put(jsonKW);
 			
 		}
