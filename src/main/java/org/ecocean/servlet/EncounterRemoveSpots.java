@@ -23,6 +23,7 @@ import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 
+import org.json.JSONObject;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -93,24 +94,25 @@ public class EncounterRemoveSpots extends HttpServlet {
       Encounter despotMe = myShepherd.getEncounter(request.getParameter("number"));
       boolean assigned = false;
 
-/*  TODO no spots on Encounter ... FIXME
       try {
         if (despotMe.getIndividualID()==null) {
 
           if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
             despotMe.removeRightSpots();
+            despotMe.removeRightSpotMediaAssets(myShepherd);
             //despotMe.hasRightSpotImage = false;
             despotMe.rightSpotImageFileName = null;
             side = "right";
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
-            despotMe.setNumRightSpots(0);
+            //despotMe.setNumRightSpots(0);
           } else if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("false"))) {
 
             despotMe.removeSpots();
+            despotMe.removeLeftSpotMediaAssets(myShepherd);
             //despotMe.hasSpotImage = false;
             despotMe.spotImageFileName = null;
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
-            despotMe.setNumLeftSpots(0);
+            //despotMe.setNumLeftSpots(0);
           }
         } else {
           locked = true;
@@ -144,16 +146,15 @@ public class EncounterRemoveSpots extends HttpServlet {
         }
       }
 
+
       out.println(ServletUtilities.getFooter(context));
     } else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
-*/
     }
 
-System.out.println(" REMOVAL OF SPOTS DISABLED DUE TO SPOTS NO LONGER BEING ON ENCOUNTERS NOW ");
     out.close();
     myShepherd.closeDBTransaction();
   }

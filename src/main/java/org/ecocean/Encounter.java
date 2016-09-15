@@ -337,6 +337,22 @@ public class Encounter implements java.io.Serializable {
     rightSpots = null;
   }
 
+    //yes, there "should" be only one of each of these, but we be thorough!
+    public void removeLeftSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spot");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeLeftSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+    public void removeRightSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spotRight");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeRightSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+
   public void nukeAllSpots() {
     leftReferenceSpots = null;
     rightReferenceSpots = null;
