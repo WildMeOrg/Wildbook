@@ -5,7 +5,8 @@ java.lang.NumberFormatException,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
 org.datanucleus.api.rest.orgjson.JSONException,
-java.util.List
+org.ecocean.media.MediaAsset,
+java.util.*
 "%>
 <%
 
@@ -51,22 +52,40 @@ try{
 		
 		String indexName=request.getParameter("indexName").trim();
 		returnMe.put("keyword", indexName);
-		Keyword word=myShepherd.getKeyword(indexName);
-		List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
+		//Keyword word=myShepherd.getKeyword(indexName);
+		
+		String filter="SELECT FROM org.ecocean.media.MediaAsset WHERE keywords.contains(word0) && word0.indexname == \""+indexName+"\" VARIABLES org.ecocean.Keyword word0";
+		Query query=myShepherd.getPM().newQuery(filter);
+		Collection c=(Collection)query.execute();
+		List<MediaAsset> photos=new ArrayList<MediaAsset>(c);
+		
+		
+		//List<SinglePhotoVideo> photos=myShepherd.getAllSinglePhotoVideosWithKeyword(word);
 		int numPhotos=photos.size();
 		JSONArray all = new JSONArray();
 		for(int i=0;i<numPhotos;i++){
-			SinglePhotoVideo spv=photos.get(i);
-			String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
-			Encounter imageEnc=myShepherd.getEncounter(spv.getCorrespondingEncounterNumber());
-			File thisEncounterDir = new File(imageEnc.dir(baseDir));
-			String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + imageEnc.dir("");
-
-			String path =  "http://www.whaleshark.org"+ encUrlDir + "/" + spv.getFilename();
-	        
+			MediaAsset spv=photos.get(i);
+			//String baseDir = ServletUtilities.dataDir(context, rootWebappPath);
+			String encNum="";
+			
+			//try to find the corresponding encounter number
+			String encFilter="SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && annotations.contains(photo0) && photo0.features.contains(feat0) && feat0.asset.uuid == \""+spv.getUUID()+"\" VARIABLES org.ecocean.Annotation photo0;org.ecocean.media.Feature feat0";
+			Query encQuery=myShepherd.getPM().newQuery(encFilter);
+			Collection d=(Collection)encQuery.execute();
+					if((d!=null)&&(d.size()>0)){
+						ArrayList<Encounter> encs=new ArrayList<Encounter>(d);
+						encNum=encs.get(0).getCatalogNumber();
+						
+						
+					}
+			encQuery.closeAll();
+			
+			//String path =  "http://www.whaleshark.org"+ encUrlDir + "/" + spv.getFilename();
+	        String path = spv.webURL().toString();
+			
 			JSONObject jsonKW = new JSONObject();
 			jsonKW.put("url", path);
-			jsonKW.put("correspondingEncounterNumber", spv.getCorrespondingEncounterNumber());
+			jsonKW.put("correspondingEncounterNumber", encNum);
 			all.put(jsonKW);
 			
 		}
@@ -75,6 +94,7 @@ try{
 		%>
 		<%=returnMe.toString(2) %>
 		<%
+		query.closeAll();
 	}	
 
 
