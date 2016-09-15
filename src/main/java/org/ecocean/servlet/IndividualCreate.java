@@ -233,6 +233,7 @@ public class IndividualCreate extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I didn't receive enough data to create a marked individual from this encounter.");
       out.println(ServletUtilities.getFooter(context));
+      myShepherd.closeDBTransaction();
     }
 
 
