@@ -204,8 +204,10 @@ public class ClassEditTemplate {
     String inputName = inputElemName(dp, classNamePrefix);
 
     if (dp.isCategorical(context)) {
-      //printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out);
-      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+      printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out);
+      //printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+    } else if (dp.getClass().getSimpleName().equals("Instant")) {
+      printOutDateTimeModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
     } else {
       printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
     }
@@ -241,12 +243,24 @@ public class ClassEditTemplate {
     out.println("\n</tr>");
   }
 
-  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+  // custom method to replicate a very specific table row format on this page
+  public static void printOutDateTimeModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out);
+
+    printFieldLabelCell(fieldName, out);
+    printDateTimeCell(inputName, printValue, out);
+    printUnitsCell(units, out);
+    printUndoCell(out);
+
+    out.println("\n</tr>");
+  }
+
+  public static void printOutClassFieldSelectorRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     printFieldRowStart(printValue, out);
 
     printFieldLabelCell(fieldName, out);
     printSelectCell(inputName, printValue, possibleValues, out);
-    printUndoCell(out);
+    printSelectUndoCell(out);
 
     out.println("\n</tr>");
   }
@@ -255,11 +269,36 @@ public class ClassEditTemplate {
   public static void printInput(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("\t\t<input name=\""+inputName+"\" value=\""+printValue+"\" />");
   }
+
   public static void printInputCell(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("\t<td class=\"value\">");
     printInput(inputName, printValue, out);
     out.println("</td>");
   }
+
+  public static void printDateTimeCell(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("\t<td class=\"display\">");
+    printDisplayDateTimeSetter(inputName, printValue, out);
+    printMillisDateTimeSetter(inputName, printValue, out);
+    out.println("</td>");
+  }
+
+
+  public static void printDisplayDateTimeSetter(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    System.out.println("printDisplayDateTimeSetter for input "+inputName+" and printValue "+printValue);
+    out.println("<input class=\"form-control datepicker display\" type=\"text\"");
+    out.println("name=\"display-"+inputName+"\" ");
+    out.println("value=\""+printValue+"\"");
+    out.println("/>");
+  }
+
+  public static void printMillisDateTimeSetter(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<input class=\"form-control datepicker millis\" type=\"text\" style=\"display:none;\"");
+    out.println("name=\""+inputName+"\" ");
+    //out.println("value=\""+printValue+"\"");
+    out.println("/>");
+  }
+
 
   public static void printSelectCell(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
     out.println("\t<td class=\"value\">");
@@ -268,12 +307,14 @@ public class ClassEditTemplate {
   }
 
   public static void printSelect(String inputName, String printValue, String[] possibleValues, javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<script>console.log(\"printSelect called on inputName="+inputName+", printValue="+printValue+"\")</script>");
     out.println("<select name=\""+inputName+"\">");
+    printOption("", printValue, out); // gotta be able to unset the values
     for (String possibleValue : possibleValues) printOption(possibleValue, printValue, out);
     out.println("</select>");
   }
   public static void printOption(String possibleValue, String currentValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("\t<option ");
+    out.println("\t<option value=\""+possibleValue+"\"");
     if (possibleValue!=null && possibleValue.equals(currentValue)) {
       out.print("selected=\"selected\"");
     }
@@ -290,6 +331,18 @@ public class ClassEditTemplate {
     out.println("<div title=\"undo this change\" class=\"undo-button\">&#8635;</div>");
     out.println("</td>");
   }
+
+  public static void printSelectUndoCell(javax.servlet.jsp.JspWriter out) throws IOException {
+    out.println("<td class=\"undo-container\">");
+    out.println("<div title=\"undo this change\" class=\"select-undo-button\">&#8635;</div>");
+    out.println("</td>");
+  }
+
+
+
+
+
+
 
   public static void printUnitsCell(String units, javax.servlet.jsp.JspWriter out) throws IOException {
     if (units!=null && !units.equals("")) {

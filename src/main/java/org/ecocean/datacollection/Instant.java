@@ -32,13 +32,24 @@ public class Instant extends DataPoint {
     this.value = (DateTime) value;
   }
 
+  // NOTE: to make cross-talk with javascript as painless as possible,\
+  //   all string-based communication assumes we're dealing with stringified
+  //   milliseconds-since-epoch
   public void setValueFromString(String str) {
-    setValue(DateTime.parse(str));
+    System.out.println("Beginning Instant.setValueFromString("+str+")");
+    try {
+      DateTime dt = new DateTime(new Long(str));
+      System.out.println("  parsed DateTime = "+dt+"");
+      this.value = dt;
+      System.out.println("  this.value = "+this.value);
+    } catch (Exception e) {
+      System.out.println("Pokecatch! Unable to parse the datetime!");
+    }
   }
 
   public String getValueString() {
     if (value==null) return "";
-    return value.toString();
+    return (Util.prettyPrintDateTime(value));
   }
 
   public DateTime[] getCategories(String context) {
