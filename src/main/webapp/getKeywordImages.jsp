@@ -65,7 +65,7 @@ try{
 		String filter="SELECT FROM org.ecocean.media.MediaAsset WHERE keywords.contains(word0) && word0.indexname == \""+indexName+"\" VARIABLES org.ecocean.Keyword word0";
 		
 		if(indexName.equals("nofilter")){
-			filter="SELECT FROM org.ecocean.media.MediaAsset WHERE uuid != null";
+			filter="SELECT FROM org.ecocean.media.MediaAsset WHERE parentId == null";
 			
 		}
 		
