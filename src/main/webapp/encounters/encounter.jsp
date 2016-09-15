@@ -773,7 +773,7 @@ $(function() {
                     </script>
 
                     <div class="editText">
-                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <h3><%=encprops.getProperty("manageIdentity")%></h3>
                       <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
                     </div>
 
@@ -897,20 +897,16 @@ $(function() {
                   });
                   </script>
 
-                  <div class="editText">
-                    <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                    <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                  </div>
+
 
                   <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
 
-                  <img align="absmiddle" src="../images/tag_small.gif"/>
                   <form name="createShark" class="editForm">
                     <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
                     <input name="action" type="hidden" value="create" id="individualCreateAction"/>
                     <div class="form-group row">
                       <div class="col-sm-4">
-                        <label><%=encprops.getProperty("createMarkedIndividual")%>:</label>
+                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
                       </div>
                       <div class="col-sm-5 col-xs-10" id="createSharkDiv">
                         <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
@@ -1092,7 +1088,7 @@ $(function() {
               </script>
 
               <div class="editText" id="occurrenceEditMessage">
-                <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                <h3><%=encprops.getProperty("assignOccurrence")%></h3>
                 <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
               </div>
               <div id="occurrenceRemoveResultDiv" class="resultMessageDiv">
@@ -1150,7 +1146,7 @@ $(function() {
                   });
                 </script>
                 <div class="editText">
-                  <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                  <h3><%=encprops.getProperty("assignOccurrence")%></h3>
                   <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
                 </div>
 
