@@ -65,7 +65,8 @@ while(allSharks.hasNext()){
 					int numPhotos=photos.size();
 					for(int k=0;k<numPhotos;k++){
 						MediaAsset p=photos.get(k);
-						String filename=p.webURLString();
+						URL u = p.safeURL(myShepherd, request);
+						String filename = ((u == null) ? null : u.toString());
 						if(!photoNames.contains(filename)){photoNames.add(filename);}
 					}
 				}

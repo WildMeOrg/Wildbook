@@ -595,6 +595,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     /**
      * Return a full web-accessible url to the asset, or null if the
      * asset is not web-accessible.
+     *  NOTE: now you should *almost always* use .safeURL() to return something to a user -- this will hide original files when necessary
      */
     public URL webURL() {
 
@@ -611,8 +612,57 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return store.webURL(this);
     }
 
+/*    has been deprecated, cuz you should make a better choice about what you want the url of. see: safeURL() and friends
     public String webURLString() {
         return getUrlString(this.webURL());
+    }
+*/
+
+
+    //the primary purpose here is to mask (i.e. never send) the original (uploaded) image file.
+    //  right now "master" labelled image is used, if available, otherwise children are chosen by allChildTypes() order....
+    public URL safeURL(Shepherd myShepherd, HttpServletRequest request) {
+        MediaAsset ma = bestSafeAsset(myShepherd, request);
+        if (ma == null) return null;
+        return ma.webURL();
+    }
+    //this assumes you weakest privileges
+    public URL safeURL(Shepherd myShepherd) {
+        return safeURL(myShepherd, null);
+    }
+    public URL safeURL(HttpServletRequest request) {
+        String context = "context0";
+        if (request != null) context = ServletUtilities.getContext(request);  //kinda rough, but....
+        //the throw-away Shepherd object is [mostly!] ok here since we arent returning the MediaAsset it is used to find
+        Shepherd myShepherd = new Shepherd(context);
+        URL u = safeURL(myShepherd, request);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return u;
+    }
+    public URL safeURL() {
+        return safeURL((HttpServletRequest)null);
+    }
+    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
+        if (store == null) return null;
+        //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
+        String bestType = "master";
+        if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
+System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+        boolean gotBest = false;
+        List<String> types = store.allChildTypes();
+        for (String t : types) {
+            if (t.equals(bestType)) gotBest = true;
+            if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
+System.out.println("   ....  ??? do we have a " + t);
+            //now try to see if we have one!
+            ArrayList<MediaAsset> kids = this.findChildrenByLabel(myShepherd, "_" + t);
+            if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
+        }
+        return null;  //got nothing!  :(
+    }
+    public MediaAsset bestSafeAsset(Shepherd myShepherd) {
+        return bestSafeAsset(myShepherd, null);
     }
 
 /*
@@ -748,7 +798,6 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 }
                 jobj.put("features", jarr);
             }
-            jobj.put("url", webURLString());
             if ((getMetadata() != null) && (getMetadata().getData() != null) && (getMetadata().getData().opt("attributes") != null)) {
                 //jobj.put("metadata", new org.datanucleus.api.rest.orgjson.JSONObject(getMetadata().getData().getJSONObject("attributes").toString()));
                 jobj.put("metadata", Util.toggleJSONObject(getMetadata().getData().getJSONObject("attributes")));
@@ -761,6 +810,10 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("MediaAsset.class");
             myShepherd.beginDBTransaction();
+
+            URL u = safeURL(myShepherd, request);
+            if (u != null) jobj.put("url", u.toString());
+
             ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
             if ((kids != null) && (kids.size() > 0)) {
@@ -872,16 +925,19 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
     }
 
 
-    //creates the "standard" derived children for a MediaAsset (thumb, mid, etc) -- TODO some day have this site-defined?
+    //creates the "standard" derived children for a MediaAsset (thumb, mid, etc)
     public ArrayList<MediaAsset> updateStandardChildren() {
+        if (store == null) return null;
+        List<String> types = store.standardChildTypes();
+        if ((types == null) || (types.size() < 1)) return null;
         ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-        String[] types = new String[]{"thumb", "mid", "watermark"};
-        for (int i = 0 ; i < types.length ; i++) {
+        for (String type : types) {
+System.out.println(">> updateStandardChildren(): type = " + type);
             MediaAsset c = null;
             try {
-                c = this.updateChild(types[i]);
+                c = this.updateChild(type);
             } catch (IOException ex) {
-                System.out.println("updateStandardChildren() failed on " + this + " with " + ex.toString());
+                System.out.println("updateStandardChildren() failed on type=" + type + ", ma=" + this + " with " + ex.toString());
             }
             if (c != null) mas.add(c);
         }
@@ -1048,6 +1104,12 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         } else {
             throw new IOException("copyInBase64() could not write " + file);
         }
+    }
+
+
+    public boolean isValidChildType(String type) {
+        if (store == null) return false;
+        return store.isValidChildType(type);
     }
 
 
