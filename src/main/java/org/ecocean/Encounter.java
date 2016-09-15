@@ -259,7 +259,7 @@ public class Encounter implements java.io.Serializable {
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
-    System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
+    if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
