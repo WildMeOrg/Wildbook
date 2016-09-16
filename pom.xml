@@ -437,7 +437,7 @@
     <groupId>org.cacheonix</groupId>
     <artifactId>cacheonix-core</artifactId>
     <version>2.2.2</version>
-<dependency>
+</dependency>
 
 
   </dependencies>
