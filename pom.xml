@@ -419,7 +419,11 @@
     
     <!-- END QR code generating dependencies -->
 
-
+<dependency>
+	<groupId>com.mchange</groupId>
+	<artifactId>c3p0</artifactId>
+	<version>0.9.5.2</version>
+</dependency>
 
 <dependency>
     <groupId>org.apache.commons</groupId>
@@ -432,12 +436,6 @@
     <artifactId>urlrewritefilter</artifactId>
     <version>4.0.3</version>
 </dependency>
-
-<dependency>
-    <groupId>org.cacheonix</groupId>
-    <artifactId>cacheonix-core</artifactId>
-    <version>2.2.2</version>
-<dependency>
 
 
   </dependencies>
