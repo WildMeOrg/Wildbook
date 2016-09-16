@@ -92,6 +92,25 @@
     <dispatcher>FORWARD</dispatcher>
 </filter-mapping>
 
+<filter>
+    <filter-name>CacheonixWebCache</filter-name>
+    <filter-class>org.cacheonix.cache.web.RequestCacheFilter</filter-class>
+</filter>
+
+<filter-mapping>
+       <filter-name>CacheonixWebCache</filter-name>
+       <url-pattern>/index.jsp</url-pattern>
+	   <url-pattern>/gallery.jsp</url-pattern>
+	   <url-pattern>/login.jsp</url-pattern>
+	   <url-pattern>/photographing.jsp</url-pattern>
+	   <url-pattern>/publications.jsp</url-pattern>
+	   <url-pattern>/contactus.jsp</url-pattern>
+	   <url-pattern>/sitemap.jsp</url-pattern>
+	   <url-pattern>/individualSearchResults.jsp</url-pattern>
+	   <url-pattern>/searchResults.jsp?state=unapproved</url-pattern>
+	   
+</filter-mapping>
+
 
   <filter>
         <filter-name>ShiroFilter</filter-name>
@@ -161,7 +180,7 @@
 	
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = anon
+		 /encounters/searchResults.jsp = authc
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc
 		 /encounters/mappedSearchResultsSex.jsp = authc
