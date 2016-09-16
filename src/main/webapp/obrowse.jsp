@@ -120,6 +120,8 @@ java.util.Properties" %>
 <%
 
 myShepherd = new Shepherd("context0");
+myShepherd.setAction("obrowse.jsp");
+myShepherd.beginDBTransaction();
 
 /*
 String context="context0";
@@ -203,6 +205,9 @@ if (type.equals("Encounter")) {
 
 
 if (needForm) out.println(showForm());
+
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 

@@ -28,6 +28,7 @@ Shepherd myShepherd=null;
 String context = "context0";
 
 myShepherd = new Shepherd(context);
+myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 
 //String rootDir = getServletContext().getRealPath("/");
 //String baseDir = ServletUtilities.dataDir("context0", rootDir);
@@ -46,6 +47,8 @@ if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 
