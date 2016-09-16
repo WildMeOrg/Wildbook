@@ -142,6 +142,8 @@
 				/BatchUpload/** = authc, roles[admin]
 				/appadmin/batch* = authc, roles[admin]
 				/EncounterSetSubmitterID = authc, roles[admin]
+				
+				/individuals.jsp = authc
 
 				 /EncounterSetTapirLinkExposure = authc, roles[researcher]
 		        /GenePopExport = authc, roles[researcher]
