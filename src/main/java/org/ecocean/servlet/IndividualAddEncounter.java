@@ -184,11 +184,11 @@ public class IndividualAddEncounter extends HttpServlet {
       			  // Notify other who need to know
               Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
               cOthers.removeAll(cSubmitters);
-              System.out.println("cOthers size is: "+cOthers.size());
+              //System.out.println("cOthers size is: "+cOthers.size());
               for (String emailTo : cOthers) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                System.out.println("Emailing cOthers member:" +emailTo);
+                //System.out.println("Emailing cOthers member:" +emailTo);
                 es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
               }
 
