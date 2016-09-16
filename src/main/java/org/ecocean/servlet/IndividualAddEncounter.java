@@ -188,7 +188,7 @@ public class IndividualAddEncounter extends HttpServlet {
               for (String emailTo : cOthers) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                System.out.printn("Emailing cOthers member:" +emailTo);
+                System.out.println("Emailing cOthers member:" +emailTo);
                 es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
               }
 
