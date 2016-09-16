@@ -183,6 +183,7 @@ public final class NotificationMailer implements Runnable {
       if (s == null || "".equals(s.trim()))
         throw new IllegalArgumentException("Invalid email TO address specified");
     }
+    System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
     this.recipients = to;
@@ -285,7 +286,9 @@ public final class NotificationMailer implements Runnable {
    * @param text text with which to replace standard content tag
    */
   public NotificationMailer(String context, String langCode, Collection<String> to, String type, final String text) {
-    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text); }});
+    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text); 
+      System.out.println("NoteMailerHere1");
+    }});
   }
 
   /**
@@ -337,6 +340,8 @@ public final class NotificationMailer implements Runnable {
    * @return {@code EmailTemplate} instance
    */
   private EmailTemplate loadEmailTemplate(String langCode, List<String> types) throws IOException {
+    System.out.println("NoteMailerHere4 and types are: "+types.toString());
+    
     if (langCode != null && !"".equals(langCode.trim())) {
       for (String type : types) {
         if (existsEmailTemplate(langCode, type))
@@ -360,6 +365,7 @@ public final class NotificationMailer implements Runnable {
    * @return {@code EmailTemplate} instance
    */
   private EmailTemplate loadEmailTemplate(String langCode, String type) throws IOException {
+    System.out.println("NoteMailerHere3 and type is: "+type);
     // Load generic email template for context.
     File[] fBase = resolveTemplatesFromRoot(langCode, BASE_TEMPLATE_ROOT);
     if (fBase[0] == null || !fBase[0].isFile())
