@@ -230,6 +230,7 @@ public final class NotificationMailer implements Runnable {
       }
     } catch (IOException ex) {
       // Logged/flagged as error to avoid interrupting client code processing.
+      ex.printStackTrace();
       log.error(ex.getMessage(), ex);
       failedSetup = true;
     }
