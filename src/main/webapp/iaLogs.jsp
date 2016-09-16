@@ -22,6 +22,7 @@ org.ecocean.media.*
 
 Shepherd myShepherd=null;
 myShepherd = new Shepherd("context0");
+myShepherd.setAction("iaLogs.jsp");
 
 
 String id = request.getParameter("id");
@@ -30,6 +31,8 @@ if ((id == null) && (taskId == null)) {
 	out.println("{\"success\": false, \"error\": \"no object/task id passed\"}");
 	return;
 }
+
+myShepherd.beginDBTransaction();
 
 ArrayList<IdentityServiceLog> logs = null;
 if (id != null) {
@@ -50,6 +53,9 @@ for (IdentityServiceLog l : logs) {
 }
 
 out.println(all.toString());
+
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 

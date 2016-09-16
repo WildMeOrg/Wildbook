@@ -91,11 +91,12 @@ div.scroll {
 
 
 <%
-  List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
-  int numAdoptions = adoptions.size();
-if(numAdoptions>0){
-  for (int ia = 0; ia < numAdoptions; ia++) {
-    Adoption ad = adoptions.get(ia);
+	adoptShepherd.beginDBTransaction();
+  	List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
+  	int numAdoptions = adoptions.size();
+	if(numAdoptions>0){
+  		for (int ia = 0; ia < numAdoptions; ia++) {
+    		Adoption ad = adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
   <%
@@ -191,7 +192,9 @@ if(numAdoptions>0){
 
 
 <%
-  } catch (Exception e) {
+  } 
+  catch (Exception e) {
+	e.printStackTrace();  
   }
   adoptShepherd.rollbackDBTransaction();
   adoptShepherd.closeDBTransaction();
