@@ -5,6 +5,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
@@ -1571,6 +1572,7 @@ else {
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
       	Shepherd inShepherd=new Shepherd("context0");
+      inShepherd.setAction("individualSearch.jsp2");
         List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 

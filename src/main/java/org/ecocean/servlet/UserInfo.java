@@ -45,6 +45,7 @@ public class UserInfo extends HttpServlet {
     String context="context0";
     //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserInfo.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -56,6 +57,7 @@ public class UserInfo extends HttpServlet {
   
   
   		User user = myShepherd.getUser(username);
+  		
   
   		if (!CommonConfiguration.showUsersToPublic(context)) {
   			out.println("<p>invalid</p>");

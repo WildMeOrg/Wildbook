@@ -50,6 +50,7 @@ public class Collaborate extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("Collaborate.class");
 
 		Properties props = new Properties();
 		String langCode = ServletUtilities.getLanguageCode(request);

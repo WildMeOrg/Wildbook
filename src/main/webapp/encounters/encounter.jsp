@@ -126,8 +126,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+  myShepherd.setAction("encounter.jsp1");
+  //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+  //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
@@ -755,6 +756,7 @@ $(function() {
                           $("#individualDiv").addClass("has-success");
                           $("#individualCheck, #matchedByCheck").show();
                           $("#displayIndividualID").html(individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                           $("#displayMatchedBy").html(matchType);
 
                         })
@@ -776,7 +778,7 @@ $(function() {
                     </script>
 
                     <div class="editText">
-                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <h3><%=encprops.getProperty("manageIdentity")%></h3>
                       <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
                     </div>
 
@@ -882,6 +884,7 @@ $(function() {
                         $("#indCreateCheck").show();
                         $("#createSharkDiv").addClass("has-success");
                         $("#displayIndividualID").html(individual);
+                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
                       })
                       .fail(function(response) {
                         $("#individualCreateErrorDiv, #indCreateError").show();
@@ -899,20 +902,16 @@ $(function() {
                   });
                   </script>
 
-                  <div class="editText">
-                    <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                    <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                  </div>
+
 
                   <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
 
-                  <img align="absmiddle" src="../images/tag_small.gif"/>
                   <form name="createShark" class="editForm">
                     <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
                     <input name="action" type="hidden" value="create" id="individualCreateAction"/>
                     <div class="form-group row">
                       <div class="col-sm-4">
-                        <label><%=encprops.getProperty("createMarkedIndividual")%>:</label>
+                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
                       </div>
                       <div class="col-sm-5 col-xs-10" id="createSharkDiv">
                         <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
@@ -1094,7 +1093,7 @@ $(function() {
               </script>
 
               <div class="editText" id="occurrenceEditMessage">
-                <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                <h3><%=encprops.getProperty("assignOccurrence")%></h3>
                 <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
               </div>
               <div id="occurrenceRemoveResultDiv" class="resultMessageDiv">
@@ -1152,7 +1151,7 @@ $(function() {
                   });
                 </script>
                 <div class="editText">
-                  <p><strong><%=encprops.getProperty("assignOccurrence")%></strong></p>
+                  <h3><%=encprops.getProperty("assignOccurrence")%></h3>
                   <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
                 </div>
 
@@ -2501,6 +2500,7 @@ else {
 
                         	 				String username=enc.getAssignedUsername();
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
+                        	 				aUserShepherd.setAction("encounter.jsp2");
                          					if(aUserShepherd.getUser(username)!=null){
                          					%>
                                 			<%
@@ -2591,6 +2591,7 @@ else {
             <%
 
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("encounter.jsp3");
             userShepherd.beginDBTransaction();
 
             ArrayList<String> usernames=userShepherd.getAllUsernames();
@@ -2686,7 +2687,9 @@ if (isOwner) {
 %>
 
 <!-- START AUTOCOMMENTS -->
-
+<%
+if(request.getUserPrincipal()!=null){
+%>
 <!-- start autocomments -->
 <script type="text/javascript">
   $(document).ready(function() {
@@ -2734,6 +2737,10 @@ if (isOwner) {
 
     </form>
 </div>
+
+<%
+}
+%>
 <!-- END AUTOCOMMENTS -->
 
 <!-- START DELETE ENCOUNTER FORM -->
@@ -3192,27 +3199,33 @@ else {
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
 
-        <div id="add-image-zone" class="bc4">
-
-          <h2 style="text-align:left">Add image to Encounter</h2>
-
-          <div class="flow-box bc4" style="text-align:center" >
-
-            <div id="file-activity" style="display:none"></div>
-
-            <div id="updone"></div>
-
-            <div id="upcontrols">
-              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-              <div id="flowbuttons">
-
-                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-
-              </div>
-            </div>
-          </div>
-        </div>
+		<%
+		if(isOwner){
+		%>
+	        <div id="add-image-zone" class="bc4">
+	
+	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
+	
+	          <div class="flow-box bc4" style="text-align:center" >
+	
+	            <div id="file-activity" style="display:none"></div>
+	
+	            <div id="updone"></div>
+	
+	            <div id="upcontrols">
+	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+	              <div id="flowbuttons">
+	
+	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+	
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+        <%
+        }
+        %>
     <%-- END IMAGES --%>
 
 
@@ -6128,11 +6141,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 <%
 
-kwQuery.closeAll();
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-kwQuery=null;
-myShepherd=null;
+//kwQuery.closeAll();
+
 
 }
 catch(Exception e){
@@ -6142,6 +6152,12 @@ catch(Exception e){
 
 
 <%
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	//kwQuery=null;
+	myShepherd=null;
 }
 
 	}  //end if this is an encounter

@@ -31,9 +31,10 @@ java.util.*" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
+imageShepherd.setAction("encounterMediaGallery.jsp");
 imageShepherd.beginDBTransaction();
 String encNum = request.getParameter("encounterNumber");
-
+Properties encprops = new Properties();
 
 // collect every MediaAsset as JSON into the 'all' array
 JSONArray all = new JSONArray();
@@ -41,7 +42,7 @@ List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
   String langCode=ServletUtilities.getLanguageCode(request);
-  Properties encprops = new Properties();
+
   encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
   Encounter enc = imageShepherd.getEncounter(encNum);
   ArrayList<Annotation> anns = enc.getAnnotations();
@@ -184,7 +185,7 @@ for (int i=0; i<captionLinks.size(); i++) {
 
 </style>
 
-<h2>Gallery</h2>
+<h2><%=encprops.getProperty("gallery") %></h2>
 
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
@@ -276,6 +277,7 @@ function doImageEnhancer(sel) {
 */
 	];
 
+/*   generic IA stuff, skipped for whaleshark
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
       if (isGenusSpeciesSet()) {
@@ -304,8 +306,20 @@ function doImageEnhancer(sel) {
 			tid
 		]);
 	}
+*/
 
 	opt.menu.push(
+            [
+		'spot mapping',
+		function(enh) {
+			if (!enh || !enh.imgEl || !enh.imgEl.context) {
+				alert('could not determine id');
+				return;
+			}
+			var mid = enh.imgEl.context.id.substring(11);
+			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
+		}
+            ],
             [
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }

@@ -55,6 +55,7 @@ public class JavascriptGlobals extends HttpServlet {
     String context="context0";
     context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("JavascriptGlobals.class1");
     
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
 

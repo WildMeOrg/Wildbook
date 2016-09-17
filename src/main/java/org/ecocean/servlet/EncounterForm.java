@@ -224,6 +224,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterForm.class");
 System.out.println("in context " + context);
         //request.getSession()getServlet().getServletContext().getRealPath("/"));
         String rootDir = getServletContext().getRealPath("/");

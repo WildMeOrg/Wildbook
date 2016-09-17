@@ -24,15 +24,12 @@ package org.ecocean.grid;
 //test 3
 
 
-import com.reijns.I3S.*;
-import weka.core.Instance;
+import com.reijns.I3S.Pair;
 import org.ecocean.Encounter;
 import org.ecocean.Spot;
 import org.ecocean.SuperSpot;
+
 import java.util.*;
-import com.fastdtw.dtw.*;
-import org.ecocean.grid.msm.*;
-import weka.core.Utils;
 
 
 /**
@@ -61,19 +58,9 @@ public class ScanWorkItem implements java.io.Serializable {
   private boolean secondRun;
   public boolean rightScan;
   private MatchObject result;
-  //private I3SMatchObject i3sResult;
-  private Double fastDTWResult;
+  private I3SMatchObject i3sResult;
   private int totalWorkItemsInTask;
   private int workItemsCompleteInTask;
-  
-  String algorithms="";
-  
-  public boolean reversed=false;
-  
-  //SWALE tunings - default are early results for Physeter macrocephalus
-  double swalePenalty=-2;
-  double swaleReward=25.0;
-  double swaleEpsilon=0.0011419401589504922;
 
 
   /**
@@ -84,16 +71,9 @@ public class ScanWorkItem implements java.io.Serializable {
 
   //test comment
 
-  public ScanWorkItem(Encounter newEnc, Encounter existingEnc, String uniqueNum, String taskID, Properties props, String algorithms) {
+  public ScanWorkItem(Encounter newEnc, Encounter existingEnc, String uniqueNum, String taskID, Properties props) {
     this.newEncounter = new EncounterLite(newEnc);
     this.existingEncounter = new EncounterLite(existingEnc);
-    
-    
-    //if available, set the dates as long
-    if(newEnc.getDateInMilliseconds()!=null){newEncounter.setDateLong(newEnc.getDateInMilliseconds());}
-    if(existingEnc.getDateInMilliseconds()!=null){existingEncounter.setDateLong(existingEnc.getDateInMilliseconds());}
-    
-    
     this.uniqueNum = uniqueNum;
     this.taskID = taskID;
 
@@ -117,7 +97,6 @@ public class ScanWorkItem implements java.io.Serializable {
     }
 
     createTime = System.currentTimeMillis();
-    this.algorithms=algorithms;
 
   }
 
@@ -160,187 +139,74 @@ public class ScanWorkItem implements java.io.Serializable {
    * Make sure to setDone() when execute has completed successfully.
    */
   public MatchObject execute() {
-    
-    //tuned on October 8, 2015 using /TrainHolmbergIntersection
-    //double allowedHolmbergIntersectionProportion = 0.18;
 
 
- 
-
-
-    System.out.println("Now comparing new Encounter "+newEncounter.getEncounterNumber()+" vs existing encounter"+existingEncounter.getEncounterNumber());
-       
-    
-    
-    //start DTW array creation
-    
-    //com.reijns.I3S.Point2D[] newEncRefSpots=newEncounter.getThreeRightFiducialPoints();
-    //com.reijns.I3S.Point2D[] existingEncRefSpots=existingEncounter.getThreeRightFiducialPoints();
-    
-    //we need to create a 0 to 1 time series for each one using the right hand spot
-    
-
-    
-    
-    
-    MatchObject result=new MatchObject();
-    if(!reversed){
-      result.encounterNumber=existingEncounter.getEncounterNumber();
-      result.individualName=existingEncounter.getIndividualID();
-    }
-    else{
-      result.encounterNumber=newEncounter.getEncounterNumber();
-      result.individualName=newEncounter.getIndividualID();
+    //determine which spots to pass in
+    SuperSpot[] newspotsTemp = new SuperSpot[0];
+    SuperSpot[] oldspotsTemp = new SuperSpot[0];
+    if (!rightScan) {
+      newspotsTemp = (SuperSpot[]) newEncounter.getSpots().toArray(newspotsTemp);
+      oldspotsTemp = (SuperSpot[]) existingEncounter.getSpots().toArray(oldspotsTemp);
+    } else {
+      newspotsTemp = (SuperSpot[]) newEncounter.getRightSpots().toArray(newspotsTemp);
+      oldspotsTemp = (SuperSpot[]) existingEncounter.getRightSpots().toArray(oldspotsTemp);
     }
 
+    //create a re-write of the new spots
+    ArrayList<SuperSpot> newGrothSpots = new ArrayList<SuperSpot>();
+    int spotLength = newspotsTemp.length;
+    for (int t = 0; t < spotLength; t++) {
+      newGrothSpots.add(new SuperSpot(new Spot(0, newspotsTemp[t].getTheSpot().getCentroidX(), newspotsTemp[t].getTheSpot().getCentroidY())));
+    }
+
+    //create a re-write of the old spots
+    ArrayList<SuperSpot> existingGrothSpots = new ArrayList<SuperSpot>();
+    int spotLength2 = oldspotsTemp.length;
+    for (int t = 0; t < spotLength2; t++) {
+      existingGrothSpots.add(new SuperSpot(new Spot(0, oldspotsTemp[t].getTheSpot().getCentroidX(), oldspotsTemp[t].getTheSpot().getCentroidY())));
+    }
+
+
+    MatchObject result = existingEncounter.getPointsForBestMatch(newspotsTemp, epsilon.doubleValue(), R.doubleValue(), Sizelim.doubleValue(), maxTriangleRotation.doubleValue(), C.doubleValue(), secondRun, rightScan);
+
+    //I3S processing
+
+    //reset the spot patterns after Groth processing
+    if (!rightScan) {
+      newEncounter.processLeftSpots(newGrothSpots);
+      existingEncounter.processLeftSpots(existingGrothSpots);
+    } else {
+      newEncounter.processRightSpots(newGrothSpots);
+      existingEncounter.processRightSpots(existingGrothSpots);
+    }
 
     //adjust for scale
     double[] matrix = new double[6];
     com.reijns.I3S.Point2D[] comapare2mePoints = new com.reijns.I3S.Point2D[0];
     com.reijns.I3S.Point2D[] lookForThisEncounterPoints = new com.reijns.I3S.Point2D[0];
-    I3SMatchObject newDScore=EncounterLite.improvedI3SScan(existingEncounter, newEncounter);
-    System.out.println("Finished I3S method and I think the score is: "+newDScore.getI3SMatchValue());  
-    //newDScore.setEncounterNumber(getNewEncNumber());
-      //newDScore.setIndividualID(id);
-      double newScore=weka.core.Utils.missingValue();
-      System.out.println("I think newScore before setting is: "+newScore);
-      //if(newDScore.getI3SMatchValue()>=0){
-       if(newDScore.getI3SMatchValue()>=0){ newScore=newDScore.getI3SMatchValue();}
-        System.out.println("I REALLY think my I3S score is: "+newScore);
-        
-        //
-        //if(newScore<0.0000001){newScore=2.0;}
-        
-        //create a Vector of Points
-        Vector points = new Vector();
-        
-        /*
-        //TBD_CRAP WE NEED
-        TreeMap map = newDScore.getMap();
-        
-        
-        //int treeSize=map.size();
-        Iterator map_iter = map.values().iterator();
-        while (map_iter.hasNext()) {
-          points.add((Pair) map_iter.next());
-        }
-        */
-  
-        //add the I3S results to the matchObject sent back
-        result.setI3SValues(points, newScore);
-     // }
-      System.out.println("     I3S score is: "+newScore);
+    //if(rightScan){
+    //comapare2mePoints=existingEncounter.getThreeRightFiducialPoints();
+    //lookForThisEncounterPoints=newEncounter.getThreeRightFiducialPoints();
     //}
-    
-   // if(algorithms.indexOf("FastDTW")>-1){
-      TimeWarpInfo twi=EncounterLite.fastDTW(existingEncounter, newEncounter, 30);
-      
-      java.lang.Double distance = new java.lang.Double(-1);
-      if(twi!=null){
-        WarpPath wp=twi.getPath();
-          String myPath=wp.toString();
-        distance=new java.lang.Double(twi.getDistance());
-      }   
-      
-      result.setFastDTWPath(distance.toString());
-      
-      //calculate FastDTW
-      //Double fastDTWResult = new Double(FastDTW.compare(ts1, ts2, 10, Distances.EUCLIDEAN_DISTANCE).getDistance());
-      
-      //if(rightScan){
-        result.setRightFastDTWResult(distance);
-      //}
-      //else{
-        result.setLeftFastDTWResult(distance);
-      //}
-      
-      System.out.println("     FastDTW result is: "+distance);
-      
-      
-      
-      //set proportion Value
-      //for dorsals use CRC method
-      if(EncounterLite.isDorsalFin(existingEncounter)&&EncounterLite.isDorsalFin(newEncounter)){
-        result.setProportionValue(EncounterLite.getCascadiaDorsalProportionsScore(existingEncounter, newEncounter));
-      }
-      //for flukes use simple width-height proportions
-      else{
-        result.setProportionValue(EncounterLite.getFlukeProportion(existingEncounter, newEncounter));
-      }
-      //set MSM value
-      Double msmValue=new Double(weka.core.Utils.missingValue());
-      Double potentialMMSMValue=MSM.getMSMDistance(existingEncounter, newEncounter);
-      if(potentialMMSMValue!=null){
-        msmValue=potentialMMSMValue;
-      }
-      System.out.println("     MSM result is: "+msmValue.doubleValue());
-      result.setMSMSValue(msmValue);
-      
+    //else {
+    //comapare2mePoints=existingEncounter.getThreeLeftFiducialPoints();
+    //lookForThisEncounterPoints=newEncounter.getThreeLeftFiducialPoints();
+    //}
+    i3sResult = existingEncounter.i3sScan(newEncounter, rightScan);
 
-      Double swaleValue=new Double(weka.core.Utils.missingValue());
-      
-      Double potentialSwaleValue=EncounterLite.getSwaleMatchScore(existingEncounter, newEncounter, swalePenalty, swaleReward, swaleEpsilon);
-      if(potentialSwaleValue!=null){
-        swaleValue=potentialSwaleValue;
-      }
-      System.out.println("     Swale result is: "+swaleValue.doubleValue());
-      result.setSwaleValue(swaleValue);
-      
-      Double eucValue=new Double(weka.core.Utils.missingValue());
-      Double potentialEucValue=EncounterLite.getEuclideanDistanceScore(existingEncounter, newEncounter);
-      if(potentialEucValue!=null){eucValue=potentialEucValue;}
-      System.out.println("     Euc. result is: "+swaleValue.doubleValue());
-      result.setEuclideanDistanceValue(eucValue);
-      
-      
-      double date = weka.core.Utils.missingValue();
-      if((newEncounter.getDateLong()!=null)&&(existingEncounter.getDateLong()!=null)){
-        try{
-          date=Math.abs((new Long(newEncounter.getDateLong()-existingEncounter.getDateLong())).doubleValue());
-        }
-        catch(Exception e){
-          e.printStackTrace();
-        }
-      }
-      
-      System.out.println("Date diff is: "+date);
+    //create a Vector of Points
+    Vector points = new Vector();
+    TreeMap map = i3sResult.getMap();
+    //int treeSize=map.size();
+    Iterator map_iter = map.values().iterator();
+    while (map_iter.hasNext()) {
+      points.add((Pair) map_iter.next());
+    }
 
-      
-      Double numIntersections=EncounterLite.getHolmbergIntersectionScore(existingEncounter, newEncounter);
-      
-      System.out.println("Intersection score is: "+numIntersections);
-      
-      result.setIntersectionCount(numIntersections);
-      result.setAnglesOfIntersections("");
-      result.setDateDiff(date);
-      
-    //patterningCode
-      
-      double pattCodeDiff = weka.core.Utils.missingValue();
-      if((existingEncounter.getPatterningCode()!=null)&&(newEncounter.getPatterningCode()!=null)){
-        String enc1Val=existingEncounter.getPatterningCode().replaceAll("[^\\d.]", "");
-        String enc2Val=newEncounter.getPatterningCode().replaceAll("[^\\d.]", "");
-        
-        //at this point, we should have just numbers in the String
-        try{
-          double enc1code=(new Double(enc1Val)).doubleValue();
-          double enc2code=(new Double(enc2Val)).doubleValue();
-          pattCodeDiff=Math.abs(enc1code-enc2code);
-          //System.out.println("Found a patterning code difference of: "+pattCodeDiff);
-        }
-        catch(Exception diffe){
-          System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+existingEncounter.getEncounterNumber()+" of "+existingEncounter.getPatterningCode());
-          System.out.println("Found a potentially non-numeric-able patterning code on Encounter "+newEncounter.getEncounterNumber()+" of "+newEncounter.getPatterningCode());
-          
-          diffe.printStackTrace();
-        }
-        
-      }
-      result.setPatterningCodeDiffValue(pattCodeDiff);
-      
-      
-   
-      System.out.println("......Done SWI and returning  MO...");
+    //add the I3S results to the matchObject sent back
+    result.setI3SValues(points, i3sResult.getI3SMatchValue());
+
+
     done = true;
     return result;
   }
@@ -398,6 +264,9 @@ public class ScanWorkItem implements java.io.Serializable {
     return result;
   }
 
+  public I3SMatchObject getI3SResult() {
+    return i3sResult;
+  }
 
   public void setResult(MatchObject newResult) {
     newResult.setTaskID(this.taskID);
@@ -444,14 +313,5 @@ public class ScanWorkItem implements java.io.Serializable {
   public void setNewEncounter(EncounterLite el) {
     this.newEncounter = el;
   }
-  
-  public Double getFastDTWResult(){return fastDTWResult;}
-  
-  public void setReversed(boolean myVal){this.reversed=myVal;}
-  
-  public void setSwalePenalty(double value){swalePenalty=value;}
-  public void setSwaleEpsilon(double value){swaleEpsilon=value;}
-  public void setSwaleReward(double value){swaleReward=value;}
-  
 }
 	

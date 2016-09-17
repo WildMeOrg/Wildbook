@@ -17,6 +17,7 @@ context=ServletUtilities.getContext(request);
   
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("allAdoptions.jsp");
   String currentSort = "nosort";
   String displaySort = "";
   if (request.getParameter("sort") != null) {

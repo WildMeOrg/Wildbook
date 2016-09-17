@@ -39,6 +39,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   String num = request.getParameter("number");
 	String encSubdir = Encounter.subdir(num);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("scanEndApplet.jsp");
   if (request.getParameter("writeThis") == null) {
     myShepherd = (Shepherd) session.getAttribute(request.getParameter("number"));
   }
@@ -77,7 +78,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-     
+
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -118,63 +119,35 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 <ul id="tabmenu">
   <li><a
     href="encounter.jsp?number=<%=request.getParameter("number")%>">Encounter
-    
+    <%=request.getParameter("number")%>
   </a></li>
+  <li><a class="active">Modified Groth</a></li>
+
   <%
     String fileSider = "";
     File finalXMLFile;
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullRightScan.xml");
+      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullRightI3SScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/"+ encSubdir + "/lastFullRightI3SScan.xml");
+
 
       side2 = "right";
       fileSider = "&rightSide=true";
     } else {
-      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullScan.xml");
-
+      //finalXMLFile=new File((new File(".")).getCanonicalPath()+File.separator+"webapps"+File.separator+"ROOT"+File.separator+"encounters"+File.separator+num+File.separator+"lastFullI3SScan.xml");
+      finalXMLFile = new File(encountersDir.getAbsolutePath()+"/" + encSubdir + "/lastFullI3SScan.xml");
     }
     if (finalXMLFile.exists()) {
-    	if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
-			  %>
-			  <li><a class="active" >Modified Groth</a></li>
-			
-			  <%
-    	}
-    }
-    
-    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
-		 
   %>
-    <li><a href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
+
+  <li><a
+    href="i3sScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">I3S</a>
   </li>
   <%
     }
-    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("FastDTW")!=-1)){
-		 
+
   %>
-  
-    <li><a href="fastDTWScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">FastDTW</a></li>
-  
-    <%
-    }
-    
-    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("Whitehead")!=-1)){
-		 
-    %>
-  
-    <li><a href="geroScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Gero</a></li>
-  
-  
-  <%
-    }
-    if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("HolmbergIntersection")!=-1)){
-		 
-  %>
-  <li><a href="intersectionScanEndApplet.jsp?writeThis=true&number=<%=request.getParameter("number")%>&I3S=true<%=fileSider%>">Intersection</a>
-  
-  
-<%
-    }
-%>
+
 
 </ul>
 
@@ -268,7 +241,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
-    System.out.println("Base URL is: " + baseURL);
+    //System.out.println("Base URL is: " + baseURL);
     if (xmlOK) {
       if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
         feedURL = baseURL + encSubdir + "/lastFullRightScan.xml?";
@@ -280,7 +253,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
     if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
       rightSA = "&filePrefix=extractRight";
     }
-    System.out.println("I made it to the Flash without exception.");
+    //System.out.println("I made it to the Flash without exception.");
   %>
   <OBJECT id=sharkflash
           codeBase=http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6,0,0,0
@@ -476,7 +449,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 
-//myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
     myShepherd = null;
     doc = null;
     root = null;

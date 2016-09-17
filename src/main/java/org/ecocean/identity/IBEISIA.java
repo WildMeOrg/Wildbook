@@ -188,6 +188,8 @@ System.out.println("sendAnnotations(): sending " + ct);
         URL url = new URL(u);
 
         Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("IBEISIA.sendIdentify");
+        myShepherd.beginDBTransaction();
 
         HashMap<String,Object> map = new HashMap<String,Object>();
         map.put("callback_url", baseUrl + "/IBEISIAGetJobStatus.jsp");
@@ -261,6 +263,8 @@ System.out.println("===================================== qlist & tlist ========
 System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
 System.out.println(map);
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
         return RestClient.post(url, new JSONObject(map));
     }
 
@@ -569,6 +573,7 @@ System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
             if (list.length() > 0) {
                 ArrayList<Annotation> anns = new ArrayList<Annotation>();
                 Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("IBEISIA.iaCheckMissing");
                 myShepherd.beginDBTransaction();
                 try{
                   for (int i = 0 ; i < list.length() ; i++) {
@@ -614,7 +619,7 @@ System.out.println("iaCheckMissing -> " + tryAgain);
             return b;
 */
         } else {
-            return ma.toString();
+            return ma.webURL().toString();  //a better last gasp hope
         }
     }
 
@@ -832,6 +837,7 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 //System.out.println("#LOG: taskID=" + taskID + ", jobID=" + jobID + " --> " + jlog.toString());
         IdentityServiceLog log = new IdentityServiceLog(taskID, objectIDs, SERVICE_NAME, jobID, jlog);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IBEISIA.log");
         myShepherd.beginDBTransaction();
         try{
           log.save(myShepherd);
@@ -2399,6 +2405,7 @@ System.out.println(" ............. alreadySentMA size = " + alreadySentMA.keySet
         Runnable r = new Runnable() {
             public void run() {
                 Shepherd myShepherd = new Shepherd("context0");
+                myShepherd.setAction("IBEISIA.class.run");
                 myShepherd.beginDBTransaction();
                 ArrayList<Annotation> anns = Annotation.getExemplars(myShepherd);
 System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
@@ -2416,6 +2423,7 @@ System.out.println("-- priming IBEISIA (anns size: " + anns.size() + ")");
 ex.printStackTrace();
                 }
                 myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 setIAPrimed(true);
 System.out.println("-- priming IBEISIA **complete**");
             }

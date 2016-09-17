@@ -27,6 +27,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualMappedSearchResults.jsp");
 
 	Random ran= new Random();
 

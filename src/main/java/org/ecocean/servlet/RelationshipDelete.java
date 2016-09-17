@@ -64,6 +64,7 @@ public class RelationshipDelete extends HttpServlet {
       
     
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RelationshipDelete.class");
         
         Relationship rel=new Relationship();
         
