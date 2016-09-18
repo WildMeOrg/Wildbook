@@ -25,44 +25,14 @@ Shepherd myShepherd=new Shepherd(context);
 
 
 <body>
-<<<<<<< HEAD
-<p>Removing all workspaces.</p>
-=======
 
->>>>>>> origin/crc
-<ul>
 <%
 
 myShepherd.beginDBTransaction();
 
 int numFixes=0;
 
-<<<<<<< HEAD
-try {
 
-	String rootDir = getServletContext().getRealPath("/");
-	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
-
-  Iterator allSpaces=myShepherd.getAllWorkspaces();
-
-  boolean committing=true;
-
-
-  while(allSpaces.hasNext()){
-
-    Workspace wSpace=(Workspace)allSpaces.next();
-
-    %><p>Workspace <%=wSpace.getID()%> with owner <%=wSpace.getOwner()%> is deleted<%
-
-  	numFixes++;
-
-    if (committing) {
-      myShepherd.throwAwayWorkspace(wSpace);
-  		myShepherd.commitDBTransaction();
-  		myShepherd.beginDBTransaction();
-    }
-  }
-=======
 try{
 
 	Iterator allEncs=myShepherd.getAllMarkedIndividuals();
@@ -72,14 +42,16 @@ try{
 	while(allEncs.hasNext()){
 		
 		MarkedIndividual enc=(MarkedIndividual)allEncs.next();
-		enc.refreshDependentProperties(context);
-		myShepherd.commitDBTransaction();
-		myShepherd.beginDBTransaction();
-
+		if((enc.getNickName().equals("Mark"))||(enc.getNickName().equals("Bradley"))){
+			enc.setNickName("");
+			enc.setNickNamer("");
+			myShepherd.commitDBTransaction();
+			myShepherd.beginDBTransaction();
+		}
 	}
 	myShepherd.rollbackDBTransaction();
 	
->>>>>>> origin/crc
+
 }
 catch(Exception e){
 	myShepherd.rollbackDBTransaction();
@@ -92,11 +64,9 @@ finally{
 %>
 
 </ul>
-<<<<<<< HEAD
-<p>Done successfully: <%=numFixes %> workspaces deleted.</p>
-=======
+
 <p>Done successfully: <%=numFixes %></p>
 
->>>>>>> origin/crc
+
 </body>
 </html>
