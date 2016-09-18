@@ -58,8 +58,8 @@
     		    			
     		    				<table width="100%">
       								<tr>
-            							<td style="border-bottom: 0px white;"><%=props.getProperty("newPassword")%>: <input name="password" type="password" size="15" maxlength="90" ></input></td>
-                        				<td style="border-bottom: 0px white;" colspan="2"><%=MessageFormat.format(props.getProperty("confirm"), props.getProperty("newPassword"))%> <input name="password2" type="password" size="15" maxlength="90" ></input></td>
+            							<td style="border-bottom: 0px white;"><%=props.getProperty("newPassword")%>: <input name="password" type="password" size="15" maxlength="90" /></td>
+                    					<td style="border-bottom: 0px white;" colspan="2"><%=MessageFormat.format(props.getProperty("confirm"), props.getProperty("newPassword"))%>: <input name="password2" type="password" size="15" maxlength="90" /></td>
             						</tr>
                     				<tr>
                     					<td colspan="3"><input name="Create" type="submit" id="Create" value="<%=props.getProperty("update")%>" /></td></tr>
