@@ -19,6 +19,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 //quick hack to set id & approve
 if ((request.getParameter("number") != null) && (request.getParameter("individualID") != null)) {
 	Shepherd myShepherd = new Shepherd(context);
+	myShepherd.setAction("matchResults.jsp1");
 	myShepherd.beginDBTransaction();
 	Encounter enc = myShepherd.getEncounter(request.getParameter("number"));
 	if (enc == null) {
@@ -41,6 +42,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	String jobId = null;
 	String qannId = null;
 	Shepherd myShepherd2 = new Shepherd(context);
+	myShepherd2.setAction("matchResults.jsp2");
 	myShepherd2.beginDBTransaction();
 	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
         for (IdentityServiceLog l : logs) {
