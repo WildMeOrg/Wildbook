@@ -1,6 +1,14 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, org.ecocean.social.*, com.google.gson.Gson" %>
 
+
+<%!
+	public String cleanString(Object obj) {
+		if (obj == null) return "";
+		return obj.toString();
+	}
+%>
+
 <%
 
 String blocker = "";
@@ -57,9 +65,55 @@ context=ServletUtilities.getContext(request);
       color: #000000;
       font-weight: bold;
     }
+    .col-relationships {
+    	width: 170px;
+    }
 
+    .enc-filename div {
+    	color: #666;
+    	font-size: 0.9em;
+    	width: 120px;
+    	padding-left: 3px;
+    	overflow-x: hidden;
+    	white-space: nowrap;
+    }
 
+    .relationship-none {
+    	position: relative;
+    	border-radius: 4px;
+    	padding: 2px 8px 2px 8px;
+    	background-color: #DDD;
+    	color: #AAA;
+    }
 
+    .relationship {
+    	border-radius: 4px;
+    	padding: 2px 8px 2px 8px;
+    	background-color: #888;
+    	color: #DDD;
+    }
+    .relationship:hover {
+    	background-color: #F98;
+    	color: #333;
+    }
+
+    .rel-partner {
+    	background-color: #FAA;
+    }
+
+    #relationships-form {
+    	width: 200px;
+    	z-index: 300;
+    	background-color: #FFC;
+    	position: absolute;
+    	left: -200px;
+    	top: 3px;
+    	display: none;
+    	padding: 3px;
+    	border: solid 2px #444;
+    	border-radius: 4px;
+    }
+    
     div.scroll {
       height: 200px;
       overflow: auto;
@@ -180,6 +234,13 @@ context=ServletUtilities.getContext(request);
       Occurrence occ = myShepherd.getOccurrence(name);
       boolean hasAuthority = ServletUtilities.isUserAuthorizedForOccurrence(occ, request);
 
+      Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
+      int total = dateSortedEncs.length;
+      HashMap<String,Encounter> encById = new HashMap<String,Encounter>();
+      for (int i = 0; i < total; i++) {
+        Encounter enc = dateSortedEncs[i];
+        encById.put(enc.getCatalogNumber(), enc);
+      }
 
 			List collabs = Collaboration.collaborationsForCurrentUser(request);
 			boolean visible = occ.canUserAccess(request);
@@ -193,17 +254,8 @@ context=ServletUtilities.getContext(request);
 
         ClassEditTemplate.saveUpdatedFields((Object) occ, request, myShepherd);
 
-        /*
-        System.out.println("OCCURRENCE.JSP: Saving updated info...");
 
-        Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
-        int total = dateSortedEncs.length;
-
-        HashMap<String,Encounter> encById = new HashMap<String,Encounter>();
-        for (int i = 0; i < total; i++) {
-          Encounter enc = dateSortedEncs[i];
-          encById.put(enc.getCatalogNumber(), enc);
-        }
+        System.out.println("OCCURRENCE.JSP: Saving ADDITIONAL updated info...");
 
         ArrayList<Encounter> changedEncs = new ArrayList<Encounter>();
         //myShepherd.beginDBTransaction();
@@ -211,6 +263,8 @@ context=ServletUtilities.getContext(request);
         while (en.hasMoreElements()) {
           String pname = (String)en.nextElement();
           if (pname.indexOf("occ:") == 0) {
+            // taken care of by ClassEditTemplate.saveUpdatedFields((Object) occ, request, myShepherd);
+            /*
             String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
             String getterName = "get" + methodName.substring(3);
             String value = request.getParameter(pname);
@@ -262,7 +316,7 @@ context=ServletUtilities.getContext(request);
               } catch (Exception ex) {
                 System.out.println(methodName + " -> " + ex.toString());
               }
-            }
+            }*/
 
           } // encounter-related fields
             else if (pname.indexOf(":") > -1) {
@@ -283,7 +337,7 @@ context=ServletUtilities.getContext(request);
                 }
 
 
-              } /*else if (methodName.equals("setAgeAtFirstSighting")) {  //need a Double, sets on individual
+              } else if (methodName.equals("setAgeAtFirstSighting")) {  //need a Double, sets on individual
                 Double dbl = null;
                 try {
                   dbl = Double.parseDouble(value);
@@ -322,7 +376,6 @@ context=ServletUtilities.getContext(request);
 
         myShepherd.commitDBTransaction();
         System.out.println("OCCURRENCE.JSP: Transaction committed");
-        */
       }
 
 
@@ -455,27 +508,27 @@ if(occ.getIndividualCount()!=null){
 <table  class="occurrence-field-edit">
 
   <%
-  ClassEditTemplate.writeEditableFieldRow((Object) occ, "habitat", out);
+  ClassEditTemplate.printOutClassFieldModifierRow((Object) occ, "habitat", out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
   String[] groupFields = {"groupSize", "groupBehavior", "numTerMales", "numBachMales", "numLactFemales", "numNonLactFemales"};
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, groupFields, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, groupFields, out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
   String[] locationFields = {"locationID", "decimalLatitude", "decimalLongitude"};
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, locationFields, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, locationFields, out);
   %>
 
   <tr class="padding-below"><td></td></tr>
 
   <%
-  ClassEditTemplate.writeEditableFieldRows((Object) occ, new String[]{"distance", "bearing"}, out);
+  ClassEditTemplate.printOutClassFieldModifierRows((Object) occ, new String[]{"distance", "bearing"}, out);
   %>
 
 </table>
@@ -703,35 +756,22 @@ $("a#indies").click(function() {
   <%=props.getProperty("numencounters") %>
 </p>
 
-<table id="results" width="100%">
+<table style="border-spacing: 0;" id="results" width="100%">
   <tr class="lineitem">
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
+      <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>File name</strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
 
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
-    <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
-    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("alternateID") %></strong></td>
 
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("sex") %></strong></td>
-    <%
-      if (isOwner && CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Age first sighted</strong></td>
+    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Class</strong></td>
 
-    	<td align="left" valign="top" bgcolor="#99CCFF">
-    		<strong><%=props.getProperty("spots") %></strong>
-    	</td>
-    <%
-    }
-    %>
-   <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
- <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
+ <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong>Mother of</strong></td>
 
   </tr>
   <%
-    Encounter[] dateSortedEncs = occ.getDateSortedEncounters(false);
 
-    int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
 
@@ -739,17 +779,26 @@ $("a#indies").click(function() {
         String imgName = "";
 				String encSubdir = enc.subdir();
 
+				MarkedIndividual indiv = null;
+    		if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+					indiv = myShepherd.getMarkedIndividual(enc.getIndividualID());
+				}
+
           imgName = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/" + encSubdir + "/thumb.jpg";
 
   %>
-  <tr>
-      <td class="lineitem"><%=enc.getDate()%>
+  <tr id="row-enc-<%=enc.getEncounterNumber()%>" class="enc-row" data-id="<%=enc.getEncounterNumber()%>" data-indiv="<%=((indiv == null) ? "" : enc.getIndividualID())%>">
+      <td class="lineitem enc-date">
+<%=enc.getDate()%>
+			</td>
+			<td class="lineitem enc-filename">
+<div title="<%=enc.getImageOriginalName()%>"><%=((enc.getImageOriginalName() == null) ? "" : enc.getImageOriginalName())%></div>
     </td>
     <td class="lineitem">
     	<%
-    	if((enc.getIndividualID()!=null)&&(!enc.getIndividualID().toLowerCase().equals("unassigned"))){
+    	if (indiv != null) {
     	%>
-    	<a href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
+    	<a target="_new" onClick="event.stopPropagation(); return true;" href="individuals.jsp?number=<%=enc.getIndividualID()%>"><%=enc.getIndividualID()%></a>
     	<%
     	}
     	else{
@@ -759,14 +808,7 @@ $("a#indies").click(function() {
     	}
     	%>
     </td>
-    <%
-    String location="&nbsp;";
-    if(enc.getLocation()!=null){
-    	location=enc.getLocation();
-    }
-    %>
-    <td class="lineitem"><%=location%>
-    </td>
+<!--
     <td width="100" height="32px" class="lineitem">
     	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
 
@@ -797,72 +839,47 @@ $("a#indies").click(function() {
     <td class="lineitem"><a
       href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
-
-    <%
-      if (enc.getAlternateID() != null) {
-    %>
-    <td class="lineitem"><%=enc.getAlternateID()%>
-    </td>
-    <%
-    } else {
-    %>
-    <td class="lineitem"><%=props.getProperty("none")%>
-    </td>
-    <%
-      }
-    %>
-
+-->
 
 <%
 String sexValue="&nbsp;";
 if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
-    <td class="lineitem"><%=sexValue %></td>
-
-    <%
-      if (CommonConfiguration.useSpotPatternRecognition(context)) {
-    %>
-    <%if (((enc.getSpots().size() == 0) && (enc.getRightSpots().size() == 0)) && (isOwner)) {%>
-    <td class="lineitem">&nbsp;</td>
-    <% } else if (isOwner && (enc.getSpots().size() > 0) && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">LR</td>
-    <%} else if (isOwner && (enc.getSpots().size() > 0)) {%>
-    <td class="lineitem">L</td>
-    <%} else if (isOwner && (enc.getRightSpots().size() > 0)) {%>
-    <td class="lineitem">R</td>
-    <%
-        }
-      }
-    %>
+    <td data-prop="sex" class="col-sex lineitem"><%=sexValue %></td>
 
 
-    <td class="lineitem">
-    <%
-    if(enc.getBehavior()!=null){
-    %>
-    <%=enc.getBehavior() %>
-    <%
-    }
-    else{
-    %>
-    &nbsp;
-    <%
-    }
-    %>
-    </td>
+<%
+	String ageAFS = "";
+	if (indiv != null) {
+		ageAFS = cleanString(indiv.getAgeAtFirstSighting());
+	}
+%>
+<td class="col-ageAtFirstSighting lineitem" data-prop="ageAtFirstSighting"><%=ageAFS%></td>
 
-  <td class="lineitem">
+<td class="col-zebraClass lineitem" data-prop="zebraClass"><%=cleanString(enc.getZebraClass())%></td>
+
+  <td class="col-relationships lineitem">
     <%
-    if(enc.getHaplotype()!=null){
-    %>
-    <%=enc.getHaplotype() %>
-    <%
-    }
-    else{
-    %>
-    &nbsp;
-    <%
-    }
+	String iid = enc.getIndividualID();
+	if ((iid != null) && !iid.equals("") && !iid.equals("Unassigned")) {
+		ArrayList<Relationship> rels = myShepherd.getAllRelationshipsForMarkedIndividual(iid);
+		if ((rels != null) && (rels.size() > 0)) {
+			for (Relationship r : rels) {
+				String partner = r.getMarkedIndividualName1();
+				String role = r.getMarkedIndividualRole2();
+				String type = r.getType();
+				if (partner.equals(iid)) {
+					partner = r.getMarkedIndividualName2();
+					role = r.getMarkedIndividualRole1();
+				}
+				if (!role.equals("mother")) continue;  //for lewa, only showing offspring of mother
+			%><span data-partner="<%=partner%>" class="relationship relType-<%=type%> relRole-<%=role%>"><%=partner%></span> <%
+  			}
+		}
+  //private String markedIndividualName2;
+  //private String markedIndividualRole2;
+			%><span class="relationship-none" title="add a relationship" onClick="return relAdd(event);">add</span><%
+	}
     %>
     </td>
   </tr>
@@ -1358,6 +1375,17 @@ else {
 %>
 </div><!-- end maintext -->
 </div><!-- end main-wide -->
+
+<div id="relationships-form" onClick="event.stopPropagation(); return false;">
+	<div class="rel-sub">
+	<b>Mother</b> of individual ID:<br />
+	<input type="text" id="rel-child-id" />
+	</div>
+
+	<input type="button" value="OK" onClick="return relSave(event)" />
+
+	<input type="button" value="cancel" onClick="return relCancel(event)" />
+</div>
 
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
