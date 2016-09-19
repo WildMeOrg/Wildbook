@@ -47,8 +47,6 @@ if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
 
 %>
 
@@ -60,6 +58,8 @@ System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. .
 	Runnable r = new Runnable() {
 		public void run() {
 			tryToGet(jobID, myShepherd, context);
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 		}
 	};
 	new Thread(r).start();
