@@ -96,6 +96,8 @@ public class IAGateway extends HttpServlet {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class1");
+        myShepherd.beginDBTransaction();
         String taskID = request.getParameter("getJobResultFromTaskID");
 
 
@@ -190,10 +192,15 @@ System.out.println("firstResult -> " + firstResult.toString());
         response.setContentType("text/plain");
         getOut = res.toString();
 /////////////
+        
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+    } 
+    else if (request.getParameter("getDetectionReviewHtml") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class2");
         String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
@@ -210,10 +217,14 @@ System.out.println("firstResult -> " + firstResult.toString());
 System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         getOut = _detectionHtmlFromResult(res, request, offset, null);
         setErrorCode(response, getOut);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
+    } 
+    else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class3");
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
             response.sendError(ERROR_CODE_NO_REVIEWS, "No detection reviews pending");
@@ -231,12 +242,17 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
             setErrorCode(response, getOut);
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
     //ugh, lets standardize on passing taskId, not jobid cuz jobid sucks
-    } else if (request.getParameter("getIdentificationReviewHtml") != null) {
+    } 
+    else if (request.getParameter("getIdentificationReviewHtml") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class4");
         String taskId = request.getParameter("getIdentificationReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
@@ -254,10 +270,14 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         IBEISIA.setActiveTaskId(request, taskId);
         getOut = _identificationHtmlFromResult(res, request, taskId, offset, null);
         setErrorCode(response, getOut);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
+    } 
+    else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class5");
         String taskId = IBEISIA.getActiveTaskId(request);
 System.out.println("getIdentificationReviewHtmlNext -> taskId = " + taskId);
         if (taskId == null) {
@@ -313,13 +333,19 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
 */
-
-    } else if (request.getParameter("getReviewCounts") != null) {
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    } 
+    else if (request.getParameter("getReviewCounts") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class6");
         getOut = getReviewCounts(request, myShepherd).toString();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else {
+    } 
+    else {
         response.sendError(501, "Unknown command");
         getOut = "Unknown command";
     }
@@ -351,6 +377,8 @@ System.out.println("############################ rtn -> \n" + rtn);
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("IAGateway.class7");
+            myShepherd.beginDBTransaction();
             JSONArray slist = rtn.getJSONObject("response").optJSONArray("score_list");
             JSONArray rlist = rtn.getJSONObject("response").optJSONArray("results_list");
             JSONArray ilist = rtn.getJSONObject("response").optJSONArray("image_uuid_list");
@@ -385,6 +413,8 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                 }
                 rtn.put("annotationsMade", annsMade);
             }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
         response.setContentType("text/plain");

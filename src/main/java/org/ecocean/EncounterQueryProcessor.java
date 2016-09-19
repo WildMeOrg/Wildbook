@@ -43,6 +43,7 @@ public class EncounterQueryProcessor {
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterQueryProcessor.class");
 
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {

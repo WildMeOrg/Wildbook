@@ -48,6 +48,7 @@ public class TissueSampleSetSexAnalysis extends HttpServlet {
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TissueSampleSetSexAnalysis.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

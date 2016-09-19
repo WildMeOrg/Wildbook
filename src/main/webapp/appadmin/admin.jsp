@@ -8,7 +8,6 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 
-  Shepherd myShepherd = new Shepherd(context);
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server

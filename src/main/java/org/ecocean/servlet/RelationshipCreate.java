@@ -70,6 +70,7 @@ public class RelationshipCreate extends HttpServlet {
       String context="context0";
       context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("RelationshipCreate.class");
         
         Relationship rel=new Relationship();
         SocialUnit comm=new SocialUnit();

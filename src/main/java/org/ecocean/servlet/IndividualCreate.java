@@ -64,6 +64,7 @@ public class IndividualCreate extends HttpServlet {
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualCreate.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -240,6 +241,7 @@ public class IndividualCreate extends HttpServlet {
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I didn't receive enough data to create a marked individual from this encounter.");
       out.println(ServletUtilities.getFooter(context));
+      myShepherd.closeDBTransaction();
     }
 
 

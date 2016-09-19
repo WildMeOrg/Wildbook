@@ -57,6 +57,7 @@ public class OccurrenceCreate extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceCreate.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -159,6 +160,7 @@ public class OccurrenceCreate extends HttpServlet {
       out.println("<strong>Error:</strong> I didn't receive enough data to create a new occurrence from this encounter.");
       //out.println(ServletUtilities.getFooter(context));
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      myShepherd.closeDBTransaction();
     }
 
 

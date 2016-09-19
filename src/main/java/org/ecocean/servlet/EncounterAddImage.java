@@ -62,6 +62,7 @@ public class EncounterAddImage extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterAddImage.class");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");

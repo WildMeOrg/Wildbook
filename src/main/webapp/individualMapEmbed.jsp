@@ -79,8 +79,8 @@ context=ServletUtilities.getContext(request);
   String allIndividuals = props.getProperty("allIndividuals");
 
   Shepherd myShepherd = new Shepherd(context);
-
-
+  myShepherd.setAction("individualMapEmbed.jsp");
+  myShepherd.beginDBTransaction();
 
 
   Vector haveGPSData = new Vector();

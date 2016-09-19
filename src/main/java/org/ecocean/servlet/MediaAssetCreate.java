@@ -54,6 +54,7 @@ public class MediaAssetCreate extends HttpServlet {
         String context = "context0";
         context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class");
 
         //note: a null status will be considered throw-away, cuz we no doubt will get aborted uploads etc.  TODO cleanup of these with cronjob?
         MediaAssetSet maSet = new MediaAssetSet();

@@ -168,6 +168,7 @@ public class EncounterSetPatterningPassport extends HttpServlet {
         .getDataDirectoryName(context));
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetPatterningPassport.class");
     // Get the Encounter object for this
     Encounter enc = null;
     if (myShepherd.isEncounter(encounterId)) {

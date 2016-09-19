@@ -68,6 +68,7 @@ public class CalendarXMLServer2 extends HttpServlet {
         context=ServletUtilities.getContext(request);	
 		//establish a shepherd to manage DB interactions
 		Shepherd myShepherd=new Shepherd(context);
+		myShepherd.setAction("CalendarXMLServer2.class");
 		
 		//change
 		Extent encClass=myShepherd.getPM().getExtent(Encounter.class, true);

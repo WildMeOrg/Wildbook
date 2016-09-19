@@ -66,6 +66,7 @@ public class UpdateEmailAddress extends HttpServlet {
     
     //open a shepherd
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("UpdateEmailAddress.class");
     
 
     boolean madeChanges = false;

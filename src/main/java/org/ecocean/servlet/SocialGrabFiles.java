@@ -94,6 +94,7 @@ import org.scribe.oauth.*;
         PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("SocialGrabFiles.class");
         //myShepherd.beginDBTransaction();
 
         String[] fileUrls = request.getParameterValues("fileUrl");
