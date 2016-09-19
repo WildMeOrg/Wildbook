@@ -63,6 +63,7 @@ public class EncounterDelete extends HttpServlet {
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterDelete.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

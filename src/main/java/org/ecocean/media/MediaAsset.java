@@ -49,7 +49,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 //import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import javax.jdo.Query;
+import javax.xml.bind.DatatypeConverter;
 
 /*
 import java.awt.image.BufferedImage;
@@ -757,6 +759,7 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
             //note? warning? i guess this will traverse... gulp?
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAsset.class");
             myShepherd.beginDBTransaction();
             ArrayList<MediaAsset> kids = this.findChildren(myShepherd);
             myShepherd.rollbackDBTransaction();
@@ -788,6 +791,9 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
 
             return jobj;
         }
@@ -1021,7 +1027,28 @@ System.out.println("hashCode on " + this + " = " + this.hashCode);
         return rtn;
     }
 
-
+    //takes base64 string and turns to binary content and copies that in as normal
+    public void copyInBase64(String b64) throws IOException {
+        if (b64 == null) throw new IOException("copyInBase64() null string");
+        byte[] imgBytes = new byte[100];
+        try {
+            imgBytes = DatatypeConverter.parseBase64Binary(b64);
+        } catch (IllegalArgumentException ex) {
+            throw new IOException("copyInBase64() could not parse: " + ex.toString());
+        }
+        File file = (this.localPath() != null) ? this.localPath().toFile() : File.createTempFile("b64-" + Util.generateUUID(), ".tmp");
+        FileOutputStream stream = new FileOutputStream(file);
+        try {
+            stream.write(imgBytes);
+        } finally {
+            stream.close();
+        }
+        if (file.exists()) {
+            this.copyIn(file);
+        } else {
+            throw new IOException("copyInBase64() could not write " + file);
+        }
+    }
 
 
 }

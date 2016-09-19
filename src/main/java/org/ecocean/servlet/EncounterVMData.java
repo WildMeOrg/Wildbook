@@ -56,6 +56,7 @@ public class EncounterVMData extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterVMData.class");
     boolean locked = false, isOwner = true;
 
 		HashMap rtn = new HashMap();

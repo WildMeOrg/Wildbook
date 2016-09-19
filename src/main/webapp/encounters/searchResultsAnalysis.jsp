@@ -154,11 +154,12 @@ td.tdw:hover div {
 
 
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.setAction("searchResultsAnalysis.jsp");
 
 
     //kick off the transaction
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
 
     //start the query and get the results
     String order = "";

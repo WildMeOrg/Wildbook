@@ -47,6 +47,7 @@ public class PrimeIBEISImageAnalysisForSpecies extends HttpServlet {
     
     String context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("PrimeIBEISImageAnalysisForSpecies.class");
     String baseUrl="";
     myShepherd.beginDBTransaction();
     try{

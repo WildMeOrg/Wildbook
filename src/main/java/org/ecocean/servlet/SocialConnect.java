@@ -86,6 +86,7 @@ import org.scribe.oauth.*;
     PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("SocialConnect.class");
         //myShepherd.beginDBTransaction();
 
         String socialType = request.getParameter("type");

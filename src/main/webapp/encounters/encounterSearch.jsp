@@ -89,6 +89,7 @@ margin-bottom: 8px !important;
   int firstSubmissionYear=1980;
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounterSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
@@ -1552,6 +1553,8 @@ else {
 
       <%
       	Shepherd inShepherd=new Shepherd("context0");
+      inShepherd.setAction("encounterSearch.jsp2");
+      myShepherd.beginDBTransaction();
         List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 

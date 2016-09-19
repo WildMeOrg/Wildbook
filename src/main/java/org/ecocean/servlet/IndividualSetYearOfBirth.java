@@ -52,6 +52,7 @@ public class IndividualSetYearOfBirth extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualSetYearOfBorth.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

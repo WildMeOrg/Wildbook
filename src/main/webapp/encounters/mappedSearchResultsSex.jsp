@@ -24,6 +24,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("mappedSearchResultsSex.jsp");
 
 
 

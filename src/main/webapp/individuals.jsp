@@ -78,6 +78,7 @@ context=ServletUtilities.getContext(request);
 
   String name = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("individuals.jsp");
 
 
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -751,7 +752,7 @@ if (request.getParameter("number")!=null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%>...</a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
@@ -1481,6 +1482,7 @@ if (request.getParameter("number")!=null) {
           <%
           if(CommonConfiguration.showUsersToPublic(context)){
             Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("individuals.jsp2");
             userShepherd.beginDBTransaction();
             %>
               <p><strong><%=props.getProperty("collaboratingResearchers") %></strong></p>
