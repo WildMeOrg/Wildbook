@@ -95,7 +95,7 @@ public class DataSheet extends DataCollectionEvent {
     return data.size();
   }
 
-  public void addData(DataPoint datom) {
+  public void add(DataPoint datom) {
     this.data.add(datom);
   }
 
@@ -116,7 +116,7 @@ public class DataSheet extends DataCollectionEvent {
   }
 
   public void setName(String name) {
-    this.name = name;898</DataPoint></String></dpNames></DataPoint></DataPoint></String></String></String></String></DataPoint></DataPoint></DataPoint>
+    this.name = name;
   }
 
   public String toString() {
