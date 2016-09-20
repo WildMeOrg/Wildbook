@@ -42,7 +42,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	String qannId = null;
 	Shepherd myShepherd2 = new Shepherd(context);
 	myShepherd2.beginDBTransaction();
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", context);
         for (IdentityServiceLog l : logs) {
             if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
             if (l.getObjectID() != null) qannId = l.getObjectID();
