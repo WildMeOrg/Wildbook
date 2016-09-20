@@ -21,7 +21,7 @@
    
     <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
     	<h3><%=props.getProperty("section1.title")%></h3>
-        <p><%=props.getProperty("section1.text1")%> <a href="#"><%=props.getProperty("section1.text1.linkText")%></a></p>
+        <p><%=props.getProperty("section1.text1")%> <a href="volunteer.jsp"><%=props.getProperty("section1.text1.linkText")%></a></p>
           
         <ul class="list-unstyled list-inline block-list volunteer-list">
 
