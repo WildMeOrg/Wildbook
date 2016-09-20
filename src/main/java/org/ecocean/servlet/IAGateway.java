@@ -466,6 +466,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     String context = ServletUtilities.getContext(request);  //note! this *must* be run after postStream stuff above
     Shepherd myShepherd = new Shepherd(context);
     myShepherd.setAction("IAGateway9");
+    myShepherd.beginDBTransaction();
 
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
