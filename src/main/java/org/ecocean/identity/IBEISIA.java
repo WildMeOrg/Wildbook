@@ -1502,9 +1502,18 @@ System.out.println("need " + annId + " from IA, i guess?");
     //  iterations and this was created multiple times before saving
     public static MediaAsset getMediaAssetFromIA(String maUUID, Shepherd myShepherd) {
         //note: we add /fakedir/ cuz the file doesnt need to exist there; we just want to force a hashed subdir to be created in params
-        File file = new File("/fakedir/" + maUUID + ".jpg"); //how do we get real extension?
+        String sourcePath = null;
+        try {
+            sourcePath = iaFilepathFromImageUUID(maUUID);
+        } catch (Exception ex) {}
+        File file = new File("/fakedir/" + maUUID + ".jpg");
+        if (sourcePath != null) {
+            File tmpFile = new File(sourcePath);
+            file = new File("/fakedir/" + tmpFile.getName());  //we keep the real name
+        }
         AssetStore astore = AssetStore.getDefault(myShepherd);
         JSONObject params = astore.createParameters(file);
+        if (sourcePath != null) params.put("iaSourcePath", sourcePath);  //lets save the whole thing too; we use this to get filename
         MediaAsset ma = new MediaAsset(astore, params);
         ma.setUUID(maUUID);
         try {
@@ -1807,6 +1816,19 @@ System.out.println(" ============ dt millis = " + dt);
             encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIA() created " + indiv);
+            String sex = null;
+            try {
+                sex = iaSexFromAnnotUUID(annUUIDs.get(0)); //we try to get from first annot TODO fix with iaSexFromName ??
+System.out.println("--- sex=" + sex);
+            } catch (Exception ex) {}
+/*
+            Double age = null;
+            try {
+                //guess this assumes we have at least one annot and it has age; could walk thru if not?  TODO ditto from above?
+                age = iaAgeFromAnnotUUID(annUUIDs.get(0));
+            } catch (Exception ex) {}
+            if (age != null) enc.setAge(age);
+*/
             rtn.put("newMarkedIndividual", indiv);
         }
         for (int i = startE ; i < encs.size() ; i++) {
@@ -2217,6 +2239,12 @@ System.out.println(ael.getAttribute("attributeKey") + " -> " + aval);
         long t = rtn.getJSONArray("response").optLong(0, -1);
         if (t == -1) return null;
         return new DateTime(t * 1000);  //IA returns secs not millisecs
+    }
+//http://localhost:5000/api/image/uri/original/json/?image_uuid_list=["82d6b998-0a33-817e-af12-aac90f95e753"]
+    public static String iaFilepathFromImageUUID(String uuid) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
+        JSONObject rtn = RestClient.get(iaURL("context0", "/api/image/uri/original/json/?image_uuid_list=[" + toFancyUUID(uuid) + "]"));
+        if ((rtn == null) || (rtn.optJSONArray("response") == null)) throw new RuntimeException("could not get unixtime from image uuid=" + uuid);
+        return rtn.getJSONArray("response").optString(0, null);
     }
 //http://52.37.240.178:5000/api/name/sex/json/?name_uuid_list=[{%22__UUID__%22:%22302cc5dc-4028-490b-99ee-5dc1680d057e%22}]&__format__=True
 /*
