@@ -86,10 +86,10 @@ System.out.println(statusResponse.toString());
 	JSONObject jlog = new JSONObject();
 	jlog.put("jobID", jobID);
 
-	Shepherd myShepherd=new Shepherd(context);
-	myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
+	//Shepherd myShepherd=new Shepherd(context);
+	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
 	//we have to find the taskID associated with this IBEIS-IA job
-	String taskID = IBEISIA.findTaskIDFromJobID(jobID, myShepherd);
+	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
 	if (taskID == null) {
 		jlog.put("error", "could not determine task ID from job " + jobID);
 	} else {
@@ -122,7 +122,7 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
 
-		JSONObject proc = IBEISIA.processCallback(taskID, rlog, myShepherd);
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
 System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
@@ -130,8 +130,8 @@ System.out.println("processCallback returned --> " + proc);
 	ex.printStackTrace();
 }
 finally{
-	myShepherd.rollbackDBTransaction();
-	myShepherd.closeDBTransaction();
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
 }
 
 	all.put("_timestamp", System.currentTimeMillis());
