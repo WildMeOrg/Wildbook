@@ -304,8 +304,8 @@ myShepherd.closeDBTransaction();
         return RestClient.get(url);
     }
 
-    public static JSONObject getJobResultLogged(String jobID, Shepherd myShepherd) {
-        String taskId = findTaskIDFromJobID(jobID, myShepherd);
+    public static JSONObject getJobResultLogged(String jobID, String context) {
+        String taskId = findTaskIDFromJobID(jobID, context);
         if (taskId == null) {
             System.out.println("getJobResultLogged(" + jobID + ") could not find taskId for this job");
             return null;
@@ -313,7 +313,7 @@ myShepherd.closeDBTransaction();
 System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
         //note: this is a little(!) in that it relies on the "raw" results living in "_debug" from getTaskResults so we can reconstruct it to be the output
         //  that getJobResult() above gives.  :/
-        JSONObject tr = getTaskResults(taskId, myShepherd);
+        JSONObject tr = getTaskResults(taskId, context);
         if ((tr == null) || (tr.optJSONObject("_debug") == null) || (tr.getJSONObject("_debug").optJSONObject("_response") == null)) return null;
         if (tr.optJSONArray("_objectIds") != null)  //if we have this, lets bubble it up as part of this return
             tr.getJSONObject("_debug").getJSONObject("_response").put("_objectIds", tr.getJSONArray("_objectIds"));
@@ -327,8 +327,8 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
              json_result: "[{"qaid": 492, "daid_list": [493], "score_list": [1.5081310272216797], "qauuid": {"__UUID__": "f6b27df2-5d81-4e62-b770-b56fe1dcf5c2"}, "dauuid_list": [{"__UUID__": "d88c974b-c746-49db-8178-e7b7414708cf"}]}]"
        there would be one element for each queried annotation (492 here)... but we are FOR NOW always only sending one.  we should TODO adapt for many-to-many eventually?
     */
-    public static JSONObject OLDgetTaskResults(String taskID, Shepherd myShepherd) {
-        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+    public static JSONObject OLDgetTaskResults(String taskID, String context) {
+        JSONObject rtn = getTaskResultsBasic(taskID, context);
         if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
         JSONArray resOut = new JSONArray();
         JSONArray res = (JSONArray)rtn.get("_json_result");
@@ -353,8 +353,8 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
 
 
     //this is "new" identification results
-    public static JSONObject getTaskResults(String taskID, Shepherd myShepherd) {
-        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+    public static JSONObject getTaskResults(String taskID, String context) {
+        JSONObject rtn = getTaskResultsBasic(taskID, context);
         if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
         JSONObject res = rtn.optJSONObject("_json_result");
         rtn.put("results", res);
@@ -382,8 +382,8 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
     }
 
 
-    public static JSONObject getTaskResultsDetect(String taskID, Shepherd myShepherd) {
-        JSONObject rtn = getTaskResultsBasic(taskID, myShepherd);
+    public static JSONObject getTaskResultsDetect(String taskID, String context) {
+        JSONObject rtn = getTaskResultsBasic(taskID, context);
         if ((rtn == null) || !rtn.optBoolean("success", false)) return rtn;  //all the ways we can fail
         JSONArray resOut = new JSONArray();
 /*
@@ -410,8 +410,8 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
 
 
 
-    public static JSONObject getTaskResultsBasic(String taskID, Shepherd myShepherd) {
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+    public static JSONObject getTaskResultsBasic(String taskID, String context) {
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, context);
         return getTaskResultsBasic(taskID, logs);
     }
 
@@ -495,8 +495,8 @@ System.out.println("-------------\n" + last.toString() + "\n----------");
         return null;  //if we fall through, it means we are still waiting ......
     }
 
-    public static HashMap<String,Object> getTaskResultsAsHashMap(String taskID, Shepherd myShepherd) {
-        JSONObject jres = getTaskResults(taskID, myShepherd);
+    public static HashMap<String,Object> getTaskResultsAsHashMap(String taskID, String context) {
+        JSONObject jres = getTaskResults(taskID, context);
         HashMap<String,Object> res = new HashMap<String,Object>();
         if (jres == null) {
             System.out.println("WARNING: getTaskResultsAsHashMap() had null results from getTaskResults(" + taskID + "); return empty HashMap");
@@ -509,6 +509,9 @@ System.out.println("-------------\n" + last.toString() + "\n----------");
         if (jres.has("results")) {
             HashMap<String,Object> rout = new HashMap<String,Object>();
             JSONArray r = jres.getJSONArray("results");
+            Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("IBEISIA.getTaskResultsAsHashMap");
+            myShepherd.beginDBTransaction();
             for (int i = 0 ; i < r.length() ; i++) {
                 if (r.getJSONObject(i).has("query_annot_uuid")) {
                     HashMap<String,Double> scores = new HashMap<String,Double>();
@@ -522,6 +525,8 @@ System.out.println("-------------\n" + last.toString() + "\n----------");
                     rout.put(enc.getCatalogNumber(), scores);
                 }
             }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             res.put("results", rout);
         }
 
@@ -529,8 +534,8 @@ System.out.println("-------------\n" + last.toString() + "\n----------");
     }
 
 
-    public static boolean waitingOnTask(String taskID, Shepherd myShepherd) {
-        JSONObject res = getTaskResults(taskID, myShepherd);
+    public static boolean waitingOnTask(String taskID, String context) {
+        JSONObject res = getTaskResults(taskID, context);
 //System.out.println(" . . . . . . . . . . . . waitingOnTask(" + taskID + ") -> " + res);
         if (res == null) return true;
         return false;  //anything else means we are done (good or bad)
@@ -853,12 +858,26 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
 
 
     //this finds the *most recent* taskID associated with this IBEIS-IA jobID
-    public static String findTaskIDFromJobID(String jobID, Shepherd myShepherd) {
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
-        if (logs == null) return null;
-        for (int i = logs.size() - 1 ; i >= 0 ; i--) {
-            if (logs.get(i).getTaskID() != null) return logs.get(i).getTaskID();  //get first one we find. too bad!
+    public static String findTaskIDFromJobID(String jobID, String context) {
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("IBEISIA.findTaskIDFromJobID");
+      myShepherd.beginDBTransaction();
+      ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByServiceJobID(SERVICE_NAME, jobID, myShepherd);
+        if (logs == null) {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return null;
         }
+        for (int i = logs.size() - 1 ; i >= 0 ; i--) {
+            if (logs.get(i).getTaskID() != null) {
+              String id=logs.get(i).getTaskID();
+              myShepherd.rollbackDBTransaction();
+              myShepherd.closeDBTransaction();
+              return id;
+            }  //get first one we find. too bad!
+        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return null;
     }
 
@@ -877,8 +896,8 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         return ids;
     }
 
-    public static String findJobIDFromTaskID(String taskID, Shepherd myShepherd) {
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+    public static String findJobIDFromTaskID(String taskID, String context) {
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, context);
         if ((logs == null) || (logs.size() < 1)) return null;
 
         String jobID = logs.get(logs.size() - 1).getServiceJobID();
@@ -989,7 +1008,7 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
         return ids;
     }
 
-    public static void waitForTrainingJobs(ArrayList<String> taskIds, Shepherd myShepherd) {
+    public static void waitForTrainingJobs(ArrayList<String> taskIds, String context) {
         boolean stillWaiting = true;
         int countdown = 100;
         while (stillWaiting && (countdown > 0)) {
@@ -997,7 +1016,7 @@ System.out.println(i + ") beginIdentify (taskID=" + taskID + ") ================
             stillWaiting = false; //optimism; prove us wrong
             int idLen = taskIds.size();
             for (int i = 0 ; i < idLen ; i++) {
-                if (waitingOnTask(taskIds.get(i), myShepherd)) {
+                if (waitingOnTask(taskIds.get(i), context)) {
 System.out.println("++++ waitForTrainingJobs() still waiting on " + taskIds.get(i) + " so will sleep a while (countdown=" + countdown + "; passed " + i + " of " + idLen +")");
                     stillWaiting = true;
                     break; //this is cause enough to sleep for a bit -- we dont need to check any more!
@@ -1060,22 +1079,28 @@ System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + 
         return null;
     }
 
-    public static JSONObject processCallback(String taskID, JSONObject resp, Shepherd myShepherd) {
+    public static JSONObject processCallback(String taskID, JSONObject resp, String context) {
 System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
+       
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", context);
         rtn.put("_logs", logs);
         if ((logs == null) || (logs.size() < 1)) return rtn;
 
         String type = getTaskType(logs);
         if ("detect".equals(type)) {
             rtn.put("success", true);
+            Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("IBEISIA.processCallback");
+            myShepherd.beginDBTransaction();
             rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd));
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
-            rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, myShepherd));
+            rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context));
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
@@ -1194,7 +1219,7 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
     }
 
 
-    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, Shepherd myShepherd) {
+    private static JSONObject processCallbackIdentify(String taskID, ArrayList<IdentityServiceLog> logs, JSONObject resp, String context) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String[] ids = IdentityServiceLog.findObjectIDs(logs);
         if (ids == null) {
@@ -1202,11 +1227,16 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
             return rtn;
         }
         HashMap<String,Annotation> anns = new HashMap<String,Annotation>();
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("IBEISIA.processCallbackIdentify");
+        myShepherd.beginDBTransaction();
         for (int i = 0 ; i < ids.length ; i++) {
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, ids[i]), true)));
 System.out.println("**** " + ann);
             if (ann != null) anns.put(ids[i], ann);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         int numCreated = 0;
         JSONObject infDict = null;
         JSONObject j = null;
@@ -1230,7 +1260,7 @@ System.out.println("**** " + ann);
                 //note: it *seems like* annot_uuid_1 is *always* the member that is from the query_annot_uuid_list... but?? is it?
                 String annId = fromFancyUUID(rlist.getJSONObject(i).getJSONObject("annot_uuid_1"));  //gets not opts here... so ungraceful fail possible
                 if (!needReviewMap.containsKey(annId)) needReviewMap.put(annId, false); //only set first, so if set true it stays true
-                if (needIdentificationReview(rlist, clist, i, myShepherd)) {
+                if (needIdentificationReview(rlist, clist, i, context)) {
                     needReview = true;
                     needReviewMap.put(annId, true);
                 }
@@ -1281,14 +1311,14 @@ System.out.println("*****************\nhey i think we are happy with these annot
         return 0.8;
     }
     //tests review_pair_list and confidence_list for element at i and determines if we need review
-    private static boolean needIdentificationReview(JSONArray rlist, JSONArray clist, int i, Shepherd myShepherd) {
+    private static boolean needIdentificationReview(JSONArray rlist, JSONArray clist, int i, String context) {
         if ((rlist == null) || (clist == null) || (i < 0) || (rlist.length() == 0) || (clist.length() == 0) ||
             (rlist.length() != clist.length()) || (i >= rlist.length())) return false;
 
 ////TODO work is still out if we need to ignore based on our own matchingState!!!  for now we skip review if we already did it
             if (rlist.optJSONObject(i) == null) return false;
             String ms = getIdentificationMatchingState(fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_1")),
-                                                       fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")), myShepherd);
+                                                       fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2")), context);
 System.out.println("needIdentificationReview() got matching_state --------------------------> " + ms);
             if (ms != null) return false;
 //////
@@ -1358,10 +1388,20 @@ System.out.println("identification most recent action found is " + action);
     public static void setIdentificationMatchingState(String ann1Id, String ann2Id, String state, Shepherd myShepherd) {
         IBEISIAIdentificationMatchingState.set(ann1Id, ann2Id, state, myShepherd);
     }
-    public static String getIdentificationMatchingState(String ann1Id, String ann2Id, Shepherd myShepherd) {
-        IBEISIAIdentificationMatchingState m = IBEISIAIdentificationMatchingState.load(ann1Id, ann2Id, myShepherd);
-        if (m == null) return null;
-        return m.getState();
+    public static String getIdentificationMatchingState(String ann1Id, String ann2Id, String context) {
+      Shepherd myShepherd=new Shepherd(context);  
+      myShepherd.setAction("IBEISIA.getIdentificationMatchingState");
+      myShepherd.beginDBTransaction();
+      IBEISIAIdentificationMatchingState m = IBEISIAIdentificationMatchingState.load(ann1Id, ann2Id, myShepherd);
+        if (m == null) {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return null;
+        }
+        String result=m.getState();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+        return result;
     }
 
     public static String getActiveTaskId(HttpServletRequest request) {
