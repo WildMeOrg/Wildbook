@@ -411,8 +411,15 @@ System.out.println("getJobResultLogged(" + jobID + ") -> taskId " + taskId);
 
 
     public static JSONObject getTaskResultsBasic(String taskID, String context) {
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, context);
-        return getTaskResultsBasic(taskID, logs);
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("IBEISIA.getTaskResultsBasic");
+        myShepherd.beginDBTransaction();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+        
+        JSONObject returnMe= getTaskResultsBasic(taskID, logs);
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
+        return returnMe;
     }
 
     //note: log must be in chrono order by timestamp ASC
@@ -897,11 +904,24 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
     }
 
     public static String findJobIDFromTaskID(String taskID, String context) {
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, context);
-        if ((logs == null) || (logs.size() < 1)) return null;
+      Shepherd myShepherd=new Shepherd(context);
+      myShepherd.setAction("IBEISIA.findJobIDFromTaskID");
+      myShepherd.beginDBTransaction();
+      ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, SERVICE_NAME, myShepherd);
+        if ((logs == null) || (logs.size() < 1)) {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return null;
+        }
 
         String jobID = logs.get(logs.size() - 1).getServiceJobID();
-        if ("-1".equals(jobID)) return null;
+        if ("-1".equals(jobID)) {
+          myShepherd.rollbackDBTransaction();
+          myShepherd.closeDBTransaction();
+          return null;
+        }
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return jobID;
     }
 
@@ -1084,26 +1104,27 @@ System.out.println("CALLBACK GOT: (taskID " + taskID + ") " + resp);
         JSONObject rtn = new JSONObject("{\"success\": false}");
         rtn.put("taskId", taskID);
         if (taskID == null) return rtn;
-       
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", context);
+        Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("IBEISIA.processCallback");
+        myShepherd.beginDBTransaction();
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
         rtn.put("_logs", logs);
         if ((logs == null) || (logs.size() < 1)) return rtn;
 
         String type = getTaskType(logs);
         if ("detect".equals(type)) {
             rtn.put("success", true);
-            Shepherd myShepherd=new Shepherd(context);
-            myShepherd.setAction("IBEISIA.processCallback");
-            myShepherd.beginDBTransaction();
+            
             rtn.put("processResult", processCallbackDetect(taskID, logs, resp, myShepherd));
-            myShepherd.commitDBTransaction();
-            myShepherd.closeDBTransaction();
+            
         } else if ("identify".equals(type)) {
             rtn.put("success", true);
             rtn.put("processResult", processCallbackIdentify(taskID, logs, resp, context));
         } else {
             rtn.put("error", "unknown task action type " + type);
         }
+        myShepherd.commitDBTransaction();
+        myShepherd.closeDBTransaction();
         return rtn;
     }
 
