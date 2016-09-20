@@ -44,7 +44,7 @@ if ((request.getParameter("number") != null) && (request.getParameter("individua
 	Shepherd myShepherd2 = new Shepherd(context);
 	myShepherd2.setAction("matchResults.jsp2");
 	myShepherd2.beginDBTransaction();
-	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", myShepherd2);
+	ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskId, "IBEISIA", context);
         for (IdentityServiceLog l : logs) {
             if (l.getServiceJobID() != null) jobId = l.getServiceJobID();
             if ((l.getObjectIDs() != null) && (l.getObjectIDs().length > 0)) qannId = l.getObjectIDs()[0];
