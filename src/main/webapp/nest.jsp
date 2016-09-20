@@ -50,15 +50,18 @@
     System.out.println("myShepherd grabbed Nest #"+nestID);
   }
   else {
-    System.out.println("ERROR: myShepherd failed to find Nest #"+nestID);
+    System.out.println("NEWNEST: myShepherd failed to find a Nest # upon loading nest.jsp");
     nestie = new Nest(Util.generateUUID()); // TODO: fix this case
+    myShepherd.storeNewNest(nestie);
+    nestID = nestie.getID();
   }
 
-  String[] nestFieldGetters = new String[]{"getLocationID", "getLocationNote","getLatitude","getLongitude"};
+  String[] nestFieldGetters = new String[]{"getName", "getLocationID", "getLocationNote","getLatitude","getLongitude"};
 
 
   String saving = request.getParameter("save");
-  String newSheet = request.getParameter("newSheet");
+  String newNestingSheet = request.getParameter("newNestingSheet");
+  String newFieldSheet = request.getParameter("newFieldSheet");
   String saveMessage = "";
 
   int nDataSheets = nestie.countSheets();
@@ -72,12 +75,18 @@
   }
 
 
-  boolean needToSave = (saving != null || newSheet!=null || sheetToRemove>=0);
+  boolean needToSave = (saving != null || newNestingSheet!=null || sheetToRemove>=0);
 
-  if (newSheet !=null) {
+  if (newNestingSheet !=null) {
     System.out.println("Printing a new sheet!");
     nestie.addConfigDataSheet(context);
   }
+
+  if (newNestingSheet !=null) {
+    System.out.println("Printing a new sheet!");
+    nestie.addConfigDataSheet(context, "nestEmergence");
+  }
+
 
   if (sheetToRemove >= 0) {
     nestie.remove(sheetToRemove);
@@ -145,7 +154,7 @@
 <div class="row">
   <div class="col-xs-12">
     <h1>Nest</h1>
-    <h3><%=nestID%></h3>
+    <p class="nestidlabel"><em>id <%=nestID%></em><p>
 
       <table class="nest-field-table edit-table">
         <%
@@ -164,7 +173,8 @@
       <div class="row">
         <div class="col-sm-12">
           <h2>Data Sheets</h2>
-          <input type="submit" name="newSheet" value="Add New Data Sheet" />
+          <input type="submit" name="newNestingSheet" value="Add New Nesting Field Sheet" />
+          <input type="submit" name="newEmergenceSheet" value="Add New Emergence Field Sheet" />
         </div>
       </div>
         <%
@@ -182,7 +192,7 @@
           }
           %>
             <h3>Data Sheet <%=i+1%></h2>
-            <input type="submit" onclick="nestFuncs.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+            <input type="submit" onclick="nestFuncs.ma]rkDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
 
 
             <table class="nest-field-table edit-table" style="float: left">
