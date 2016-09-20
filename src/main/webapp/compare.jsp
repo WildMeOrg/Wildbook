@@ -13,6 +13,7 @@ org.ecocean.*,java.util.Properties,org.slf4j.Logger,org.slf4j.LoggerFactory,org.
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("compare.jsp");
 
 
   //handle some cache-related security
@@ -43,7 +44,7 @@ Shepherd myShepherd = new Shepherd(context);
   ;
 */
 
-
+	myShepherd.beginDBTransaction();
 	Vector all = myShepherd.getAllEncountersNoFilterAsVector();
 	JSONArray jall = new JSONArray();
 	for (Object obj : all) {
@@ -57,7 +58,8 @@ Shepherd myShepherd = new Shepherd(context);
 		j.put("asset", Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject())));
 		jall.put(j);
 	}
-
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
