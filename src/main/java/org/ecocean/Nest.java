@@ -71,6 +71,8 @@ public class Nest implements java.io.Serializable {
 
 
 
+
+
   public void setLocationID(String locationID) {
     this.locationID = locationID;
   }
@@ -98,5 +100,37 @@ public class Nest implements java.io.Serializable {
   public Double getLongitude() {
     return longitude;
   }
+
+
+  // following functions are largely on DataSheets,
+  // but live in this class because they only make
+  // sense in the nest context
+
+  // eggs: on some datasheets, researchers will want to record info
+  // about N eggs. This is stored by reserving the end of the datapoint
+  // array for only egg measurements
+  public int getEggCount(int sheetNo) {
+    DataSheet ds = getDataSheet(sheetNo);
+    DataPoint lastDP = ds.get(ds.size()-1);
+    String lastName = lastDP.getName();
+    System.out.println("   lastName = "+lastName);
+    System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
+    System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
+    boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
+    if (!lastDPAnEgg) return 0;
+    String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
+    System.out.println("   intFromLastName = "+intFromLastName);
+    return (Integer.parseInt(intFromLastName) + 1);
+  }
+
+  public void addNewEgg(int sheetNo) {
+    DataSheet ds = getDataSheet(sheetNo);
+    int eggNo = getEggCount(sheetNo);
+    DataPoint eggDiameter = new Amount("egg "+eggNo+" diam.", (Double) null, "cm");
+    DataPoint eggWeight = new Amount("egg "+eggNo+" weight", (Double) null, "g");
+    ds.add(eggDiameter);
+    ds.add(eggWeight);
+  }
+
 
 }
