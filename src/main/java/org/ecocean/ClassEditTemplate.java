@@ -108,7 +108,7 @@ public class ClassEditTemplate {
            "(?<=[A-Za-z])(?=[^A-Za-z])"
         ),
         " "
-     );
+     ).toLowerCase();
   }
 
 
@@ -346,7 +346,7 @@ public class ClassEditTemplate {
 
   public static void printUnitsCell(String units, javax.servlet.jsp.JspWriter out) throws IOException {
     if (units!=null && !units.equals("")) {
-      out.println("<td>"+units+"</td>");
+      out.println("<td class=\"unit-label\">"+units+"</td>");
     }
   }
 
