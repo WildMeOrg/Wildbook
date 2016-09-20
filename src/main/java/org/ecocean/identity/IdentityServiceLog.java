@@ -131,8 +131,11 @@ public class IdentityServiceLog implements java.io.Serializable {
         return log;
     }
 
-    public static ArrayList<IdentityServiceLog> loadByTaskID(String taskID, String serviceName, Shepherd myShepherd) {
-        Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
+    public static ArrayList<IdentityServiceLog> loadByTaskID(String taskID, String serviceName, String context) {
+      Shepherd myShepherd=new Shepherd(context); 
+      myShepherd.setAction("IdentityServiceLog.loadByTaskID");
+      myShepherd.beginDBTransaction();
+      Extent cls = myShepherd.getPM().getExtent(IdentityServiceLog.class, true);
         Query qry = myShepherd.getPM().newQuery(cls, "this.taskID == \"" + taskID + "\" && this.serviceName == \"" + serviceName + "\"");
         qry.setOrdering("timestamp");
         ArrayList<IdentityServiceLog> log=new ArrayList<IdentityServiceLog>();
@@ -145,6 +148,8 @@ public class IdentityServiceLog implements java.io.Serializable {
           ex.printStackTrace();
         }
         qry.closeAll();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return log;
     }
 
