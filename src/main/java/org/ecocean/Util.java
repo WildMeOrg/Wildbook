@@ -488,5 +488,10 @@ public class Util {
       }
     }
 
+    public static String capitolizeFirstLetterOnly(String str) {
+      String lower = str.toLowerCase();
+      if (lower.length()<=1) return (lower.toUpperCase());
+      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
+    }
 
 }
