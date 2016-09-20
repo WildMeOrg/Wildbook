@@ -101,7 +101,7 @@ public class IAGateway extends HttpServlet {
         String taskID = request.getParameter("getJobResultFromTaskID");
 
 
-        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", context);
+        ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadByTaskID(taskID, "IBEISIA", myShepherd);
         if ((logs == null) || (logs.size() < 1)) {
             res.put("error", "could not find any record for task ID = " + taskID);
 
