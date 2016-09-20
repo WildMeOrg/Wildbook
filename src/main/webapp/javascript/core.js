@@ -207,7 +207,7 @@ console.log('is %o', ajax);
 		}, //end social.
 
     cleanUrl: function (url) {
-        return encodeURI(url).replace(new RegExp('#', 'g'), '%23');
+        return encodeURI(url).replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
     },
 
     openInTab: function(url) {
