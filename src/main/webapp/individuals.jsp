@@ -459,8 +459,13 @@ if (request.getParameter("number")!=null) {
 
             <script type="text/javascript">
               $(document).ready(function() {
-                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
-
+            	<%
+            	if(!sexValue.equals("")){
+            	%>
+                	$("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
+				<%
+            	}
+				%>
                 $("#Add").click(function(event) {
                   event.preventDefault();
                   $("#Add").hide();
