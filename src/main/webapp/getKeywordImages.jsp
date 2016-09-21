@@ -108,6 +108,15 @@ try{
 			if(!individualID.equals("")){
 				jsonKW.put("individualID", individualID);	
 			}
+			
+			JSONArray keywords = new JSONArray();
+			ArrayList<Keyword> myWords=spv.getKeywords();
+			int numWords=myWords.size();
+			for(int f=0;f<numWords;f++){
+				Keyword thisWord=myWords.get(f);
+				keywords.put(thisWord.getIndexname());
+			}
+			jsonKW.put("keywords", keywords);
 			all.put(jsonKW);
 			
 		}
