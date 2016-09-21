@@ -84,7 +84,6 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
       <script type="text/javascript"  src="<%=urlLoc %>/javascript/imageEnhancer.js"></script>
       <link type="text/css" href="<%=urlLoc %>/css/imageEnhancer.css" rel="stylesheet" />
 
-  	<script src="<%=urlLoc %>/cust/mantamatcher/js/___behaviour.js"></script>
 
 <script src="<%=urlLoc %>/javascript/lazysizes.min.js"></script>
 
