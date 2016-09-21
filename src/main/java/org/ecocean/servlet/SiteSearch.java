@@ -85,9 +85,9 @@ public class SiteSearch extends HttpServlet {
         //
         filter = "this.nickName.toLowerCase().matches('"
                 + regex
-                + "') || this.individualID.matches('"
+                + "') || this.individualID.toLowerCase().matches('"
                 + regex
-                + "') || this.alternateid.matches('"
+                + "') || this.alternateid.toLowerCase().matches('"
                 + regex + "')"
                 
                 

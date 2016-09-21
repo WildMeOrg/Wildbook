@@ -840,6 +840,11 @@
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
   </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>SiteSearch</servlet-name>
+    <url-pattern>/SiteSearch</url-pattern>
+  </servlet-mapping>
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>
