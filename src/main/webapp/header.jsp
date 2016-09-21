@@ -410,9 +410,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             <% }
                             if(request.isUserInRole("admin")) { %>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
+                              <li><a href="<%=urlLoc %>/reports.jsp"><%=props.getProperty("adminReports")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
                                 <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
                                 <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>

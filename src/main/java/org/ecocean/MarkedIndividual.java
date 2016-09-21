@@ -1969,4 +1969,63 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 .toString();
     }
 
+
+    // this trailing block is brought over for original ibeis-branch which has some lewa-specific calculations
+    public String getSightedForMonth(String y, String m) {
+        int yint = 0;
+        int mint = 0;
+        try {
+            yint = Integer.parseInt(y);
+            mint = Integer.parseInt(m);
+        } catch (NumberFormatException nfe) {
+            System.out.println("could not parse ints from args: (" + y + ", " + m + ")");
+            return "?";
+        }
+System.out.println("getSightedForMonth(" + yint + "/" + mint + ")");
+        if (this.wasSightedInMonth(yint, mint)) return "1";
+        return "0";
+    }
+ 
+    public String getSexOrGuess() {
+        if ("male".equals(sex) || "female".equals(sex)) return sex;
+        Vector encs = this.getEncounters();
+        for (int i = 0 ; i < encs.size() ; i++) {
+            Encounter enc = (Encounter) encs.get(i);
+            String s = enc.getSex();
+            if ("male".equals(s) || "female".equals(s)) return s;
+        }
+        return "unknown";
+    }
+ 
+    // note: it assumes "first identified" and "first sighting" are congruent, which may or may not be the case... hmmmm.
+    public Double calculatedAge() {  //no arg means age *today*
+        return calculatedAge(Calendar.getInstance());
+    }
+ 
+    public Double calculatedAge(Calendar when) {   //will compute age at "when"
+        Double aafs = this.getAgeAtFirstSighting();
+        Double ysfs = this.calculatedYearsSinceFirstSighting(when);
+        if ((aafs == null) || (ysfs == null)) return null;
+        return aafs + ysfs;
+    }
+
+    public Double calculatedYearsSinceFirstSighting(Calendar when) {
+        Encounter[] sorted = this.getDateSortedEncounters(true);
+        if (sorted.length < 1) return null;
+        Calendar cal = Calendar.getInstance();
+        cal.clear();
+        cal.set(Calendar.MILLISECOND, 0);
+        if (sorted[0].getYear() > 0) {
+            cal.set(Calendar.YEAR, sorted[0].getYear());
+        } else {
+            return null;  //if we dont have at least a year, forget it
+        }
+        if (sorted[0].getMonth() > 0) cal.set(Calendar.MONTH, sorted[0].getMonth() - 1);
+        if (sorted[0].getDay() > 0) cal.set(Calendar.DAY_OF_MONTH, sorted[0].getDay());
+        return (when.getTimeInMillis() - cal.getTimeInMillis()) / (365.25 * 24 * 60 * 60 * 1000);
+    }
+
+    ////  end ibeis/lewa-specific block
+
+
 }
