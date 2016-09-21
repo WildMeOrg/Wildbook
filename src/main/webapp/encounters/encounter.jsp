@@ -10,7 +10,7 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,org.ecocean.MeasurementEvent,
+         org.ecocean.Util,org.ecocean.datacollection.MeasurementEvent,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          javax.jdo.Extent, javax.jdo.Query,
@@ -613,15 +613,27 @@ $(function() {
 					</table>
           </div>
         </div>
-					
-	
-	
-	<!-- main display area -->		
-			
-					<div class="container">
+
+
+
+	<!-- main display area -->
+
+	<div class="container">
+
+    <div class="row datasheets">
+      <div class="col-sm-12">
+        <h2>
+          <%=encprops.getProperty("datasheets") %>
+        </h2>
+      </div>
+    </div>
+
+
 						<div class="row">
-							
-							
+
+
+
+
 							  <!-- here lies the photo gallery  -->
   <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
@@ -1070,8 +1082,8 @@ $("a#occurrence").click(function() {
     </div>
 
   </div>
-							
-							
+
+
 							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
 
@@ -3231,7 +3243,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
         %>
             <tr>
-              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.DataCollectionEventID}"/></td>
+              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.getDataCollectionEventID()}"/></td>
               <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
                   <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
                   <select name="measurement${index}(samplingProtocol)">

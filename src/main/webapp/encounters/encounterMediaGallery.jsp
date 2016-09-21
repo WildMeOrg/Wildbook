@@ -5,7 +5,7 @@ org.ecocean.*,
 org.ecocean.identity.IBEISIA,
 org.datanucleus.api.rest.orgjson.JSONObject,
 org.datanucleus.api.rest.orgjson.JSONArray,
-org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.MeasurementEvent, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
+org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.datacollection.MeasurementEvent, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.io.FileInputStream,java.text.DecimalFormat,
 java.util.*" %>
 
 <%--
