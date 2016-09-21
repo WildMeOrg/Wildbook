@@ -343,25 +343,8 @@ if (request.getParameter("number")!=null) {
         }
           %>
 
-      <%-- Social Media Buttons --%>
-      <div>
-        <!-- Google PLUS-ONE button -->
-        <g:plusone size="small" annotation="none"></g:plusone>
-        <!--  Twitter TWEET THIS button -->
-        <a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
-        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
-        <!-- Facebook LIKE button -->
-        <div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div>
-        <%
-        if(CommonConfiguration.isIntegratedWithWildMe(context)){
-          %>
-          <a href="http://fb.wildme.org/wildme/public/profile/<%=CommonConfiguration.getProperty("wildMeDataSourcePrefix", context) %><%=sharky.getIndividualID()%>" target="_blank"><img src="images/wild-me-link.png" /></a>
-          <%
-        }
-        %>
-        <%-- End of Social Media   --%>
-      </div>
-      <br>
+
+   
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
