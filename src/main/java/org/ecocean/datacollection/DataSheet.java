@@ -36,6 +36,7 @@ public class DataSheet extends DataCollectionEvent {
 
   public static DataSheet fromCommonConfig(String className, String context) throws IOException {
 
+    System.out.println("DataSheet.fromCommonConfig called on "+className+" and "+context);
     List<String> dpNames = CommonConfiguration.getIndexedPropertyValues("datapoint",context);
     List<String> dpUnits = CommonConfiguration.getIndexedPropertyValues("datapointUnits",context);
     List<String> dpClasses = CommonConfiguration.getIndexedPropertyValues("datapointClasses",context);
@@ -87,8 +88,9 @@ public class DataSheet extends DataCollectionEvent {
 
 
   private static boolean classIsInConfigClassList(String className, String classList) {
-    List<String> classNames = Arrays.asList(className.split(","));
-    return classNames.contains(className);
+    List<String> classNames = Arrays.asList(classList.split(","));
+    boolean ans = classNames.contains(className);
+    System.out.println("  "+classList+".conclassIsInConfigClassList("+className+", "+classList+") = "+ans);    return ans;
   }
 
   public int size() {

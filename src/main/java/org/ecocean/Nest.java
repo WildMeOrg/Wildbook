@@ -12,6 +12,7 @@ import org.ecocean.Util;
 public class Nest implements java.io.Serializable {
 
   private String id;
+  private String name;
   private List<DataSheet> dataSheets = new ArrayList<DataSheet>();
 
   private String locationID;
@@ -34,6 +35,18 @@ public class Nest implements java.io.Serializable {
     this.record(sheet);
   }
 
+  public String getID() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
   // the goal here is to offer a quick hook to a "null nest",
   // that is a nest that has a datasheet with fields but no values.
   public static Nest nestWithConfigDataSheet(String context) throws IOException {
@@ -47,6 +60,16 @@ public class Nest implements java.io.Serializable {
   public void addConfigDataSheet(String context) throws IOException {
     this.record(DataSheet.fromCommonConfig("nest", context));
   }
+
+  public void addConfigDataSheet(String context, String subname) throws IOException {
+    //DataSheet sheetie = DataSheet.fromCommonConfig("nest", context);
+    DataSheet sheetie = DataSheet.fromCommonConfig(subname, context);
+    sheetie.setName(subname);
+    System.out.println();
+    System.out.println("Just made a named config data sheet, "+sheetie.getName());
+    this.record(sheetie);
+  }
+
 
 
   public List<DataSheet> getDataSheets() {
