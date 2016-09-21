@@ -64,7 +64,6 @@
   String saving = request.getParameter("save");
   String newNestingSheet = request.getParameter("newNestingSheet");
   String newEmergenceSheet = request.getParameter("newEmergenceSheet");
-  String saveMessage = "";
 
   int nDataSheets = nestie.countSheets();
   int sheetToRemove = -1;
@@ -88,7 +87,6 @@
     System.out.println("*X*X*XX*X*X*Printing a new sheet!");
     nestie.addConfigDataSheet(context, "emergence");
   }
-
 
   if (sheetToRemove >= 0) {
     nestie.remove(sheetToRemove);
