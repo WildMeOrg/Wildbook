@@ -23,6 +23,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
+myShepherd.setAction("index.jsp");
 
 
 //check for and inject a default user 'tomcat' if none e

@@ -88,6 +88,7 @@ try {
 
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
+myShepherd.setAction("gallery.jsp");
 
 int numResults = 0;
 
