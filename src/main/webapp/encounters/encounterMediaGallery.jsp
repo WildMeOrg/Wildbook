@@ -307,7 +307,9 @@ function doImageEnhancer(sel) {
 		]);
 	}
 */
-
+<%
+if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
+%>
 	opt.menu.push(
             [
 		'spot mapping',
@@ -325,6 +327,9 @@ function doImageEnhancer(sel) {
 		function(enh) { imagePopupInfo(enh); }
             ]
 	);
+	<%
+    }
+	%>
 
 /*
         if (true) {
