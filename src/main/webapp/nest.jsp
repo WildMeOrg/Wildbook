@@ -43,6 +43,8 @@
   String nestID = request.getParameter("number");
   int nFieldsPerSubtable = 8;
 
+  System.out.println("beginning nest.jsp!");
+
 
   Nest nestie;
   if (nestID!=null) {
@@ -61,7 +63,7 @@
 
   String saving = request.getParameter("save");
   String newNestingSheet = request.getParameter("newNestingSheet");
-  String newFieldSheet = request.getParameter("newFieldSheet");
+  String newEmergenceSheet = request.getParameter("newEmergenceSheet");
   String saveMessage = "";
 
   int nDataSheets = nestie.countSheets();
@@ -78,13 +80,13 @@
   boolean needToSave = (saving != null || newNestingSheet!=null || sheetToRemove>=0);
 
   if (newNestingSheet !=null) {
-    System.out.println("Printing a new sheet!");
+    System.out.println("*X*X*XX*X*X*Printing a new sheet!");
     nestie.addConfigDataSheet(context);
   }
 
-  if (newNestingSheet !=null) {
-    System.out.println("Printing a new sheet!");
-    nestie.addConfigDataSheet(context, "nestEmergence");
+  if (newEmergenceSheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new sheet!");
+    nestie.addConfigDataSheet(context, "emergence");
   }
 
 
@@ -174,8 +176,11 @@
         <div class="col-sm-12">
           <h2>Data Sheets</h2>
           <input type="submit" name="newNestingSheet" value="Add New Nesting Field Sheet" />
+        </div>
+        <div class="col-sm-12">
           <input type="submit" name="newEmergenceSheet" value="Add New Emergence Field Sheet" />
         </div>
+
       </div>
         <%
 
@@ -192,6 +197,15 @@
           }
           %>
             <h3>Data Sheet <%=i+1%></h2>
+
+            <%
+            if (dSheet.getName()!=null && !dSheet.getName().equals(""))
+            {
+              %>
+              <h4><%=dSheet.getName()%></h4>
+              <%
+            }
+            %>
             <input type="submit" onclick="nestFuncs.ma]rkDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
 
 
