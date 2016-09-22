@@ -216,6 +216,7 @@ if(indie.getSex()!=null){sexValue=indie.getSex();}
 
 <%
   myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 
 %>
 

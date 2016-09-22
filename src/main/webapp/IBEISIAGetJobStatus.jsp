@@ -23,11 +23,12 @@ org.ecocean.media.*
 
 <%
 
-Shepherd myShepherd=null;
+//Shepherd myShepherd=null;
 
 String context = "context0";
 
-myShepherd = new Shepherd(context);
+//myShepherd = new Shepherd(context);
+//myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 
 //String rootDir = getServletContext().getRealPath("/");
 //String baseDir = ServletUtilities.dataDir("context0", rootDir);
@@ -35,6 +36,8 @@ myShepherd = new Shepherd(context);
 response.setHeader("Content-type", "application/javascript");
 
 String jobID = request.getParameter("jobid");
+
+
 System.out.println("==================================================== IBEIS-IA callback got jobid=" + jobID);
 if ((jobID == null) || jobID.equals("")) {
 //System.out.println("fake fail * * * * * * * * * *");
@@ -42,7 +45,7 @@ if ((jobID == null) || jobID.equals("")) {
 
 } else {
 
-	runIt(jobID, myShepherd, context);
+	runIt(jobID, context);
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
@@ -51,12 +54,14 @@ System.out.println("((((all done with main thread))))");
 
 <%!
 
-private void runIt(final String jobID, final Shepherd myShepherd, final String context) {
+private void runIt(final String jobID, final String context) {
 System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. . .................................");
 
 	Runnable r = new Runnable() {
 		public void run() {
-			tryToGet(jobID, myShepherd, context);
+			tryToGet(jobID, context);
+//myShepherd.rollbackDBTransaction();
+//myShepherd.closeDBTransaction();
 		}
 	};
 	new Thread(r).start();
@@ -64,7 +69,7 @@ System.out.println("((( done runIt() )))");
 	return;
 }
  
-private void tryToGet(String jobID, Shepherd myShepherd, String context) {
+private void tryToGet(String jobID, String context) {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
 //if (jobID != null) return;
@@ -81,8 +86,10 @@ System.out.println(statusResponse.toString());
 	JSONObject jlog = new JSONObject();
 	jlog.put("jobID", jobID);
 
+	//Shepherd myShepherd=new Shepherd(context);
+	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
 	//we have to find the taskID associated with this IBEIS-IA job
-	String taskID = IBEISIA.findTaskIDFromJobID(jobID, myShepherd);
+	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
 	if (taskID == null) {
 		jlog.put("error", "could not determine task ID from job " + jobID);
 	} else {
@@ -115,12 +122,16 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		IBEISIA.log(taskID, jobID, rlog, context);
 		all.put("jobResult", rlog);
 
-		JSONObject proc = IBEISIA.processCallback(taskID, rlog, myShepherd);
+		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
 System.out.println("processCallback returned --> " + proc);
 	}
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
 	ex.printStackTrace();
+}
+finally{
+	//myShepherd.rollbackDBTransaction();
+	//myShepherd.closeDBTransaction();
 }
 
 	all.put("_timestamp", System.currentTimeMillis());
