@@ -81,6 +81,9 @@ public class DataSheet extends DataCollectionEvent {
           System.out.println("DataPoint "+dp.getName()+" is categorical!");
           System.out.println("           its possible values are "+StringUtils.join(dp.getCategoriesAsStrings(context), ", "));
         }
+        if (dp.isSequential(context)) {
+          System.out.println("It's sequential, all right!");
+        }
       }
     }
     return new DataSheet(data);
@@ -100,6 +103,22 @@ public class DataSheet extends DataCollectionEvent {
   public void add(DataPoint datom) {
     this.data.add(datom);
   }
+
+  // copies all the datapoints from one datasheet into this one
+  public void copyFrom(DataSheet ds) {
+    for (DataPoint dp : ds.getData()) {
+
+    }
+  }
+
+  public void countPoints(String namePrefix) {
+    int count = 0;
+    for (DataPoint dp: data) {
+      if (data.getName().indexOf(namePrefix)==0) count++;
+    }
+    return count;
+  }
+
 
   public List<DataPoint> getData() {
     return data;
