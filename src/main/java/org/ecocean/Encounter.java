@@ -1789,6 +1789,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	else{genus=null;}
+    updateAnnotationTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -1798,7 +1799,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	else{specificEpithet=null;}
+    updateAnnotationTaxonomy();
   }
+
+    private void updateAnnotationTaxonomy() {
+        //TODO make this, duh
+    }
 
     public String getTaxonomyString() {
         return Util.taxonomyString(getGenus(), getSpecificEpithet());
@@ -2563,6 +2569,7 @@ throw new Exception();
 		return true;
 	}
 
+///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
             Encounter returnEnc=null;
