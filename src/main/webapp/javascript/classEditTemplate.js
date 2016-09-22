@@ -1,5 +1,8 @@
 var classEditTemplate = {};
 
+classEditTemplate.defaultFieldsPerSubtable = 8;
+classEditTemplate.deleteSheet = false;
+
 classEditTemplate.checkIfOldFormValue = function(changedElem) {
   return ($(changedElem).attr("name").startsWith("oldValue-"));
 }
@@ -29,8 +32,106 @@ classEditTemplate.extractDateTimeFromVal = function(valString) {
 }
 
 classEditTemplate.updateMillisFromDisplayDateTime = function(displayElem) {
+}
+
+// following functions were built on nest.jsp
+classEditTemplate.deleteSheet = false;
+
+classEditTemplate.checkBeforeDeletion = function() {
+  if (classEditTemplate.deleteSheet == true) {
+    return confirm('Are you sure you want to delete this data sheet?');
+  }
+  return true;
+}
+
+classEditTemplate.markDeleteSheet = function() {
+  classEditTemplate.deleteSheet = true;
+}
+
+classEditTemplate.extractIntFromString = function(str) {
+  var strOnlyDigits = str.match(/\d+/)[0];
+  return parseInt(strOnlyDigits);
+}
+
+classEditTemplate.createEggWeightFromTemplate = function(eggRowTemplateElem, eggNo, dataSheetNum) {
+  var eggWeightRowElem = eggRowTemplateElem.clone();
+  eggWeightRowElem.find('td.value input').attr('name', 'nes-dp-new:ds'+dataSheetNum+'-eggWeight'+eggNo);
+  eggWeightRowElem.find('td.value input').val('');
+  eggWeightRowElem.find('td.unit-label').html('g');
+  eggWeightRowElem.find('td.fieldName').html('egg '+eggNo+' weight');
+  return eggWeightRowElem;
+}
+
+classEditTemplate.createEggWeightFromTemplate2 = function(eggRowTemplateElem, eggNo, dataSheetNum) {
+  return classEditTemplate.modifiedCopyRowEl(
+    eggRowTemplateElem.clone(),
+    'nes-dp-new:ds'+dataSheetNum+'-eggDiam'+eggNo,
+    '',
+    'g',
+    'egg '+eggNo+' weight'
+  );
+}
+
+
+
+
+classEditTemplate.createEggDiamFromTemplate = function(eggRowTemplateElem, eggNo, dataSheetNum) {
+  var eggDiamRowElem = eggRowTemplateElem.clone();
+  eggDiamRowElem.find('td.value input').attr('name', 'nes-dp-new:ds'+dataSheetNum+'-eggDiam'+eggNo);
+  eggDiamRowElem.find('td.value input').val('');
+  eggDiamRowElem.find('td.unit-label').html('cm');
+  eggDiamRowElem.find('td.fieldName').html('egg '+eggNo+' diam.');
+  return eggDiamRowElem;
+}
+
+
+classEditTemplate.modifiedCopyRowEl = function(rowEl, name, value, units, fieldName) {
+  var copyEl = rowEl.clone();
+  classEditTemplate.modifyRowElem(copyEl, name, value, units, fieldName);
+  return copyEl;
+}
+
+classEditTemplate.modifyRowElem = function(rowEl, name, value, units, fieldName) {
+
+  if (name) rowEl.find('td.value input').attr('name', name);
+  if (value) {
+    rowEl.find('td.value input').val(value);
+  } else {
+    rowEl.find('td.value input').val('');
+  }
+  if (units) rowEl.find('td.unit-label').html(units);
+  if (fieldName) rowEl.find('td.fieldName').html('egg '+eggNo+' diam.');
 
 }
+
+classEditTemplate.updateSubtableIfNeeded = function(subtableElem) {
+  if (classEditTemplate.isFull(subtableElem)) {
+    console.log('Subtable is full, updating!');
+    return classEditTemplate.makeNewSubtable(subtableElem);
+  }
+  else return subtableElem;
+}
+
+classEditTemplate.isFull = function(subtableElem) {
+  var numRows = $(subtableElem).find('tr').length;
+  return (numRows >= classEditTemplate.defaultFieldsPerSubtable);
+}
+
+classEditTemplate.makeNewSubtable = function(subtableElem) {
+  var superColumn = subtableElem.closest('div.col');
+  superColumn.addClass("makeNewSubtabled");
+  var superRow = superColumn.closest('div.row');
+  var newColumn = superColumn.clone(); // bc each subtable has its own bootstrap column
+  newColumn.find('tr').remove(); // empty the cloned table
+  console.log('about to append!');
+  superColumn.after(newColumn);
+  superRow.addClass("makeNewSubtabled");
+  console.log('just appended '+newColumn.toString()+' onto '+superRow.toString());
+  return newColumn.find('table.nest-field-table');
+}
+
+
+
 
 $(document).ready(function() {
 

@@ -148,7 +148,7 @@
 
 
 <div class="container maincontent">
-  <form method="post" onsubmit="return nestFuncs.checkBeforeDeletion()" action="nest.jsp?number=<%=nestID%>" id="classEditTemplateForm">
+  <form method="post" onsubmit="return classEditTemplate.checkBeforeDeletion()" action="nest.jsp?number=<%=nestID%>" id="classEditTemplateForm">
 
 
 <div class="row">
@@ -204,7 +204,7 @@
               <%
             }
             %>
-            <input type="submit" onclick="nestFuncs.ma]rkDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+            <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
 
 
             <table class="nest-field-table edit-table" style="float: left">
@@ -265,88 +265,21 @@
 
 <script>
 
-var nestFuncs = {}
-
-nestFuncs.deleteSheet = false;
-
-nestFuncs.checkBeforeDeletion = function() {
-  if (nestFuncs.deleteSheet == true) {
-    return confirm('Are you sure you want to delete this data sheet?');
-  }
-  return true;
-}
-
-nestFuncs.markDeleteSheet = function() {
-  nestFuncs.deleteSheet = true;
-}
-
-nestFuncs.extractIntFromString = function(str) {
-  var strOnlyDigits = str.match(/\d+/)[0];
-  return parseInt(strOnlyDigits);
-}
-
-nestFuncs.createEggWeightFromTemplate = function(eggRowTemplateElem, eggNo, dataSheetNum) {
-  var eggWeightRowElem = eggRowTemplateElem.clone();
-  eggWeightRowElem.find('td.value input').attr('name', 'nes-dp-new:ds'+dataSheetNum+'-eggWeight'+eggNo);
-  eggWeightRowElem.find('td.value input').val('');
-  eggWeightRowElem.find('td.unit-label').html('g');
-  eggWeightRowElem.find('td.fieldName').html('egg '+eggNo+' weight');
-  return eggWeightRowElem;
-}
-
-nestFuncs.createEggDiamFromTemplate = function(eggRowTemplateElem, eggNo, dataSheetNum) {
-  var eggDiamRowElem = eggRowTemplateElem.clone();
-  eggDiamRowElem.find('td.value input').attr('name', 'nes-dp-new:ds'+dataSheetNum+'-eggDiam'+eggNo);
-  eggDiamRowElem.find('td.value input').val('');
-  eggDiamRowElem.find('td.unit-label').html('cm');
-  eggDiamRowElem.find('td.fieldName').html('egg '+eggNo+' diam.');
-  return eggDiamRowElem;
-}
-
-nestFuncs.updateSubtableIfNeeded = function(subtableElem) {
-  if (nestFuncs.isFull(subtableElem)) {
-    console.log('Subtable is full, updating!');
-    return nestFuncs.makeNewSubtable(subtableElem);
-  }
-  else return subtableElem;
-}
-
-nestFuncs.isFull = function(subtableElem) {
-  // TODO
-  var numRows = subtableElem.find('tr').length;
-  return (numRows >= <%=nFieldsPerSubtable%>);
-}
-
-nestFuncs.makeNewSubtable = function(subtableElem) {
-  var superColumn = subtableElem.closest('div.col');
-  superColumn.addClass("makeNewSubtabled");
-  var superRow = superColumn.closest('div.row');
-  var newEggButton = superRow.find()
-  var newColumn = superColumn.clone(); // bc each subtable has its own bootstrap column
-  newColumn.find('tr').remove(); // empty the cloned table
-  console.log('about to append!');
-  superColumn.after(newColumn);
-  superRow.addClass("makeNewSubtabled");
-  console.log('just appended '+newColumn.toString()+' onto '+superRow.toString());
-  return newColumn.find('table.nest-field-table');
-}
-
-
 $(document).ready(function() {
 
   $('.eggButton').click(function() {
 
     var dataSheetRow = $(this).closest('.row.dataSheet');
-    var dataSheetNum = nestFuncs.extractIntFromString(dataSheetRow.attr('id'));
+    var dataSheetNum = classEditTemplate.extractIntFromString(dataSheetRow.attr('id'));
     var lastTable = dataSheetRow.find('table.nest-field-table').last();
     var lastTableRow = lastTable.find('tr').last();
-    var eggNum = nestFuncs.extractIntFromString(lastTableRow.find('td.fieldName').html()) + 1;
-    var newEggDiamRow = nestFuncs.createEggDiamFromTemplate(lastTableRow, eggNum, dataSheetNum);
-    var newEggWeightRow = nestFuncs.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    var eggNum = classEditTemplate.extractIntFromString(lastTableRow.find('td.fieldName').html()) + 1;
+    var newEggDiamRow = classEditTemplate.createEggDiamFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
 
-    lastTable = nestFuncs.updateSubtableIfNeeded(lastTable);
+    lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
     lastTable.append(newEggDiamRow);
-    lastTable = nestFuncs.updateSubtableIfNeeded(lastTable);
+    lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
     lastTable.append(newEggWeightRow);
 
   })
