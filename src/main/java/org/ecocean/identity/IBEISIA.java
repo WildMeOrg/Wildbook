@@ -1800,6 +1800,20 @@ System.out.println("---------------------------------------------\n needEnc? " +
             if (dt != null) newEnc.setDateInMilliseconds(dt.getMillis());
 System.out.println(" ============ dt millis = " + dt);
 */
+
+						//i guess we try to get a sex from each annot til we get one and go with that?
+						for (Annotation ann : needEnc) {
+          			String sex = null;
+            		try {
+                	sex = iaSexFromAnnotUUID(ann.getId());
+System.out.println("--- annot " + ann + " returned sex=" + sex);
+            		} catch (Exception ex) {}
+								if (sex != null) {
+									newEnc.setSex(sex);
+									break;
+								}
+						}
+
             System.out.println("INFO: assignFromIA() created " + newEnc + " for " + needEnc.size() + " annots");
             encs.add(newEnc);
         }
@@ -1817,11 +1831,6 @@ System.out.println(" ============ dt millis = " + dt);
             encs.get(0).setIndividualID(individualId);
             startE = 1;
             System.out.println("INFO: assignFromIA() created " + indiv);
-            String sex = null;
-            try {
-                sex = iaSexFromAnnotUUID(annUUIDs.get(0)); //we try to get from first annot TODO fix with iaSexFromName ??
-System.out.println("--- sex=" + sex);
-            } catch (Exception ex) {}
 /*
             Double age = null;
             try {
@@ -1840,6 +1849,7 @@ System.out.println("--- sex=" + sex);
             indiv.addEncounter(encs.get(i), "context0");
             encs.get(i).setIndividualID(individualId);
         }
+				indiv.setSexFromEncounters();
         indiv.refreshNumberEncounters();
 
         rtn.put("encounters", encs);
