@@ -155,7 +155,9 @@ public class IndividualAddEncounter extends HttpServlet {
 
               // Specify email template type.
               String emailTemplate = "individualAddEncounter";
+              String emailTemplate2 = "individualUpdate";
 
+              
               // Notify administrator address
               Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
               String mailTo = CommonConfiguration.getAutoEmailAddress(context);
@@ -182,10 +184,12 @@ public class IndividualAddEncounter extends HttpServlet {
       			  // Notify other who need to know
               Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
               cOthers.removeAll(cSubmitters);
+              //System.out.println("cOthers size is: "+cOthers.size());
               for (String emailTo : cOthers) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
+                //System.out.println("Emailing cOthers member:" +emailTo);
+                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
               }
 
               // Notify adopters
