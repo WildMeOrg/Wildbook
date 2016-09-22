@@ -128,6 +128,13 @@
     </class>
 
     <class name="Encounter" identity-type="application" table="ENCOUNTER">
+
+      <field name="dataSheets" persistence-modifier="persistent">
+        <collection element-type="org.ecocean.datacollection.DataSheet"/>
+        <column name="DATASHEETS"/>
+        <join/>
+      </field>
+
       <field name="catalogNumber" primary-key="true">
         <column length="100"/>
       </field>

@@ -119,6 +119,10 @@ public class Encounter implements java.io.Serializable {
   public String lifeStage;
   public String country;
 
+  // iot-innovation
+  private List<DataSheet> dataSheets = new ArrayList<DataSheet>();
+
+
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
   /*
@@ -312,6 +316,78 @@ public class Encounter implements java.io.Serializable {
     return HACKgetRightSpots();
     //return rightSpots;
   }
+
+
+  /**
+   *  DataSheet stuff for IoT business
+   **/
+
+   public void record(DataSheet datasheet) {
+     System.out.println("About to record a datasheet");
+     this.dataSheets.add(datasheet);
+     System.out.println("I just recorded a DataSheet and now I have "+this.dataSheets.size());
+   }
+
+   public void addConfigDataSheet(String context) throws IOException {
+     this.record(DataSheet.fromCommonConfig("nest", context));
+   }
+
+   public void addConfigDataSheet(String context, String subname, Shepherd myShepherd) throws IOException {
+     //DataSheet sheetie = DataSheet.fromCommonConfig("nest", context);
+     DataSheet sheetie = DataSheet.fromCommonConfig(subname, context);
+     sheetie.setName(subname);
+     System.out.println();
+     System.out.println("Just made a named config data sheet, "+sheetie.getName());
+     myShepherd.storeNewDataSheet(sheetie);
+     this.record(sheetie);
+   }
+
+
+
+   public List<DataSheet> getDataSheets() {
+     return dataSheets;
+   }
+
+   public DataSheet getDataSheet(int i) {
+     return dataSheets.get(i);
+   }
+
+   public boolean remove(DataSheet datasheet) {
+     return this.dataSheets.remove(datasheet);
+   }
+
+   public void remove(int i) {
+     this.dataSheets.remove(i);
+   }
+
+   public int countSheets() {
+     return this.dataSheets.size();
+   }
+
+   public int getEggCount(int sheetNo) {
+     DataSheet ds = getDataSheet(sheetNo);
+     DataPoint lastDP = ds.get(ds.size()-1);
+     String lastName = lastDP.getName();
+     System.out.println("   lastName = "+lastName);
+     System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
+     System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
+     boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
+     if (!lastDPAnEgg) return 0;
+     String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
+     System.out.println("   intFromLastName = "+intFromLastName);
+     return (Integer.parseInt(intFromLastName) + 1);
+   }
+
+   public void addNewEgg(int sheetNo) {
+     DataSheet ds = getDataSheet(sheetNo);
+     int eggNo = getEggCount(sheetNo);
+     DataPoint eggDiameter = new Amount("egg "+eggNo+" diam.", (Double) null, "cm");
+     DataPoint eggWeight = new Amount("egg "+eggNo+" weight", (Double) null, "g");
+     ds.add(eggDiameter);
+     ds.add(eggWeight);
+   }
+
+
 
   /**
    * Returns an array of all of the superSpots for this encounter.

@@ -10,12 +10,14 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,org.ecocean.datacollection.MeasurementEvent,
+         org.ecocean.Util,
+         org.ecocean.datacollection.*,
+         org.ecocean.datacollection.MeasurementEvent,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
-         java.util.*,org.ecocean.security.Collaboration" %>
+         java.util.*, org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -119,6 +121,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+  int nFieldsPerSubtable = 8;
 
 
 
@@ -312,8 +316,6 @@ td.measurement{
     	  fsControlDiv.index = 1;
     	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
-
-
         }
 
 
@@ -338,6 +340,15 @@ margin-bottom: 8px !important;
   code { font-size: 2em; }
 
 </style>
+
+
+
+
+
+
+
+
+
 
 
 <!--added below for improved map selection -->
@@ -406,6 +417,11 @@ margin-bottom: 8px !important;
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
 <script src="../javascript/imageTools.js"></script>
+
+
+<link rel="stylesheet" href="../css/classEditTemplate.css" />
+<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
+
 
 
 
@@ -478,6 +494,96 @@ if (request.getParameter("refreshImages") != null) {
 
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
+
+
+  // DataSheet processing
+
+
+  String newMortalitySheet = request.getParameter("newMortalitySheet");
+  String newTaggingSheet = request.getParameter("newTaggingSheet");
+  String newTrackcountsSheet = request.getParameter("newTrackcountsSheet");
+  String saving = request.getParameter("save");
+
+  boolean needToSave = ((saving              != null) ||
+                        (newMortalitySheet   != null) ||
+                        (newTaggingSheet     != null) ||
+                        (newTrackcountsSheet != null));
+
+
+  if (newMortalitySheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Mortality Sheet!");
+    enc.addConfigDataSheet(context, "mortality", myShepherd);
+  }
+
+  if (newTaggingSheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Tagging Sheet!");
+    enc.addConfigDataSheet(context, "tagging", myShepherd);
+  }
+
+
+  if (newTrackcountsSheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Trackcounts Sheet!");
+    enc.addConfigDataSheet(context, "trackcounts", myShepherd);
+  }
+
+  if (needToSave) {
+    System.out.println("");
+    System.out.println("ENCOUNTER.JSP: Saving updated info...");
+    Enumeration en = request.getParameterNames();
+
+
+    while (en.hasMoreElements()) {
+      String pname = (String) en.nextElement();
+      String value = request.getParameter(pname);
+      System.out.println("parsing parameter "+pname);
+      if (pname.indexOf("enc:") == 0) {
+        String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
+        String getterName = "get" + methodName.substring(3);
+        System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+enc+", "+methodName+", "+value+");");
+        ClassEditTemplate.updateObjectField(enc, methodName, value);
+      }
+      else if (pname.indexOf("enc-dp-new:") == 0) {
+        String afterColon = pname.split(":")[1];
+        String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
+        int dataSheetNum = Integer.parseInt(dataSheetNumStr);
+
+        // Create a new datapoint and add it to the appropriate sheet
+        // populate that datapoint's value with "value"
+        //Amount newEggDP = new Amount
+
+        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
+        //enc.addNewEgg(dataSheetNum);
+      }
+      else if (pname.indexOf("enc-dp-") == 0) {
+        // looks like nes-dp-dsNUM: _____. now to parse the NUM
+        String beforeColon = pname.split(":")[0];
+        String dpID = beforeColon.substring(7);
+        System.out.println("  looks like a change was detected on DataPoint "+dpID);
+        DataPoint dp = myShepherd.getDataPoint(dpID);
+        System.out.println("  now I have dp and its labeled string = "+dp.toLabeledString());
+        System.out.println("  its old value = "+dp.getValueString());
+        System.out.println("checkone");
+        dp.setValueFromString(value);
+        System.out.println("checktwo");
+        System.out.println("  its new value = "+dp.getValueString());
+      }
+      else if (pname.indexOf("dat-") == 0) {
+        String beforeColon = pname.split(":")[0];
+        String dpID = beforeColon.substring(4);
+        System.out.println("  Found a change on datasheet "+dpID);
+      }
+    }
+    myShepherd.commitDBTransaction();
+    System.out.println("ENCOUNTER.JSP: Transaction committed");
+    System.out.println("");
+  }
+
+
+
+
+
+
+
     			%>
 
 <script type="text/javascript">
@@ -619,14 +725,91 @@ $(function() {
 	<!-- main display area -->
 
 	<div class="container">
-
+    <form method="post" action="encounter.jsp?number=<%=request.getParameter("number")%>" id="classEditTemplateForm">
     <div class="row datasheets">
-      <div class="col-sm-12">
-        <h2>
-          <%=encprops.getProperty("datasheets") %>
-        </h2>
+        <div class="col-sm-12">
+          <h2>
+            <%=encprops.getProperty("datasheets") %>
+          </h2>
+
+            <input type="submit" name="newMortalitySheet" value="Add New Mortality Field Sheet" />
+            <input type="submit" name="newTaggingSheet" value="Add New Tagging Field Sheet" />
+            <input type="submit" name="newTrackcountsSheet" value="Add New Trackcounts Field Sheet" />
+
+        </div>
       </div>
-    </div>
+      <%
+      for (int i=0; i < enc.getDataSheets().size(); i++) {
+        %> <div class="row dataSheet" id="<%=i%>"> <%
+        %> <div class="col-xs-12"> <%
+        //DataSheet dSheet = enc.getDataSheet(enc.getDataSheets().size()-(i+1)); //reverses order
+        DataSheet dSheet = enc.getDataSheet(i);
+        int numEggs = enc.getEggCount(i);
+        System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
+        if (numEggs==0) {
+          enc.addNewEgg(i);
+        }
+        %>
+          <h3>Data Sheet <%=i+1%></h2>
+
+          <%
+          if (dSheet.getName()!=null && !dSheet.getName().equals(""))
+          {
+            %>
+            <h4><%=dSheet.getName()%></h4>
+            <%
+          }
+          %>
+          <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+
+
+          <table class="nest-field-table edit-table" style="float: left">
+          <%
+          //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
+          %>
+          </table>
+        </div>
+        <%
+
+
+        int nFields = dSheet.size();
+        int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
+        int dataPointN = 0;
+
+        for (int tableN=0; tableN < nSubtables; tableN++) {
+
+        %><div class="col col-md-4 nest-table">
+        <table class="nest-field-table edit-table" style="float: left"><%
+          for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
+            DataPoint dp = dSheet.getData().get(dataPointN);
+            ClassEditTemplate.printOutClassFieldModifierRow((Object) enc, dp, out);
+          }
+        %></table></div><%
+      }
+      %>
+      <div class="col-md-4">
+        <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
+      </div>
+
+
+      </div>
+
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="submit" style="position:relative">
+            <input type="submit" name="save" value="Save" />
+            <span class="note" style="position:absolute;bottom:9"></span>
+          </div>
+        </div>
+      </div>
+
+       <%
+
+      }
+      %>
+
+    </form>
+
 
 
 						<div class="row">
