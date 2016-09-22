@@ -33,7 +33,8 @@ public class Count extends DataPoint {
   }
 
   public void setValueFromString(String str) {
-    setValue(Integer.valueOf(str));
+    if (str==null) setValue(null);
+    else setValue(Integer.valueOf(str));
   }
 
   public String getValueString() {

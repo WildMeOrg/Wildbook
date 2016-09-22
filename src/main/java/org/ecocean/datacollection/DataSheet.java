@@ -111,10 +111,10 @@ public class DataSheet extends DataCollectionEvent {
     }
   }
 
-  public void countPoints(String namePrefix) {
+  public int countPoints(String namePrefix) {
     int count = 0;
     for (DataPoint dp: data) {
-      if (data.getName().indexOf(namePrefix)==0) count++;
+      if (dp.getName().indexOf(namePrefix)==0) count++;
     }
     return count;
   }

@@ -33,7 +33,8 @@ public class Check extends DataPoint {
   }
 
   public void setValueFromString(String str) {
-    setValue(Boolean.valueOf(str));
+    if (str==null) setValue(null);
+    else setValue(Boolean.valueOf(str));
   }
 
   public String getValueString() {

@@ -36,7 +36,8 @@ public class Amount extends DataPoint {
   }
 
   public void setValueFromString(String str) {
-    setValue(Double.valueOf(str));
+    if (str==null) setValue(null);
+    else setValue(Double.valueOf(str));
   }
 
 

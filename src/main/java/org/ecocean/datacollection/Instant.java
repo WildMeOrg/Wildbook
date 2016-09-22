@@ -37,6 +37,8 @@ public class Instant extends DataPoint {
   //   milliseconds-since-epoch
   public void setValueFromString(String str) {
     System.out.println("Beginning Instant.setValueFromString("+str+")");
+    if (str==null) setValue(null);
+    else {
     try {
       DateTime dt = new DateTime(new Long(str));
       System.out.println("  parsed DateTime = "+dt+"");
@@ -44,6 +46,7 @@ public class Instant extends DataPoint {
       System.out.println("  this.value = "+this.value);
     } catch (Exception e) {
       System.out.println("Pokecatch! Unable to parse the datetime!");
+    }
     }
   }
 

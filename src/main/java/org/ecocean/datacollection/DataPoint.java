@@ -21,8 +21,10 @@ public abstract class DataPoint implements java.io.Serializable {
   public abstract String toString();
   public abstract String toLabeledString(); // this makes it easy to check what type of DataPoint a given datapoint is
 
-  public datapoint
-
+  public DataPoint blankCopy() {
+    DataPoint dp = this.Clone();
+    dp.SetValueFromString(null);
+  }
 
   public String getName(){
     return name;
@@ -52,6 +54,14 @@ public abstract class DataPoint implements java.io.Serializable {
 
   public void setUnits(String units) {
     this.units = units;
+  }
+
+  public Integer getCountNo() {
+    return countNo;
+  }
+
+  public void setCountNo(Integer countNo) {
+    this.countNo = countNo;
   }
 
   public boolean isCategorical(String context) {
