@@ -1713,6 +1713,7 @@ System.out.println(" --------------------------_______________________________ "
                 } else {
                     occ.addEncounter(enc);
                 }
+								enc.setOccurrenceID(setId);
             }
         }
         if (je.length() > 0) rtn.put("encounters", je);
