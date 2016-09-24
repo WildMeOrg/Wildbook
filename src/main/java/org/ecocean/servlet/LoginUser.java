@@ -156,7 +156,7 @@ import org.ecocean.*;
 		    }
 		    
 		    myShepherd.commitDBTransaction();
-        myShepherd.closeDBTransaction();
+        //myShepherd.closeDBTransaction();
         
         if(redirectUser){url=CommonConfiguration.getProperty("userAgreementURL",context);}
         
