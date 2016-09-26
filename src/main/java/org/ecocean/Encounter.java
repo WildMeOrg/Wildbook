@@ -2524,7 +2524,7 @@ thus, we have to treat it as a special case.
                 myShepherd.setAction("Encounter.class.getThumbnailUrl");
                 myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
-                if ((kids == null) || (kids.size() < 0)) {
+                if ((kids == null) || (kids.size() <= 0)) {
                   myShepherd.rollbackDBTransaction();
                   myShepherd.closeDBTransaction();
                   return null;
