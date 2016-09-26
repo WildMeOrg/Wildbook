@@ -53,6 +53,7 @@ public class EncounterSearchExportKML extends HttpServlet{
     if(request.getParameter("barebones")!=null){bareBonesPlacemarks=true;}
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportKML.class");
     Vector rEncounters = new Vector();
     
     //set up the files

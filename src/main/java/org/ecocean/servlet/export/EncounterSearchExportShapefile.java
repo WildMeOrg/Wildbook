@@ -65,6 +65,7 @@ public class EncounterSearchExportShapefile extends HttpServlet{
     //if(!encountersDir.exists()){encountersDir.mkdirs();}
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportShapefile.class");
     Vector rEncounters = new Vector();
     
     //set up the files
