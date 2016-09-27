@@ -2385,7 +2385,7 @@ else {
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
 									<p class="para">
-										 <%=encprops.getProperty("workflowState") %><span id="displayWork"><%=state %></span>
+										 <%=encprops.getProperty("workflowState") %> <span id="displayWork"><%=state %></span>
 
 										<%
 										%>
