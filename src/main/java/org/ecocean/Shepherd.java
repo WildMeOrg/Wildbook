@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -1865,7 +1866,8 @@ public class Shepherd {
       MediaAsset ma=al.get(i).getMediaAsset();
       AssetStore as=ma.getStore();
       String fullFileSystemPath=as.localPath(ma).toString();
-      String webURL=ma.webURLString();
+      URL u = ma.safeURL(this);
+      String webURL = ((u == null) ? null : u.toString());
       int lastIndex=webURL.lastIndexOf("/")+1;
       String filename=webURL.substring(lastIndex);
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);

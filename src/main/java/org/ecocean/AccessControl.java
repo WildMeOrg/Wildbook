@@ -47,6 +47,7 @@ public class AccessControl implements java.io.Serializable {
 
     //null when not logged in
     public static String simpleUserString(final HttpServletRequest request) {
+        if (request == null) return null;
         return ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
 }

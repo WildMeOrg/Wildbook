@@ -40,6 +40,7 @@ public class EncounterSearchExportExcelFile extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSearchExportExcelFile.class");
     
 
     

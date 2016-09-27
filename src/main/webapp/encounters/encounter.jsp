@@ -2385,7 +2385,7 @@ else {
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
 									<p class="para">
-										 <%=encprops.getProperty("workflowState") %><span id="displayWork"><%=state %></span>
+										 <%=encprops.getProperty("workflowState") %> <span id="displayWork"><%=state %></span>
 
 										<%
 										%>
@@ -3308,14 +3308,67 @@ else {
     <c:if test="${showReleaseDate}">
       <br /><em><%=encprops.getProperty("releaseDate") %></em>: <span id="displayReleaseDate"></span>
         <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
-        <c:if test="${editable}">
-
-        </c:if>
       </p>
     </c:if>
     <br>
-    <span class="editTextDate"><em><%=encprops.getProperty("releaseDate") %></em>: <span id="displayReleaseDate"></span></span>
+        <!-- start date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#addResetDate").click(function(event) {
+          event.preventDefault();
 
+          $("#addResetDate").hide();
+
+          var number = $("#resetDateNumber").val();
+          var datepicker = $("#datepickerField").val();
+
+          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
+          function() {
+            $("#resetDateErrorDiv").hide();
+            $("#resetDateDiv").addClass("has-success");
+            $("#resetDateCheck").show();
+            $("#displayDate").html(datepicker);
+          })
+          .fail(function(response) {
+            $("#resetDateDiv").addClass("has-error");
+            $("#resetDateError, #resetDateErrorDiv").show();
+            $("#resetDateErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#datepickerField").click(function() {
+          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
+          $("#resetDateDiv").removeClass("has-success");
+          $("#resetDateDiv").removeClass("has-error");
+          $("#addResetDate").show();
+        });
+      });
+    </script>
+    <div>
+    <div class="highlight resultMessageDiv" id="resetDateErrorDiv"></div>
+
+      <p class="editTextDate"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
+      <form name="setencdate" class="editFormDate">
+        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
+        <input name="action" type="hidden" value="changeEncounterDate"/>
+        <div id="datepicker" class="editFormDate"></div>
+        <div class="form-group row editFormDate">
+          <div class="col-sm-5">
+            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5" id="resetDateDiv">
+            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
+            <span class="form-control-feedback" id="resetDateError">X</span>
+          </div>
+          <div class="col-sm-2">
+            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
+          </div>
+        </div>
+      </form>
+    </div>
+   
 
     <!-- start releaseDate -->
     <script type="text/javascript">
@@ -3350,7 +3403,7 @@ else {
         });
       });
     </script>
-
+	<c:if test="${showReleaseDate}">
     <div>
       <div class="highlight resultMessageDiv" id="releaseErrorDiv"></div>
 
@@ -3375,6 +3428,7 @@ else {
       </form>
 
     </div>
+    </c:if>
     <!-- end releaseDate -->
 
     <br>
@@ -3435,63 +3489,7 @@ else {
     </div>
 
 
-    <!-- start date -->
-    <script type="text/javascript">
-      $(document).ready(function() {
-        $("#addResetDate").click(function(event) {
-          event.preventDefault();
 
-          $("#addResetDate").hide();
-
-          var number = $("#resetDateNumber").val();
-          var datepicker = $("#datepickerField").val();
-
-          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
-          function() {
-            $("#resetDateErrorDiv").hide();
-            $("#resetDateDiv").addClass("has-success");
-            $("#resetDateCheck").show();
-            $("#displayDate").html(datepicker);
-          })
-          .fail(function(response) {
-            $("#resetDateDiv").addClass("has-error");
-            $("#resetDateError, #resetDateErrorDiv").show();
-            $("#resetDateErrorDiv").html(response.responseText);
-          });
-        });
-
-        $("#datepickerField").click(function() {
-          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
-          $("#resetDateDiv").removeClass("has-success");
-          $("#resetDateDiv").removeClass("has-error");
-          $("#addResetDate").show();
-        });
-      });
-    </script>
-    <div>
-    <div class="highlight resultMessageDiv" id="resetDateErrorDiv"></div>
-
-      <p class="editTextDate"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
-      <form name="setencdate" class="editFormDate">
-        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
-        <input name="action" type="hidden" value="changeEncounterDate"/>
-        <div id="datepicker" class="editFormDate"></div>
-        <div class="form-group row editFormDate">
-          <div class="col-sm-5">
-            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
-            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
-          </div>
-          <div class="col-sm-5" id="resetDateDiv">
-            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
-            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
-            <span class="form-control-feedback" id="resetDateError">X</span>
-          </div>
-          <div class="col-sm-2">
-            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
-          </div>
-        </div>
-      </form>
-    </div>
     </td>
     </tr>
     </table>

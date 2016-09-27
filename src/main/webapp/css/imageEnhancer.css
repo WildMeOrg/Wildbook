@@ -93,7 +93,8 @@
     background-color: rgba(255,255,255,0.6);
     font-size: 0.8em;
     position: relative;
-    height: 2.0em;
+    /*height: 2.0em;*/
+	width: 150px;
 }
 .image-enhancer-keyword-wrapper:hover .image-enhancer-keyword {
     background-color: #FFF;
