@@ -317,6 +317,9 @@
 					/AdoptionAction = authc,roles[admin]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
+					
+					/ResurrectDeletedEncounter = authc,roles[admin]
+					/ResurrectDeletedAdoption = = authc,roles[admin]
 
 
             </param-value>
