@@ -76,6 +76,7 @@ public class GetIndividualSearchGoogleMapsPoints extends HttpServlet {
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GetIndividualSearchGoogleMapsPoints.class");
 
   Random ran= new Random();
 
