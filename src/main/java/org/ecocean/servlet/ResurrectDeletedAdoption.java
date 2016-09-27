@@ -137,6 +137,7 @@ public class ResurrectDeletedAdoption extends HttpServlet {
       out.println(ServletUtilities.getFooter(context));
 
     }
+    myShepherd.closeDBTransaction();
     out.close();
   }
 
