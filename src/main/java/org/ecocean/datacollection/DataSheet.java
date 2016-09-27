@@ -83,7 +83,8 @@ public class DataSheet extends DataCollectionEvent {
           System.out.println("           its possible values are "+StringUtils.join(dp.getCategoriesAsStrings(context), ", "));
         }
         if (dp.isSequential(context)) {
-          System.out.println("It's sequential, all right!");
+          System.out.println("SEQUENCE: It's sequential, all right!");
+          dp.setNumber(0);
         }
       }
     }

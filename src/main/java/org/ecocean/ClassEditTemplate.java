@@ -134,6 +134,7 @@ public class ClassEditTemplate {
 
   public static String inputElemName(DataPoint dp, String classNamePrefix) {
     String fieldName = dp.getName();
+    if (dp.getNumber()!=null) fieldName += (dp.getNumber() + 1).toString();
     return constructInputElemName(classNamePrefix+"-dp-"+dp.getID(), fieldName);
   }
 
