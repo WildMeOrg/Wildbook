@@ -294,7 +294,7 @@ public abstract class AssetStore implements java.io.Serializable {
         }
         File sourceFile = parent.localPath().toFile();
         File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
-        boolean allowed = _updateChildLocalWork(type, opts, sourceFile, targetFile);  //does the heavy lifting
+        boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile);  //does the heavy lifting
         if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
         JSONObject sp = this.createParameters(targetFile);
         MediaAsset ma = this.copyIn(targetFile, sp);
@@ -312,7 +312,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
 
     //a helper/utility app for the above (if applicable) that works on localfiles (since many flavors will want that)
-    protected boolean _updateChildLocalWork(String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
+    protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
         if (!this.writable) return false; //should we silently fail or throw exception??
         if (!sourceFile.exists()) throw new IOException("updateChild() " + sourceFile.toString() + " does not exist");
 
@@ -325,6 +325,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
         switch (type) {
             case "master":
+                action = "maintainAspectRatio";
                 width = 4096;
                 height = 3072;
                 break;
@@ -390,9 +391,9 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
 
         ImageProcessor iproc = null;
         if (needsTransform) {
-            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray);
+            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray, parentMA);
         } else {
-            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args);
+            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args, parentMA);
         }
 
         Thread t = new Thread(iproc);

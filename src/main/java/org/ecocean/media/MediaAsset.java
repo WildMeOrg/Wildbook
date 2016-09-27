@@ -353,7 +353,7 @@ public class MediaAsset implements java.io.Serializable {
     public String setHashCode() {
         if (store == null) return null;
         this.hashCode = store.hashCode(getParameters());
-System.out.println("hashCode on " + this + " = " + this.hashCode);
+//System.out.println("hashCode on " + this + " = " + this.hashCode);
         return this.hashCode;
     }
 
