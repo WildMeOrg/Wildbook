@@ -153,7 +153,7 @@
 		/individualSearch.jsp = roles[researcher]
 		/GenePopExport = authc, roles[researcher]
 		/individualSearch.jsp = authc, roles[researcher]
-		/individualSearchResults.jsp = anon
+		/individualSearchResults.jsp = authc
 		/individualSearchResultsExport.jsp = authc, roles[researcher]
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
 		/individualMappedSearchResults.jsp = authc
@@ -161,14 +161,12 @@
 	
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
-		 /encounters/searchResults.jsp = anon
+		 /encounters/searchResults.jsp = authc
 		 /encounters/searchResultsAnalysis.jsp = authc, roles[researcher]
 		 /encounters/mappedSearchResults.jsp = authc
 		 /encounters/mappedSearchResultsSex.jsp = authc
 		 /encounters/mappedSearchResultsHaplotype.jsp = authc
 		 /encounters/exportSearchResults.jsp = authc, roles[researcher]
-		 /googleSearch.jsp = authc, roles[researcher]
-		 /googleSearchResults.jsp = authc, roles[researcher]
 		 /encounters/imageViewer.jsp = authc, roles[researcher]
 		 /encounters/searchComparison.jsp = authc, roles[researcher]
       		/encounters/searchComparisonResults.jsp = authc, roles[researcher]
@@ -244,6 +242,9 @@
 					/AdoptionAction = authc,roles[admin]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
+					
+					/ResurrectDeletedEncounter = authc,roles[admin]
+					/ResurrectDeletedAdoption = = authc,roles[admin]
 
 
             </param-value>
@@ -767,6 +768,11 @@
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
   </servlet>
+  
+      <servlet-mapping>
+    <servlet-name>SiteSearch</servlet-name>
+    <url-pattern>/SiteSearch</url-pattern>
+  </servlet-mapping>
 
       <servlet>
     <servlet-name>RelationshipDelete</servlet-name>

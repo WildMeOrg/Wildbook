@@ -37,6 +37,7 @@ public class GenalexExportCodominantMSDataBySize extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GenalexExportCodominantMSDataBySize.class");
     
     //in case we're doing haplotype export
     List<String> haplos=myShepherd.getAllHaplotypes();

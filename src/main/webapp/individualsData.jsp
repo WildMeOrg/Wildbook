@@ -182,5 +182,9 @@ System.out.println(henc);
 	}
 } catch(Exception e){
 }
+  finally{
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+  }
 
 %>

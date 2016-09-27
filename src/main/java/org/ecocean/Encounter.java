@@ -2508,9 +2508,17 @@ thus, we have to treat it as a special case.
                 myShepherd.setAction("Encounter.class.getThumbnailUrl");
                 myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
-                if ((kids == null) || (kids.size() < 0)) return null;
+                if ((kids == null) || (kids.size() <= 0)) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
                 ma = kids.get(0);
-                if (ma.webURL() == null) return null;
+                if (ma.webURL() == null) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
                 url = ma.webURL().toString();
                 myShepherd.rollbackDBTransaction();
                 myShepherd.closeDBTransaction();
