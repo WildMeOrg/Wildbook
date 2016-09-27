@@ -105,10 +105,11 @@ java.util.Properties" %>
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul>";
-		h += "<img src=\"" + ma.webURL() + "\" />";
+		h += "<img style=\"z-index: -1\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" />";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
+		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
@@ -161,6 +162,7 @@ if (type.equals("Encounter")) {
 } else if (type.equals("MediaAsset")) {
 	try {
 		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
+		out.println("<p>safeURL(<i>request</i>): <b>" + ma.safeURL(request) + "</b></p>");
 		out.println(showMediaAsset(ma));
 	} catch (Exception ex) {
 		out.println("<p>ERROR: " + ex.toString() + "</p>");
