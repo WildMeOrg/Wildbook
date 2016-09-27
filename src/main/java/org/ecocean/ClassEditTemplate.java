@@ -134,7 +134,7 @@ public class ClassEditTemplate {
 
   public static String inputElemName(DataPoint dp, String classNamePrefix) {
     String fieldName = dp.getName();
-    if (dp.getNumber()!=null) fieldName += (dp.getNumber() + 1).toString();
+    if (dp.getNumber()!=null) fieldName = fieldName + (dp.getNumber() + 1);
     return constructInputElemName(classNamePrefix+"-dp-"+dp.getID(), fieldName);
   }
 
@@ -204,13 +204,15 @@ public class ClassEditTemplate {
     String fieldName = splitCamelCase(dp.getName());
     String inputName = inputElemName(dp, classNamePrefix);
 
+    boolean isSequential = dp.getCount()!=null;
+
     if (dp.isCategorical(context)) {
-      printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out);
+      printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out, isSequential);
       //printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
     } else if (dp.getClass().getSimpleName().equals("Instant")) {
-      printOutDateTimeModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+      printOutDateTimeModifierRow(fieldName, printValue, dp.getUnits(), inputName, out, isSequential);
     } else {
-      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
+      printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out, isSequential);
     }
   }
 
@@ -227,14 +229,14 @@ public class ClassEditTemplate {
     String fieldName = prettyFieldNameFromGetMethod(getMethod);
     String inputName = inputElemName(getMethod, classNamePrefix);
 
-    printOutClassFieldModifierRow(fieldName, printValue, (String) null, inputName, out);
+    printOutClassFieldModifierRow(fieldName, printValue, (String) null, inputName, out, false);
 
   }
 
 
   // custom method to replicate a very specific table row format on this page
-  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    printFieldRowStart(printValue, out);
+  public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out, isSequential);
 
     printFieldLabelCell(fieldName, out);
     printInputCell(inputName, printValue, out);
@@ -245,8 +247,8 @@ public class ClassEditTemplate {
   }
 
   // custom method to replicate a very specific table row format on this page
-  public static void printOutDateTimeModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    printFieldRowStart(printValue, out);
+  public static void printOutDateTimeModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out, isSequential);
 
     printFieldLabelCell(fieldName, out);
     printDateTimeCell(inputName, printValue, out);
@@ -256,8 +258,8 @@ public class ClassEditTemplate {
     out.println("\n</tr>");
   }
 
-  public static void printOutClassFieldSelectorRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
-    printFieldRowStart(printValue, out);
+  public static void printOutClassFieldSelectorRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
+    printFieldRowStart(printValue, out, isSequential);
 
     printFieldLabelCell(fieldName, out);
     printSelectCell(inputName, printValue, possibleValues, out);
@@ -351,8 +353,13 @@ public class ClassEditTemplate {
     }
   }
 
-  public static void printFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
+  public static void printFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException {
+    if (isSequential) {
+      System.out.println("SEQUENTIAL BABY!");
+      out.println("<tr class=\"sequential\" data-original-value=\""+dataOriginalValue+"\">");
+    } else {
+      out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
+    }
   }
 
 

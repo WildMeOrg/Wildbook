@@ -76,7 +76,7 @@ public class DataSheet extends DataCollectionEvent {
         dp = new Check(dpName, (Boolean) null, dpUnit);
       }
       if (dp!=null) {
-        //dp.setNumber(i);
+        dp.setNumber(i);
         data.add(dp);
         if (dp.isCategorical(context)) {
           System.out.println("DataPoint "+dp.getName()+" is categorical!");
@@ -84,7 +84,7 @@ public class DataSheet extends DataCollectionEvent {
         }
         if (dp.isSequential(context)) {
           System.out.println("SEQUENCE: It's sequential, all right!");
-          dp.setNumber(0);
+          dp.setCount(0);
         }
       }
     }
@@ -95,7 +95,7 @@ public class DataSheet extends DataCollectionEvent {
   private static boolean classIsInConfigClassList(String className, String classList) {
     List<String> classNames = Arrays.asList(classList.split(","));
     boolean ans = classNames.contains(className);
-    System.out.println("  "+classList+".conclassIsInConfigClassList("+className+", "+classList+") = "+ans);    return ans;
+    return ans;
   }
 
   public int size() {

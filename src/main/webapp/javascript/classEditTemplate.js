@@ -31,6 +31,13 @@ classEditTemplate.extractDateTimeFromVal = function(valString) {
 
 }
 
+classEditTemplate.makeCamelCase = function(str) {
+  // copied from http://stackoverflow.com/questions/2970525/converting-any-string-into-camel-case
+  return str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(letter, index) {
+    return index == 0 ? letter.toLowerCase() : letter.toUpperCase();
+  }).replace(/\s+/g, '');
+}
+
 classEditTemplate.updateMillisFromDisplayDateTime = function(displayElem) {
 }
 
@@ -62,6 +69,32 @@ classEditTemplate.createEggWeightFromTemplate = function(eggRowTemplateElem, egg
   return eggWeightRowElem;
 }
 
+classEditTemplate.createNumberedRowFromTemplate = function(templateElem, num, dataSheetNum) {
+  var newRow = templateElem.clone();
+  var newName = classEditTemplate.extractNameFromNumberedRow(templateElem) + ' '+ num;
+  var camelCased = classEditTemplate.makeCamelCase(newName);
+
+  var oldName = classEditTemplate.withoutOldValue(templateElem.find('td.value input').attr('name'));
+  var classNamePrefix = oldName.substring(0,3);
+  var dsNumPrefix = oldName.substring(0,oldName.indexOf(':ds'));
+
+  newRow.find('td.value input').attr('name', dsNumPrefix+dataSheetNum+'-'+camelCased);
+  newRow.find('td.value input').val('');
+  newRow.find('td.fieldName').html(classEditTemplate.camelToLowerCase(camelCased).trim());
+  return newRow;
+}
+
+classEditTemplate.extractNameFromNumberedRow = function(templateElem) {
+  var nameWithNumber = templateElem.find('td.fieldName').html();
+  var withNoDigits = nameWithNumber.replace(/[0-9]/g, '').trim();
+  return withNoDigits;
+}
+
+classEditTemplate.camelToLowerCase = function(str) {
+  return (str.replace(/([A-Z])/g, ' $1').trim().toLowerCase());
+
+}
+
 classEditTemplate.createEggWeightFromTemplate2 = function(eggRowTemplateElem, eggNo, dataSheetNum) {
   return classEditTemplate.modifiedCopyRowEl(
     eggRowTemplateElem.clone(),
@@ -89,6 +122,11 @@ classEditTemplate.modifiedCopyRowEl = function(rowEl, name, value, units, fieldN
   var copyEl = rowEl.clone();
   classEditTemplate.modifyRowElem(copyEl, name, value, units, fieldName);
   return copyEl;
+}
+
+classEditTemplate.withoutOldValue = function(str) {
+  if (str.indexOf('oldValue-')>=0) return (str.substring(str.indexOf('oldValue')+9));
+  return str;
 }
 
 classEditTemplate.modifyRowElem = function(rowEl, name, value, units, fieldName) {

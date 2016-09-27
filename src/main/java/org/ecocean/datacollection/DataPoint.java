@@ -10,7 +10,7 @@ public abstract class DataPoint implements java.io.Serializable {
   private String units; // e.g. "cm"
 
   private Integer number; // Serves as reference if parsed from the datapoint fields in commonConfiguration.properties
-  private Integer countNo; // not-null only for sequential datapoints (e.g. egg weight 1, egg weight 2, egg weight 3)
+  private Integer count; // not-null only for sequential datapoints (e.g. egg weight 1, egg weight 2, egg weight 3)
 
   public DataPoint() {
   }
@@ -74,6 +74,7 @@ public abstract class DataPoint implements java.io.Serializable {
   public boolean isSequential(String context) {
     String lookupName = "datapoint"+number+"Sequental";
     String val = CommonConfiguration.getProperty(lookupName, context);
+    System.out.println("datapoint")
     return (number != null && val != null);
   }
 

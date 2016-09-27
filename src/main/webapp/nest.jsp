@@ -108,10 +108,12 @@
         System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+nestie+", "+methodName+", "+value+");");
         ClassEditTemplate.updateObjectField(nestie, methodName, value);
       }
-      else if (pname.indexOf("nes-dp-new:") == 0) {
+      else if (pname.indexOf("dp-new:") >= 0) {
         String afterColon = pname.split(":")[1];
         String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
         int dataSheetNum = Integer.parseInt(dataSheetNumStr);
+
+        System.out.println("  NEW DATAPOINT pname: "+pname+" value: "+value);
 
         // Create a new datapoint and add it to the appropriate sheet
         // populate that datapoint's value with "value"
@@ -275,7 +277,8 @@ $(document).ready(function() {
     var lastTableRow = lastTable.find('tr').last();
     var eggNum = classEditTemplate.extractIntFromString(lastTableRow.find('td.fieldName').html()) + 1;
     var newEggDiamRow = classEditTemplate.createEggDiamFromTemplate(lastTableRow, eggNum, dataSheetNum);
-    var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    //var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(lastTableRow, eggNum, dataSheetNum);
 
     lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
     lastTable.append(newEggDiamRow);
