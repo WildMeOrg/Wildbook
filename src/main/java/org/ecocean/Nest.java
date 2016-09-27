@@ -140,9 +140,14 @@ public class Nest implements java.io.Serializable {
     System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
     System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
     boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
-    if (!lastDPAnEgg) return 0;
     String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
     System.out.println("   intFromLastName = "+intFromLastName);
+
+    if (!lastDPAnEgg) return 0;
+    int ans = Integer.parseInt(intFromLastName);
+    int otherAttempt = getDataSheet(sheetNo).getLastNumber("egg");
+    System.out.println("first answer = "+ans+" and second answer = "+otherAttempt);
+
     return (Integer.parseInt(intFromLastName) + 1);
   }
 

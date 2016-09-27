@@ -1,6 +1,7 @@
 package org.ecocean.datacollection;
 
 import java.util.List;
+import java.util.ListIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.IOException;
@@ -75,7 +76,7 @@ public class DataSheet extends DataCollectionEvent {
         dp = new Check(dpName, (Boolean) null, dpUnit);
       }
       if (dp!=null) {
-        dp.setNumber(i);
+        //dp.setNumber(i);
         data.add(dp);
         if (dp.isCategorical(context)) {
           System.out.println("DataPoint "+dp.getName()+" is categorical!");
@@ -153,6 +154,33 @@ public class DataSheet extends DataCollectionEvent {
     }
     return("DataSheet "+id+": ["+StringUtils.join(labeledNames, ", ")+ "]");
   }
+
+  public int getLastNumber(String dataName) {
+
+    for (ListIterator revData = data.listIterator(data.size()); revData.hasPrevious();) {
+      DataPoint dp = (DataPoint) revData.previous();
+
+      int nameIndex = dp.getName().toLowerCase().indexOf(dataName.toLowerCase());
+      if (nameIndex>=0) return nameIndex;
+
+    }
+
+    return -1;
+
+
+    /*
+    DataPoint lastDP = this.get(this.size()-1);
+    String lastName = lastDP.getName();
+    System.out.println("   lastName = "+lastName);
+    System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
+    System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
+    boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
+    if (!lastDPAnEgg) return 0;
+    String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
+    System.out.println("   intFromLastName = "+intFromLastName);
+    return (Integer.parseInt(intFromLastName) + 1);*/
+  }
+
 
 
 }

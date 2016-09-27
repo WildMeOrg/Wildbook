@@ -21,9 +21,10 @@ public abstract class DataPoint implements java.io.Serializable {
   public abstract String toString();
   public abstract String toLabeledString(); // this makes it easy to check what type of DataPoint a given datapoint is
 
-  public DataPoint blankCopy() {
-    DataPoint dp = this.Clone();
-    dp.SetValueFromString(null);
+  public DataPoint blankCopy() throws java.lang.CloneNotSupportedException {
+    DataPoint dp = (DataPoint) this.clone();
+    dp.setValueFromString(null);
+    return dp;
   }
 
   public String getName(){
