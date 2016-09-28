@@ -206,6 +206,8 @@ public class ClassEditTemplate {
 
     boolean isSequential = (dp.isSequential());
 
+    boolean isTemplate
+
     if (dp.isCategorical(context)) {
       printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out, isSequential);
       //printOutClassFieldModifierRow(fieldName, printValue, dp.getUnits(), inputName, out);
@@ -245,6 +247,18 @@ public class ClassEditTemplate {
 
     out.println("\n</tr>");
   }
+
+  public static void printOutSequentialClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isTemplate) throws IOException, IllegalAccessException, InvocationTargetException {
+    printSequentialFieldRowStart(printValue, out, isTemplate);
+
+    printFieldLabelCell(fieldName, out);
+    printInputCell(inputName, printValue, out);
+    printUnitsCell(units, out);
+    printUndoCell(out);
+
+    out.println("\n</tr>");
+  }
+
 
   // custom method to replicate a very specific table row format on this page
   public static void printOutDateTimeModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
@@ -360,6 +374,15 @@ public class ClassEditTemplate {
       out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
     }
   }
+
+  public static void printSequentialFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out, boolean isTemplate) throws IOException {
+    if (isTemplate) {
+      out.println("<tr class=\"sequential template\" data-original-value=\""+dataOriginalValue+"\">");
+    } else {
+      out.println("<tr class=\"sequential\" data-original-value=\""+dataOriginalValue+"\">");
+    }
+  }
+
 
 
 

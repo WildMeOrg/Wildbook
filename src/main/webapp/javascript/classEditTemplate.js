@@ -70,12 +70,48 @@ classEditTemplate.createEggWeightFromTemplate = function(eggRowTemplateElem, egg
   return eggWeightRowElem;
 }
 
-classEditTemplate.createNumberedRowFromTemplate = function(templateElem, num, dataSheetNum) {
-  var newRow = templateElem.clone();
-  var newFieldName = classEditTemplate.extractNameFromNumberedRow(templateElem) + ' '+ num;
-  var camelCased = classEditTemplate.makeCamelCase(newFieldName);
+classEditTemplate.findOldNameFromTdValue = function(tdValueElem) {
+  console.log('findOldNameFromTdValue');
+  console.log(tdValueElem[0]);
 
-  var oldName = classEditTemplate.withoutOldValue(templateElem.find('td.value input').attr('name'));
+
+
+  if (tdValueElem.children('select').length>0) {
+    console.log('   select result!');
+    return tdValueElem.find('select').attr('name');
+  } else if (tdValueElem.children('input').length>0) {
+    console.log('   input result!');
+    console.log(tdValueElem.find('input')[0])
+    return tdValueElem.find('input').attr('name');
+  }
+  console.log('   negative result!');
+  console.log(tdValueElem.find('input')[0])
+  return tdValueElem.find('input').attr('name');
+  console.log('----------------------');
+}
+
+classEditTemplate.createNumberedRowFromTemplate = function(templateElem, num, dataSheetNum) {
+
+  console.log('templateElem = '+templateElem[0]);
+
+  templateElem.children().each(function() {
+    console.log($(this)[0]);
+  })
+
+
+  var newRow = templateElem.clone();
+  console.log('newRow = '+$(newRow)[0]);
+
+  var newFieldName = classEditTemplate.extractNameFromNumberedRow(templateElem) + ' '+ num;
+  console.log('newFieldName = '+newFieldName);
+  var camelCased = classEditTemplate.makeCamelCase(newFieldName);
+  console.log('camelCased = '+camelCased);
+
+  var oldOldName = classEditTemplate.findOldNameFromTdValue(templateElem.find('td.value'));
+
+  console.log("oldOldName = "+oldOldName);
+
+  var oldName = classEditTemplate.withoutOldValue(oldOldName);
   console.log("oldName = "+oldName);
   var classNamePrefix = oldName.substring(0,3);
 
@@ -91,7 +127,9 @@ classEditTemplate.createNumberedRowFromTemplate = function(templateElem, num, da
 
 classEditTemplate.extractNameFromNumberedRow = function(templateElem) {
   var nameWithNumber = templateElem.find('td.fieldName').html();
+  console.log("nameWithNumber = "+nameWithNumber);
   var withNoDigits = nameWithNumber.replace(/[0-9]/g, '').trim();
+  console.log("withNoDigits = "+withNoDigits);
   return withNoDigits;
 }
 
@@ -130,6 +168,7 @@ classEditTemplate.modifiedCopyRowEl = function(rowEl, name, value, units, fieldN
 }
 
 classEditTemplate.withoutOldValue = function(str) {
+  console.log("about to run withoutOldValue on "+str);
   if (str.indexOf('oldValue-')>=0) return (str.substring(str.indexOf('oldValue')+9));
   return str;
 }
@@ -153,6 +192,42 @@ classEditTemplate.updateSubtableIfNeeded = function(subtableElem) {
     return classEditTemplate.makeNewSubtable(subtableElem);
   }
   else return subtableElem;
+}
+
+// finds all 'sequential' rows,
+// keeping a list of each unique name
+// and the number of rows with that name.
+// then marks each row that is the highest-
+// numbered row with its name as a 'template'
+classEditTemplate.markTemplates = function(superEl) {
+  console.log("MARKTEMPLATES!");
+  var numPerName = {};
+  var seqRows = superEl.find('tr.sequential');
+  seqRows.each(function() {
+    console.log($(this)[0]);
+    var name = classEditTemplate.extractNameFromNumberedRow($(this));
+    var num = classEditTemplate.extractIntFromString($(this).find('td.fieldName').html());
+    console.log('  name = '+name);
+    console.log('  num = '+num);
+
+    if (!numPerName[name] || numPerName[name] < num) {
+      numPerName[name] = num;
+    }
+  })
+
+  console.log();
+  console.log("=========");
+  console.log('numPerName = '+JSON.stringify(numPerName));
+  console.log("=========");
+  console.log();
+
+  seqRows.each(function() {
+    var name = classEditTemplate.extractNameFromNumberedRow($(this));
+    var num = classEditTemplate.extractIntFromString($(this).find('td.fieldName').html());
+    if (num == numPerName[name]) {
+      $(this).addClass("template");
+    }
+  })
 }
 
 classEditTemplate.isFull = function(subtableElem) {
@@ -279,6 +354,37 @@ $(document).ready(function() {
     classEditTemplate.markFormFieldNotOld(millisInput);
     //$(this).val(datetime.getTime());
   });
+
+
+  $('.sequentialButton').click(function() {
+
+    var dataSheetRow = $(this).closest('.row.dataSheet');
+    classEditTemplate.markTemplates(dataSheetRow);
+    var dataSheetNum = classEditTemplate.extractIntFromString(dataSheetRow.attr('id'));
+    var lastTable = dataSheetRow.find('table.nest-field-table').last();
+
+    var templateRows = dataSheetRow.find('tr.template');
+
+    console.log('Duplicating '+templateRows.length+' sequential rows.');
+
+    $(templateRows).each( function() {
+
+      var oldFieldName = $(this).find('td.fieldName').html();
+      console.log("oldFieldName = "+oldFieldName);
+      var newNum = classEditTemplate.extractIntFromString(oldFieldName) + 1;
+      console.log('newNum = '+newNum);
+      var newRow = classEditTemplate.createNumberedRowFromTemplate($(this), newNum, dataSheetNum);
+
+      $(this).removeClass('template');
+      //var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(eggWeightTemplate, eggNum, dataSheetNum);
+
+      lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
+      lastTable.append(newRow);
+    })
+
+
+  })
+
 
 
 
