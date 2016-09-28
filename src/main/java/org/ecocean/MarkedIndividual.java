@@ -30,6 +30,7 @@ import org.ecocean.servlet.ServletUtilities;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.net.URL;
 import java.text.DecimalFormat;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
@@ -1864,7 +1865,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             String context = ServletUtilities.getContext(req);
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("Encounter.getExemplarImages");
-            j.put("urlDisplay", ma.bestSafeAsset(myShepherd, req, "halfpage"));
+            URL u = ma.safeURL(myShepherd, req, "halfpage");
+
+            ////////// hacky temporary until all converted to have halfpage /////////////
+            if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
+
+            j.put("urlDisplay", ((u == null) ? "" : u.toString()));
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
