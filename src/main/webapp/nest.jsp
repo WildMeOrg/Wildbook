@@ -113,13 +113,43 @@
         String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
         int dataSheetNum = Integer.parseInt(dataSheetNumStr);
 
-        System.out.println("  NEW DATAPOINT pname: "+pname+" value: "+value);
+        System.out.println("  NEW DATAPOINT pname: "+pname+" value: "+value+" on dataSheetNum="+dataSheetNum);
+
+        String newName = ClassEditTemplate.getDataNameFromParameter(pname);
+        System.out.println("   newName = "+newName);
+
+        String units = nestie.getDataSheet(dataSheetNum).findUnitsForName("newName");
+        System.out.println("   units = "+units);
+
+        String newNumStr = ClassEditTemplate.getDataNumberFromParameter(pname).toString();
+        System.out.println("   newNumStr = "+newNumStr);
+
+        Integer newNum;
+        try {
+          newNum = Integer.valueOf(newNumStr);
+        } catch (NumberFormatException nfe) {
+          newNum = null;
+        }
+
+        Double dblVal;
+        try {
+          dblVal = Double.valueOf(value);
+        } catch (NumberFormatException nfe) {
+          dblVal = null;
+        }
+
+        DataPoint dp = new Amount(newName, dblVal, units);
+        dp.setNumber(newNum);
+
+        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
+        System.out.println("   isDiamNotWeight = "+isDiamNotWeight);
+
+        nestie.getDataSheet(dataSheetNum).add(dp);
 
         // Create a new datapoint and add it to the appropriate sheet
         // populate that datapoint's value with "value"
         //Amount newEggDP = new Amount
 
-        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
         //nestie.addNewEgg(dataSheetNum);
       }
       else if (pname.indexOf("nes-dp-") == 0) {
@@ -274,11 +304,16 @@ $(document).ready(function() {
     var dataSheetRow = $(this).closest('.row.dataSheet');
     var dataSheetNum = classEditTemplate.extractIntFromString(dataSheetRow.attr('id'));
     var lastTable = dataSheetRow.find('table.nest-field-table').last();
-    var lastTableRow = lastTable.find('tr').last();
-    var eggNum = classEditTemplate.extractIntFromString(lastTableRow.find('td.fieldName').html()) + 1;
-    var newEggDiamRow = classEditTemplate.createEggDiamFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    var eggDiamTemplate = lastTable.find('tr.sequential').first();
+    var eggWeightTemplate = lastTable.find('tr.sequential').last();
+
+
+    var oldFieldName = $(eggWeightTemplate).find('td.fieldName').html();
+    console.log("oldFieldName = "+oldFieldName);
+    var eggNum = classEditTemplate.extractIntFromString(oldFieldName) + 1;
+    var newEggDiamRow = classEditTemplate.createNumberedRowFromTemplate(eggDiamTemplate, eggNum, dataSheetNum);
     //var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
-    var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(lastTableRow, eggNum, dataSheetNum);
+    var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(eggWeightTemplate, eggNum, dataSheetNum);
 
     lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
     lastTable.append(newEggDiamRow);

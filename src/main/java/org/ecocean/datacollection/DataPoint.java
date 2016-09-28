@@ -9,8 +9,8 @@ public abstract class DataPoint implements java.io.Serializable {
   private String name; //e.g. "length"
   private String units; // e.g. "cm"
 
-  private Integer number; // Serves as reference if parsed from the datapoint fields in commonConfiguration.properties
-  private Integer count; // not-null only for sequential datapoints (e.g. egg weight 1, egg weight 2, egg weight 3)
+  private Integer configNo; // Serves as reference if parsed from the datapoint fields in commonConfiguration.properties
+  private Integer number; // not-null only for sequential datapoints (e.g. egg weight 1, egg weight 2, egg weight 3)
 
   public DataPoint() {
   }
@@ -31,6 +31,16 @@ public abstract class DataPoint implements java.io.Serializable {
     return name;
   }
 
+  public String getNumberedName(){
+    if (number!=null) return (name + number);
+    return name;
+  }
+
+  public boolean isSequential() {
+    return (number!= null);
+  }
+
+
   public void setName(String name){
     this.name = name;
   }
@@ -45,7 +55,7 @@ public abstract class DataPoint implements java.io.Serializable {
   public Integer getNumber() {
     return number;
   }
-  protected void setNumber(Integer n) {
+  public void setNumber(Integer n) {
     number = n;
   }
 
@@ -57,25 +67,27 @@ public abstract class DataPoint implements java.io.Serializable {
     this.units = units;
   }
 
-  public Integer getCountNo() {
-    return countNo;
+  public Integer getConfigNo() {
+    return configNo;
   }
 
-  public void setCountNo(Integer countNo) {
-    this.countNo = countNo;
+  public void setConfigNo(Integer configNo) {
+    this.configNo = configNo;
   }
 
   public boolean isCategorical(String context) {
-    String lookupName = "datapoint"+number+"Values";
+    if (configNo==null) return false;
+    String lookupName = "datapoint"+configNo+"Values";
     String val = CommonConfiguration.getProperty(lookupName, context);
     return (number != null && val != null);
   }
 
   public boolean isSequential(String context) {
-    String lookupName = "datapoint"+number+"Sequental";
+    if (configNo==null) return false;
+    String lookupName = "datapoint"+configNo+"Sequential";
     String val = CommonConfiguration.getProperty(lookupName, context);
-    System.out.println("datapoint")
-    return (number != null && val != null);
+    System.out.println("isSequential "+lookupName+" = "+val);
+    return (val != null);
   }
 
 

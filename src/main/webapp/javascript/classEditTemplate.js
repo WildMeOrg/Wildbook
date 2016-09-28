@@ -56,6 +56,7 @@ classEditTemplate.markDeleteSheet = function() {
 }
 
 classEditTemplate.extractIntFromString = function(str) {
+  console.log("extractIntFromString("+str+")");
   var strOnlyDigits = str.match(/\d+/)[0];
   return parseInt(strOnlyDigits);
 }
@@ -71,16 +72,20 @@ classEditTemplate.createEggWeightFromTemplate = function(eggRowTemplateElem, egg
 
 classEditTemplate.createNumberedRowFromTemplate = function(templateElem, num, dataSheetNum) {
   var newRow = templateElem.clone();
-  var newName = classEditTemplate.extractNameFromNumberedRow(templateElem) + ' '+ num;
-  var camelCased = classEditTemplate.makeCamelCase(newName);
+  var newFieldName = classEditTemplate.extractNameFromNumberedRow(templateElem) + ' '+ num;
+  var camelCased = classEditTemplate.makeCamelCase(newFieldName);
 
   var oldName = classEditTemplate.withoutOldValue(templateElem.find('td.value input').attr('name'));
+  console.log("oldName = "+oldName);
   var classNamePrefix = oldName.substring(0,3);
-  var dsNumPrefix = oldName.substring(0,oldName.indexOf(':ds'));
 
-  newRow.find('td.value input').attr('name', dsNumPrefix+dataSheetNum+'-'+camelCased);
+  var newName = classNamePrefix+"-dp-new:ds"+dataSheetNum+'-'+camelCased;
+  console.log("newName = "+newName);
+
+
+  newRow.find('td.value input').attr('name', newName);
   newRow.find('td.value input').val('');
-  newRow.find('td.fieldName').html(classEditTemplate.camelToLowerCase(camelCased).trim());
+  newRow.find('td.fieldName').html(newFieldName);
   return newRow;
 }
 

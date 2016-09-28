@@ -201,10 +201,10 @@ public class ClassEditTemplate {
     String printValue = dp.getValueString();
     if (printValue == null) System.out.println("It's really null! I knew it!");
     //if (printValue.equals("null")) printValue = "";
-    String fieldName = splitCamelCase(dp.getName());
+    String fieldName = splitCamelCase(dp.getNumberedName());
     String inputName = inputElemName(dp, classNamePrefix);
 
-    boolean isSequential = dp.getCount()!=null;
+    boolean isSequential = (dp.isSequential());
 
     if (dp.isCategorical(context)) {
       printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out, isSequential);
@@ -355,7 +355,6 @@ public class ClassEditTemplate {
 
   public static void printFieldRowStart(String dataOriginalValue, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException {
     if (isSequential) {
-      System.out.println("SEQUENTIAL BABY!");
       out.println("<tr class=\"sequential\" data-original-value=\""+dataOriginalValue+"\">");
     } else {
       out.println("<tr data-original-value=\""+dataOriginalValue+"\">");
@@ -385,8 +384,23 @@ public class ClassEditTemplate {
     out.println("\n</tr>");
   }
 
+  // inverse of createNumberedRowFromTemplate's oldName -> newName process
+  public static String getDataNameFromParameter(String pname) {
+    String afterColon = pname.split(":")[1];
+    String afterDash  = afterColon.split("-")[1];
+    return splitCamelCase(afterDash).toLowerCase().replaceAll("[0-9]","");
+  }
 
+  public static Integer getDataNumberFromParameter(String pname) {
+    String afterColon = pname.split(":")[1];
+    String afterDash  = afterColon.split("-")[1];
+    return getIntegerFromString(afterDash);
+  }
 
+  public static Integer getIntegerFromString(String str) {
+    String justNum = str.replaceAll("[^0-9]", "");
+    return Integer.valueOf(justNum);
+  }
 
 
 }

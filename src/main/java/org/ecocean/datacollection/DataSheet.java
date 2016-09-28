@@ -76,7 +76,7 @@ public class DataSheet extends DataCollectionEvent {
         dp = new Check(dpName, (Boolean) null, dpUnit);
       }
       if (dp!=null) {
-        dp.setNumber(i);
+        dp.setConfigNo(i);
         data.add(dp);
         if (dp.isCategorical(context)) {
           System.out.println("DataPoint "+dp.getName()+" is categorical!");
@@ -84,7 +84,7 @@ public class DataSheet extends DataCollectionEvent {
         }
         if (dp.isSequential(context)) {
           System.out.println("SEQUENCE: It's sequential, all right!");
-          dp.setCount(0);
+          dp.setNumber(0);
         }
       }
     }
@@ -181,6 +181,16 @@ public class DataSheet extends DataCollectionEvent {
     System.out.println("   intFromLastName = "+intFromLastName);
     return (Integer.parseInt(intFromLastName) + 1);*/
   }
+
+  public String findUnitsForName(String dpName) {
+    for (DataPoint dp : data) {
+      if (dp.getName().equals(dpName)) {
+        return dp.getUnits();
+      }
+    }
+    return null;
+  }
+
 
 
 

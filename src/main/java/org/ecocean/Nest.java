@@ -135,11 +135,12 @@ public class Nest implements java.io.Serializable {
   public int getEggCount(int sheetNo) {
     DataSheet ds = getDataSheet(sheetNo);
     DataPoint lastDP = ds.get(ds.size()-1);
-    String lastName = lastDP.getName();
+    String lastName = lastDP.getNumberedName();
     System.out.println("   lastName = "+lastName);
     System.out.println("   indexOfEgg = " + lastName.toLowerCase().indexOf("egg"));
     System.out.println("   indexOfHam = " + lastName.toLowerCase().indexOf("ham"));
     boolean lastDPAnEgg = (lastName.toLowerCase().indexOf("egg") > -1);
+
     String intFromLastName = lastName.replaceAll("[^-?0-9]+", "");
     System.out.println("   intFromLastName = "+intFromLastName);
 
