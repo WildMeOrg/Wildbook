@@ -328,7 +328,7 @@ public abstract class AssetStore implements java.io.Serializable {
                 action = "maintainAspectRatio";
                 width = 4096;
                 height = 4096;
-                args = opts.get("overlayText").toString();
+                //args = opts.get("overlayText").toString();
                 break;
             case "thumb":
                 width = 100;
