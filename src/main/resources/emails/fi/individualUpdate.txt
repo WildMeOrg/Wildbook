@@ -1,0 +1,13 @@
+SUBJECT: Havaintopaivitys: @INDIVIDUAL_NICKNAME@ (@INDIVIDUAL_ID@)
+
+Hei!
+
+Uusi havainto aikaisemmin kuvaamastasi norpasta on lisatty galleriaan!
+	
+Norpan uuden kuvan loydat norppagalleriasta joko nimella tai koodilla: @INDIVIDUAL_NICKNAME@ (@INDIVIDUAL_ID@)
+    
+Tasta paaset norppagalleriaan: http://norppagalleria.wwf.fi
+	
+Kiitos avustasi saimaannorpan suojelussa!
+
+        
