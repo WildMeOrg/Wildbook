@@ -374,6 +374,10 @@ public class MediaAsset implements java.io.Serializable {
         if (labels == null) labels = new ArrayList<String>();
         if (!labels.contains(s)) labels.add(s);
     }
+    public boolean hasLabel(String s) {
+        if (labels == null) return false;
+        return labels.contains(s);
+    }
 
     public ArrayList<Feature> getFeatures() {
         return features;
@@ -621,10 +625,13 @@ public class MediaAsset implements java.io.Serializable {
 
     //the primary purpose here is to mask (i.e. never send) the original (uploaded) image file.
     //  right now "master" labelled image is used, if available, otherwise children are chosen by allChildTypes() order....
-    public URL safeURL(Shepherd myShepherd, HttpServletRequest request) {
-        MediaAsset ma = bestSafeAsset(myShepherd, request);
+    public URL safeURL(Shepherd myShepherd, HttpServletRequest request, String bestType) {
+        MediaAsset ma = bestSafeAsset(myShepherd, request, bestType);
         if (ma == null) return null;
         return ma.webURL();
+    }
+    public URL safeURL(Shepherd myShepherd, HttpServletRequest request) {
+        return safeURL(myShepherd, request, null);
     }
     //this assumes you weakest privileges
     public URL safeURL(Shepherd myShepherd) {
@@ -635,6 +642,7 @@ public class MediaAsset implements java.io.Serializable {
         if (request != null) context = ServletUtilities.getContext(request);  //kinda rough, but....
         //the throw-away Shepherd object is [mostly!] ok here since we arent returning the MediaAsset it is used to find
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAsset.safeURL");
         URL u = safeURL(myShepherd, request);
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -643,23 +651,37 @@ public class MediaAsset implements java.io.Serializable {
     public URL safeURL() {
         return safeURL((HttpServletRequest)null);
     }
-    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
+    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request, String bestType) {
         if (store == null) return null;
         //this logic is simplistic now, but TODO make more complex (e.g. configurable) later....
-        String bestType = "master";
+        //TODO should be block "original" ???  is that overkill??
+        if (bestType == null) bestType = "master";
+        //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
         if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
 System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+
+        //if we are a child asset, we need to find our parent then find best from there!  (unless we are the best)
+        MediaAsset top = this;  //assume we are the parent-est
+        if (parentId != null) {
+            if (this.hasLabel("_" + bestType)) return this;
+            top = MediaAssetFactory.load(parentId, myShepherd);
+            if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
+        }
+
         boolean gotBest = false;
-        List<String> types = store.allChildTypes();
+        List<String> types = store.allChildTypes();  //note: do we need to care that top may have changed stores????
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
 System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
-            ArrayList<MediaAsset> kids = this.findChildrenByLabel(myShepherd, "_" + t);
+            ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
         }
         return null;  //got nothing!  :(
+    }
+    public MediaAsset bestSafeAsset(Shepherd myShepherd, HttpServletRequest request) {
+        return bestSafeAsset(myShepherd, request, null);
     }
     public MediaAsset bestSafeAsset(Shepherd myShepherd) {
         return bestSafeAsset(myShepherd, null);

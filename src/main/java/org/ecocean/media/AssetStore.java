@@ -327,7 +327,7 @@ public abstract class AssetStore implements java.io.Serializable {
             case "master":
                 action = "maintainAspectRatio";
                 width = 4096;
-                height = 3072;
+                height = 4096;
                 break;
             case "thumb":
                 width = 100;

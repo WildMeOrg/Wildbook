@@ -104,8 +104,8 @@ java.util.Properties" %>
 		if (ma == null) return "asset: <b>[none]</b>";
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
-		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul>";
-		h += "<img style=\"z-index: -1\" title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" />";
+		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
+		h += "<a target=\"_new\" href=\"" + ma.webURL() + "\"><img title=\".webURL() " + ma.webURL() + "\" src=\"" + ma.webURL() + "\" /></a>";
 		h += "<li>store: <b>" + ma.getStore() + "</b></li>";
 		h += "<li>labels: <b>" + showLabels(ma.getLabels()) + "</b></li>";
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
