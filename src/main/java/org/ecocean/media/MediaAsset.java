@@ -925,8 +925,12 @@ System.out.println("   ....  ??? do we have a " + t);
     }
 
 
-    //creates the "standard" derived children for a MediaAsset (thumb, mid, etc)
     public ArrayList<MediaAsset> updateStandardChildren() {
+        return updateStandardChildren((HashMap<String,Object>)null);
+    }
+
+    //creates the "standard" derived children for a MediaAsset (thumb, mid, etc)
+    public ArrayList<MediaAsset> updateStandardChildren(HashMap<String,Object> opts) {
         if (store == null) return null;
         List<String> types = store.standardChildTypes();
         if ((types == null) || (types.size() < 1)) return null;
@@ -935,7 +939,7 @@ System.out.println("   ....  ??? do we have a " + t);
 System.out.println(">> updateStandardChildren(): type = " + type);
             MediaAsset c = null;
             try {
-                c = this.updateChild(type);
+                c = this.updateChild(type, opts);
             } catch (IOException ex) {
                 System.out.println("updateStandardChildren() failed on type=" + type + ", ma=" + this + " with " + ex.toString());
             }
@@ -944,12 +948,15 @@ System.out.println(">> updateStandardChildren(): type = " + type);
         return mas;
     }
     //as above, but saves them too
-    public ArrayList<MediaAsset> updateStandardChildren(Shepherd myShepherd) {
-        ArrayList<MediaAsset> mas = updateStandardChildren();
+    public ArrayList<MediaAsset> updateStandardChildren(Shepherd myShepherd, HashMap<String,Object> opts) {
+        ArrayList<MediaAsset> mas = updateStandardChildren(opts);
         for (MediaAsset ma : mas) {
             MediaAssetFactory.save(ma, myShepherd);
         }
         return mas;
+    }
+    public ArrayList<MediaAsset> updateStandardChildren(Shepherd myShepherd) {
+        return updateStandardChildren(myShepherd, null);
     }
 
 

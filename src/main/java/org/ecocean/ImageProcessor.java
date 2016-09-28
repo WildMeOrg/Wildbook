@@ -76,6 +76,7 @@ public final class ImageProcessor implements Runnable {
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
         this.arg = arg;
+        if (this.arg == null) this.arg = "";
         this.parentMA = pma;
         if ((action != null) && action.equals("watermark")) {
             this.command = CommonConfiguration.getProperty("imageWatermarkCommand", this.context);
@@ -140,11 +141,14 @@ public final class ImageProcessor implements Runnable {
         if (comment == null) comment = "%year All rights reserved. | wildbook.org";
         String cname = ContextConfiguration.getNameForContext(this.context);
         if (cname != null) comment += " | " + cname;
+        String maId = "unknown";
         if (this.parentMA != null) {
             if (this.parentMA.getUUID() != null) {
-                comment += " | parent " + this.parentMA.getUUID();
+                maId = this.parentMA.getUUID();
+                comment += " | parent " + maId;
             } else {
-                comment += " | parent hash " + this.parentMA.setHashCode(); //a stretch, but maybe should never happen?
+                maId = this.parentMA.setHashCode();
+                comment += " | parent hash " + maId; //a stretch, but maybe should never happen?
             }
         }
         comment += " | v" + Long.toString(System.currentTimeMillis());
@@ -164,7 +168,7 @@ System.out.println("++++>> comment: " + comment);
                                   .replaceAll("%height", Integer.toString(this.height))
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
-                                  .replaceAll("%arg", this.arg);
+                                  .replaceAll("%maId", maId);
 
         //walk thru transform array and replace "tN" with transform[N]
         if (this.transform.length > 0) {
@@ -181,6 +185,7 @@ System.out.println("++++>> comment: " + comment);
             if (command[i].equals("%imagetarget")) command[i] = this.imageTargetPath;
             //note this assumes comment stands alone. :/
             if (command[i].equals("%comment")) command[i] = comment;
+            if (command[i].equals("%arg")) command[i] = this.arg;
 System.out.println("COMMAND[" + i + "] = (" + command[i] + ")");
         }
 //System.out.println("done run()");

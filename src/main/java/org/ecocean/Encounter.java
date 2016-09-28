@@ -2457,10 +2457,17 @@ it should be considered an asyncronous action that happens in the background mag
 /////other possiblity: only pass basedir??? do we need context if we do that?
 
                 public boolean refreshAssetFormats(Shepherd myShepherd) {
+                    HashMap<String,Object> opts = new HashMap<String,Object>();
+                    int year = Calendar.getInstance().get(Calendar.YEAR);
+                    String copyr = Integer.toString(year);  //SUPERHACK! copyright symbol gets prepended in shell script. :(
+                    String pname = this.getPhotographerName();
+                    if ((pname != null) && !pname.equals("")) copyr += " " + pname + " /";
+                    copyr += " WWF";
+                    opts.put("overlayText", copyr);
                     ArrayList<MediaAsset> mas = this.getMedia();
                     if ((mas == null) || (mas.size() < 1)) return true;
                     for (MediaAsset ma : mas) {
-                        ma.updateStandardChildren(myShepherd);
+                        ma.updateStandardChildren(myShepherd, opts);
                     }
                     return true;
                 }

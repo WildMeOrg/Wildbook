@@ -327,7 +327,8 @@ public abstract class AssetStore implements java.io.Serializable {
             case "master":
                 action = "maintainAspectRatio";
                 width = 4096;
-                height = 3072;
+                height = 4096;
+                args = opts.get("overlayText").toString();
                 break;
             case "thumb":
                 width = 100;
@@ -336,9 +337,11 @@ public abstract class AssetStore implements java.io.Serializable {
             case "mid":
                 width = 1024;
                 height = 768;
+                args = opts.get("overlayText").toString();
                 break;
             case "watermark":
-                action = "watermark";
+                //action = "watermark";
+                args = opts.get("overlayText").toString();
                 width = 250;
                 height = 200;
                 break;
