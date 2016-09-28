@@ -7,10 +7,11 @@ Loysit uuden saimaannorpan! Kuvaamasi saimaannorppa on nyt liitetty uudeksi yksi
 Loydat lisatietoja naista linkeista:
 
 Uusi kirjattu yksilo: @INDIVIDUAL_ID@
-@INDIVIDUAL_LINK@
 
 Havainto: @ENCOUNTER_ID@
 @ENCOUNTER_LINK@
+
+Norpan muita havaintoja pääset katsomaan norppagalleriasta: http://norppagalleria.wwf.fi
 
 Kiitos avustasi saimaannorpan suojelussa!
 

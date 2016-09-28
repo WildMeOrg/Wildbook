@@ -3,14 +3,12 @@ SUBJECT: Havaintopaivitys: @ENCOUNTER_ID@
 Hei!
 
 Kuvaamasi saimaannorppa on loytynyt Norppagalleriasta!
-
-Loydat lisatietoja naista linkeista:
-
-Yksilön aiempi historia: @INDIVIDUAL_ID@ (Vaihtoehtoinen ID: @INDIVIDUAL_ALT_ID@)
-@INDIVIDUAL_LINK@
-
+  
 Uusi havainto: @ENCOUNTER_ID@
+
 @ENCOUNTER_LINK@
+	  
+Tasta paaset norppagalleriaan katsomaan yksilon muita kuvia: http://norppagalleria.wwf.fi
 
 Kiitos avustasi saimaannorpan suojelussa!
 
