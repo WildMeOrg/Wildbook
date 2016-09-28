@@ -642,6 +642,7 @@ public class MediaAsset implements java.io.Serializable {
         if (request != null) context = ServletUtilities.getContext(request);  //kinda rough, but....
         //the throw-away Shepherd object is [mostly!] ok here since we arent returning the MediaAsset it is used to find
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAsset.safeURL");
         URL u = safeURL(myShepherd, request);
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
