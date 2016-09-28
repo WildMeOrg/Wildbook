@@ -297,7 +297,7 @@ int numDataContributors=0;
             pairCopyright[j] = "&copy; WWF";
           }
           pairMediaAssetID[j]=maJson.optString("id");
-          pairUrl[j] = maJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+          pairUrl[j] = maJson.optString("urlDisplay", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
           if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();

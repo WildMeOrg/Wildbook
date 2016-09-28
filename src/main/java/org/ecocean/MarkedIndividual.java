@@ -1861,6 +1861,13 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
 
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("Encounter.getExemplarImages");
+            j.put("urlDisplay", ma.bestSafeAsset(myShepherd, req, "halfpage"));
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
             if ((j!=null) && (photographerName!=null) && (!photographerName.equals(""))) {
               j.put("photographer",photographerName);
             }

@@ -173,11 +173,11 @@ public abstract class AssetStore implements java.io.Serializable {
     //  i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
     //  also, order matters here!  should be from "best" to "worst" so that things can degrade nicely when better ones are not available
     public List<String> allChildTypes() {
-        return Arrays.asList(new String[]{"master", "mid", "watermark", "thumb"});
+        return Arrays.asList(new String[]{"master", "halfpage", "mid", "watermark", "thumb"});
     }
     //awkwardly named subset of the above which will be used to determine which should be derived with updateStandardChildren()
     public List<String> standardChildTypes() {
-        return Arrays.asList(new String[]{"master", "thumb", "mid", "watermark"});
+        return Arrays.asList(new String[]{"master", "halfpage", "thumb", "mid", "watermark"});
     }
     public boolean isValidChildType(String type) {
         if (allChildTypes() == null) return false;
@@ -330,13 +330,18 @@ public abstract class AssetStore implements java.io.Serializable {
                 height = 4096;
                 //args = opts.get("overlayText").toString();
                 break;
+            case "halfpage":
+                width = 2048;
+                height = 1536;
+                args = opts.get("overlayText").toString();
+                break;
             case "thumb":
                 width = 100;
                 height = 75;
                 break;
             case "mid":
-                width = 1024;
-                height = 768;
+                width = 800;
+                height = 600;
                 args = opts.get("overlayText").toString();
                 break;
             case "watermark":
