@@ -99,7 +99,7 @@ Boolean isUserResearcher = request.isUserInRole("researcher");
   		if(myShepherd.getMediaAsset(request.getParameter("endorseimage"))!=null){
   			MediaAsset ma=myShepherd.getMediaAsset(request.getParameter("endorseimage"));
   			%>
-	    		<meta property="og:image" content="<%=ma.webURLString().replaceAll("52.40.15.8", "norppagalleria.wwf.fi") %>" />
+	    		<meta property="og:image" content="<%=ma.safeURL(myShepherd, request).toString().replaceAll("52.40.15.8", "norppagalleria.wwf.fi") %>" />
 	    		<meta property="og:image:width" content="<%=(int)ma.getWidth() %>" />
 				<meta property="og:image:height" content="<%=(int)ma.getHeight() %>" />
 				<meta property="og:description" content="Tutustu sin&auml;kin Pullervoon, Terttuun, Teemuun ja satoihin muihin saimaannorppiin WWF:n Norppagalleriassa!  #Norppagalleria" />
