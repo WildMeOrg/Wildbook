@@ -1,13 +1,13 @@
-<%@ page contentType="text/html; charset=utf-8" 
+f<%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
 
 
   <%
-  
+
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -16,7 +16,7 @@
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
-  
+
     int startNum = 0;
     int endNum = 45;
 
@@ -38,7 +38,7 @@
 //let's load thumbnailSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
 
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/thumbnailSearchResults.properties"));
@@ -51,12 +51,12 @@
 
     myShepherd.beginDBTransaction();
     //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
-	
+
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
 
 
-    
+
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
@@ -66,11 +66,11 @@
 
 
     //if (request.getParameter("noQuery") == null) {
-    	
-    	
+
+
     	String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-    	
-    
+
+
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
@@ -173,7 +173,7 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
@@ -208,8 +208,8 @@
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
-      </p>    
-    
+      </p>
+
     </td>
   </tr>
 </table>
@@ -279,15 +279,14 @@
 </table>
 
 
-<div class="col-xs-12 col-sm-4" style="vertical-align:top">
 
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
+					<jsp:param name="grid" value="true" />
         	<jsp:param name="queryString" value="<%=queryString %>" />
         	<jsp:param name="rangeStart" value="<%=startNum %>" />
         	<jsp:param name="rangeEnd" value="<%=endNum %>" />
-        	
-        	</jsp:include>
-</div>
+
+        </jsp:include>
 
 <%
 
@@ -328,11 +327,20 @@
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 
- 
+
 %>
 
 </div>
+
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--  <p>Looking for photoswipe in <%=pswipedir%></p>-->
+<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-
