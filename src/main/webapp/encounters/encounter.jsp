@@ -250,6 +250,8 @@ td.measurement{
 
   var map;
   var marker;
+  var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
+
 
           function placeMarker(location) {
 
@@ -278,9 +280,12 @@ td.measurement{
   <script>
             function initialize() {
 	            //alert("Initializing map!");
-	              var mapZoom = 1;
+	              //var mapZoom = 1;
+	              var mapZoom = 6;
 	          	
-	              var center = new google.maps.LatLng(10.8, 160.8);
+	              //var center = new google.maps.LatLng(10.8, 160.8);
+	              var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
+
 	
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
@@ -294,7 +299,7 @@ td.measurement{
 	
 	        	if(marker!=null){
 					marker.setMap(map);
-					map.setCenter(marker.position);
+					//map.setCenter(marker.position);
 	
 	 			//alert("Setting center!");
 				}
@@ -3187,9 +3192,14 @@ else {
   <%-- START RIGHT COLUMN --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
+<%
+String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
+%>
     <%-- START IMAGES --%>
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="queryString" value="<%=queryString%>" />
+        	
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
