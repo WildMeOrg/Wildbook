@@ -39,6 +39,8 @@ if(request.getParameter("encounterNumber")!=null){
 	encNum=request.getParameter("encounterNumber");
 }
 
+boolean isGrid = (request.getParameter("grid")!=null);
+
 imageShepherd.beginDBTransaction();
 
 //String encNum = request.getParameter("encounterNumber");
@@ -61,7 +63,7 @@ if((request.getParameter("rangeStart")!=null)&&(request.getParameter("rangeEnd")
 		query.setRange(startRange, endRange);
 	}
 	catch(Exception e){
-		
+
 		System.out.println("I tried to set a query range in encounterMediaGallery.jsp but failed due to the following exception.");
 		e.printStackTrace();
 	}
@@ -77,8 +79,12 @@ try {
 
 	Collection c = (Collection) (query.execute());
 	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
-  
+
   int numEncs=encs.size();
+  %><script>
+  console.log("numEncs = <%=numEncs%>");
+  </script>
+  <%
   for(int f=0;f<numEncs;f++){
 		  Encounter enc = encs.get(f);
 		  ArrayList<Annotation> anns = enc.getAnnotations();
@@ -89,7 +95,7 @@ try {
 		    console.log("isGenusSpeciesSet() = "+check);
 		    return check;
 		  }
-		
+
 		  function startIdentify(ma) {
 			if (!ma) return;
 			var aid = ma.annotationId;
@@ -119,7 +125,7 @@ try {
 		      })
 		    });
 		  }
-		
+
 		  // because we have links within the photoswipe-opening clickable area
 		  function forceLink(el) {
 		    var address = el.href;
@@ -137,22 +143,22 @@ try {
 		  //
 		  </script>
 		<%
-		
-		
-		
-		
+
+
+
+
 		JSONObject iaTasks = new JSONObject();
-		
+
 		  if ((anns == null) || (anns.size() < 1)) {
 		    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
 		  }
 		  else {
 		  	for (Annotation ann: anns) {
 		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
-		
+
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
-		
+
 		  		MediaAsset ma = ann.getMediaAsset();
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
@@ -164,7 +170,7 @@ try {
 		  	}
 		  	// out.println("var assets = " + all.toString() + ";");
 		    //System.out.println("All media assets as an array: "+all.toString());
-		
+
 		}
 			out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
 	}
@@ -269,7 +275,11 @@ for (int i=0; i<captionLinks.size(); i++) {
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("EMG asset "+index+" id: "+assetId);
-    maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    if (<%=isGrid%>) {
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+    } else {
+      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    }
 
 /*   now added to image hamburger menu
     var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
@@ -305,16 +315,16 @@ function doImageEnhancer(sel) {
     if (loggedIn) {
         opt.debug = false;
         opt.menu = [
-           <%   
+           <%
            if(!encNum.equals("")){
-        	%>	   
+        	%>
             ['remove this image', function(enh) {
 		removeAsset(enh.imgEl.prop('id').substring(11));
             }],
             <%
     		}
             %>
-           
+
 /*
             ['replace this image', function(enh) {
             }],
