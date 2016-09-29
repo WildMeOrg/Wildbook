@@ -1871,6 +1871,15 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             if ((u == null) || (u.toString().indexOf("halfpage") < 0)) u = ma.webURL();
 
             j.put("urlDisplay", ((u == null) ? "" : u.toString()));
+
+            //now we need a mid (if we have it)
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0) && (kids.get(0).webURL() != null)) {
+                j.put("urlMid", kids.get(0).webURL().toString());
+            } else {
+                j.put("urlMid", ((u == null) ? "" : u.toString()));  //we reuse urlDisplay value :/
+            }
+
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 

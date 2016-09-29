@@ -180,6 +180,13 @@ int numDataContributors=0;
     display: block !important;
   }
 
+/* temp hack */
+	#div-crop-Phs003 .image-copyright, #div-crop-Phs004 .image-copyright {
+		display: none;
+	}
+	#div-crop-Phs003 img, #div-crop-Phs004 img {
+		margin-top: 0 !important;
+	}
 </style>
 
 <nav class="navbar navbar-default gallery-nav">
@@ -277,6 +284,7 @@ int numDataContributors=0;
         }
 
         String[] pairUrl = new String[2];
+        String[] pairUrlMid = new String[2];
         String[] pairName = new String[2];
         String[] pairNickname = new String[2];
         String[] pairCopyright = new String[2];
@@ -298,14 +306,17 @@ int numDataContributors=0;
           }
           pairMediaAssetID[j]=maJson.optString("id");
           pairUrl[j] = maJson.optString("urlDisplay", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+//System.out.println(">>>>>>>>>>>>>> " + maJson.optString("urlMid", "******* NO ********"));
+          pairUrlMid[j] = (maJson.optString("urlMid").equals("") ? pairUrl[j] : maJson.getString("urlMid"));
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
           if (!indie.getNickName().equals("Unassigned") && indie.getNickName()!=null && !indie.getNickName().equals("")) pairNickname[j] = indie.getNickName();
           %>
           <div class="col-xs-6">
             <div class="gallery-unit" id="gunit<%=i*2+j%>">
-              <div class="crop" title="<%=pairName[j]%>">
-                <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+              <div class="crop" id="div-crop-<%=pairName[j]%>" title="<%=pairName[j]%>">
+<!--label:mid-->
+                <img src="<%=pairUrlMid[j]%>" id="mid-<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                 <p class="image-copyright"> <%=pairCopyright[j]%> </p>
               </div>
               <p><strong><%=pairNickname[j]%></strong></p>
@@ -329,7 +340,8 @@ int numDataContributors=0;
             <div class="gallery-inner">
               <div class="super-crop seal-gallery-pic active">
                 <div class="crop">
-                  <img src="<%=pairUrl[j]%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
+<!--label:halfpage-->
+                  <img src="<%=pairUrl[j]%>" id="halfpage-<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                   <p class="image-copyright"> <%=pairCopyright[j]%> </p>
                 </div>
               </div>
