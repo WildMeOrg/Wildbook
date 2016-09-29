@@ -753,7 +753,7 @@ if (request.getParameter("number")!=null) {
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+        String newimgUrl = newMaJson.optString("urlDisplay", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
 
         %>
         <div class="crop-outer">
