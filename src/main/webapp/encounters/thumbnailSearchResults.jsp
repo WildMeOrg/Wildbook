@@ -44,12 +44,12 @@ f<%@ page contentType="text/html; charset=utf-8"
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/thumbnailSearchResults.properties"));
     encprops = ShepherdProperties.getProperties("thumbnailSearchResults.properties", langCode, context);
 
-    Shepherd myShepherd = new Shepherd(context);
-    myShepherd.setAction("thumbnailSearchResults.jsp");
+    //Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.setAction("thumbnailSearchResults.jsp");
 
     List<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
     //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
 
   	StringBuffer prettyPrint=new StringBuffer("");
@@ -323,12 +323,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     </td>
   </tr>
 </table>
-<%
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
 
-
-%>
 
 </div>
 
