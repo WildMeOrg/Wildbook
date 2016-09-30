@@ -74,6 +74,7 @@
   }
 
 %>
+<link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 <%
 
@@ -250,7 +251,7 @@ td.measurement{
 
   var map;
   var marker;
-  var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
+  var center = new google.maps.LatLng(0, 0);
 
 
           function placeMarker(location) {
@@ -281,10 +282,10 @@ td.measurement{
             function initialize() {
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
-	              var mapZoom = 6;
+	              var mapZoom = 1;
 	          	
 	              //var center = new google.maps.LatLng(10.8, 160.8);
-	              var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
+	              var center = new google.maps.LatLng(0, 0);
 
 	
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
@@ -469,9 +470,16 @@ if (request.getParameter("refreshImages") != null) {
 
 $(function() {
     $( "#datepicker" ).datetimepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd',
+    	changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd',
+        maxDate: '+1d',
+        controlType: 'select',
+        alwaysSetTime: false,
+        showSecond:false,
+        showMillisec:false,
+        showMicrosec:false,
+        showTimezone:false
 
       <%
       //set a default date if we cann

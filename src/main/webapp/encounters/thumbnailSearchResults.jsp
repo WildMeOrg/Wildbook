@@ -250,30 +250,31 @@ f<%@ page contentType="text/html; charset=utf-8"
   }
 
 %>
-<table width="810px">
+<table width="100%">
   <tr>
     <%
-      if ((startNum) > 1) {%>
+      if (startNum > 1) {
+      %>
     <td align="left">
-      <p><a
+      <p>
+      <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum - 45)%>
-        - <%=(startNum - 1)%>
-      </a></p>
+        title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
+         
+      </p>
     </td>
     <%
       }
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum + 45)%>
-        - <%=(endNum + 45)%>
-      </a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img
-        src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+45%>&endNum=<%=endNum+45%>">
+        <%=encprops.getProperty("next")%> <img
+        src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
+        title="<%=encprops.getProperty("seePreviousResults")%>"/>
+      </a>
+      </p>
     </td>
   </tr>
 </table>
@@ -296,7 +297,7 @@ f<%@ page contentType="text/html; charset=utf-8"
 
 %>
 
-<table width="810px">
+<table width="100%">
   <tr>
     <%
       if ((startNum - 45) > 1) {%>
@@ -314,10 +315,7 @@ f<%@ page contentType="text/html; charset=utf-8"
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
-        - <%=endNum%>
-      </a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("next")%> <img
         src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
     </td>
