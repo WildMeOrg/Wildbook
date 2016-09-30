@@ -97,7 +97,8 @@ maLib.blankCaptionFunction = function(maJson) {
 }
 
 maLib.testCaptionFunction = function(maJson) {
-  return ("test caption for MediaAsset "+maJson.id);
+  //return ("test caption for MediaAsset "+maJson.id);
+  return "";
 }
 
 
