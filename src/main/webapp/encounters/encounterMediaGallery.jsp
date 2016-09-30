@@ -227,8 +227,13 @@ for (int i=0; i<captionLinks.size(); i++) {
   }
 
 </style>
-
-<h2><%=encprops.getProperty("gallery") %></h2>
+<%
+if(request.getParameter("encounterNumber")!=null){
+%>
+	<h2><%=encprops.getProperty("gallery") %></h2>
+<%
+}
+%>
 
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
