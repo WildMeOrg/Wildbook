@@ -97,7 +97,16 @@ try {
 		MediaAsset spotLeftMA = null;
 		MediaAsset spotRightMA = null;
 		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
-		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
+		////////if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
+//// warning, hack to get around bug cause by gap in code changes post-migration
+if (allSpotMAs != null) {
+  for (MediaAsset maL : allSpotMAs) {
+    if (maL.getFilename().indexOf("extractRight") < 0) {
+      spotLeftMA = maL;
+      break;
+    }
+  }
+}
 		allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
 		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(0);
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
