@@ -74,6 +74,7 @@
   }
 
 %>
+<link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 <%
 
@@ -469,9 +470,16 @@ if (request.getParameter("refreshImages") != null) {
 
 $(function() {
     $( "#datepicker" ).datetimepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd',
+    	changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd',
+        maxDate: '+1d',
+        controlType: 'select',
+        alwaysSetTime: false,
+        showSecond:false,
+        showMillisec:false,
+        showMicrosec:false,
+        showTimezone:false
 
       <%
       //set a default date if we cann
@@ -3192,9 +3200,14 @@ else {
   <%-- START RIGHT COLUMN --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
+<%
+String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
+%>
     <%-- START IMAGES --%>
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="queryString" value="<%=queryString%>" />
+        	
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>

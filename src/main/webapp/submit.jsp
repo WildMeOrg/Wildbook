@@ -13,6 +13,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+	
+<link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
+
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -196,7 +199,11 @@ $(function() {
       dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
       controlType: 'select',
-      alwaysSetTime: false
+      alwaysSetTime: false,
+      showSecond:false,
+      showMillisec:false,
+      showMicrosec:false,
+      showTimezone:false
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 

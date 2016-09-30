@@ -741,7 +741,7 @@ if (request.getParameter("number")!=null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
