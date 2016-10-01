@@ -237,9 +237,8 @@ f<%@ page contentType="text/html; charset=utf-8"
 <%
   }
 %>
-
-<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
-        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
+<br>
+<p><%=encprops.getProperty("belowMatches")%> <%=encprops.getProperty("thatMatched")%>
       </p>
 
 <%
