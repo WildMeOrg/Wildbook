@@ -156,6 +156,10 @@ try {
 		  	for (Annotation ann: anns) {
 		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 
+		      String[] capos=new String[1];
+		      capos[0]="<p style=\"color: white;\"><a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+encprops.getProperty("encounter")+" "+enc.getCatalogNumber()+"</a><br>"+encprops.getProperty("date")+" "+enc.getDate()+"<br>"+encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"</p>";
+		      captionLinks.add(capos);
+		      
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
