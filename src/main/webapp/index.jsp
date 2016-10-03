@@ -637,7 +637,7 @@ finally{
                         <p class="lead">
 													<%=props.getProperty("whyWeDoThis-text")%>
                         </p>
-                        <a href="#" title=""><%=props.getProperty("whyWeDoThis-more")%></a>
+                        <a href="overview.jsp" title=""><%=props.getProperty("whyWeDoThis-more")%></a>
                     </div>
                 </div>
             </article>
