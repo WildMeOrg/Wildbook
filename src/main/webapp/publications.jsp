@@ -36,6 +36,11 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+		
+		<p>Norman B. and Morgan D. (2016) The return of “Stumpy” the whale shark: two decades and counting. Front Ecol Environ 2016; 14(8):449–450, doi:10.1002/fee.1418<br />
+		<a href="http://onlinelibrary.wiley.com/doi/10.1002/fee.1418/abstract">Web link</a>
+		</p>
+		
 				<p>Araujo, G., Snow, S., So, C. L., Labaja, J., Murray, R., Colucci, A., and Ponzo, A. (2016) Population structure, residency patterns and movements of whale sharks in Southern Leyte, Philippines: results from dedicated photo-ID and citizen science. Aquatic Conserv: Mar. Freshw. Ecosyst., doi: 10.1002/aqc.2636.<br />
 		<a href="http://onlinelibrary.wiley.com/doi/10.1002/aqc.2636/abstract">Web link</a>
 		</p>
