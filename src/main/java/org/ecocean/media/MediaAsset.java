@@ -657,8 +657,8 @@ public class MediaAsset implements java.io.Serializable {
         //TODO should be block "original" ???  is that overkill??
         if (bestType == null) bestType = "master";
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
-        if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
-System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+        if (AccessControl.simpleUserString(request) == null) bestType = "mid";
+//System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
         //if we are a child asset, we need to find our parent then find best from there!  (unless we are the best)
         MediaAsset top = this;  //assume we are the parent-est
