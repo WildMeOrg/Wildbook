@@ -1534,14 +1534,9 @@ else {
   </td>
 </tr>
 
-<tr>
-  <td><br /><strong><%=encprops.getProperty("filenameField")%></strong>
-    <input name="filenameField" type="text" size="60"> <br /> <em><%=encprops.getProperty("filenamesBlank")%>
-    </em>
-  </td>
-</tr>
 
-		<tr>
+
+<tr>
   <td><br /><strong><%=encprops.getProperty("additionalComments")%></strong>
     <input name="additionalCommentsField" type="text" size="60"> <br> <em><%=encprops.getProperty("commentsBlank")%>
     </em>
@@ -1589,42 +1584,6 @@ inShepherd.closeDBTransaction();
   </td>
 </tr>
 
-<%
-if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
-%>
-<tr>
-  <td>
-
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('patternrecognition')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Pattern Recognition</font></a></h4>
-  </td>
-</tr>
-<tr>
-  <td>
-    <div id="patternrecognition" style="display:none; ">
-      
-      <table width="720px" align="left">
-        <tr>
-          <td>
-            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;Has mapped fluke.</label>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;Has NO mapped fluke patterning.</label>
-          </td>
-        </tr>
-      </table>
-   </div>
-  </td>
-</tr>          
-
-<%
-}
-%>
-		
 
 
 
