@@ -915,7 +915,7 @@ public class EncounterQueryProcessor {
 
     //end genetic sex filters-----------------------------------------------
     
-    
+  /*  
   	//start photo filename filtering
 	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
 
@@ -938,7 +938,7 @@ public class EncounterQueryProcessor {
             
           }
   }
-
+*/
 //end photo filename filtering
 
 
