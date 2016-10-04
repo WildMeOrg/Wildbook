@@ -109,9 +109,9 @@ try {
 		      contentType: 'application/javascript',
 		      success: function(d) {
 		        console.info('identify returned %o', d);
-        if (d.tasks && (d.tasks.length > 0) && d.tasks[0].taskId) {
+			if (d.tasks && (d.tasks.length > 0) && d.tasks[0].taskId) {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+				window.location.href = 'matchResults.jsp?taskId=' + d.tasks[0].taskId;
 		        } else {
 				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
 		        }
@@ -399,22 +399,18 @@ if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)
 			var mid = enh.imgEl.context.id.substring(11);
 			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
 		}
-            ],
-            [
-		function(enh) { return imagePopupInfoMenuItem(enh); },
-		function(enh) { imagePopupInfo(enh); }
             ]
 	);
 	<%
     }
 	%>
 
-/*
-        if (true) {
-            opt.menu.push(['set image as encounter thumbnail', function(enh) {
-            }]);
-        }
-*/
+	opt.menu.push(
+            [
+		function(enh) { return imagePopupInfoMenuItem(enh); },
+		function(enh) { imagePopupInfo(enh); }
+            ]
+	);
 
         opt.init = [
             function(el, enh) {
