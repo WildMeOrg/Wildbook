@@ -612,7 +612,7 @@ public class IndividualQueryProcessor {
     }
     //end hasPhoto filters-----------------------------------------------
 
-
+/*
     //------------------------------------------------------------------
     //hasSpots filters-------------------------------------------------
     if(request.getParameter("hasSpots")!=null){
@@ -641,7 +641,7 @@ public class IndividualQueryProcessor {
 
     }
     //end hasNoSpots filters-----------------------------------------------
-
+*/
 
 
     //------------------------------------------------------------------

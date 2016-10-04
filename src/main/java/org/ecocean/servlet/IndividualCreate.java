@@ -60,6 +60,7 @@ public class IndividualCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    request.setCharacterEncoding("UTF-8");
     String context="context0";
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);

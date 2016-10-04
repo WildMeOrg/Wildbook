@@ -76,7 +76,7 @@ context=ServletUtilities.getContext(request);
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
-  String name = request.getParameter("number").trim();
+  String name = "";
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
 
@@ -86,6 +86,7 @@ context=ServletUtilities.getContext(request);
 %>
 <%
 if (request.getParameter("number")!=null) {
+	name=request.getParameter("number").trim();
 	myShepherd.beginDBTransaction();
 	try{
 		
@@ -459,8 +460,13 @@ if (request.getParameter("number")!=null) {
 
             <script type="text/javascript">
               $(document).ready(function() {
-                $("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
-
+            	<%
+            	if(!sexValue.equals("")){
+            	%>
+                	$("#selectSex option[value=<%=sexValue%>]").attr('selected','selected');
+				<%
+            	}
+				%>
                 $("#Add").click(function(event) {
                   event.preventDefault();
                   $("#Add").hide();
@@ -752,7 +758,7 @@ if (request.getParameter("number")!=null) {
         -1px 1px 0 #000,
         1px 1px 0 #000;
     ">
-    <p class="viewAllImgs"><a style="color:white;" href="individualThumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
+    <p class="viewAllImgs"><a style="color:white;" href="encounters/thumbnailSearchResults.jsp?individualID=<%=sharky.getIndividualID()%>"><%=props.getProperty("allImages")%></a></p></div>
 
 
     <div class="slider col-sm-6 center-slider">
