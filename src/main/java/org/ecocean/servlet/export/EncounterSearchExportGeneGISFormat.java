@@ -39,7 +39,7 @@ public class EncounterSearchExportGeneGISFormat extends HttpServlet{
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
-    
+    myShepherd.setAction("EncounterSearchExportGeneGISFormat.class");
 
     
     Vector rEncounters = new Vector();

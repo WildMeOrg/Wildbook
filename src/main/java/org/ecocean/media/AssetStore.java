@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.json.JSONObject;
@@ -168,6 +169,21 @@ public abstract class AssetStore implements java.io.Serializable {
     // limit to the somewhat arbitrary 75 char (which is enough for 64char of sha256 has + 11 "extra"?)
     public abstract String hashCode(JSONObject params);
 
+    //these have to do with "child types" which are essentially derived MediaAssets ... much work TODO here -- including possibly making this its own class?
+    //  i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
+    //  also, order matters here!  should be from "best" to "worst" so that things can degrade nicely when better ones are not available
+    public List<String> allChildTypes() {
+        return Arrays.asList(new String[]{"master", "mid", "watermark", "thumb"});
+    }
+    //awkwardly named subset of the above which will be used to determine which should be derived with updateStandardChildren()
+    public List<String> standardChildTypes() {
+        return Arrays.asList(new String[]{"master", "thumb", "mid", "watermark"});
+    }
+    public boolean isValidChildType(String type) {
+        if (allChildTypes() == null) return false;
+        return allChildTypes().contains(type);
+    }
+
     public String hashCode(MediaAsset ma) {
         return hashCode(ma.getParameters());
     }
@@ -267,6 +283,10 @@ public abstract class AssetStore implements java.io.Serializable {
             System.out.println("NOTICE: updateChild(" + parent + ") aborted due to non-image; major mime type = " + parent.getMimeTypeMajor());
             return null;
         }
+        if (!isValidChildType(type)) {
+            System.out.println("NOTICE: updateChild(" + parent + ") aborted due to invalid child type = " + type);
+            return null;  //should throw exception???
+        }
         try {
             parent.cacheLocal();
         } catch (Exception ex) {
@@ -274,7 +294,7 @@ public abstract class AssetStore implements java.io.Serializable {
         }
         File sourceFile = parent.localPath().toFile();
         File targetFile = new File(sourceFile.getParent().toString() + File.separator + Util.generateUUID() + "-" + type + ".jpg");
-        boolean allowed = _updateChildLocalWork(type, opts, sourceFile, targetFile);  //does the heavy lifting
+        boolean allowed = _updateChildLocalWork(parent, type, opts, sourceFile, targetFile);  //does the heavy lifting
         if (!allowed) return null;  //usually means read-only (big trouble throws exception, including targetFile not existing)
         JSONObject sp = this.createParameters(targetFile);
         MediaAsset ma = this.copyIn(targetFile, sp);
@@ -292,7 +312,7 @@ public abstract class AssetStore implements java.io.Serializable {
 
 
     //a helper/utility app for the above (if applicable) that works on localfiles (since many flavors will want that)
-    protected boolean _updateChildLocalWork(String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
+    protected boolean _updateChildLocalWork(MediaAsset parentMA, String type, HashMap<String,Object> opts, File sourceFile, File targetFile) throws IOException {
         if (!this.writable) return false; //should we silently fail or throw exception??
         if (!sourceFile.exists()) throw new IOException("updateChild() " + sourceFile.toString() + " does not exist");
 
@@ -304,6 +324,11 @@ public abstract class AssetStore implements java.io.Serializable {
         String args = null;  //i think the only real arg would be watermark text (which is largely unused)
 
         switch (type) {
+            case "master":
+                action = "maintainAspectRatio";
+                width = 4096;
+                height = 4096;
+                break;
             case "thumb":
                 width = 100;
                 height = 75;
@@ -366,9 +391,9 @@ System.out.println("AssetStore.updateChild(): " + sourceFile + " --> " + targetF
 
         ImageProcessor iproc = null;
         if (needsTransform) {
-            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray);
+            iproc = new ImageProcessor("context0", sourceFile.toString(), targetFile.toString(), width, height, transformArray, parentMA);
         } else {
-            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args);
+            iproc = new ImageProcessor("context0", action, width, height, sourceFile.toString(), targetFile.toString(), args, parentMA);
         }
 
         Thread t = new Thread(iproc);

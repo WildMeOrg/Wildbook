@@ -96,6 +96,11 @@ maLib.blankCaptionFunction = function(maJson) {
   return "";
 }
 
+maLib.testCaptionFunction = function(maJson) {
+  //return ("test caption for MediaAsset "+maJson.id);
+  return "";
+}
+
 
 /**
  * Like the above, but with also writes a labeled html caption,
@@ -145,6 +150,14 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   maLib.testExtraction(maJson);
   return;
 }
+
+maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
+  intoElem.append('<div class=\"col-md-4\"></div>');
+  intoElem = intoElem.find('div.col-md-4').last();
+  maLib.maJsonToFigureElemCaption(maJson, intoElem, caption, maCaptionFunction);
+}
+
+
 
 maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
@@ -315,7 +328,8 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
   // parse slide data (url, title, size ...) from DOM elements
   // (children of gallerySelector)
   var parseThumbnailElements = function(el) {
-      var thumbElements = el.childNodes,
+      var thumbElements = $(el).find('figure'),
+      //var thumbElements = el.childNodes,
           numNodes = thumbElements.length,
           items = [],
           figureEl,
@@ -347,8 +361,6 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
               w: parseInt(size[0], 10),
               h: parseInt(size[1], 10)
           };
-
-
 
           if(figureEl.children.length > 1) {
               // <figcaption> content
@@ -390,11 +402,17 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
 
       // find index of clicked item by looping through all child nodes
       // alternatively, you may define index via data- attribute
-      var clickedGallery = clickedListItem.parentNode,
-          childNodes = clickedListItem.parentNode.childNodes,
-          numChildNodes = childNodes.length,
+      // var clickedGallery = clickedListItem.parentNode;
+      var clickedGallery = clickedListItem.closest(gallerySelector);
+
+      //var childNodes = clickedListItem.parentNode.childNodes;
+      var childNodes = $(clickedGallery).find('figure');
+
+      var numChildNodes = childNodes.length,
           nodeIndex = 0,
           index;
+
+      console.log('numChildNodes = '+numChildNodes);
 
       for (var i = 0; i < numChildNodes; i++) {
           if(childNodes[i].nodeType !== 1) {
@@ -408,10 +426,9 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
           nodeIndex++;
       }
 
-
-
       if(index >= 0) {
           // open PhotoSwipe if valid index found
+          console.log("Opening photoswipe through other avenue. Index="+index);
           openPhotoSwipe( index, clickedGallery );
       }
       return false;
@@ -490,6 +507,7 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
       options.showAnimationDuration = 0;
     }
 
+    console.log("initializing photoswipe with "+items.length+" items.");
     // Pass data to PhotoSwipe and initialize it
     gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
     gallery.init();
@@ -561,5 +579,6 @@ function mkImg(maJson) {
 // execute above function
 
 $(document).ready(function() {
-  maLib.initPhotoSwipeFromDOM('.my-gallery');
+  //maLib.initPhotoSwipeFromDOM('.my-gallery');
+  maLib.initPhotoSwipeFromDOM('#enc-gallery');
 });

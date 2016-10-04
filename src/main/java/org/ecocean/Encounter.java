@@ -259,7 +259,7 @@ public class Encounter implements java.io.Serializable {
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
-    System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
+    if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -336,6 +336,22 @@ public class Encounter implements java.io.Serializable {
   public void removeRightSpots() {
     rightSpots = null;
   }
+
+    //yes, there "should" be only one of each of these, but we be thorough!
+    public void removeLeftSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spot");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeLeftSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+    public void removeRightSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spotRight");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeRightSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
 
   public void nukeAllSpots() {
     leftReferenceSpots = null;
@@ -2508,7 +2524,7 @@ thus, we have to treat it as a special case.
                 myShepherd.setAction("Encounter.class.getThumbnailUrl");
                 myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
-                if ((kids == null) || (kids.size() < 0)) {
+                if ((kids == null) || (kids.size() <= 0)) {
                   myShepherd.rollbackDBTransaction();
                   myShepherd.closeDBTransaction();
                   return null;
