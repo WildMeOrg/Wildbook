@@ -304,10 +304,8 @@ f<%@ page contentType="text/html; charset=utf-8"
       <p><a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum - 90)%>
-        - <%=(startNum - 46)%>
-      </a></p>
+        title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
+        </p>
     </td>
     <%
       }
