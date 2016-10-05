@@ -136,6 +136,10 @@ f<%@ page contentType="text/html; charset=utf-8"
 </head>
 <style type="text/css">
 
+	.col-md-4 {
+		height: 350px;
+	}
+
   #tabmenu {
     color: #000;
     border-bottom: 1px solid #CDCDCD;
