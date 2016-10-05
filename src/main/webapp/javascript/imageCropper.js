@@ -20,12 +20,12 @@ imageCropper.cropPics = function(selector, ratio) {
 };
 
 imageCropper.cropInnerPics = function() {
-  imageCropper.cropPics('.gallery-info.active .gallery-inner .crop', 16.0/9);
+  imageCropper.cropPics('.gallery-info.active .gallery-inner .crop', 4/3);
 };
 
 
 imageCropper.cropGridPics = function() {
-  imageCropper.cropPics('.gallery-unit .crop', 16.0/9);
+  imageCropper.cropPics('.gallery-unit .crop', 4/3);
 };
 
 $( document ).ready(function() {

@@ -10,6 +10,7 @@
               java.util.StringTokenizer,
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
+		org.ecocean.media.MediaAsset,
               org.joda.time.DateTime
               "
 %>
@@ -180,13 +181,12 @@ int numDataContributors=0;
     display: block !important;
   }
 
-/* temp hack */
-	#div-crop-Phs003 .image-copyright, #div-crop-Phs004 .image-copyright {
+/* just plain hide these now */
+	.image-copyright {
 		display: none;
 	}
-	#div-crop-Phs003 img, #div-crop-Phs004 img {
-		margin-top: 0 !important;
-	}
+
+
 </style>
 
 <nav class="navbar navbar-default gallery-nav">
@@ -294,6 +294,18 @@ int numDataContributors=0;
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
+/*
+for (Encounter enx : indie.getDateSortedEncounters()) {
+System.out.println("========> " + enx.getAnnotations());
+}
+*/
+///// note: this below is a workaround for the metadata bug that needs fixing
+for (Encounter enJ : indie.getDateSortedEncounters()) {
+	for (MediaAsset maJ : enJ.getMedia()) {
+		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+	}
+}
+
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
@@ -367,7 +379,6 @@ int numDataContributors=0;
                   <div class="crop">
                     <img src="<%=newUrl%>" id="<%=pairName[j]%>" alt="<%=pairNickname[j]%>" />
                     <p class="image-copyright"> <%=copyright%> </p>
-                    <script>console.log("<%=pairName[j]%>: added extra image <%=newUrl%>");</script>
                   </div>
                 </div>
                 <%

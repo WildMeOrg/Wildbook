@@ -16,12 +16,12 @@ galFunc.cropPics = function(selector, ratio) {
 };
 
 galFunc.cropInnerPics = function() {
-  galFunc.cropPics('.gallery-info.active .gallery-inner .crop', 16.0/9);
+  galFunc.cropPics('.gallery-info.active .gallery-inner .crop', 4/3);
 };
 
 
 galFunc.cropGridPics = function() {
-  galFunc.cropPics('.gallery-unit .crop', 16.0/9);
+  galFunc.cropPics('.gallery-unit .crop', 4/3);
 };
 
 
