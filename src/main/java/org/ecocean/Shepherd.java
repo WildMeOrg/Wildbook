@@ -115,6 +115,10 @@ public class Shepherd {
    */
   public String storeNewEncounter(Encounter enc, String uniqueID) {
     enc.setEncounterNumber(uniqueID);
+    return storeNewEncounter(enc);
+  }
+
+  public String storeNewEncounter(Encounter enc) {
     beginDBTransaction();
     try {
       pm.makePersistent(enc);
@@ -122,12 +126,13 @@ public class Shepherd {
     } catch (Exception e) {
       rollbackDBTransaction();
       System.out.println("I failed to create a new encounter in shepherd.storeNewEncounter().");
-      System.out.println("     uniqueID:" + uniqueID);
+      System.out.println("     id:" + enc.getCatalogNumber());
       e.printStackTrace();
       return "fail";
     }
-    return (uniqueID);
+    return enc.getCatalogNumber();
   }
+
 
   public String storeNewAnnotation(Annotation enc) {
     //enc.setOccurrenceID(uniqueID);
