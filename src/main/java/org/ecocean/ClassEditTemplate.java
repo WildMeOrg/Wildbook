@@ -204,9 +204,7 @@ public class ClassEditTemplate {
     String fieldName = splitCamelCase(dp.getNumberedName());
     String inputName = inputElemName(dp, classNamePrefix);
 
-    boolean isSequential = (dp.isSequential());
-
-    boolean isTemplate
+    boolean isSequential = dp.isSequential();
 
     if (dp.isCategorical(context)) {
       printOutClassFieldSelectorRow(fieldName, printValue, dp.getCategoriesAsStrings(context), inputName, out, isSequential);
@@ -302,7 +300,6 @@ public class ClassEditTemplate {
 
 
   public static void printDisplayDateTimeSetter(String inputName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException {
-    System.out.println("printDisplayDateTimeSetter for input "+inputName+" and printValue "+printValue);
     out.println("<input class=\"form-control datepicker display\" type=\"text\"");
     out.println("name=\"display-"+inputName+"\" ");
     out.println("value=\""+printValue+"\"");
