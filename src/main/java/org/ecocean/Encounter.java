@@ -286,6 +286,17 @@ public class Encounter implements java.io.Serializable {
     this.resetDateInMilliseconds();
   }
 
+  // for IOT submissions
+  public Encounter(String dataSheetName, String context) {
+    this.catalogNumber = Util.generateUUID();
+    this.annotations = new ArrayList<Annotation>();
+
+    this.setDWCDateAdded();
+    this.setDWCDateLastModified();
+    this.resetDateInMilliseconds();
+
+  }
+
     public Encounter(Annotation ann) {
         this(new ArrayList<Annotation>(Arrays.asList(ann)));
     }
