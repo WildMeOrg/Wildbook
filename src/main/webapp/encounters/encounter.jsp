@@ -79,18 +79,44 @@
 
 <%
 
-
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-String num = request.getParameter("number").replaceAll("\\+", "").trim();
+String num = request.getParameter("number");
+if (num!=null) {
+  num = num.replaceAll("\\+", "").trim();
+}
+Shepherd myShepherd = new Shepherd(context);
+//myShepherd.setAction("encounter.jsp");
+
+
+// create new encounter if no num is provided
+myShepherd.beginDBTransaction();
+try {
+  if (num==null || !myShepherd.isEncounter(num)) {
+    System.out.println("Creating a new encounter!");
+    Encounter enc = new Encounter("mortality", context);
+    num = enc.getCatalogNumber();
+    System.out.println("Created Encounter "+num);
+    myShepherd.storeNewEncounter(enc);
+    System.out.println("...and it's stored");
+  }
+
+} catch (Exception e) {
+} finally {
+  myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
+  myShepherd = new Shepherd(context);
+}
+
+
+
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-File encounterDir = new File(encountersDir, num);
 
 
   GregorianCalendar cal = new GregorianCalendar();
@@ -129,7 +155,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
   pageContext.setAttribute("num", num);
 
 
-  Shepherd myShepherd = new Shepherd(context);
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
@@ -434,6 +459,12 @@ margin-bottom: 8px !important;
 			<%
   			myShepherd.beginDBTransaction();
 
+        System.out.println("");
+        System.out.println("");
+        System.out.println("BEGINNING ENC.jsp");
+
+
+
   			if (myShepherd.isEncounter(num)) {
     			try {
 
@@ -714,7 +745,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=num %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -725,7 +756,7 @@ $(function() {
 	<!-- main display area -->
 
 	<div class="container">
-    <form method="post" action="encounter.jsp?number=<%=request.getParameter("number")%>" id="classEditTemplateForm">
+    <form method="post" action="encounter.jsp?number=<%=num%>" id="classEditTemplateForm">
     <div class="row datasheets">
         <div class="col-sm-12">
           <h2>
@@ -746,9 +777,9 @@ $(function() {
         DataSheet dSheet = enc.getDataSheet(i);
         int numEggs = enc.getEggCount(i);
         System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
-        if (numEggs==0) {
+        /*if (numEggs==0) {
           enc.addNewEgg(i);
-        }
+        }*/
         %>
           <h3>Data Sheet <%=i+1%></h2>
 
@@ -788,7 +819,7 @@ $(function() {
       }
       %>
       <div class="col-md-4">
-        <input type="button" name="newEgg<%=i%>" value="Add Egg Measurement" class="eggButton" />
+        <input type="button" name="newSubsheet<%=i%>" value="Add Sequential Measurements" class="sequentialButton" />
       </div>
 
 
@@ -4180,7 +4211,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           <%
           TissueSample thisSample=new TissueSample();
           String sampleIDString="";
-          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), num))){
         	  sampleIDString=request.getParameter("sampleID");
         	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
 
@@ -4384,7 +4415,7 @@ $("a#sample").click(function() {
 
 
 //setup the javascript to handle displaying an edit tissue sample dialog box
-if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
+if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), num))){
 %>
 <script>
 dlgSample.dialog("open");
@@ -5041,7 +5072,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <%
         MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
         String analysisIDString="";
-        //if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
+        //if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),num,request.getParameter("analysisID"),"MitochondrialDNA"))){
       	//    analysisIDString=request.getParameter("analysisID");
       	//	mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
         //}

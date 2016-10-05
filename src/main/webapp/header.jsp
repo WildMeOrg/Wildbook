@@ -289,8 +289,30 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                     <ul class="nav navbar-nav">
                                   <!--                -->
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
+
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
                       <li><a href="<%=urlLoc %>/nest.jsp"><%=props.getProperty("reportNest")%></a></li>
+
+
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Record a Data Sheet<span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newMortalitySheet=true">Mortality</a></li>
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newTaggingSheet=true">Tagging</a></li>
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newTrackcountsSheet=true">Track Counts</a></li>
+
+                          <!--
+                          <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>
+
+                            <li><a href="<%=urlLoc %>/citing.jsp"><%=props.getProperty("citing")%></a></li>
+
+                            <!--
+                            <li><a href="<%=urlLoc %>/photographing.jsp"><%=props.getProperty("howToPhotograph")%></a></li>
+                             -->
+                        </ul>
+                      </li>
+
+
 
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("learn")%> <span class="caret"></span></a>
