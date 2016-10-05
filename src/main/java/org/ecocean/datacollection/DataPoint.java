@@ -79,6 +79,7 @@ public abstract class DataPoint implements java.io.Serializable {
     if (configNo==null) return false;
     String lookupName = "datapoint"+configNo+"Values";
     String val = CommonConfiguration.getProperty(lookupName, context);
+    System.out.println("isCategorical "+lookupName+" = "+val);
     return (number != null && val != null);
   }
 
