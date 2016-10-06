@@ -694,6 +694,12 @@
   </servlet>
 
   <servlet>
+    <servlet-name>SwotExport</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.SwotExport</servlet-class>
+  </servlet>
+
+
+  <servlet>
     <servlet-name>IndividualCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualCreate</servlet-class>
   </servlet>
@@ -1110,6 +1116,11 @@
      <servlet-mapping>
         <servlet-name>CRCExportReport</servlet-name>
         <url-pattern>/CRCExportReport</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>SwotExport</servlet-name>
+    <url-pattern>/SwotExport</url-pattern>
   </servlet-mapping>
 
 
