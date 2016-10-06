@@ -3,7 +3,7 @@ package org.ecocean;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Enumeration;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -493,5 +493,34 @@ public class Util {
       if (lower.length()<=1) return (lower.toUpperCase());
       return (lower.substring(0,1).toUpperCase() + lower.substring(1));
     }
+
+    public static boolean requestHasVal(HttpServletRequest request, String paramName) {
+      return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
+    }
+
+    public static String addToJDOFilter(String constraint, String filter, String origFilter) {
+      if (filter.equals(origFilter)) return (filter + constraint);
+      else return (filter + " && " + constraint);
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis) {
+      return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
+    }
+
+    public static String undoUrlEncoding(String str) {
+      return str.replaceAll("%20", " ").trim();
+    }
+
+    public static <T> String toString(Enumeration<T> things) {
+      StringBuilder result = new StringBuilder("[");
+      while (things.hasMoreElements()) {
+        T thing = things.nextElement();
+        result.append(thing.toString());
+        if (things.hasMoreElements()) result.append(", ");
+      }
+      result.append("]");
+      return result.toString();
+    }
+
 
 }
