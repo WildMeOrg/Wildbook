@@ -2187,6 +2187,23 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator<Nest> getAllNests() {
+    Extent allSharks = null;
+    try {
+      allSharks = pm.getExtent(Nest.class, true);
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+    }
+    Extent encClass = pm.getExtent(Nest.class, true);
+    Query sharks = pm.newQuery(encClass);
+    Collection c = (Collection) (sharks.execute());
+    ArrayList list = new ArrayList(c);
+    Iterator it = list.iterator();
+    return it;
+  }
+
+
+
   public Iterator getAllWorkspaces() {
     Extent allWorkspaces = null;
     try {
