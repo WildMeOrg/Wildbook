@@ -291,7 +291,18 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="active home text-hide"><a href="<%=urlLoc %>"><%=props.getProperty("home")%></a></li>
 
                       <li><a href="<%=urlLoc %>/submit.jsp"><%=props.getProperty("report")%></a></li>
-                      <li><a href="<%=urlLoc %>/nest.jsp"><%=props.getProperty("reportNest")%></a></li>
+
+                      <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("nests")%><span class="caret"></span></a>
+                        <ul class="dropdown-menu" role="menu">
+                          <li>
+                            <a href="<%=urlLoc %>/nest.jsp"><%=props.getProperty("reportNest")%></a>
+                          </li>
+                          <li>
+                            <a href="<%=urlLoc %>/nest/searchResults.jsp"><%=props.getProperty("searchNest")%></a>
+                          </li>
+                        </ul>
+                      </li>
 
 
                       <li class="dropdown">
