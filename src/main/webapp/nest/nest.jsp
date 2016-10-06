@@ -12,11 +12,11 @@
     org.ecocean.security.Collaboration" %>
 
 
-<jsp:include page="header.jsp" flush="true"/>
+<jsp:include page="../header.jsp" flush="true"/>
 <!-- IMPORTANT style import for table printed by ClassEditTemplate.java -->
-<link rel="stylesheet" href="css/classEditTemplate.css" />
-<script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
-<script type="text/javascript" src="javascript/classEditTemplate.js"></script>
+<link rel="stylesheet" href="../css/classEditTemplate.css" />
+<script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
 
 
 
@@ -331,4 +331,4 @@ $(document).ready(function() {
 
 
 
-<jsp:include page="footer.jsp" flush="true"/>
+<jsp:include page="../footer.jsp" flush="true"/>
