@@ -898,6 +898,19 @@ System.out.println("   ....  ??? do we have a " + t);
         return updateChild(type, null);
     }
 
+    public ArrayList<MediaAsset> detachChildren(Shepherd myShepherd, String type) throws IOException {
+        if (store == null) throw new IOException("store is null on " + this);
+        ArrayList<MediaAsset> disposable = this.findChildrenByLabel(myShepherd, "_" + type);
+        if ((disposable != null) && (disposable.size() > 0)) {
+            for (MediaAsset ma : disposable) {
+                ma.setParentId(null);
+                ma.addDerivationMethod("detachedFrom", this.getId());
+                System.out.println("INFO: detached child " + ma + " from " + this);
+            }
+        }
+        return disposable;
+    }
+
     public ArrayList<MediaAsset> findChildren(Shepherd myShepherd) {
         if (store == null) return null;
         ArrayList<MediaAsset> all = store.findAllChildren(this, myShepherd);
