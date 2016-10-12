@@ -128,8 +128,12 @@
 
 		 <p><strong><%=map_props.getProperty("exportOptions")%></strong></p>
 
-		<p><%=map_props.getProperty("exportedSwot")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SwotExport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+		<p><%=map_props.getProperty("exportedNest")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SwotExport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
 		</p>
+
+    <p><%=map_props.getProperty("exportedSwot")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/SwotExport?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%></a>
+    </p>
+
 
 		<p><%=map_props.getProperty("exportedEmail")%>: <a
 		  href="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportEmailAddresses?<%=request.getQueryString()%>"><%=map_props.getProperty("clickHere")%>
