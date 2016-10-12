@@ -341,7 +341,7 @@ margin-bottom: 8px !important;
 
 int numMarkedIndividuals=0;
 int numEncounters=0;
-int numDataContributors=0;
+int numNests=0;
 
 myShepherd.beginDBTransaction();
 
@@ -356,7 +356,7 @@ try{
 
     numMarkedIndividuals=myShepherd.getNumMarkedIndividuals();
     numEncounters=myShepherd.getNumEncounters();
-    numDataContributors=myShepherd.getNumUsers();
+    numNests=myShepherd.getNumNests();
 
 
 }
@@ -628,7 +628,7 @@ finally{
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numNests %></span> recorded nests</i></p>
             </section>
         </div>
 
