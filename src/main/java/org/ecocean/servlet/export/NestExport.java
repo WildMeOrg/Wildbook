@@ -20,7 +20,7 @@ import jxl.write.*;
 import jxl.Workbook;
 
 
-public class SwotExport extends HttpServlet{
+public class NestExport extends HttpServlet{
 
   private static final int BYTES_DOWNLOAD = 1024;
 
