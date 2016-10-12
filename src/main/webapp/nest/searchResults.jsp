@@ -28,10 +28,12 @@ context=ServletUtilities.getContext(request);
 
   try{
 
+
+    System.out.println("nestSearchResults: about to generate queryResult");
   	NestQueryResult queryResult = NestQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
  	  rEncounters = queryResult.getResult();
 
-    System.out.println("Number nests returned = "+rEncounters.size());
+    System.out.println("nestSearchResults: nests returned = "+rEncounters.size());
 
 
 //--let's estimate the number of results that might be unique
@@ -39,6 +41,11 @@ context=ServletUtilities.getContext(request);
   int numUniqueEncounters = 0;
   int numUnidentifiedEncounters = 0;
   int numDuplicateEncounters = 0;
+
+  JDOPersistenceManager jdopm = (JDOPersistenceManager)myShepherd.getPM();
+  JSONArray jsonobj = RESTUtils.getJSONArrayFromCollection((Collection)rEncounters, jdopm.getExecutionContext());
+  String encsJson = jsonobj.toString();
+
 
 %>
 
@@ -252,7 +259,6 @@ td.tdw:hover div {
 <script type="text/javascript">
 
 <%
-	String encsJson = "false";
 
 StringBuffer prettyPrint=new StringBuffer("");
 
@@ -260,9 +266,13 @@ Map<String,Object> paramMap = new HashMap<String, Object>();
 
 String filter=NestQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
 
+
+
 %>
 
 var searchResults = <%=encsJson%>;
+
+console.log('searchResults = '+JSON.stringify(searchResults));
 
 var jdoql = '<%= filter.replaceAll("'", "\\\\'") %>';
 
@@ -302,65 +312,49 @@ $(document).keydown(function(k) {
 });
 
 
+function what(str) {
+
+}
+
 var colDefn = [
 	{
-		key: 'thumb',
-		label: 'Thumb',
-		value: _colThumb,
+		key: 'id',
+		label: 'id',
 		nosort: true,
 	},
 	{
-		key: 'individualID',
-		label: 'ID',
-		value: _colIndLink,
-		//sortValue: function(o) { return o.individualID.toLowerCase(); },
+		key: 'name',
+		label: 'Name',
+    value: function(o) {return _notUndefined(o, 'name');},
+    //value: _colName,
+    sortValue: function(o) { return _sortedNotUndefined(o, 'name') },
 	},
   {
-    key: 'otherCatalogNumbers',
-    label: '<%=nestprops.getProperty("alternateID")%>'//'Alternate ID',
-  },
-  {
-    key: 'filename',
-    label: 'Filename(s)',
-    value: _colFileName,
+    key: 'locationID',
+    label: 'Location ID',//'Alternate ID',
+    value: function(o) { return _notUndefined(o, 'locationID');}
   },
 	{
-		key: 'date',
-		label: '<%=nestprops.getProperty("date")%>',
-		value: _colEncDate,
-		sortValue: _colEncDateSort,
-		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
+		key: 'locationNote',
+		label: 'Location Note',
+    value: _colLocationNote
 	},
 	{
-		key: 'verbatimLocality',
-		label: '<%=nestprops.getProperty("location")%>',
+		key: 'latitude',
+		label: 'Latitude',
+    value: _colLatitude,
 	},
 	{
-		key: 'locationID',
-		label: '<%=nestprops.getProperty("locationID")%>',
+		key: 'longitude',
+		label: 'Longitude',
+    value: _colLongitude,
 	},
-	{
-		key: 'taxonomy',
-		label: '<%=nestprops.getProperty("taxonomy")%>',
-		value: _colTaxonomy,
-	},
-	{
-		key: 'submitterID',
-		label: '<%=nestprops.getProperty("submitterName")%>',
-	},
-	{
+	/*{
 		key: 'creationDate',
 		label: 'Created',
 		value: _colCreationDate,
 		sortValue: _colCreationDateSort,
-	},
-	{
-		key: 'modified',
-		label: 'Edit Date',
-		value: _colModified,
-		sortValue: _colModifiedSort,
-	}
-
+	},*/
 ];
 
 
@@ -634,7 +628,7 @@ function tableUp() {
 var encs;
 $(document).ready( function() {
 	wildbook.init(function() {
-		encs = new wildbook.Collection.Encounters();
+		encs = new wildbook.Collection.Nests();
 		encs.fetch({
 /*
 			// h/t http://stackoverflow.com/questions/9797970/backbone-js-progress-bar-while-fetching-collection
@@ -744,11 +738,11 @@ function xdoTable() {
 
 	resultsTable.tableInit();
 
-	encs = new wildbook.Collection.Encounters();
+	encs = new wildbook.Collection.Nests();
 	var addedCount = 0;
 	encs.on('add', function(o) {
 		var row = resultsTable.tableCreateRow(o);
-		row.click(function() { var w = window.open('encounter.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
+		row.click(function() { var w = window.open('nest.jsp?number=' + row.data('id'), '_blank'); w.focus(); });
 		row.addClass('clickable');
 		row.appendTo(tableContents);
 		addedCount++;
@@ -762,9 +756,11 @@ $('#progress').html(percentage);
 		}
 	});
 
+  var lencs = new wildbook.Collection.Nests(<%= encsJson%>);
+
 	_.each(searchResults, function(o) {
 //console.log(o);
-		encs.add(new wildbook.Model.Encounter(o));
+		encs.add(new wildbook.Model.Nest(o));
 	});
 	$('#progress').remove();
 	resultsTable.tableShow();
@@ -853,157 +849,6 @@ function _colRowNum(o) {
 	return o._rowNum;
 }
 
-
-function _colIA(o) {
-	if (!o.get('_iaResults')) return '';
-	//for sorting.  not it is asc numeric, so smaller appears at top
-	var sortWeights = {
-		pending: 0,
-		'success-match': 3,
-		'success-miss': 5,
-		error: 7,
-		unknown: 9,
-	};
-	var res = [];
-	var total = {};
-	var mostRecent = 0;
-	var mostRecentNice = '';
-	for (var annId in o.get('_iaResults')) {
-		var sum = _colAnnIASummary(annId, o.get('_iaResults')[annId]);
-		if (sum.mostRecent > mostRecent) {
-			mostRecent = sum.mostRecent;
-			mostRecentNice = sum.mostRecentNice;
-		}
-		res.push(sum.html);
-		for (var flav in sum.data) {
-			if (sum.data[flav] < 1) continue;
-			if (!total[flav]) total[flav] = 0;
-			total[flav] += sum.data[flav];
-		}
-	}
-	if (res.length < 1) return '<span class="ia-ann-summary"><span class="ia-unknown">?</span></span>';
-	if (Object.keys(total).length == 1) {
-		var flav = Object.keys(total)[0];
-		o.set('_sortWeight', sortWeights[flav] + '.' + (10000000000000 - mostRecent));
-		return '<span class="ia-ann-summary" title="' + total[flav] + ' ' + flav + ' on ' + res.length + ' imgs; most recent run ' + sum.mostRecentNice + '"><span class="ia-' + flav + '">' + total[flav] + '</span></span>';
-	}
-
-	//for sortWeight, we pick the lowest value
-	var sw = 500;
-	for (var flav in total) {
-		if (sortWeights[flav] < sw) sw = sortWeights[flav];
-	}
-	o.set('_sortWeight', sw + '.' + (10000000000000 - mostRecent));
-	return res.join('');
-}
-
-function _colAnnIASummary(annId, sum) {
-	console.log('%s ------> %o', annId, sum);
-	var mostRecent = 0;
-	var mostRecentTaskId = false;
-	var flav = ['success-match', 'success-miss', 'pending', 'error', 'unknown'];
-	var r = {};
-	for (var i = 0 ; i < flav.length ; i++) {
-		r[flav[i]] = 0;
-	}
-	for (var taskId in sum) {
-		if (!sum[taskId].timestamp || !sum[taskId].status || !sum[taskId].status._response) {
-			console.warn('unknown summary on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId]);
-			r.unknown++;
-			continue;
-		}
-
-		if (sum[taskId].timestamp > mostRecent) {
-			mostRecent = sum[taskId].timestamp;
-			mostRecentTaskId = taskId;
-		}
-	}
-
-	if (mostRecentTaskId) {
-		if (sum[mostRecentTaskId].status && sum[mostRecentTaskId].status._response && sum[mostRecentTaskId].status._response.status && sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.status.success) {
-			if (sum[mostRecentTaskId].status._response.response && sum[mostRecentTaskId].status._response.response.json_result &&
-			    (sum[mostRecentTaskId].status._response.response.json_result.length > 0)) {
-				var numMatches = 0;
-//console.warn(sum[mostRecentTaskId].status._response.response.json_result);
-				for (var m = 0 ; m < sum[mostRecentTaskId].status._response.response.json_result.length ; m++) {
-					if (!sum[mostRecentTaskId].status._response.response.json_result[m].daid_list) continue;
-					numMatches += sum[mostRecentTaskId].status._response.response.json_result[m].daid_list.length;
-				}
-				if (numMatches > 0) {
-					r['success-match']++;
-				} else {
-					r['success-miss']++;
-				}
-			} else {
-				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status);
-				r.error++;
-			}
-		} else if (!sum[mostRecentTaskId].status._response.success || sum[mostRecentTaskId].status._response.error) {
-			console.warn('error on annId=%s, taskId=%s -> %s', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response.error || 'non-success');
-			r.error++;
-		} else {  //guess this means we are waiting on results?
-			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, mostRecentTaskId, sum[mostRecentTaskId].status._response);
-			r.pending++;
-		}
-
-
-/* old way, to show *all* results
-		if (sum[taskId].timestamp > mostRecent) mostRecent = sum[taskId].timestamp;
-
-		//wtf, gimme a break, nested json!
-		if (sum[taskId].status && sum[taskId].status._response && sum[taskId].status._response.status && sum[taskId].status._response.response && sum[taskId].status._response.status.success) {
-			if (sum[taskId].status._response.response && sum[taskId].status._response.response.json_result &&
-			    (sum[taskId].status._response.response.json_result.length > 0)) {
-				var numMatches = 0;
-//console.warn(sum[taskId].status._response.response.json_result);
-				for (var m = 0 ; m < sum[taskId].status._response.response.json_result.length ; m++) {
-					if (!sum[taskId].status._response.response.json_result[m].daid_list) continue;
-					numMatches += sum[taskId].status._response.response.json_result[m].daid_list.length;
-				}
-				if (numMatches > 0) {
-					r['success-match']++;
-				} else {
-					r['success-miss']++;
-				}
-			} else {
-				console.warn('got IA results, but could not parse on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status);
-				r.error++;
-			}
-		} else if (!sum[taskId].status._response.success || sum[taskId].status._response.error) {
-			console.warn('error on annId=%s, taskId=%s -> %s', annId, taskId, sum[taskId].status._response.error || 'non-success');
-			r.error++;
-		} else {  //guess this means we are waiting on results?
-			console.warn('reporting pending on annId=%s, taskId=%s -> %o', annId, taskId, sum[taskId].status._response);
-			r.pending++;
-		}
-*/
-	}
-
-	var rtn = '';
-	var expl = '';
-	for (var i = 0 ; i < flav.length ; i++) {
-		if (r[flav[i]] < 1) continue;
-		rtn += '<span class="ia-' + flav[i] + '">' + r[flav[i]] + '</span>';
-		expl += ' ' + flav[i] + ':' + r[flav[i]];
-	}
-	if (!rtn) return '<span class="ia-error">!</span>';
-	var d = new Date(mostRecent);
-	return {
-		html: '<span class="ia-ann-summary" title="annot ' + annId + '; most recent run ' + d.toLocaleString() + ';' + expl + '">' + rtn + '</span>',
-		mostRecent: mostRecent,
-		mostRecentNice: d.toLocaleString(),
-		data: r
-	};
-}
-
-
-function _colIASort(o) {
-//console.info('[%s] weight=%o | has _iaResults %o', o.id, o.get('_sortWeight'), !(!o.get('_iaResults')));
-	if (o.get('_sortWeight')) return o.get('_sortWeight');
-	if (!o.get('_iaResults')) return 1000;
-	return 0;
-}
-
 function _colThumb(o) {
 	var url = wildbook.cleanUrl(o.thumbUrl());
 	if (!url) return '';
@@ -1044,7 +889,38 @@ function _colCreationDateSort(o) {
 	return d.getTime();
 }
 
+function _notUndefined(o, fieldName) {
+  var str = o.get(fieldName);
+  if (!str) return '';
+  return str;
+}
 
+function _sortedNotUndefined(o, fieldName) {
+  var str = o.get(fieldName);
+  if (!str) return 'zzz';
+  return str;
+}
+
+
+function _colLatitude(o) {
+  return _notUndefined(o, 'latitude');
+}
+
+function _colLongitude(o) {
+  return _notUndefined(o, 'longitude');
+}
+
+function _colName(o) {
+  return _notUndefined(o, 'name');
+}
+
+function _colLocationID(o) {
+  return _notUndefined(o, 'locationID');
+}
+
+function _colLocationNote(o) {
+  return _notUndefined(o, 'locationNote');
+}
 
 function _textExtraction(n) {
 	var s = $(n).text();
@@ -1085,7 +961,7 @@ console.log(t);
   <tr>
     <td align="left">
       <p><strong><%=nestprops.getProperty("matchingEncounters")%>
-      </strong>: <span id="count-total"></span>
+    </strong>: <span><%=rEncounters.size()%></span><!--<span id="count-total"></span>-->
         <%
           if (request.getUserPrincipal()!=null) {
             System.out.println("User logged in and numUniqueEncounters ="+numUniqueEncounters);
@@ -1102,7 +978,7 @@ console.log(t);
         myShepherd.beginDBTransaction();
       %>
       <p><strong><%=nestprops.getProperty("totalEncounters")%>
-      </strong>: <%=(myShepherd.getNumEncounters() + (myShepherd.getNumUnidentifiableEncounters()))%>
+    </strong>: <%=myShepherd.getNumNests()%>
       </p>
     </td>
 
