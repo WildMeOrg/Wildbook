@@ -18,6 +18,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("socialUnit.jsp");
 
 
 
@@ -215,6 +216,7 @@ if(indie.getSex()!=null){sexValue=indie.getSex();}
 
 <%
   myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 
 %>
 

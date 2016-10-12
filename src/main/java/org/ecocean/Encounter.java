@@ -265,7 +265,7 @@ public class Encounter implements java.io.Serializable {
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
-    System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
+    if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;
@@ -319,13 +319,13 @@ public class Encounter implements java.io.Serializable {
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
   public ArrayList<SuperSpot> getSpots() {
-    return HACKgetSpots();
-    //return spots;
+    //return HACKgetSpots();
+    return spots;
   }
 
   public ArrayList<SuperSpot> getRightSpots() {
-    return HACKgetRightSpots();
-    //return rightSpots;
+    //return HACKgetRightSpots();
+    return rightSpots;
   }
 
 
@@ -405,7 +405,7 @@ public class Encounter implements java.io.Serializable {
    *
    * @return the array of superSpots, taken from the croppedImage, that make up the digital fingerprint for this encounter
    */
-/*   these have gone away!  dont be setting spots on Encounter any more
+/*   these have gone away!  dont be setting spots on Encounter any more .... NOT SO FAST... we regress for whaleshark.org... */
   public void setSpots(ArrayList<SuperSpot> newSpots) {
     spots = newSpots;
   }
@@ -413,12 +413,11 @@ public class Encounter implements java.io.Serializable {
   public void setRightSpots(ArrayList<SuperSpot> newSpots) {
     rightSpots = newSpots;
   }
-*/
+
 
   /**
    * Removes any spot data
    */
-/*
   public void removeSpots() {
     spots = null;
   }
@@ -427,13 +426,29 @@ public class Encounter implements java.io.Serializable {
     rightSpots = null;
   }
 
+    //yes, there "should" be only one of each of these, but we be thorough!
+    public void removeLeftSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spot");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeLeftSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+    public void removeRightSpotMediaAssets(Shepherd myShepherd) {
+    	ArrayList<MediaAsset> spotMAs = this.findAllMediaByLabel(myShepherd, "_spotRight");
+        for (MediaAsset ma : spotMAs) {
+            System.out.println("INFO: removeRightSpotMediaAsset() detaching " + ma + " from parent id=" + ma.getParentId());
+            ma.setParentId(null);
+        }
+    }
+
   public void nukeAllSpots() {
     leftReferenceSpots = null;
     rightReferenceSpots = null;
     spots = null;
     rightSpots = null;
   }
-*/
+
 
   /**
    * Returns the number of spots in the cropped image stored for this encounter.
@@ -442,28 +457,30 @@ public class Encounter implements java.io.Serializable {
    */
 
 
-//TODO these are for backwards-compatibility but SHOULD GO AWAY
   public int getNumSpots() {
+    return (spots == null) ? 0 : spots.size();
+/*
     ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
     if(fakeSpots!=null){return fakeSpots.size();}
     else{return 0;}
-
+*/
   }
 
   public int getNumRightSpots() {
+    return (rightSpots == null) ? 0 : rightSpots.size();
+/*
     ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
     if(fakeRightSpots!=null){return fakeRightSpots.size();}
     else{return 0;}
+*/
   }
 
   public boolean hasLeftSpotImage() {
-    ArrayList<SuperSpot> fakeSpots = HACKgetSpots();
-    return (fakeSpots != null);
+    return (this.getNumSpots() > 0);
   }
 
   public boolean hasRightSpotImage() {
-    ArrayList<SuperSpot> fakeRightSpots = HACKgetRightSpots();
-    return (fakeRightSpots != null);
+    return (this.getNumRightSpots() > 0);
   }
 
 
@@ -1421,7 +1438,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
     return HACKgetAnyReferenceSpots();
   }
 
-/*  gone! no more setting spots on encounters!
+/*  gone! no more setting spots on encounters!  ... whoa there, yes there is for whaleshark.org */
   public void setLeftReferenceSpots(ArrayList<SuperSpot> leftReferenceSpots) {
     this.leftReferenceSpots = leftReferenceSpots;
   }
@@ -1429,7 +1446,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   public void setRightReferenceSpots(ArrayList<SuperSpot> rightReferenceSpots) {
     this.rightReferenceSpots = rightReferenceSpots;
   }
-*/
+
 
 
   /**
@@ -1861,6 +1878,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setGenus(String newGenus) {
     if(newGenus!=null){genus = newGenus;}
 	else{genus=null;}
+    updateAnnotationTaxonomy();
   }
 
   public String getSpecificEpithet() {
@@ -1870,7 +1888,12 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   public void setSpecificEpithet(String newEpithet) {
     if(newEpithet!=null){specificEpithet = newEpithet;}
 	else{specificEpithet=null;}
+    updateAnnotationTaxonomy();
   }
+
+    private void updateAnnotationTaxonomy() {
+        //TODO make this, duh
+    }
 
     public String getTaxonomyString() {
         return Util.taxonomyString(getGenus(), getSpecificEpithet());
@@ -2266,9 +2289,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
         return all;
     }
 
@@ -2583,10 +2608,26 @@ thus, we have to treat it as a special case.
 	public String getThumbnailUrl(String context) {
                 MediaAsset ma = getPrimaryMediaAsset();
                 if (ma == null) return null;
+                String url = null;
                 Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("Encounter.class.getThumbnailUrl");
+                myShepherd.beginDBTransaction();
                 ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_thumb");
-                if ((kids != null) && (kids.size() > 0)) ma = kids.get(0);
-                return ma.webURL().toString();
+                if ((kids == null) || (kids.size() <= 0)) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
+                ma = kids.get(0);
+                if (ma.webURL() == null) {
+                  myShepherd.rollbackDBTransaction();
+                  myShepherd.closeDBTransaction();
+                  return null;
+                }
+                url = ma.webURL().toString();
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
+                return url;
 	}
 
         //this probably needs a better name and should allow for something more like an ordered list; that said,
@@ -2617,6 +2658,7 @@ throw new Exception();
 		return true;
 	}
 
+///////// these are bunk now - dont use Features  TODO fix these - perhaps by crawlng thru ma.getAnnotations() ?
         public static Encounter findByMediaAsset(MediaAsset ma, Shepherd myShepherd) {
             String queryString = "SELECT FROM org.ecocean.Encounter WHERE annotations.contains(ann) && ann.mediaAsset.id ==" + ma.getId();
             Encounter returnEnc=null;

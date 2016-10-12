@@ -24,7 +24,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
-
+    myShepherd.setAction("searchComparisonResults.jsp");
 
 
 
@@ -751,9 +751,9 @@ var selectedRectangle2;
 
      <div class="container maincontent">
  
-<h1><%=encprops.getProperty("title")%></h1>
+<h1 class="intro"><%=encprops.getProperty("title")%></h1>
       
-<table width="810px">
+<table width="100%">
 	<tr>
 		<td bgcolor="#EEEEFF">
 			<p><strong><%=encprops.getProperty("comparisonOverview")%></strong></p>

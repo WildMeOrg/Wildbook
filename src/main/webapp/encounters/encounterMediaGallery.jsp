@@ -31,8 +31,45 @@ java.util.*" %>
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd imageShepherd = new Shepherd(context);
+imageShepherd.setAction("encounterMediaGallery.jsp");
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
+String encNum="";
+if(request.getParameter("encounterNumber")!=null){
+	encNum=request.getParameter("encounterNumber");
+}
+
+boolean isGrid = (request.getParameter("grid")!=null);
+
 imageShepherd.beginDBTransaction();
-String encNum = request.getParameter("encounterNumber");
+
+//String encNum = request.getParameter("encounterNumber");
+String queryString=request.getParameter("queryString");
+Query query=imageShepherd.getPM().newQuery(queryString);
+
+//set ordering
+if(request.getParameter("order")!=null){
+	query.setOrdering(request.getParameter("order"));
+}
+else{
+	query.setOrdering("dwcDateAddedLong descending");
+}
+
+//try to set range if available
+if((request.getParameter("rangeStart")!=null)&&(request.getParameter("rangeEnd"))!=null){
+	try{
+		int startRange=(new Integer(request.getParameter("rangeStart"))).intValue();
+		int endRange=(new Integer(request.getParameter("rangeEnd"))).intValue();
+		query.setRange(startRange, endRange);
+	}
+	catch(Exception e){
+
+		System.out.println("I tried to set a query range in encounterMediaGallery.jsp but failed due to the following exception.");
+		e.printStackTrace();
+	}
+}
+
+
 
 
 // collect every MediaAsset as JSON into the 'all' array
@@ -40,100 +77,126 @@ JSONArray all = new JSONArray();
 List<String[]> captionLinks = new ArrayList<String[]>();
 try {
 
-  String langCode=ServletUtilities.getLanguageCode(request);
-  Properties encprops = new Properties();
-  encprops = ShepherdProperties.getProperties("encounter.properties", langCode,context);
-  Encounter enc = imageShepherd.getEncounter(encNum);
-  ArrayList<Annotation> anns = enc.getAnnotations();
-  %>
-  <script>
-  function isGenusSpeciesSet() {
-    var check = <%=((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null))%>;
-    console.log("isGenusSpeciesSet() = "+check);
-    return check;
-  }
+	Collection c = (Collection) (query.execute());
+	ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
 
-  function startIdentify(ma) {
-	if (!ma) return;
-	var aid = ma.annotationId;
-    //var aid = el.getAttribute('data-id');
-    //el.parentElement.innerHTML = '<i>starting identification</i>';
-//console.warn('aid=%o, el=%o', aid, el); return;
-    jQuery.ajax({
-      url: '../ia',
-      type: 'POST',
-      dataType: 'json',
-      contentType: 'application/javascript',
-      success: function(d) {
-        console.info('identify returned %o', d);
-        if (d.taskID) {
-		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
-          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
-        } else {
-		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-        }
-      },
-      error: function(x,y,z) {
-		$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
-        console.warn('%o %o %o', x, y, z);
-      },
-      data: JSON.stringify({
-        identify: { annotationIds: [ aid ] }
-      })
-    });
-  }
-
-  // because we have links within the photoswipe-opening clickable area
-  function forceLink(el) {
-    var address = el.href;
-    if (address) {
-      window.location.href = address;
-    };
-    el.stopPropagation();
-  }
-  /*
-  $(".forceLink").click(function(e) {
-    alert('callin!');
-    e.stopPropagation();
-  });
-  */
-  //
+  int numEncs=encs.size();
+  %><script>
+  console.log("numEncs = <%=numEncs%>");
   </script>
-<%
+  <%
+  for(int f=0;f<numEncs;f++){
+		  Encounter enc = encs.get(f);
+		  ArrayList<Annotation> anns = enc.getAnnotations();
+		  %>
+		  <script>
+		  function isGenusSpeciesSet() {
+		    var check = <%=((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null))%>;
+		    console.log("isGenusSpeciesSet() = "+check);
+		    return check;
+		  }
+
+		  function startIdentify(ma) {
+			if (!ma) return;
+			var aid = ma.annotationId;
+		    //var aid = el.getAttribute('data-id');
+		    //el.parentElement.innerHTML = '<i>starting identification</i>';
+		//console.warn('aid=%o, el=%o', aid, el); return;
+		    jQuery.ajax({
+		      url: '../ia',
+		      type: 'POST',
+		      dataType: 'json',
+		      contentType: 'application/javascript',
+		      success: function(d) {
+		        console.info('identify returned %o', d);
+		        if (d.taskID) {
+				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>sending to result page...</p>');
+		          window.location.href = 'matchResults.jsp?taskId=' + d.taskID;
+		        } else {
+				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
+		        }
+		      },
+		      error: function(x,y,z) {
+				$('#image-enhancer-wrapper-' + ma.id + ' .image-enhancer-overlay-message').html('<p>error starting identification</p>');
+		        console.warn('%o %o %o', x, y, z);
+		      },
+		      data: JSON.stringify({
+		        identify: { annotationIds: [ aid ] }
+		      })
+		    });
+		  }
+
+		  // because we have links within the photoswipe-opening clickable area
+		  function forceLink(el) {
+		    var address = el.href;
+		    if (address) {
+		      window.location.href = address;
+		    };
+		    el.stopPropagation();
+		  }
+		  /*
+		  $(".forceLink").click(function(e) {
+		    alert('callin!');
+		    e.stopPropagation();
+		  });
+		  */
+		  //
+		  </script>
+		<%
 
 
 
 
-JSONObject iaTasks = new JSONObject();
+		JSONObject iaTasks = new JSONObject();
 
-  if ((anns == null) || (anns.size() < 1)) {
-    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
-  }
-  else {
-  	for (Annotation ann: anns) {
-      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		  if ((anns == null) || (anns.size() < 1)) {
+		    %> <script>console.log('no annnotations found for encounter <%=encNum %>'); </script> <%
+		  }
+		  else {
+		  	for (Annotation ann: anns) {
+		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
+		      MediaAsset ma = ann.getMediaAsset();
+		      String filename = ma.getFilename();
+		      
+		      String individualID="";
+		      if(enc.getIndividualID()!=null){
+		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
+		      }
+		      
+		      //Start caption render JSP side
+		      String[] capos=new String[1];
+		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
+		      capos[0]+=individualID;
+		      
+		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
+		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
+		      
+		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
+		      captionLinks.add(capos);
+		      //end caption render JSP side
+		      
+		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
+		  		//if (!ann.isTrivial()) continue;  ///or not?
 
-      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
-  		//if (!ann.isTrivial()) continue;  ///or not?
+		  		
+		  		if (ma != null) {
+		  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
+		  			if (j != null) {
+						j.put("annotationId", ann.getId());
+						all.put(j);
+					}
+		  		}
+		  	}
+		  	// out.println("var assets = " + all.toString() + ";");
+		    //System.out.println("All media assets as an array: "+all.toString());
 
-  		MediaAsset ma = ann.getMediaAsset();
-  		if (ma != null) {
-  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
-  			if (j != null) {
-				j.put("annotationId", ann.getId());
-				all.put(j);
-			}
-  		}
-  	}
-  	// out.println("var assets = " + all.toString() + ";");
-    //System.out.println("All media assets as an array: "+all.toString());
-
-}
-	out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
-
+		}
+			out.println("<script> var iaTasks = " + iaTasks.toString() + ";</script>");
+	}
 }
 catch(Exception e){e.printStackTrace();}
 finally{
+	query.closeAll();
 	imageShepherd.rollbackDBTransaction();
 	imageShepherd.closeDBTransaction();
 }
@@ -183,8 +246,13 @@ for (int i=0; i<captionLinks.size(); i++) {
   }
 
 </style>
-
-<h2>Gallery</h2>
+<%
+if(request.getParameter("encounterNumber")!=null){
+%>
+	<h2><%=encprops.getProperty("gallery") %></h2>
+<%
+}
+%>
 
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
 <script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
@@ -231,7 +299,11 @@ for (int i=0; i<captionLinks.size(); i++) {
   assets.forEach( function(elem, index) {
     var assetId = elem['id'];
     console.log("EMG asset "+index+" id: "+assetId);
-    maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    if (<%=isGrid%>) {
+      maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
+    } else {
+      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+    }
 
 /*   now added to image hamburger menu
     var removeAssetLink = "<p id=\"remove"+assetId+"\" style=\"text-align:right\"> <a title=\"Remove above image from encounter\" href=\"\" onclick=\"removeAsset("+assetId+")\">Remove image from encounter</a></p>";
@@ -267,15 +339,23 @@ function doImageEnhancer(sel) {
     if (loggedIn) {
         opt.debug = false;
         opt.menu = [
+           <%
+           if(!encNum.equals("")){
+        	%>
             ['remove this image', function(enh) {
 		removeAsset(enh.imgEl.prop('id').substring(11));
             }],
+            <%
+    		}
+            %>
+
 /*
             ['replace this image', function(enh) {
             }],
 */
 	];
 
+/*   generic IA stuff, skipped for whaleshark
 	if (wildbook.iaEnabled()) {
 		opt.menu.push(['start new matching scan', function(enh) {
       if (isGenusSpeciesSet()) {
@@ -304,13 +384,30 @@ function doImageEnhancer(sel) {
 			tid
 		]);
 	}
-
+*/
+<%
+if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
+%>
 	opt.menu.push(
+            [
+		'spot mapping',
+		function(enh) {
+			if (!enh || !enh.imgEl || !enh.imgEl.context) {
+				alert('could not determine id');
+				return;
+			}
+			var mid = enh.imgEl.context.id.substring(11);
+			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
+		}
+            ],
             [
 		function(enh) { return imagePopupInfoMenuItem(enh); },
 		function(enh) { imagePopupInfo(enh); }
             ]
 	);
+	<%
+    }
+	%>
 
 /*
         if (true) {

@@ -16,7 +16,7 @@ var maLib = {};
  */
 maLib.maJsonToFigureElem = function(maJson, intoElem) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -86,11 +86,21 @@ maLib.cascadiaCaptionFunction = function(maJson) {
   if ('url' in maJson) {
     var partArray = maJson.url.split('/');
     partArray = partArray[partArray.length-1].split('.');
-    return encodeURI(partArray[0]);
+    return partArray[0];
   }
   return "Test caption, do not read";
 
 }
+
+maLib.blankCaptionFunction = function(maJson) {
+  return "";
+}
+
+maLib.testCaptionFunction = function(maJson) {
+  //return ("test caption for MediaAsset "+maJson.id);
+  return "";
+}
+
 
 /**
  * Like the above, but with also writes a labeled html caption,
@@ -99,14 +109,14 @@ maLib.cascadiaCaptionFunction = function(maJson) {
  * @param {@function {@param {string} maJSON @returns {string}}} maCaptionFunction - a function that takes a jsonified MediaAsset and returns a caption string. This makes it convenient to have custom caption protocols for each Wildbook.
  */
 maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionFunction) {
+    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   caption = caption || "";
-  maCaptionFunction = maCaptionFunction || maLib.cascadiaCaptionFunction;
+  maCaptionFunction = maCaptionFunction || maLib.blankCaptionFunction;
   caption = caption || '';
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
 
   // have to check to make sure values exist
   if ('metadata' in maJson) {
@@ -141,6 +151,14 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   return;
 }
 
+maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
+  intoElem.append('<div class=\"col-md-4\"></div>');
+  intoElem = intoElem.find('div.col-md-4').last();
+  maLib.maJsonToFigureElemCaption(maJson, intoElem, caption, maCaptionFunction);
+}
+
+
+
 maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCaptionFunction) {
   //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
   // TODO: genericize caption
@@ -149,8 +167,7 @@ maLib.maJsonToFigureElemColCaption = function(maJson, intoElem, colSize, maCapti
   colSize = colSize || 6;
 
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -221,6 +238,7 @@ maLib.testExtraction = function(maJson) {
     nChildren = 'undefined';
   }
   console.log('\t'+maJson.id+' has nChildren = '+nChildren);
+console.log(maJson);
 
   console.log('\t'+maJson.id+' has child watermark url: '+maLib.getChildUrl(maJson, '_watermark'));
 
@@ -230,8 +248,7 @@ maLib.testExtraction = function(maJson) {
 
 maLib.maJsonToFigureElemDisplayChild = function(maJson, intoElem, childLabel) {
   // TODO: copy into html figure element
-  var url = maJson.url, w, h;
-  url = wildbook.cleanUrl(url);
+  var url = maLib.getUrl(maJson), w, h;
   // have to check to make sure values exist
   if ('metadata' in maJson) {
     w = maJson.metadata.width;
@@ -311,7 +328,8 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
   // parse slide data (url, title, size ...) from DOM elements
   // (children of gallerySelector)
   var parseThumbnailElements = function(el) {
-      var thumbElements = el.childNodes,
+      var thumbElements = $(el).find('figure'),
+      //var thumbElements = el.childNodes,
           numNodes = thumbElements.length,
           items = [],
           figureEl,
@@ -336,15 +354,13 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
         if (imgEl && imgEl.naturalWidth && imgEl.naturalHeight) {
             size = [imgEl.naturalWidth, imgEl.naturalHeight];
         }
- 
+
           // create slide object
           item = {
               src: linkEl.getAttribute('href'),
               w: parseInt(size[0], 10),
               h: parseInt(size[1], 10)
           };
-
-
 
           if(figureEl.children.length > 1) {
               // <figcaption> content
@@ -386,11 +402,17 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
 
       // find index of clicked item by looping through all child nodes
       // alternatively, you may define index via data- attribute
-      var clickedGallery = clickedListItem.parentNode,
-          childNodes = clickedListItem.parentNode.childNodes,
-          numChildNodes = childNodes.length,
+      // var clickedGallery = clickedListItem.parentNode;
+      var clickedGallery = clickedListItem.closest(gallerySelector);
+
+      //var childNodes = clickedListItem.parentNode.childNodes;
+      var childNodes = $(clickedGallery).find('figure');
+
+      var numChildNodes = childNodes.length,
           nodeIndex = 0,
           index;
+
+      console.log('numChildNodes = '+numChildNodes);
 
       for (var i = 0; i < numChildNodes; i++) {
           if(childNodes[i].nodeType !== 1) {
@@ -404,10 +426,9 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
           nodeIndex++;
       }
 
-
-
       if(index >= 0) {
           // open PhotoSwipe if valid index found
+          console.log("Opening photoswipe through other avenue. Index="+index);
           openPhotoSwipe( index, clickedGallery );
       }
       return false;
@@ -486,6 +507,7 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
       options.showAnimationDuration = 0;
     }
 
+    console.log("initializing photoswipe with "+items.length+" items.");
     // Pass data to PhotoSwipe and initialize it
     gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
     gallery.init();
@@ -507,15 +529,56 @@ maLib.initPhotoSwipeFromDOM = function(gallerySelector) {
   }
 };
 
+maLib.isImage = function(maJson) {
+    if (maJson.metadata && maJson.metadata.contentType) return (maJson.metadata.contentType.substring(0,6) == "image/");
+    //kind of a little tricky cuz there is some legacy data with no metadata let alone mimetype, sooooooo
+    var regex = new RegExp("\\.(jpe?g|png|gif)$", "i");
+    if (!maJson.url) return false;
+    return regex.test(maJson.url);
+}
 
+maLib.nonImageDisplay = function(maJson, intoElem, caption, maCaptionFunction) {
+    if (maLib.isImage(maJson)) return false;
+    var caption = (caption || '') + (maCaptionFunction ? maCaptionFunction(maJson) : '');
+    var regexp = new RegExp("^video/(ogg|m4v|mp4|webm)$");
+    if (maJson.metadata && maJson.metadata.contentType && regexp.test(maJson.metadata.contentType)) {
+        intoElem.append('<div><video style="width: 100%;" controls>' +
+        '<source src="' + maJson.url + '" type="' + maJson.metadata.contentType + '" />' +
+        '<div><a target="_new" href="' + maJson.url + '">play video</a></div>' +
+        '</video><div class="video-caption">' + caption + '</div></div>');
+    } else {
+        var filename = maJson.url;
+        var i = filename.lastIndexOf("/");
+        if (i >= 0) filename = filename.substring(i + 1);
+        intoElem.append('<div style="text-align: center;"><a style="padding: 10px; background-color: #AAA; margin: 10px;" target="_new" href="' +
+        maJson.url + '">open file <b>' + filename + '</b></a><div class="unknown-caption">' + caption + '</div></div>');
+    }
+    return true;
+}
+
+
+
+
+maLib.getUrl = function(maJson) {
+    url = maJson.url;
+    if (!url) return;
+    if (!wildbookGlobals.username) {
+        var wmUrl = maLib.getChildUrl(maJson, '_watermark');
+        if (wmUrl) url = wmUrl;
+    }
+console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
+    url = wildbook.cleanUrl(url);
+    return url;
+}
 
 function mkImg(maJson) {
-    var url = wildbook.cleanUrl(maJson.url);
+    var url = maLib.getUrl(maJson);
     return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
 }
 
 // execute above function
 
 $(document).ready(function() {
-  maLib.initPhotoSwipeFromDOM('.my-gallery');
+  //maLib.initPhotoSwipeFromDOM('.my-gallery');
+  maLib.initPhotoSwipeFromDOM('#enc-gallery');
 });

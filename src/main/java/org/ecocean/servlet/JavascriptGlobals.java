@@ -55,6 +55,7 @@ public class JavascriptGlobals extends HttpServlet {
     String context="context0";
     context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("JavascriptGlobals.class1");
     
 		String username = ((request.getUserPrincipal() == null) ? "" : request.getUserPrincipal().getName());
 
@@ -132,7 +133,7 @@ public class JavascriptGlobals extends HttpServlet {
 
     rtn.put("uploader", uploader);
 
-    HashMap<String,String> kw = new HashMap<String,String>();
+    LinkedHashMap<String,String> kw = new LinkedHashMap<String,String>();
     myShepherd.beginDBTransaction();
     Iterator<Keyword> keywords = myShepherd.getAllKeywords();
     while (keywords.hasNext()) {

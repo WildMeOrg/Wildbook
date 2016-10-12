@@ -270,11 +270,15 @@ public class Util {
   }
 
   public synchronized static ArrayList<Point2D> getCachedGPSCoordinates(boolean refresh,String context) {
+    Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("Util.class.getCached GPSCoordinates");
+    myShepherd.beginDBTransaction();
     try {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        Shepherd myShepherd=new Shepherd(context);
+        
+        
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -293,13 +297,17 @@ public class Util {
         }
 
         query.closeAll();
+        
       }
-
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return coords;
     }
     catch (Exception jdo) {
       jdo.printStackTrace();
       System.out.println("I hit an error trying to populate the cached GPS coordinates in Util.java.");
+      myShepherd.rollbackDBTransaction();
+      myShepherd.closeDBTransaction();
       return new ArrayList<Point2D>();
     }
   }

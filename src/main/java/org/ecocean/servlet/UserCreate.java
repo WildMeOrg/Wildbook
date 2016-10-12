@@ -55,7 +55,7 @@ public class UserCreate extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    
+    request.setCharacterEncoding("UTF-8");
     String context="context0";
     //context=ServletUtilities.getContext(request);
     
@@ -94,6 +94,7 @@ public class UserCreate extends HttpServlet {
       if((password.equals(password2))||(isEdit)){
         
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("UserCreate.class");
         
         User newUser=new User();
       

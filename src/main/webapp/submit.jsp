@@ -4,7 +4,8 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List" %>
+                 java.util.List,
+                 java.util.Locale" %>
 
 
 <!-- Add reCAPTCHA -->
@@ -13,6 +14,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+	
+<link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
+
 
 <jsp:include page="header.jsp" flush="true"/>
 
@@ -205,7 +209,11 @@ $(function() {
       dateFormat: 'yy-mm-dd',
       maxDate: '+1d',
       controlType: 'select',
-      alwaysSetTime: false
+      alwaysSetTime: false,
+      showSecond:false,
+      showMillisec:false,
+      showMicrosec:false,
+      showTimezone:false
     });
     $( "#datepicker" ).datetimepicker( $.timepicker.regional[ "<%=langCode %>" ] );
 
@@ -579,27 +587,17 @@ if(CommonConfiguration.showProperty("showCountry",context)){
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
         <select name="locationID" id="locationID" class="form-control">
             <option value="" selected="selected"></option>
-                  <%
-                         boolean hasMoreCountries=true;
-                         int taxNum=0;
-
-                         while(hasMoreCountries){
-                               String currentCountry = "country"+taxNum;
-                               if(CommonConfiguration.getProperty(currentCountry,context)!=null){
-                                   %>
-
-                                     <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
-                                   <%
-                                 taxNum++;
-                            }
-                            else{
-                               hasMoreCountries=false;
-                            }
-
-                       }
-
-     %>
-   </select>
+            <%
+            String[] locales = Locale.getISOCountries();
+			for (String countryCode : locales) {
+				Locale obj = new Locale("", countryCode);
+				String currentCountry = obj.getDisplayCountry();
+                %>
+			<option value="<%=currentCountry %>"><%=currentCountry%></option>
+            <%
+            }
+			%>
+   		</select>
       </div>
     </div>
 
@@ -673,6 +671,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
     if(request.getRemoteUser()!=null){
         submitterName=request.getRemoteUser();
         Shepherd myShepherd=new Shepherd(context);
+        myShepherd.setAction("submit.jsp1");
         myShepherd.beginDBTransaction();
         if(myShepherd.getUser(submitterName)!=null){
             User user=myShepherd.getUser(submitterName);

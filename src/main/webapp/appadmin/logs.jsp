@@ -7,7 +7,7 @@
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-  Shepherd myShepherd = new Shepherd(context);
+
 
 //handle some cache-related security
   response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
@@ -29,9 +29,9 @@ context=ServletUtilities.getContext(request);
      
 
 <ul>
-<li><a href="../logs/user-access.htm">User access log</a></li>
-<li><a href="../logs/encounter-submission.htm">Encounter submissions log</a></li>
-<li><a href="../logs/encounter-delete.htm">Deleted encounters log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/user-access.htm">User access log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-submission.htm">Encounter submissions log</a></li>
+<li><a href="/<%=CommonConfiguration.getDataDirectoryName(context) %>/logs/encounter-delete.htm">Deleted encounters log</a></li>
 </ul>
 
 </div>

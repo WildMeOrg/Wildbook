@@ -57,6 +57,7 @@ public class OccurrenceCreate extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceCreate.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -107,19 +108,20 @@ public class OccurrenceCreate extends HttpServlet {
 
 
             //output success statement
-            out.println(ServletUtilities.getHeader(request));
+            //out.println(ServletUtilities.getHeader(request));
+            response.setStatus(HttpServletResponse.SC_OK);
             out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully used to create occurrence <strong>" + myOccurrenceID + "</strong>.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + ".</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + ".</a></p>\n");
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + ".</strong></a></p>\n");
+            //out.println(ServletUtilities.getFooter(context));
           } 
           else {
-            out.println(ServletUtilities.getHeader(request));
+            //out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT used to create a new occurrence. This encounter is currently being modified by another user. Please go back and try to create the new occurrence again in a few seconds.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + "</strong></a></p>\n");
-            out.println(ServletUtilities.getFooter(context));
-
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+            //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + myOccurrenceID + "\">View <strong>" + myOccurrenceID + "</strong></a></p>\n");
+            //out.println(ServletUtilities.getFooter(context));
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
           }
 
 
@@ -134,27 +136,31 @@ public class OccurrenceCreate extends HttpServlet {
       else if ((myShepherd.isOccurrence(myOccurrenceID))) {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> An occurrence with this identifier already exists in the database. Select a different identifier and try again.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
       } 
       else {
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You cannot make a new occurrence from this encounter because it is already assigned to another occurrence. Remove it from its previous occurrence if you want to re-assign it elsewhere.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
 
     } 
     else {
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I didn't receive enough data to create a new occurrence from this encounter.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      myShepherd.closeDBTransaction();
     }
 
 

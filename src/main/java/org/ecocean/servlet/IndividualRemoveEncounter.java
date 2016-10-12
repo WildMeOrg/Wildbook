@@ -52,9 +52,11 @@ public class IndividualRemoveEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    request.setCharacterEncoding("UTF-8");
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualRemoveEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

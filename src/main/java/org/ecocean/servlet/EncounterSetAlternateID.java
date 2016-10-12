@@ -48,9 +48,11 @@ public class EncounterSetAlternateID extends HttpServlet {
 
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    request.setCharacterEncoding("UTF-8");
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetAlternateID.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -78,26 +80,29 @@ public class EncounterSetAlternateID extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the alternate ID for encounter " + sharky + " to " + alternateID + ".</p>");
-
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_OK);
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "The alternate ID for encounter " + sharky + " was set to " + alternateID + ".";
-      } else {
+      } 
+      else {
 
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to modify this encounter again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
-
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + sharky + "\">Return to encounter " + sharky + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
-    } else {
+    } 
+    else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the alternate ID. I cannot find the encounter that you intended it for in the database.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
     out.close();

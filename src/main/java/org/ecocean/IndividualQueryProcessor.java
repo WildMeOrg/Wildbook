@@ -38,6 +38,7 @@ public class IndividualQueryProcessor {
     context=ServletUtilities.getContext(request);
 
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("IndividualQueryProcessor.class");
 
     int day1=1, day2=31, month1=1, month2=12, year1=0, year2=3000;
     try{month1=(new Integer(request.getParameter("month1"))).intValue();} catch(Exception nfe) {}
@@ -611,7 +612,7 @@ public class IndividualQueryProcessor {
     }
     //end hasPhoto filters-----------------------------------------------
 
-
+/*
     //------------------------------------------------------------------
     //hasSpots filters-------------------------------------------------
     if(request.getParameter("hasSpots")!=null){
@@ -640,7 +641,7 @@ public class IndividualQueryProcessor {
 
     }
     //end hasNoSpots filters-----------------------------------------------
-
+*/
 
 
     //------------------------------------------------------------------

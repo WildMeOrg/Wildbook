@@ -59,10 +59,12 @@ public class IndividualAddEncounter extends HttpServlet {
   }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    request.setCharacterEncoding("UTF-8");
     String context="context0";
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualAddEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -73,21 +75,37 @@ public class IndividualAddEncounter extends HttpServlet {
 
     //add encounter to a MarkedIndividual
 
-    if ((request.getParameter("number") != null) && (request.getParameter("individual") != null) && (request.getParameter("matchType") != null)) {
+    String indivID = request.getParameter("individual");
+    if ((request.getParameter("number") != null) && (indivID != null) && (request.getParameter("matchType") != null)) {
 
       String nickname = "";
       myShepherd.beginDBTransaction();
       Encounter enc2add = myShepherd.getEncounter(request.getParameter("number"));
+        if (enc2add == null) throw new RuntimeException("invalid encounter id=" + request.getParameter("number"));
       setDateLastModified(enc2add);
      
-      if ((enc2add.getIndividualID()==null) && (myShepherd.isMarkedIndividual(request.getParameter("individual")))) {
+      if (enc2add.getIndividualID()==null) {
+        MarkedIndividual addToMe = null;
+        //if we dont already have this individual, we now make it  TODO this may fail because of security (in the future) so we need to take that into consideration
+        if (!myShepherd.isMarkedIndividual(indivID)) {
+            try {
+                addToMe = new MarkedIndividual(indivID, enc2add);
+                myShepherd.storeNewMarkedIndividual(addToMe);
+                enc2add.setIndividualID(indivID);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                myShepherd.rollbackDBTransaction();
+                throw new RuntimeException("unable to create new MarkedIndividual " + indivID);
+            }
+        } else {
+            addToMe = myShepherd.getMarkedIndividual(indivID);
+        }
+
         try {
 
 
           boolean sexMismatch = false;
-
           //myShepherd.beginDBTransaction();
-          MarkedIndividual addToMe = myShepherd.getMarkedIndividual(request.getParameter("individual"));
           if ((addToMe.getNickName() != null) && (!addToMe.getNickName().equals(""))) {
             nickname = " ("+addToMe.getNickName() + ")";
           }
@@ -138,11 +156,13 @@ public class IndividualAddEncounter extends HttpServlet {
 
               // Specify email template type.
               String emailTemplate = "individualAddEncounter";
+              String emailTemplate2 = "individualUpdate";
 
+              
               // Notify administrator address
               Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, addToMe, enc2add);
               String mailTo = CommonConfiguration.getAutoEmailAddress(context);
-              NotificationMailer mailer = new NotificationMailer(context, null, mailTo, emailTemplate, tagMap);
+              NotificationMailer mailer = new NotificationMailer(context, langCode, mailTo, emailTemplate, tagMap);
               mailer.appendToSubject(" (sent to submitters)");
       			  es.execute(mailer);
 
@@ -158,17 +178,19 @@ public class IndividualAddEncounter extends HttpServlet {
                 if (!"".equals(emailTo)) {
                   tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                   tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                  es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
+                  es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate, tagMap));
                 }
               }
 
       			  // Notify other who need to know
               Set<String> cOthers = new HashSet<>(addToMe.getAllEmailsToUpdate());
               cOthers.removeAll(cSubmitters);
+              //System.out.println("cOthers size is: "+cOthers.size());
               for (String emailTo : cOthers) {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
-                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate, tagMap));
+                //System.out.println("Emailing cOthers member:" +emailTo);
+                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate2, tagMap));
               }
 
               // Notify adopters
@@ -181,7 +203,7 @@ public class IndividualAddEncounter extends HttpServlet {
                 tagMap.put(NotificationMailer.EMAIL_NOTRACK, "number=" + enc2add.getCatalogNumber());
                 tagMap.put(NotificationMailer.EMAIL_HASH_TAG, Encounter.getHashOfEmailString(emailTo));
                 tagMap.put(NotificationMailer.STANDARD_CONTENT_TAG, tagMap.get("@ENCOUNTER_LINK@"));
-                es.execute(new NotificationMailer(context, null, emailTo, emailTemplate + "-adopter", tagMap));
+                es.execute(new NotificationMailer(context, langCode, emailTo, emailTemplate + "-adopter", tagMap));
               }
 
               String rssTitle = request.getParameter("individual") + " Resight";
@@ -248,7 +270,7 @@ public class IndividualAddEncounter extends HttpServlet {
         }
       } else {
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one, or you may be trying to add this encounter to a nonexistent individual.");
+        out.println("<strong>Error:</strong> You can't add this encounter to a marked individual when it's already assigned to another one.");
         out.println(ServletUtilities.getFooter(context));
         myShepherd.rollbackDBTransaction();
         //myShepherd.closeDBTransaction();

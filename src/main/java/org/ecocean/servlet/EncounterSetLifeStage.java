@@ -23,6 +23,7 @@ public class EncounterSetLifeStage extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterSetLifeStage.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -57,30 +58,31 @@ public class EncounterSetLifeStage extends HttpServlet {
       if(!locked){
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the lifeStage for encounter "+encNum+" to "+lifeStage+".</p>");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_OK);
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message="The lifeStage for encounter "+encNum+" was set to "+lifeStage+".";
         
         
       }
       else{
 
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
-
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
 
       }
                   }
                 else {
                   myShepherd.rollbackDBTransaction();
-                out.println(ServletUtilities.getHeader(request));
+                //out.println(ServletUtilities.getHeader(request));
                 out.println("<strong>Error:</strong> I was unable to set the lifeStage. I cannot find the encounter that you intended in the database.");
-                out.println(ServletUtilities.getFooter(context));
+                //out.println(ServletUtilities.getFooter(context));
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
                   }
                 out.close();

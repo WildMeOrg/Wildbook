@@ -40,8 +40,8 @@ context=ServletUtilities.getContext(request);
 
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
+<script type="text/javascript" src="../javascript/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
 
 </head>
 
@@ -86,6 +86,7 @@ margin-bottom: 8px !important;
   int firstYear = 1980;
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("searchComparison.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();

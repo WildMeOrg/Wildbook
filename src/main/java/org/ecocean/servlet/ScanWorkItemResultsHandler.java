@@ -81,12 +81,12 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     
-    System.out.println("Starting scanWorkItemResultsHandler!!");
+    //System.out.println("Starting scanWorkItemResultsHandler!!");
 
     //set up a shepherd for DB transactions
     String context="context0";
     context=ServletUtilities.getContext(request);
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
     String nodeIdentifier = request.getParameter("nodeIdentifier");
     GridManager gm = GridManagerFactory.getGridManager();
     
@@ -125,7 +125,7 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       
       if(returnedResults!=null){returnedSize=returnedResults.size();}
 
-      System.out.println(".....trying to check in # results:  "+returnedSize);
+      //System.out.println(".....trying to check in # results:  "+returnedSize);
 
       //int numComplete = gm.getNumWorkItemsCompleteForTask(st.getUniqueNumber());
       int numComplete=0;
@@ -156,16 +156,22 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
         numGenerated = gm.getNumWorkItemsIncompleteForTask(scanTaskID);
         numTaskTot = numComplete + numGenerated;
         
-        ScanTask st=myShepherd.getScanTask(scanTaskID);
+        //ScanTask st=myShepherd.getScanTask(scanTaskID);
         
-        if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+        //if ((numComplete > 0) && (numComplete >= st.getNumComparisons())) {
+        if ((numComplete > 0) && (gm.getScanTaskSize(scanTaskID)!=null) && (numComplete >= gm.getScanTaskSize(scanTaskID).intValue())) {
+          
           
           
           if(!tasksCompleted.contains(scanTaskID)){
           
-            
+            Shepherd myShepherd=new Shepherd(context);
+            myShepherd.setAction("ScanWorkItemResultsHandler.class");
+            myShepherd.beginDBTransaction();
+            ScanTask st=myShepherd.getScanTask(scanTaskID);
             if(!st.hasFinished()){finishScanTask(scanTaskID, request);}
-            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             tasksCompleted.add(scanTaskID);
           }
           
@@ -224,10 +230,6 @@ public class ScanWorkItemResultsHandler extends HttpServlet {
       e.printStackTrace();
       inputFromApplet.close();
       //statusText="failure";
-    }
-    finally{
-      myShepherd.rollbackDBTransaction();
-      myShepherd.closeDBTransaction();
     }
 
 

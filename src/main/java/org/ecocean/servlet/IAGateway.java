@@ -91,10 +91,13 @@ public class IAGateway extends HttpServlet {
         getOut = IBEISIA.iaStatus(request).toString();
 
 ///////////////
-    } else if (request.getParameter("getJobResultFromTaskID") != null) {
+    } 
+    else if (request.getParameter("getJobResultFromTaskID") != null) {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class1");
+        myShepherd.beginDBTransaction();
         String taskID = request.getParameter("getJobResultFromTaskID");
 
 
@@ -103,6 +106,53 @@ public class IAGateway extends HttpServlet {
             res.put("error", "could not find any record for task ID = " + taskID);
 
         } else {
+            JSONObject apd = null;
+            String qid = null;
+            for (IdentityServiceLog log : logs) {
+                JSONObject status = log.getStatusJson();
+                if (status == null) continue;
+                if (!"getJobResult".equals(status.optString("_action"))) continue;
+                if ((status.optJSONObject("_response") != null) && (status.getJSONObject("_response").optJSONObject("response") != null) &&
+                    (status.getJSONObject("_response").getJSONObject("response").optJSONObject("json_result") != null) &&
+                    (status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").optJSONObject("inference_dict") != null)) {
+                    apd = status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").getJSONObject("inference_dict").optJSONObject("annot_pair_dict");
+                    //lets pull our own qid here
+                    qid = IBEISIA.fromFancyUUID(status.getJSONObject("_response").getJSONObject("response").getJSONObject("json_result").getJSONArray("query_annot_uuid_list").getJSONObject(0));
+                }
+            }
+            if (apd == null) {
+                res.put("error", "could not find annot_pair_dict job results for task " + taskID);
+            } else {
+System.out.println("found qid = " + qid);
+                JSONArray simpleResults = IBEISIA.simpleResultsFromAnnotPairDict(apd, qid);
+                res.put("queryAnnotation", expandAnnotation(qid, myShepherd, request));
+                res.put("__apd", apd);
+                res.put("__simple", simpleResults);
+                if (simpleResults != null) {
+                    JSONArray mout = new JSONArray();
+                    for (int i = 0 ; i < simpleResults.length() ; i++) {
+                        JSONArray row = simpleResults.getJSONArray(i);
+                        JSONObject aj = expandAnnotation(row.optString(0, null), myShepherd, request);
+                        aj.put("score", row.optDouble(1, -1.0));
+                        mout.put(aj);
+                    }
+                    res.put("matchAnnotations", mout);
+                }
+System.out.println(res);
+/*
+                    JSONArray matches = firstResult.optJSONArray("dauuid_list");
+                    JSONArray scores = firstResult.optJSONArray("score_list");
+                    if (matches != null) {
+                        for (int i = 0 ; i < matches.length() ; i++) {
+                            if (aj != null) {
+                                if (scores != null) aj.put("score", scores.optDouble(i, -1.0));
+                                mout.put(aj);
+                            }
+                        }
+                    }
+*/
+            }
+/******* old cruft for historical record
             JSONObject last = logs.get(logs.size() - 1).getStatusJson();
             res.put("_debug", last);
 // note: jobstatus == completed seems to be the thing we want
@@ -112,14 +162,6 @@ public class IAGateway extends HttpServlet {
 
             } else if (last.getString("_action").equals("getJobResult") && (last.optJSONObject("_response") != null)) {
                 res = last.getJSONObject("_response");
-
-/*  this gets results live from IA - problematic cuz of reboots and it resets jobs.  :(
-            try {
-                res = IBEISIA.getJobResult(jobID);
-            } catch (Exception ex) {
-                throw new IOException(ex.toString());
-            }
-*/
 
             if ((res != null) && (res.optJSONObject("response") != null) && (res.getJSONObject("response").optJSONArray("json_result") != null)) {
                 JSONObject firstResult = res.getJSONObject("response").getJSONArray("json_result").optJSONObject(0);
@@ -142,16 +184,22 @@ System.out.println("firstResult -> " + firstResult.toString());
                 }
             }
             }
+*/
 
         }
 
         response.setContentType("text/plain");
         getOut = res.toString();
 /////////////
+        
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getDetectionReviewHtml") != null) {
+    } 
+    else if (request.getParameter("getDetectionReviewHtml") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class2");
         String jobID = request.getParameter("getDetectionReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
@@ -161,17 +209,21 @@ System.out.println("firstResult -> " + firstResult.toString());
         }
         JSONObject res = null;
         try {
-            res = IBEISIA.getJobResultLogged(jobID, myShepherd);
+            res = IBEISIA.getJobResultLogged(jobID, context);
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
 System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         getOut = _detectionHtmlFromResult(res, request, offset, null);
         setErrorCode(response, getOut);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
+    } 
+    else if (request.getParameter("getDetectionReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class3");
         ArrayList<MediaAsset> mas = mineNeedingDetectionReview(request, myShepherd);
         if ((mas == null) || (mas.size() < 1)) {
             response.sendError(ERROR_CODE_NO_REVIEWS, "No detection reviews pending");
@@ -189,12 +241,17 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
     System.out.println("res(" + ma.toString() + ") -> " + res);
             getOut = _detectionHtmlFromResult(res, request, -1, ma.getUUID());
             setErrorCode(response, getOut);
+            
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
     //ugh, lets standardize on passing taskId, not jobid cuz jobid sucks
-    } else if (request.getParameter("getIdentificationReviewHtml") != null) {
+    } 
+    else if (request.getParameter("getIdentificationReviewHtml") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class4");
         String taskId = request.getParameter("getIdentificationReviewHtml");
         int offset = 0;
         if (request.getParameter("offset") != null) {
@@ -204,7 +261,7 @@ System.out.println("res(" + jobID + "[" + offset + "]) -> " + res);
         }
         JSONObject res = null;
         try {
-            res = IBEISIA.getTaskResults(taskId, myShepherd);
+            res = IBEISIA.getTaskResults(taskId, context);
         } catch (Exception ex) {
             throw new IOException(ex.toString());
         }
@@ -212,10 +269,14 @@ System.out.println("res(" + taskId + "[" + offset + "]) -> " + res);
         IBEISIA.setActiveTaskId(request, taskId);
         getOut = _identificationHtmlFromResult(res, request, taskId, offset, null);
         setErrorCode(response, getOut);
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
+    } 
+    else if (request.getParameter("getIdentificationReviewHtmlNext") != null) {
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class5");
         String taskId = IBEISIA.getActiveTaskId(request);
 System.out.println("getIdentificationReviewHtmlNext -> taskId = " + taskId);
         if (taskId == null) {
@@ -239,7 +300,7 @@ System.out.println("INFO: could not find activeTaskId, so finding taskId for " +
         } else {
             JSONObject res = null;
             try {
-                res = IBEISIA.getTaskResults(taskId, myShepherd);
+                res = IBEISIA.getTaskResults(taskId, context);
             } catch (Exception ex) {
                 throw new IOException(ex.toString());
             }
@@ -271,8 +332,19 @@ System.out.println("Next: res(" + taskId + ") -> " + res);
             getOut = _identificationHtmlFromResult(res, request, -1, ann.getId());
         }
 */
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
+    } 
+    else if (request.getParameter("getReviewCounts") != null) {
+        String context = ServletUtilities.getContext(request);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.class6");
+        getOut = getReviewCounts(request, myShepherd).toString();
+        myShepherd.rollbackDBTransaction();
+        myShepherd.closeDBTransaction();
 
-    } else {
+    } 
+    else {
         response.sendError(501, "Unknown command");
         getOut = "Unknown command";
     }
@@ -304,6 +376,8 @@ System.out.println("############################ rtn -> \n" + rtn);
         if ((rtn.optJSONObject("status") != null) && rtn.getJSONObject("status").optBoolean("success", false) && (rtn.optJSONObject("response") != null)) {
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("IAGateway.class7");
+            myShepherd.beginDBTransaction();
             JSONArray slist = rtn.getJSONObject("response").optJSONArray("score_list");
             JSONArray rlist = rtn.getJSONObject("response").optJSONArray("results_list");
             JSONArray ilist = rtn.getJSONObject("response").optJSONArray("image_uuid_list");
@@ -338,6 +412,8 @@ System.out.println("i=" + i + " r[i] = " + alist.toString() + "; iuuid=" + uuid 
                 }
                 rtn.put("annotationsMade", annsMade);
             }
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
         }
 
         response.setContentType("text/plain");
@@ -365,10 +441,14 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
             JSONArray match = rtn.optJSONArray("response");
             if ((match != null) && (match.optJSONObject(0) != null) && (match.optJSONObject(1) != null)) {
                 Shepherd myShepherd = new Shepherd(context);
+                myShepherd.setAction("IAGateway8");
+                myShepherd.beginDBTransaction();
                 String a1 = IBEISIA.fromFancyUUID(match.optJSONObject(0));
                 String a2 = IBEISIA.fromFancyUUID(match.optJSONObject(1));
                 String state = match.optString(2, "UNKNOWN_MATCH_STATE");
                 IBEISIA.setIdentificationMatchingState(a1, a2, state, myShepherd);
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
                 JSONObject jlog = new JSONObject("{\"_action\": \"identificationReviewPost\"}");
                 jlog.put("state", new JSONArray(new String[]{a1, a2, state}));
                 IBEISIA.log(taskId, a1, null, jlog, context);
@@ -385,6 +465,8 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
 
     String context = ServletUtilities.getContext(request);  //note! this *must* be run after postStream stuff above
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IAGateway9");
+    myShepherd.beginDBTransaction();
 
     response.setContentType("text/plain");
     PrintWriter out = response.getWriter();
@@ -433,6 +515,7 @@ System.out.println(id);
                 res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
             }
 
+            IBEISIA.waitForIAPriming();
             boolean success = true;
             try {
                 String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
@@ -459,7 +542,8 @@ System.out.println(id);
             res.put("error", "no valid MediaAssets");
         }
 
-    } else if (j.optJSONObject("identify") != null) {
+    } 
+    else if (j.optJSONObject("identify") != null) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
@@ -509,7 +593,7 @@ System.out.println("anns -> " + anns);
 /* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
    things to consider for that - we probably have to further subdivide by species ... other considerations?   */
         for (Annotation ann : anns) {
-            JSONObject taskRes = _sendIdentificationTask(ann, request, null, null, limitTargetSize);
+            JSONObject taskRes = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, limitTargetSize);
 /*
             String species = ann.getSpecies();
             if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
@@ -571,14 +655,15 @@ System.out.println("anns -> " + anns);
 
     out.println(res.toString());
     out.close();
-    //myShepherd.closeDBTransaction();
+    myShepherd.commitDBTransaction();
+    myShepherd.closeDBTransaction();
   }
 
 
     private JSONObject _sendIdentificationTask(Annotation ann, HttpServletRequest request, JSONObject queryConfigDict,
                                                JSONObject userConfidence, int limitTargetSize) throws IOException {
         String context = ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
+        
         String species = ann.getSpecies();
         if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
         boolean success = true;
@@ -588,18 +673,30 @@ System.out.println("anns -> " + anns);
         JSONArray jids = new JSONArray();
         jids.put(ann.getId());  //for now there is only one 
         taskRes.put("annotationIds", jids);
+System.out.println("+ starting ident task " + annTaskId);
+        Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway._sendIdentificationTask");
+        myShepherd.beginDBTransaction();
         try {
             String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
             //TODO we might want to cache this examplars list (per species) yes?
-            ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
-            if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
-            if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
-                System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+
+            ///note: this can all go away if/when we decide not to need limitTargetSize
+            ArrayList<Annotation> exemplars = null;  
+            if (limitTargetSize > -1) {
+                exemplars = Annotation.getExemplars(species, myShepherd);
+                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
+                if (exemplars.size() > limitTargetSize) {
+                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
+                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
+                }
+                taskRes.put("exemplarsSize", exemplars.size());
             }
-            taskRes.put("exemplarsSize", exemplars.size());
+            /// end can-go-away
+
             ArrayList<Annotation> qanns = new ArrayList<Annotation>();
             qanns.add(ann);
+            IBEISIA.waitForIAPriming();
             JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, queryConfigDict, userConfidence,
                                                                myShepherd, species, annTaskId, baseUrl, context);
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
@@ -613,6 +710,10 @@ System.out.println("anns -> " + anns);
         } catch (Exception ex) {
             success = false;
             throw new IOException(ex.toString());
+        }
+        finally{
+          myShepherd.commitDBTransaction();
+          myShepherd.closeDBTransaction();
         }
 /* TODO ?????????
             if (!success) {
@@ -705,7 +806,8 @@ System.out.println("url --> " + url);
         } else {
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
-            rpair = getAvailableIdentificationReviewPair(rlist, annId, myShepherd);
+            myShepherd.setAction("IAGateway._identificationHtmlFromResult");
+            rpair = getAvailableIdentificationReviewPair(rlist, annId, context);
 System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + rpair);
         }
         if (rpair == null) {
@@ -735,9 +837,13 @@ System.out.println("getAvailableIdentificationReviewPair(" + annId + ") -> " + r
         try {
             url += "callback_url=" + CommonConfiguration.getServerURL(request, request.getContextPath()) + "/ia%3FidentificationReviewPost%3D" + taskId + "&callback_method=POST";
 System.out.println("url --> " + url);
-getOut = "(( " + url + " ))";
+//getOut = "(( " + url + " ))";
             URL u = new URL(url);
             JSONObject rtn = RestClient.get(u);
+            if (IBEISIA.iaCheckMissing(res.optJSONObject("response"))) {  //we had to send missing images/annots, so lets try again (note: only once)
+System.out.println("trying again:\n" + u.toString());
+                rtn = RestClient.get(u);
+            }
             if ((rtn.optString("response", null) == null) || (rtn.optJSONObject("status") == null) ||
                 !rtn.getJSONObject("status").optBoolean("success", false)) {
                 getOut = "<div error-code=\"555\" class=\"response-error\">invalid response: <xmp>" + rtn.toString() + "</xmp></div>";
@@ -755,7 +861,7 @@ getOut = "(( " + url + " ))";
     }
 
     //note: if we pass annId==null then we dont really care *which* pair we get, we just want one that is available for review (regardless of qannot)
-    private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId, Shepherd myShepherd) {
+    private JSONObject getAvailableIdentificationReviewPair(JSONArray rlist, String annId, String context) {
         if ((rlist == null) || (rlist.length() < 1)) return null;
         for (int i = 0 ; i < rlist.length() ; i++) {
             JSONObject rp = rlist.optJSONObject(i);
@@ -763,7 +869,7 @@ getOut = "(( " + url + " ))";
             String a1 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_1"));
             if ((annId != null) && !annId.equals(a1)) continue;
             String a2 = IBEISIA.fromFancyUUID(rp.optJSONObject("annot_uuid_2"));
-            if (IBEISIA.getIdentificationMatchingState(a1, a2, myShepherd) == null) return rp;
+            if (IBEISIA.getIdentificationMatchingState(a1, a2, context) == null) return rp;
         }
         return null;
     }
@@ -819,8 +925,10 @@ getOut = "(( " + url + " ))";
         if (annId == null) return;
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("IAGateway.checkIdentificationIterationStatus");
+        myShepherd.beginDBTransaction();
         ArrayList<IdentityServiceLog> logs = IdentityServiceLog.loadMostRecentByObjectID("IBEISIA", annId, myShepherd);
-        if ((logs == null) || (logs.size() < 1)) return;
+        if ((logs == null) || (logs.size() < 1)) {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
         Collections.reverse(logs);  //getTaskResultsBase() needs to be timestamp ASC order, but this is not; sigh.
 //for (IdentityServiceLog l : logs) { System.out.println(l.toString()); }
         JSONObject res = IBEISIA.getTaskResultsBasic(taskId, logs);
@@ -828,9 +936,9 @@ getOut = "(( " + url + " ))";
 //System.out.println("JSON_RESULT -> " + res.optJSONObject("_json_result"));
         if ((res == null) || (res.optJSONObject("_json_result") == null) || 
             (res.getJSONObject("_json_result").optJSONObject("inference_dict") == null) ||
-            (res.getJSONObject("_json_result").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null)) return;
+            (res.getJSONObject("_json_result").getJSONObject("inference_dict").optJSONObject("annot_pair_dict") == null))  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
         JSONArray rlist = res.getJSONObject("_json_result").getJSONObject("inference_dict").getJSONObject("annot_pair_dict").optJSONArray("review_pair_list");
-        if (rlist == null) return;
+        if (rlist == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
 System.out.println(">> checkIdentificationIterationStatus(" + annId + ", " + taskId + ") review_pair_list -> " + rlist.toString());
 /// now we check that MatchingStates are all done?  and/or which pairs in rlist are still needed? or if N have gone by and we should resend to IA ????
         JSONArray matchingStateList = new JSONArray();
@@ -838,19 +946,21 @@ System.out.println(">> checkIdentificationIterationStatus(" + annId + ", " + tas
             if (rlist.optJSONObject(i) == null) continue;
             String a1 = IBEISIA.fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_1"));
             String a2 = IBEISIA.fromFancyUUID(rlist.getJSONObject(i).optJSONObject("annot_uuid_2"));
-            String state = IBEISIA.getIdentificationMatchingState(a1, a2, myShepherd);
+            String state = IBEISIA.getIdentificationMatchingState(a1, a2, context);
 System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (state != null) matchingStateList.put(new JSONArray(new String[]{a1, a2, state}));
         }
         //if ((numReviewed >= rlist.length()) || (numReviewed % IDENTIFICATION_REVIEWS_BEFORE_SEND == 0)) {
         if (matchingStateList.length() >= rlist.length()) {
-System.out.println("((((( once more thru the outer loop )))))");
+            System.out.println("((((( once more thru the outer loop )))))");
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
-            if (ann == null) return;
-            JSONObject rtn = _sendIdentificationTask(ann, request, null, null, -1);
+            if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
+            JSONObject rtn = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, -1);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);
+            myShepherd.commitDBTransaction();
+            myShepherd.closeDBTransaction();
 System.out.println(" _sendIdentificationTask ----> " + rtn);
             String newTaskId = rtn.optString("taskId", null);
             JSONObject jlog = new JSONObject("{\"_action\": \"identificationIterate\"}");
@@ -950,6 +1060,24 @@ System.out.println(" _sendIdentificationTask ----> " + rtn);
         }
         System.out.println("ERROR: IAGateway.sendError() reporting " + code + ": " + msg);
         response.sendError(code, msg);
+    }
+
+
+    private JSONObject getReviewCounts(HttpServletRequest request, Shepherd myShepherd) {
+        JSONObject cts = new JSONObject();
+        String filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE detectionStatus == \"pending\"";
+        String username = ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
+        if (username != null) {
+            filter = "SELECT FROM org.ecocean.media.MediaAsset WHERE accessControl.username == \"" + username + "\" && detectionStatus == \"pending\"";
+        }
+        Query query = myShepherd.getPM().newQuery(filter);
+        Collection c = (Collection) (query.execute());
+        cts.put("detection", c.size());
+        filter = "SELECT FROM org.ecocean.Annotation WHERE identificationStatus == \"pending\"";
+        query = myShepherd.getPM().newQuery(filter);
+        c = (Collection) (query.execute());
+        cts.put("identification", c.size());
+        return cts;
     }
 
 }

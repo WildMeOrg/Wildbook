@@ -5,6 +5,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("individualSearch.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 
@@ -60,8 +61,8 @@ context=ServletUtilities.getContext(request);
 
 <script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode %>"></script>
 <script src="encounters/visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
+<script type="text/javascript" src="javascript/geoxml3.js"></script>
+<script type="text/javascript" src="javascript/ProjectedOverlay.js"></script>
 
   <!-- /STEP2 Place inside the head section -->
 
@@ -1571,6 +1572,7 @@ else {
 	<strong><%=props.getProperty("username")%></strong><br />
       <%
       	Shepherd inShepherd=new Shepherd("context0");
+      inShepherd.setAction("individualSearch.jsp2");
         List<User> users = inShepherd.getAllUsers();
         int numUsers = users.size();
 
@@ -1601,41 +1603,7 @@ inShepherd.closeDBTransaction();
 </td>
 </tr>
 
-<%
-if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
-%>
-<tr>
-  <td>
 
-    <h4 class="intro" style="background-color: #cccccc; padding:3px; border: 1px solid #000066; "><a
-      href="javascript:animatedcollapse.toggle('patternrecognition')" style="text-decoration:none"><img
-      src="../images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle"/>
-      <font color="#000000">Pattern Recognition</font></a></h4>
-  </td>
-</tr>
-<tr>
-  <td>
-    <div id="patternrecognition" style="display:none; ">
-
-      <table width="720px" align="left">
-        <tr>
-          <td>
-            <label><input name="hasSpots" type="checkbox" id="hasSpots" value="hasSpots">&nbsp;Has mapped fluke.</label>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <label><input name="hasNoSpots" type="checkbox" id="hasNoSpots" value="hasNoSpots">&nbsp;Has NO mapped fluke patterning.</label>
-          </td>
-        </tr>
-      </table>
-   </div>
-  </td>
-</tr>
-
-<%
-}
-%>
 
 
 <%

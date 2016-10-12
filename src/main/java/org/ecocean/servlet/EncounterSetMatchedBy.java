@@ -60,6 +60,7 @@ public class EncounterSetMatchedBy extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetMatchedBy.class");
 
     //set up for response
     response.setContentType("text/html");
@@ -98,27 +99,32 @@ public class EncounterSetMatchedBy extends HttpServlet {
       if (!locked) {
         myShepherd.commitDBTransaction();
         //myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<strong>Success!</strong> I have successfully changed the matched by type for encounter " + encounterNumber + " from " + prevMatchedBy + " to " + matchedBy + ".</p>");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
         String message = "The matched by type for encounter " + encounterNumber + " was changed from " + prevMatchedBy + " to " + matchedBy + ".";
         ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
-      } else {
+      } 
+      else {
 
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
 
       }
-    } else {
+    } 
+    else {
 
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I was unable to set the matched by type. I cannot find the marked individual that you intended it for in the database, or I wasn't sure what file you wanted to remove.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
 
     }
     out.close();

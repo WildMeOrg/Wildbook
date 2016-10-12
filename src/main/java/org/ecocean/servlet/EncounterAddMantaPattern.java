@@ -80,6 +80,7 @@ public class EncounterAddMantaPattern extends HttpServlet {
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterAddMantaPattern.class");
     myShepherd.beginDBTransaction();
     
     //setup data dir

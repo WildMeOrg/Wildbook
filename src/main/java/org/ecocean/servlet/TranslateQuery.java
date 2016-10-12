@@ -27,12 +27,12 @@ import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 /**
- * Takes a mongo-like JS query from the UI (on any MediaAsset-containing-class),
+ * Takes a mongoDB-like JS query from the UI (on any MediaAsset-containing-class),
  * and returns an array of all MediaAssets from those objects that matched the query.
  * <pre><code> // note that the tags to the left simply delimit the example
  * var args = {class: 'org.ecocean.media.MediaAsset', query: {}, range: 100};
  * // var args = {class: 'org.ecocean.Encounter', query: {sex: {$ne: "male"}}, range: 15};
- * // var args = {class: 'org.ecocean.Encounter', query: {}};
+ * // var args = {class: 'org.ecocean.Encounter', query: {sex: "female"}};
  * $.post( "TranslateQuery", args, function( data ) {
  *   $(".results").append( "Data Loaded: " + data );
  * });
@@ -74,6 +74,7 @@ public class TranslateQuery extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("TranslateQuery.class");
 
     // set up response type: should this be JSON?
     response.setContentType("text/plain");

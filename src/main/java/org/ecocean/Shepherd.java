@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -71,6 +72,9 @@ public class Shepherd {
   public static Vector matches = new Vector();
   //private PersistenceManagerFactory pmf;
   private String localContext;
+  
+  private String action="undefined";
+  private String shepherdID="";
 
 
   /**
@@ -82,6 +86,9 @@ public class Shepherd {
       localContext=context;
       try {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
+        this.shepherdID=Util.generateUUID();
+        
+        ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
       }
       catch (JDOUserException e) {
         System.out.println("Hit an excpetion while trying to instantiate a PM. Not fatal I think.");
@@ -1207,6 +1214,7 @@ public class Shepherd {
     return c.iterator();
   }
 
+  /*
   public Iterator getUnassignedEncountersIncludingUnapproved() {
     String filter = "this.individualID == null";
     Extent encClass = pm.getExtent(Encounter.class, true);
@@ -1214,6 +1222,7 @@ public class Shepherd {
     Collection c = (Collection) (orphanedEncounters.execute());
     return c.iterator();
   }
+  */
 
   public Iterator getUnassignedEncountersIncludingUnapproved(Query orphanedEncounters) {
     String filter = "this.individualID == null && this.state != \"unidentifiable\"";
@@ -1496,6 +1505,7 @@ public class Shepherd {
   }
   */
 
+  /*
   public Iterator getAvailableScanWorkItems(Query query,int pageSize, long timeout) {
     Collection c;
     //Extent encClass = getPM().getExtent(ScanWorkItem.class, true);
@@ -1536,7 +1546,8 @@ public class Shepherd {
       return null;
     }
   }
-
+*/
+  /*
   public List getID4AvailableScanWorkItems(Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
@@ -1560,6 +1571,7 @@ public class Shepherd {
       return null;
     }
   }
+  */
 
   public List getPairs(Query query, int pageSize) {
     Collection c;
@@ -1575,6 +1587,7 @@ public class Shepherd {
     }
   }
 
+  /*
   public List getID4AvailableScanWorkItems(String taskID, Query query, int pageSize, long timeout, boolean forceReturn) {
     Collection c;
     query.setResult("uniqueNum");
@@ -1598,6 +1611,7 @@ public class Shepherd {
       return null;
     }
   }
+  */
 
   public List<String> getAdopterEmailsForMarkedIndividual(Query query,String shark) {
     Collection c;
@@ -1928,16 +1942,31 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
+      
       MediaAsset ma=al.get(i).getMediaAsset();
       AssetStore as=ma.getStore();
       String fullFileSystemPath=as.localPath(ma).toString();
-      String webURL=ma.webURLString();
+      URL u = ma.safeURL(this);
+      String webURL = ((u == null) ? null : u.toString());
       int lastIndex=webURL.lastIndexOf("/")+1;
       String filename=webURL.substring(lastIndex);
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
       spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
+      
+      //add Keywords
+      if(ma.getKeywords()!=null){
+        ArrayList<Keyword> alkw=ma.getKeywords();
+        int numKeywords=alkw.size();
+        for(int y=0;y<numKeywords;y++){
+          Keyword kw=alkw.get(y);
+          spv.addKeyword(kw);
+        }
+      }
+      
       myArray.add(spv);
+      
+      
     }
     return myArray;
   }
@@ -2183,6 +2212,7 @@ public class Shepherd {
     Query sharks = pm.newQuery(encClass);
     Collection c = (Collection) (sharks.execute());
     ArrayList list = new ArrayList(c);
+    sharks.closeAll();
     Iterator it = list.iterator();
     return it;
   }
@@ -2238,6 +2268,7 @@ public class Shepherd {
     Query spaces = pm.newQuery(allWorkspaces);
     Collection c = (Collection) (spaces.execute());
     ArrayList list = new ArrayList(c);
+    spaces.closeAll();
     Iterator it = list.iterator();
     return it;
   }
@@ -2260,6 +2291,7 @@ public class Shepherd {
       MarkedIndividual indie=(MarkedIndividual)list.get(i);
       if(indie.wasSightedInLocationCode(locCode)){newList.add(indie);}
     }
+    sharks.closeAll();
     return newList;
   }
 
@@ -2305,6 +2337,7 @@ public class Shepherd {
 
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
+      q.closeAll();
       return num;
     }
     q.closeAll();
@@ -2321,6 +2354,7 @@ public class Shepherd {
 
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
+      q.closeAll();
       return num;
     }
     q.closeAll();
@@ -2613,6 +2647,8 @@ public class Shepherd {
 
         pm.currentTransaction().begin();
       }
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
+      
 
     }
     catch (JDOUserException jdoe) {
@@ -2635,13 +2671,16 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
+        
+        
         //return true;
         //System.out.println("A transaction has been successfully committed.");
       } else {
         System.out.println("You are trying to commit an inactive transaction.");
         //return false;
       }
-
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
+      
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2685,7 +2724,11 @@ public class Shepherd {
     try {
       if ((pm != null) && (!pm.isClosed())) {
         pm.close();
+        
       }
+      //ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
+      ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
+      
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
       System.out.println("I hit an error trying to close a DBTransaction.");
@@ -2711,6 +2754,8 @@ public class Shepherd {
       } else {
         //System.out.println("You are trying to rollback an inactive transaction.");
       }
+      ShepherdPMF.setShepherdState(action+"_"+shepherdID, "rollback");
+      
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2730,7 +2775,9 @@ public class Shepherd {
       Query acceptedKeywords = pm.newQuery(allKeywords);
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      it = c.iterator();
+      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      acceptedKeywords.closeAll();
+      it = al.iterator();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2755,6 +2802,7 @@ public class Shepherd {
     catch (Exception npe) {
       //System.out.println("Error encountered when trying to execute Shepherd.getAllUsers. Returning a null collection because I didn't have a transaction to use.");
       npe.printStackTrace();
+      users.closeAll();
       return null;
     }
   }
@@ -2779,7 +2827,11 @@ public class Shepherd {
       allOccurs = pm.getExtent(Occurrence.class, true);
       Query acceptedOccurs = pm.newQuery(allOccurs);
       Collection c = (Collection) (acceptedOccurs.execute());
-      it = c.iterator();
+      ArrayList al=new ArrayList(c);
+      acceptedOccurs.closeAll();
+      it = al.iterator();
+      
+      
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2795,6 +2847,7 @@ public class Shepherd {
       Query acceptedKeywords = pm.newQuery(allKeywords);
       Collection c = (Collection) (acceptedKeywords.execute());
       it=new ArrayList<Role>(c);
+      acceptedKeywords.closeAll();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return it;
@@ -2808,7 +2861,8 @@ public class Shepherd {
     try {
       acceptedKeywords.setOrdering("readableName descending");
       Collection c = (Collection) (acceptedKeywords.execute());
-      it = c.iterator();
+      ArrayList<Keyword> al=new ArrayList<Keyword>(c);
+      it = al.iterator();
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2870,7 +2924,7 @@ public class Shepherd {
                 if (!keywords[n].equals("None")) {
                   Keyword word = getKeyword(keywords[n]);
 
-                  if (images.get(i).getKeywords().contains(word)) {
+                  if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                   //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
@@ -2942,13 +2996,14 @@ public class Shepherd {
               boolean hasKeyword = false;
               if ((keywords == null) || (keywords.length == 0)) {
                 hasKeyword = true;
-              } else {
+              } 
+              else {
                 int numKeywords = keywords.length;
                 for (int n = 0; n < numKeywords; n++) {
                   if (!keywords[n].equals("None")) {
                     Keyword word = getKeyword(keywords[n]);
 
-                    if (images.get(i).getKeywords().contains(word)) {
+                    if ((images.get(i).getKeywords()!=null)&&images.get(i).getKeywords().contains(word)) {
 
 
                     //if (word.isMemberOf(enc.getCatalogNumber() + "/" + imageName)) {
@@ -3136,7 +3191,7 @@ public class Shepherd {
     return fileName.matches("^(.+)\\.(?i:jpe?g|jpe|png|gif)$");
   }
 
-  public boolean isAcceptableVideoFile(String fileName) {
+  static public boolean isAcceptableVideoFile(String fileName) {
     Objects.requireNonNull(fileName);
     return fileName.matches("^(.+)\\.(?i:mp4|mov|avi|mpg|wmv|flv)$");
   }
@@ -3589,13 +3644,18 @@ public class Shepherd {
     else{return null;}
   }
 
-  public Iterator<ScanTask> getAllScanTasksForUser(String user) {
+  public ArrayList<ScanTask> getAllScanTasksForUser(String user) {
     String filter = "submitter == \""+user+"\"";
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    if((c!=null)&&(c.size()>0)){return c.iterator();}
-    else{return null;}
+    
+    if(c!=null){
+    ArrayList<ScanTask> it=new ArrayList<ScanTask>(c);
+    samples.closeAll();
+    return it;
+    }
+    else{samples.closeAll();return null;}
   }
 
   public User getRandomUserWithPhotoAndStatement(){
@@ -3623,10 +3683,10 @@ public class Shepherd {
     Query q = pm.newQuery(encClass, filter);
     q.setOrdering("dwcDateAddedLong descending");
     Collection c = (Collection) (q.execute());
-    if((c!=null)&&(c.size()>0)){
-
+    if ((c != null) && (c.size() > 0)) {
+      int max = (numToReturn > c.size()) ? c.size() : numToReturn;
       int numAdded=0;
-      while(numAdded<numToReturn){
+      while(numAdded<max){
         ArrayList<Encounter> results=new ArrayList<Encounter>(c);
         matchingEncounters.add(results.get(numAdded));
         numAdded++;
@@ -3715,7 +3775,23 @@ public class Shepherd {
     query.closeAll();
     return al;
   }
+  
+  //used to describe where this Shepherd is and what it is supposed to be doing
+  public void setAction(String newAction){
+    
+    String state="";
+    
+    if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
+      state=ShepherdPMF.getShepherdState(action+"_"+shepherdID);
+      ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
+    }
+    this.action=newAction;
+    ShepherdPMF.setShepherdState(action+"_"+shepherdID, state);
+  }
 
+  public String getAction(){return action;}
+  
+  
 
 
 } //end Shepherd class

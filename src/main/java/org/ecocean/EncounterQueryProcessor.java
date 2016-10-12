@@ -43,6 +43,7 @@ public class EncounterQueryProcessor {
     context=ServletUtilities.getContext(request);
     
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterQueryProcessor.class");
 
   //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
@@ -914,7 +915,7 @@ public class EncounterQueryProcessor {
 
     //end genetic sex filters-----------------------------------------------
     
-    
+  /*  
   	//start photo filename filtering
 	    if((request.getParameter("filenameField")!=null)&&(!request.getParameter("filenameField").equals(""))) {
 
@@ -937,7 +938,7 @@ public class EncounterQueryProcessor {
             
           }
   }
-
+*/
 //end photo filename filtering
 
 

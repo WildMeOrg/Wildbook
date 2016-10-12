@@ -36,6 +36,16 @@ props = ShepherdProperties.getProperties("individuals.properties", langCode,cont
 //String langCode = "en";
 String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
+//some sorting and filtering work
+String sortString="";
+if(request.getParameter("sort")!=null){
+	sortString="&sort="+request.getParameter("sort");
+}
+//locationCodeField
+String locationCodeFieldString="";
+if(request.getParameter("locationCodeField")!=null){
+	locationCodeFieldString="&locationCodeField="+request.getParameter("locationCodeField");
+}
 
 //props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/individualSearchResults.properties"));
 // range of the images being displayed
@@ -76,8 +86,8 @@ try {
 } catch (Exception nfe) {
 }
 
-Shepherd myShepherd=null;
-myShepherd=new Shepherd(context);
+Shepherd myShepherd=new Shepherd(context);
+myShepherd.setAction("gallery.jsp");
 
 int numResults = 0;
 
@@ -252,7 +262,7 @@ int numMarkedIndividuals=0;
 int numEncounters=0;
 int numDataContributors=0;
 
-myShepherd.beginDBTransaction();
+//myShepherd.beginDBTransaction();
 
 %>
 
@@ -487,14 +497,14 @@ myShepherd.beginDBTransaction();
           if (startNum>0) {
             int newStart = Math.max(startNum-numIndividualsOnPage,0);
             %>
-            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="<%=urlLoc%>/gallery.jsp?startNum=<%=newStart%>&endNum=<%=newStart+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-left.png"> </a> &nbsp;&nbsp;&nbsp;&nbsp;
             <%
           }
           %>
 
           see more
 
-          &nbsp;&nbsp;&nbsp;&nbsp; <a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>
 
       </row>
@@ -504,6 +514,7 @@ myShepherd.beginDBTransaction();
 </div>
 
 <%
+myShepherd.rollbackDBTransaction();
 myShepherd.closeDBTransaction();
 myShepherd=null;
 %>

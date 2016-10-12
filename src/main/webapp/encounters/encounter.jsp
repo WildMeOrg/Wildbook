@@ -10,14 +10,12 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,
-         org.ecocean.datacollection.*,
-         org.ecocean.datacollection.MeasurementEvent,
+         org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
-         java.util.*, org.ecocean.security.Collaboration" %>
+         java.util.*,org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -76,47 +74,22 @@
   }
 
 %>
+<link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 <%
+
 
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-String num = request.getParameter("number");
-if (num!=null) {
-  num = num.replaceAll("\\+", "").trim();
-}
-Shepherd myShepherd = new Shepherd(context);
-//myShepherd.setAction("encounter.jsp");
-
-
-// create new encounter if no num is provided
-myShepherd.beginDBTransaction();
-try {
-  if (num==null || !myShepherd.isEncounter(num)) {
-    System.out.println("Creating a new encounter!");
-    Encounter enc = new Encounter("mortality", context);
-    num = enc.getCatalogNumber();
-    System.out.println("Created Encounter "+num);
-    myShepherd.storeNewEncounter(enc);
-    System.out.println("...and it's stored");
-  }
-
-} catch (Exception e) {
-} finally {
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
-  myShepherd = new Shepherd(context);
-}
-
-
-
+String num = request.getParameter("number").replaceAll("\\+", "").trim();
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
 File webappsDir = new File(rootWebappPath).getParentFile();
 File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+File encounterDir = new File(encountersDir, num);
 
 
   GregorianCalendar cal = new GregorianCalendar();
@@ -148,15 +121,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
-  int nFieldsPerSubtable = 8;
-
 
 
   pageContext.setAttribute("num", num);
 
 
-  Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
-  Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
+  Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("encounter.jsp1");
+  //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
+  //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
   boolean proceed = true;
   boolean haveRendered = false;
@@ -169,7 +142,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <jsp:include page="../header.jsp" flush="true"/>
 
   <style type="text/css">
-    <!--
+
 
 	#spot-image-wrapper-left,
 	#spot-image-wrapper-right
@@ -241,7 +214,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
       padding: 8px;
     }
 
-    -->
 
 
 
@@ -267,6 +239,7 @@ td.measurement{
 
   <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
   <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
+  <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
 
   <!--
     2) Optionally override the settings defined at the top
@@ -278,6 +251,8 @@ td.measurement{
 
   var map;
   var marker;
+  var center = new google.maps.LatLng(0, 0);
+
 
           function placeMarker(location) {
 
@@ -305,41 +280,44 @@ td.measurement{
 
   <script>
             function initialize() {
-            //alert("Initializing map!");
-              var mapZoom = 1;
-          	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
+	            //alert("Initializing map!");
+	              //var mapZoom = 1;
+	              var mapZoom = 1;
+	          	
+	              //var center = new google.maps.LatLng(10.8, 160.8);
+	              var center = new google.maps.LatLng(0, 0);
+
+	
+	              map = new google.maps.Map(document.getElementById('map_canvas'), {
+	                zoom: mapZoom,
+	                center: center,
+	                mapTypeId: google.maps.MapTypeId.HYBRID,
+	                zoomControl: true,
+	                scaleControl: false,
+	                scrollwheel: false,
+	                disableDoubleClickZoom: true,
+	        	});
+	
+	        	if(marker!=null){
+					marker.setMap(map);
+					//map.setCenter(marker.position);
+	
+	 			//alert("Setting center!");
+				}
+	
+	        	google.maps.event.addListener(map, 'click', function(event) {
+						//alert("Clicked map!");
+					    placeMarker(event.latLng);
+				  });
+	
+	
+		//adding the fullscreen control to exit fullscreen
+	    	  var fsControlDiv = document.createElement('DIV');
+	    	  var fsControl = new FSControl(fsControlDiv, map);
+	    	  fsControlDiv.index = 1;
+	    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
-              var center = new google.maps.LatLng(10.8, 160.8);
-
-              map = new google.maps.Map(document.getElementById('map_canvas'), {
-                zoom: mapZoom,
-                center: center,
-                mapTypeId: google.maps.MapTypeId.HYBRID,
-                zoomControl: true,
-                scaleControl: false,
-                scrollwheel: false,
-                disableDoubleClickZoom: true,
-        });
-
-        	if(marker!=null){
-			marker.setMap(map);
-			map.setCenter(marker.position);
-
- 			//alert("Setting center!");
-		}
-
-        google.maps.event.addListener(map, 'click', function(event) {
-					//alert("Clicked map!");
-				    placeMarker(event.latLng);
-			  });
-
-
-	//adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
         }
 
@@ -351,29 +329,9 @@ var encounterNumber = '<%=num%>';
   </script>
 
 <style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-
-  .ui-dialog-titlebar-close { display: none; }
-  code { font-size: 2em; }
-
+	.ui-dialog-titlebar-close { display: none; }
+	code { font-size: 2em; }
 </style>
-
-
-
-
-
-
-
-
-
 
 
 <!--added below for improved map selection -->
@@ -401,16 +359,6 @@ margin-bottom: 8px !important;
 </head>
 
 <style type="text/css">
-
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
 
 
 /* css for timepicker */
@@ -444,26 +392,15 @@ margin-bottom: 8px !important;
 <script src="../javascript/imageTools.js"></script>
 
 
-<link rel="stylesheet" href="../css/classEditTemplate.css" />
-<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
-
-
-
 
 
 <div class="container maincontent">
 
-<div class="row">
-  <div class="col-xs-12">
+<div class="row" id="mainHeader">
+  <div class="col-sm-12">
 
 			<%
   			myShepherd.beginDBTransaction();
-
-        System.out.println("");
-        System.out.println("");
-        System.out.println("BEGINNING ENC.jsp");
-
-
 
   			if (myShepherd.isEncounter(num)) {
     			try {
@@ -525,96 +462,6 @@ if (request.getParameter("refreshImages") != null) {
 
       			String headerBGColor="FFFFFC";
       			//if(CommonConfiguration.getProperty(()){}
-
-
-  // DataSheet processing
-
-
-  String newMortalitySheet = request.getParameter("newMortalitySheet");
-  String newTaggingSheet = request.getParameter("newTaggingSheet");
-  String newTrackcountsSheet = request.getParameter("newTrackcountsSheet");
-  String saving = request.getParameter("save");
-
-  boolean needToSave = ((saving              != null) ||
-                        (newMortalitySheet   != null) ||
-                        (newTaggingSheet     != null) ||
-                        (newTrackcountsSheet != null));
-
-
-  if (newMortalitySheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Mortality Sheet!");
-    enc.addConfigDataSheet(context, "mortality", myShepherd);
-  }
-
-  if (newTaggingSheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Tagging Sheet!");
-    enc.addConfigDataSheet(context, "tagging", myShepherd);
-  }
-
-
-  if (newTrackcountsSheet !=null) {
-    System.out.println("*X*X*XX*X*X*Printing a new Trackcounts Sheet!");
-    enc.addConfigDataSheet(context, "trackcounts", myShepherd);
-  }
-
-  if (needToSave) {
-    System.out.println("");
-    System.out.println("ENCOUNTER.JSP: Saving updated info...");
-    Enumeration en = request.getParameterNames();
-
-
-    while (en.hasMoreElements()) {
-      String pname = (String) en.nextElement();
-      String value = request.getParameter(pname);
-      System.out.println("parsing parameter "+pname);
-      if (pname.indexOf("enc:") == 0) {
-        String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
-        String getterName = "get" + methodName.substring(3);
-        System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+enc+", "+methodName+", "+value+");");
-        ClassEditTemplate.updateObjectField(enc, methodName, value);
-      }
-      else if (pname.indexOf("enc-dp-new:") == 0) {
-        String afterColon = pname.split(":")[1];
-        String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
-        int dataSheetNum = Integer.parseInt(dataSheetNumStr);
-
-        // Create a new datapoint and add it to the appropriate sheet
-        // populate that datapoint's value with "value"
-        //Amount newEggDP = new Amount
-
-        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
-        //enc.addNewEgg(dataSheetNum);
-      }
-      else if (pname.indexOf("enc-dp-") == 0) {
-        // looks like nes-dp-dsNUM: _____. now to parse the NUM
-        String beforeColon = pname.split(":")[0];
-        String dpID = beforeColon.substring(7);
-        System.out.println("  looks like a change was detected on DataPoint "+dpID);
-        DataPoint dp = myShepherd.getDataPoint(dpID);
-        System.out.println("  now I have dp and its labeled string = "+dp.toLabeledString());
-        System.out.println("  its old value = "+dp.getValueString());
-        System.out.println("checkone");
-        dp.setValueFromString(value);
-        System.out.println("checktwo");
-        System.out.println("  its new value = "+dp.getValueString());
-      }
-      else if (pname.indexOf("dat-") == 0) {
-        String beforeColon = pname.split(":")[0];
-        String dpID = beforeColon.substring(4);
-        System.out.println("  Found a change on datasheet "+dpID);
-      }
-    }
-    myShepherd.commitDBTransaction();
-    System.out.println("ENCOUNTER.JSP: Transaction committed");
-    System.out.println("");
-  }
-
-
-
-
-
-
-
     			%>
 
 <script type="text/javascript">
@@ -623,9 +470,16 @@ if (request.getParameter("refreshImages") != null) {
 
 $(function() {
     $( "#datepicker" ).datetimepicker({
-      changeMonth: true,
-      changeYear: true,
-      dateFormat: 'yy-mm-dd',
+    	changeMonth: true,
+        changeYear: true,
+        dateFormat: 'yy-mm-dd',
+        maxDate: '+1d',
+        controlType: 'select',
+        alwaysSetTime: false,
+        showSecond:false,
+        showMillisec:false,
+        showMicrosec:false,
+        showTimezone:false
 
       <%
       //set a default date if we cann
@@ -689,9 +543,6 @@ $(function() {
   </script>
 
 
-    			<table>
-    				<tr>
-    					<td>
     						<%
     						//int stateInt=-1;
     						String classColor="approved_encounters";
@@ -720,15 +571,16 @@ $(function() {
     						%>
 
 
-    						<h1 class="<%=classColor%>">
-    						 	<%=encprops.getProperty("title") %><%=livingStatus %>
-    						 </h1>
-
-
-    					</td>
-    				</tr>
-    			</table>
-
+                <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+                <h1 class="<%=classColor%>" id="headerText">
+                <%=encprops.getProperty("title") %><%=livingStatus %>
+                <% }
+                else {
+                 %>
+                 <h1 class="<%=classColor%>" id="headerText">
+                   <%=encprops.getProperty("title") %><%=livingStatus %>
+                 </h1>
+                 <%}%></h1>
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
@@ -745,124 +597,59 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=num %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
         </div>
-
+<!-- end main header row -->
 
 
 	<!-- main display area -->
 
-	<div class="container">
-    <form method="post" action="encounter.jsp?number=<%=num%>" id="classEditTemplateForm">
-    <div class="row datasheets">
-        <div class="col-sm-12">
-          <h2>
-            <%=encprops.getProperty("datasheets") %>
-          </h2>
-
-            <input type="submit" name="newMortalitySheet" value="Add New Mortality Field Sheet" />
-            <input type="submit" name="newTaggingSheet" value="Add New Tagging Field Sheet" />
-            <input type="submit" name="newTrackcountsSheet" value="Add New Trackcounts Field Sheet" />
-
-        </div>
-      </div>
-      <%
-      for (int i=0; i < enc.getDataSheets().size(); i++) {
-        %> <div class="row dataSheet" id="<%=i%>"> <%
-        %> <div class="col-xs-12"> <%
-        //DataSheet dSheet = enc.getDataSheet(enc.getDataSheets().size()-(i+1)); //reverses order
-        DataSheet dSheet = enc.getDataSheet(i);
-        int numEggs = enc.getEggCount(i);
-        System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
-        /*if (numEggs==0) {
-          enc.addNewEgg(i);
-        }*/
-        %>
-          <h3>Data Sheet <%=i+1%></h2>
-
-          <%
-          if (dSheet.getName()!=null && !dSheet.getName().equals(""))
-          {
-            %>
-            <h4><%=dSheet.getName()%></h4>
-            <%
-          }
-          %>
-          <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+				<div class="container">
+					<div class="row">
 
 
-          <table class="nest-field-table edit-table" style="float: left">
-          <%
-          //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
-          %>
-          </table>
-        </div>
-        <%
+            <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
 
-        int nFields = dSheet.size();
-        int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
-        int dataPointN = 0;
-
-        for (int tableN=0; tableN < nSubtables; tableN++) {
-
-        %><div class="col col-md-4 nest-table">
-        <table class="nest-field-table edit-table" style="float: left"><%
-          for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
-            DataPoint dp = dSheet.getData().get(dataPointN);
-            ClassEditTemplate.printOutClassFieldModifierRow((Object) enc, dp, out);
-          }
-        %></table></div><%
-      }
-      %>
-      <div class="col-md-4">
-        <input type="button" name="newSubsheet<%=i%>" value="Add Sequential Measurements" class="sequentialButton" />
-      </div>
-
-
-      </div>
-
-      <div class="row">
-        <div class="col-sm-12">
-          <div class="submit" style="position:relative">
-            <input type="submit" name="save" value="Save" />
-            <span class="note" style="position:absolute;bottom:9"></span>
-          </div>
-        </div>
-      </div>
-
-       <%
-
-      }
-      %>
-
-    </form>
+        <!-- START IDENTITY ATTRIBUTE -->
+        <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
+        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
+      </h2>
 
 
 
-						<div class="row">
+        <script type="text/javascript">
+        $(document).ready(function() {
+          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
+            buttons.toggle();
+          });
+          $("#editIdentity").click(function() {
+            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
+
+            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+          });
+
+          $("#closeEditIdentity").click(function() {
+            $(".editForm, .editText, .resultMessageDiv").hide();
+          });
+        });
+        </script>
 
 
-
-
-							  <!-- here lies the photo gallery  -->
-  <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
-
-
-<!-- START IDENTITY ATTRIBUTE -->
-
-  <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
-
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-<!--
-<div class="encounter-vm-button">
-	<a href="encounterVM.jsp?number=<%=num%>">[Visual Matcher]</a>
-</div>
--->
-<% } %>
+        <% }
+        else {
+         %>
+         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+         <%}%>
 
 
     							<%
@@ -870,254 +657,382 @@ $(function() {
   								%>
     							<p class="para">
     								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
-      								<%
-        							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-     								%>
-      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      								<%
-        							}
-      								%>
+                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>">
+                     <span id="displayIndividualID"></span></a></p>
     							</p>
+                  <p>
+                    <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
+                      <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                  </p>
+
     							<%
     							}
     							else {
     							%>
-    							<p class="para">
+    							<div>
+    								<p><%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
 
-      								<%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><%=enc.getIndividualID()%></a>
+          <%-- START MATCHED BY --%>
+    								<p>
+                      <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
+                        <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                    </p>
 
-      								<%
-        							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      								%>
-      									<a id="identity" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      								<%
-        							}
-      								%>
-      								<br />
-      								<br />
-      								<img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif"> <%=encprops.getProperty("matched_by") %>: <%=enc.getMatchedBy()%>
-      								<%
-        							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      								%>
-     								 <a id="matchedBy" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-        							<div id="dialogMatchedBy" title="<%=encprops.getProperty("matchedBy")%>" style="display:none">
-  										<table>
-    										<tr>
-      											<td align="left" valign="top">
-        											<form name="setMBT" action="../EncounterSetMatchedBy" method="post">
-          												<select name="matchedBy" id="matchedBy">
-            												<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-            												<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-            												<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-          												</select>
-          												<input name="number" type="hidden" value="<%=num%>" />
-          												<input name="setMB" type="submit" id="setMB" value="<%=encprops.getProperty("set")%>" />
-        											</form>
-      											</td>
-    										</tr>
-  										</table>
-  									</div>
-									<script>
-  										var dlgMatchedBy = $("#dialogMatchedBy").dialog({
-    										autoOpen: false,
-    										draggable: false,
-    										resizable: false,
-    										width: 600
-  										});
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#matchedBy option[value='Pattern match']").attr('selected','selected');
 
-  										$("a#matchedBy").click(function() {
-    										dlgMatchedBy.dialog("open");
-  										});
-  									</script>
-        							<%
-       								 }
-      								%>
-    							</p>
+                      $("#setMB").click(function(event) {
+                        event.preventDefault();
+                        $("#setMB").hide();
+
+                        var number = $("#setMBnumber").val();
+                        var matchedBy = $("#matchedBy").val();
+
+                        $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
+                        function() {
+                          $("#matchErrorDiv").hide();
+                          $("#matchCheck").show();
+                          $("#displayMatchedBy").html(matchedBy);
+
+                        })
+                        .fail(function(response) {
+                          $("#matchError, #matchErrorDiv").show();
+                          $("#matchErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#matchedBy").click(function() {
+                        $("#matchError, #matchCheck, #matchErrorDiv").hide();
+                        $("#setMB").show();
+                      });
+                    });
+                    </script>
+
+                    <div class="highlight resultMessageDiv" id="matchErrorDiv"></div>
+                    <form name="setMBT" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="setMBnumber"/>
+                      <div class="form-group row" id="selectMatcher">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchedBy" id="matchedBy" size="1" class="form-control">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input name="setMB" type="submit" id="setMB" value='<%=encprops.getProperty("set")%>' class="btn btn-sm editFormBtn"/>
+                          <span id="matchCheck">&check;</span>
+                          <span id="matchError">X</span>
+                        </div>
+                      </div>
+                    </form>
+    							</div>
     							<%
       							} //end else
-
-      							if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       							%>
-     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" style="display:none">
-  									<p><em><%=encprops.getProperty("identityMessage") %></em></p>
+      <%-- END MATCHED BY --%>
+
+      <%-- START MANAGE IDENTITY --%>
+
+     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
 
   									<%
   									if(!enc.hasMarkedIndividual()) {
   									%>
 
+                    <script type="text/javascript">
+                    $(document).ready(function() {
 
-  									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-    									<tr>
-      										<td align="left" valign="top" class="para">
-      											<font color="#990000">
-        											<img align="absmiddle" src="../images/tag_small.gif"/><br />
-        											<strong><%=encprops.getProperty("add2MarkedIndividual")%>:</strong>
-        										</font>
-        									</td>
-    									</tr>
-    									<tr>
-      										<td align="left" valign="top">
-        										<form name="add2shark" action="../IndividualAddEncounter" method="post">
-        											<%=encprops.getProperty("individual")%>:
-              											<input name="individual" type="text" size="10" maxlength="50" /><br /> <%=encprops.getProperty("matchedBy")%>:<br />
-          												<select name="matchType" id="matchType">
-            												<option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-            												<option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-            												<option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-          												</select>
-          												<br />
-          												<input name="noemail" type="checkbox" value="noemail" />
-          												<%=encprops.getProperty("suppressEmail")%><br />
-          												<input name="number" type="hidden" value="<%=num%>" />
-          												<input name="action" type="hidden" value="add" />
-          												<input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
-        										</form>
-     										 </td>
-    									</tr>
-  									</table>
-									<br />
-									<strong>--<%=encprops.getProperty("or") %>--</strong>
-									<br /><br />
+                      $("#Add").click(function(event) {
+                        event.preventDefault();
+
+                        $("#Add").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val();
+                        var matchType = $("#matchType").val();
+                        var noemail = $( "input:checkbox:checked" ).val();
+                        var action = $("#individualAddEncounterAction").val();
+
+                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                        function() {
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+                          $("#displayIndividualID").html(individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          $("#displayMatchedBy").html(matchType);
+
+                        })
+                        .fail(function(response) {
+                          $("#individualDiv").addClass("has-error");
+                          $("#individualError, #matchedByError, #individualErrorDiv").show();
+                          $("#individualErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#individualAddEncounterInput, #matchType").click(function() {
+                        $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
+                        $("#individualDiv").removeClass("has-success");
+                        $("#individualDiv").removeClass("has-error");
+                        $("#Add").show();
+                        $("#setRemoveResultDiv").hide();
+                      });
+                    });
+                    </script>
+
+                    <div class="editText">
+                      <h3><%=encprops.getProperty("manageIdentity")%></h3>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
+                    </div>
+
+                    <div class="highlight resultMessageDiv" id="individualErrorDiv"></div>
+
+                    <p><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                    <form name="add2shark" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
+                      <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                      <div class="form-group row" id="individualDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("individual")%>:</label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
+                          <span class="form-control-feedback" id="individualCheck">&check;</span>
+                          <span class="form-control-feedback" id="individualError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row" id="matchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchType" id="matchType" class="form-control" size="1">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                          <span class="form-control-feedback" id="matchedByCheck">&check;</span>
+                          <span class="form-control-feedback" id="matchedByError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <div class="col-sm-5 col-xs-10">
+                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                        </div>
+                      </div>
+                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                    </form>
+
+									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
 									<%
   									}
   		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  	  						if(enc.hasMarkedIndividual() && CommonConfiguration.isCatalogEditable(context)) {
 		  							%>
-									<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
- 										<tr>
-    										<td align="left" valign="top" class="para">
-      											<table>
-        											<tr>
-          												<td>
-          													<font color="#990000">
-          														<img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/>
-          													</font>
-          												</td>
-          												<td>
-          													<strong>
-          														<%=encprops.getProperty("removeFromMarkedIndividual")%>
-          													</strong>
-          												</td>
-        											</tr>
-      											</table>
-    										</td>
-  										</tr>
-  										<tr>
-    										<td align="left" valign="top">
-      											<form action="../IndividualRemoveEncounter" method="post" name="removeShark">
-      												<input name="number" type="hidden" value="<%=num%>" />
-                									<input name="action" type="hidden" value="remove" />
-                									<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
-      											</form>
-    										</td>
-  										</tr>
-									</table>
-									<br />
-									<%
-   									}
-									if(!enc.hasMarkedIndividual()) {
-									%>
 
-									<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  										<tr>
-    										<td align="left" valign="top" class="para">
-    											<font color="#990000">
-      												<img align="absmiddle" src="../images/tag_small.gif"/>
-      												<strong><%=encprops.getProperty("createMarkedIndividual")%>:</strong>
-      											</font>
-    										</td>
-  										</tr>
-  										<tr>
-    										<td align="left" valign="top">
-      											<form name="createShark" method="post" action="../IndividualCreate">
-        											<input name="number" type="hidden" value="<%=num%>" />
-        											<input name="action" type="hidden" value="create" />
-        											<input name="individual" type="text" id="individual" size="10" maxlength="50" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>" /><br />
-													<input name="noemail" type="checkbox" value="noemail" />
-        											<%=encprops.getProperty("suppressEmail")%><br />
+                    <script type="text/javascript">
+                    $(document).ready(function() {
 
-      												<input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-      											</form>
-    										</td>
-  										</tr>
-									</table>
+                      $("#individualRemoveEncounterBtn").click(function(event) {
+                        event.preventDefault();
+
+                        $("#individualRemoveEncounterBtn").hide();
+
+                        var number = $("#individualRemoveEncounterNumber").val();
+                        var individual = $("#displayIndividualID").text();
+
+                        $.post("../IndividualRemoveEncounter", {"number": number},
+                        function(response) {
+                          $("#setRemoveResultDiv").show();
+                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter #" + number + " was successfully removed from " + individual + ".");
+                          $("#removeErrorDiv").empty();
+                          $("#removeShark").hide();
+                          $("#removeLabel").hide();
+                          $("#manageIdentityMessage").hide();
+                          $("#displayIndividualID").html("");
+                        })
+                        .fail(function(response) {
+                          $("#setRemoveResultDiv").show();
+                          $("#removeErrorDiv").html("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
+                          $("#removeSuccessDiv").empty();
+                          $("#individualRemoveEncounterBtn").show();
+                          $("#removeLabel").show();
+                          $("#manageIdentityMessage").show();
+                        });
+                      });
+                    });
+                    </script>
+
+
+					<%
+	
+					if(!enc.hasMarkedIndividual()) {
+					%>
+
+                  <script type="text/javascript">
+                  $(document).ready(function() {
+
+                    $("#createSharkBtn").click(function(event) {
+                      event.preventDefault();
+
+                      $("#createSharkBtn").hide();
+
+                      var number = $("#individualCreateNumber").val();
+                      var individual = $("#createSharkIndividual").val();
+                      var action = $("#individualCreateAction").val();
+                      var noemail = $("input:checkbox:checked").val();
+
+                      $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
+                      function() {
+                        $("#indCreateCheck").show();
+                        $("#createSharkDiv").addClass("has-success");
+                        $("#displayIndividualID").html(individual);
+                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                      })
+                      .fail(function(response) {
+                        $("#individualCreateErrorDiv, #indCreateError").show();
+                        $("#individualCreateErrorDiv").html(response.responseText);
+                        $("#createSharkDiv").addClass("has-error");
+                      });
+                    });
+
+                    $("#createSharkIndividual").click(function() {
+                      $("#individualCreateErrorDiv, #indCreateError, #indCreateCheck").hide();
+                      $("#createSharkDiv").removeClass("has-success");
+                      $("#createSharkDiv").removeClass("has-error");
+                      $("#createSharkBtn").show();
+                    });
+                  });
+                  </script>
+
+
+
+                  <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
+
+                  <form name="createShark" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
+                    <input name="action" type="hidden" value="create" id="individualCreateAction"/>
+                    <div class="form-group row">
+                      <div class="col-sm-4">
+                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="createSharkDiv">
+                        <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
+                        <span class="form-control-feedback" id="indCreateCheck">&check;</span>
+                        <span class="form-control-feedback" id="indCreateError">X</span>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <div class="col-sm-5 col-xs-10">
+                        <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                      </div>
+                    </div>
+                    <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                  </form>
 								<%
 								}
+									else{
+										%>
+										
+										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
+                      <span class="highlight" id="removeErrorDiv"></span>
+                      <span class="successHighlight" id="removeSuccessDiv"></span>
+                    </div>
+                    <div class="editText" id="manageIdentityMessage">
+                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                    </div>
+                    <form class="editForm" id="removeShark" name="removeShark">
+                      <div class="form-group row">
+                        <div class="col-sm-12 col-xs-10">
+                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
+                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
+                          <input name="action" type="hidden" value="remove" />
+                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                        </div>
+                      </div>
+                    </form>
+                    <br>
+									<%	
+									}
 								%>
 							</div>
 
-  							<script>
-  								var dlgIdentity = $("#dialogIdentity").dialog({
-    								autoOpen: false,
-    								draggable: false,
-    								resizable: false,
-    								width: 600
-  								});
-
-  								$("a#identity").click(function() {
-    								dlgIdentity.dialog("open");
-  								});
-  							</script>
-  						<%
-  						}
-						%>
-
 <!-- END INDIVIDUALID ATTRIBUTE -->
 
-						<!-- START ALTERNATEID ATTRIBUTE -->
-    <p class="para">
-    <%
-    String alternateID="";
-    if(enc.getAlternateID()!=null){
-    	alternateID=enc.getAlternateID();
-    }
-    %>
-    	<img align="absmiddle" src="../images/alternateid.gif"> <%=encprops.getProperty("alternate_id")%>: <%=alternateID%>
-      <%
-      if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      %>
-      <a id="alternateID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      <%
-        }
-      %>
-    </p>
-    <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-    <!-- start set alternate ID popup -->
-<div id="dialogAlternateID" title="<%=encprops.getProperty("setAlternateID")%>" style="display:none">
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setAltID" action="../EncounterSetAlternateID" method="post">
-              <input name="alternateid" type="text" size="10" maxlength="50" />
-                                   <input name="encounter" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-          </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgAlternateID = $("#dialogAlternateID").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#alternateID").click(function() {
-  dlgAlternateID.dialog("open");
-});
-</script>
-<%
-}
-%>
-<!-- END ALTERNATEID ATTRIBUTE -->
+<!-- START ALTERNATEID ATTRIBUTE -->
+            <%
+            String alternateID="";
+            if(enc.getAlternateID()!=null){
+              alternateID=enc.getAlternateID();
+            }
+            %>
+            <p>
+              <img align="absmiddle" src="../images/alternateid.gif">
+              <%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span>
+            </p>
 
 
-						<!-- START EVENTID ATTRIBUTE -->
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#setAltIDbtn").click(function(event) {
+                event.preventDefault();
+
+                $("#setAltIDbtn").hide();
+
+                var encounter = $("#altIDencounter").val();
+                var alternateid = $("#alternateid").val();
+
+                $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
+                function() {
+                  $("#altIdErrorDiv").hide();
+                  $("#altIdDiv").addClass("has-success");
+                  $("#altIdCheck").show();
+                  $("#displayAltID").html(alternateid);
+                })
+                .fail(function(response) {
+                  $("#altIdDiv").addClass("has-error");
+                  $("#altIdError, #altIdErrorDiv").show();
+                  $("#altIdErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#alternateid").click(function() {
+                $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
+                $("#altIdDiv").removeClass("has-success");
+                $("#altIdDiv").removeClass("has-error");
+                $("#setAltIDbtn").show();
+              });
+            });
+          </script>
+
+          <div class="highlight resultMessageDiv" id="altIdErrorDiv"></div>
+            <form name="setAltID" class="editForm">
+              <input name="encounter" type="hidden" value="<%=num%>" id="altIDencounter"/>
+              <div class="form-group row">
+                <div class="col-sm-3">
+                  <label><%=encprops.getProperty("setAlternateID")%>:</label>
+                </div>
+                <div class="col-sm-5 col-xs-10" id="altIdDiv">
+                  <input name="alternateid" id="alternateid" type="text" class="form-control" placeholder="<%=encprops.getProperty("alternate_id")%>"/>
+                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
+                  <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
+                <div class="col-sm-4">
+                  <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                </div>
+              </div>
+            </form>
+
+        <!-- END ALTERNATEID ATTRIBUTE -->
+
+
+				<!-- START EVENTID ATTRIBUTE -->
  						<%
     					if (enc.getEventID() != null) {
   						%>
@@ -1127,425 +1042,782 @@ $("a#alternateID").click(function() {
   						<%
     					}
   						%>
-						<!-- END EVENTID ATTRIBUTE -->
+				<!-- END EVENTID ATTRIBUTE -->
 
 
-						<!-- START OCCURRENCE ATTRIBUTE -->
+				<!-- START OCCURRENCE ATTRIBUTE -->
 						<p class="para">
 							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
 							<%
 							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
 							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></a>
+								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
 							<%
 							}
 							else{
 							%>
-								<%=encprops.getProperty("none_assigned") %>
+								<span id="displayOccurrenceID"><%=encprops.getProperty("none_assigned") %></span>
 							<%
 							}
+      				%>
+  					</p>
 
-        					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      						%>
-      							<a id="occurrence" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      						<%
-        					}
-      						%>
-  						</p>
+              <%
+                //Remove from occurrence if assigned
+                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+              %>
+              <script type="text/javascript">
+                $(document).ready(function() {
 
-  						<%
-						if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-						%>
+                  $("#removeOccurrenceBtn").click(function(event) {
+                    event.preventDefault();
 
-<div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none">
+                    $("#removeOccurrenceBtn").hide();
 
-<p><em><%=encprops.getProperty("occurrenceMessage")%></em></p>
+                    var number = $("#occurrenceRemoveEncounterNumber").val();
+                    var occurrence = $("#displayOccurrenceID").val();
 
-<!-- start Occurrence management section-->
-	<%
-    //Remove from occurrence if assigned
-	if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+                    $.post("../OccurrenceRemoveEncounter", {"number": number},
+                    function(response) {
+                      $("#occurrenceRemoveResultDiv").show();
+                      $("#occurRemoveSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully removed from occurrence " + occurrence + ".");
+                      $("#occurRemoveErrorDiv").empty();
+                      $("#removeOccurrenceBtn").hide();
+                      $("#removeOccurLabel").hide();
+                      $("#occurrenceEditMessage").hide();
+                      $("#displayOccurrenceID").html("");
+                      $("#")
+                    })
+                    .fail(function(response) {
+                      $("#occurrenceRemoveResultDiv").show();
+                      $("#occurRemoveErrorDiv").html(response.responseText);
+                      $("#occurRemoveSuccessDiv").empty();
+                      $("#removeOccurrenceBtn").show();
+                      $("#removeOccurLabel").show();
+                      $("#occurrenceEditMessage").show();
+                    });
+                  });
+                });
+              </script>
+
+              <div class="editText" id="occurrenceEditMessage">
+                <h3><%=encprops.getProperty("assignOccurrence")%></h3>
+                <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+              </div>
+              <div id="occurrenceRemoveResultDiv" class="resultMessageDiv">
+                <span class="highlight" id="occurRemoveErrorDiv"></span>
+                <span class="successHighlight" id="occurRemoveSuccessDiv"></span>
+              </div>
+              <form class="editForm" name="removeOccurrence">
+                <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
+                <input name="action" type="hidden" value="remove" id="occurrenceRemoveEncounterAction"/>
+                <div class="form-group row">
+                  <div class="col-sm-12">
+                    <label id="removeOccurLabel" class="highlight"><strong><%=encprops.getProperty("removeFromOccurrence")%></strong></label>
+                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="removeOccurrenceBtn" class="btn btn-sm editFormBtn"/>
+                  </div>
+                </div>
+              </form>
+
+                <br />
+                <%
+                }
+                //create new Occurrence with name
+
+                if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                %>
+                <script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#createOccur").click(function(event) {
+                      event.preventDefault();
+
+                      $("#createOccur").hide();
+
+                      var occurrence = $("#createOccurrenceInput").val();
+                      var number = $("#createOccurNumber").val();
+
+                      $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number},
+                      function() {
+                        $("#createOccurErrorDiv").hide();
+                        $("#occurDiv").addClass("has-success");
+                        $("#createOccurCheck").show();
+                        $("#displayOccurrenceID").html(occurrence);
+                      })
+                      .fail(function(response) {
+                        $("#occurDiv").addClass("has-error");
+                        $("#createOccurError, #createOccurErrorDiv").show();
+                        $("#createOccurErrorDiv").html(response.responseText);
+                      });
+                    });
+
+                    $("#createOccurrenceInput").click(function() {
+                      $("#createOccurError, #createOccurCheck, #createOccurErrorDiv").hide()
+                      $("#occurDiv").removeClass("has-success");
+                      $("#occurDiv").removeClass("has-error");
+                      $("#createOccur").show();
+                    });
+                  });
+                </script>
+                <div class="editText">
+                  <h3><%=encprops.getProperty("assignOccurrence")%></h3>
+                  <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+                </div>
+
+                <div class="highlight resultMessageDiv" id="createOccurErrorDiv"></div>
+
+                  <form name="createOccurrence" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="createOccurNumber"/>
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("createOccurrence")%>:</label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="occurDiv">
+                        <input name="occurrence" type="text" id="createOccurrenceInput" class="form-control" placeholder="<%=encprops.getProperty("newOccurrenceID")%>" />
+                        <span class="form-control-feedback" id="createOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="createOccurError">X</span>
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Create" type="submit" id="createOccur" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+
+                  <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
+
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#addOccurrence").click(function(event) {
+                        event.preventDefault();
+
+                        $("#addOccurrence").hide();
+
+                        var occurrence = $("#add2OccurrenceInput").val();
+                        var number = $("#addOccurNumber").val();
+                        var action = $("#addOccurAction").val();
+
+                        $.post("../OccurrenceAddEncounter", {"occurrence": occurrence, "number": number, "action": action},
+                        function() {
+                          $("#addOccurErrorDiv").hide();
+                          $("#addDiv").addClass("has-success");
+                          $("#createOccurCheck").show();
+                          $("#displayOccurrenceID").html(occurrence);
+                        })
+                        .fail(function(response) {
+                          $("#addDiv").addClass("has-error");
+                          $("#addOccurError, #addOccurErrorDiv").show();
+                          $("#addOccurErrorDiv").html(response.responseText);
+                          $("#addOccurrence").show();
+                        });
+                      });
+
+                      $("#add2OccurrenceInput").click(function() {
+                        $("#addOccurError, #addOccurCheck, #addOccurErrorDiv").hide()
+                        $("#addDiv").removeClass("has-success");
+                        $("#addDiv").removeClass("has-error");
+                        $("#addOccurrence").show();
+                        $("#addOccurErrorDiv").hide();
+                      });
+                    });
+                  </script>
+
+                  <div class="highlight resultMessageDiv" id="addOccurErrorDiv"></div>
+
+                  <form name="add2occurrence" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="addOccurNumber"/>
+                    <input name="action" type="hidden" value="add" id="addOccurAction"/>
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("add2Occurrence")%>: </label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="addDiv">
+                        <input name="occurrence" id="add2OccurrenceInput" type="text" class="form-control" placeholder="<%=encprops.getProperty("occurrenceID")%>"/>
+                        <span class="form-control-feedback" id="addOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="addOccurError">X</span>
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Add" type="submit" id="addOccurrence" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+
+                    <%
+                      }
+                      %>
+    <!-- END OCCURRENCE ATTRIBUTE -->
 
 
-	%>
-	<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  	<tr>
-    	<td align="left" valign="top" class="para">
-      <table>
-        <tr>
-          <td><font color="#990000"><img style="width: 40px;height: 40px;" align="absmiddle" src="../images/cancel.gif"/></font></td>
-          <td><strong><%=encprops.getProperty("removeFromOccurrence")%>
-          </strong></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form action="../OccurrenceRemoveEncounter" method="post" name="removeOccurrence">
-      	<input name="number" type="hidden" value="<%=num%>" />
-      	<input name="action" type="hidden" value="remove" />
-      	<input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<br /> <%
-      	}
-      	  //create new Occurrence with name
+<%-- START CONTACT INFORMATION --%>
+        <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-      if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
 
-      %>
-<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-  <tr>
-    <td align="left" valign="top" class="para">
-    	<font color="#990000">
-      		<strong><%=encprops.getProperty("createOccurrence")%></strong></font></td>
-  </tr>
-  <tr>
-    <td align="left" valign="top">
-      <form name="createOccurrence" method="post" action="../OccurrenceCreate">
-        <input name="number" type="hidden" value="<%=num%>" />
-        <input name="action" type="hidden" value="create" />
-        <%=encprops.getProperty("newOccurrenceID")%><br />
-        <input name="occurrence" type="text" id="occurrence" size="10" maxlength="50" value="" />
-        <br />
-        <input name="Create" type="submit" id="Create" value="<%=encprops.getProperty("create")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-<br/>
-<strong>--<%=encprops.getProperty("or") %>--</strong>
-<br />
-<br />
-  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para"><font color="#990000">
+          <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+          <h2>
+            <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
+            <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
+            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;">Close Edit</button>
+          </h2>
 
-        <strong><%=encprops.getProperty("add2Occurrence")%></strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="add2occurrence" action="../OccurrenceAddEncounter" method="post">
-        <%=encprops.getProperty("occurrenceID")%>: <input name="occurrence" type="text" size="10" maxlength="50" /><br />
 
-            <input name="number" type="hidden" value="<%=num%>" />
-            <input name="action" type="hidden" value="add" />
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" />
-          </form>
-      </td>
-    </tr>
-  </table>
- <%
- }
+          <script type="text/javascript">
+          $(document).ready(function() {
+            var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
+              buttons.toggle();
+            });
+            $("#editContactBtn").click(function() {
+              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
 
-%>
+              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
 
-<!-- end Occurrence management section -->
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
 
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgOccurrence = $("#dialogOccurrence").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
 
-$("a#occurrence").click(function() {
-  dlgOccurrence.dialog("open");
-});
-</script>
-<!-- end set occurrenceID -->
-<%
-}
-%>
-<!-- END OCCURRENCE ATTRIBUTE -->
+            });
+
+            $("#closeEditContact").click(function() {
+              $(".editFormContact, .editTextContact, .resultMessageDiv").hide();
+            });
+          });
+          </script>
+
+
+          <% }
+          else {
+           %>
+           <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
+
+           <%}%>
 
 
 
-    <jsp:include page="encounterMediaGallery.jsp" flush="true">
-    	<jsp:param name="encounterNumber" value="<%=num%>" />
-    	<jsp:param name="isOwner" value="<%=isOwner %>" />
-    	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-  	</jsp:include>
 
-    <div id="add-image-zone" class="bc4">
+          <p class="para"><em><%=encprops.getProperty("submitter") %></em>
 
-      <h2 style="text-align:left">Add image to Encounter</h2>
+          <%
+          if(enc.getSubmitterName()!=null){
+            %>
+            <br/><span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
+            <%
+          }
+          if (isOwner) {
 
-      <div class="flow-box bc4" style="text-align:center" >
+            if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
+              //break up the string
+              StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
+              while(stzr.hasMoreTokens()) {
+                String nextie=stzr.nextToken();
+                %>
+                <br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a>
+                <%
+              }
 
-        <div id="file-activity" style="display:none"></div>
+            }
+            else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
+              %> <br/>
+              <a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
+              <%
+            }
 
-        <div id="updone"></div>
+            if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
+              %>
+              <br/><span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
+              <%
+            }
+            if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
+              %>
+              <br /><span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
+              <%
+                }
 
-        <div id="upcontrols">
-          <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-          <div id="flowbuttons">
+                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
+                <br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+                <%
+                  }
+                  if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+                  <%
+                    }
 
-            <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-            <button id="upload-button" class="btn" style="display:none">begin upload</button>
+                    }
+                    %>
+                  </p>
 
-          </div>
+                  <p class="para">
+                    <em><%=encprops.getProperty("photographer") %></em>
+                    <%
+                      %>
+
+                      <%
+                        if(enc.getPhotographerName()!=null){
+                        %>
+                        <br/><span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
+                        <%
+                          }
+
+                          if (isOwner) {
+
+                          if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+                          %>
+                          <br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
+                          <%
+                            }
+                            if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
+                            %>
+                            <br/><span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
+                            <%
+                              }
+                              if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
+                              %>
+                              <br/><span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
+                              <%
+                                }
+
+                                %>
+                                <%
+                                  }
+                                  %>
+                                </p>
+
+                              <%
+                                if(isOwner){
+                                %>
+
+                                <p class="para">
+                                  <em>
+                                    <%=encprops.getProperty("inform_others") %>
+                                  </em>
+                                  <%
+
+                                    %>
+
+                                  <%
+
+                                    %>
+                                    <br/>
+                                    <%
+                                      if(enc.getInformOthers()!=null){
+
+                                      if(enc.getInformOthers().indexOf(",")!=-1) {
+                                      //break up the string
+                                      StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
+
+                                      while(stzr.hasMoreTokens()) {
+                                      %>
+                                      <%=stzr.nextToken()%><br/>
+                                      <%
+                                        }
+
+                                        }
+                                        else{
+                                        %>
+                                        <span id="displayInformOthers"><%=enc.getInformOthers()%></span><br/> <%
+                                        }
+                                        }
+                                        else {
+                                        %>
+                                        <%=encprops.getProperty("none") %>
+                                        <%
+                                          }
+                                          %>
+                                        </p>
+                                        <%
+                                          %>
+
+          <!-- start submitter -->
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#editContact").click(function(event) {
+                event.preventDefault();
+
+                $("#editContact").hide();
+
+                var contact = $("#submitter").val();
+                var number = $("#submitNumber").val();
+                var action = $("#submitAction").val();
+                var name = $("#submitName").val();
+                var email = $("#submitEmail").val();
+                var phone = $("#submitPhone").val();
+                var address = $("#submitAddress").val();
+                var submitterOrganization = $("#submitOrg").val();
+                var submitterProject = $("#submitProject").val();
+
+                $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address, "submitterOrganization": submitterOrganization, "submitterProject": submitterProject},
+                function() {
+                  $("#submitErrorDiv").hide();
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-success");
+                  $("#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").show();
+                  $("#displaySubmitName").html(name);
+                  $("#displaySubmitEmail").html(email);
+                  $("#displaySubmitPhone").html(phone);
+                  $("#displaySubmitAddress").html(address);
+                  $("#displaySubmitOrg").html(submitterOrganization);
+                  $("#displaySubmitProject").html(submitterProject);
+                })
+                .fail(function(response) {
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-error");
+                  $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError").show();
+                  $("#submitErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#setPersonalDetailsForm").click(function() {
+                $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").hide()
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-success");
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-error");
+                $("#editContact").show();
+              });
+            });
+          </script>
+
+          <div>
+            <div class="highlight resultMessageDiv" id="submitErrorDiv"></div>
+
+            <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)</strong></p>
+            <form name="setPersonalDetails" class="editFormContact" id="setPersonalDetailsForm">
+              <input type="hidden" name="contact" value="submitter" id="submitter"/>
+              <input name="number" type="hidden" value="<%=num%>" id="submitNumber"/>
+              <input name="action" type="hidden" value="editcontact" id="submitAction"/>
+              <%
+
+                String sName="";
+                if(enc.getSubmitterName()!=null){sName=enc.getSubmitterName();}
+                String sEmail="";
+                if(enc.getSubmitterEmail()!=null){sEmail=enc.getSubmitterEmail();}
+                String sPhone="";
+                if(enc.getSubmitterPhone()!=null){sPhone=enc.getSubmitterPhone();}
+                String sAddress="";
+                if(enc.getSubmitterAddress()!=null){sAddress=enc.getSubmitterAddress();}
+                String sOrg="";
+                if(enc.getSubmitterOrganization()!=null){sOrg=enc.getSubmitterOrganization();}
+                String sProject="";
+                if(enc.getSubmitterProject()!=null){sProject=enc.getSubmitterProject();}
+
+                %>
+
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("name")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitNameDiv">
+                    <input id="submitName" name="name" type="text" value="<%=sName %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitNameCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitNameError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("email")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitEmailDiv">
+                    <input id="submitEmail" name="email" type="text" value="<%=sEmail %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitEmailCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitEmailError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("phone")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitPhoneDiv">
+                    <input id="submitPhone" name="phone" type="text" value="<%=sPhone %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitPhoneCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitPhoneError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("address")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitAddressDiv">
+                    <input id="submitAddress" name="address" type="text" value="<%=sAddress %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitAddressCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitAddressError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row" id="submitOrgDiv">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("submitterOrganization")%></label>
+                  </div>
+                  <div class="col-sm-5">
+                    <input id="submitOrg" name="submitterOrganization" type="text" value="<%=sOrg %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitOrgCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitOrgError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row" id="submitProjectDiv">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("submitterProject")%></label>
+                  </div>
+                  <div class="col-sm-5">
+                    <input id="submitProject" name="submitterProject" type="text" value="<%=sProject %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitProjectCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitProjectError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-5">
+                    <input name="EditContact" type="submit" id="editContact" value="Update" class="btn bnt-sm editFormBtn"/>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- end submitter  -->
+
+            <!-- start photographer -->
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#editPhotographer").click(function(event) {
+                  event.preventDefault();
+
+                  $("#editPhotographer").hide();
+
+                  var contact = $("#photographer").val();
+                  var number = $("#photoNumber").val();
+                  var action = $("#photoAction").val();
+                  var name = $("#photoName").val();
+                  var email = $("#photoEmail").val();
+                  var phone = $("#photoPhone").val();
+                  var address = $("#photoAddress").val();
+
+
+                  $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address},
+                  function() {
+                    $("#photoErrorDiv").hide();
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-success");
+                    $("#photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").show();
+                    $("#displayPhotoName").html(name);
+                    $("#displayPhotoEmail").html(email);
+                    $("#displayPhotoPhone").html(phone);
+                    $("#displayPhotoAddress").html(address);
+                  })
+                  .fail(function(response) {
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-error");
+                    $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError").show();
+                    $("#photoErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#setPhotographerInfoForm").click(function() {
+                  $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").hide()
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-success");
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-error");
+                  $("#editPhotographer").show();
+                });
+              });
+            </script>
+            <div>
+              <div class="highlight resultMessageDiv" id="photoErrorDiv"></div>
+
+              <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)</strong></p>
+              <form id="setPhotographerInfoForm" class="editFormContact">
+                <input type="hidden" name="contact" value="photographer" id="photographer"/>
+                <input name="number" type="hidden" value="<%=num%>" id="photoNumber"/>
+                <input name="action" type="hidden" value="editcontact" id="photoAction"/>
+
+                <%
+
+                  String pName="";
+                  if(enc.getPhotographerName()!=null){pName=enc.getPhotographerName();}
+                  String pEmail="";
+                  if(enc.getPhotographerEmail()!=null){pEmail=enc.getPhotographerEmail();}
+                  String pPhone="";
+                  if(enc.getPhotographerPhone()!=null){pPhone=enc.getPhotographerPhone();}
+                  String pAddress="";
+                  if(enc.getPhotographerAddress()!=null){pAddress=enc.getPhotographerAddress();}
+
+                  %>
+
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("name")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoNameDiv">
+                      <input id="photoName" name="name" type="text" size="20" value="<%=pName %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="photoNameCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoNameError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("email")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoEmailDiv">
+                      <input id="photoEmail" name="email" type="text" value="<%=pEmail %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="photoEmailCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoEmailError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("phone")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoPhoneDiv">
+                      <input id="photoPhone" name="phone" type="text" size="20" value="<%=pPhone %>" class="form-control"></input></input>
+                      <span class="form-control-feedback" id="photoPhoneCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoPhoneError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("address")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoAddressDiv">
+                      <input id="photoAddress" name="address" type="text" value="<%=pAddress %>" class="form-control"/>
+                      <span class="form-control-feedback" id="photoAddressCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoAddressError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-5">
+                      <input name="EditContact" type="submit" id="editPhotographer" value="Update" class="btn btn-sm editFormBtn"/>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- end photographer  -->
+
+              <%-- start inform others --%>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $("#setOthers").click(function(event) {
+                    event.preventDefault();
+
+                    $("#setOthers").hide();
+
+                    var encounter = $("#informEncounter").val();
+                    var informothers = $("#informOthers").val();
+
+                    $.post("../EncounterSetInformOthers", {"encounter": encounter, "informothers": informothers},
+                    function() {
+                      $("#informErrorDiv").hide();
+                      $("#informOthersDiv").addClass("has-success");
+                      $("#informCheck").show();
+                      $("#displayInformOthers").html(informothers);
+                    })
+                    .fail(function(response) {
+                      $("#informOthersDiv").addClass("has-error");
+                      $("#informError, #informErrorDiv").show();
+                      $("#informErrorDiv").html(response.responseText);
+                    });
+                  });
+
+                  $("#informOthers").click(function() {
+                    $("#informError, #informCheck, #informErrorDiv").hide()
+                    $("#informOthersDiv").removeClass("has-success");
+                    $("#informOthersDiv").removeClass("has-error");
+                    $("#setOthers").show();
+                  });
+                });
+              </script>
+
+              <div>
+                <div class="highlight resultMessageDiv" id="informErrorDiv"></div>
+
+                <p class="editTextContact">
+                  <strong><%=encprops.getProperty("setOthersToInform")%></strong>
+                  <span class="editTextContact"><em><%=encprops.getProperty("separateEmails") %></em></span>
+                </p>
+                <form name="setOthers" class="editFormContact">
+                  <input name="encounter" type="hidden" value="<%=num%>" id="informEncounter"/>
+                  <div class="form-group row">
+                    <div class="col-sm-6" id="informOthersDiv">
+                      <input class="form-control" name="informothers" type="text" id="informOthers"
+                        <%if(enc.getInformOthers()!=null){ %>
+                        value="<%=enc.getInformOthers().trim()%>"
+                        <%}%> />
+                        <span class="form-control-feedback" id="informCheck">&check;</span>
+                        <span class="form-control-feedback" id="informError">X</span>
+                      </div>
+                      <div class="col-sm-3">
+                        <input name="Set" type="submit" id="setOthers" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <!-- end inform others  -->
+                <%
+                  }
+                  %>
         </div>
-      </div>
-    </div>
+<%-- END CONTACT INFORMATION --%>
 
-  </div>
-
-
-							<div class="col-xs-12 col-sm-6" style="vertical-align:top">
-
-
-
-
-<!-- start DATE section -->
-<table>
-<tr>
-<td width="560px" style="vertical-align:top;">
-
-<h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
-</h2>
-<p>
-<%if(enc.getDateInMilliseconds()!=null){ %>
-  <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
-    <%=enc.getDate()%>
-  </a>
-    <%
-}
-else{
-%>
-<%=encprops.getProperty("unknown") %>
-<%
-}
-
-
-				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 					%><font size="-1"><a id="date" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
-        		}
-        		%>
-
-
-<br />
-<em><%=encprops.getProperty("verbatimEventDate")%></em>:
-    <%
-				if(enc.getVerbatimEventDate()!=null){
-				%>
-    <%=enc.getVerbatimEventDate()%>
-    <%
-				}
-				else {
-				%>
-    <%=encprops.getProperty("none") %>
-    <%
-				}
-				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 					%> <font size="-1"><a id="VBDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font> <%
-        		}
-        		%>
-
-
-<!-- end verbatim event date -->
-
-
-
-<%
-  pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
-%>
-<c:if test="${showReleaseDate}">
-  <br /><em><%=encprops.getProperty("releaseDate") %></em>:
-    <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
-    <c:if test="${editable}">
-        <font size="-1"><a id="releaseDate" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
-    </c:if>
-  </p>
-</c:if>
-
-<!-- start releaseDate popup -->
-<div id="dialogReleaseDate" title="<%=encprops.getProperty("setReleaseDate")%>" style="display:none">
-
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-
-    <tr>
-        <td>
-            <form name="setReleaseDate" method="post" action="../EncounterSetReleaseDate">
-                <input type="hidden" name="encounter" value="${num}"/>
-            <table>
-
-                <tr><td>
-
-                    <div id="releasedatepicker"></div>
-
-          <p>
-           <%=encprops.getProperty("setReleaseDate")%> <input type="text" style="position: relative; z-index: 101;" id="releasedatepickerField" name="releasedatepicker" size="20" /><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-          </p>
-
-          <br />
-           <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" />
-
-
-                </td></tr>
-            </table>
-            </form>
-        </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgReleaseDate = $("#dialogReleaseDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#releaseDate").click(function() {
-  dlgReleaseDate.dialog("open");
-});
-</script>
-<!-- end releaseDate -->
-<!-- start verbatim event date popup -->
-<div id="dialogVBDate" title="<%=encprops.getProperty("setVerbatimEventDate")%>" style="display:none">
-
-	  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-		    <tr>
-		      <td align="left" valign="top" class="para"><strong><font
-		        color="#990000"><%=encprops.getProperty("setVerbatimEventDate")%>:</font></strong>
-		        <br />
-			<font size="-1"><em><%=encprops.getProperty("useZeroIfUnknown")%>
-          		</em></font>
-		        </td>
-		    </tr>
-		    <tr>
-		      <td align="left" valign="top">
-		        <form name="setVerbatimEventDate" action="../EncounterSetVerbatimEventDate"
-		              method="post"><input name="verbatimEventDate" type="text" size="10" maxlength="50">
-		              <input name="encounter" type="hidden" value=<%=num%>>
-		          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>"></form>
-		      </td>
-		    </tr>
-		  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgVBDate = $("#dialogVBDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#VBDate").click(function() {
-  dlgVBDate.dialog("open");
-});
-</script>
-<!-- start date popup -->
-<div id="dialogDate" title="<%=encprops.getProperty("resetEncounterDate")%>" style="display:none">
-
-  <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencdate" action="../EncounterResetDate" method="post">
-
-          <div id="datepicker"></div>
-
-          <p>
-           <%=encprops.getProperty("setDate")%> <input type="text" style="position: relative; z-index: 101;" id="datepickerField" name="datepicker" size="20" /> yyyy-MM-dd HH:mm<br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-          </p>
-
-          <br />
-        <input name="number" type="hidden" value="<%=num%>" id="number" />
-        <input name="action" type="hidden" value="changeEncounterDate" />
-        <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setDate")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgDate = $("#dialogDate").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#date").click(function() {
-  dlgDate.dialog("open");
-});
-</script>
-<!-- end date dialog -->
-
-</td>
-</tr>
-</table>
-
-
-
-
-      <%
-
-  String isLoggedInValue="true";
-  String isOwnerValue="true";
-
-  if(!loggedIn){isLoggedInValue="false";}
-  if(!isOwner){isOwnerValue="false";}
-
-%>
-
-
-
-<br />
+<%-- START LOCATION --%>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
 <h2>
-	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
+	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/>
+  <%=encprops.getProperty("location") %>
+  <button class="btn btn-md" type="button" name="button" id="editLocation">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditLocation" style="display:none;">Close Edit</button>
 </h2>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
+
+    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
+
+    $("#depthDiv, #elevationDiv").removeClass("has-error");
+
+    $("#depthDiv, #elevationDiv").removeClass("has-success");
+
+  });
+
+  $("#closeEditLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2>
+ 	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
+ </h2>
+
+ <%}%>
+
+
+
 <%
 if(enc.getLocation()!=null){
 %>
-<em><%=encprops.getProperty("locationDescription")%> <%=enc.getLocation()%></em>
+
+<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
 <%
 }
 %>
 
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %><a id="location" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-<br /><em><%=encprops.getProperty("locationID") %></em>: <%=enc.getLocationCode()%>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
-  <font size="-1"><a id="locationID" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
-    }
-  %>
+<br>
 
-<br />
+<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
+<em><%=encprops.getProperty("locationID") %></em><span>: <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
 
- <em><%=encprops.getProperty("country") %></em>:
+<br>
+
+
+  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
+  <em><%=encprops.getProperty("country") %></em>
   <%
   if(enc.getCountry()!=null){
   %>
-  <%=enc.getCountry()%>
+  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
   <%
   }
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
-  <font size="-1"><a id="country" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a> <%
-    }
-  %>
-
+    %>
 
   <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
     <%
@@ -1557,17 +1829,12 @@ if(enc.getLocation()!=null){
   <%
     if (enc.getDepthAsDouble() !=null) {
   %>
-  <%=enc.getDepth()%> <%=encprops.getProperty("meters")%> <%
+  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
   } else {
   %> <%=encprops.getProperty("unknown") %>
   <%
     }
 
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %>
-&nbsp;<a id="depth" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
 %>
 </em>
 <%
@@ -1575,44 +1842,280 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- End Display maximumDepthInMeters -->
 
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start depth popup -->
-<div id="dialogDepth" title="<%=encprops.getProperty("setDepth")%>" style="display:none">
+<!-- start location  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addLocation").click(function(event) {
+      event.preventDefault();
 
-	<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+      $("#addLocation").hide();
 
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencdepth" action="../EncounterSetMaximumDepth" method="post">
-          <input name="depth" type="text" id="depth" size="10" /> <%=encprops.getProperty("meters")%>
-          <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setEncounterDepth" />
-          <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgDepth = $("#dialogDepth").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+      var number = $("#setLocationNumber").val();
+      var encounter = $("#setLocationEncounter").val();
+      var location = $("#locationInput").val();
 
-$("a#depth").click(function() {
-  dlgDepth.dialog("open");
-});
+      $.post("../EncounterSetLocation", {"number": number, "encounter": encounter, "location": location},
+      function() {
+        $("#setLocationErrorDiv").hide();
+        $("#setLocationCheck").show();
+        $("#displayLocation").html(location);
+      })
+      .fail(function(response) {
+        $("#setLocationError, #setLocationErrorDiv").show();
+        $("#setLocationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#locationInput").click(function() {
+      $("#setLocationError, #setLocationCheck, #setLocationErrorDiv").hide()
+      $("#addLocation").show();
+    });
+  });
 </script>
-<!-- end depth popup -->
-<%
-}
-%>
+<div>
+  <div class="highlight resultMessageDiv" id="setLocationErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocation")%></strong></p>
+  <form name="setLocation" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="setLocationNumber"/>
+    <input name="action" type="hidden" value="setLocation" />
+    <input name="encounter" type="hidden" value="<%=num%>" id="setLocationEncounter">
+
+  <%
+  String thisLocation="";
+  if(enc.getLocation()!=null){
+    thisLocation=enc.getLocation().trim();
+  }
+  %>
+  <div class="form-group row">
+    <div class="col-sm-5">
+      <textarea name="location" class="form-control" id="locationInput"><%=thisLocation%></textarea>
+    </div>
+    <div class="col-sm-3">
+      <input name="Add" type="submit" id="addLocation" value="<%=encprops.getProperty("setLocation")%>" class="btn btn-sm"/>
+      <span class="form-control-feedback" id="setLocationCheck">&check;</span>
+      <span class="form-control-feedback" id="setLocationError">X</span>
+    </div>
+  </div>
+  </form>
+</div>
+<!-- end location -->
+
+
+<!-- start country -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#countryFormBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#countryFormBtn").hide();
+
+      var encounter = $("#countryEncounter").val();
+      var country = $("#selectCountry").val();
+
+      $.post("../EncounterSetCountry", {"encounter": encounter, "country": country},
+      function() {
+        $("#countryErrorDiv").hide();
+        $("#countryCheck").show();
+        $("#displayCountry").html(country);
+      })
+      .fail(function(response) {
+        $("#countryError, #countryErrorDiv").show();
+        $("#countryErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCountry").click(function() {
+      $("#countryError, #countryCheck, #countryErrorDiv").hide()
+      $("#countryFormBtn").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="countryErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("resetCountry")%></strong></p>
+  <span class="editTextLocation"><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></span>
+
+  <form name="countryForm" class="editFormLocation">
+    <input name="encounter" type="hidden" value="<%=num%>" id="countryEncounter" />
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="country" id="selectCountry" size="1" class="form-control">
+          <option value=""></option>
+
+          <%
+          String[] locales = Locale.getISOCountries();
+          for (String countryCode : locales) {
+            Locale obj = new Locale("", countryCode);
+            %>
+            <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+
+            <%
+          }
+          %>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="<%=encprops.getProperty("set")%>" type="submit" id="countryFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="countryCheck">&check;</span>
+        <span class="form-control-feedback" id="countryError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+<!-- end country popup-->
+
+<!-- start locationID -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setLocationBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#setLocationBtn").hide();
+
+      var number = $("#locationIDnumber").val();
+      var code = $("#selectCode").val();
+
+      $.post("../EncounterSetLocationID", {"number": number, "code": code},
+      function() {
+        $("#locationIDerrorDiv").hide();
+        $("#locationIDcheck").show();
+        $("#displayLocationID").html(code);
+      })
+      .fail(function(response) {
+        $("#locationIDerror, #locationIDerrorDiv").show();
+        $("#locationIDerrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCode").click(function() {
+      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide()
+      $("#setLocationBtn").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="locationIDerrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocationID")%></strong></p>
+  <form name="addLocCode" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
+    <input name="action" type="hidden" value="addLocCode" />
+
+        <%
+        if(CommonConfiguration.getProperty("locationID0",context)==null){
+        %>
+        <div class="form-group row">
+          <div class="col-sm-5">
+            <input name="code" type="text" class="form-control" id="selectCode"/>
+          </div>
+          <div class="col-sm-3">
+            <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
+          </div>
+        </div>
+        <%
+        }
+        else{
+          //iterate and find the locationID options
+          %>
+          <div class="form-group row">
+            <div class="col-sm-5">
+              <select name="code" id="selectCode" class="form-control" size=="1">
+                <option value=""></option>
+
+                <%
+                boolean hasMoreLocs=true;
+                int codeTaxNum=0;
+                while(hasMoreLocs){
+                  String currentLoc = "locationID"+codeTaxNum;
+                  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
+                    %>
+
+                    <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
+                    <%
+                    codeTaxNum++;
+                  }
+                  else{
+                    hasMoreLocs=false;
+                  }
+
+                }
+                %>
+
+              </select>
+            </div>
+            <div class="col-sm-3">
+              <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
+              <span class="form-control-feedback" id="locationIDcheck">&check;</span>
+              <span class="form-control-feedback" id="locationIDerror">X</span>
+            </div>
+          </div>
+      <%
+        }
+        %>
+
+    </form>
+</div>
+<!-- end locationID -->
+
+
+<!-- start depth -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddDepth").click(function(event) {
+      event.preventDefault();
+
+      $("#AddDepth").hide();
+
+      var number = $("#depthNumber").val();
+      var depth = $("#depthInput").val();
+
+      $.post("../EncounterSetMaximumDepth", {"number": number, "depth": depth},
+      function() {
+        $("#depthErrorDiv").hide();
+        $("#depthDiv").addClass("has-success");
+        $("#depthCheck").show();
+        $("#displayDepth").html(depth);
+      })
+      .fail(function(response) {
+        $("#depthDiv").addClass("has-error");
+        $("#depthError, #depthErrorDiv").show();
+        $("#depthErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#depthInput").click(function() {
+      $("#depthError, #depthCheck, #depthErrorDiv").hide()
+      $("#depthDiv").removeClass("has-success");
+      $("#depthDiv").removeClass("has-error");
+      $("#AddDepth").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setDepth")%></strong></p>
+  <form name="setencdepth" class="editFormLocation">
+    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+    <input name="number" type="hidden" value="<%=num%>" id="depthNumber" />
+    <input name="action" type="hidden" value="setEncounterDepth" />
+    <div class="form-group row">
+      <div class="col-sm-5" id="depthDiv">
+        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="depthCheck">&check;</span>
+        <span class="form-control-feedback" id="depthError">X</span>
+      </div>
+      <div class="col-sm-3">
+        <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
+</div>
 
 
 <!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
@@ -1625,58 +2128,74 @@ $("a#depth").click(function() {
 <%
     if (enc.getMaximumElevationInMeters()!=null) {
   %>
-    <%=enc.getMaximumElevationInMeters()%> <%=encprops.getProperty("meters")%> <%
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
   } else {
   %>
-  <%=encprops.getProperty("unknown") %>
+  <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
   <%
     }
 
- if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   %>
-<a id="elev" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+
   <%
-    }
   %>
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start elevation popup -->
-<div id="dialogElev" title="<%=encprops.getProperty("setElevation")%>" style="display:none">
+<!-- start elevation -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddElev").click(function(event) {
+      event.preventDefault();
 
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencelev" action="../EncounterSetMaximumElevation" method="post">
-          <input name="elevation" type="text" id="elevation" size="10" /> Meters <input
-          name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setEncounterElevation" /><br />
-          <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
+      $("#AddElev").hide();
 
-<!-- popup dialog script -->
-<script>
-var dlgElev = $("#dialogElev").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+      var number = $("#elevationNumber").val();
+      var elevation = $("#elevation").val();
 
-$("a#elev").click(function() {
-  dlgElev.dialog("open");
-});
+      $.post("../EncounterSetMaximumElevation", {"number": number, "elevation": elevation},
+      function() {
+        $("#elevationErrorDiv").hide();
+        $("#elevationDiv").addClass("has-success");
+        $("#elevationCheck").show();
+        $("#displayElevation").html(elevation);
+      })
+      .fail(function(response) {
+        $("#elevationDiv").addClass("has-error");
+        $("#elevationError, #elevationErrorDiv").show();
+        $("#elevationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#elevationInput").click(function() {
+      $("#elevationError, #elevationCheck, #elevationErrorDiv").hide()
+      $("#elevationDiv").removeClass("has-success");
+      $("#elevationDiv").removeClass("has-error");
+      $("#AddElev").show();
+    });
+  });
 </script>
-<!-- end elevation popup -->
+<div>
+  <div class="highlight resultMessageDiv" id="elevationErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setElevation")%></strong></p>
+  <form name="setencelev" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="elevationNumber" />
+    <input name="action" type="hidden" value="setEncounterElevation" />
+    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+    <div class="form-group row">
+      <div class="col-sm-5" id="elevationDiv">
+        <input name="elevation" type="text" id="elevation" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="elevationCheck">&check;</span>
+        <span class="form-control-feedback" id="elevationError">X</span>
+      </div>
+    </div>
+    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+  </form>
+</div>
+<!-- end elevation  -->
 <%
-}
 %>
 
 <%
@@ -1684,9 +2203,7 @@ $("a#elev").click(function() {
 %>
 <!-- End Display maximumElevationInMeters -->
 
-
-  <br /><br />
- 	<!-- START MAP and GPS SETTER -->
+	<!-- START MAP and GPS SETTER -->
 
     <script type="text/javascript">
         var markers = [];
@@ -1722,75 +2239,7 @@ $("a#elev").click(function() {
        markers.push(marker);
        //map.fitBounds(bounds);
 
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		//hide header
-    		$("#header_menu").hide();
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = '<%=encprops.getProperty("exitFullscreen")%>';
-    	    } else {
-    	      controlText.innerHTML = '<%=encprops.getProperty("fullscreen")%>';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
+    	//}
 
 
 
@@ -1798,10 +2247,10 @@ $("a#elev").click(function() {
     </script>
 
  	<%
- 	if((request.getUserPrincipal()!=null) && ((enc.getLatitudeAsDouble()!=null)&&(enc.getLongitudeAsDouble()!=null))){
+ 	if((request.getUserPrincipal()!=null)){
  	%>
  		<p><%=encprops.getProperty("map_note") %></p>
- 		<div id="map_canvas" style="width: 510px; height: 350px; "></div>
+ 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
  	<%
  	}
  	else {
@@ -1822,30 +2271,70 @@ $("a#elev").click(function() {
        	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
 
      	%>
+
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $("#setGPSbutton").click(function(event) {
+            event.preventDefault();
+
+            var number = $("#gpsNumber").val();
+            var lat = $("#lat").val();
+            var longitude = $("#longitude").val();
+
+            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
+            function() {
+              $("#latCheck, #longCheck").show();
+            })
+            .fail(function(response) {
+              $("#gpsErrorDiv").show();
+              $("#gpsErrorDiv").html(response.responseText);
+              $("#latCheck, #longCheck").hide();
+            });
+          });
+
+          $("#lat, #longitude, #map_canvas").click(function() {
+            $("#gpsErrorDiv").hide()
+            $("#latCheck, #longCheck").hide();
+          });
+        });
+      </script>
+
+
      	<a name="gps"></a>
-     		<table>
-     			<tr>
-					<td>
-					<form name="resetGPSform" method="post" action="../EncounterSetGPS">
-				    	<input name="action" type="hidden" value="resetGPS" />
+        <div>
+          <br>
+          <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
+          <form name="resetGPSform" class="editFormLocation">
+            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
+            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
+            <div class="form-group row">
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("latitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
+                <span class="form-control-feedback" id="latCheck">&check;</span>
+              </div>
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("longitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
+                <span class="form-control-feedback" id="longCheck">&check;</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-3">
+                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
 
-						<strong><%=encprops.getProperty("latitude")%>:</strong>
+              </div>
+            </div>
+          </form>
 
-						<input name="lat" type="text" id="lat" size="10" value="<%=laty%>" /> &deg;
-						<strong><%=encprops.getProperty("longitude")%>:</strong>
-						<input name="longitude" type="text" id="longitude" size="10" value="<%=longy%>" />&nbsp;&deg;
-						<br />
-						<input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" />
+          <br/>
+          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+        </div>
 
-						<br/>
-						<br/>
-						<%=encprops.getProperty("gpsConverter")%> <a href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
-						<input name="number" type="hidden" value=<%=num%> />
-
-					</form>
-				</td>
-			</tr>
-     	</table>
      	<%
  		}  //end isOwner
      	%>
@@ -1854,1137 +2343,53 @@ $("a#elev").click(function() {
  <!-- END MAP and GPS SETTER -->
 
 
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start locationID popup-->
-<div id="dialogLocationID" title="<%=encprops.getProperty("setLocationID")%>" style="display:none">
-
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="addLocCode" action="../EncounterSetLocationID" method="post">
-
-              <%
-              if(CommonConfiguration.getProperty("locationID0",context)==null){
-              %>
-              <input name="code" type="text" size="10" maxlength="50" />
-              <%
-              }
-              else{
-            	  //iterate and find the locationID options
-            	  %>
-            	  <select name="code" id="code">
-						            	<option value=""></option>
-
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "locationID"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-						       	  	%>
-
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-
-						       }
-						       %>
-
-
-						      </select>
-
-
-            <%
-              }
-              %>
-
-                                   <input name="number" type="hidden" value="<%=num%>" />
-                                   <input name="action" type="hidden" value="addLocCode" />
-          							<input name="Set Location ID" type="submit" id="Add" value="<%=encprops.getProperty("setLocationID")%>" />
-          </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgLocationID = $("#dialogLocationID").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#locationID").click(function() {
-  dlgLocationID.dialog("open");
-});
-</script>
-<!-- end locationID -->
-
-
-<!-- start location popup -->
-<div id="dialogLocation" title="<%=encprops.getProperty("setLocation")%>" style="display:none">
-
-  <table width="150" border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top">
-        <form name="setLocation" action="../EncounterSetLocation" method="post">
-        <%
-        String thisLocation="";
-        if(enc.getLocation()!=null){
-        	thisLocation=enc.getLocation().trim();
-        }
-        %>
-        <textarea name="location" size="15"><%=thisLocation%></textarea>
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="action" type="hidden" value="setLocation" />
-          <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("setLocation")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgLocation = $("#dialogLocation").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#location").click(function() {
-  dlgLocation.dialog("open");
-});
-</script>
-<!-- end location -->
-
-
-<!-- start country popup -->
-<div id="dialogCountry" title="<%=encprops.getProperty("resetCountry")%>" style="display:none">
-
-		<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
-			<tr>
-				<td align="left" valign="top" class="para"><strong><font color="#990000">
-					<%=encprops.getProperty("resetCountry")%>:</font></strong><br /> <font size="-1"><%=encprops.getProperty("leaveBlank")%></font>
-						    </td>
-						  </tr>
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="countryForm" action="../EncounterSetCountry" method="post">
-						            <select name="country" id="country">
-						            	<option value=""></option>
-
-						       <%
-
-
-
-				                  String[] locales = Locale.getISOCountries();
-				  				  for (String countryCode : locales) {
-				  					Locale obj = new Locale("", countryCode);
-				  				    %>
-				                      <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-
-								 <%
-				              	 }
-								 %>
-
-
-
-						      </select>
-						      <input name="encounter" type="hidden" value="<%=num%>" id="number" />
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgCountry = $("#dialogCountry").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#country").click(function() {
-  dlgCountry.dialog("open");
-});
-</script>
-<!-- end country popup-->
-
-<%
-    }
-%>
-
-<br />
-
+<%-- START METADATA --%>
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top; background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
 
-<h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
-
-<table>
-	<tr>
-		<td valign="top">
-			<p class="para"><em><%=encprops.getProperty("submitter") %></em>
-				<%
- 				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 				%>
- 					<a id="submitter" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    			<%
- 				}
- 				%>
- 				<%
- 				if(enc.getSubmitterName()!=null){
- 				%>
- 				<br/><%=enc.getSubmitterName()%>
- 				<%
- 				}
-     			if (isOwner) {
-
-					if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
-						//break up the string
-						StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
-						while(stzr.hasMoreTokens()) {
-							String nextie=stzr.nextToken();
-							%>
-							<br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a>
-							<%
-						}
-
-					}
-					else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
-					%> <br/>
-						<a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=enc.getSubmitterEmail()%></a>
-					<%
-					}
-
-					if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
-					%>
-						<br/> <%=enc.getSubmitterPhone()%>
-					<%
-					}
-					if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
-					%>
-					<br /><%=enc.getSubmitterAddress()%>
-					<%
-					}
-
-					if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
-						<br/><%=enc.getSubmitterOrganization()%>
-					<%
-					}
-					if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-						<br/><%=enc.getSubmitterProject()%>
-					<%
-					}
-
-				}
-
-				if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-				%>
-				</p>
-				<!-- start submitter popup -->
-				<div id="dialogSubmitter" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)" style="display:none">
-					<form name="setPersonalDetails" action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
-  						<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    						<%
-
-    						String sName="";
-    						if(enc.getSubmitterName()!=null){sName=enc.getSubmitterName();}
-    						String sEmail="";
-    						if(enc.getSubmitterEmail()!=null){sEmail=enc.getSubmitterEmail();}
-    						String sPhone="";
-    						if(enc.getSubmitterPhone()!=null){sPhone=enc.getSubmitterPhone();}
-    						String sAddress="";
-    						if(enc.getSubmitterAddress()!=null){sAddress=enc.getSubmitterAddress();}
-    						String sOrg="";
-    						if(enc.getSubmitterOrganization()!=null){sOrg=enc.getSubmitterOrganization();}
-    						String sProject="";
-    						if(enc.getSubmitterProject()!=null){sProject=enc.getSubmitterProject();}
-
-    						%>
-
-    						<tr>
-      							<td>
-       								<input type="hidden" name="contact" value="submitter" />
-									<%=encprops.getProperty("name")%><br />
-          						</td>
-          						<td>
-          							<input name="name" type="text" size="20" value="<%=sName %>" maxlength="100"></input>
-          						</td>
-          					</tr>
-          					<tr>
-          						<td>
-          							<%=encprops.getProperty("email")%><br />
-          						</td>
-          						<td>
-          							<input name="email" type="text" value="<%=sEmail %>" size="20"></input>
-          						</td>
-          					</tr>
-          					<tr>
-          						<td>
-          							<%=encprops.getProperty("phone")%>
-          						</td>
-          						<td>
-          							<input name="phone" type="text" size="20" value="<%=sPhone %>" maxlength="100"></input>
-          						</td>
-          					</tr>
-          					<tr>
-          						<td>
-          							<%=encprops.getProperty("address")%>
-          						</td>
-          						<td>
-          							<input name="address" type="text" size="20" value="<%=sAddress %>" maxlength="100"></input>
-          						</td>
-          					</tr>
-          					<tr>
-          						<td>
-           							<%=encprops.getProperty("submitterOrganization")%>
-          						</td>
-          						<td>
-          							<input name="submitterOrganization" type="text" size="20" value="<%=sOrg %>" maxlength="100"></input>
-          						</td>
-          					</tr>
-          					<tr>
-          						<td>
-          							<%=encprops.getProperty("submitterProject")%>
-	   							</td>
-	   							<td>
-	   								<input name="submitterProject" type="text" size="20" value="<%=sProject %>" maxlength="100"></input>
-	            				</td>
-	            			</tr>
-          					<tr>
-          						<td>
-            						<input name="number" type="hidden" value="<%=num%>" />
-            						<input name="action" type="hidden" value="editcontact" />
-            						<input name="EditContact" type="submit" id="EditContact" value="Update" />
-     							</td>
-    						</tr>
-  					</table>
-	 			</form>
-			</div>
-
-			<script>
-				var dlgSubmitter = $("#dialogSubmitter").dialog({
-  					autoOpen: false,
-  					draggable: false,
-  					resizable: false,
-  					width: 600
-				});
-
-				$("a#submitter").click(function() {
-  					dlgSubmitter.dialog("open");
-				});
-			</script>
-			<!-- end submitter popup -->
-		<%
-		}
-		%>
-		</td>
-		<td valign="top">
-			<p class="para">
-				<em><%=encprops.getProperty("photographer") %></em>
-				<%
- 				if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
-		 		%>
-		 			<a id="photographer" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-    			<%
- 				}
- 				if(enc.getPhotographerName()!=null){
- 				%>
- 					<br/> <%=enc.getPhotographerName()%>
- 				<%
- 				}
-
-				if (isOwner) {
-
-					if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
-					%>
-						<br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=enc.getPhotographerEmail()%></a>
-					<%
-					}
-					if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
-					%>
-						<br/><%=enc.getPhotographerPhone()%>
-					<%
-					}
-					if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
-					%>
-						<br/><%=enc.getPhotographerAddress()%>
-					<%
-					}
-
-					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-					%>
-						<!-- start submitter popup -->
-						<div id="dialogPhotographer" title="<%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)" style="display:none">
-							<form action="../EncounterSetSubmitterPhotographerContactInfo" method="post">
-  								<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    									<%
-
-    						String pName="";
-    						if(enc.getPhotographerName()!=null){pName=enc.getPhotographerName();}
-    						String pEmail="";
-    						if(enc.getPhotographerEmail()!=null){pEmail=enc.getPhotographerEmail();}
-    						String pPhone="";
-    						if(enc.getPhotographerPhone()!=null){pPhone=enc.getPhotographerPhone();}
-    						String pAddress="";
-    						if(enc.getPhotographerAddress()!=null){pAddress=enc.getPhotographerAddress();}
-
-    						%>
-
-    								<tr>
-      									<td>
-       										<input type="hidden" name="contact" value="photographer" />
-
-          									<%=encprops.getProperty("name")%><br />
-          								</td>
-          								<td>
-          									<input name="name" type="text" size="20" value="<%=pName %>" maxlength="100"></input>
-          								</td>
-          							</tr>
-          							<tr>
-          								<td>
-          									<%=encprops.getProperty("email")%><br />
-          								</td>
-          								<td>
-          									<input name="email" type="text" value="<%=pEmail %>" size="20"></input>
-          								</td>
-          							</tr>
-          							<tr>
-          								<td>
-          									<%=encprops.getProperty("phone")%>
-          								</td>
-          								<td>
-          									<input name="phone" type="text" size="20" value="<%=pPhone %>" maxlength="100"></input>
-          								</td>
-          							</tr>
-          							<tr>
-          								<td>
-          									<%=encprops.getProperty("address")%>
-          								</td>
-          								<td>
-          									<input name="address" type="text" size="20" value="<%=pAddress %>" maxlength="100"></input>
-          								</td>
-          							</tr>
-          							<tr>
-          								<td>
-            								<input name="number" type="hidden" value="<%=num%>" />
-            								<input name="action" type="hidden" value="editcontact" />
-            								<input name="EditContact" type="submit" id="EditContact" value="Update" />
-      									</td>
-    								</tr>
-  								</table>
-	 						</form>
-						</div>
-
-						<script>
-							var dlgPhotographer = $("#dialogPhotographer").dialog({
-  								autoOpen: false,
-  								draggable: false,
- 								resizable: false,
- 								width: 600
-							});
-
-							$("a#photographer").click(function() {
-  								dlgPhotographer.dialog("open");
-							});
-						</script>
-						<!-- end photographer popup -->
-					<%
-					}
-				}
-				%>
-				</p>
-				</td>
-			</tr>
-			<%
-			if(isOwner){
-			%>
-			<tr>
-				<td colspan="2">
-					<p class="para">
-						<em>
-							<%=encprops.getProperty("inform_others") %>
-						</em>
-						<%
- 						if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- 						%>
- 							<a id="inform" class="launchPopup">
- 								<img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
- 							</a>
-    					<%
- 						}
- 						%>
- 						<br/>
- 						<%
-    					if(enc.getInformOthers()!=null){
-
-        					if(enc.getInformOthers().indexOf(",")!=-1) {
-        						//break up the string
-        						StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
-
-        						while(stzr.hasMoreTokens()) {
-        						%>
-        							<%=stzr.nextToken()%><br/>
-        						<%
-								}
-
-							}
-							else{
-							%>
-								<%=enc.getInformOthers()%><br/> <%
-							}
-						}
-						else {
-						%>
-  							<%=encprops.getProperty("none") %>
-  						<%
-						}
- 						%>
- 					</p>
- 					<%
-					if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-					%>
-
-						<div id="dialogInform" title="<%=encprops.getProperty("setOthersToInform")%>" style="display:none">
-							<p>
-								<em><%=encprops.getProperty("separateEmails") %></em>
-							</p>
-  							<table cellpadding="1" bordercolor="#FFFFFF">
-    							<tr>
-      								<td align="left" valign="top">
-        								<form name="setOthers" action="../EncounterSetInformOthers" method="post">
-          									<input name="encounter" type="hidden" value="<%=num%>" />
-          									<input name="informothers" type="text" size="50" <%if(enc.getInformOthers()!=null){%> value="<%=enc.getInformOthers().trim()%>" <%}%> maxlength="1000" />
-          									<br />
-          									<input name="Set" type="submit" id="Set" value="<%=encprops.getProperty("set")%>" />
-        								</form>
-      								</td>
-    							</tr>
-  							</table>
-						</div>
-                        <!-- popup dialog script -->
-						<script>
-							var dlgInform = $("#dialogInform").dialog({
-  								autoOpen: false,
-  								draggable: false,
-  								resizable: false,
-  								width: 600
-							});
-
-							$("a#inform").click(function() {
-  								dlgInform.dialog("open");
-							});
-						</script>
-						<!-- end inform others popup -->
-					<%
-					}
-					}
-					%>
-
- 				</td>
- 			</tr>
- 		</table>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %>
+  <button class="btn btn-md" type="button" name="button" id="editMeta">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditMeta" style="display:none;">Close Edit</button>
+</h2>
 
 
-  </td>
-  </tr>
-  </table>
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editMeta, #closeEditMeta").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editMeta").click(function() {
+    $(".editFormMeta, .editTextMeta, #editWork, #Assign").show();
 
-  <br />
-  <h2><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %></h2>
-<!-- START TAXONOMY ATTRIBUTE -->
-<%
-    if(CommonConfiguration.showProperty("showTaxonomy",context)){
+    $("#setMetaCheck, #setMetaError, #workCheck, #workError, #assignCheck, #assignError").hide();
 
-    String genusSpeciesFound=encprops.getProperty("notAvailable");
-    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
-    %>
+  });
 
-        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
-          <%=encprops.getProperty("taxonomy")%>: <em><%=genusSpeciesFound%></em>&nbsp;<%
-            if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-          %><a id="taxon" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
-            }
-          %>
-       </p>
-
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-    <!-- start set taxonomy ID popup -->
-<div id="dialogTaxon" title="<%=encprops.getProperty("resetTaxonomy")%>" style="display:none">
-			<table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-			  <tr>
-			    <td align="left" valign="top">
-			      <form name="taxonomyForm" action="../EncounterSetGenusSpecies" method="post">
-			           <img align="absmiddle" src="../images/taxontree.gif" /> <select name="genusSpecies" id="genusSpecies">
-			            	<option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
-
-			       <%
-			       boolean hasMoreTax=true;
-			       int taxNum=0;
-			       while(hasMoreTax){
-			       	  String currentGenuSpecies = "genusSpecies"+taxNum;
-			       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-			       	  	%>
-
-			       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-			       	  	<%
-			       		taxNum++;
-			          }
-			          else{
-			             hasMoreTax=false;
-			          }
-
-			       }
-			       %>
-
-
-			      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number">
-			        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>">
-			      </form>
-			    </td>
-			  </tr>
-			</table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgTaxon = $("#dialogTaxon").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#taxon").click(function() {
-  dlgTaxon.dialog("open");
+  $("#closeEditMeta").click(function() {
+    $(".editFormMeta, .editTextMeta, .resultMessageDiv").hide();
+  });
 });
 </script>
-<%
-}
 
 
-}
-%>
-<!-- END TAXONOMY ATTRIBUTE -->
-
-
-<!-- START ALIVE-DEAD ATTRIBUTE -->
-<p class="para">
-      <%=encprops.getProperty("status")%>:
-      <%
-      if(enc.getLivingStatus()!=null){
-      %>
-      <%=enc.getLivingStatus()%>
-       <%
-    }
-        if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-      %><a id="livingStatus" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a><%
-        }
-      %>
-    </p>
-    <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-        <!-- start set living status popup -->
-<div id="dialogLivingStatus" title="<%=encprops.getProperty("resetStatus")%>" style="display:none">
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="livingStatusForm" action="../EncounterSetLivingStatus" method="post">
-            <select name="livingStatus" id="livingStatus">
-        <option value="alive" selected><%=encprops.getProperty("alive")%></option>
-        <option value="dead"><%=encprops.getProperty("dead")%></option>
-      </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-</div>
-<!-- popup dialog script -->
-<script>
-var dlgLivingStatus = $("#dialogLivingStatus").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#livingStatus").click(function() {
-  dlgLivingStatus.dialog("open");
-});
-</script>
-<%
-    }
-%>
-<!-- END ALIVE-DEAD ATTRIBUTE -->
-
-<!--  START SEX SECTION -->
-<%
-String sex="";
-if(enc.getSex()!=null){sex=enc.getSex();}
-%>
-<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<%=sex %>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
+<% }
+else {
  %>
- <a id="sex" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
-%>
-</p>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
-%>
-<!-- start elevation popup -->
-<div id="dialogSex" title="<%=encprops.getProperty("resetSex")%>" style="display:none">
+ <h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
 
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="setxencshark" action="../EncounterSetSex" method="post">
-        <select name="selectSex" size="1" id="selectSex">
-          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
-          </option>
-          <option value="male"><%=encprops.getProperty("male")%>
-          </option>
-          <option value="female"><%=encprops.getProperty("female")%>
-          </option>
-        </select>
-        <input name="number" type="hidden" value="<%=num%>" id="number" />
-        <input name="action" type="hidden" value="setEncounterSex" />
-        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetSex")%>" />
-      </form>
-    </td>
-  </tr>
-</table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgSex = $("#dialogSex").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#sex").click(function() {
-  dlgSex.dialog("open");
-});
-</script>
-<!-- end sex popup -->
-<%
- 	}
- %>
- <!--  END SEX SECTION -->
+ <%}%>
 
 
-<!--  START SCARRING SECTION -->
-<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
 
-<%
-String recordedScarring="";
-if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
-%>
-<%=recordedScarring%>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- %>
-<a id="scar" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-<%
-}
-%>
-</p>
-<%
-if(isOwner&&CommonConfiguration.isCatalogEditable(context)) {
- %>
-<div id="dialogScar" title="<%=encprops.getProperty("editScarring")%>" style="display:none">
-
-  <table border="0" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top">
-        <form name="setencsize" action="../EncounterSetScarring" method="post">
-          <textarea name="scars" size="15"><%=enc.getDistinguishingScar()%>
-          </textarea>
-          <input name="number" type="hidden" value="<%=num%>" id="number" />
-          <input name="action" type="hidden" value="setScarring" />
-          <br />
-          <input name="Add" type="submit" id="scar" value="<%=encprops.getProperty("resetScarring")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgScar = $("#dialogScar").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#scar").click(function() {
-  dlgScar.dialog("open");
-});
-</script>
-
-
-    <%
- 	}
- 	%>
-<!--  END SCARRING SECTION -->
-
-
-<!--  START BEHAVIOR SECTION -->
-<p class="para"><%=encprops.getProperty("behavior") %>&nbsp;
-
-  <%
-    if (enc.getBehavior() != null) {
-  %>
-  <%=enc.getBehavior()%>
-  <%
-  } else {
-  %>
-  <%=encprops.getProperty("none")%>
-  <%
-    }
-
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-	  %>
-<a id="behavior" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-	  <%
-	    }
-%>
-</p>
-
-
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-    <!-- start set behavior popup -->
-<div id="dialogBehavior" title="<%=encprops.getProperty("editBehaviorComments")%>" style="display:none">
-			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para">
-      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setBehaviorComments" action="../EncounterSetBehavior" method="post">
-        <textarea name="behaviorComment" cols="50"><%
-
-         if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
-         %>
-<%=enc.getBehavior().trim()%>
-        <%
-        }
-        %>
-        </textarea>
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="action" type="hidden" value="editBehavior" /> <br />
-          <input name="EditBeh" type="submit" id="EditBeh" value="<%=encprops.getProperty("submitEdit")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgBehavior = $("#dialogBehavior").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#behavior").click(function() {
-  dlgBehavior.dialog("open");
-});
-</script>
-<%
-}
-%>
-<!--  END BEHAVIOR SECTION -->
-
-
-<!--  START PATTERNING CODE SECTION -->
-<%
-  if (CommonConfiguration.showProperty("showPatterningCode",context)) {
-%>
-<p class="para"><%=encprops.getProperty("patterningCode") %>&nbsp;
-
-  <%
-    if (enc.getPatterningCode() != null) {
-  %>
-  <%=enc.getPatterningCode()%>
-  <%
-  } else {
-  %>
-  <%=encprops.getProperty("none")%>
-  <%
-    }
-
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-	  %>
-<a id="patterningCode" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-	  <%
-	    }
-%>
-</p>
-
-
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-    <!-- start set patterning code popup -->
-<div id="dialogPatterningCode" title="<%=encprops.getProperty("editPatterningCode")%>" style="display:none">
-			  <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para">
-      	<p><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></p>
-      </td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="setPatterningCode" action="../EncounterSetPatterningCode" method="post">
-         <%
-              if(CommonConfiguration.getProperty("patterningCode0",context)==null){
-              %>
-              <input name="patterningCode" type="text" size="10" maxlength="50" />
-              <%
-              }
-              else{
-            	  //iterate and find the locationID options
-            	  %>
-            	  <select name="patterningCode" id="colorCode">
-						            	<option value=""></option>
-
-						       <%
-						       boolean hasMoreLocs=true;
-						       int taxNum=0;
-						       while(hasMoreLocs){
-						       	  String currentLoc = "patterningCode"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-						       	  	%>
-
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreLocs=false;
-						          }
-
-						       }
-						       %>
-
-
-						      </select>
-
-
-            <%
-              }
-              %>
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="EditPC" type="submit" id="EditPC" value="<%=encprops.getProperty("submitEdit")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<!-- popup dialog script -->
-<script>
-var dlgPatterningCode = $("#dialogPatterningCode").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#patterningCode").click(function() {
-	dlgPatterningCode.dialog("open");
-});
-</script>
-<%
-}
-  }
-%>
-<!--  END PATTERNING CODE SECTION -->
-
-
-<!--  START LIFESTAGE SECTION -->
-<%
-  if (CommonConfiguration.showProperty("showLifestage",context)) {
-%>
-<p class="para"><%=encprops.getProperty("lifeStage")%>&nbsp;
-
-  <%
-    if (enc.getLifeStage() != null) {
-  %>
-  <%=enc.getLifeStage()%>
-  <%
-  }
- %>
- <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %>
-  <a id="LifeStage" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-</p>
-
- <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-    %>
-    <!-- start set life stage popup -->
-<div id="dialogLifeStage" title="<%=encprops.getProperty("resetLifeStage")%>" style="display:none">
-	<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-						  <tr>
-						    <td align="left" valign="top">
-						      <form name="lifeStageForm" action="../EncounterSetLifeStage" method="post">
-						            <select name="lifeStage" id="lifeStage">
-						            	<option value=""></option>
-
-						       <%
-						       boolean hasMoreStages=true;
-						       int taxNum=0;
-						       while(hasMoreStages){
-						       	  String currentLifeStage = "lifeStage"+taxNum;
-						       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-						       	  	%>
-
-						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-						       	  	<%
-						       		taxNum++;
-						          }
-						          else{
-						             hasMoreStages=false;
-						          }
-
-						       }
-						       %>
-
-
-						      </select>
-						      <input name="encounter" type="hidden" value="<%=num%>" id="number"/>
-						        <input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      </form>
-						    </td>
-						  </tr>
-						</table>
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgLifeStage = $("#dialogLifeStage").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#LifeStage").click(function() {
-  dlgLifeStage.dialog("open");
-});
-</script>
-<%
-  }
-}
-  %>
-<!--  END LIFESTAGE SECTION -->
-
-
-<!-- START ADDITIONAL COMMENTS -->
-<p class="para"><%=encprops.getProperty("comments") %>
-  <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %>&nbsp;<a id="comments" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-  <%
-    }
-  %>
-<br/>
-<%
-String recordedComments="";
-if(enc.getComments()!=null){recordedComments=enc.getComments();}
-%>
-<em><%=recordedComments%></em>
-
-</p>
-<br/>
-<%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-%>
-
-<div id="dialogComments" title="<%=encprops.getProperty("editSubmittedComments")%>" style="display:none">
-
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-      <td align="left" valign="top" cols="50">
-        <form name="setComments" action="../EncounterSetOccurrenceRemarks" method="post"><textarea name="fixComment" size="15"><%=enc.getComments()%>
-</textarea>
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="action" type="hidden" value="editComments" />
-           <br /><input name="EditComm" type="submit" id="EditComm" value="<%=encprops.getProperty("submitEdit")%>" /></form>
-      </td>
-    </tr>
-  </table>
-
-</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgComments = $("#dialogComments").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#comments").click(function() {
-  dlgComments.dialog("open");
-});
-</script>
-<!-- end addtl comments popup -->
-<%
-}
-%>
-<!-- END ADDITIONAL COMMENTS -->
-
-<br />
-<table>
-<tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
-
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/workflow_icon.gif" /> <%=encprops.getProperty("metadata") %></h2>
 
 
 								<p class="para">
 									Number: <%=num%>
 								</p>
-								<!-- START WORKFLOW ATTRIBUTE -->
+			<!-- START WORKFLOW ATTRIBUTE -->
 
 
  								<%
@@ -2993,36 +2398,70 @@ $("a#comments").click(function() {
 									if (enc.getState()!=null){state=enc.getState();}
 									%>
 									<p class="para">
-										 <%=encprops.getProperty("workflowState") %> <%=state %>
+										 <%=encprops.getProperty("workflowState") %> <span id="displayWork"><%=state %></span>
 
 										<%
-										if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 										%>
-										<a id="state" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+
 										<%
-										}
 										%>
 
 									</p>
 									<%
-										if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 									%>
-   									<div id="dialogState" title="<%=encprops.getProperty("setWorkflowState")%>" style="display:none">
-  										<table class="popupForm">
-						  					<tr>
-						    					<td align="left" valign="top">
-						      						<form name="countryForm" action="../EncounterSetState" method="post">
-						            					<select name="state" id="state">
+
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#selectState option[value='<%=state %>']").attr('selected','selected');
+
+                      $("#editWork").click(function(event) {
+                        event.preventDefault();
+
+                        $("#editWork").hide();
+
+                        var number = $("#workNumber").val();
+                        var state = $("#selectState").val();
+
+                        $.post("../EncounterSetState", {"number": number, "state": state},
+                        function() {
+                          $("#workErrorDiv").hide();
+                          $("#workCheck").show();
+                          $("#displayWork").html(state);
+                        })
+                        .fail(function(response) {
+                          $("#workError, #workErrorDiv").show();
+                          $("#workErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#selectState").click(function() {
+                        $("#workerror, #workCheck, #workErrorDiv").hide()
+                        $("#editWork").show();
+                      });
+                    });
+                  </script>
+
+
+                  <div>
+                    <div class="highlight resultMessageDiv" id="workErrorDiv"></div>
+
+                    <p class="editTextMeta"><strong><%=encprops.getProperty("setWorkflowState")%></strong></p>
+
+                    <form name="workflowStateForm" class="editFormMeta">
+                      <input name="number" type="hidden" value="<%=num%>" id="workNumber" />
+                      <div class="form-group row">
+                        <div class="col-sm-5">
+                          <select name="state" id="selectState" class="form-control" size="1">
 															<%
 						       								boolean hasMoreStates=true;
-						       								int taxNum=0;
+						       								int stateTaxNum=0;
 						       								while(hasMoreStates){
-						       	  								String currentLifeState = "encounterState"+taxNum;
+						       	  								String currentLifeState = "encounterState"+stateTaxNum;
 						       	  								if(CommonConfiguration.getProperty(currentLifeState,context)!=null){
 						       	  									%>
 						       	  	  								<option value="<%=CommonConfiguration.getProperty(currentLifeState,context)%>"><%=CommonConfiguration.getProperty(currentLifeState,context)%></option>
 						       	  									<%
-						       										taxNum++;
+						       										stateTaxNum++;
 						          								}
 						          								else{
 						             								hasMoreStates=false;
@@ -3030,33 +2469,23 @@ $("a#comments").click(function() {
 
 						       								} //end while
 						       								%>
-						      						</select>
-						      						<input name="number" type="hidden" value="<%=num%>" id="number" />
-						        					<input name="<%=encprops.getProperty("set")%>" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("set")%>" />
-						      					</form>
-						    				</td>
-						  				</tr>
-									</table>
-  								</div>
-								<script>
-  									var dlgState = $("#dialogState").dialog({
-    									autoOpen: false,
-    									draggable: false,
-    									resizable: false,
-    									width: 600
-  									});
+						      				</select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input name="<%=encprops.getProperty("set")%>" type="submit" id="editWork" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                          <span class="form-control-feedback" id="workCheck">&check;</span>
+                          <span class="form-control-feedback" id="workError">X</span>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
 
-  									$("a#state").click(function() {
-    									dlgState.dialog("open");
-  									});
-  								</script>
        							<%
-        						}
+        						// }
       							%>
-								<!-- END WORKFLOW ATTRIBUTE -->
+				<!-- END WORKFLOW ATTRIBUTE -->
 
-
-								<!-- START USER ATTRIBUTE -->
+				<!-- START USER ATTRIBUTE -->
 								<%
  								if((CommonConfiguration.showUsersToPublic(context))||(request.getUserPrincipal()!=null)){
  								%>
@@ -3067,13 +2496,9 @@ $("a#comments").click(function() {
      										<img align="absmiddle" src="../images/Crystal_Clear_app_Login_Manager.gif" /> <%=encprops.getProperty("assigned_user")%>&nbsp;
      									</td>
         								<%
-        								if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       									%>
-      									<td>
-      										<a id="user" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-      									</td>
+
       									<%
-        								}
       									%>
      								</tr>
      								<tr>
@@ -3083,9 +2508,9 @@ $("a#comments").click(function() {
 
                         	 				String username=enc.getAssignedUsername();
                         	 				Shepherd aUserShepherd=new Shepherd("context0");
+                        	 				aUserShepherd.setAction("encounter.jsp2");
                          					if(aUserShepherd.getUser(username)!=null){
                          					%>
-                                			<table>
                                 			<%
 
                          					User thisUser=aUserShepherd.getUser(username);
@@ -3095,95 +2520,54 @@ $("a#comments").click(function() {
                          						profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                          					}
                          					%>
-                     						<tr>
-                     							<td>
-                     								<center>
-                     									<div style="height: 50px">
-															<a id="username" class="launchPopup"><img style="height: 100%" border="1" align="top" src="<%=profilePhotoURL%>"  /></a>
-														</div>
-													</center>
-												</td>
-											</tr>
                      						<%
                          					String displayName="";
                          					if(thisUser.getFullName()!=null){
                          						displayName=thisUser.getFullName();
                          						%>
-                         					<tr>
-                         						<td style="border:none">
-                         							<center>
-                         								<a class="launchPopup" id="username" style="font-weight:normal;border:none"><%=displayName %></a>
-                         							</center>
-                         						</td>
-                         					</tr>
-                         					<tr>
-                         						<td>
-                         							<center>
-                         								<p class="caption">(click to learn more)</p>
-                         							</center>
-                         						</td>
-                         					</tr>
                          					<%
                          					}
-                         					else{
                                 			%>
-                                			<tr>
-                                				<td>&nbsp;</td>
-                                			</tr>
-                                			<%
-                                			}
-                         					%>
-                         				</table>
 
-                         				<!-- Now prep the popup dialog -->
-                         				<div id="dialog" title="<%=displayName %>" style="display:none">
-                         					<table cellpadding="3px">
-                         						<tr>
-                         							<td>
-                         								<div style="height: 150px"><img border="1" align="top" src="<%=profilePhotoURL%>" style="height: 100%" />
-                         			</td>
-                         			<td><p>
-                         			<%
-                         			if(thisUser.getAffiliation()!=null){
-                         			%>
-                         			<strong>Affiliation:</strong> <%=thisUser.getAffiliation() %><br />
-                         			<%
-                         			}
+     								<div>
+                      <div class="row">
+                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+                          <img src="../cust/mantamatcher/img/individual_placeholder_image.jpg" class="lazyload" align="top" data-src="<%=profilePhotoURL%>" style="height: 150px;border: 1px solid;" />
+                        </div>
+                        <div class="col-sm-6" style="padding-top: 15px; padding-bottom: 15px;">
+                          <%-- <p> --%>
 
-                         			if(thisUser.getUserProject()!=null){
-                         			%>
-                         			<strong>Research Project:</strong> <%=thisUser.getUserProject() %><br />
-                         			<%
-                         			}
+                        <%
+                        if(thisUser.getAffiliation()!=null){
+                        %>
+                        <p><strong><%=displayName %></strong></p>
+                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <%
+                        }
 
-                         			if(thisUser.getUserURL()!=null){
-                             			%>
-                             			<strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><br />
-                             			<%
-                             		}
+                        if(thisUser.getUserProject()!=null){
+                        %>
+                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <%
+                        }
 
-                         			if(thisUser.getUserStatement()!=null){
-                             			%>
-                             			<br /><em>"<%=thisUser.getUserStatement() %>"</em>
-                             			<%
-                             		}
-                         			%>
-                         			</p>
-                         			</td></tr></table>
-                         		</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlg = $("#dialog").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+                        if(thisUser.getUserURL()!=null){
+                            %>
+                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <%
+                          }
 
-$("a#username").click(function() {
-  dlg.dialog("open");
-});
-</script>
+                        if(thisUser.getUserStatement()!=null){
+                            %>
+                            <p/><em>"<%=thisUser.getUserStatement() %>"</em></p>
+                            <%
+                          }
+                        %>
+                        </div>
+                      </div>
+
+                  </div>
+
 <%
                          	}
 
@@ -3197,86 +2581,65 @@ $("a#username").click(function() {
                         aUserShepherd.closeDBTransaction();
                       	}
                          				//insert here
-                         	if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 
 
-<!-- start set username popup -->
-<div id="dialogUser" title="<%=encprops.getProperty("assignUser")%>" style="display:none">
+<!-- start set username -->
+<div>
+  <div class="highlight resultMessageDiv" id="assignErrorDiv"></div>
 
-	    <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-    <tr>
-      <td align="left" valign="top" class="para"><font
-        color="#990000"><img align="absmiddle"
-                             src="../images/Crystal_Clear_app_Login_Manager.gif"/>
-        <strong><%=encprops.getProperty("assignUser")%>:</strong></font></td>
-    </tr>
-    <tr>
-      <td align="left" valign="top">
-        <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post">
+  <p class="editTextMeta"><strong><%=encprops.getProperty("assignUser")%></strong></p>
 
-          <select name="submitter" id="submitter">
-        	<option value=""></option>
-        	<%
+  <form name="asetSubmID" action="../EncounterSetSubmitterID" method="post" class="editFormMeta">
+    <input name="number" type="hidden" value="<%=num%>" id="assignNumber"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="submitter" id="submitterSelect" class="form-control" size="1">
+            <option value=""></option>
+            <%
 
-        	Shepherd userShepherd=new Shepherd("context0");
-        	userShepherd.beginDBTransaction();
+            Shepherd userShepherd=new Shepherd("context0");
+            userShepherd.setAction("encounter.jsp3");
+            userShepherd.beginDBTransaction();
 
-        	ArrayList<String> usernames=userShepherd.getAllUsernames();
+            ArrayList<String> usernames=userShepherd.getAllUsernames();
 
-        	int numUsers=usernames.size();
-        	for(int i=0;i<numUsers;i++){
-        		String thisUsername=usernames.get(i);
-        		User thisUser2=userShepherd.getUser(thisUsername);
-        		String thisUserFullname=thisUsername;
-        		if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
-        	%>
-        	<option value="<%=thisUsername%>"><%=thisUserFullname%></option>
-        	<%
-			}
-        	userShepherd.rollbackDBTransaction();
-        	userShepherd.closeDBTransaction();
-        	%>
-      	</select>
-
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
+            int numUsers=usernames.size();
+            for(int i=0;i<numUsers;i++){
+                String thisUsername=usernames.get(i);
+                User thisUser2=userShepherd.getUser(thisUsername);
+                String thisUserFullname=thisUsername;
+                if(thisUser2.getFullName()!=null){thisUserFullname=thisUser2.getFullName();}
+              %>
+              <option value="<%=thisUsername%>"><%=thisUserFullname%></option>
+              <%
+            }
+            userShepherd.rollbackDBTransaction();
+            userShepherd.closeDBTransaction();
+            %>
+          </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Assign" type="submit" id="Assign" value="<%=encprops.getProperty("assign")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgUser = $("#dialogUser").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#user").click(function() {
-  dlgUser.dialog("open");
-});
-</script>
 
 
+                   		<%
 
-                         		<%
-                         	}
-
-                         }
-                         else {
-                         %>
-                         &nbsp;
-                         <%
-                         }
-                        %>
-                        </td>
+                   }
+                   else {
+                   %>
+                   &nbsp;
+                   <%
+                   }
+                  %>
+                  </td>
 
 
     </tr></table>
-
 
 <!-- END USER ATTRIBUTE -->
 
@@ -3284,39 +2647,123 @@ $("a#user").click(function() {
 <%
 if (isOwner) {
 %>
-<table width="100%" border="0" cellpadding="1">
-    <tr>
-      <td height="30" class="para">
-        <form name="setTapirLink" method="post" action="../EncounterSetTapirLinkExposure">
-              <input name="action" type="hidden" id="action" value="tapirLinkExpose" />
-              <input name="number" type="hidden" value="<%=num%>" />
-              <%
-              String tapirCheckIcon="cancel.gif";
-              if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
-              %>
-              TapirLink:&nbsp;<input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="approve" value="<%=encprops.getProperty("change")%>" />&nbsp;<a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
-        </form>
-      </td>
-    </tr>
-  </table>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#tapirApprove").click(function(event) {
+      event.preventDefault();
+
+
+      var number = $("#tapirNumber").val();
+      var action = $("#tapirAction").val();
+
+      $.post("../EncounterSetTapirLinkExposure", {"number": number, "action": action},
+      function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirError").hide();
+        $("#tapirSuccess").html(response);
+      })
+      .fail(function(response) {
+        $("#tapirResultDiv").show();
+        $("#tapirSuccess").hide();
+        $("#tapirError").html(response.responseText);
+      });
+    });
+  });
+</script>
+    <div>
+      <div id="tapirResultDiv" class="resultMessageDiv">
+        <span id="tapirSuccess" class="successHighlight"></span>
+        <span id="tapirError" class="highlight"></span>
+      </div>
+      <form name="setTapirLink" class="editFormMeta">
+        <input name="action" type="hidden" id="tapirAction" value="tapirLinkExpose" />
+        <input name="number" type="hidden" value="<%=num%>" id="tapirNumber"/>
+        <%
+        String tapirCheckIcon="cancel.gif";
+        if(enc.getOKExposeViaTapirLink()){tapirCheckIcon="check_green.png";}
+        %>
+        <label>TapirLink:</label>&nbsp;
+        <input  style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=tapirCheckIcon %>" id="tapirApprove" value="<%=encprops.getProperty("change")%>"/>
+        &nbsp;
+        <a href="<%=CommonConfiguration.getWikiLocation(context)%>tapirlink" target="_blank"><img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/></a>
+      </form>
+    </div>
+
 <!-- END TAPIRLINK DISPLAY AND SETTER -->
 <%
 }
 %>
 
+<!-- START AUTOCOMMENTS -->
+<%
+if(request.getUserPrincipal()!=null){
+%>
+<!-- start autocomments -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#manualAdd").click(function(event) {
+      event.preventDefault();
+
+
+      var number = $("#autoNumber").val();
+      var user = $("#autoUser").val();
+      var autocomments = $("#autoComments").val();
+
+      $.post("../EncounterAddComment", {"number": number, "user": user, "autocomments": autocomments},
+      function() {
+        $("#autoCommentErrorDiv").hide();
+        $("#autoCommentsDiv").prepend("<p>" + autocomments + "</p>");
+        $("#autoComments").val("");
+      })
+      .fail(function(response) {
+        $("#autoCommentErrorDiv").show();
+        $("#autoCommentErrorDiv").html(response.responseText);
+      });
+    });
+  });
+</script>
+<div>
+  <p ><strong><%=encprops.getProperty("auto_comments")%></strong></p>
+  <div class="highlight resultMessageDiv" id="autoCommentErrorDiv"></div>
+    <%
+    String rComments="";
+    if(enc.getRComments()!=null){rComments=enc.getRComments();}
+    %>
+
+    <div id="autoCommentsDiv" style="text-align:left;border: 1px solid lightgray;width:auto;height: 200px;overflow-y:scroll;overflow-x:scroll;background-color: white;padding-left: 10px;padding-right: 10px;">
+      <p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
+
+    </div>
+
+    <form name="addComments" class="editFormMeta">
+        <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="autoUser" />
+        <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="autoNumber" />
+        <input name="action" type="hidden" value="enc_comments" id="autoAction" />
+
+        <textarea name="autocomments" cols="50" id="autoComments" class="form-control"></textarea>
+        <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" class="btn btn-sm" id="manualAdd"/>
+
+    </form>
+</div>
+
+<%
+}
+%>
+<!-- END AUTOCOMMENTS -->
+
 <!-- START DELETE ENCOUNTER FORM -->
 <%
 if (isOwner) {
-%><br />
+%>
 <table width="100%" border="0" cellpadding="1">
     <tr>
       <td height="30" class="para">
-        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" method="post" action="../EncounterDelete">
+        <form onsubmit="return confirm('<%=encprops.getProperty("sureDelete") %>');" name="deleteEncounter" class="editFormMeta" method="post" action="../EncounterDelete">
               <input name="number" type="hidden" value="<%=num%>" />
               <%
               String deleteIcon="cancel.gif";
               %>
-              <img src="../images/Warning_icon_small.png" align="absmiddle" />&nbsp;<%=encprops.getProperty("deleteEncounter") %> <input style="width: 40px;height: 40px;" align="absmiddle" name="approve" type="image" src="../images/<%=deleteIcon %>" id="deleteButton" />
+              <input align="absmiddle" name="approve" type="submit" class="btn btn-sm btn-block deleteEncounterBtn" id="deleteButton" value="<%=encprops.getProperty("deleteEncounter") %>" />
         </form>
       </td>
     </tr>
@@ -3326,93 +2773,86 @@ if (isOwner) {
 }
 %>
 
-<!-- START AUTOCOMMENTS -->
-<p class="para"><%=encprops.getProperty("auto_comments")%> <a id="autocomments" class="launchPopup"><img height="40px" width="40px" align="middle" src="../images/Crystal_Clear_app_kaddressbook.gif" /></a></p>
-
-<!-- start autocomments popup -->
-<div id="dialogAutoComments" title="<%=encprops.getProperty("auto_comments")%>" style="display:none">
-<table>
-  <tr>
-    <td valign="top">
-
-      <%
-      String rComments="";
-      if(enc.getRComments()!=null){rComments=enc.getRComments();}
-      %>
-
-      <div style="text-align:left;border:1px solid black;width:575px;height:400px;overflow-y:scroll;overflow-x:scroll;">
-
-      		<p class="para"><%=rComments.replaceAll("\n", "<br />")%></p>
-      </div>
-
-      <%
-      if(isOwner && CommonConfiguration.isCatalogEditable(context)){
-      %>
-      <form action="../EncounterAddComment" method="post" name="addComments">
-        <p class="para">
-          <input name="user" type="hidden" value="<%=request.getRemoteUser()%>" id="user" />
-          <input name="number" type="hidden" value="<%=enc.getEncounterNumber()%>" id="number" />
-          <input name="action" type="hidden" value="enc_comments" id="action" />
-		</p>
-        <p>
-          <textarea name="autocomments" cols="50" id="autocomments"></textarea> <br/>
-          <input name="Submit" type="submit" value="<%=encprops.getProperty("add_comment")%>" />
-        </p>
-      </form>
-      <%
-      }
-      %>
-
-
-
-    </td>
-  </tr>
-</table>
-</div>
-
-<script>
-var dlgAutoComments = $("#dialogAutoComments").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#autocomments").click(function() {
-  dlgAutoComments.dialog("open");
-});
-</script>
-<!-- END AUTOCOMMENTS -->
-
-<%
-  pageContext.setAttribute("showMeasurementEvents", CommonConfiguration.showMeasurementEvents(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurementEvents(context));
-  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
-  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
-%>
 </td>
 </tr>
 </table>
 
-<c:if test="${showMeasurementEvents}">
+
+<%
+  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
+  pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
+%>
+
+<c:if test="${showMeasurements}">
 <br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
+  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
 %>
-<h2><img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" /> <c:out value="${measurementTitle}"></c:out></h2>
+
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
+  <c:out value="${measurementTitle}"></c:out>
+  <button class="btn btn-md" type="button" name="button" id="editMeasure">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditMeasure" style="display:none;">Close Edit</button>
+</h2>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editMeasure, #closeEditMeasure").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editMeasure").click(function() {
+    $(".editFormMeasure, .editTextMeasure, #editWork, #Assign").show();
+  });
+
+  $("#closeEditMeasure").click(function() {
+    $(".editFormMeasure, .editTextMeasure, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2>
+   <img align="absmiddle" width="40px" height="40px" style="border-style: none;" src="../images/ruler.png" />
+   <c:out value="${measurementTitle}"></c:out>
+ </h2>
+
+ <%}%>
+
+
+
 <c:if test="${editable and !empty measurements}">
-  <a id="measure" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></font>
 </c:if>
 <table>
 <tr>
-<th class="measurement"><%=encprops.getProperty("type") %></th><th class="measurement"><%=encprops.getProperty("size") %></th><th class="measurement"><%=encprops.getProperty("units") %></th><c:if test="${!empty samplingProtocols}"><th class="measurement"><%=encprops.getProperty("samplingProtocol") %></th></c:if>
+<th class="measurement">
+  <span id="displayMtype"><%=encprops.getProperty("type") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMsize"><%=encprops.getProperty("size") %></span>
+</th>
+<th class="measurement">
+  <span id="displayMunits"><%=encprops.getProperty("units") %></span>
+</th>
+<c:if test="${!empty samplingProtocols}">
+  <th class="measurement">
+    <display id="displayMsample"><%=encprops.getProperty("samplingProtocol") %></span>
+  </th>
+</c:if>
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
-    MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
-    //MeasurementEvent event =  enc.findMeasurementEventOfType(measurementDesc.getType());
-    MeasurementEvent event=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
+    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
+    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -3423,107 +2863,142 @@ $("a#autocomments").click(function() {
    }
  %>
 <tr>
-    <td class="measurement"><c:out value="${item.label}"/></td><td class="measurement"><c:out value="${measurementValue}"/></td><td class="measurement"><c:out value="${item.unitsLabel}"/></td><td class="measurement"><c:out value="${samplingProtocol}"/></td>
+    <td class="measurement">
+      <c:out value="${item.label}"/>
+  </td>
+  <td class="measurement">
+    <c:out value="${measurementValue}"/>
+  </td>
+  <td class="measurement">
+    <c:out value="${item.unitsLabel}"/>
+  </td>
+  <td class="measurement">
+    <c:out value="${samplingProtocol}"/>
+  </td>
 </tr>
 </c:forEach>
 </table>
 </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+<%-- start measuremnts form--%>
+<div>
+  <p class="editTextMeasure"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
 
-<div id="dialogMeasure" title="<%=encprops.getProperty("setMeasurementEvents")%>" style="display:none">
- <%
-   pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
- %>
+    <%
+    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    %>
 
-       <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-        <form name="setMeasurementEvents" method="post" action="../EncounterSetMeasurements">
+    <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editFormMeasure">
+      <form name="setMeasurements" class="editFormMeasure" id="measurementForm" action="../EncounterSetMeasurements" method="post">
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-          List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurementEvents();
+        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
 
         %>
         <c:forEach items="${items}" var="item">
-        <%
-          MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
-          MeasurementEvent measurement = enc.findMeasurementEventOfType(measurementDesc.getType());
+          <%
+          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
           if (measurement == null) {
-              measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
-        %>
-            <tr>
-              <td class="form_label"><c:out value="${item.label}"/><input type="hidden" name="measurement${index}(id)" value="${measurementEvent.getDataCollectionEventID()}"/></td>
-              <td><input name="measurement${index}(value)" value="${measurementEvent.value}"/>
-                  <input type="hidden" name="measurement${index}(type)" value="${item.type}"/><input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/><c:out value="(${item.unitsLabel})"/>
-                  <select name="measurement${index}(samplingProtocol)">
-                  <c:forEach items="${optionDescs}" var="optionDesc">
-                    <c:choose>
-                    <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
-                      <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
-                    </c:when>
-                    <c:otherwise>
-                      <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
-                    </c:otherwise>
-                    </c:choose>
-                  </c:forEach>
-                  </select>
-              </td>
-            </tr>
-            <c:set var="index" value="${index + 1}"/>
-        </c:forEach>
-        <tr>
-        <td><input name="${set}" type="submit" value="${set}"/></td>
+          %>
+          <tr>
+            <td class="form_label">
+            <c:out value="${item.label}"/>
+            <input type="hidden" name="measurement${index}(id)" value="${measurementEvent.dataCollectionEventID}"/>
+          </td>
+            <td>
+            <input name="measurement${index}(value)" value="${measurementEvent.value}" id="measurementEvent${index}"/>
+            <input type="hidden" name="measurement${index}(type)" value="${item.type}"/>
+            <input type="hidden" name="measurement${index}(units)" value="${item.unitsLabel}"/>
+            <c:out value="(${item.unitsLabel})"/>
+            <select name="measurement${index}(samplingProtocol)" id="selectMeasurement">
+              <c:forEach items="${optionDescs}" var="optionDesc">
+                <c:choose>
+                  <c:when test="${measurementEvent.samplingProtocol eq optionDesc.name}">
+                    <option value="${optionDesc.name}" selected="selected"><c:out value="${optionDesc.display}"/></option>
+                  </c:when>
+                  <c:otherwise>
+                    <option value="${optionDesc.name}"><c:out value="${optionDesc.display}"/></option>
+                  </c:otherwise>
+                </c:choose>
+              </c:forEach>
+            </select>
+          </td>
         </tr>
-        </form>
-        </table>
-
+        <c:set var="index" value="${index + 1}"/>
+      </c:forEach>
+      <tr>
+        <td>
+          <input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="addMeasurements"/>
+        </td>
+      </tr>
+    </table>
+    </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgMeasure = $("#dialogMeasure").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
+<!-- end measurements form -->
 
-$("a#measure").click(function() {
-  dlgMeasure.dialog("open");
-});
-</script>
-<!-- end measurements popup -->
 <%
-}
 %>
-
 
 </c:if>
 
 <table>
 <tr>
-<td width="560px" style="vertical-align:top; background-color: #E8E8E8">
+<td width="560px" style="vertical-align:top;background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;">
 
 
 
 <c:if test="${showMetalTags}">
 
-<h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
+
+
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %>
+  <button class="btn btn-md" type="button" name="button" id="editTracking">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditTracking" style="display:none;">Close Edit</button>
+</h2>
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editTracking, #closeEditTracking").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editTracking").click(function() {
+    $(".editFormTracking, .editTextTracking").show();
+  });
+
+  $("#closeEditTracking").click(function() {
+    $(".editFormTracking, .editTextTracking, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2><img align="absmiddle" src="../images/Crystal_Clear_app_starthere.png" width="40px" height="40px" /> <%=encprops.getProperty("tracking") %></h2>
+
+ <%}%>
+
+
 <%
   pageContext.setAttribute("metalTagTitle", encprops.getProperty("metalTags"));
   pageContext.setAttribute("metalTags", Util.findMetalTagDescs(langCode,context));
 %>
 <p class="para"><em><c:out value="${metalTagTitle}"></c:out></em>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-&nbsp;<a id="metal" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
-}
 %>
 <table>
 <c:forEach var="item" items="${metalTags}">
@@ -3542,52 +3017,36 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start metal tag popup -->
-<div id="dialogMetal" title="<%=encprops.getProperty("resetMetalTags")%>" style="display:none">
 
-        <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
+<div>
+  <p class="editTextTracking"><strong><%=encprops.getProperty("resetMetalTags")%></strong></p>
+  <% pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); %>
 
- <form name="setMetalTags" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="metalTags"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+  <form name="setMetalTags" class="editFormTracking" id="tagsForm" action="../EncounterSetTags" method="post">
+  <input type="hidden" name="tagType" value="metalTags" id="metalTagsType"/>
+  <input type="hidden" name="encounter" value="${num}" id="metalTagsEncounter"/>
+  <table cellpadding="1" cellspacing="0">
 
- <c:forEach items="${metalTagDescs}" var="metalTagDesc">
-    <%
-      MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
-      MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
-      if (metalTag == null) {
-          metalTag = new MetalTag();
-      }
-      pageContext.setAttribute("metalTag", metalTag);
-    %>
-    <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
-    <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}"/></td></tr>
- </c:forEach>
- <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
-
-
+  <c:forEach items="${metalTagDescs}" var="metalTagDesc">
+     <%
+       MetalTagDesc metalTagDesc = (MetalTagDesc) pageContext.getAttribute("metalTagDesc");
+       MetalTag metalTag = Util.findMetalTag(metalTagDesc, enc);
+       if (metalTag == null) {
+           metalTag = new MetalTag();
+       }
+       pageContext.setAttribute("metalTag", metalTag);
+     %>
+     <tr><td class="formLabel"><c:out value="${metalTagDesc.locationLabel}"/></td></tr>
+     <tr><td><input name="metalTag(${metalTagDesc.location})" value="${metalTag.tagNumber}" id="metalTagLocation" class="form-control"/></td></tr>
+  </c:forEach>
+  <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setMetalTags"/></td></tr>
+  </table>
+  </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgMetal = $("#dialogMetal").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#metal").click(function() {
-  dlgMetal.dialog("open");
-});
-</script>
-<!-- end metal tags popup -->
 <%
-}
 %>
 </c:if>
 
@@ -3600,11 +3059,8 @@ $("a#metal").click(function() {
 <c:if test="${editable}">
 &nbsp;
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<a id="acoustic" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 <%
-}
 %>
 </c:if>
 <table>
@@ -3619,55 +3075,40 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start acoustic tag popup -->
-<div id="dialogAcoustic" title="<%=encprops.getProperty("resetAcousticTag")%>" style="display:none">
+<!-- start acoustic tag  -->
 
-<c:set var="acousticTag" value="${enc.acousticTag}"/>
- <c:if test="${empty acousticTag}">
- <%
-   pageContext.setAttribute("acousticTag", new AcousticTag());
- %>
- </c:if>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<div>
+  <p class="editTextTracking"><strong><%=encprops.getProperty("resetAcousticTag")%></strong></p>
+
+  <c:set var="acousticTag" value="${enc.acousticTag}"/>
+   <c:if test="${empty acousticTag}">
+   <%
+     pageContext.setAttribute("acousticTag", new AcousticTag());
+   %>
+   </c:if>
+   <table cellpadding="1" cellspacing="0">
 
     <tr>
       <td>
-        <form name="setAcousticTag" method="post" action="../EncounterSetTags">
-        <input type="hidden" name="encounter" value="${num}"/>
-        <input type="hidden" name="tagType" value="acousticTag"/>
+        <form name="setAcousticTag" class="editFormTracking" id="acousticTagsForm" action="../EncounterSetTags" method="post">
+        <input type="hidden" name="encounter" value="${num}" id="acousticTagEncounter"/>
+        <input type="hidden" name="tagType" value="acousticTag" id="acousticTagType"/>
         <input type="hidden" name="id" value="${acousticTag.id}"/>
         <table>
           <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}"/></td></tr>
+          <tr><td><input name="acousticTagSerial" value="${acousticTag.serialNumber}" class="form-control" id="acousticTagInput"/></td></tr>
           <tr><td class="formLabel">ID:</td></tr>
-          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}"/></td></tr>
-          <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
+          <tr><td><input name="acousticTagId" value="${acousticTag.idNumber}" id="acousticTagId" class="form-control"/></td></tr>
+          <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setAcousticTags"/></td></tr>
         </table>
         </form>
       </td>
     </tr>
  </table>
-
-
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgAcoustic = $("#dialogAcoustic").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#acoustic").click(function() {
-  dlgAcoustic.dialog("open");
-});
-</script>
-<!-- end acoustic tag popup -->
 <%
-}
 %>
 
 </c:if>
@@ -3680,11 +3121,10 @@ $("a#acoustic").click(function() {
 %>
 <p class="para"><em><c:out value="${satelliteTagTitle}"></c:out></em>
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-&nbsp;<a id="sat" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+&nbsp;
 <%
-}
+
 %>
 <table>
 <tr>
@@ -3700,79 +3140,1171 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </p>
 
 <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start sat tag metadata popup -->
-<div id="dialogSat" title="<%=encprops.getProperty("resetSatelliteTag")%>" style="display:none">
+<!-- start sat tag metadata  -->
+<div>
+  <p class="editTextTracking"><strong><%=encprops.getProperty("resetSatelliteTag")%></strong></p>
 
- <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
- <c:if test="${empty satelliteTag}">
- <%
-   pageContext.setAttribute("satelliteTag", new SatelliteTag());
- %>
- </c:if>
- <%
-    pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
- %>
- <form name="setSatelliteTag" method="post" action="../EncounterSetTags">
- <input type="hidden" name="tagType" value="satelliteTag"/>
- <input type="hidden" name="encounter" value="${num}"/>
- <input type="hidden" name="id" value="${satelliteTag.id}"/>
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+   <c:set var="satelliteTag" value="${enc.satelliteTag}"/>
+   <c:if test="${empty satelliteTag}">
+   <%
+     pageContext.setAttribute("satelliteTag", new SatelliteTag());
+   %>
+   </c:if>
+   <%
+      pageContext.setAttribute("satelliteTagNames", Util.findSatelliteTagNames(context));
+   %>
+   <form name="setSatelliteTag" class="editFormTracking" action="../EncounterSetTags" method="post">
+   <input type="hidden" name="tagType" value="satelliteTag" id="satelliteTagType"/>
+   <input type="hidden" name="encounter" value="${num}" id="satelliteTagEncounter"/>
+   <input type="hidden" name="id" value="${satelliteTag.id}" id="satelliteTagId"/>
+   <table cellpadding="1" cellspacing="0">
 
-    <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
-    <tr><td>
-      <select name="satelliteTagName">
-      <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
-        <c:choose>
-            <c:when test="${satelliteTagName eq satelliteTag.name}">
-                <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
-            </c:when>
-            <c:otherwise>
-                <option value="${satelliteTagName}">${satelliteTagName}</option>
-            </c:otherwise>
-        </c:choose>
-      </c:forEach>
-      </select>
-    </td></tr>
-    <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
-    <tr><td><input name="satelliteTagSerial" value="${satelliteTag.serialNumber}"/></td></tr>
-    <tr><td class="formLabel">Argos PTT:</td></tr>
-    <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}"/></td></tr>
-    <tr><td><input name="${set}" type="submit" value="${set}"/></td></tr>
- </table>
- </form>
-
-
+      <tr><td class="formLabel"><%=encprops.getProperty("name") %></td></tr>
+      <tr><td>
+        <select name="satelliteTagName" class="form-control" size="1">
+        <c:forEach items="${satelliteTagNames}" var="satelliteTagName">
+          <c:choose>
+              <c:when test="${satelliteTagName eq satelliteTag.name}">
+                  <option value="${satelliteTagName}" selected="selected">${satelliteTagName}</option>
+              </c:when>
+              <c:otherwise>
+                  <option value="${satelliteTagName}">${satelliteTagName}</option>
+              </c:otherwise>
+          </c:choose>
+        </c:forEach>
+        </select>
+      </td></tr>
+      <tr><td class="formLabel"><%=encprops.getProperty("serialNumber") %></td></tr>
+      <tr><td><input name="satelliteTagSerial" class="form-control" value="${satelliteTag.serialNumber}" id="satelliteTagSerial"/></td></tr>
+      <tr><td class="formLabel">Argos PTT:</td></tr>
+      <tr><td><input name="satelliteTagArgosPttNumber" value="${satelliteTag.argosPttNumber}" id="satelliteTagArgosPttNumber" class="form-control"/></td></tr>
+      <tr><td><input name="${set}" type="submit" value="${set}" class="btn btn-sm editFormBtn" id="setSatelliteTags"/></td></tr>
+   </table>
+   </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgSat = $("#dialogSat").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
 
-$("a#sat").click(function() {
-  dlgSat.dialog("open");
-});
-</script>
-<!-- end sat tag popup -->
 <%
-}
+
 %></c:if>
 </td>
 </tr>
 </table>
 
-<h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
+      <div id="dialogOccurrence" title="<%=encprops.getProperty("assignOccurrence")%>" style="display:none"></div>
+
+
+  </div>
+  <%-- END LEFT COLUMN --%>
+
+  <%-- START RIGHT COLUMN --%>
+  <div class="col-xs-12 col-sm-6" style="vertical-align:top">
+
+<%
+String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
+%>
+    <%-- START IMAGES --%>
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
+        	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="queryString" value="<%=queryString%>" />
+        	
+        	<jsp:param name="isOwner" value="<%=isOwner %>" />
+        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+      	</jsp:include>
+
+		<%
+		if(isOwner){
+		%>
+	        <div id="add-image-zone" class="bc4">
+	
+	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
+	
+	          <div class="flow-box bc4" style="text-align:center" >
+	
+	            <div id="file-activity" style="display:none"></div>
+	
+	            <div id="updone"></div>
+	
+	            <div id="upcontrols">
+	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+	              <div id="flowbuttons">
+	
+	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+	
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+        <%
+        }
+        %>
+    <%-- END IMAGES --%>
+
+
+    <!-- start DATE section -->
+    <table>
+    <tr>
+    <td width="560px" style="vertical-align:top;">
+
+      <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+      <h2>
+        <img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
+        <button class="btn btn-md" type="button" name="button" id="editDate">Edit</button>
+        <button class="btn btn-md" type="button" name="button" id="closeEditDate" style="display:none;">Close Edit</button>
+    </h2>
+
+
+
+      <script type="text/javascript">
+      $(document).ready(function() {
+        var buttons = $("#editDate, #closeEditDate").on("click", function(){
+          buttons.toggle();
+        });
+        $("#editDate").click(function() {
+          $("#releaseCheck, #releaseError, #verbatimCheck, #verbatimError, #resetDateCheck, #resetDateError").hide();
+
+          $(".editFormDate, .editTextDate, #setVerbatimEventDateBtn, #AddDate, #addResetDate").show();
+
+          $("#releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-error");
+
+          $("#releaseDiv, #verbatimDiv, #resetDateDiv").removeClass("has-success");
+        });
+
+        $("#closeEditDate").click(function() {
+          $(".editFormDate, .editTextDate, .resultMessageDiv").hide();
+        });
+      });
+      </script>
+
+
+      <% }
+      else {
+       %>
+       <h2><img align="absmiddle" src="../images/calendar.png" width="40px" height="40px" /><%=encprops.getProperty("date") %>
+       </h2>
+       <%}%>
+
+    <p>
+    <%if(enc.getDateInMilliseconds()!=null){ %>
+      <a
+        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        <span id="displayDate"><%=enc.getDate()%></span>
+      </a>
+        <%
+    }
+    else{
+    %>
+    <span id="displayDate"><%=encprops.getProperty("unknown") %></span>
+    <%
+    }
+            		%>
+
+    <br />
+    <em><%=encprops.getProperty("verbatimEventDate")%></em>:
+        <%
+    				if(enc.getVerbatimEventDate()!=null){
+    				%>
+        <span id="displayVerbatimDate"><%=enc.getVerbatimEventDate()%></span>
+        <%
+    				}
+    				else {
+    				%>
+        <span id="displayVerbatimDate"><%=encprops.getProperty("none") %></span>
+        <%
+    				}
+
+            		%>
+
+    <!-- end verbatim event date -->
+
+
+
+    <%
+      pageContext.setAttribute("showReleaseDate", CommonConfiguration.showReleaseDate(context));
+    %>
+    <c:if test="${showReleaseDate}">
+      <br /><em><%=encprops.getProperty("releaseDate") %></em>: <span id="displayReleaseDate"></span>
+        <fmt:formatDate value="${enc.releaseDate}" pattern="yyyy-MM-dd"/>
+      </p>
+    </c:if>
+    <br>
+        <!-- start date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#addResetDate").click(function(event) {
+          event.preventDefault();
+
+          $("#addResetDate").hide();
+
+          var number = $("#resetDateNumber").val();
+          var datepicker = $("#datepickerField").val();
+
+          $.post("../EncounterResetDate", {"number": number, "datepicker": datepicker},
+          function() {
+            $("#resetDateErrorDiv").hide();
+            $("#resetDateDiv").addClass("has-success");
+            $("#resetDateCheck").show();
+            $("#displayDate").html(datepicker);
+          })
+          .fail(function(response) {
+            $("#resetDateDiv").addClass("has-error");
+            $("#resetDateError, #resetDateErrorDiv").show();
+            $("#resetDateErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#datepickerField").click(function() {
+          $("#resetDateError, #resetDateCheck, #resetDateErrorDiv").hide()
+          $("#resetDateDiv").removeClass("has-success");
+          $("#resetDateDiv").removeClass("has-error");
+          $("#addResetDate").show();
+        });
+      });
+    </script>
+    <div>
+    <div class="highlight resultMessageDiv" id="resetDateErrorDiv"></div>
+
+      <p class="editTextDate"><strong><%=encprops.getProperty("resetEncounterDate")%></strong></p>
+      <form name="setencdate" class="editFormDate">
+        <input name="number" type="hidden" value="<%=num%>" id="resetDateNumber" />
+        <input name="action" type="hidden" value="changeEncounterDate"/>
+        <div id="datepicker" class="editFormDate"></div>
+        <div class="form-group row editFormDate">
+          <div class="col-sm-5">
+            <label><%=encprops.getProperty("setDate")%> (yyyy-MM-dd HH:mm)</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5" id="resetDateDiv">
+            <input type="text" id="datepickerField" name="datepicker" class="form-control" />
+            <span class="form-control-feedback" id="resetDateCheck">&check;</span>
+            <span class="form-control-feedback" id="resetDateError">X</span>
+          </div>
+          <div class="col-sm-2">
+            <input name="AddDate" type="submit" id="addResetDate" value="<%=encprops.getProperty("setDate")%>" class="btn btn-sm editFormBtn"/>
+          </div>
+        </div>
+      </form>
+    </div>
+   
+
+    <!-- start releaseDate -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#AddDate").click(function(event) {
+          event.preventDefault();
+
+          $("#AddDate").hide();
+
+          var encounter = $("#releaseDateEncounter").val();
+          var releasedatepicker = $("#releasedatepickerField").val();
+
+          $.post("../EncounterSetReleaseDate", {"encounter": encounter, "releasedatepicker": releasedatepicker},
+          function() {
+            $("#releaseErrorDiv").hide();
+            $("#releaseDiv").addClass("has-success");
+            $("#releaseCheck").show();
+            $("#displayReleaseDate").html(releasedatepicker);
+          })
+          .fail(function(response) {
+            $("#releaseDiv").addClass("has-error");
+            $("#releaseError, #releaseErrorDiv").show();
+            $("#releaseErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#releasedatepickerField").click(function() {
+          $("#releaseError, #releaseCheck, #releaseErrorDiv").hide()
+          $("#releaseDiv").removeClass("has-success");
+          $("#releaseDiv").removeClass("has-error");
+          $("#AddDate").show();
+        });
+      });
+    </script>
+	<c:if test="${showReleaseDate}">
+    <div>
+      <div class="highlight resultMessageDiv" id="releaseErrorDiv"></div>
+
+      <p class="editTextDate"><strong><%=encprops.getProperty("setReleaseDate")%></strong></p>
+      <form name="setReleaseDate" class="editFormDate">
+        <input type="hidden" name="encounter" value="${num}" id="releaseDateEncounter"/>
+        <div id="releasedatepicker" class="editFormDate"></div>
+        <div class="form-group row editFormDate">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setReleaseDate")%></label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5" id="releaseDiv">
+            <input type="text" id="releasedatepickerField" name="releasedatepicker" class="form-control" />
+            <span class="form-control-feedback" id="releaseCheck">&check;</span>
+            <span class="form-control-feedback" id="releaseError">X</span>
+          </div>
+          <div class="col-sm-3">
+            <input name="AddDate" type="submit" id="AddDate" value="<%=encprops.getProperty("setReleaseDate")%>" class="btn btn-sm editText"/>
+          </div>
+        </div>
+      </form>
+
+    </div>
+    </c:if>
+    <!-- end releaseDate -->
+
+    <br>
+    <!-- start verbatim event date -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#setVerbatimEventDateBtn").click(function(event) {
+          event.preventDefault();
+
+          $("#setVerbatimEventDateBtn").hide();
+
+          var encounter = $("#verbatimDateEncounter").val();
+          var verbatimEventDate = $("#verbatimEventDateInput").val();
+
+          $.post("../EncounterSetVerbatimEventDate", {"encounter": encounter, "verbatimEventDate": verbatimEventDate},
+          function() {
+            $("#verbatimErrorDiv").hide();
+            $("#verbatimDiv").addClass("has-success");
+            $("#verbatimCheck").show();
+            $("#displayVerbatimDate").html(verbatimEventDate);
+          })
+          .fail(function(response) {
+            $("#verbatimDiv").addClass("has-error");
+            $("#verbatimError, #verbatimErrorDiv").show();
+            $("#verbatimErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#verbatimEventDateInput").click(function() {
+          $("#verbatimError, #verbatimCheck, #verbatimErrorDiv").hide()
+          $("#verbatimDiv").removeClass("has-success");
+          $("#verbatimDiv").removeClass("has-error");
+          $("#setVerbatimEventDateBtn").show();
+        });
+      });
+    </script>
+    <div>
+      <div class="highlight resultMessageDiv" id="verbatimErrorDiv"></div>
+
+      <p class="editTextDate"><strong><%=encprops.getProperty("setVerbatimEventDate")%></strong></p>
+      <form name="setVerbatimEventDate" class="editFormDate">
+        <input name="encounter" type="hidden" value="<%=num%>" id="verbatimDateEncounter">
+        <div class="form-group row">
+          <div class="col-sm-4">
+            <label><%=encprops.getProperty("setVerbatimEventDate")%>:</label>
+            <p><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></p>
+          </div>
+          <div class="col-sm-5 col-xs-10" id="verbatimDiv">
+            <input name="verbatimEventDate" type="text" class="form-control" id="verbatimEventDateInput">
+              <span class="form-control-feedback" id="verbatimCheck">&check;</span>
+              <span class="form-control-feedback" id="verbatimError">X</span>
+            </div>
+            <div class="col-sm-3">
+              <input name="Set" type="submit" id="setVerbatimEventDateBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn">
+            </div>
+          </div>
+        </form>
+    </div>
+
+
+
+    </td>
+    </tr>
+    </table>
+
+      <%
+
+  String isLoggedInValue="true";
+  String isOwnerValue="true";
+
+  if(!loggedIn){isLoggedInValue="false";}
+  if(!isOwner){isOwnerValue="false";}
+
+%>
+
+
+
+<br />
+
+
+
+  <br /><br />
+ 
+
+
+<%-- OBSERVATION ATTRIBUTES --%>
+  <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+  <h2>
+    <img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %>
+    <button class="btn btn-md" type="button" name="button" id="editObservation">Edit</button>
+    <button class="btn btn-md" type="button" name="button" id="closeEditObservation" style="display:none;">Close Edit</button>
+  </h2>
+
+
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    var buttons = $("#editObservation, #closeEditObservation").on("click", function(){
+      buttons.toggle();
+    });
+    $("#editObservation").click(function() {
+      $("#taxCheck, #taxError, #statusCheck, #statusError, #sexCheck, #sexError, #scarCheck, #scarError, #behaviorCheck, #behaviorError, #lifeCheck, #lifeError, #commentCheck, #commentError, #patternCheck, #patternError").hide();
+
+      $(".editFormObservation, #taxBtn, #addStatus, #addSex, #addScar, #editPattern, #editBehavior, #addLife, #editComment").show();
+
+    });
+
+    $("#closeEditObservation").click(function() {
+      $(".editFormObservation, .editTextObservation, .resultMessageDiv").hide();
+    });
+  });
+  </script>
+
+
+  <% }
+  else {
+   %>
+   <h2><img align="absmiddle" src="../images/Note-Book-icon.png" width="40px" height="40px" /> <%=encprops.getProperty("observationAttributes") %></h2>
+   <%}%>
+
+
+
+
+
+
+
+<!-- START TAXONOMY ATTRIBUTE -->
+<%
+    if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+    String genusSpeciesFound=encprops.getProperty("notAvailable");
+    if((enc.getGenus()!=null)&&(enc.getSpecificEpithet()!=null)){genusSpeciesFound=enc.getGenus()+" "+enc.getSpecificEpithet();}
+    %>
+
+        <p class="para"><img align="absmiddle" src="../images/taxontree.gif">
+          <%=encprops.getProperty("taxonomy")%>:<em><span id="displayTax"><%=genusSpeciesFound%></span></em>&nbsp;<%
+          %>
+          <%
+          %>
+       </p>
+
+  <%
+    %>
+  <!-- start set taxonomy ID  -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#taxBtn").click(function(event) {
+          event.preventDefault();
+
+          $("#taxBtn").hide();
+
+          var encounter = $("#taxNumber").val();
+          var genusSpecies = $("#genusSpecies").val();
+
+          $.post("../EncounterSetGenusSpecies", {"encounter": encounter, "genusSpecies": genusSpecies},
+          function() {
+            $("#taxErrorDiv").hide();
+            $("#taxCheck").show();
+            $("#displayTax").html(genusSpecies);
+          })
+          .fail(function(response) {
+            $("#taxError, #taxErrorDiv").show();
+            $("#taxErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#genusSpecies").click(function() {
+          $("#taxerror, #taxCheck, #taxErrorDiv").hide()
+          $("#taxBtn").show();
+        });
+      });
+    </script>
+
+    <div>
+      <div class="highlight resultMessageDiv" id="taxErrorDiv"></div>
+
+      <p class="editTextObservation"><strong><%=encprops.getProperty("resetTaxonomy")%></strong></p>
+
+      <form name="taxonomyForm" class="editFormObservation">
+        <input name="encounter" type="hidden" value="<%=num%>" id="taxNumber">
+        <div class="form-group row">
+          <div class="col-sm-5">
+            <select name="genusSpecies" id="genusSpecies" class="form-control" size="1">
+              <option value="unknown"><%=encprops.getProperty("notAvailable")%></option>
+
+              <%
+              boolean hasMoreTax=true;
+              int genusTaxNum=0;
+              while(hasMoreTax){
+                String currentGenuSpecies = "genusSpecies"+genusTaxNum;
+                if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                  %>
+
+                  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                  <%
+                  genusTaxNum++;
+                }
+                else{
+                  hasMoreTax=false;
+                }
+
+              }
+              %>
+            </select>
+          </div>
+          <div class="col-sm-3">
+            <input name="<%=encprops.getProperty("set")%>" type="submit" id="taxBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+            <span class="form-control-feedback" id="taxCheck">&check;</span>
+            <span class="form-control-feedback" id="taxError">X</span>
+          </div>
+        </div>
+      </form>
+    </div>
+<%
+
+}
+%>
+<!-- END TAXONOMY ATTRIBUTE -->
+
+
+<!-- START ALIVE-DEAD ATTRIBUTE -->
+<p class="para">
+      <%=encprops.getProperty("status")%>:
+      <%
+      if(enc.getLivingStatus()!=null){
+      %>
+      <span id="displayStatus"><%=enc.getLivingStatus()%></span>
+       <%
+    }
+      %>
+      <%
+      %>
+    </p>
+    <%
+    %>
+<!-- start set living status -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#addStatus").click(function(event) {
+        event.preventDefault();
+
+        $("#addStatus").hide();
+
+        var encounter = $("#statusNumber").val();
+        var livingStatus = $("#livingStatus").val();
+
+        $.post("../EncounterSetLivingStatus", {"encounter": encounter, "livingStatus": livingStatus},
+        function() {
+          $("#statusErrorDiv").hide();
+          $("#statusCheck").show();
+          $("#displayStatus").html(livingStatus);
+        })
+        .fail(function(response) {
+          $("#statusError, #statusErrorDiv").show();
+          $("#statusErrorDiv").html(response.responseText);
+        });
+      });
+
+      $("#genusSpecies").click(function() {
+        $("#statuserror, #statusCheck, #statusErrorDiv").hide()
+        $("#addStatus").show();
+      });
+    });
+  </script>
+
+
+  <div>
+    <div class="highlight resultMessageDiv" id="statusErrorDiv"></div>
+
+    <p class="editTextObservation"><strong><%=encprops.getProperty("resetStatus")%></strong></p>
+
+    <form name="livingStatusForm" class="editFormObservation">
+      <input name="encounter" type="hidden" value="<%=num%>" id="statusNumber" />
+      <div class="form-group row">
+        <div class="col-sm-5">
+          <select name="livingStatus" id="livingStatus" class="form-control" size="1">
+            <option value="alive" selected><%=encprops.getProperty("alive")%></option>
+            <option value="dead"><%=encprops.getProperty("dead")%></option>
+          </select>
+        </div>
+        <div class="col-sm-3">
+          <input name="Add" type="submit" id="addStatus" value="<%=encprops.getProperty("resetStatus")%>" class="btn btn-sm"/>
+          <span class="form-control-feedback" id="statusCheck">&check;</span>
+          <span class="form-control-feedback" id="statusError">X</span>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<%
+%>
+<!-- END ALIVE-DEAD ATTRIBUTE -->
+
+
+<!--  START SEX SECTION -->
+<%
+String sex="";
+if(enc.getSex()!=null){sex=enc.getSex();}
+%>
+<p class="para"><%=encprops.getProperty("sex") %>&nbsp;<span id="displaySex"><%=sex %></span>
+<%
+ %>
+<%
+%>
+</p>
+<%
+%>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addSex").click(function(event) {
+      event.preventDefault();
+
+      $("#addSex").hide();
+
+      var action = $("#sexAction").val();
+      var number = $("#sexNumber").val();
+      var selectSex = $("#selectSex").val();
+
+      $.post("../EncounterSetSex", {"action": action, "number": number, "selectSex": selectSex},
+      function() {
+        $("#sexErrorDiv").hide();
+        $("#sexCheck").show();
+        $("#displaySex").html(selectSex);
+      })
+      .fail(function(response) {
+        $("#sexError, #sexErrorDiv").show();
+        $("#sexErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectSex").click(function() {
+      $("#sexerror, #sexCheck, #sexErrorDiv").hide()
+      $("#addSex").show();
+    });
+  });
+</script>
+
+
+<div>
+  <div class="highlight resultMessageDiv" id="sexErrorDiv"></div>
+
+  <p class="editTextObservation"><strong><%=encprops.getProperty("resetSex")%></strong></p>
+
+  <form name="setxencshark" class="editFormObservation">
+    <input name="number" type="hidden" value="<%=num%>" id="sexNumber" />
+    <input name="action" type="hidden" value="setEncounterSex" id="sexAction"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="selectSex" size="1" id="selectSex" class="form-control">
+          <option value="unknown" selected><%=encprops.getProperty("unknown")%>
+          </option>
+          <option value="male"><%=encprops.getProperty("male")%>
+          </option>
+          <option value="female"><%=encprops.getProperty("female")%>
+          </option>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Add" type="submit" id="addSex" value="<%=encprops.getProperty("resetSex")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="sexCheck">&check;</span>
+        <span class="form-control-feedback" id="sexError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+
+<%
+ %>
+ <!--  END SEX SECTION -->
+
+
+<!--  START SCARRING SECTION -->
+<p class="para"><%=encprops.getProperty("scarring") %>&nbsp;
+
+<%
+String recordedScarring="";
+if(enc.getDistinguishingScar()!=null){recordedScarring=enc.getDistinguishingScar();}
+%>
+<span id="displayScarring"><%=recordedScarring%></span>
+<%
+ %>
+<%
+%>
+</p>
+<%
+ %>
+
+ <script type="text/javascript">
+   $(document).ready(function() {
+     $("#addScar").click(function(event) {
+       event.preventDefault();
+
+       $("#addScar").hide();
+
+       var number = $("#scarNumber").val();
+       var scars = $("#scarInput").val();
+
+       $.post("../EncounterSetScarring", {"number": number, "scars": scars},
+       function() {
+         $("#scarErrorDiv").hide();
+         $("#scarCheck").show();
+         $("#displayScarring").html(scars);
+       })
+       .fail(function(response) {
+         $("#scarerror, #scarErrorDiv").show();
+         $("#scarErrorDiv").html(response.responseText);
+       });
+     });
+
+     $("#scarInput").click(function() {
+       $("#scarerror, #scarCheck, #scarErrorDiv").hide()
+       $("#addScar").show();
+     });
+   });
+ </script>
+ <div>
+   <div class="highlight resultMessageDiv" id="scarErrorDiv"></div>
+
+   <p class="editTextObservation"><strong><%=encprops.getProperty("editScarring")%></strong></p>
+   <form name="setencsize" class="editFormObservation">
+     <input name="number" type="hidden" value="<%=num%>" id="scarNumber" />
+     <input name="action" type="hidden" value="setScarring" id="scarAction"/>
+
+   <div class="form-group row">
+     <div class="col-sm-5">
+       <textarea name="scars" class="form-control" id="scarInput"><%=enc.getDistinguishingScar()%></textarea>
+     </div>
+     <div class="col-sm-3">
+       <input name="Add" type="submit" id="addScar" value="<%=encprops.getProperty("resetScarring")%>" class="btn btn-sm"/>
+       <span class="form-control-feedback" id="scarCheck">&check;</span>
+       <span class="form-control-feedback" id="scarError">X</span>
+     </div>
+   </div>
+   </form>
+ </div>
+    <%
+ 	%>
+<!--  END SCARRING SECTION -->
+
+
+<!--  START BEHAVIOR SECTION -->
+<p class="para"><%=encprops.getProperty("behavior") %>&nbsp;
+
+  <%
+    if (enc.getBehavior() != null) {
+  %>
+  <span id="displayBehavior"><%=enc.getBehavior()%></span>
+  <%
+  } else {
+  %>
+  <span id="displayBehavior"><%=encprops.getProperty("none")%></span>
+  <%
+    }
+	  %>
+	  <%
+%>
+</p>
+
+
+  <%
+    %>
+    <!-- start set behavior popup -->
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $("#editBehavior").click(function(event) {
+          event.preventDefault();
+
+          $("#editBehavior").hide();
+
+          var number = $("#behaviorNumber").val();
+          var behaviorComment = $("#behaviorInput").val();
+
+          $.post("../EncounterSetBehavior", {"number": number, "behaviorComment": behaviorComment},
+          function() {
+            $("#behaviorErrorDiv").hide();
+            $("#behaviorCheck").show();
+            $("#displayBehavior").html(behaviorComment);
+          })
+          .fail(function(response) {
+            $("#behaviorError, #behaviorErrorDiv").show();
+            $("#behaviorErrorDiv").html(response.responseText);
+          });
+        });
+
+        $("#behaviorInput").click(function() {
+          $("#behaviorError, #behaviorCheck, #behaviorErrorDiv").hide()
+          $("#editBehavior").show();
+        });
+      });
+    </script>
+    <div>
+      <div class="highlight resultMessageDiv" id="behaviorErrorDiv"></div>
+
+      <p class="editTextObservation"><strong><%=encprops.getProperty("editBehaviorComments")%></strong></p>
+      <span class="editTextObservation"><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></span>
+      <form name="setBehaviorComments" class="editFormObservation">
+        <input name="number" type="hidden" value="<%=num%>" id="behaviorNumber"/>
+        <input name="action" type="hidden" value="editBehavior" id="behaviorAction"/>
+
+      <div class="form-group row">
+        <div class="col-sm-5">
+          <textarea name="behaviorComment" class="form-control" id="behaviorInput">
+            <%
+           if((enc.getBehavior()!=null)&&(!enc.getBehavior().trim().equals(""))){
+           %>
+              <%=enc.getBehavior().trim()%>
+          <%
+          }
+          %>
+          </textarea>
+        </div>
+        <div class="col-sm-3">
+          <input name="EditBeh" type="submit" id="editBehavior" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+          <span class="form-control-feedback" id="behaviorCheck">&check;</span>
+          <span class="form-control-feedback" id="behaviorError">X</span>
+        </div>
+      </div>
+      </form>
+    </div>
+
+<%
+%>
+<!--  END BEHAVIOR SECTION -->
+
+
+
+<!--  START PATTERNING CODE SECTION -->
+<%
+  if (CommonConfiguration.showProperty("showPatterningCode",context)) {
+%>
+<p class="para"><%=encprops.getProperty("patterningCode") %>&nbsp;
+
+  <%
+    if (enc.getPatterningCode() != null) {
+  %>
+  <span id="displayPattern"><%=enc.getPatterningCode()%></span>
+  <%
+  } else {
+  %>
+  <%=encprops.getProperty("none")%>
+  <%
+    }
+	  %>
+
+	  <%
+%>
+</p>
+
+
+  <%
+    %>
+<!-- start set patterning code -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#editPattern").click(function(event) {
+      event.preventDefault();
+
+      $("#editPattern").hide();
+
+      var number = $("#sexNumber").val();
+      var patterningCode = $("#colorCode").val();
+
+      $.post("../EncounterSetPatterningCode", {"number": number, "patterningCode": patterningCode},
+      function() {
+        $("#patternErrorDiv").hide();
+        $("#patternCheck").show();
+        $("#displayPattern").html(patterningCode);
+      })
+      .fail(function(response) {
+        $("#patternError, #patternErrorDiv").show();
+        $("#patternErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#colorCode").click(function() {
+      $("#patternerror, #patternCheck, #patternErrorDiv").hide()
+      $("#editPattern").show();
+    });
+  });
+</script>
+
+
+<div>
+  <div class="highlight resultMessageDiv" id="patternErrorDiv"></div>
+
+  <p class="editTextObservation"><strong><%=encprops.getProperty("editPatterningCode")%></strong></p>
+  <span class="editTextObservation"><em><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></em></span>
+
+  <form name="setPatterningCode" class="editFormObservation">
+    <input name="number" type="hidden" value="<%=num%>" id="patternNumber"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <%
+             if(CommonConfiguration.getProperty("patterningCode0",context)==null){
+             %>
+             <input name="patterningCode" type="text" class="form-control" id="colorCode"/>
+             <%
+             }
+             else{
+               //iterate and find the locationID options
+               %>
+               <select name="patterningCode" id="colorCode" class="form-control" size="1">
+                         <option value=""></option>
+
+                  <%
+                  boolean hasMoreLocs=true;
+                  int patternTaxNum=0;
+                  while(hasMoreLocs){
+                     String currentLoc = "patterningCode"+patternTaxNum;
+                     if(CommonConfiguration.getProperty(currentLoc,context)!=null){
+                       %>
+
+                         <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
+                       <%
+                     patternTaxNum++;
+                     }
+                     else{
+                        hasMoreLocs=false;
+                     }
+
+                  }
+                  %>
+                </select>
+           <%
+             }
+             %>
+      </div>
+      <div class="col-sm-3">
+        <input name="EditPC" type="submit" id="editPattern" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+        <span class="form-control-feedback" id="patternCheck">&check;</span>
+        <span class="form-control-feedback" id="patternError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+
+<%
+  }
+%>
+<!--  END PATTERNING CODE SECTION -->
+
+
+
+<!--  START LIFESTAGE SECTION -->
+<%
+  if (CommonConfiguration.showProperty("showLifestage",context)) {
+%>
+<p class="para"><%=encprops.getProperty("lifeStage")%>&nbsp;
+
+  <%
+    if (enc.getLifeStage() != null) {
+  %>
+  <span id="displayLife"><%=enc.getLifeStage()%></span>
+  <%
+  }
+ %>
+ <%
+  %>
+  <%
+  %>
+</p>
+
+ <%
+    %>
+<!-- start set life stage -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addLife").click(function(event) {
+      event.preventDefault();
+
+      $("#addLife").hide();
+
+      var encounter = $("#lifeEncounter").val();
+      var lifeStage = $("#lifeStage").val();
+
+      $.post("../EncounterSetLifeStage", {"encounter": encounter, "lifeStage": lifeStage},
+      function() {
+        $("#lifeErrorDiv").hide();
+        $("#lifeCheck").show();
+        $("#displayLife").html(lifeStage);
+      })
+      .fail(function(response) {
+        $("#lifeError, #lifeErrorDiv").show();
+        $("#lifeErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#lifeStage").click(function() {
+      $("#lifeerror, #lifeCheck, #lifeErrorDiv").hide()
+      $("#addLife").show();
+    });
+  });
+</script>
+
+
+<div>
+  <div class="highlight resultMessageDiv" id="lifeErrorDiv"></div>
+
+  <p class="editTextObservation"><strong><%=encprops.getProperty("resetLifeStage")%></strong></p>
+
+  <form name="lifeStageForm" class="editFormObservation">
+      <input name="encounter" type="hidden" value="<%=num%>" id="lifeEncounter"/>
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="lifeStage" id="lifeStage" class="form-control" size="1">
+          <option value=""></option>
+             <%
+             boolean hasMoreStages=true;
+             int lifeTaxNum=0;
+             while(hasMoreStages){
+                String currentLifeStage = "lifeStage"+lifeTaxNum;
+                if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
+                  %>
+
+                    <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
+                  <%
+                lifeTaxNum++;
+                }
+                else{
+                   hasMoreStages=false;
+                }
+
+             }
+             %>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="<%=encprops.getProperty("set")%>" type="submit" id="addLife" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="lifeCheck">&check;</span>
+        <span class="form-control-feedback" id="lifeError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<%
+}
+  %>
+<!--  END LIFESTAGE SECTION -->
+
+<!-- START ADDITIONAL COMMENTS -->
+<p class="para"><%=encprops.getProperty("comments") %>
+  <%
+  %>
+  <%
+  %>
+<br/>
+<%
+String recordedComments="";
+if(enc.getComments()!=null){recordedComments=enc.getComments();}
+%>
+<em><span id="displayComment"><%=recordedComments%></span></em>
+
+</p>
+<%
+%>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#editComment").click(function(event) {
+      event.preventDefault();
+
+      $("#editComment").hide();
+
+      var number = $("#commentNumber").val();
+      var fixComment = $("#commentInput").val();
+
+      $.post("../EncounterSetOccurrenceRemarks", {"number": number, "fixComment": fixComment},
+      function() {
+        $("#commentErrorDiv").hide();
+        $("#commentCheck").show();
+        $("#displayComment").html(fixComment);
+      })
+      .fail(function(response) {
+        $("#commentError, #commentErrorDiv").show();
+        $("#commentErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#commentInput").click(function() {
+      $("#commentError, #commentCheck, #commentErrorDiv").hide()
+      $("#editComment").show();
+    });
+  });
+</script>
+<div>
+  <div class="highlight resultMessageDiv" id="commentErrorDiv"></div>
+
+  <p class="editTextObservation"><strong><%=encprops.getProperty("editSubmittedComments")%></strong></p>
+  <form name="setComments" class="editFormObservation">
+    <input name="number" type="hidden" value="<%=num%>" id="commentNumber"/>
+    <input name="action" type="hidden" value="editComments" id="commentAction"/>
+  <div class="form-group row">
+    <div class="col-sm-5">
+      <textarea name="fixComment" class="form-control" id="commentInput"><%=enc.getComments()%></textarea>
+    </div>
+    <div class="col-sm-3">
+      <input name="EditComm" type="submit" id="editComment" value="<%=encprops.getProperty("submitEdit")%>" class="btn btn-sm"/>
+      <span class="form-control-feedback" id="commentCheck">&check;</span>
+      <span class="form-control-feedback" id="commentError">X</span>
+    </div>
+  </div>
+  </form>
+</div>
+<%
+%>
+<!-- END ADDITIONAL COMMENTS -->
+
+<br />
+
+
+
+<!-- START DYNAMIC PROPERTIES -->
+
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+  <img align="absmiddle" src="../images/lightning_dynamic_props.gif" />
+   <%=encprops.getProperty("dynamicProperties") %>
+   <button class="btn btn-md" type="button" name="button" id="editDynamic">Edit</button>
+   <button class="btn btn-md" type="button" name="button" id="closeEditDynamic" style="display:none;">Close Edit</button>
+ </h2>
+
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editDynamic, #closeEditDynamic").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editDynamic").click(function() {
+    $(".editFormDynamic").show();
+
+  });
+
+  $("#closeEditDynamic").click(function() {
+    $(".editFormDynamic, .editTextDynamic, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2><img align="absmiddle" src="../images/lightning_dynamic_props.gif" /> <%=encprops.getProperty("dynamicProperties") %></h2>
+
+ <%}%>
+
+
+
+
 <%
 if(isOwner){
 %>
-	<a id="dynamicPropertyAdd" class="launchPopup">
-		<img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" />
-	</a>
+
 <%
 }
 
@@ -3790,52 +4322,37 @@ if(isOwner){
 %>
 <p class="para"> <em><%=nm%></em>: <%=vl%>
   <%
-    if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
-  %>
-  <a id="dynamicProperty<%=nm%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
-
-  <%
-    }
   %>
 
   <%
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
+  %>
+
+  <%
 %>
-<!-- start depth popup -->
-<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" style="display:none">
+<!-- start dynamic form -->
+<div id="dialogDP<%=nm %>" title="<%=encprops.getProperty("set")%> <%=nm %>" class="editFormDynamic">
+  <p class="editTextDynamic"><strong><%=encprops.getProperty("set")%> <%=nm %></strong></p>
+  <p class="editTextDynamic"><em><small><%=encprops.getProperty("setDPMessage") %></small></em></p>
 
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top" class="para">
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
-			<p><em><%=encprops.getProperty("setDPMessage") %></em></p>
-			<input name="name" type="hidden" size="10" value="<%=nm %>" />
-          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" value="<%=vl %>"/>
+        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
+          <input name="name" type="hidden" size="10" value="<%=nm %>" />
           <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
+          <div class="form-group row">
+            <div class="col-sm-3">
+              <label><%=encprops.getProperty("propertyValue")%>:</label>
+            </div>
+            <div class="col-sm-5">
+              <input name="value" type="text" class="form-control" id="dynInput" value="<%=vl %>"/>
+            </div>
+            <div class="col-sm-4">
+              <input name="Set" type="submit" id="dynEdit" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+            </div>
+          </div>
         </form>
-      </td>
-    </tr>
-  </table>
 
 </div>
 
-<script>
-var dlgDP<%=nm %> = $("#dialogDP<%=nm %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#dynamicProperty<%=nm%>").click(function() {
-	dlgDP<%=nm %>.dialog("open");
-});
-</script>
-
 <%
-}
 %>
 
 </p>
@@ -3857,43 +4374,34 @@ else{
 	  <%
 	    }
 
-if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start depth popup -->
-<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" style="display:none">
-
- <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-    <tr>
-      <td align="left" valign="top" class="para">
-        <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post">
-			<%=encprops.getProperty("propertyName")%>:<br/><input name="name" type="text" size="10" maxlength="500" /><br />
-
-          <%=encprops.getProperty("propertyValue")%>:<br/><input name="value" type="text" size="10" maxlength="500" /><br />
-          <input name="number" type="hidden" value="<%=num%>" />
-          <input name="Set" type="submit" id="<%=encprops.getProperty("set")%>" value="<%=encprops.getProperty("initCapsSet")%>" />
-        </form>
-      </td>
-    </tr>
-  </table>
-
+<div id="dialogDPAdd" title="<%=encprops.getProperty("addDynamicProperty")%>" class="editFormDynamic">
+  <p class="editTextDynamic"><strong><%=encprops.getProperty("addDynamicProperty")%></strong></p>
+    <form name="addDynProp" action="../EncounterSetDynamicProperty" method="post" class="editFormDynamic">
+      <input name="number" type="hidden" value="<%=num%>" />
+      <div class="form-group row">
+        <div class="col-sm-3">
+          <label><%=encprops.getProperty("propertyName")%>:</label>
+        </div>
+        <div class="col-sm-5">
+          <input name="name" type="text" class="form-control" id="addDynPropInput"/>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-3">
+          <label><%=encprops.getProperty("propertyValue")%>:</label>
+        </div>
+        <div class="col-sm-5">
+          <input name="value" type="text" class="form-control" id="addDynPropInput2"/>
+        </div>
+      </div>
+      <input name="Set" type="submit" id="addDynPropBtn" value="<%=encprops.getProperty("initCapsSet")%>" class="btn btn-sm editFormBtn"/>
+    </form>
 </div>
 
-<script>
-var dlgDPAdd = $("#dialogDPAdd").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#dynamicPropertyAdd").click(function() {
-	dlgDPAdd.dialog("open");
-});
-</script>
 
 <%
-}
+
 %>
 
 
@@ -4187,13 +4695,22 @@ if(!isOwner){isOwnerValue="false";}
 <%
 if(loggedIn){
 %>
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addBioSample").click(function() {
+      $("#dialogSample").toggle();
+    });
+  });
+</script>
+
+
 <hr />
-<a name="tissueSamples" />
+<a name="tissueSamples"></a>
 <p class="para"><img align="absmiddle" src="../images/microscope.gif" />
     <strong><%=encprops.getProperty("tissueSamples") %></strong>
 </p>
     <p class="para">
-    	<a id="sample" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a id="sample" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
+    	<a class="addBioSample toggleBtn" class="launchPopup"><img align="absmiddle" width="24px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a>&nbsp;<a class="addBioSample toggleBtn" class="launchPopup"><%=encprops.getProperty("addTissueSample") %></a>
     </p>
 
 <%
@@ -4211,7 +4728,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
           <%
           TissueSample thisSample=new TissueSample();
           String sampleIDString="";
-          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), num))){
+          if((request.getParameter("edit")!=null)&&(request.getParameter("edit").equals("tissueSample"))&&(request.getParameter("sampleID")!=null) && (request.getParameter("function")!=null) && (request.getParameter("function").equals("1")) &&(myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
         	  sampleIDString=request.getParameter("sampleID");
         	  thisSample=myShepherd.getTissueSample(sampleIDString, enc.getCatalogNumber());
 
@@ -4254,9 +4771,9 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 						       <%
 						       boolean hasMoreLocs=true;
-						       int taxNum=0;
+						       int tissueTaxNum=0;
 						       while(hasMoreLocs){
-						       	  String currentLoc = "tissueType"+taxNum;
+						       	  String currentLoc = "tissueType"+tissueTaxNum;
 						       	  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
 
 						       		  String selected="";
@@ -4265,7 +4782,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 						       	  	  <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
 						       	  	<%
-						       		taxNum++;
+						       		tissueTaxNum++;
 						          }
 						          else{
 						             hasMoreLocs=false;
@@ -4386,36 +4903,19 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
             <tr><td colspan="2">
             	<input name="encounter" type="hidden" value="<%=num%>" />
             	<input name="action" type="hidden" value="setTissueSample" />
-            	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="<%=encprops.getProperty("set")%>" />
+            	<input name="EditTissueSample" type="submit" id="EditTissueSample" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
    			</td></tr>
       </td>
     </tr>
   </table>
 </form>
 </div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgSample = $("#dialogSample").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#sample").click(function() {
-  dlgSample.dialog("open");
-  $("#setTissueSample").find("input[type=text], textarea").val("");
-
-
-});
-</script>
-<!-- end add bio sample popup -->
 <%
 }
 
 
 //setup the javascript to handle displaying an edit tissue sample dialog box
-if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), num))){
+if((request.getParameter("sampleID")!=null) && (request.getParameter("edit")!=null) && request.getParameter("edit").equals("tissueSample") && (myShepherd.isTissueSample(request.getParameter("sampleID"), request.getParameter("number")))){
 %>
 <script>
 dlgSample.dialog("open");
@@ -4436,8 +4936,8 @@ if((tissueSamples!=null)&&(tissueSamples.size()>0)){
 	int numTissueSamples=tissueSamples.size();
 
 %>
-<table width="100%" class="tissueSample">
-<tr><th><strong><%=encprops.getProperty("sampleID") %></strong></th><th><strong><%=encprops.getProperty("values") %></strong></th><th><strong><%=encprops.getProperty("analyses") %></strong></th><th><strong><%=encprops.getProperty("editTissueSample") %></strong></th><th><strong><%=encprops.getProperty("removeTissueSample") %></strong></th></tr>
+<table width="100%" class="table table-bordered table-striped tissueSampleTable">
+<tr><th><%=encprops.getProperty("sampleID") %></th><th><%=encprops.getProperty("values") %></th><th><%=encprops.getProperty("analyses") %></th><th><%=encprops.getProperty("editTissueSample") %></th><th><%=encprops.getProperty("removeTissueSample") %></th></tr>
 <%
 for(int j=0;j<numTissueSamples;j++){
 	TissueSample thisSample=tissueSamples.get(j);
@@ -4466,12 +4966,20 @@ for(int j=0;j<numTissueSamples;j++){
 				%>
 				</span></td>
 				<td style="border-style: none;">
-					<a id="haplo<%=mito.getAnalysisID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+					<a id="haplo<%=mito.getAnalysisID() %>" class="toggleBtn"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
 
 							<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#haplo<%=mito.getAnalysisID() %>").click(function() {
+      $("#dialogHaplotype<%=mito.getAnalysisID() %>").toggle();
+    });
+  });
+</script>
+
 <div id="dialogHaplotype<%=mito.getAnalysisID() %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
 <form id="setHaplotype<%=mito.getAnalysisID() %>" action="../TissueSampleSetHaplotype" method="post">
 <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
@@ -4547,7 +5055,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 </div>
 
-<script>
+<%-- <script>
 var dlgHaplotype<%=mito.getAnalysisID() %> = $("#dialogHaplotype<%=mito.getAnalysisID() %>").dialog({
   autoOpen: false,
   draggable: false,
@@ -4559,7 +5067,7 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
   dlgHaplotype<%=mito.getAnalysisID() %>.dialog("open");
 
 });
-</script>
+</script> --%>
 <!-- end haplotype popup -->
 <%
 }
@@ -4582,12 +5090,21 @@ $("a#haplo<%=mito.getAnalysisID() %>").click(function() {
 				<%
 				}
 				%>
-				</span></td><td style="border-style: none;"><a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a>
+				</span></td>
+        <td style="border-style: none;">
+          <a id="setSex<%=thisSample.getSampleID() %>" class="launchPopup"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+        </a>
 
 				<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start genetic sex popup -->
+<script type="text/javascript">
+  $("#setSex<%=thisSample.getSampleID() %>").click(function() {
+    $("#dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+  });
+
+</script>
 <div id="dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">
 
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
@@ -4661,22 +5178,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </tr>
 </table>
   </form>
-
 </div>
-
-<script>
-var dlgSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#setSex<%=thisSample.getSampleID() %>").click(function() {
-  dlgSexSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
 <!-- end genetic sex popup -->
 <%
 }
@@ -4718,12 +5220,29 @@ $("a#setSex<%=thisSample.getSampleID() %>").click(function() {
 
 
 				</td>
-				<td style="border-style: none;"><a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>"><img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" /></a></td><td style="border-style: none;"><a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>"><img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" /></a>
+				<td style="border-style: none;">
+          <a class="launchPopup" id="msmarkersSet<%=thisSample.getSampleID()%>">
+          <img width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit.png" />
+        </a>
+      </td>
+      <td style="border-style: none;">
+        <a onclick="return confirm('<%=encprops.getProperty("deleteMSMarkers") %>');" href="../TissueSampleRemoveMicrosatelliteMarkers?encounter=<%=enc.getCatalogNumber()%>&sampleID=<%=thisSample.getSampleID()%>&analysisID=<%=mito.getAnalysisID() %>">
+        <img style="border-style: none;width: 40px;height: 40px;" src="../images/cancel.gif" />
+      </a>
 
 															<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+
 <!-- start ms marker popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
+      $("#dialogMSMarkersSet").toggle();
+    });
+  });
+</script>
+
 <div id="dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
@@ -4824,7 +5343,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 	  </form>
 </div>
 
-<script>
+<%-- <script>
 var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").dialog({
   autoOpen: false,
   draggable: false,
@@ -4832,10 +5351,8 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
   width: 600
 });
 
-$("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
-  dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>.dialog("open");
-});
-</script>
+
+</script> --%>
 <!-- end ms markers popup -->
 <%
 }
@@ -4851,7 +5368,7 @@ $("a#msmarkersSet<%=thisSample.getSampleID()%>").click(function() {
 			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
 				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementEventType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
 				<%
 				if(!mito.getSuperHTMLString().equals("")){
 				%>
@@ -4889,16 +5406,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
 
 
      		<%
-     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -4911,7 +5428,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -4949,7 +5466,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -5021,7 +5538,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" />
       <input name="encounter" type="hidden" value="<%=num%>" />
       <input name="action" type="hidden" value="setBiologicalMeasurement" />
-      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementEventAnalysis" value="<%=encprops.getProperty("set")%>" />
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="<%=encprops.getProperty("set")%>" />
 
 </td>
 </tr>
@@ -5055,14 +5572,36 @@ $("a#setBioMeasure<%=thisSample.getSampleID() %>").click(function() {
 		}
 		%>
 		</table>
-		<p><span class="caption"><a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addHaplotype<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addHaplotype") %></a></span></p>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
+          $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+        });
+      });
+    </script>
+		<p>
+      <span class="caption">
+        <a class="addHaplotype<%=thisSample.getSampleID() %> toggleBtn">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+        </a>
+      <a class="toggleBtn addHaplotype<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addHaplotype") %></a>
+    </span>
+  </p>
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
 <!-- start haplotype popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addHaplotype<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+    });
+  });
+</script>
 <div id="dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setHaplotype")%>" style="display:none">
 <form id="setHaplotype" action="../TissueSampleSetHaplotype" method="post">
-<table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
+<table cellpadding="1" cellspacing="0">
 
   <tr>
     <td>
@@ -5072,7 +5611,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
         <%
         MitochondrialDNAAnalysis mtDNA=new MitochondrialDNAAnalysis();
         String analysisIDString="";
-        //if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),num,request.getParameter("analysisID"),"MitochondrialDNA"))){
+        //if((request.getParameter("function")!=null)&&(request.getParameter("function").equals("2"))&&(request.getParameter("edit")!=null) && (request.getParameter("edit").equals("haplotype")) && (request.getParameter("analysisID")!=null)&&(myShepherd.isGeneticAnalysis(request.getParameter("sampleID"),request.getParameter("number"),request.getParameter("analysisID"),"MitochondrialDNA"))){
       	//    analysisIDString=request.getParameter("analysisID");
       	//	mtDNA=myShepherd.getMitochondrialDNAAnalysis(request.getParameter("sampleID"), enc.getCatalogNumber(),analysisIDString);
         //}
@@ -5139,31 +5678,32 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 
 </div>
 
-<script>
-var dlgHaplotypeAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogHaplotype4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addHaplotype<%=thisSample.getSampleID() %>").click(function() {
-  dlgHaplotypeAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-  //$("#setHaplotype").find("input[type=text], textarea").val("");
-
-});
-</script>
 <!-- end haplotype popup -->
 <%
 }
 %>
 
 
-		<p><span class="caption"><a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="msmarkersAdd<%=thisSample.getSampleID()%>" class="launchPopup"><%=encprops.getProperty("addMsMarkers") %></a></span></p>
+		<p>
+      <span class="caption">
+        <a class="msmarkersAdd<%=thisSample.getSampleID()%> toggleBtn">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+        </a>
+        <a class="msmarkersAdd<%=thisSample.getSampleID()%> toggleBtn"><%=encprops.getProperty("addMsMarkers") %></a>
+      </span>
+    </p>
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start sat tag metadata popup -->
+<!-- start sat tag metadata -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
+      $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").toggle();
+    });
+  });
+</script>
+
 <div id="dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>" title="<%=encprops.getProperty("setMsMarkers")%>" style="display:none">
 
 <form id="setMsMarkers" action="../TissueSampleSetMicrosatelliteMarkers" method="post">
@@ -5262,20 +5802,6 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 </table>
 	  </form>
 </div>
-
-<script>
-var dlgMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("#dialogMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
-  dlgMSMarkersAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%>.dialog("open");
-  //$("#setMsMarkers").find("input[type=text], textarea").val("");
-});
-</script>
 <!-- end ms markers popup -->
 <%
 }
@@ -5283,12 +5809,29 @@ $("a#msmarkersAdd<%=thisSample.getSampleID()%>").click(function() {
 
 
 
-<p><span class="caption"><a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a id="addSex<%=thisSample.getSampleID() %>" class="launchPopup"><%=encprops.getProperty("addGeneticSex") %></a></span></p>
+<p>
+  <span class="caption">
+    <a class="addSex<%=thisSample.getSampleID() %> toggleBtn">
+    <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+  </a>
+  <a class="addSex<%=thisSample.getSampleID() %> toggleBtn"><%=encprops.getProperty("addGeneticSex") %></a>
+</span>
+</p>
 
 <%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
+
 <!-- start genetic sex popup -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addSex<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+
+    });
+  });
+</script>
+
 <div id="dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setSexAnalysis")%>" style="display:none">
 
 <form name="setSexAnalysis" action="../TissueSampleSetSexAnalysis" method="post">
@@ -5364,32 +5907,34 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
   </form>
 
 </div>
-
-<script>
-var dlgSexAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogSex4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addSex<%=thisSample.getSampleID() %>").click(function() {
-  dlgSexAdd<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
-<!-- end genetic sex popup -->
+<!-- end genetic sex -->
 <%
 }
 %>
 
 
-		<p><span class="caption"><a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png" /></a> <a class="launchPopup" id="addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a></span></p>
+		<p>
+      <span class="caption">
+      <a class="toggleBtn addBioMeasure<%=thisSample.getSampleID() %>">
+        <img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="../images/Crystal_Clear_action_edit_add.png"/>
+      </a>
+      <a class="toggleBtn addBioMeasure<%=thisSample.getSampleID() %>"><%=encprops.getProperty("addBiologicalMeasurement") %></a>
+    </span>
+  </p>
 
 		<%
 if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 %>
-<!-- start genetic sex popup -->
+<!-- start genetic sex -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
+      $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").toggle();
+
+    });
+  });
+</script>
+
 <div id="dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>" title="<%=encprops.getProperty("setBiologicalMeasurement")%>" style="display:none">
   <form name="setBiologicalMeasurement" action="../TissueSampleSetMeasurement" method="post">
 
@@ -5411,16 +5956,16 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
+    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
 
 
      		<%
-     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventType",context);
+     		List<String> values=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementType",context);
  			int numProps=values.size();
- 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventUnits",context);
+ 			List<String> measurementUnits=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementUnits",context);
  			int numUnitsProps=measurementUnits.size();
 
      		if(numProps>0){
@@ -5433,7 +5978,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -5471,7 +6016,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     </td><td>
 
      		<%
-     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementEventSamplingProtocols",context);
+     		List<String> protovalues=CommonConfiguration.getIndexedPropertyValues("biologicalMeasurementSamplingProtocols",context);
  			int protonumProps=protovalues.size();
 
      		if(protonumProps>0){
@@ -5543,27 +6088,13 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
 		  <input name="sampleID" type="hidden" value="<%=thisSample.getSampleID()%>" />
       <input name="encounter" type="hidden" value="<%=num%>" />
       <input name="action" type="hidden" value="setBiologicalMeasurement" />
-      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementEventAnalysis" value="<%=encprops.getProperty("set")%>" />
+      <input name="EditTissueSampleBiomeasurementAnalysis" type="submit" id="EditTissueSampleBioMeasurementAnalysis" value="<%=encprops.getProperty("set")%>" />
 
 </td>
 </tr>
 </table>
 	 </form>
 </div>
-
-<script>
-var dlgAddBiomeasure<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %> = $("#dialogBiomeasure4<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#addBioMeasure<%=thisSample.getSampleID() %>").click(function() {
-  dlgAddBiomeasure<%=thisSample.getSampleID().replaceAll("[-+.^:,]","") %>.dialog("open");
-
-});
-</script>
 <!-- end biomeasure popup -->
 <%
 }
@@ -5621,11 +6152,8 @@ while(encprops.getProperty(("jspImport"+currentImportNum))!=null){
 
 <%
 
-kwQuery.closeAll();
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-kwQuery=null;
-myShepherd=null;
+//kwQuery.closeAll();
+
 
 }
 catch(Exception e){
@@ -5635,6 +6163,12 @@ catch(Exception e){
 
 
 <%
+}
+finally{
+	myShepherd.rollbackDBTransaction();
+	myShepherd.closeDBTransaction();
+	//kwQuery=null;
+	myShepherd=null;
 }
 
 	}  //end if this is an encounter
