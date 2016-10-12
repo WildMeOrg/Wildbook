@@ -80,7 +80,7 @@
     <filter-name>UTF8Filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
+
   <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
@@ -105,12 +105,12 @@
                 #IniShiroFilter will inject that object into the SecurityManager
                 [main]
                 realmA = org.ecocean.security.ShepherdRealm
-                roles.unauthorizedUrl = /accessDenied.jsp 
+                roles.unauthorizedUrl = /accessDenied.jsp
 				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
 
-                
+
                 authc.loginUrl = /login.jsp
-                
+
                 #this application will use all the default
                 #filters (see link above)
                 #for example the default login page is /login.jsp
@@ -124,13 +124,13 @@
                 #view the web pages in the secure
                 #and admin areas
                 [urls]
-                
+
                 /rest/** = authcBasicWildbook,roles[rest]
 				#/api/** = authcBasicWildbook,roles[rest-readonly]
-                
+
                 /appadmin/scanTaskAdmin.jsp = authc, roles[researcher]
-                
-                
+
+
                 /appadmin/** = authc, roles[admin]
                 /MassSetInformOthers = authc, roles[admin]
                 /MassExposeGBIF = authc, roles[admin]
@@ -144,9 +144,9 @@
 
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
-	
+
 		/GenePopExport = authc, roles[researcher]
-		
+
 		/AdoptionAction = authc, roles[adoption]
 		/IndividualSetNickname = authc, roles[researcher]
 
@@ -158,7 +158,7 @@
 		/individualSearchResultsAnalysis.jsp = authc, roles[researcher]
 		/individualMappedSearchResults.jsp = authc
 		/individualThumbnailSearchResults.jsp = authc, roles[researcher]
-	
+
 		 /encounters/thumbnailSearchResults.jsp = authc, roles[researcher]
 		 /encounters/encounterSearch.jsp = roles[researcher]
 		 /encounters/searchResults.jsp = authc
@@ -186,10 +186,10 @@
 		   /TissueSampleRemoveBiologicalMeasurement = authc, roles[researcher]
 		   /TissueSampleSetMicrosatelliteMarkers  = authc, roles[researcher]
 		   /TissueSampleRemoveMicrosatelliteMarkers  = authc, roles[researcher]
-		   
+
 		   /RelationshipCreate  = authc, roles[researcher]
 		   /RelationshipDelete  = authc, roles[researcher]
-		   
+
 		   /ImportSRGD = authc, roles[admin]
 		        /IndividualCreate = authc, roles[researcher]
 		        /OccurrenceCreate = authc, roles[researcher]
@@ -231,7 +231,7 @@
                		/IndividualSetYearOfBirth = authc, roles[researcher]
                		/IndividualSetYearOfDeath = authc, roles[researcher]
 			/KinalyzerExport = authc, roles[researcher]
-			
+
 			/myAccount.jsp = authc
 					/UserSelfUpdate = authc
 
@@ -242,7 +242,7 @@
 					/AdoptionAction = authc,roles[admin]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
-					
+
 					/ResurrectDeletedEncounter = authc,roles[admin]
 					/ResurrectDeletedAdoption = = authc,roles[admin]
 
@@ -294,7 +294,7 @@
     <servlet-name>ImgSyncServlet0</servlet-name>
     <servlet-class>com.sunwesttek.image.servlet.ImgSyncServlet</servlet-class>
   </servlet>
-  
+
     <servlet>
     <description>Dynamic Image Servlet (synchronized)</description>
     <servlet-name>ImgSyncServlet1</servlet-name>
@@ -330,13 +330,13 @@
       <servlet-name>EncounterSetGenusSpecies</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetGenusSpecies</servlet-class>
   </servlet>
-  
+
     <servlet>
       <servlet-name>EncounterSetVerbatimEventDate</servlet-name>
       <servlet-class>org.ecocean.servlet.EncounterSetVerbatimEventDate</servlet-class>
   </servlet>
-    
-   
+
+
 
 
   <servlet>
@@ -374,11 +374,11 @@
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
-  
 
-  
-  
-  
+
+
+
+
 
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
@@ -428,17 +428,17 @@
     <servlet-name>EncounterApprove</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterApprove</servlet-class>
   </servlet>
-  
+
     <servlet>
     <servlet-name>EncounterForm</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterForm</servlet-class>
   </servlet>
-  
+
     <servlet>
     <servlet-name>Collaborate</servlet-name>
     <servlet-class>org.ecocean.servlet.Collaborate</servlet-class>
   </servlet>
-  
+
   <servlet>
     <servlet-name>JavascriptGlobals</servlet-name>
     <servlet-class>org.ecocean.servlet.JavascriptGlobals</servlet-class>
@@ -685,9 +685,9 @@
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
-  
 
-  
+
+
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -747,6 +747,12 @@
     <servlet-class>org.ecocean.servlet.export.SwotExport</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>NestExport</servlet-name>
+    <servlet-class>org.ecocean.servlet.export.NestExport</servlet-class>
+  </servlet>
+
+
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
@@ -774,7 +780,7 @@
     <servlet-name>SiteSearch</servlet-name>
     <servlet-class>org.ecocean.servlet.SiteSearch</servlet-class>
   </servlet>
-  
+
       <servlet-mapping>
     <servlet-name>SiteSearch</servlet-name>
     <url-pattern>/SiteSearch</url-pattern>
@@ -832,7 +838,7 @@
     <servlet-name>EncounterDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
-  
+
     <servlet>
       <servlet-name>TissueSampleSetHaplotype</servlet-name>
       <servlet-class>org.ecocean.servlet.TissueSampleSetHaplotype</servlet-class>
@@ -876,7 +882,7 @@
   </servlet>
 
 
-  
+
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
@@ -894,8 +900,8 @@
 
 
 
-  
- 
+
+
 
   <servlet>
     <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
@@ -1063,7 +1069,7 @@
     <servlet-name>ResurrectDeletedAdoption</servlet-name>
     <servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
   </servlet>
-  
+
 
 
   <servlet>
@@ -1112,11 +1118,11 @@
 <servlet>
          <servlet-name>jsp</servlet-name>
          <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
-    <init-param> 
+    <init-param>
             <param-name>mappedfile</param-name>
              <param-value>false</param-value>
         </init-param>
-     </servlet> 
+     </servlet>
 
 	<servlet>
 		<servlet-name>WildbookApi</servlet-name>
@@ -1154,7 +1160,7 @@
     <servlet-name>ImgSyncServlet1</servlet-name>
     <url-pattern>/ImgSyncServlet1</url-pattern>
   </servlet-mapping>
-  
+
     <servlet-mapping>
       <servlet-name>SideFeed</servlet-name>
       <url-pattern>/SideFeed</url-pattern>
@@ -1164,7 +1170,7 @@
     <servlet-name>WorkspaceServer</servlet-name>
     <servlet-class>org.ecocean.servlet.WorkspaceServer</servlet-class>
   </servlet>
-  
+
     <servlet>
     <servlet-name>UserInfo</servlet-name>
     <servlet-class>org.ecocean.servlet.UserInfo</servlet-class>
@@ -1183,7 +1189,7 @@
 	  <url-pattern>/interconnectSubmitSpots</url-pattern>
 	<url-pattern>/InterconnectSubmitSpots</url-pattern>
 </servlet-mapping>
-	
+
   <servlet>
     <servlet-name>WorkspaceDelete</servlet-name>
     <servlet-class>org.ecocean.servlet.WorkspaceDelete</servlet-class>
@@ -1217,6 +1223,12 @@
     <servlet-name>SwotExport</servlet-name>
     <url-pattern>/SwotExport</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>NestExport</servlet-name>
+    <url-pattern>/NestExport</url-pattern>
+  </servlet-mapping>
+
 
 
 <servlet-mapping>
@@ -1497,7 +1509,7 @@
     <servlet-name>EncounterSetTags</servlet-name>
     <url-pattern>/EncounterSetTags</url-pattern>
   </servlet-mapping>
- 
+
 
   <servlet-mapping>
     <servlet-name>EncounterResetDate</servlet-name>
@@ -1618,7 +1630,7 @@
       <servlet-name>UserRemoveProfileImage</servlet-name>
       <url-pattern>/UserRemoveProfileImage</url-pattern>
   </servlet-mapping>
-  
+
         <servlet-mapping>
       <servlet-name>UserRemoveProfileImage</servlet-name>
       <url-pattern>/MyAccountRemoveProfileImage</url-pattern>
@@ -1669,12 +1681,12 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
     <servlet-mapping>
       <servlet-name>OccurrenceAddEncounter</servlet-name>
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
@@ -1733,7 +1745,7 @@
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
-  
+
 
 
   <servlet-mapping>
@@ -1780,7 +1792,7 @@
     <servlet-name>MassSwapLocationCode</servlet-name>
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
-  
+
 
 
   <servlet-mapping>
@@ -1967,21 +1979,21 @@
     <servlet-name>IndividualRemoveDataFile</servlet-name>
     <url-pattern>/IndividualRemoveDataFile</url-pattern>
   </servlet-mapping>
-  
+
       <servlet>
       <servlet-name>UserCreateSocial</servlet-name>
       <servlet-class>org.ecocean.servlet.UserCreateSocial</servlet-class>
   </servlet>
-  
+
       <servlet>
       	<servlet-name>LoginUserSocial</servlet-name>
       	<servlet-class>org.ecocean.servlet.LoginUserSocial</servlet-class>
    </servlet>
-   
+
  <servlet-mapping>
     <servlet-name>LoginUserSocial</servlet-name>
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
-   
-  
+
+
 </web-app>
