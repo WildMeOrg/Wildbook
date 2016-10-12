@@ -2202,6 +2202,30 @@ public class Shepherd {
     return it;
   }
 
+  public Iterator<Nest> getAllNests(Query nests) {
+    Collection c = (Collection) (nests.execute());
+    Iterator it = c.iterator();
+    return it;
+  }
+
+  public Iterator<Nest> getAllNests(Query sharkies, String order) {
+    Map<String, Object> emptyMap = Collections.emptyMap();
+    return getAllNests(sharkies, order, emptyMap);
+  }
+
+
+  public Iterator<Nest> getAllNests(Query sharkies, String order, Map<String, Object> params) {
+    sharkies.setOrdering(order);
+    Collection c = (Collection) (sharkies.executeWithMap(params));
+    ArrayList list = new ArrayList(c);
+    //Collections.reverse(list);
+    Iterator it = list.iterator();
+    return it;
+  }
+
+
+
+
 
 
   public Iterator getAllWorkspaces() {
@@ -2358,6 +2382,23 @@ public class Shepherd {
       return 0;
     }
   }
+
+  public int getNumNests() {
+    pm.getFetchPlan().setGroup("count");
+    Extent encClass = pm.getExtent(Nest.class, true);
+    Query acceptedEncounters = pm.newQuery(encClass);
+    try {
+      Collection c = (Collection) (acceptedEncounters.execute());
+      int num = c.size();
+      acceptedEncounters.closeAll();
+      return num;
+    } catch (javax.jdo.JDOException x) {
+      x.printStackTrace();
+      acceptedEncounters.closeAll();
+      return 0;
+    }
+  }
+
 
   public int getNumAdoptions() {
     pm.getFetchPlan().setGroup("count");
