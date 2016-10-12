@@ -10,7 +10,8 @@
          com.drew.metadata.Tag,
          org.ecocean.*,
          org.ecocean.servlet.ServletUtilities,
-         org.ecocean.Util,org.ecocean.Measurement,
+         org.ecocean.Util,
+         org.ecocean.datacollection.*,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
          javax.jdo.Extent, javax.jdo.Query,
@@ -121,6 +122,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
+  int nFieldsPerSubtable = 8;
 
 
   pageContext.setAttribute("num", num);
@@ -283,11 +285,11 @@ td.measurement{
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
 	              var mapZoom = 1;
-	          	
+
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = new google.maps.LatLng(0, 0);
 
-	
+
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
 	                center: center,
@@ -297,20 +299,20 @@ td.measurement{
 	                scrollwheel: false,
 	                disableDoubleClickZoom: true,
 	        	});
-	
+
 	        	if(marker!=null){
 					marker.setMap(map);
 					//map.setCenter(marker.position);
-	
+
 	 			//alert("Setting center!");
 				}
-	
+
 	        	google.maps.event.addListener(map, 'click', function(event) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-	
-	
+
+
 		//adding the fullscreen control to exit fullscreen
 	    	  var fsControlDiv = document.createElement('DIV');
 	    	  var fsControl = new FSControl(fsControlDiv, map);
@@ -391,6 +393,8 @@ var encounterNumber = '<%=num%>';
 
 <script src="../javascript/imageTools.js"></script>
 
+<link rel="stylesheet" href="../css/classEditTemplate.css" />
+<script type="text/javascript" src="../javascript/classEditTemplate.js"></script>
 
 
 
@@ -444,24 +448,110 @@ var encounterNumber = '<%=num%>';
         			livingStatus = " (deceased)";
       			}
 
-if (request.getParameter("refreshImages") != null) {
-	System.out.println("refreshing images!!! ==========");
-	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
-	enc.refreshAssetFormats(myShepherd);
-	System.out.println("============ out ==============");
-}
+  if (request.getParameter("refreshImages") != null) {
+  	System.out.println("refreshing images!!! ==========");
+  	//enc.refreshAssetFormats(context, ServletUtilities.dataDir(context, rootWebappPath));
+  	enc.refreshAssetFormats(myShepherd);
+  	System.out.println("============ out ==============");
+  }
 
-				//let's see if this user has ownership and can make edits
-      			boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
-      			pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
-      			boolean loggedIn = false;
-      			try{
-      				if(request.getUserPrincipal()!=null){loggedIn=true;}
-      			}
-      			catch(NullPointerException nullLogged){}
+  //let's see if this user has ownership and can make edits
+  boolean isOwner = ServletUtilities.isUserAuthorizedForEncounter(enc, request);
+  pageContext.setAttribute("editable", isOwner && CommonConfiguration.isCatalogEditable(context));
+  boolean loggedIn = false;
+  try{
+  	if(request.getUserPrincipal()!=null){loggedIn=true;}
+  }
+  catch(NullPointerException nullLogged){}
 
-      			String headerBGColor="FFFFFC";
-      			//if(CommonConfiguration.getProperty(()){}
+  String headerBGColor="FFFFFC";
+  //if(CommonConfiguration.getProperty(()){}
+
+  // DataSheet processing
+  String newMortalitySheet = request.getParameter("newMortalitySheet");
+  String newTaggingSheet = request.getParameter("newTaggingSheet");
+  String newTrackcountsSheet = request.getParameter("newTrackcountsSheet");
+  String saving = request.getParameter("save");
+
+  boolean needToSave = ((saving              != null) ||
+                        (newMortalitySheet   != null) ||
+                        (newTaggingSheet     != null) ||
+                        (newTrackcountsSheet != null));
+
+
+  if (newMortalitySheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Mortality Sheet!");
+    enc.addConfigDataSheet(context, "mortality", myShepherd);
+  }
+
+  if (newTaggingSheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Tagging Sheet!");
+    enc.addConfigDataSheet(context, "tagging", myShepherd);
+  }
+
+
+  if (newTrackcountsSheet !=null) {
+    System.out.println("*X*X*XX*X*X*Printing a new Trackcounts Sheet!");
+    enc.addConfigDataSheet(context, "trackcounts", myShepherd);
+  }
+
+  if (needToSave) {
+    System.out.println("");
+    System.out.println("ENCOUNTER.JSP: Saving updated info...");
+    Enumeration en = request.getParameterNames();
+
+
+    while (en.hasMoreElements()) {
+      String pname = (String) en.nextElement();
+      String value = request.getParameter(pname);
+      System.out.println("parsing parameter "+pname);
+      if (pname.indexOf("enc:") == 0) {
+        String methodName = "set" + pname.substring(4,5).toUpperCase() + pname.substring(5);
+        String getterName = "get" + methodName.substring(3);
+        System.out.println("Nest.jsp: about to call ClassEditTemplate.updateObjectField("+enc+", "+methodName+", "+value+");");
+        ClassEditTemplate.updateObjectField(enc, methodName, value);
+      }
+      else if (pname.indexOf("enc-dp-new:") == 0) {
+        String afterColon = pname.split(":")[1];
+        String dataSheetNumStr = afterColon.substring(2,afterColon.indexOf("-"));
+        int dataSheetNum = Integer.parseInt(dataSheetNumStr);
+
+        // Create a new datapoint and add it to the appropriate sheet
+        // populate that datapoint's value with "value"
+        //Amount newEggDP = new Amount
+
+        boolean isDiamNotWeight = (pname.indexOf("diam")>-1);
+        //enc.addNewEgg(dataSheetNum);
+      }
+      else if (pname.indexOf("enc-dp-") == 0) {
+        // looks like nes-dp-dsNUM: _____. now to parse the NUM
+        String beforeColon = pname.split(":")[0];
+        String dpID = beforeColon.substring(7);
+        System.out.println("  looks like a change was detected on DataPoint "+dpID);
+        DataPoint dp = myShepherd.getDataPoint(dpID);
+        System.out.println("  now I have dp and its labeled string = "+dp.toLabeledString());
+        System.out.println("  its old value = "+dp.getValueString());
+        System.out.println("checkone");
+        dp.setValueFromString(value);
+        System.out.println("checktwo");
+        System.out.println("  its new value = "+dp.getValueString());
+      }
+      else if (pname.indexOf("dat-") == 0) {
+        String beforeColon = pname.split(":")[0];
+        String dpID = beforeColon.substring(4);
+        System.out.println("  Found a change on datasheet "+dpID);
+      }
+    }
+    myShepherd.commitDBTransaction();
+    System.out.println("ENCOUNTER.JSP: Transaction committed");
+    System.out.println("");
+  }
+
+  //end datasheet processing
+
+
+
+
     			%>
 
 <script type="text/javascript">
@@ -608,6 +698,94 @@ $(function() {
 	<!-- main display area -->
 
 				<div class="container">
+
+          <form method="post" action="encounter.jsp?number=<%=num%>" id="classEditTemplateForm">
+          <div class="row datasheets">
+              <div class="col-sm-12">
+                <h2>
+                  <%=encprops.getProperty("datasheets") %>
+                </h2>
+
+                  <input type="submit" name="newMortalitySheet" value="Add New Mortality Field Sheet" />
+                  <input type="submit" name="newTaggingSheet" value="Add New Tagging Field Sheet" />
+                  <input type="submit" name="newTrackcountsSheet" value="Add New Trackcounts Field Sheet" />
+
+              </div>
+            </div>
+            <%
+            for (int i=0; i < enc.getDataSheets().size(); i++) {
+              %> <div class="row dataSheet" id="<%=i%>"> <%
+              %> <div class="col-xs-12"> <%
+              //DataSheet dSheet = enc.getDataSheet(enc.getDataSheets().size()-(i+1)); //reverses order
+              DataSheet dSheet = enc.getDataSheet(i);
+              int numEggs = enc.getEggCount(i);
+              System.out.println("DataSheet "+i+" has #eggs = "+numEggs);
+              /*if (numEggs==0) {
+                enc.addNewEgg(i);
+              }*/
+              %>
+                <h3>Data Sheet <%=i+1%></h2>
+
+                <%
+                if (dSheet.getName()!=null && !dSheet.getName().equals(""))
+                {
+                  %>
+                  <h4><%=dSheet.getName()%></h4>
+                  <%
+                }
+                %>
+                <input type="submit" onclick="classEditTemplate.markDeleteSheet()" name="removeSheet<%=i%>" value="Remove this Data Sheet" ></input>
+
+
+                <table class="nest-field-table edit-table" style="float: left">
+                <%
+                //ClassEditTemplate.printDateTimeSetterRow((Object) dSheet,dSheet.getID(), out);
+                %>
+                </table>
+              </div>
+              <%
+
+
+              int nFields = dSheet.size();
+              int nSubtables = Util.getNumSections(nFields, nFieldsPerSubtable);
+              int dataPointN = 0;
+
+              for (int tableN=0; tableN < nSubtables; tableN++) {
+
+              %><div class="col col-md-4 nest-table">
+              <table class="nest-field-table edit-table" style="float: left"><%
+                for (int subTableI=0; dataPointN < nFields && subTableI < nFieldsPerSubtable; dataPointN++, subTableI++) {
+                  DataPoint dp = dSheet.getData().get(dataPointN);
+                  ClassEditTemplate.printOutClassFieldModifierRow((Object) enc, dp, out);
+                }
+              %></table></div><%
+            }
+            %>
+            <div class="col-md-4">
+              <input type="button" name="newSubsheet<%=i%>" value="Add Sequential Measurements" class="sequentialButton" />
+            </div>
+
+
+            </div>
+
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="submit" style="position:relative">
+                  <input type="submit" name="save" value="Save" />
+                  <span class="note" style="position:absolute;bottom:9"></span>
+                </div>
+              </div>
+            </div>
+
+             <%
+
+            }
+            %>
+
+          </form>
+
+
+
 					<div class="row">
 
 
@@ -870,7 +1048,7 @@ $(function() {
 
 
 					<%
-	
+
 					if(!enc.hasMarkedIndividual()) {
 					%>
 
@@ -938,7 +1116,7 @@ $(function() {
 								}
 									else{
 										%>
-										
+
 										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
@@ -958,7 +1136,7 @@ $(function() {
                       </div>
                     </form>
                     <br>
-									<%	
+									<%
 									}
 								%>
 							</div>
@@ -2779,17 +2957,17 @@ if (isOwner) {
 
 
 <%
-  pageContext.setAttribute("showMeasurements", CommonConfiguration.showMeasurements(context));
-  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurements(context));
+  pageContext.setAttribute("showMeasurementEvents", CommonConfiguration.showMeasurementEvents(context));
+  pageContext.setAttribute("showMetalTags", CommonConfiguration.showMeasurementEvents(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));
   pageContext.setAttribute("showSatelliteTag", CommonConfiguration.showSatelliteTag(context));
 %>
 
-<c:if test="${showMeasurements}">
+<c:if test="${showMeasurementEvents}">
 <br />
 <%
   pageContext.setAttribute("measurementTitle", encprops.getProperty("measurements"));
-  pageContext.setAttribute("measurements", Util.findMeasurementDescs(langCode,context));
+  pageContext.setAttribute("measurements", Util.findMeasurementEventDescs(langCode,context));
 %>
 
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -2850,9 +3028,9 @@ else {
 </tr>
 <c:forEach var="item" items="${measurements}">
  <%
-    MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
+    MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
     //Measurement event =  enc.findMeasurementOfType(measurementDesc.getType());
-    Measurement event=myShepherd.getMeasurementOfTypeForEncounter(measurementDesc.getType(), num);
+    MeasurementEvent event=myShepherd.getMeasurementEventOfTypeForEncounter(measurementDesc.getType(), num);
     if (event != null) {
         pageContext.setAttribute("measurementValue", event.getValue());
         pageContext.setAttribute("samplingProtocol", Util.getLocalizedSamplingProtocol(event.getSamplingProtocol(), langCode,context));
@@ -2887,7 +3065,7 @@ else {
   <p class="editTextMeasure"><strong><%=encprops.getProperty("setMeasurements")%></strong></p>
 
     <%
-    pageContext.setAttribute("items", Util.findMeasurementDescs(langCode,context));
+    pageContext.setAttribute("items", Util.findMeasurementEventDescs(langCode,context));
     %>
 
     <table cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" class="editFormMeasure">
@@ -2895,15 +3073,15 @@ else {
         <input type="hidden" name="encounter" value="${num}"/>
         <c:set var="index" value="0"/>
         <%
-        List<Measurement> list = (List<Measurement>) enc.getMeasurements();
+        List<MeasurementEvent> list = (List<MeasurementEvent>) enc.getMeasurementEvents();
 
         %>
         <c:forEach items="${items}" var="item">
           <%
-          MeasurementDesc measurementDesc = (MeasurementDesc) pageContext.getAttribute("item");
-          Measurement measurement = enc.findMeasurementOfType(measurementDesc.getType());
+          MeasurementEventDesc measurementDesc = (MeasurementEventDesc) pageContext.getAttribute("item");
+          MeasurementEvent measurement = enc.findMeasurementEventOfType(measurementDesc.getType());
           if (measurement == null) {
-            measurement = new Measurement(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
+            measurement = new MeasurementEvent(enc.getEventID(), measurementDesc.getType(), null, measurementDesc.getUnits(), null);
           }
           pageContext.setAttribute("measurementEvent", measurement);
           pageContext.setAttribute("optionDescs", Util.findSamplingProtocols(langCode,context));
@@ -3207,7 +3385,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
-        	
+
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
@@ -3216,22 +3394,22 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		if(isOwner){
 		%>
 	        <div id="add-image-zone" class="bc4">
-	
+
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
-	
+
 	          <div class="flow-box bc4" style="text-align:center" >
-	
+
 	            <div id="file-activity" style="display:none"></div>
-	
+
 	            <div id="updone"></div>
-	
+
 	            <div id="upcontrols">
 	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
 	              <div id="flowbuttons">
-	
+
 	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
 	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-	
+
 	              </div>
 	            </div>
 	          </div>
@@ -3386,7 +3564,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         </div>
       </form>
     </div>
-   
+
 
     <!-- start releaseDate -->
     <script type="text/javascript">
@@ -3529,7 +3707,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <br /><br />
- 
+
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
@@ -5368,7 +5546,7 @@ var dlgMSMarkersSet<%=thisSample.getSampleID().replaceAll("[-+.^:,]","")%> = $("
 			else if(ga.getAnalysisType().equals("BiologicalMeasurement")){
 				BiologicalMeasurement mito=(BiologicalMeasurement)ga;
 				%>
-				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
+				<tr><td style="border-style: none;"><strong><span class="caption"><%=mito.getMeasurementEventType()%> <%=encprops.getProperty("measurement") %></span></strong><br /> <span class="caption"><%=mito.getValue().toString() %> <%=mito.getUnits() %> (<%=mito.getSamplingProtocol() %>)
 				<%
 				if(!mito.getSuperHTMLString().equals("")){
 				%>
@@ -5406,7 +5584,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
@@ -5428,7 +5606,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
@@ -5956,7 +6134,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
     <tr><td>
     <%
     String type="";
-    if(mtDNA.getMeasurementType()!=null){type=mtDNA.getMeasurementType();}
+    if(mtDNA.getMeasurementEventType()!=null){type=mtDNA.getMeasurementEventType();}
     %>
     <%=encprops.getProperty("type")%> (<%=encprops.getProperty("required")%>)
     </td><td>
@@ -5978,7 +6156,7 @@ if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
      				String units="";
      				if(numUnitsProps>y){units="&nbsp;("+measurementUnits.get(y)+")";}
      				String selected="";
-     				if((mtDNA.getMeasurementType()!=null)&&(mtDNA.getMeasurementType().equals(values.get(y)))){
+     				if((mtDNA.getMeasurementEventType()!=null)&&(mtDNA.getMeasurementEventType().equals(values.get(y)))){
      					selected="selected=\"selected\"";
      				}
      			%>
