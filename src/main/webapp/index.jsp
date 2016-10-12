@@ -374,7 +374,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12 col-sm-10 col-md-8 col-lg-6">
             <h1 class="hidden">Wildbook</h1>
-            <h2>Wildbook helps you study identify, and protect wildlife populations!</h2>
+            <h2>Welcome to the Internet...</br> of Turtles!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -399,9 +399,8 @@ finally{
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Automatic identificatione<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Researcher verification<span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
@@ -413,7 +412,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+					<img style="border-radius: 50%;" class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
 				</div>
 			</div>
 			<div class="item">
@@ -427,37 +426,26 @@ finally{
 					<img class="pull-right" src="images/how_it_works_submit.jpg" alt=""  />
 				</div>
 			</div>
+      <div class="item">
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+          <h3>Matching Results</h3>
+          <p class="lead">
+            Wildbook uses computer vision to compare new photos to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
+          </p>
+        </div>
+        <div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
+          <img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+        </div>
+      </div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Researcher verification</h3>
 					<p class="lead">
-						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
+						When the automatic matching process is completed, a researcher double-checks any matches made by the system. Once confirmed, these new sightings are stored permanently in Wildbook.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
 					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching process</h3>
-					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for animals.
-						</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching Results</h3>
-					<p class="lead">
-						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
 				</div>
 			</div>
 		</div>
