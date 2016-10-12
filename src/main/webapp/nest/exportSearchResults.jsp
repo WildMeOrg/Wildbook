@@ -11,11 +11,14 @@
     String langCode=ServletUtilities.getLanguageCode(request);
 
     Properties map_props = new Properties();
-    //map_props.load(getClass().getResourceAsStream("/bundles/" + langCode + "/exportSearchResults.properties"));
     map_props=ShepherdProperties.getProperties("exportSearchResults.properties", langCode, context);
 
 		Properties collabProps = new Properties();
  		collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+
+
+    Properties nestprops = new Properties();
+    nestprops=ShepherdProperties.getProperties("nestSearchResults.properties", langCode, context);
 
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
@@ -111,26 +114,15 @@
 
 
 
-		 <ul id="tabmenu">
+          <ul id="tabmenu">
 
-		   <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("table")%>
-		   </a></li>
-		   <li><a
-		     href="thumbnailSearchResults.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("matchingImages")%>
-		   </a></li>
-		  <li><a
-		    href="mappedSearchResults.jsp?<%=request.getQueryString().replaceAll("startNum","uselessNum").replaceAll("endNum","uselessNum") %>"><%=map_props.getProperty("mappedResults")%>
-		  </a></li>
-		   <li><a
-		     href="../xcalendar/calendar2.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("resultsCalendar")%>
-		   </a></li>
-		      <li><a
-		     href="searchResultsAnalysis.jsp?<%=request.getQueryString() %>"><%=map_props.getProperty("analysis")%>
-		   </a></li>
-		    <li><a class="active"><%=map_props.getProperty("export")%>
-		   </a></li>
+            <li><a href="searchResults.jsp?<%=request.getQueryString() %>"><%=nestprops.getProperty("table")%>
+            </a></li>
+            <li><a class="active"
+               href="exportSearchResults.jsp?<%=request.getQueryString() %>"><%=nestprops.getProperty("export")%>
+             </a></li>
 
-		 </ul>
+          </ul>
 
 		<% if (blocked.size() < 1) { %>
 

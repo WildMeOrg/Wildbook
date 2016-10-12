@@ -34,7 +34,10 @@ public class SwotExport extends HttpServlet{
       doPost(request, response);
   }
 
-
+  private String doubleToString(Double dbl) {
+    if (dbl == null) return ("");
+    return dbl.toString();
+  }
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 
@@ -44,12 +47,12 @@ public class SwotExport extends HttpServlet{
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
 
-    //String query = request.getParameter("query");
-    //String[] headers = request.getParameterValues("headers");
-    //String[] columns = request.getParameterValues("columns");
-    //Collection c = (Collection) myShepherd.getPM().newQuery(query).execute();
-    //Vector v = new Vector(c);
-    //Class cls = v.get(0).getClass();
+    // String query = request.getParameter("query");
+    // String[] headers = request.getParameterValues("headers");
+    // String[] columns = request.getParameterValues("columns");
+    // Collection c = (Collection) myShepherd.getPM().newQuery(query).execute();
+    // Vector v = new Vector(c);
+    // Class cls = v.get(0).getClass();
 
     String filename = request.getParameter("filename");
     if (filename == null) {
@@ -70,7 +73,7 @@ public class SwotExport extends HttpServlet{
 
     int sheetRow = 0;
 
-    String[] headers = new String[] {"ID", "Date", "Area", "GPS x", "GPS y", "sex", "age", "class", "foal", "group size", "image file", "enc ID"};
+    String[] headers = new String[] {"ID", "Name", "LocationID", "Location Note", "Latitude", "Longitude"};
     int col = 0;
     for (int i = 0 ; i < headers.length ; i++) {
        Label l = new Label(col, sheetRow, headers[i]);
@@ -84,42 +87,41 @@ public class SwotExport extends HttpServlet{
     sheetRow++;
 
 
-    Iterator all = myShepherd.getAllEncountersNoQuery();
-    Encounter enc = null;
+    Iterator all = myShepherd.getAllNests();
+    Nest nest = null;
     while (all.hasNext()) {
-        enc = (Encounter) all.next();
+        nest = (Nest) all.next();
 
-        System.out.println("SwotExport: starting to export Encounter "+enc.getCatalogNumber());
+        System.out.println("SwotExport: starting to export Nest "+nest.getID());
 
 
-        //this is the date of the encounter, to compute age at time of encounter
-        Calendar encCal = null;
-        if (enc.getYear() > 0) {
-            encCal = Calendar.getInstance();
-            encCal.clear();
-            encCal.set(Calendar.MILLISECOND, 0);
-            encCal.set(Calendar.YEAR, enc.getYear());
-            if (enc.getMonth() > 0) encCal.set(Calendar.MONTH, enc.getMonth() - 1);
-            if (enc.getDay() > 0) encCal.set(Calendar.DAY_OF_MONTH, enc.getDay());
-        }
+        //this is the date of the Nest, to compute age at time of Nest
+        Calendar nestCal = null;
+        // if (nest.getYear() > 0) {
+        //     nestCal = Calendar.getInstance();
+        //     nestCal.clear();
+        //     nestCal.set(Calendar.MILLISECOND, 0);
+        //     nestCal.set(Calendar.YEAR, nest.getYear());
+        //     if (nest.getMonth() > 0) nestCal.set(Calendar.MONTH, nest.getMonth() - 1);
+        //     if (nest.getDay() > 0) nestCal.set(Calendar.DAY_OF_MONTH, nest.getDay());
+        // }
         Double age = null;
-        //if (encCal != null) age = indiv.calculatedAge(encCal);
+        //if (nestCal != null) age = indiv.calculatedAge(nestCal);
 
         Vector<Label> cols =  new Vector<Label>();
-        cols.add(new Label(0, sheetRow, enc.getCatalogNumber()));
-        cols.add(new Label(1, sheetRow, enc.getShortDate()));
-        cols.add(new Label(2, sheetRow, enc.getLocationCode()));
-        cols.add(new Label(3, sheetRow, enc.getDecimalLatitude()));
-        cols.add(new Label(4, sheetRow, enc.getDecimalLongitude()));
-        cols.add(new Label(5, sheetRow, enc.getSex()));
-        if (age != null) cols.add(new Label(6, sheetRow, String.valueOf(Math.round(age.doubleValue() * 100) / 100)));
-        //cols.add(new Label(6, sheetRow, enc.getLifeStage()));
-        //cols.add(new Label(7, sheetRow, enc.getZebraClass()));
+        cols.add(new Label(0, sheetRow, nest.getID()));
+        cols.add(new Label(1, sheetRow, nest.getName()));
+        cols.add(new Label(2, sheetRow, nest.getLocationID()));
+        cols.add(new Label(3, sheetRow, nest.getLocationNote()));
+        cols.add(new Label(4, sheetRow, doubleToString(nest.getLatitude())));
+        cols.add(new Label(5, sheetRow, doubleToString(nest.getLongitude())));
+        //cols.add(new Label(6, sheetRow, nest.getLifeStage()));
+        //cols.add(new Label(7, sheetRow, nest.getZebraClass()));
 
         /*
         String foals = "";
         List<Relationship> rels = indiv.getAllRelationships(myShepherd);
-        ///TODO should we really look for *co-occurring* offspring for this Encounter?
+        ///TODO should we really look for *co-occurring* offspring for this Nest?
 //System.out.println(indiv.getIndividualID() + ": ");
         for (Relationship rel : rels) {
             if ("familial".equals(rel.getType())) {
@@ -143,9 +145,8 @@ public class SwotExport extends HttpServlet{
         //     }
         // }
 
-        //cols.add(new Label(10, sheetRow, enc.getImageOriginalName()));
+        //cols.add(new Label(10, sheetRow, nest.getImageOriginalName()));
         */
-        cols.add(new Label(11, sheetRow, enc.getCatalogNumber()));
 
         for (Label l : cols) {
             try {
@@ -166,7 +167,7 @@ public class SwotExport extends HttpServlet{
 
     //response.setContentType("application/vnd.ms-excel");
     response.setContentType("application/octet-stream");
-    response.setHeader("Content-Transfer-Encoding", "binary");
+    response.setHeader("Content-Transfer-nestoding", "binary");
     response.setHeader("Content-Disposition", "filename=" + filename);
 
     InputStream is = new FileInputStream(excelFile);
