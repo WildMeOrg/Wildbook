@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.text.DecimalFormat;
+import javax.jdo.Query;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
 import org.datanucleus.api.rest.orgjson.JSONArray;
@@ -1969,6 +1970,68 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
                 .toString();
     }
 
+
+    public void rename(String newName, Shepherd myShepherd) throws RuntimeException {
+        String currentName = this.individualID;
+        if (currentName == null) return;
+        //TODO better escaping!  (see: injection etc.... why dont we have a Util function for this?)
+        newName.replaceAll("'", "").replaceAll(";", "");
+        System.out.println("INFO: attempt to rename " + this + " to " + newName);
+        Query q = myShepherd.getPM().newQuery("UPDATE org.ecocean.MarkedIndividual SET this.individualID = '" + newName + "' WHERE this.individualID == '" + currentName + "'");
+        q.execute();
+        Query q2 = myShepherd.getPM().newQuery("UPDATE org.ecocean.Encounter SET this.individualID = '" + newName + "' WHERE this.individualID == '" + currentName + "'");
+        q2.execute();
+        this.individualID = newName;
+    }
+
+    //json-y version
+    public static org.json.JSONObject renameMultipleJson(org.json.JSONObject lists, Shepherd myShepherd) {
+        org.json.JSONObject jobj = new org.json.JSONObject("{\"success\": false}");
+        if (lists == null) {
+            jobj.put("error", "no lists passed");
+            return jobj;
+        }
+        org.json.JSONArray rtn = new org.json.JSONArray();
+        org.json.JSONArray oldIds = lists.optJSONArray("old");
+        org.json.JSONArray newIds = lists.optJSONArray("new");
+        if (oldIds == null) throw new RuntimeException("old list not present");
+        if (newIds == null) throw new RuntimeException("new list not present");
+        if ((oldIds.length() < 1) || (newIds.length() < 1) || (oldIds.length() != newIds.length())) throw new RuntimeException("old/new list mistmatch or empty");
+        for (int i = 0 ; i < oldIds.length() ; i++) {
+            org.json.JSONObject each = new org.json.JSONObject("{\"success\": false}");
+            String id = oldIds.optString(i, null);
+            String newId = newIds.optString(i, null);
+            if (id == null) {
+                each.put("error", "could not parse old MarkedIndividual id at position " + i);
+            } else if (newId == null) {
+                each.put("error", "could not parse new MarkedIndividual id at position " + i);
+            } else if (newId.equals(id)) {
+                each.put("oldId", id);
+                each.put("newId", newId);
+                each.put("success", true);
+                each.put("message", "old and new names equal; ignoring rename");
+            } else {
+                each.put("oldId", id);
+                each.put("newId", newId);
+                MarkedIndividual indiv = myShepherd.getMarkedIndividualQuiet(id);
+                if (indiv == null) {
+                    each.put("error", "unknown MarkedIndividual id=" + id);
+                } else {
+                    try {
+                        indiv.rename(newId, myShepherd);
+                        each.put("success", true);
+                        each.put("message", "renamed MarkedIndividual " + id + " to " + newId);
+                    } catch (Exception ex) {
+                        each.put("error", "failed to rename " + id + ": " + ex.toString());
+                    }
+                }
+            }
+            rtn.put(each);
+        }
+        jobj.put("success", true);
+        jobj.put("results", rtn);  //embed the list here
+        return jobj;
+    }
 
     // this trailing block is brought over for original ibeis-branch which has some lewa-specific calculations
     public String getSightedForMonth(String y, String m) {
