@@ -500,9 +500,10 @@ if(CommonConfiguration.showReleaseDate(context)){
         <input name="location" type="text" id="location" size="40" class="form-control">
       </div>
     </div>
-    
+    <p class="help-block"><%=props.getProperty("whereHelp")%></p>
 
-<%
+
+  <%
 //add locationID to fields selectable
 
 
