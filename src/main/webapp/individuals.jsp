@@ -747,6 +747,12 @@ if (request.getParameter("number")!=null) {
     <div class="slider col-sm-6 center-slider">
       <%-- Get images for slider --%>
       <%
+///note this is very hacky... as jon about it
+for (Encounter enJ : sharky.getDateSortedEncounters()) {
+	for (MediaAsset maJ : enJ.getMedia()) {
+		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+	}
+}
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
       String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
 
