@@ -505,7 +505,7 @@ if(CommonConfiguration.showReleaseDate(context)){
         <label class="control-label text-danger"><%=props.getProperty("where") %></label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("where.tooltip")%>"/>
+        <input name="location" type="text" id="location" size="40" class="form-control" placeholder="<%=props.getProperty("where.cue") %>" data-toggle="tooltip" title="<%=props.getProperty("where.tooltip")%>"/>
       </div>
     </div>
 
