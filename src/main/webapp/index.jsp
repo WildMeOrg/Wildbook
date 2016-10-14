@@ -12,6 +12,7 @@
 	Locale locale = new Locale(langCode);
 	NumberFormat nf = NumberFormat.getIntegerInstance(locale);
 	Properties props = ShepherdProperties.getProperties("index.properties", langCode, context);
+	Map<String, String> locMap = CommonConfiguration.getI18nPropertiesMap("locationID", langCode, context, false);
 
 //set up our Shepherd
 
@@ -202,6 +203,7 @@ margin-bottom: 8px !important;
  		for(int i=0;i<numLocationIDs;i++){
  			
  			String locID = locs.get(i);
+ 			String locName = locMap.get(locID);
  			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
  				
  				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
@@ -221,7 +223,7 @@ margin-bottom: 8px !important;
  		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
 		          bounds.extend(latLng);
  		          
- 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+ 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.mantamatcher.org/cust/mantamatcher/img/icon_manta_shape_white.svg');background-size: cover\" title=\"<%=locName%>\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID%>\"><%=numSightingsInteger.toString() %></a></div>";
  		          
  		         
  		         var marker<%=i%> = new RichMarker({
