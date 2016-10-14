@@ -309,6 +309,14 @@ function addFullscreenButton(controlDiv, map) {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
+$(document).ready(function() {
+  // Setup tooltips.
+  // (Currently using Bootstrap; if editing, watch for clashes with JQueryUI).
+  $('[data-toggle="tooltip"]').tooltip({
+    html: true,
+    placement: 'bottom'
+  });
+});
 </script>
 
 <div class="container-fluid page-content" role="main">
@@ -455,7 +463,7 @@ function showUploadBox() {
       
       <div class="form-inline col-xs-12 col-sm-12 col-md-6 col-lg-6">
         <label class="control-label text-danger"><%=props.getProperty("submit_date")%></label>
-        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" />
+        <input class="form-control" type="text" style="position: relative; z-index: 101;" id="datepicker" name="datepicker" size="20" data-toggle="tooltip" title="<%=props.getProperty("submit_date.tooltip")%>" />
 </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
@@ -497,10 +505,9 @@ if(CommonConfiguration.showReleaseDate(context)){
         <label class="control-label text-danger"><%=props.getProperty("where") %></label>
       </div>
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <input name="location" type="text" id="location" size="40" class="form-control">
+        <input name="location" type="text" id="location" size="40" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("where.tooltip")%>"/>
       </div>
     </div>
-    <p class="help-block"><%=props.getProperty("whereHelp")%></p>
 
 
   <%
@@ -515,7 +522,7 @@ if(CommonConfiguration.getSequentialPropertyValues("locationID", context).size()
       </div>
       
       <div class="col-xs-6 col-sm-6 col-md-6 col-lg-8">
-        <select name="locationID" id="locationID" class="form-control">
+        <select name="locationID" id="locationID" class="form-control" data-toggle="tooltip" title="<%=props.getProperty("locationID.tooltip")%>">
             <option value="" selected="selected"></option>
             <%
               Map<String, String> locMap = CommonConfiguration.getIndexedValuesMap("locationID", context);
@@ -606,7 +613,7 @@ if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
 %>
  <div class="form-inline">
       <label class="control-label"><%=props.getProperty("submit_depth")%> </label>
-      <input class="form-control" name="depth" type="text" id="depth">
+      <input class="form-control" name="depth" type="text" id="depth" data-toggle="tooltip" title="<%=props.getProperty("submit_depth.tooltip")%>"/>
       &nbsp;<%=props.getProperty("submit_meters")%> <br>
     </div>
 <%
@@ -658,7 +665,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <label class="text-danger control-label"><%=props.getProperty("submit_name")%></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>">
+            <input class="form-control" name="submitterName" type="text" id="submitterName" size="24" value="<%=submitterName %>" data-toggle="tooltip" title="<%=props.getProperty("submit_name.tooltip")%>"/>
           </div>
         </div>
 
@@ -668,7 +675,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
             <label class="text-danger control-label"><%=props.getProperty("submit_email")%></label>
           </div>
           <div class="col-xs-6 col-lg-8">
-            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>">
+            <input class="form-control" name="submitterEmail" type="text" id="submitterEmail" size="24" value="<%=submitterEmail %>" data-toggle="tooltip" title="<%=props.getProperty("submit_email.tooltip")%>"/>
           </div>
         </div>
       </div>
@@ -707,7 +714,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       </div>
 
       <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>">
+        <input class="form-control" name="submitterOrganization" type="text" id="submitterOrganization" size="75" value="<%=affiliation %>" data-toggle="tooltip" title="<%=props.getProperty("submitterOrganization.tooltip")%>"/>
       </div>
     </div>
 
@@ -716,7 +723,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <label class="control-label"><%=props.getProperty("submitterProject")%></label>
       </div>
       <div class="col-xs-6 col-lg-8">
-        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>">
+        <input class="form-control" name="submitterProject" type="text" id="submitterProject" size="75" value="<%=project %>" data-toggle="tooltip" title="<%=props.getProperty("submitterProject.tooltip")%>"/>
       </div>
     </div>
         
@@ -725,7 +732,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         <label class="control-label"><%=props.getProperty("submit_comments")%></label>
       </div>
       <div class="col-xs-6 col-lg-8">
-        <textarea class="form-control" name="comments" id="comments" rows="5"></textarea>
+        <textarea class="form-control" name="comments" id="comments" rows="5" data-toggle="tooltip" title="<%=props.getProperty("submit_comments.tooltip")%>"></textarea>
       </div>
     </div>
   </fieldset>
@@ -734,7 +741,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
  
   
   <h4 class="accordion">
-    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
+    <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none" data-toggle="tooltip" title="<%=props.getProperty("advancedInformation.tooltip")%>">
       <img src="http://www.mantamatcher.org/images/Black_Arrow_down.png" width="14" height="14" border="0" align="absmiddle">
       <%=props.getProperty("advancedInformation") %>
     </a>
@@ -746,7 +753,7 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
       
       <fieldset>
       
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("submit_sex.tooltip")%>">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_sex")%></label>
           </div>
@@ -770,7 +777,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
 %>
 <fieldset>
-      <div class="form-group">
+      <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("species.tooltip")%>">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("species")%></label>
           </div>
@@ -787,7 +794,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 %>
   </select>
     </div>
-        </div>
+  </div>
      
         <%
 }
@@ -811,7 +818,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
   if(CommonConfiguration.showProperty("showPatterningCode",context)){
 %>
   <fieldset>
-    <div class="form-group">
+    <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("patterningCode.tooltip")%>">
       <div class="col-xs-6 col-md-4">
         <label class="control-label"><%=props.getProperty("patterningCode")%></label>
       </div>
@@ -835,7 +842,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
   }
 %>
 
-        <div class="form-group">
+        <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("submit_behavior.tooltip")%>">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_behavior")%></label>
           </div>
@@ -846,7 +853,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
         </div>
         
         
-           <div class="form-group">
+           <div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("submit_scars.tooltip")%>">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("submit_scars")%></label>
           </div>
@@ -861,7 +868,7 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 if(CommonConfiguration.showProperty("showLifestage",context)){
 
 %>
-<div class="form-group">
+<div class="form-group" data-toggle="tooltip" title="<%=props.getProperty("lifeStage.tooltip")%>">
           <div class="col-xs-6 col-md-4">
             <label class="control-label"><%=props.getProperty("lifeStage") %></label>
           </div>
