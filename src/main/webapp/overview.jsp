@@ -131,7 +131,7 @@
             </tr>
         </table>
         </p>
-        <h3><%=props.getProperty("section2b_title")%></h3>
+        <a name="patterningCode"><h3><%=props.getProperty("section2b_title")%></h3></a>
 
         <p><%=props.getProperty("section2b_text1")%></p>
         <p><%=props.getProperty("section2b_text2")%></p>
@@ -152,7 +152,7 @@
         </table>
 
 
-        <h3><%=props.getProperty("section2c_title")%></h3>
+        <a name="sex"><h3><%=props.getProperty("section2c_title")%></h3></a>
 
           <p><%=props.getProperty("section2c_text1")%></p>
 		
