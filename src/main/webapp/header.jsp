@@ -52,7 +52,6 @@
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
-      <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/javascript/core.js"></script>
       <script type="text/javascript" src="<%=urlLoc %>/tools/jquery-ui/javascript/jquery-ui.min.js"></script>
 <% if (!"en".equals(langCode)) { %>
@@ -60,7 +59,8 @@
 <% } %>
      <script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.blockUI.js"></script>
 	<script type="text/javascript" src="<%=urlLoc %>/javascript/jquery.cookie.js"></script>
-      
+      <script src="<%=urlLoc %>/tools/bootstrap/js/bootstrap.min.js"></script>
+
       
       <script type="text/javascript" src="<%=urlLoc %>/tools/hello/javascript/hello.all.js"></script>
       <script type="text/javascript"  src="<%=urlLoc %>/JavascriptGlobals.js"></script>
