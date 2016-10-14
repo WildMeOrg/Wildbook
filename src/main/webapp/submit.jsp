@@ -30,14 +30,14 @@ context=ServletUtilities.getContext(request);
     position: absolute !important;
     top: 0px !important;
     left: 0px !important;
-    z-index: 1 !imporant;
+    z-index: 1 !important;
     width: 100% !important;
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
-    
-    
- .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
+    }
+
+.ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
 .ui-timepicker-div dl dt { float: left; clear:left; padding: 0 0 0 5px; }
 .ui-timepicker-div dl dd { margin: 0 10px 10px 40%; }
