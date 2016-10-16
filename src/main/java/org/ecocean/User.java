@@ -13,8 +13,8 @@ import org.joda.time.DateTime;
  * @author Ed Stastny
  */
 public class User implements Serializable {
-  
-  
+
+
   private static final long serialVersionUID = -1261710718629763048L;
   // The user's full name
   private String fullName;
@@ -26,12 +26,12 @@ public class User implements Serializable {
   private String phoneNumber;
   //Organization or project affiliation
   private String affiliation;
-  
+
   private String userProject;
   private String userStatement;
   private String userURL;
   private SinglePhotoVideo userImage;
-  
+
   //Misc. information about this user
   private String notes;
   //Date of last update of this record, in ms
@@ -39,23 +39,23 @@ public class User implements Serializable {
   private long userID;
 
   private long lastLogin=-1;
-  
+
   	private String username;
-  	private String password ;
+  	private String password;
   	private String salt;
-  	
+
   	//String currentContext;
-  	
-  	
+
+
   	private boolean acceptedUserAgreement=false;
-  
-  private boolean receiveEmails=true; 
+
+  private boolean receiveEmails=true;
 
 	private HashMap<String,String> social;
-  	
+
   	//JDOQL required empty instantiator
   	public User(){}
-  	
+
   	public User(String fullName, String emailAddress, String physicalAddress, String phoneNumber, String affiliation, String notes) {
   	  setFullName(fullName);
   	  setEmailAddress(emailAddress);
@@ -66,7 +66,7 @@ public class User implements Serializable {
   	  RefreshDate();
   	  this.lastLogin=-1;
   	}
-  	
+
   	public User(String username,String password, String salt){
   	  setUsername(username);
   	  setPassword(password);
@@ -96,6 +96,30 @@ public class User implements Serializable {
     RefreshDate();
   }
 
+  public String[] getSplitName() {
+    String firstName = null, lastName = null, fullName = getFullName();
+    if (fullName != null) {
+      int indexOfComma = fullName.indexOf(',');
+      if (indexOfComma > -1) {
+        firstName = fullName.substring(indexOfComma);
+        lastName  = fullName.substring(0, indexOfComma);
+      } else {
+        int indexOfLastSpace = fullName.lastIndexOf(' ');
+        firstName = fullName.substring(0, indexOfLastSpace);
+        lastName  = fullName.substring(indexOfLastSpace);
+      }
+    }
+    return new String[]{firstName, lastName};
+  }
+
+  public String getFirstName() {
+    return getSplitName()[0];
+  }
+
+  public String getLastName() {
+    return getSplitName()[1];
+  }
+
   public String getEmailAddress ()
   {
     return this.emailAddress;
@@ -114,7 +138,7 @@ public class User implements Serializable {
   }
   public void setPhysicalAddress (String physicalAddress)
   {
-    
+
     if(physicalAddress!=null){this.physicalAddress = physicalAddress;}
     else{this.physicalAddress=null;}
     RefreshDate();
@@ -180,7 +204,7 @@ public class User implements Serializable {
   	public void setPassword(String password) {
   		this.password = password;
   	}
-  	
+
   	public void setSalt(String salt){this.salt=salt;}
   	public String getSalt(){return salt;}
 
@@ -190,46 +214,46 @@ public class User implements Serializable {
     else{userProject=null;}
     }
     public String getUserProject(){return userProject;}
-    
+
     public void setUserStatement(String newState) {
       if(newState!=null){userStatement = newState;}
     else{userStatement=null;}
     }
     public String getUserStatement(){return userStatement;}
-    
+
     public SinglePhotoVideo getUserImage(){return userImage;}
-    
+
 
     public void setUserImage(SinglePhotoVideo newImage) {
       if(newImage!=null){userImage = newImage;}
     else{userImage=null;}
     }
-    
+
     public void setUserURL(String newURL) {
       if(newURL!=null){userURL = newURL;}
     else{userURL=null;}
     }
     public String getUserURL(){return userURL;}
-  	
+
     public long getLastLogin(){
       return lastLogin;
     }
-    
+
     public String getLastLoginAsDateString(){
       if(lastLogin==-1) return null;
       return (new DateTime(this.lastLogin)).toString();
     }
-    
+
     public void setLastLogin(long lastie){this.lastLogin=lastie;}
-    
+
 
     public boolean getReceiveEmails(){return receiveEmails;}
     public void setReceiveEmails(boolean receive){this.receiveEmails=receive;}
-    
-    
+
+
 
     public boolean getAcceptedUserAgreement(){return acceptedUserAgreement;}
-    
+
     public void setAcceptedUserAgreement(boolean accept){this.acceptedUserAgreement=accept;}
 
 
