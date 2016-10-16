@@ -20,6 +20,18 @@ public class Nest implements java.io.Serializable {
   private Double latitude;
   private Double longitude;
 
+  private Integer year;
+  private String species;
+  private String country;
+  private String province;
+  private String organization;
+  private String beachName;
+
+
+
+  private User owner;
+  private List<User> contributors;
+
   /**
    * empty constructor required by the JDO Enhancer
    */
@@ -46,6 +58,29 @@ public class Nest implements java.io.Serializable {
   public void setName(String name) {
     this.name = name;
   }
+
+  public User getOwner() {
+    return owner;
+  }
+
+  public void setOwner(User owner) {
+    this.owner = owner;
+  }
+
+  public List<User> getContributors() {
+    return contributors;
+  }
+
+  public void addContributor(User contributor) {
+    if (this.contributors == null) this.contributors = new ArrayList<User>();
+    this.contributors.add(contributor);
+  }
+
+  public void removeContributor(User contributor) {
+    this.contributors.remove(contributor);
+  }
+
+
 
   // the goal here is to offer a quick hook to a "null nest",
   // that is a nest that has a datasheet with fields but no values.
@@ -124,8 +159,52 @@ public class Nest implements java.io.Serializable {
     return longitude;
   }
 
+  public void setYear(Integer year) {
+    this.year = year;
+  }
+  public Integer getYear() {
+    return year;
+  }
 
-  // following functions are largely on DataSheets,
+  public void setSpecies(String species) {
+    this.species = species;
+  }
+
+  public String getSpecies() {
+    return species;
+  }
+  public void setCountry(String country) {
+    this.country = country;
+  }
+  public String getCountry() {
+    return country;
+  }
+
+
+ public String getProvince() {
+   return province;
+ }
+ public void setProvince(String province) {
+   this.province = province;
+ }
+ public String getOrganization() {
+   return organization;
+ }
+ public void setOrganization(String organization) {
+   this.organization = organization;
+ }
+ public String getBeachName() {
+   return beachName;
+ }
+ public void setBeachName(String beachName) {
+   this.beachName = beachName;
+ }
+
+
+
+
+
+// following functions are largely on DataSheets,
   // but live in this class because they only make
   // sense in the nest context
 
