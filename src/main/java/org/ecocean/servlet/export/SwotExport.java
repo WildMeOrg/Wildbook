@@ -10,6 +10,7 @@ import org.ecocean.*;
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
 import org.ecocean.servlet.ServletUtilities;
+import static org.ecocean.Util.toString;
 
 import javax.jdo.*;
 
@@ -18,12 +19,21 @@ import java.lang.StringBuffer;
 
 import jxl.write.*;
 import jxl.Workbook;
+import jxl.CellType;
 
 
 public class SwotExport extends HttpServlet{
 
   private static final int BYTES_DOWNLOAD = 1024;
 
+
+  private void addStringToCell(WritableSheet ws, int row, int col, String str) throws jxl.write.WriteException {
+    System.out.println("Adding string "+str+" to cell");
+    if (str==null) return;
+    System.out.println("Still adding string "+str+" to cell");
+    Label lbl = new Label(col, row, str);
+    ws.addCell(lbl);
+  }
 
   public void init(ServletConfig config) throws ServletException {
       super.init(config);
@@ -34,12 +44,7 @@ public class SwotExport extends HttpServlet{
       doPost(request, response);
   }
 
-  private String doubleToString(Double dbl) {
-    if (dbl == null) return ("");
-    return dbl.toString();
-  }
-
-  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
+  public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
     //set the response
 
@@ -63,122 +68,129 @@ public class SwotExport extends HttpServlet{
     String sheetname = request.getParameter("sheetname");
     if (sheetname == null) sheetname = "Export";
 
-    File excelFile = new File("/tmp/" + filename);
-    FileOutputStream exfos = new FileOutputStream(excelFile);
-    OutputStreamWriter exout = new OutputStreamWriter(exfos);
-    //WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
-    //WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
-    WritableWorkbook workbook = Workbook.createWorkbook(excelFile);
-    WritableSheet sheet = workbook.createSheet(sheetname, 0);
-
-    int sheetRow = 0;
-
-    String[] headers = new String[] {"ID", "Name", "LocationID", "Location Note", "Latitude", "Longitude"};
-    int col = 0;
-    for (int i = 0 ; i < headers.length ; i++) {
-       Label l = new Label(col, sheetRow, headers[i]);
-        try {
-            sheet.addCell(l);
-        } catch (Exception addex) {
-            System.out.println("exception adding cell: " + addex.toString());
-        }
-        col++;
-    }
-    sheetRow++;
-
-
-    Iterator all = myShepherd.getAllNests();
-    Nest nest = null;
-    while (all.hasNext()) {
-        nest = (Nest) all.next();
-
-        System.out.println("SwotExport: starting to export Nest "+nest.getID());
-
-
-        //this is the date of the Nest, to compute age at time of Nest
-        Calendar nestCal = null;
-        // if (nest.getYear() > 0) {
-        //     nestCal = Calendar.getInstance();
-        //     nestCal.clear();
-        //     nestCal.set(Calendar.MILLISECOND, 0);
-        //     nestCal.set(Calendar.YEAR, nest.getYear());
-        //     if (nest.getMonth() > 0) nestCal.set(Calendar.MONTH, nest.getMonth() - 1);
-        //     if (nest.getDay() > 0) nestCal.set(Calendar.DAY_OF_MONTH, nest.getDay());
-        // }
-        Double age = null;
-        //if (nestCal != null) age = indiv.calculatedAge(nestCal);
-
-        Vector<Label> cols =  new Vector<Label>();
-        cols.add(new Label(0, sheetRow, nest.getID()));
-        cols.add(new Label(1, sheetRow, nest.getName()));
-        cols.add(new Label(2, sheetRow, nest.getLocationID()));
-        cols.add(new Label(3, sheetRow, nest.getLocationNote()));
-        cols.add(new Label(4, sheetRow, doubleToString(nest.getLatitude())));
-        cols.add(new Label(5, sheetRow, doubleToString(nest.getLongitude())));
-        //cols.add(new Label(6, sheetRow, nest.getLifeStage()));
-        //cols.add(new Label(7, sheetRow, nest.getZebraClass()));
-
-        /*
-        String foals = "";
-        List<Relationship> rels = indiv.getAllRelationships(myShepherd);
-        ///TODO should we really look for *co-occurring* offspring for this Nest?
-//System.out.println(indiv.getIndividualID() + ": ");
-        for (Relationship rel : rels) {
-            if ("familial".equals(rel.getType())) {
-                if ("calf".equals(rel.getMarkedIndividualRole1()) && indiv.getIndividualID().equals(rel.getMarkedIndividualName2())) {
-                    foals += rel.getMarkedIndividualName1() + " ";
-                } else if ("calf".equals(rel.getMarkedIndividualRole2()) && indiv.getIndividualID().equals(rel.getMarkedIndividualName1())) {
-                    foals += rel.getMarkedIndividualName2() + " ";
-                }
-            }
-        }
-        cols.add(new Label(8, sheetRow, foals));
-
-        if (occ == null) {
-            cols.add(new Label(9, sheetRow, "-"));
-         }// else {
-        //     Integer gs = occ.getGroupSize();
-        //     if (gs == null) {
-        //         cols.add(new Label(9, sheetRow, "-"));
-        //     } else {
-        //         cols.add(new Label(9, sheetRow, gs.toString()));
-        //     }
-        // }
-
-        //cols.add(new Label(10, sheetRow, nest.getImageOriginalName()));
-        */
-
-        for (Label l : cols) {
-            try {
-                sheet.addCell(l);
-            } catch (Exception addex) {
-                System.out.println("exception adding cell: " + addex.toString());
-            }
-        }
-        sheetRow++;
-    }
-
+    String newFileName = "/tmp/" + filename;
+    File oldFile = new File("/data/wildbook_data_dir/SWOTDatasheet2015.xls");
+    Workbook oldBook;
     try {
-        workbook.write();
-        workbook.close();
-    } catch (Exception wex) {
-        System.out.println("exception writing excel: " + wex.toString());
+      oldBook = Workbook.getWorkbook(oldFile);
+      System.out.println("Successfully grabbed old workbook with "+oldBook.getNumberOfSheets()+" sheets.");
+
+
+      File excelFile = new File("/tmp/" + filename);
+
+      FileOutputStream exfos = new FileOutputStream(excelFile);
+      OutputStreamWriter exout = new OutputStreamWriter(exfos);
+      //WritableCellFormat floatFormat = new WritableCellFormat(NumberFormats.FLOAT);
+      //WritableCellFormat integerFormat = new WritableCellFormat(NumberFormats.INTEGER);
+      //WritableWorkbook workbook = Workbook.createWorkbook(excelFile);
+      //WritableSheet sheet = workbook.createSheet(sheetname, 0);
+
+      WritableWorkbook workbook = Workbook.createWorkbook(excelFile, oldBook);
+
+
+      int sheetRow = 6;
+
+
+      NestQueryResult queryResult = NestQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+      Vector returnedNests = queryResult.getResult();
+
+
+      Iterator all = returnedNests.iterator();
+      Nest nest = null;
+
+      WritableSheet dataProviderSheet = workbook.getSheet(0);
+      WritableSheet nestingBeachSheet = workbook.getSheet(1);
+
+      User thisUser = myShepherd.getLoggedInUser(request);
+      if (thisUser != null) {
+        System.out.println("SwotExport for user "+thisUser.getUsername());
+        System.out.println("    with full name =  "+thisUser.getFullName());
+      } else {
+        System.out.println("SwotExport: user is not logged in");
+      }
+
+      try {
+
+
+          int rowNum = 4;
+
+          addStringToCell(dataProviderSheet, rowNum, 1, "standard");
+
+          addStringToCell(dataProviderSheet, rowNum, 2, "submitter");
+
+          if (thisUser!= null) {
+            addStringToCell(dataProviderSheet, rowNum, 4, thisUser.getFirstName());
+
+            addStringToCell(dataProviderSheet, rowNum, 5, thisUser.getLastName());
+
+            addStringToCell(dataProviderSheet, rowNum, 6, thisUser.getAffiliation());
+
+            addStringToCell(dataProviderSheet, rowNum, 7, thisUser.getEmailAddress());
+
+          }
+
+          int nestRowNum = 6;
+          while (all.hasNext()) {
+              nest = (Nest) all.next();
+
+              // nest ID and name info
+              addStringToCell(nestingBeachSheet, nestRowNum, 27, "Wildbook nest ID="+nest.getID()+"\nname = "+nest.getName());
+
+              // required fields for SWOT
+              addStringToCell(nestingBeachSheet, nestRowNum, 1, Util.toString(nest.getYear()));
+              addStringToCell(nestingBeachSheet, nestRowNum, 2, nest.getSpecies());
+              addStringToCell(nestingBeachSheet, nestRowNum, 4, nest.getCountry());
+              addStringToCell(nestingBeachSheet, nestRowNum, 5, nest.getOrganization());
+              addStringToCell(nestingBeachSheet, nestRowNum, 6, nest.getProvince());
+              addStringToCell(nestingBeachSheet, nestRowNum, 7, nest.getBeachName());
+              addStringToCell(nestingBeachSheet, nestRowNum, 8, Util.toString(nest.getLatitude()));
+              addStringToCell(nestingBeachSheet, nestRowNum, 9, Util.toString(nest.getLongitude()));
+
+
+
+              addStringToCell(nestingBeachSheet, nestRowNum, 26, "IoT Wildbook Export "+filename);
+
+
+              System.out.println("SwotExport: starting to export Nest "+nest.getID());
+
+              nestRowNum++;
+
+          }
+
+
+          //Label;
+
+
+          workbook.write();
+          workbook.close();
+      } catch (Exception wex) {
+          System.out.println("exception writing excel: " + wex.toString());
+      }
+
+
+
+
+
+      //response.setContentType("application/vnd.ms-excel");
+      response.setContentType("application/octet-stream");
+      response.setHeader("Content-Transfer-nestoding", "binary");
+      response.setHeader("Content-Disposition", "filename=" + filename);
+
+      InputStream is = new FileInputStream(excelFile);
+      OutputStream os = response.getOutputStream();
+      byte[] buf = new byte[1000];
+      for (int n = is.read(buf) ; n > -1 ; n = is.read(buf)) {
+          os.write(buf, 0, n);
+      }
+      os.flush();
+      os.close();
+      is.close();
+
+    } catch (jxl.read.biff.BiffException biff) {
+      System.out.println("What the fuck, Biff?");
     }
 
-    //response.setContentType("application/vnd.ms-excel");
-    response.setContentType("application/octet-stream");
-    response.setHeader("Content-Transfer-nestoding", "binary");
-    response.setHeader("Content-Disposition", "filename=" + filename);
 
-    InputStream is = new FileInputStream(excelFile);
-    OutputStream os = response.getOutputStream();
-    byte[] buf = new byte[1000];
-    for (int n = is.read(buf) ; n > -1 ; n = is.read(buf)) {
-        os.write(buf, 0, n);
-    }
-    os.flush();
-    os.close();
-    is.close();
 
 
   }
