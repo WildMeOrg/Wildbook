@@ -72,7 +72,7 @@ public class Shepherd {
   public static Vector matches = new Vector();
   //private PersistenceManagerFactory pmf;
   private String localContext;
-  
+
   private String action="undefined";
   private String shepherdID="";
 
@@ -87,7 +87,7 @@ public class Shepherd {
       try {
         pm = ShepherdPMF.getPMF(localContext).getPersistenceManager();
         this.shepherdID=Util.generateUUID();
-        
+
         ShepherdPMF.setShepherdState(action+"_"+shepherdID, "new");
       }
       catch (JDOUserException e) {
@@ -1942,7 +1942,7 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
-      
+
       MediaAsset ma=al.get(i).getMediaAsset();
       AssetStore as=ma.getStore();
       String fullFileSystemPath=as.localPath(ma).toString();
@@ -1953,7 +1953,7 @@ public class Shepherd {
       SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
       spv.setWebURL(webURL);
       spv.setDataCollectionEventID(ma.getUUID());
-      
+
       //add Keywords
       if(ma.getKeywords()!=null){
         ArrayList<Keyword> alkw=ma.getKeywords();
@@ -1963,10 +1963,10 @@ public class Shepherd {
           spv.addKeyword(kw);
         }
       }
-      
+
       myArray.add(spv);
-      
-      
+
+
     }
     return myArray;
   }
@@ -2648,7 +2648,7 @@ public class Shepherd {
         pm.currentTransaction().begin();
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "begin");
-      
+
 
     }
     catch (JDOUserException jdoe) {
@@ -2671,8 +2671,8 @@ public class Shepherd {
 
         //System.out.println("     Now commiting a transaction with pm"+(String)pm.getUserObject());
         pm.currentTransaction().commit();
-        
-        
+
+
         //return true;
         //System.out.println("A transaction has been successfully committed.");
       } else {
@@ -2680,7 +2680,7 @@ public class Shepherd {
         //return false;
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "commit");
-      
+
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2724,11 +2724,11 @@ public class Shepherd {
     try {
       if ((pm != null) && (!pm.isClosed())) {
         pm.close();
-        
+
       }
       //ShepherdPMF.setShepherdState(action+"_"+shepherdID, "close");
       ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
-      
+
       //logger.info("A PersistenceManager has been successfully closed.");
     } catch (JDOUserException jdoe) {
       System.out.println("I hit an error trying to close a DBTransaction.");
@@ -2755,7 +2755,7 @@ public class Shepherd {
         //System.out.println("You are trying to rollback an inactive transaction.");
       }
       ShepherdPMF.setShepherdState(action+"_"+shepherdID, "rollback");
-      
+
 
     } catch (JDOUserException jdoe) {
       jdoe.printStackTrace();
@@ -2830,8 +2830,8 @@ public class Shepherd {
       ArrayList al=new ArrayList(c);
       acceptedOccurs.closeAll();
       it = al.iterator();
-      
-      
+
+
     } catch (javax.jdo.JDOException x) {
       x.printStackTrace();
       return null;
@@ -2996,7 +2996,7 @@ public class Shepherd {
               boolean hasKeyword = false;
               if ((keywords == null) || (keywords.length == 0)) {
                 hasKeyword = true;
-              } 
+              }
               else {
                 int numKeywords = keywords.length;
                 for (int n = 0; n < numKeywords; n++) {
@@ -3649,7 +3649,7 @@ public class Shepherd {
     Extent encClass = pm.getExtent(ScanTask.class, true);
     Query samples = pm.newQuery(encClass, filter);
     Collection c = (Collection) (samples.execute());
-    
+
     if(c!=null){
     ArrayList<ScanTask> it=new ArrayList<ScanTask>(c);
     samples.closeAll();
@@ -3775,12 +3775,12 @@ public class Shepherd {
     query.closeAll();
     return al;
   }
-  
+
   //used to describe where this Shepherd is and what it is supposed to be doing
   public void setAction(String newAction){
-    
+
     String state="";
-    
+
     if(ShepherdPMF.getShepherdState(action+"_"+shepherdID)!=null){
       state=ShepherdPMF.getShepherdState(action+"_"+shepherdID);
       ShepherdPMF.removeShepherdState(action+"_"+shepherdID);
@@ -3790,8 +3790,13 @@ public class Shepherd {
   }
 
   public String getAction(){return action;}
-  
-  
+
+  public User getLoggedInUser(HttpServletRequest request) {
+    if (request == null || request.getUserPrincipal() == null) return null;
+    return getUser(request.getUserPrincipal().getName());
+  }
+
+
 
 
 } //end Shepherd class
