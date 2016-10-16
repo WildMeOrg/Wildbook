@@ -484,7 +484,7 @@ function updateIAResults(d) {
 
 function rowClick(el) {
 	console.log(el);
-	var w = window.open('encounter.jsp?number=' + el.getAttribute('data-id'), '_blank');
+	var w = window.open('nest.jsp?number=' + el.getAttribute('data-id'), '_blank');
 	w.focus();
 	return false;
 }
