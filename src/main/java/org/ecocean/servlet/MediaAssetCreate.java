@@ -236,6 +236,7 @@ System.out.println(i + ") params -> " + params.toString());
                     targetMA.addLabel("_original");
                     targetMA.setAccessControl(request);
                     MediaAssetFactory.save(targetMA, myShepherd);
+	            targetMA.updateStandardChildren(myShepherd);  //lets always do this (and can add flag to disable later if needed)
                     if (setId != null) {
 System.out.println("MediaAssetSet " + setId + " created " + targetMA);
                         sets.get(setId).addMediaAsset(targetMA);
