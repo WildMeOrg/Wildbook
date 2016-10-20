@@ -749,7 +749,7 @@ if (request.getParameter("number")!=null) {
       <%
 ///note this is very hacky... as jon about it
 for (Encounter enJ : sharky.getDateSortedEncounters()) {
-	for (MediaAsset maJ : enJ.getMedia()) {
+	for (org.ecocean.media.MediaAsset maJ : enJ.getMedia()) {
 		if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
 	}
 }
