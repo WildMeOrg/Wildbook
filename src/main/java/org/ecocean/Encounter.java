@@ -675,7 +675,9 @@ public class Encounter implements java.io.Serializable {
   }
 
   public String getImageOriginalName() {
-    return getPrimaryMediaAsset().getFilename();
+    MediaAsset ma = getPrimaryMediaAsset();
+    if (ma == null) return null;
+    return ma.getFilename();
   }
 
   /**
