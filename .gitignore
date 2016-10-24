@@ -22,4 +22,4 @@ src/main/webapp/encounters/*20*
 /src/main/shepherd_data_dir
 src/main/caribwhale_data_dir
 /webapps
-
+src/main/webapp/javascript/git-info.json
