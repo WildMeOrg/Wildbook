@@ -34,7 +34,8 @@ context=ServletUtilities.getContext(request);
 
 	boolean edit = false;
 	boolean isOwner = true;
-	boolean acceptedPayment = true;
+	boolean acceptedPayment = false;
+
 
 	String id = "";
 	String adopterName = "";
@@ -78,6 +79,51 @@ context=ServletUtilities.getContext(request);
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+<script type="text/javascript">
+  $('head').append('
+		  
+	 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+	 <!-- New section -->
+	 <script type="text/javascript">
+	 // Publishable Key
+	   Stripe.setPublishableKey('PUBLISHABLE_KEY');
+
+	   var stripeResponseHandler = function(status, response) {
+	     var $form = $('#payment-form');
+
+		 if (response.error) {
+		 // Show the errors on the form
+		 $form.find('.payment-errors').text(response.error.message);
+		 $form.find('button').prop('disabled', false);
+		 } else {
+		 // token contains id, last 4 card digits, and card type
+		 var token = response.id;
+		 // Insert the token into the form so it gets submitted to the server
+		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+		 // and re-submit
+		     $form.get(0).submit();
+		   }
+		 };
+
+		 jQuery(function($) {
+		   $('#payment-form').submit(function(e) {
+		     var $form = $(this);
+
+		     // Disable the submit button to prevent repeated clicks
+		     $form.find('button').prop('disabled', true);
+
+		     Stripe.card.createToken($form, stripeResponseHandler);
+
+		     // Prevent the form from submitting with the default action
+		     return false;
+		   });
+		 });
+	  </script>
+		  
+		  
+		  
+		  ');
+</script>
 
 <div class="container maincontent">
 
@@ -206,6 +252,7 @@ context=ServletUtilities.getContext(request);
 <td>
 
 <h3><a name="create" id="create"></a>Create adoption</h3>
+
 
 <form action="<%=servletURL%>" method="post"
       enctype="multipart/form-data" name="adoption_submission"
@@ -357,7 +404,7 @@ context=ServletUtilities.getContext(request);
         %>
       </td>
     </tr>
-
+	<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. --> 
     <%
       if (acceptedPayment) {
     %>
@@ -395,3 +442,4 @@ context=ServletUtilities.getContext(request);
 	</tr></table>
 </div>
 <jsp:include page="footer.jsp" flush="true" />
+<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
