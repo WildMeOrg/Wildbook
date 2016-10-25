@@ -113,7 +113,7 @@ function reportMonthly() {
 			m = 1;
 			y++;
 		}
-		url += '&columns=sightedForMonth:' + y + ':' + m + '&headers=' + mname[m-1];
+		url += '&columns=sightedForMonth:' + y + ':' + m + '&headers=' + mname[m-1] + new String(y).substr(2);
 	}
 	$('#shortly-wrapper').show();
 	window.location.href = url;
