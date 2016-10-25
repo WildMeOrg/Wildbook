@@ -78,52 +78,8 @@ context=ServletUtilities.getContext(request);
 
 
 %>
+
 <jsp:include page="header.jsp" flush="true"/>
-<script type="text/javascript">
-  $('head').append('
-		  
-	 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-	 <!-- New section -->
-	 <script type="text/javascript">
-	 // Publishable Key
-	   Stripe.setPublishableKey('PUBLISHABLE_KEY');
-
-	   var stripeResponseHandler = function(status, response) {
-	     var $form = $('#payment-form');
-
-		 if (response.error) {
-		 // Show the errors on the form
-		 $form.find('.payment-errors').text(response.error.message);
-		 $form.find('button').prop('disabled', false);
-		 } else {
-		 // token contains id, last 4 card digits, and card type
-		 var token = response.id;
-		 // Insert the token into the form so it gets submitted to the server
-		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
-		 // and re-submit
-		     $form.get(0).submit();
-		   }
-		 };
-
-		 jQuery(function($) {
-		   $('#payment-form').submit(function(e) {
-		     var $form = $(this);
-
-		     // Disable the submit button to prevent repeated clicks
-		     $form.find('button').prop('disabled', true);
-
-		     Stripe.card.createToken($form, stripeResponseHandler);
-
-		     // Prevent the form from submitting with the default action
-		     return false;
-		   });
-		 });
-	  </script>
-		  
-		  
-		  
-		  ');
-</script>
 
 <div class="container maincontent">
 
@@ -377,19 +333,11 @@ context=ServletUtilities.getContext(request);
     <tr>
       <td>Adoption end date:</td>
       <td><input name="adoptionEndDate" type="text" size="30"
-                 value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
+                 value="<%=adoptionEndDate%>"><em>(e.g. 2010-05-15) </em></td>
     </tr>
 
-    <!--
-			 			 <tr>
-			 <td>Adoption end date:</td>
-			 <td><div id="calendar2"></div>
-   				 <div id="date2">
-				  <input  class="dateField" id="adoptionEndDate" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"></input>
-			</div>
-				</td>
-			</tr>
-			 -->
+	
+			
     <tr>
       <td align="left" valign="top">Adoption notes:</td>
       <td><textarea name="notes" cols="40" id="notes" rows="10"><%=notes%>
@@ -443,3 +391,56 @@ context=ServletUtilities.getContext(request);
 </div>
 <jsp:include page="footer.jsp" flush="true" />
 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+	 <!-- New section -->
+	 <script type="text/javascript">
+	 // Publishable Key
+	   Stripe.setPublishableKey('PUBLISHABLE_KEY');
+
+	   var stripeResponseHandler = function(status, response) {
+	     var $form = $('#payment-form');
+
+		 if (response.error) {
+		 // Show the errors on the form
+		 $form.find('.payment-errors').text(response.error.message);
+		 $form.find('button').prop('disabled', false);
+		 } else {
+		 // token contains id, last 4 card digits, and card type
+		 var token = response.id;
+		 // Insert the token into the form so it gets submitted to the server
+		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+		 // and re-submit
+		     $form.get(0).submit();
+		   }
+		 };
+
+		 jQuery(function($) {
+		   $('#payment-form').submit(function(e) {
+		     var $form = $(this);
+
+		     // Disable the submit button to prevent repeated clicks
+		     $form.find('button').prop('disabled', true);
+
+		     Stripe.card.createToken($form, stripeResponseHandler);
+
+		     // Prevent the form from submitting with the default action
+		     return false;
+		   });
+		 });
+	  </script>
+
+	  <!-- Auto populate start date with current date. -->
+	  <script>
+	  
+	    var myDate, day, month, year, date;
+	    myDate = new Date();
+	    day = myDate.getDate();
+	    if (day <10)
+	      day = "0" + day;
+	    month = myDate.getMonth() + 1;
+	    if (month < 10)
+	      month = "0" + month;
+	    year = myDate.getFullYear();
+	    date = year + "-" + month + "-" + day;
+	    $("#adoptionStartDate").val(date);
+	  </script>
+		    
