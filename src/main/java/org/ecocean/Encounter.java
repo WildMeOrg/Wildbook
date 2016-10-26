@@ -83,6 +83,8 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
+    public static final String STATE_MATCHING_ONLY = "matching_only";
+
   /**
    * The following attributes are described in the Darwin Core quick reference at:
    * http://rs.tdwg.org/dwc/terms/#dcterms:type
