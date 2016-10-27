@@ -658,12 +658,15 @@ public class MediaAsset implements java.io.Serializable {
         if (bestType == null) bestType = "master";
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
         if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
+        if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
 System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
-        //if we are a child asset, we need to find our parent then find best from there!  (unless we are the best)
+        //gotta consider that we are the best!
+        if (this.hasLabel("_" + bestType)) return this;
+
+        //if we are a child asset, we need to find our parent then find best from there!
         MediaAsset top = this;  //assume we are the parent-est
         if (parentId != null) {
-            if (this.hasLabel("_" + bestType)) return this;
             top = MediaAssetFactory.load(parentId, myShepherd);
             if (top == null) throw new RuntimeException("bestSafeAsset() failed to find parent on " + this);
         }
