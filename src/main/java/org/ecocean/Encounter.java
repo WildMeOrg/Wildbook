@@ -115,7 +115,7 @@ public class Encounter implements java.io.Serializable {
   public String genus = "";
   public String specificEpithet;
   public String lifeStage;
-  public String country;
+  public String region;
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
@@ -2200,7 +2200,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
-        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();
@@ -2318,11 +2318,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       return null;
     }
 
-    public String getCountry(){return country;}
+    public String getregion(){return region;}
 
-    public void setCountry(String newCountry) {
-      if(newCountry!=null){country = newCountry;}
-      else{country=null;}
+    public void setregion(String newregion) {
+      if(newregion!=null){region = newregion;}
+      else{region=null;}
     }
 
     public void setOccurrenceID(String vet) {
