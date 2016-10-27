@@ -174,4 +174,5 @@
   <classpathentry kind="var" path="M2_REPO/org/tuckey/urlrewritefilter/4.0.3/urlrewritefilter-4.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-core/3.1.1.RELEASE/spring-core-3.1.1.RELEASE.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/springframework/spring-asm/3.1.1.RELEASE/spring-asm-3.1.1.RELEASE.jar"/>
+  <classpathentry kind="var" path="M2_REPO/com/stripe/stripe-java/3.1.0/stripe-java-3.1.0.jar"/>
 </classpath>
