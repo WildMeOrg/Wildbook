@@ -171,12 +171,16 @@ function updateBeginNote() {
 function beginIdentify() {
 	var selected = $('.yes');
 	if (selected.length < 1) return;
+	selected.removeClass('ident-toggle').unbind('click');
 	var srcs = [];
 	selected.each(function(i,el) {
 		var img = $(el).parent().find('img');
 		if (!img.length) return;
 		//var id= img.prop('id').substr(10);
-		srcs.push(img.prop('src'));
+		srcs.push({
+			maLabels: ['matching only'],
+			imgSrc: img.prop('src')
+		});
 	});
 	if (srcs.length < 1) return;
 	$('#ident-begin-button').hide();
@@ -186,6 +190,7 @@ function beginIdentify() {
 	};
 	$.ajax({
 		url: 'EncounterCreate',
+		contentType: 'application/javascript',
 		data: JSON.stringify(data),
 		dataType: 'json',
 		complete: function(x) {
@@ -196,9 +201,45 @@ function beginIdentify() {
 				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
 				$('#ident-begin-note').html('<p class="error">' + msg + '</p>');
 			} else {
+				processEncounter(x.responseJSON);
 			}
 		},
 		type: 'POST'
+	});
+}
+
+// .annotations .assets .encounterId
+var xx;
+function processEncounter(data) {
+xx=data;
+	$('#ident-begin-note').html('<p>created <b><a target="_new" href="encounters/encounter.jsp?number=' + data.encounterId + '">new encounter</a></b>.</p>');
+	var iaData = {
+		identify: {
+			annotationIds: data.annotations
+		}
+	};
+	$.ajax({
+		url: 'ia',
+		data: JSON.stringify(iaData),
+		contentType: 'application/javascript',
+		complete: function(x) {
+			console.warn('response: %o', x);
+			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.tasks || !x.responseJSON.tasks.length) {
+				var msg = 'unknown error';
+				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
+				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
+				$('#ident-begin-note').append('<p class="error">' + msg + '</p>');
+			} else {
+				var h = '<div>Started task(s):<ul>';
+				for (var i = 0 ; i < x.responseJSON.tasks.length ; i++) {
+					h += '<li><a target="_new" href="encounters/matchResults.jsp?taskId=' + x.responseJSON.tasks[i].taskId + '">' + x.responseJSON.tasks[i].taskId + '</a></li>';
+				}
+				h += '</ul></div>';
+				$('#ident-begin-note').append(h);
+			}
+		},
+		dataType: 'json',
+		type: 'post'
 	});
 }
 
@@ -253,9 +294,9 @@ if ((sources != null) && valid) {
 </div>
 
 
-<div style="margin-top: 100px;">
+<!--
 	<a target="_new" href="EncounterCreate?species=Megaptera%20novaeangliae&source=https://pacificwhale.files.wordpress.com/2014/03/whale_fluke_prebranding_img.jpg?w%3D1200">direct test of EncounterCreate</a>
-</div>
+-->
 
 
 <%
