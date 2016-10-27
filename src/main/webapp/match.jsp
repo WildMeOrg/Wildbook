@@ -171,7 +171,7 @@ function updateBeginNote() {
 function beginIdentify() {
 	var selected = $('.yes');
 	if (selected.length < 1) return;
-	selected.removeClass('ident-toggle').unbind('click');
+	$('.ident-toggle').removeClass('ident-toggle').unbind('click');
 	var srcs = [];
 	selected.each(function(i,el) {
 		var img = $(el).parent().find('img');
