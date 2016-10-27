@@ -13,6 +13,37 @@ public boolean validateSources(String[] sources) {
 
 <jsp:include page="header.jsp" flush="true"/>
 <style>
+.no, .yes {
+	position: absolute;
+	right: -10px;
+	bottom: -10px;
+	width: 40%;
+	height: 40%;
+	background-size: 100% 100%;
+	mask-size: 100% 100%;
+	-webkit-mask-size: 100% 100%;
+}
+.no {
+	background-color: #F20;
+	-webkit-mask-image: url(images/ic_not_interested_black_24px.svg);
+	mask-image: url(images/ic_not_interested_black_24px.svg);
+/*
+	background-image: url(images/ic_not_interested_black_24px.svg);
+*/
+}
+.yes {
+	background-color: #0F2;
+	-webkit-mask-image: url(images/ic_check_circle_black_24px.svg);
+	mask-image: url(images/ic_check_circle_black_24px.svg);
+/*
+	background-image: url(images/ic_check_circle_black_24px.svg);
+*/
+}
+
+.ident-toggle {
+	cursor: pointer;
+}
+
 textarea {
 	width: 50%;
 	height: 200px;
@@ -26,6 +57,7 @@ img.ident-img {
 	max-width: 500px;
 }
 .ident-img-wrapper {
+	position: relative;
 	background: #EEE url(images/throbber.gif) 50% 50% no-repeat;
 	display: inline-block;
 	margin: 10px;
@@ -34,13 +66,19 @@ img.ident-img {
 	min-width: 200px;
 }
 
+#ident-controls {
+	height: 2.5em;
+}
+
 #ident-workarea {
 }
 
 </style>
 <script type="text/javascript">
 var imageData = [];
-function beginIdentify() {
+var defaultSpecies = 'Megaptera novaeangliae';
+
+function beginProcess() {
 	$('#ident-controls input').hide();
 	var validUrls = parseUrls($('#ident-sources').val());
 	if (!validUrls) {
@@ -48,7 +86,7 @@ function beginIdentify() {
 		return;
 	}
 	$('#ident-message').html('<p>found ' + validUrls.length + ' URL' + ((validUrls.length == 1) ? '' : 's') + '</p>');
-	$('#ident-form').hide();
+	$('#ident-sources').hide();
 	for (var i = 0 ; i < validUrls.length ; i++) {
 		testSource(validUrls[i]);
 	}
@@ -61,16 +99,107 @@ function testSource(srcUrl) {
 	imageData[id].id = id;
 	var img = $('<img class="ident-img" id="ident-img-' + id + '" src="' + srcUrl + '" />');
 	img.on('load', function(d) {
-		console.warn('loaded: %o', d);
+		var id = d.target.id.substring(10);
+		console.warn('loaded[%o]: %o', id, d);
+		$(d.target).parent().css('background-image', 'none').append('<div class="yes ident-toggle" />');
+		imageData[id].complete = true;
+		imageData[id].success = true;
+		testingComplete();
 	});
 	img.on('error', function(d) {
-		console.warn('failed: %o', d);
-		$(d.target).hide().parent().css('background-color', '#FAA').css('background-image', 'none');
+		var id = d.target.id.substring(10);
+		console.warn('failed[%o]: %o', id, d);
+		$(d.target).hide().parent().css('background-color', '#FAA').css('background-image', 'none').append('<div class="no" />');
+		imageData[id].complete = true;
+		testingComplete();
 	});
 	var el = $('<div class="ident-img-wrapper" id="ident-img-wrapper-' + id + '"></div>');
 	el.append(img);
 	$('#ident-workarea').append(el);
 	//$('#ident-img-' + id).prop('src', srcUrl);
+}
+
+function testingComplete() {
+	var allDone = true;
+	var ok = 0;
+	for (var i = 0 ; i < imageData.length ; i++) {
+console.info('i=%d complete[%o] success[%o]', i, imageData[i].complete, imageData[i].success);
+		if (!imageData[i].complete) allDone = false;
+		if (imageData[i].success) ok++;
+	}
+	if (!allDone) return;
+
+	if (ok > 1) {
+		$('.ident-toggle').bind('click', function(ev) {
+			var jel = $(ev.target);
+			if (jel.hasClass('yes')) {
+				jel.removeClass('yes');
+				jel.addClass('no');
+				jel.parent().find('img').css('opacity', 0.2);
+			} else {
+				jel.removeClass('no');
+				jel.addClass('yes');
+				jel.parent().find('img').css('opacity', 1);
+			}
+			updateBeginNote();
+		});
+	}
+
+	$('#ident-message').html('<p>verified ' + ok + ' image URL' + ((ok == 1) ? '' : 's') + '.' + ((ok > 1) ? ' select desired images to identify.' : '') + '</p>');
+	$('#ident-controls').append('<input id="ident-begin-button" value="identify" type="button" onClick="return beginIdentify()" /> <span id="ident-begin-note"></span>');
+	updateBeginNote();
+}
+
+
+function updateBeginNote() {
+	var ok = 0;
+	for (var i = 0 ; i < imageData.length ; i++) {
+//console.info('i=%d complete[%o] success[%o]', i, imageData[i].complete, imageData[i].success);
+		if (imageData[i].success) ok++;
+	}
+	var selected = $('.yes');
+	var h = '<b>' + selected.length + ' of ' + ok + '</b> to identify (species <i id="ident-species">' + defaultSpecies + '</i>)';
+	if (selected.length < 1) {
+		$('#ident-begin-button').hide();
+	} else {
+		$('#ident-begin-button').show();
+	}
+	$('#ident-begin-note').html(h);
+}
+
+
+function beginIdentify() {
+	var selected = $('.yes');
+	if (selected.length < 1) return;
+	var srcs = [];
+	selected.each(function(i,el) {
+		var img = $(el).parent().find('img');
+		if (!img.length) return;
+		//var id= img.prop('id').substr(10);
+		srcs.push(img.prop('src'));
+	});
+	if (srcs.length < 1) return;
+	$('#ident-begin-button').hide();
+	var data = {
+		sources: srcs,
+		species: $('#ident-species').text()
+	};
+	$.ajax({
+		url: 'EncounterCreate',
+		data: JSON.stringify(data),
+		dataType: 'json',
+		complete: function(x) {
+			console.warn('response: %o', x);
+			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success) {
+				var msg = 'unknown error';
+				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
+				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
+				$('#ident-begin-note').html('<p class="error">' + msg + '</p>');
+			} else {
+			}
+		},
+		type: 'POST'
+	});
 }
 
 function parseUrls(txt) {
@@ -87,8 +216,8 @@ function parseUrls(txt) {
 
 $(document).ready(function() {
 	$('#ident-sources').val(
-		'http://XXurshot.nationalgeographic.com/u/ss/fQYSUbVfts-T7pS2VP2wnKyN8wxywmXtY0-FwsgxoQrNvelepBpZYlfdosa_7a4TKiob2NUQHNjOVO4ezl7B/\n' +
-		'http://yourshot.nationalgeographic.com/u/ss/fQYSUbVfts-T7pS2VP2wnKyN8wxywmXtY0-FwsgxoQrIeSJ5qh_enoDUnJ71Up6NAT7B4wk3-delLR_irIB8/'
+'https://pacificwhale.files.wordpress.com/2014/03/whale_fluke_prebranding_img.jpg?w=1200\n' +
+'https://media-cdn.tripadvisor.com/media/photo-s/03/91/a7/6c/pacific-whale-foundation.jpg'
 	);
 });
 </script>
@@ -113,14 +242,21 @@ if ((sources != null) && valid) {
 <div id="ident-message">
 	<%= ((sources == null) ? "" : "<p class=\"error\">there was an error parsing sources</p>") %>
 </div>
-<div id="ident-workarea"></div>
-<form id="ident-form">
-	<textarea id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
 
-	<div id="ident-controls">
-		<input type="button" value="identify!" onClick="return beginIdentify();" />
-	</div>
-</form>
+<div id="ident-workarea"></div>
+<div style="clear: both;"></div>
+
+<textarea id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
+
+<div id="ident-controls">
+	<input type="button" value="continue" onClick="return beginProcess();" />
+</div>
+
+
+<div style="margin-top: 100px;">
+	<a target="_new" href="EncounterCreate?species=Megaptera%20novaeangliae&source=https://pacificwhale.files.wordpress.com/2014/03/whale_fluke_prebranding_img.jpg?w%3D1200">direct test of EncounterCreate</a>
+</div>
+
 
 <%
 }
