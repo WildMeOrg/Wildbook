@@ -80,7 +80,7 @@
     <filter-name>UTF8Filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-  
+<!--  
   <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
@@ -91,7 +91,7 @@
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
 </filter-mapping>
-
+-->
 
   <filter>
         <filter-name>ShiroFilter</filter-name>
@@ -277,9 +277,11 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
 
-
-
-
+  <servlet>
+    <description>StripePayment</description>
+    <servlet-name>StripePayment</servlet-name>
+    <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -1236,6 +1238,10 @@
         <url-pattern>/CRCExportReport</url-pattern>
   </servlet-mapping>
 
+<servlet-mapping>
+  <servlet-name>StripePayment</servlet-name>
+  <url-pattern>/StripePayment</url-pattern>
+</servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>SubmitSpotsAndImage</servlet-name>

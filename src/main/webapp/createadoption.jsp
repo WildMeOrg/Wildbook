@@ -1,7 +1,6 @@
 <%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
 <%
 
-
 //handle some cache-related security
 response.setHeader("Cache-Control", "no-cache");
 //Forces caches to obtain a new copy of the page from the origin server
@@ -23,18 +22,17 @@ context=ServletUtilities.getContext(request);
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
 	Shepherd myShepherd = new Shepherd(context);
-	myShepherd.setAction("adoptashark.jsp");
+	myShepherd.setAction("createadoption.jsp");
 	myShepherd.beginDBTransaction();
 	
 	int count = myShepherd.getNumAdoptions();
 	int allSharks = myShepherd.getNumMarkedIndividuals();
 	int countAdoptable = allSharks - count;
 	
-	Adoption tempAD = null;
-
 	boolean edit = false;
 	boolean isOwner = true;
 	boolean acceptedPayment = true;
+
 
 	String id = "";
 	String adopterName = "";
@@ -50,33 +48,12 @@ context=ServletUtilities.getContext(request);
 	String notes = "";
 	String adoptionType = "";
 
-	String servletURL = "../AdoptionAction";
 
-	if (request.getParameter("number") != null) {
-		tempAD = myShepherd.getAdoption(request.getParameter("number"));
-		edit = true;
-		//servletURL = "/editAdoption";
-		id = tempAD.getID();
-		adopterName = tempAD.getAdopterName();
-		adopterAddress = tempAD.getAdopterAddress();
-		adopterEmail = tempAD.getAdopterEmail();
-		if((tempAD.getAdopterImage()!=null)&&(!tempAD.getAdopterImage().trim().equals(""))){
-			adopterImage = tempAD.getAdopterImage();
-		}
-		adoptionStartDate = tempAD.getAdoptionStartDate();
-		adoptionEndDate = tempAD.getAdoptionEndDate();
-		adopterQuote = tempAD.getAdopterQuote();
-		adoptionManager = tempAD.getAdoptionManager();
-		sharkForm = tempAD.getMarkedIndividual();
-		if (tempAD.getEncounter() != null) {
-			encounterForm = tempAD.getEncounter();
-		}
-		notes = tempAD.getNotes();
-		adoptionType = tempAD.getAdoptionType();
-	}
-
+//	String servletURL = "AdoptionAction";
+//	String paymentURL = "StripePayment";
 
 %>
+
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
@@ -113,9 +90,10 @@ context=ServletUtilities.getContext(request);
 			</p>
 
 			<table><tr><td>
-			<h3>Creating an adoption</h3>
+			<h3>Creating an adoption:</h3>
 			<p>To adopt a whale shark, follow these steps.</p>
-			<p>1. Make the appropriate donation using the appropriate PayPal button below.</p>
+			<p>1. Make the appropriate donation using the form below.</p>
+			<p>2. Enter your information to adopt the shark of your choice!.</p>
 <table cellpadding="5">
 
 <tr>
@@ -153,7 +131,7 @@ context=ServletUtilities.getContext(request);
 <%-- BEGIN STRIPE FORM --%>
 <br>
 <h3>Stripe Form:</h3>
-<form action="/your-charge-code" method="POST" id="payment-form">
+<form action="StripePayment" method="POST" id="payment-form" target="_self" dir="ltr" lang="en" enctype="multipart/form-data">
   <span class="payment-errors"></span>
 
   <div class="form-row">
@@ -207,7 +185,8 @@ context=ServletUtilities.getContext(request);
 
 <h3><a name="create" id="create"></a>Create adoption</h3>
 
-<form action="<%=servletURL%>" method="post"
+
+<form action="AdoptionAction" method="post"
       enctype="multipart/form-data" name="adoption_submission"
       target="_self" dir="ltr" lang="en">
 
@@ -273,7 +252,7 @@ context=ServletUtilities.getContext(request);
 
     <tr>
       <td>Support Level:</td>
-      <td><select name="adoptionType">
+      <td><select id='adoptionType' name="adoptionType">
         <%
 
           if (adoptionType.equals("Individual adoption")) {
@@ -321,28 +300,20 @@ context=ServletUtilities.getContext(request);
 
 
     <tr>
-      <td>Adoption start date:</td>
+      <td>Adoption starts today:</td>
       <td><input id="adoptionStartDate" name="adoptionStartDate"
                  type="text" size="30" value="<%=adoptionStartDate%>"> <em>(e.g.
         2009-05-15) </input> </em></td>
     </tr>
 
     <tr>
-      <td>Adoption end date:</td>
+      <td>Adoption ends on:</td>
       <td><input name="adoptionEndDate" type="text" size="30"
-                 value="<%=adoptionEndDate%>"> </input> <em>(e.g. 2010-05-15) </em></td>
+                 value="<%=adoptionEndDate%>"><em>(e.g. 2010-05-15) </em></td>
     </tr>
 
-    <!--
-			 			 <tr>
-			 <td>Adoption end date:</td>
-			 <td><div id="calendar2"></div>
-   				 <div id="date2">
-				  <input  class="dateField" id="adoptionEndDate" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>"></input>
-			</div>
-				</td>
-			</tr>
-			 -->
+	
+			
     <tr>
       <td align="left" valign="top">Adoption notes:</td>
       <td><textarea name="notes" cols="40" id="notes" rows="10"><%=notes%>
@@ -357,7 +328,7 @@ context=ServletUtilities.getContext(request);
         %>
       </td>
     </tr>
-
+	<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. --> 
     <%
       if (acceptedPayment) {
     %>
@@ -395,3 +366,88 @@ context=ServletUtilities.getContext(request);
 	</tr></table>
 </div>
 <jsp:include page="footer.jsp" flush="true" />
+<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+	 <!-- New section -->
+	 <script type="text/javascript">
+	 // Publishable Key
+	   Stripe.setPublishableKey('pk_test_yiqozX1BvmUhmcFwoFioHcff');
+
+	   var stripeResponseHandler = function(status, response) {
+	     var $form = $('#payment-form');
+
+		 if (response.error) {
+		 // show errors
+		 $form.find('.payment-errors').text(response.error.message);
+		 $form.find('button').prop('disabled', false);
+		 } else {
+		 // token contains id, last 4 card digits, and card type
+		 var token = response.id;
+		 //  submit to the server
+		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
+		 // and re-submit
+		     $form.get(0).submit();
+		   }
+		 };
+
+		 jQuery(function($) {
+		   $('#payment-form').submit(function(e) {
+		     var $form = $(this);
+
+		     // Disable the submit button to prevent repeated clicks
+		     $form.find('button').prop('disabled', true);
+
+		     Stripe.card.createToken($form, stripeResponseHandler);
+
+		     // Prevent the form from submitting with the default action
+		     return false;
+		   });
+		 });
+	  </script>
+
+	  <!-- Auto populate start date with current date. -->
+	  <script>
+	  
+	    var myDate, day, month, year, date;
+	    myDate = new Date();
+	    day = myDate.getDate();
+	    if (day <10)
+	      day = "0" + day;
+	    month = myDate.getMonth() + 1;
+	    if (month < 10)
+	      month = "0" + month;
+	    year = myDate.getFullYear();
+	    date = year + "-" + month + "-" + day;
+	    $("#adoptionStartDate").val(date);
+	  </script>
+	  
+	  <!--  Ajax to handle different donation type selections -->
+	  
+	  <script>
+	    $(function() {
+		  $("#adoptionType").change(function() {
+		    $("form").submit();
+		  });
+		});
+		$(function () {
+		  $('form').on('submit', function (e) {
+		    var url = $(location).attr('href');
+		    e.preventDefault();
+		    $.ajax({
+		      type: 'post',
+		      url: url,
+		      data: $('form').serialize(),
+		      success: function (e) {
+		        console.log($('form').serialize());
+		        $('#amountSelect').load(url + ' #amountType'); 
+		      }
+		    });
+		  });
+		}); 
+	  
+	  </script>
+	  
+	  
+	  
+	  
+	  
+		    
