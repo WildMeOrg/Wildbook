@@ -141,6 +141,10 @@ public class EncounterCreate extends HttpServlet {
             anns.add(ann);
             janns.put(ann.getId());
         }
+        if (anns.size() < 1) {
+            rtn.put("error", "did not create any Annotations");
+            return rtn;
+        }
         if (jmas.length() > 0) rtn.put("assets", jmas);
         if (janns.length() > 0) rtn.put("annotations", janns);
 
