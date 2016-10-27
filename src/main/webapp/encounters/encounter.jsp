@@ -479,7 +479,7 @@ $(function() {
         showSecond:false,
         showMillisec:false,
         showMicrosec:false,
-        showTimezone:false
+        showTimezone:false,
 
       <%
       //set a default date if we cann
