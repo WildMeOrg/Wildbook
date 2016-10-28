@@ -32,6 +32,23 @@ context=ServletUtilities.getContext(request);
 	boolean edit = false;
 	boolean isOwner = true;
 	boolean acceptedPayment = true;
+	
+	
+	  String id = "";
+	  String adopterName = "";
+	  String adopterAddress = "";
+	  String adopterEmail = "";
+	  String adopterImage="";
+	  String adoptionStartDate = "";
+	  String adoptionEndDate = "";
+	  String adopterQuote = "";
+	  String adoptionManager = "";
+	  String sharkForm = "";
+	  String encounterForm = "";
+	  String notes = "";
+	  String adoptionType = "";
+
+	  String servletURL = "../AdoptionAction";
 
 
 %>
@@ -87,26 +104,7 @@ context=ServletUtilities.getContext(request);
 
 </tr>
 <tr>
-<!--  
-<td>
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="5075222">
-<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-</form>
-</td>
-<--
-<!--
-<td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
 
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="47YS8D5TXGZBY">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
-</form>
- </td>
- -->
 </tr>
 </table>
 
@@ -115,6 +113,20 @@ context=ServletUtilities.getContext(request);
 <h3>Stripe Form:</h3>
 <form action="StripePayment" method="POST" id="payment-form" lang="en">
   <span class="payment-errors"></span>
+  
+   <div class="form-row">
+    <label>
+      <span>Name On Card:</span>
+      <input type="text" size="40" name="nameOnCard">
+    </label>
+  </div>
+  
+  <div class="form-row">
+    <label>
+      <span>Email Address:</span>
+      <input type="text" size="40" name="email">
+    </label>
+  </div>
 
   <div class="form-row">
     <label>
@@ -126,10 +138,10 @@ context=ServletUtilities.getContext(request);
   <div class="form-row">
     <label>
       <span>Expiration (MM/YY)</span>
-      <input type="text" size="2" data-stripe="exp_month">
+      <input type="text" size="3" data-stripe="exp_month">
     </label>
     <span> / </span>
-    <input type="text" size="2" data-stripe="exp_year">
+    <input type="text" size="3" data-stripe="exp_year">
   </div>
 
   <div class="form-row">
@@ -149,7 +161,7 @@ context=ServletUtilities.getContext(request);
   <div class="form-row">
     <label>
       <span>Donation Amount:</span>
-      <input type="number" size="6" min="500" max="1000000" data-stripe="amount">
+      <input type="number" size="8" min="500" max="1000000" name="amount">
     </label>
   </div>
 

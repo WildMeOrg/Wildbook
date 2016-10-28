@@ -30,17 +30,28 @@ public class StripePayment extends HttpServlet {
 
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
+    String amount = request.getParameter("amount");
+    String name = request.getParameter('nameOnCard');
+    String email = request.getParameter('email');
 
     // int amount = Integer.valueOf(request.getParameter("amount"));
     try {
 
     Map<String, Object> cardMap = new HashMap<String, Object>();
     cardMap.put("source", token);
-    cardMap.put("amount", 1000);
+    cardMap.put("amount", amount);
     cardMap.put("currency", "usd");
     cardMap.put("description", "Test Charge");
-      Charge charge = Charge.create(cardMap);
-      System.out.println(charge);
+
+    Map<String, String> initialMetadata = new HashMap<String, String>();
+    initialMetadata.put("order_id", "6735");
+    initialMetadata.put("name", name);
+    initialMetadata.put("email", email);
+
+    cardMap.put("metadata", initialMetadata);
+
+    Charge charge = Charge.create(cardMap);
+    System.out.println(charge);
 
     } catch (StripeException e) {
       System.out.println("Generic error from stripe. ");
