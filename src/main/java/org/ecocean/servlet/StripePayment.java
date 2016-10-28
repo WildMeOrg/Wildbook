@@ -2,15 +2,9 @@ package org.ecocean.servlet;
 
 import org.ecocean.CommonConfiguration;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
+import javax.servlet.*;
+import javax.servlet.http.*;
 import java.io.*;
-
 import java.lang.*;
 
 import java.util.HashMap;
@@ -32,25 +26,28 @@ public class StripePayment extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+    Map<String, Object> chargeParams = new HashMap<String, Object>();
+
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
 
     // int amount = Integer.valueOf(request.getParameter("amount"));
+    try {
 
     Map<String, Object> cardMap = new HashMap<String, Object>();
     cardMap.put("source", token);
     cardMap.put("amount", 1000);
     cardMap.put("currency", "usd");
     cardMap.put("description", "Test Charge");
-    try {
       Charge charge = Charge.create(cardMap);
       System.out.println(charge);
+
     } catch (StripeException e) {
       System.out.println("Generic error from stripe. ");
-      System.out.println("Message is: " + e.getMessage());
+      System.out.println("Token: " + token );
     } catch (Exception e) {
       System.out.println("Something went wrong outside of stripe.");
-      System.out.println("Message is: " + e.getMessage());
+      System.out.println("Token: " + request.getParameter("stripeToken"));
     }
     try {
       System.out.println("Success!");

@@ -34,24 +34,6 @@ context=ServletUtilities.getContext(request);
 	boolean acceptedPayment = true;
 
 
-	String id = "";
-	String adopterName = "";
-	String adopterAddress = "";
-	String adopterEmail = "";
-	String adopterImage="";
-	String adoptionStartDate = "";
-	String adoptionEndDate = "";
-	String adopterQuote = "";
-	String adoptionManager = "";
-	String sharkForm = "";
-	String encounterForm = "";
-	String notes = "";
-	String adoptionType = "";
-
-
-//	String servletURL = "AdoptionAction";
-//	String paymentURL = "StripePayment";
-
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -131,7 +113,7 @@ context=ServletUtilities.getContext(request);
 <%-- BEGIN STRIPE FORM --%>
 <br>
 <h3>Stripe Form:</h3>
-<form action="StripePayment" method="POST" id="payment-form" target="_self" dir="ltr" lang="en" enctype="multipart/form-data">
+<form action="StripePayment" method="POST" id="payment-form" lang="en">
   <span class="payment-errors"></span>
 
   <div class="form-row">
