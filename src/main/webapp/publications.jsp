@@ -36,6 +36,9 @@ context=ServletUtilities.getContext(request);
 		<a name="scipubs"></a><strong>Scientific publications</strong>
 		<p><em>The following reports and publications have either directly used data from Wildbook for Whale Sharks or contributed to its ultimate development and launch.</em></p>
 		
+		<p>Macena BCL, Hazin FHV (2016) Whale Shark (<em>Rhincodon typus</em>) Seasonal Occurrence, Abundance and Demographic Structure in the Mid-Equatorial Atlantic Ocean. PLoSONE 11(10):e0164440.doi:10.1371/journal.pone.0164440<br>
+		<a href="http://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0164440">Web link</a>
+		</p>
 		
 		<p>Norman B. and Morgan D. (2016) The return of “Stumpy” the whale shark: two decades and counting. Front Ecol Environ 2016; 14(8):449–450, doi:10.1002/fee.1418<br />
 		<a href="http://onlinelibrary.wiley.com/doi/10.1002/fee.1418/abstract">Web link</a>
