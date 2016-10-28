@@ -11,14 +11,14 @@ import javax.servlet.http.HttpSession;
 
 import java.io.*;
 
+import java.lang.*;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
-import com.stripe.net.RequestOptions;
-import com.stripe.net.RequestOptions.RequestOptionsBuilder;
 
 public class StripePayment extends HttpServlet {
 
@@ -32,32 +32,31 @@ public class StripePayment extends HttpServlet {
 
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
 
+    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
-    String amount = request.getParameter("amount");
-    String number = request.getParameter("number");
-    String cvc = request.getParameter("cvc");
-    String exp_month = request.getParameter("exp_month");
-    String exp_year = request.getParameter("exp_year");
 
-    RequestOptions requestOptions = (new RequestOptionsBuilder()).setApiKey("sk_test_sHm3KrvEv0dERpO0Qgg5lkDE").build(); // eventually hide
-    Map<String, Object> chargeMap = new HashMap<String, Object>();
-    chargeMap.put("amount", amount);
-    chargeMap.put("currency", "usd");
+    // int amount = Integer.valueOf(request.getParameter("amount"));
+
     Map<String, Object> cardMap = new HashMap<String, Object>();
-    cardMap.put("number", number);
-    cardMap.put("exp_month", exp_month);
-    cardMap.put("exp_year", exp_year);
-    chargeMap.put("card", cardMap);
+    cardMap.put("source", token);
+    cardMap.put("amount", 1000);
+    cardMap.put("currency", "usd");
+    cardMap.put("description", "Test Charge");
     try {
-        Charge charge = Charge.create(chargeMap, requestOptions);
-        System.out.println(charge);
+      Charge charge = Charge.create(cardMap);
+      System.out.println(charge);
     } catch (StripeException e) {
-        e.printStackTrace();
+      System.out.println("Generic error from stripe. ");
+      System.out.println("Message is: " + e.getMessage());
+    } catch (Exception e) {
+      System.out.println("Something went wrong outside of stripe.");
+      System.out.println("Message is: " + e.getMessage());
     }
     try {
+      System.out.println("Success!");
       response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/createadoption.jsp");
     } catch (IOException ie) {
-        ie.printStackTrace();
+        System.out.println("Failed on redirect.");
     }
   }
 }
