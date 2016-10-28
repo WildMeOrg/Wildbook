@@ -163,6 +163,13 @@ context=ServletUtilities.getContext(request);
       <input type="text" size="6" data-stripe="address_zip">
     </label>
   </div>
+  
+  <div class="form-row">
+    <label>
+      <span>Donation Amount:</span>
+      <input type="number" size="6" min="500" max="1000000" data-stripe="amount">
+    </label>
+  </div>
 
   <input type="submit" class="submit" value="Submit Payment">
 </form>
