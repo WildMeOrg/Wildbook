@@ -36,6 +36,8 @@ public class StripePayment extends HttpServlet {
     String email = request.getParameter("email");
     String planName = request.getParameter("planName");
     String paidStatus = "unpaid";
+    String chargeId = "";
+    String customerId = "";
 
     // int amount = Integer.valueOf(request.getParameter("amount"));
     if ((request.getParameter("planName") == null)) {
@@ -54,6 +56,9 @@ public class StripePayment extends HttpServlet {
         cardMap.put("metadata", initialMetadata);
 
         Charge charge = Charge.create(cardMap);
+
+        request.setAttribute("chargeId", charge.id)
+
         System.out.println(charge);
 
       } catch (StripeException e) {
@@ -71,6 +76,8 @@ public class StripePayment extends HttpServlet {
         subscriberParams.put("email", email);
 
         Customer customer = Customer.create(subscriberParams);
+
+        request.setAttribute("customerId", customer.id);
 
       } catch (StripeException e) {
         System.out.println("Generic error from stripe on subscribe. ");
