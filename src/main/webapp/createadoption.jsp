@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.*, org.ecocean.*, java.util.Properties, java.util.Date, java.util.Enumeration, java.io.FileInputStream, java.io.File, java.io.FileNotFoundException" %>
 <%
 
 //handle some cache-related security
@@ -57,7 +57,7 @@ context=ServletUtilities.getContext(request);
 
 <div class="container maincontent">
 
-
+<h1><%= request.getAttribute("paidStatus") %></h1>
 
 		  <h2 class="intro">Adopt a Shark! There are currently <%=countAdoptable%> sharks that need to be adopted.</h2>
 
@@ -103,16 +103,27 @@ context=ServletUtilities.getContext(request);
 	-->
 
 </tr>
-<tr>
-
-</tr>
 </table>
 
 <%-- BEGIN STRIPE FORM --%>
 <br>
 <h3>Stripe Form:</h3>
-<form action="StripePayment" method="POST" id="payment-form" lang="en">
+<form action="StripePayment" method="POST" id="payment-form" lan	g="en">
   <span class="payment-errors"></span>
+  
+  	<label>Select a donation plan if desired:</label>
+  	<div class="form-row">
+      	<select id='planName' name="planName">
+
+          <option  selected="selected">No Subscription</option>
+
+          <option value="individual">Individual $5/Month</option>
+
+          <option value="group">Group adoption - $20/Month</option>
+
+          <option value="corporate">Corporate adoption - $120/Month</option>
+	    </select>
+   </div>
   
    <div class="form-row">
     <label>
@@ -187,7 +198,7 @@ context=ServletUtilities.getContext(request);
 <h3><a name="create" id="create"></a>Create adoption</h3>
 
 
-<form action="AdoptionAction" method="post"
+<form id="adoption-form" action="AdoptionAction" method="post"
       enctype="multipart/form-data" name="adoption_submission"
       target="_self" dir="ltr" lang="en">
 
@@ -387,6 +398,7 @@ context=ServletUtilities.getContext(request);
 		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
 		 // and re-submit
 		     $form.get(0).submit();
+		 	 
 		   }
 		 };
 
