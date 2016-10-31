@@ -200,7 +200,7 @@ context=ServletUtilities.getContext(request);
 
 <form id="adoption-form" action="AdoptionAction" method="post"
       enctype="multipart/form-data" name="adoption_submission"
-      target="_self" dir="ltr" lang="en">
+      target="_self" dir="ltr" lang="en" style="display:none;">
 
   <table>
     <tr>
@@ -397,10 +397,16 @@ context=ServletUtilities.getContext(request);
 		 //  submit to the server
 		 $form.append($('<input type="hidden" name="stripeToken" />').val(token));
 		 // and re-submit
-		     $form.get(0).submit();
+		   $form.get(0).submit();
 		 	 
-		   }
-		 };
+		 }
+	       $("#payment-form").hide();
+	       $("#adoption-form").show();
+	     if (<%= request.getAttribute("paidStatus") %> == "paid") {
+		   $("#payment-form").hide();
+		   $("#adoption-form").show();   	 
+		 }
+	   };
 
 		 jQuery(function($) {
 		   $('#payment-form').submit(function(e) {
@@ -412,6 +418,7 @@ context=ServletUtilities.getContext(request);
 		     Stripe.card.createToken($form, stripeResponseHandler);
 
 		     // Prevent the form from submitting with the default action
+		     
 		     return false;
 		   });
 		 });
