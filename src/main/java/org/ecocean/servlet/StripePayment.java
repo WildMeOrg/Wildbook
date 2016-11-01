@@ -35,12 +35,14 @@ public class StripePayment extends HttpServlet {
     String name = request.getParameter("nameOnCard");
     String email = request.getParameter("email");
     String planName = request.getParameter("planName");
-    String paidStatus = "unpaid";
+
+    Boolean paidStatus = false;
+
     String chargeId = "";
     String customerId = "";
 
     // int amount = Integer.valueOf(request.getParameter("amount"));
-    if ((request.getParameter("planName") == null)) {
+    if (planName.equals("none")) {
       try {
         Map<String, Object> cardMap = new HashMap<String, Object>();
         cardMap.put("source", token);
@@ -57,7 +59,11 @@ public class StripePayment extends HttpServlet {
 
         Charge charge = Charge.create(cardMap);
 
-        request.setAttribute("chargeId", charge.id)
+        request.setAttribute("chargeId", charge.getId());
+
+        if (charge.getPaid().equals(true)) {
+          request.setAttribute("paidStatus", true);
+        }
 
         System.out.println(charge);
 
@@ -76,9 +82,10 @@ public class StripePayment extends HttpServlet {
         subscriberParams.put("email", email);
 
         Customer customer = Customer.create(subscriberParams);
-
-        request.setAttribute("customerId", customer.id);
-
+        if ( customer.getSubscriptions().getTotalCount() > 0 ) {
+          request.setAttribute("paidStatus", true);
+        }
+        request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
         System.out.println("Generic error from stripe on subscribe. ");
         System.out.println("Token: " + token );
@@ -86,7 +93,6 @@ public class StripePayment extends HttpServlet {
     }
     try {
       System.out.println("Redirect success!");
-      request.setAttribute("paidStatus", "paid");
       getServletContext().getRequestDispatcher("/createadoption.jsp").forward(request, response);
     } catch (IOException ie) {
       System.out.println("Donation failed on redirect... IO exception.");

@@ -47,6 +47,7 @@ context=ServletUtilities.getContext(request);
 	  String encounterForm = "";
 	  String notes = "";
 	  String adoptionType = "";
+	  
 
 	  String servletURL = "../AdoptionAction";
 
@@ -108,14 +109,14 @@ context=ServletUtilities.getContext(request);
 <%-- BEGIN STRIPE FORM --%>
 <br>
 <h3>Stripe Form:</h3>
-<form action="StripePayment" method="POST" id="payment-form" lan	g="en">
+<form action="StripePayment" method="POST" id="payment-form" lang="en">
   <span class="payment-errors"></span>
   
   	<label>Select a donation plan if desired:</label>
   	<div class="form-row">
       	<select id='planName' name="planName">
 
-          <option  selected="selected">No Subscription</option>
+          <option  value="none" selected="selected">No Subscription</option>
 
           <option value="individual">Individual $5/Month</option>
 
@@ -200,7 +201,7 @@ context=ServletUtilities.getContext(request);
 
 <form id="adoption-form" action="AdoptionAction" method="post"
       enctype="multipart/form-data" name="adoption_submission"
-      target="_self" dir="ltr" lang="en" style="display:none;">
+      target="_self" dir="ltr" lang="en">
 
   <table>
     <tr>
@@ -254,7 +255,7 @@ context=ServletUtilities.getContext(request);
     <tr>
       <td>ID of Shark to Adopt:</td>
       <td><input name="shark" type="text" size="30"
-                 value="<%=sharkForm%>"> </input> <%if (!sharkForm.equals("")) { %>
+                 value="<%= request.getParameter("number") %>"> </input> <%if (!sharkForm.equals("")) { %>
         <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
           }
         %>
@@ -400,9 +401,7 @@ context=ServletUtilities.getContext(request);
 		   $form.get(0).submit();
 		 	 
 		 }
-	       $("#payment-form").hide();
-	       $("#adoption-form").show();
-	     if (<%= request.getAttribute("paidStatus") %> == "paid") {
+	     if (<%= request.getAttribute("paidStatus") %>) {
 		   $("#payment-form").hide();
 		   $("#adoption-form").show();   	 
 		 }
