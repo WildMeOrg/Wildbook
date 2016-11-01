@@ -362,7 +362,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
               for (int extraImgNo=1; extraImgNo<al.size(); extraImgNo++) {
                 JSONObject newMaJson = new JSONObject();
                 newMaJson = al.get(extraImgNo);
-                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+                String newUrl = newMaJson.optString("url", urlLoc+"/cust/mantamatcher/img/noimage.jpg");
 
                 String copyright = newMaJson.optString("photographer");
                 if ((copyright!=null)&&!copyright.equals("")) {

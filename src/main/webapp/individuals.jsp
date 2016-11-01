@@ -89,7 +89,7 @@ if (request.getParameter("number")!=null) {
 	name=request.getParameter("number").trim();
 	myShepherd.beginDBTransaction();
 	try{
-		
+
 		if(myShepherd.isMarkedIndividual(name)){
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
@@ -345,7 +345,7 @@ if (request.getParameter("number")!=null) {
           %>
 
 
-   
+
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
@@ -759,7 +759,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-        String newimgUrl = newMaJson.optString("urlDisplay", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+        String newimgUrl = newMaJson.optString("urlDisplay", imgurlLoc+"/cust/mantamatcher/img/noimage.jpg");
 
         %>
         <div class="crop-outer">
