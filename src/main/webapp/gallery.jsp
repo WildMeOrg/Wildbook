@@ -178,7 +178,7 @@ if (rIndividuals.size() < listNum) {
     	text-align: right;
     	position: absolute;
     	top: 5px;
-    	right: 25px;
+	    	right: 25px;
     	color: #fff;
     	font-size: 0.8rem;
   }
@@ -469,6 +469,12 @@ int numDataContributors=0;
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
+		    <li>
+                      <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>">here</a>
+                    </li>
+		    <li>
+		      <h3><a href="<%=urlLoc%>/createadoption.jsp?individual=<%=props.getProperty("individualID")%>">Adopt Me</a></h3>
+		    </li>
                   </ul>
                 </td>
               </tr></table>
