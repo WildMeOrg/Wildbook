@@ -317,8 +317,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
             pairCopyright[j] = "&copy; WWF";
           }
           pairMediaAssetID[j]=maJson.optString("id");
-          pairUrl[j] = maJson.optString("urlDisplay", urlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
-//System.out.println(">>>>>>>>>>>>>> " + maJson.optString("urlMid", "******* NO ********"));
+          pairUrl[j] = maJson.optString("urlDisplay", urlLoc+"/cust/mantamatcher/img/noimage.jpg"); //backup if urlMid is not found
           pairUrlMid[j] = (maJson.optString("urlMid").equals("") ? pairUrl[j] : maJson.getString("urlMid"));
           pairName[j] = indie.getIndividualID();
           pairNickname[j] = pairName[j];
@@ -490,7 +489,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
                     }
                     %>
                     <li>Havaittu vuosina: <%=yearRange %></li>
-                    
+
                   </ul>
                 </td>
               </tr></table>
