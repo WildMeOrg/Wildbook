@@ -7644,6 +7644,66 @@ label {
 /* light blue */
 /*dark blue*/
 /* color theme - contains variables */
+button,
+html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  background-color: #333333;
+  border: 0;
+  color: #ffffff;
+  line-height: 2em;
+  padding: 7px 13px;
+  font-weight: 300;
+  vertical-align: middle;
+  margin-right: 10px;
+  margin-top: 15px;
+}
+button.large,
+html input[type="button"].large,
+input[type="reset"].large,
+input[type="submit"].large {
+  font-size: 1.99rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-right: 0;
+  box-shadow: 2px 1px 2px 1px rgba(51, 51, 51, 0.4);
+}
+button.contrast,
+html input[type="button"].contrast,
+input[type="reset"].contrast,
+input[type="submit"].contrast {
+  background-color: #8bff00;
+}
+button.adopt {
+  color: #333333;
+  margin-top: 0;
+  text-align: center;
+  padding: 0 10px;
+  margin-bottom: .5rem;
+}
+@media screen and (min-width: 400px) {
+  button.adopt {
+    float: left;
+    margin-bottom: 0;
+  }
+}
+button.light,
+html input[type="button"].light,
+input[type="reset"].light,
+input[type="submit"].light {
+  background-color: #00c0f7;
+}
+.button-icon {
+  width: 45px;
+  min-height: 45px;
+  margin-left: 10px;
+  padding: 0 5px;
+  vertical-align: middle;
+  display: inline-block;
+  background: url(../img/icon_arrow_right_grey.svg) no-repeat center center;
+  background-size: 50%;
+  background-color: #8bff00;
+}
 .main-section {
   padding-top: 50px;
   padding-bottom: 80px;
@@ -7732,85 +7792,6 @@ figcaption {
   text-align: center;
   padding-top: 5px;
 }
-/* Buttons */
-button,
-html input[type="button"],
-input[type="reset"],
-input[type="submit"] {
-  background: #005589;
-  border: 0;
-  color: #ffffff;
-  line-height: 2em;
-  padding: 7px 13px;
-  font-weight: 300;
-  vertical-align: middle;
-  margin-right: 10px;
-  margin-top: 15px;
-}
-button.large {
-  background-color: #333333;
-}
-button.large,
-html input[type="button"].large,
-input[type="reset"].large,
-input[type="submit"].large {
-  font-size: 1.2em;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-right: 0;
-  box-shadow: 2px 1px 2px 1px rgba(51, 51, 51, 0.4);
-}
-button.contrast,
-html input[type="button"].contrast,
-input[type="reset"].contrast,
-input[type="submit"].contrast {
-  background-color: #8bff00;
-}
-button.adopt {
-  color: #333333;
-  margin-top: 0;
-  text-align: center;
-  padding: 0 10px;
-  margin-bottom: .5rem;
-}
-@media screen and (min-width: 400px) {
-  button.adopt {
-    float: left;
-    margin-bottom: 0;
-  }
-}
-button.light,
-html input[type="button"].light,
-input[type="reset"].light,
-input[type="submit"].light {
-  background-color: #00c0f7;
-}
-button.light:hover,
-html input[type="button"].light:hover,
-input[type="reset"].light:hover,
-input[type="submit"].light:hover {
-  background-color: #8bff00;
-}
-button:hover,
-html input[type="button"]:hover,
-input[type="reset"]:hover,
-input[type="submit"]:hover {
-  background-color: #8bff00;
-}
-.button-icon {
-  width: 45px;
-  min-height: 45px;
-  margin-left: 10px;
-  padding: 0 5px;
-  vertical-align: middle;
-  display: inline-block;
-  background: url(../img/icon_arrow_right_grey.svg) no-repeat center center;
-  background-size: 50%;
-  background-color: #8bff00;
-}
-/*
-	Custom modules
-*/
 /* Accordion */
 .accordion {
   background-color: #005589;
@@ -8620,86 +8601,32 @@ div.state-approved span.state {
   font-size: 3rem;
   margin-top: -1rem;
 }
-.donation-option-group {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  align-content: null;
-  flex-wrap: wrap;
-  margin-top: 3rem;
-}
-@media screen and (min-width: 500px) {
-  .donation-option-group {
-    margin-top: 6rem;
-    display: flex;
-    justify-content: space-around;
-    align-items: null;
-    flex-direction: row;
-    align-content: null;
-  }
-}
-.donation-option {
-  width: 15rem;
-  margin: 0 auto;
-}
-.donation-option p {
-  text-align: center;
-  font-size: 1.5rem;
-  padding-top: 1rem;
-}
-@media screen and (min-width: 329px) {
-  .donation-option {
-    margin: 0 10px;
-    width: 20rem;
-  }
-  .donation-option p {
-    font-size: 2.5rem;
-    letter-spacing: .1rem;
-    line-height: 3rem;
-  }
-}
-.donation-circle {
-  width: 15rem;
-  height: 15rem;
-  border-radius: 50%;
-  background-color: #80b3ff;
-  color: white;
-  margin: 0 auto;
-}
-.donation-circle p {
-  font-size: 2rem;
-  margin: 0;
-  line-height: 2.5rem;
-  position: relative;
-  top: 3rem;
-}
-.donation-circle p:last-of-type {
-  font-size: 3.2rem;
-  font-weight: bold;
-}
-@media (min-width: 768px) {
-  .donation-circle {
-    width: 20rem;
-    height: 20rem;
-  }
-  .donation-circle p {
-    font-size: 3rem;
-    line-height: 5rem;
-  }
-  .donation-circle p:last-of-type {
-    font-size: 4.2rem;
-  }
-}
 .adoption-details {
   font-size: 2.5rem;
   line-height: 4rem;
-  margin-top: 3rem;
+  margin-top: 5rem;
+  display: flex;
+  justify-content: center;
+  align-items: null;
+  flex-direction: null;
+  align-content: null;
+  flex-direction: column;
+}
+.adoption-details a {
+  align-self: flex-end;
+  margin-top: 0;
 }
 @media (min-width: 768px) {
   .adoption-details {
     font-size: 3rem;
   }
+}
+#custom-donation-image {
+  width: 80%;
+  margin: 7rem auto 6rem auto;
+}
+.donations {
+  display: none;
 }
 .adopters-featured {
   margin-top: 6rem;
