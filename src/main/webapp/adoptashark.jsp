@@ -19,6 +19,17 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent adoption-page">
 	<h1 class="intro-adopt">Adopt a Shark</h1>
 	<h2>Support cutting edge whale shark research.</h2>
+	<section class="adoption-details">
+		<p>
+			Adopt a whale shark, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by shark adoptions are used to offset the costs of maintaining this global library and
+			to support new and existing research projects for the world's most mysterious fish.
+		</p>
+		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Make Adoption<span class="button-icon" aria-hidden="true"></button></a>
+	</section>
+	<section id="custom-donation-image">
+		<a href="createadoption.jsp"><img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" /></a>
+	</section>
 	<section class="donations">
 		<article class="donation-option-group">
 			<div class="donation-option">
@@ -68,13 +79,7 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</article>
 	</section>
-	<section class="adoption-details">
-		<p>
-			Adopt a whale shark, give it a nickname, and receive updates each time it's spotted! Funds
-			raised by shark adoptions are used to offset the costs of maintaining this global library and
-			to support new and existing research projects for the world's most mysterious fish.
-		</p>
-	</section>
+
 	<section class="adopters-featured">
 		<h2>Join the Family!</h2>
 		<article class="adopter-feature-gallery">
