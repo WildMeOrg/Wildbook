@@ -98,7 +98,7 @@ public class Adoption implements java.io.Serializable {
     return id;
   }
 
-  public void setStripeCustomerId() {
+  public String getStripeCustomerId() {
     return stripeCustomerId;
   }
 
@@ -122,7 +122,7 @@ public class Adoption implements java.io.Serializable {
     if(img==null){ img=null;}
     else{
     	this.adopterImage = img;
-	}
+	  }
   }
 
   public void setAdoptionStartDate(String date) {
