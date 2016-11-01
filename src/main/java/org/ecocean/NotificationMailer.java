@@ -287,7 +287,7 @@ public final class NotificationMailer implements Runnable {
    * @param text text with which to replace standard content tag
    */
   public NotificationMailer(String context, String langCode, Collection<String> to, String type, final String text) {
-    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text); 
+    this(context, langCode, to, type, new HashMap<String, String>(){{ put(STANDARD_CONTENT_TAG, text);
       System.out.println("NoteMailerHere1");
     }});
   }
@@ -342,7 +342,7 @@ public final class NotificationMailer implements Runnable {
    */
   private EmailTemplate loadEmailTemplate(String langCode, List<String> types) throws IOException {
     System.out.println("NoteMailerHere4 and types are: "+types.toString());
-    
+
     if (langCode != null && !"".equals(langCode.trim())) {
       for (String type : types) {
         if (existsEmailTemplate(langCode, type))
@@ -521,6 +521,31 @@ public final class NotificationMailer implements Runnable {
   }
 
   /**
+   * Creates a basic tag map for the specified adoption.
+   * This map can subsequently be enhanced with extra tags.
+   * Adoption tags included:
+   * <ul>
+   * <li>&#64;INDIVIDUAL_LINK&#64;</li>
+   * <li>&#64;INDIVIDUAL_ID&#64;</li>
+   * <li>&#64;INDIVIDUAL_ALT_ID&#64;</li>
+   * <li>&#64;INDIVIDUAL_SEX&#64;</li>
+   * <li>&#64;INDIVIDUAL_NAME&#64;</li>
+   * <li>&#64;INDIVIDUAL_NICKNAME&#64;</li>
+   * <li>&#64;INDIVIDUAL_NICKNAMER&#64;</li>
+   * <li>&#64;INDIVIDUAL_COMMENTS&#64;</li>
+   * </ul>
+   *
+   * @param req servlet request for data reference
+   * @param ind MarkedIndividual for which to add tag data
+   * @return map instance for tag replacement in email template
+   */
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Adoption adp) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, adp);
+    return map;
+  }
+
+  /**
    * Creates a basic tag map for the specified encounter.
    * This map can subsequently be enhanced with extra tags.
    * Individual tags included:
@@ -600,6 +625,28 @@ public final class NotificationMailer implements Runnable {
     return map;
   }
 
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, MarkedIndividual ind, Adoption adp) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, ind);
+    addTags(map, req, adp);
+    return map;
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, enc);
+    addTags(map, req, adp);
+    return map;
+  }
+
+  public static Map<String, String> createBasicTagMap(HttpServletRequest req, Encounter enc, Adoption adp, MarkedIndividual ind) {
+    Map<String, String> map = new HashMap<>();
+    addTags(map, req, enc);
+    addTags(map, req, adp);
+    addTags(map, req, ind);
+    return map;
+  }
+
   /**
    * Adds info tags for the specified encounter.
    *
@@ -620,6 +667,33 @@ public final class NotificationMailer implements Runnable {
       map.put("@INDIVIDUAL_NICKNAME@", ind.getNickName());
       map.put("@INDIVIDUAL_NICKNAMER@", ind.getNickNamer());
       map.put("@INDIVIDUAL_COMMENTS@", ind.getComments());
+    }
+  }
+
+  /**
+   * Adds info tags for the specified adoption.
+   *
+   * @param req servlet request for data reference
+   * @param ind Adoption for which to add tag data
+   * @param map map to which to add tag data
+   */
+  private static void addTags(Map<String, String> map, HttpServletRequest req, Adoption adp) {
+    Objects.requireNonNull(map);
+    if (!map.containsKey("@URL_LOCATION@"))
+      map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
+    if (adp != null) {
+      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptionCancellation.jsp?number=@INDIVIDUAL_ID@", map.get("@URL_LOCATION@"), adp.getIndividualID()));
+      map.put("@ADOPTION_ID@", adp.getIndividualID());
+      map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getAlternateID());
+      map.put("@ADOPTER_NAME@", adp.getSex());
+      map.put("@ADOPTER_EMAIL@", adp.getName());
+      map.put("@ADOPTER_ADDRESS@", adp.getName());
+      map.put("@ADOPTER_QUOTE@", adp.getNickName());
+      map.put("@ADOPTION_MANAGER@", adp.getNickNamer());
+      map.put("@ADOPTION_INDIVIDUAL@", adp.getComments());
+      map.put("@ADOPTION_ENCOUNTER@", adp.getComments());
+      map.put("@ADOPTION_NOTES@", adp.getComments());
+      map.put("@ADOPTION_TYPE@", adp.getComments());
     }
   }
 
