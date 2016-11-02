@@ -682,18 +682,18 @@ public final class NotificationMailer implements Runnable {
     if (!map.containsKey("@URL_LOCATION@"))
       map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
     if (adp != null) {
-      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptionCancellation.jsp?number=@INDIVIDUAL_ID@", map.get("@URL_LOCATION@"), adp.getIndividualID()));
-      map.put("@ADOPTION_ID@", adp.getIndividualID());
-      map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getAlternateID());
-      map.put("@ADOPTER_NAME@", adp.getSex());
-      map.put("@ADOPTER_EMAIL@", adp.getName());
-      map.put("@ADOPTER_ADDRESS@", adp.getName());
-      map.put("@ADOPTER_QUOTE@", adp.getNickName());
-      map.put("@ADOPTION_MANAGER@", adp.getNickNamer());
-      map.put("@ADOPTION_INDIVIDUAL@", adp.getComments());
-      map.put("@ADOPTION_ENCOUNTER@", adp.getComments());
-      map.put("@ADOPTION_NOTES@", adp.getComments());
-      map.put("@ADOPTION_TYPE@", adp.getComments());
+      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=@ADOPTION_ID@&adopter=@ADOPTION_STRIPE_CUSTOMER_ID@&Delete=Delete", map.get("@URL_LOCATION@"), adp.getMarkedIndividual()));
+      map.put("@ADOPTION_ID@", adp.getID());
+      map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
+      map.put("@ADOPTER_NAME@", adp.getAdopterName());
+      map.put("@ADOPTER_EMAIL@", adp.getAdopterEmail());
+      map.put("@ADOPTER_ADDRESS@", adp.getAdopterAddress());
+      map.put("@ADOPTER_QUOTE@", adp.getAdopterQuote());
+      map.put("@ADOPTION_MANAGER@", adp.getAdoptionManager());
+      map.put("@ADOPTION_INDIVIDUAL@", adp.getMarkedIndividual());
+      map.put("@ADOPTION_ENCOUNTER@", adp.getEncounter());
+      map.put("@ADOPTION_NOTES@", adp.getNotes());
+      map.put("@ADOPTION_TYPE@", adp.getAdoptionType());
     }
   }
 
