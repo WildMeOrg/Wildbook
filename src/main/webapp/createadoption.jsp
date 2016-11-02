@@ -110,8 +110,8 @@ context=ServletUtilities.getContext(request);
 
 <%
   String shark = "";
-  if (request.getParameter("individual") != null) {
-    shark = request.getParameter("individual");
+  if (request.getParameter("number") != null) {
+    shark = request.getParameter("number");
   }
 %>
 
@@ -119,8 +119,8 @@ context=ServletUtilities.getContext(request);
 <form id="adoption-form" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 <div class="input-group">
   <span class="input-group-addon">Shark ID</span>
-  <input disabled class="disabled-input input-m-width" name="shark" type="text" value="<%=sharkForm%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!sharkForm.equals("")) { %>
-    <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
+  <input class="disabled-input input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
+    <a href="../individuals.jsp?number<%=shark%>">Link</a> <%
       }
     %>
 </div>
