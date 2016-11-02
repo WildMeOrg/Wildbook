@@ -116,67 +116,67 @@ context=ServletUtilities.getContext(request);
 %>
 
 <h3>Adoption Profile</h3>
-<form id="adoption-form" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
-<div class="input-group">
-  <span class="input-group-addon">Shark ID</span>
-  <input class="disabled-input input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
-    <a href="../individuals.jsp?number<%=shark%>">Link</a> <%
-      }
-    %>
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Adoption Starts</span>
-  <input class="disabled-input input-m-width" id="adoptionStartDate" name="adoptionStartDate" type="text" value="<%=adoptionStartDate%>">
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Adoption Ends</span>
-  <input class="disabled-input input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Adopter Name</span>
-  <input class="disabled-input input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Adopter Email</span>
-  <input class="disabled-input input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Address</span>
-  <input class="disabled-input input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Profile Photo</span>
-  <%
-  String adopterImageString="";
-  if(adopterImage!=null){
-    adopterImageString=adopterImage;
-  }
-  %>
-  <input class="disabled-input input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
-  <%
-  if ((adopterImage != null) && (!adopterImageString.equals(""))) {
-  %>
-    <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
-    <%
-      }
-    %>
-</div>
-<div class="input-group">
-  <span class="input-group-addon">Quote</span>
-  <textarea class="disabled-input" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
-  </textarea>
-</div>
-<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
-  <%
-    if (acceptedPayment) {
-  %>
-    <button class="large disabled-input" type="submit" name="Submit" value="Submit"/>Finish Adoption<span class="button-icon" aria-hidden="true"></button>
-  <%
-    }
-  %>
-<%
-  if (acceptedPayment) {
-%>
+	<form id="adoption-form" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
+	<div class="input-group">
+	  <span class="input-group-addon">Shark ID</span>
+	  <input class=" input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
+	    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
+	      }
+	    %>
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Adoption Starts</span>
+	  <input class=" input-m-width" id="adoptionStartDate" name="adoptionStartDate" type="text" value="<%=adoptionStartDate%>">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Adoption Ends</span>
+	  <input class=" input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Adopter Name</span>
+	  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Adopter Email</span>
+	  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Address</span>
+	  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Profile Photo</span>
+	  <%
+	  String adopterImageString="";
+	  if(adopterImage!=null){
+	    adopterImageString=adopterImage;
+	  }
+	  %>
+	  <input class="disabled-input input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+	  <%
+	  if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+	  %>
+	    <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+	    <%
+	      }
+	    %>
+	</div>
+	<div class="input-group">
+	  <span class="input-group-addon">Quote</span>
+	  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
+	  </textarea>
+	</div>
+	<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
+	  <%
+	    if (acceptedPayment) {
+	  %>
+	    <button class="large" type="submit" name="Submit" value="Submit"><span class="button-icon" aria-hidden="true">Finish Adoption</span></button>
+	  <%
+	    }
+	  %>
+	<%
+	  if (acceptedPayment) {
+	%>
 </form>
 <%
 }
@@ -221,10 +221,10 @@ context=ServletUtilities.getContext(request);
 		 var $form = $(this);
 
 		 // Disable the submit button to prevent repeated clicks
-		 $form.find('button').prop('disabled', true);
+		 /*$form.find('button').prop('disabled', true);*/
 
 		 // Enable input fields for building profile
-			$(".disabled-input").prop('disabled', false);
+			/*$(".disabled-input").prop('disabled', false);*/
 
 		 Stripe.card.createToken($form, stripeResponseHandler);
 
@@ -247,28 +247,4 @@ context=ServletUtilities.getContext(request);
   year = myDate.getFullYear();
   date = year + "-" + month + "-" + day;
   $("#adoptionStartDate").val(date);
-</script>
-
-<!--  Ajax to handle different donation type selections -->
-<script>
-  $(function() {
-  $("#adoptionType").change(function() {
-    $("form").submit();
-  });
-});
-$(function () {
-  $('form').on('submit', function (e) {
-    var url = $(location).attr('href');
-    e.preventDefault();
-    $.ajax({
-      type: 'post',
-      url: url,
-      data: $('form').serialize(),
-      success: function (e) {
-        console.log($('form').serialize());
-        $('#amountSelect').load(url + ' #amountType');
-      }
-    });
-  });
-});
 </script>
