@@ -469,12 +469,9 @@ int numDataContributors=0;
                     <li>
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
-		    <li>
-                      <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>">here</a>
+		                <li>
+                      <button class="large"><a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>">Adopt Me</a></button>
                     </li>
-		    <li>
-		      <h3><a href="<%=urlLoc%>/createadoption.jsp?individual=<%=props.getProperty("individualID")%>">Adopt Me</a></h3>
-		    </li>
                   </ul>
                 </td>
               </tr></table>
