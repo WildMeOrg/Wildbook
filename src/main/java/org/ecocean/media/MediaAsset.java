@@ -676,7 +676,7 @@ public class MediaAsset implements java.io.Serializable {
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
-System.out.println("   ....  ??? do we have a " + t);
+//System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
