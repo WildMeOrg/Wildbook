@@ -632,6 +632,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>EncounterCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>MediaAssetsForUser</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
@@ -1407,6 +1412,11 @@
     <servlet-mapping>
       <servlet-name>MediaAssetCreate</servlet-name>
       <url-pattern>/MediaAssetCreate</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+      <servlet-name>EncounterCreate</servlet-name>
+      <url-pattern>/EncounterCreate</url-pattern>
     </servlet-mapping>
 
       <servlet-mapping>
