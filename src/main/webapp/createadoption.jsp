@@ -53,11 +53,13 @@ context=ServletUtilities.getContext(request);
 <jsp:include page="header.jsp" flush="true"/>
 
 <div class="container maincontent">
-	<h2 class="intro">Thank you for your support!</h2>
-	<h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
-	<p>
-		Below, you will be able to enter financial informartion, choose your shark, and create your profile.
-	</p>
+  <section class="centered">
+    <h2>Thank you for your support!</h2>
+    <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
+    <p>
+      Below, you will be able to enter financial informartion, choose your shark, and create your profile.
+    </p>
+  </section>
 
 <%-- BEGIN STRIPE FORM --%>
 <h3>Financial Information</h3>
@@ -65,7 +67,7 @@ context=ServletUtilities.getContext(request);
   <span class="payment-errors"></span>
 	<div class="input-group">
 		<span class="input-group-addon">Adoption Type</span>
-		<select id='planName' name="planName">
+		<select id='planName' class="input-l-width" name="planName">
 			<option  value="none" selected="selected">No Subscription</option>
 			<option value="individual">Individual $5/Month</option>
 			<option value="group">Group adoption - $20/Month</option>
@@ -73,35 +75,35 @@ context=ServletUtilities.getContext(request);
 	</select>
 	</div>
 	<div class="input-group">
-		<span class="input-group">Custom Amount</span>
-		<input type="number" size="8" min="500" max="1000000" name="amount" placeholder="Optional">
+		<span class="input-group-addon">Custom Amount</span>
+		<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
 	</div>
 	<div class="input-group">
-		<span class="input-group-name">Name On Card</span>
-		<input type="text" size="40" name="nameOnCard">
+		<span class="input-group-addon">Name On Card</span>
+		<input type="text" class="input-l-width" name="nameOnCard">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">Card Number</span>
-	  <input type="text" size="20" data-stripe="number">
+	  <input type="text" class="input-l-width" data-stripe="number">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">Expiration</span>
-	  <input type="text" size="2" data-stripe="exp_month" placeholder="MM">
-	  <input type="text" size="2" data-stripe="exp_year" placeholder="YY">
+	  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
+	  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">CVC</span>
-	  <input type="text" size="4" data-stripe="cvc">
+	  <input type="text" class="input-s-width" data-stripe="cvc">
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">Billing Zip</span>
-	  <input type="text" size="6" data-stripe="address_zip">
+	  <input type="text" class="input-m-width" data-stripe="address_zip">
 	</div>
 	<div class="input-group">
 		<span class="input-group-addon">Billing Email</span>
-		<input type="text" size="40" name="email">
+		<input type="text" class="input-l-width" name="email">
 	</div>
-  <button type="submit" class="submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
+  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 </form>
 <hr>
 <%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
@@ -117,30 +119,30 @@ context=ServletUtilities.getContext(request);
 <form id="adoption-form" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 <div class="input-group">
   <span class="input-group-addon">Shark ID</span>
-  <input disabled class="disabled-input" name="shark" type="text" size="30" value="<%=sharkForm%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!sharkForm.equals("")) { %>
+  <input disabled class="disabled-input input-m-width" name="shark" type="text" value="<%=sharkForm%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!sharkForm.equals("")) { %>
     <a href="../individuals.jsp?number=<%=sharkForm%>">Link</a> <%
       }
     %>
 </div>
 <div class="input-group">
   <span class="input-group-addon">Adoption Starts</span>
-  <input disabled class="disabled-input" id="adoptionStartDate" name="adoptionStartDate" type="text" size="30" value="<%=adoptionStartDate%>">
+  <input class="disabled-input input-m-width" id="adoptionStartDate" name="adoptionStartDate" type="text" value="<%=adoptionStartDate%>">
 </div>
 <div class="input-group">
   <span class="input-group-addon">Adoption Ends</span>
-  <input disabled class="disabled-input" name="adoptionEndDate" type="text" size="30" value="<%=adoptionEndDate%>">
+  <input class="disabled-input input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
 </div>
 <div class="input-group">
   <span class="input-group-addon">Adopter Name</span>
-  <input disabled class="disabled-input" name="adopterName" type="text" size="30" value="<%=adopterName%>">
+  <input class="disabled-input input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
 </div>
 <div class="input-group">
   <span class="input-group-addon">Adopter Email</span>
-  <input disabled class="disabled-input" name="adopterEmail" type="text" size="30" value="<%=adopterEmail%>"><br/>
+  <input class="disabled-input input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
 </div>
 <div class="input-group">
   <span class="input-group-addon">Address</span>
-  <input disabled class="disabled-input" name="adopterAddress" type="text" size="30" value="<%=adopterAddress%>">
+  <input class="disabled-input input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
 </div>
 <div class="input-group">
   <span class="input-group-addon">Profile Photo</span>
@@ -150,7 +152,7 @@ context=ServletUtilities.getContext(request);
     adopterImageString=adopterImage;
   }
   %>
-  <input disabled class="disabled-input" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+  <input class="disabled-input input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
   <%
   if ((adopterImage != null) && (!adopterImageString.equals(""))) {
   %>
@@ -161,14 +163,14 @@ context=ServletUtilities.getContext(request);
 </div>
 <div class="input-group">
   <span class="input-group-addon">Quote</span>
-  <textarea disabled class="disabled-input" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
+  <textarea class="disabled-input" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
   </textarea>
 </div>
 <!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
   <%
     if (acceptedPayment) {
   %>
-    <button disabled class="disabled-input" type="submit" name="Submit" value="Submit"/>Finish Adoption<span class="button-icon" aria-hidden="true"></button>
+    <button class="large disabled-input" type="submit" name="Submit" value="Submit"/>Finish Adoption<span class="button-icon" aria-hidden="true"></button>
   <%
     }
   %>
