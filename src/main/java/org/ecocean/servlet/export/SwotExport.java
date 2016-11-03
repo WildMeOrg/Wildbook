@@ -139,12 +139,12 @@ public class SwotExport extends HttpServlet{
               // required fields for SWOT
               addStringToCell(nestingBeachSheet, nestRowNum, 1, Util.toString(nest.getYear()));
               addStringToCell(nestingBeachSheet, nestRowNum, 2, nest.getSpecies());
-              addStringToCell(nestingBeachSheet, nestRowNum, 4, nest.getCountry());
-              addStringToCell(nestingBeachSheet, nestRowNum, 5, nest.getOrganization());
-              addStringToCell(nestingBeachSheet, nestRowNum, 6, nest.getProvince());
-              addStringToCell(nestingBeachSheet, nestRowNum, 7, nest.getBeachName());
-              addStringToCell(nestingBeachSheet, nestRowNum, 8, Util.toString(nest.getLatitude()));
-              addStringToCell(nestingBeachSheet, nestRowNum, 9, Util.toString(nest.getLongitude()));
+              addStringToCell(nestingBeachSheet, nestRowNum, 3, nest.getCountry());
+              addStringToCell(nestingBeachSheet, nestRowNum, 4, nest.getOrganization());
+              addStringToCell(nestingBeachSheet, nestRowNum, 5, nest.getProvince());
+              addStringToCell(nestingBeachSheet, nestRowNum, 6, nest.getBeachName());
+              addStringToCell(nestingBeachSheet, nestRowNum, 7, Util.toString(nest.getLatitude()));
+              addStringToCell(nestingBeachSheet, nestRowNum, 8, Util.toString(nest.getLongitude()));
 
 
 
@@ -166,9 +166,6 @@ public class SwotExport extends HttpServlet{
       } catch (Exception wex) {
           System.out.println("exception writing excel: " + wex.toString());
       }
-
-
-
 
 
       //response.setContentType("application/vnd.ms-excel");
