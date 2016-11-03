@@ -1029,7 +1029,7 @@ if (request.getParameter("number")!=null) {
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
 
-          setupFamilyTree(<%=individualID%>);
+          setupFamilyTree('<%=individualID%>');
           </script>
         </div>
 
@@ -1062,7 +1062,7 @@ if (request.getParameter("number")!=null) {
           		thisIndyRole=myRel.getMarkedIndividualRole2();
           		otherIndyRole=myRel.getMarkedIndividualRole1();
           	}
-          	MarkedIndividual otherIndy=myShepherd.getMarkedIndividual(otherIndyName);
+          	MarkedIndividual otherIndy=myShepherd.getMarkedIndividualQuiet(otherIndyName);
           	String type="";
           	if(myRel.getType()!=null){type=myRel.getType();}
 
@@ -1071,6 +1071,15 @@ if (request.getParameter("number")!=null) {
           %>
           	<tr>
           	<td><em><%=thisIndyRole %></em>-<%=otherIndyRole %></td>
+
+<%
+if (otherIndy == null) {  // this is bad
+	System.out.println("ERROR: relationship match error - type '" + type + "' on " + sharky.getIndividualID() + " could not find " + otherIndyName);
+%>
+
+<td colspan="3" class="error">There was an error locating MarkedIndividual <b><%=otherIndyName%></b>.</td>
+
+<% } else { %>
           	<td>
           	<a target="_blank" href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=otherIndy.getIndividualID()%>"><%=otherIndy.getIndividualID() %></a>
           		<%
@@ -1124,6 +1133,8 @@ if (request.getParameter("number")!=null) {
           	</td>
           	<%
           	}
+
+}  //end not-null-other
           	%>
 
           	</tr>
