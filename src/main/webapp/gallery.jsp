@@ -10,7 +10,9 @@
               java.util.StringTokenizer,
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
-              org.joda.time.DateTime
+              org.joda.time.DateTime,
+              java.util.Collection,
+              javax.jdo.*;
               "
 %>
 
@@ -93,20 +95,40 @@ int numResults = 0;
 
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
+
+
 myShepherd.beginDBTransaction();
-String order ="nickName ASC NULLS LAST";
 
-request.setAttribute("rangeStart", startNum);
-request.setAttribute("rangeEnd", endNum);
-MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+if(request.getParameter("adoptableSharks")!=null){
+	//get current time minus two years
+	Long twoYears=new Long("63072000000");
+	long currentDate=System.currentTimeMillis()-twoYears.longValue();
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
+    Query query=myShepherd.getPM().newQuery(filter);
+    query.setOrdering("numberEncounters descending");
+    query.setRange(startNum, endNum);
+    Collection c = (Collection) (query.execute());
+	rIndividuals=new Vector<MarkedIndividual>(c);
+    query.closeAll();
+    if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
+}
+else{
+	String order ="nickName ASC NULLS LAST";
+	
+	request.setAttribute("rangeStart", startNum);
+	request.setAttribute("rangeEnd", endNum);
+	MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+	
+	rIndividuals = result.getResult();
+	
+	//handle any null errors better
+	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
-rIndividuals = result.getResult();
+}
 
 
 
 
-//handle any null errors better
-if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
 
 
@@ -178,7 +200,7 @@ if (rIndividuals.size() < listNum) {
     	text-align: right;
     	position: absolute;
     	top: 5px;
-	    	right: 25px;
+    	right: 25px;
     	color: #fff;
     	font-size: 0.8rem;
   }
