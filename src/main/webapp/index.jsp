@@ -358,11 +358,11 @@ finally{
 			</button>
 			-->
             <a href="submit.jsp">
-                <button class="large">Report your sightings<span class="button-icon" aria-hidden="true"></button>
+                <button class="large heroBtn">Report your sightings<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
             <a href="adoptashark.jsp">
-                <button class="large">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
+                <button class="large heroBtn">Adopt a shark<span class="button-icon" aria-hidden="true"></button>
             </a>
             <br>
             <br>
