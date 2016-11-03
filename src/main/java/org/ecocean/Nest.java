@@ -29,8 +29,8 @@ public class Nest implements java.io.Serializable {
 
 
 
-  private User owner;
-  private List<User> contributors;
+  //private User owner;
+  //private List<User> contributors;
 
   /**
    * empty constructor required by the JDO Enhancer
@@ -59,6 +59,7 @@ public class Nest implements java.io.Serializable {
     this.name = name;
   }
 
+  /*
   public User getOwner() {
     return owner;
   }
@@ -79,6 +80,7 @@ public class Nest implements java.io.Serializable {
   public void removeContributor(User contributor) {
     this.contributors.remove(contributor);
   }
+  */
 
 
 
