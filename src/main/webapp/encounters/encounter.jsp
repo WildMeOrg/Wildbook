@@ -2229,6 +2229,7 @@ $("a#taxon").click(function() {
             <select name="livingStatus" id="livingStatus">
         <option value="alive" selected><%=encprops.getProperty("alive")%></option>
         <option value="dead"><%=encprops.getProperty("dead")%></option>
+        <option value="unknown">unknown</option>
       </select> <input name="encounter" type="hidden" value="<%=num%>" id="number" />
         <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("resetStatus")%>" />
       </form>
