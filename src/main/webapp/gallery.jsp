@@ -12,7 +12,7 @@
               org.datanucleus.api.rest.orgjson.JSONArray,
               org.joda.time.DateTime,
               java.util.Collection,
-              javax.jdo.*;
+              javax.jdo.*
               "
 %>
 
@@ -114,13 +114,13 @@ if(request.getParameter("adoptableSharks")!=null){
 }
 else{
 	String order ="nickName ASC NULLS LAST";
-	
+
 	request.setAttribute("rangeStart", startNum);
 	request.setAttribute("rangeEnd", endNum);
 	MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
-	
+
 	rIndividuals = result.getResult();
-	
+
 	//handle any null errors better
 	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
@@ -297,6 +297,8 @@ int numDataContributors=0;
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberLocations"><%=props.getProperty("mostTraveled") %></a></button>
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
+
+    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true">Adoptable Sharks</a></button>
 
   </div>
 </nav>
