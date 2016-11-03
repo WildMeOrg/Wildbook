@@ -116,10 +116,10 @@ context=ServletUtilities.getContext(request);
 %>
 
 <h3>Adoption Profile</h3>
-	<form id="adoption-form" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
+	<form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 	<div class="input-group">
 	  <span class="input-group-addon">Shark ID</span>
-	  <input class=" input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
+	  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
 	    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
 	      }
 	    %>
@@ -210,11 +210,20 @@ context=ServletUtilities.getContext(request);
 		// and re-submit
 		 $form.get(0).submit();
 		}
-		if (<%= request.getAttribute("paidStatus") %>) {
-		$("#payment-form").hide();
-		$("#adoption-form").show();
-		}
 	};
+
+	function formSwitcher() {
+		var sharky = "";
+		if (<%=request.getParameter("number") != null %>) {
+			sharky = <%=request.getParameter("number")%>;
+		}
+		if (<%= request.getAttribute("paidStatus") != null %>) {
+			$("#payment-form").hide();
+			$("#adoption-form").show();
+		}
+		$("#sharkId").val(sharky);
+	}
+	formSwitcher();
 
 	jQuery(function($) {
 		$('#payment-form').submit(function(e) {
@@ -228,6 +237,7 @@ context=ServletUtilities.getContext(request);
 
 		 Stripe.card.createToken($form, stripeResponseHandler);
 
+		 formSwitcher();
 		 // Prevent the form from submitting with the default action
 		 return false;
 		});
