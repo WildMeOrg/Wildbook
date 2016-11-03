@@ -83,7 +83,35 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 //get encounter number
-String num = request.getParameter("number").replaceAll("\\+", "").trim();
+
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("encounter.jsp1");
+
+String num = request.getParameter("number");
+
+if (num != null) {
+  num = num.replaceAll("\\+", "").trim();
+} else {
+  System.out.println("No Num!!");
+}
+
+
+String freshWithSheetName = request.getParameter("freshWithSheet");
+boolean isFreshWithSheet = (freshWithSheetName!=null);
+if (isFreshWithSheet) {
+  Encounter fresh = new Encounter(context, freshWithSheetName, myShepherd);
+  fresh.addConfigDataSheet(context, freshWithSheetName, myShepherd);
+  System.out.println("!!");
+  System.out.println("isFreshWithSheetName: "+freshWithSheetName);
+  myShepherd.storeNewEncounter(fresh);
+  num = fresh.getCatalogNumber();
+  System.out.println("num = "+num);
+  System.out.println("!!");
+
+}
+
+
+
 
 //let's set up references to our file system components
 String rootWebappPath = getServletContext().getRealPath("/");
@@ -128,8 +156,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
   pageContext.setAttribute("num", num);
 
 
-  Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounter.jsp1");
   //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);

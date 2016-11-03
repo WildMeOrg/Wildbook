@@ -309,9 +309,9 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                       <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Record a Data Sheet<span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newMortalitySheet=true">Mortality</a></li>
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newTaggingSheet=true">Tagging</a></li>
-                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?newTrackcountsSheet=true">Track Counts</a></li>
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=mortality">Mortality</a></li>
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=tagging">Tagging</a></li>
+                          <li><a  href="<%=urlLoc %>/encounters/encounter.jsp?freshWithSheet=trackcounts">Track Counts</a></li>
 
                           <!--
                           <li class="dropdown"><a href="<%=urlLoc %>/overview.jsp"><%=props.getProperty("aboutYourProject")%></a></li>

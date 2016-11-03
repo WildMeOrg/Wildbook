@@ -287,13 +287,15 @@ public class Encounter implements java.io.Serializable {
   }
 
   // for IOT submissions
-  public Encounter(String dataSheetName, String context) {
+  public Encounter(String dataSheetName, String context, Shepherd myShepherd) throws IOException {
     this.catalogNumber = Util.generateUUID();
     this.annotations = new ArrayList<Annotation>();
 
     this.setDWCDateAdded();
     this.setDWCDateLastModified();
     this.resetDateInMilliseconds();
+
+    //this.addConfigDataSheet(context, dataSheetName, myShepherd);
 
   }
 
@@ -377,6 +379,7 @@ public class Encounter implements java.io.Serializable {
 
    public int getEggCount(int sheetNo) {
      DataSheet ds = getDataSheet(sheetNo);
+     if (ds.size()==0) return 0;
      DataPoint lastDP = ds.get(ds.size()-1);
      String lastName = lastDP.getName();
      System.out.println("   lastName = "+lastName);
@@ -2289,7 +2292,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
-        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();
