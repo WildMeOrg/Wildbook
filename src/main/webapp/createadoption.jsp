@@ -179,6 +179,11 @@ context=ServletUtilities.getContext(request);
 		  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
 		  </textarea>
 		</div>
+		<div class="input-group">
+			<span class="input-group-addon">How'd you hear about whaleshark.org?</span>
+			<textarea name="notes" id="notes"><%=notes%>
+			</textarea>
+		</div>
 		<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
 		  <%
 		    if (acceptedPayment) {
