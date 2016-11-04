@@ -75,119 +75,142 @@ context=ServletUtilities.getContext(request);
   </section>
 
 <%-- BEGIN STRIPE FORM --%>
-<h3>Financial Information</h3>
+<div class="form-header">
+	<img src="cust/mantamatcher/img/creditcard.jpeg" alt="credit card" />
+	<h2>Financial Information</h2>
+</div>
 <form action="StripePayment" method="POST" id="payment-form" lang="en">
-  <span class="payment-errors"></span>
-	<div class="input-group">
-		<span class="input-group-addon">Adoption Type</span>
-		<select id='planName' class="input-l-width" name="planName">
-			<option  value="none" selected="selected">No Subscription</option>
-			<option value="individual">Individual $5/Month</option>
-			<option value="group">Group adoption - $20/Month</option>
-			<option value="corporate">Corporate adoption - $120/Month</option>
-	</select>
+	<div class="input-col-1">
+		<span class="payment-errors"></span>
+		<div class="input-group">
+			<span class="input-group-addon">Adoption Type</span>
+			<select id='planName' class="input-l-width" name="planName">
+				<option  value="none" selected="selected">No Subscription</option>
+				<option value="individual">Individual $5/Month</option>
+				<option value="group">Group adoption - $20/Month</option>
+				<option value="corporate">Corporate adoption - $120/Month</option>
+		</select>
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Custom Amount</span>
+			<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Name On Card</span>
+			<input type="text" class="input-l-width" name="nameOnCard">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Card Number</span>
+		  <input type="text" class="input-l-width" data-stripe="number">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Expiration</span>
+		  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
+		  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
+		</div>
 	</div>
-	<div class="input-group">
-		<span class="input-group-addon">Custom Amount</span>
-		<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
-	</div>
-	<div class="input-group">
-		<span class="input-group-addon">Name On Card</span>
-		<input type="text" class="input-l-width" name="nameOnCard">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Card Number</span>
-	  <input type="text" class="input-l-width" data-stripe="number">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Expiration</span>
-	  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
-	  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">CVC</span>
-	  <input type="text" class="input-s-width" data-stripe="cvc">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Billing Zip</span>
-	  <input type="text" class="input-m-width" data-stripe="address_zip">
-	</div>
-	<div class="input-group">
-		<span class="input-group-addon">Billing Email</span>
-		<input type="text" class="input-l-width" name="email">
-	</div>
+<<<<<<< HEAD
 
 	<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
 	<input id="selectedShark" type="hidden" name="selectedShark" value="">
 
   <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
+=======
+  <div class="input-col-2">
+		<div class="input-group">
+		  <span class="input-group-addon">CVC</span>
+		  <input type="text" class="input-s-width" data-stripe="cvc">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Billing Zip</span>
+		  <input type="text" class="input-m-width" data-stripe="address_zip">
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Billing Email</span>
+			<input type="text" class="input-l-width" name="email">
+		</div>
+	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
+  </div>
+>>>>>>> 18d97d77c01637aaf0b862e13066734983a09ce8
 </form>
 <hr>
 <%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
 
 
-<h3>Adoption Profile</h3>
+<div class="form-header">
+	<img src="cust/mantamatcher/img/dive-helmet.jpeg" alt="dive helmet" />
+	<h2>Adoption Profile</h2>
+</div>
 	<form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
-	<div class="input-group">
-	  <span class="input-group-addon">Shark ID</span>
-	  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
-	    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
-	      }
-	    %>
+		<div class="input-col-1">
+			<div class="input-group">
+			  <span class="input-group-addon">Shark ID</span>
+			  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=shark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
+			    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
+			      }
+			    %>
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Adoption Starts</span>
+			  <input class=" input-m-width" id="adoptionStartDate" name="adoptionStartDate" type="text" value="<%=adoptionStartDate%>">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Adoption Ends</span>
+			  <input class=" input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Adopter Name</span>
+			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Adopter Email</span>
+			  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Address</span>
+			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Profile Photo</span>
+			  <%
+			  String adopterImageString="";
+			  if(adopterImage!=null){
+			    adopterImageString=adopterImage;
+			  }
+			  %>
+			  <input class="disabled-input input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+			  <%
+			  if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+			  %>
+			    <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+			    <%
+			      }
+			    %>
+			</div>
+		</div>
+	<div class="input-col-2">
+		<div class="input-group">
+		  <span class="input-group-addon">Quote</span>
+		  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
+		  </textarea>
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">How'd you hear about whaleshark.org?</span>
+			<textarea name="notes" id="notes"><%=notes%>
+			</textarea>
+		</div>
+		<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
+		  <%
+		    if (acceptedPayment) {
+		  %>
+		    <button class="large" type="submit" name="Submit" value="Submit"><span class="button-icon" aria-hidden="true">Finish Adoption</span></button>
+		  <%
+		    }
+		  %>
+		<%
+		  if (acceptedPayment) {
+		%>
 	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Adoption Starts</span>
-	  <input class=" input-m-width" id="adoptionStartDate" name="adoptionStartDate" type="text" value="<%=adoptionStartDate%>">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Adoption Ends</span>
-	  <input class=" input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Adopter Name</span>
-	  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Adopter Email</span>
-	  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Address</span>
-	  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Profile Photo</span>
-	  <%
-	  String adopterImageString="";
-	  if(adopterImage!=null){
-	    adopterImageString=adopterImage;
-	  }
-	  %>
-	  <input class="disabled-input input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
-	  <%
-	  if ((adopterImage != null) && (!adopterImageString.equals(""))) {
-	  %>
-	    <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
-	    <%
-	      }
-	    %>
-	</div>
-	<div class="input-group">
-	  <span class="input-group-addon">Quote</span>
-	  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
-	  </textarea>
-	</div>
-	<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
-	  <%
-	    if (acceptedPayment) {
-	  %>
-	    <button class="large" type="submit" name="Submit" value="Submit"><span class="button-icon" aria-hidden="true">Finish Adoption</span></button>
-	  <%
-	    }
-	  %>
-	<%
-	  if (acceptedPayment) {
-	%>
 </form>
 <%
 }
