@@ -1,0 +1,60 @@
+section.centered{
+  margin: 0 auto;
+  text-align: center;
+}
+
+.form-header{
+  width: 100%;
+  margin: 10rem auto 6rem auto;
+  text-align: center;
+  img{
+    width: 6rem;
+  }
+  h2{
+    margin-top: 1rem;
+  }
+}
+
+#payment-form, #adoption-form{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  .input-col-1, .input-col-2{
+    width: 47rem;
+  }
+  .form-header{
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+    img{
+      width: 6rem;
+    }
+    h2{
+      margin-top: 1rem;
+    }
+  }
+
+  .input-s-width{
+    width: 10rem;
+  }
+  .input-m-width{
+    width: 20rem;
+  }
+  .input-l-width{
+    width: 30rem;
+  }
+  .input-group{
+    width: 20%;
+    margin-bottom: 4rem;
+    @media screen and (min-width: 750px){
+      margin-bottom: 1rem;
+    }
+  }
+}
+
+#adoption-form{
+  textarea{
+    height: 20rem;
+    width: 30rem;
+  }
+}
