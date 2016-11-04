@@ -37,6 +37,7 @@ public class StripePayment extends HttpServlet {
     String planName = request.getParameter("planName");
     String queryShark = request.getParameter("selectedShark");
 
+    HttpSession session = request.getSession();                              
     Boolean paidStatus = false;
 
     String chargeId = "";
