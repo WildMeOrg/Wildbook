@@ -25,6 +25,17 @@ context=ServletUtilities.getContext(request);
 	myShepherd.setAction("createadoption.jsp");
 	myShepherd.beginDBTransaction();
 
+	String shark = "";
+	if (request.getParameter("number") != null) {
+		shark = request.getParameter("number");
+	}
+	
+	// Necessary to persist your selected shark across multiple form submissions.
+	// Payment status is also stored in session, but in servlet for security.
+	if (request.getParameter("number") != null) {
+		session.setAttribute( "queryShark", request.getParameter("number") );
+	}
+
 	int count = myShepherd.getNumAdoptions();
 	int allSharks = myShepherd.getNumMarkedIndividuals();
 	int countAdoptable = allSharks - count;
@@ -33,21 +44,22 @@ context=ServletUtilities.getContext(request);
 	boolean isOwner = true;
 	boolean acceptedPayment = true;
 
-	  String id = "";
-	  String adopterName = "";
-	  String adopterAddress = "";
-	  String adopterEmail = "";
-	  String adopterImage="";
-	  String adoptionStartDate = "";
-	  String adoptionEndDate = "";
-	  String adopterQuote = "";
-	  String adoptionManager = "";
-	  String sharkForm = "";
-	  String encounterForm = "";
-	  String notes = "";
-	  String adoptionType = "";
+  String id = "";
+  String adopterName = "";
+  String adopterAddress = "";
+  String adopterEmail = "";
+  String adopterImage="";
+  String adoptionStartDate = "";
+  String adoptionEndDate = "";
+  String adopterQuote = "";
+  String adoptionManager = "";
+  String sharkForm = "";
+  String encounterForm = "";
+  String notes = "";
+  String adoptionType = "";
 
-	  String servletURL = "../AdoptionAction";
+	String servletURL = "../AdoptionAction";
+
 %>
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -55,6 +67,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
+		<h3>Session Data:<%= session.getAttribute("queryShark") %></h3>
     <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
     <p>
       Below, you will be able to enter financial informartion, choose your shark, and create your profile.
@@ -115,12 +128,6 @@ context=ServletUtilities.getContext(request);
 <hr>
 <%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
 
-<%
-  String shark = "";
-  if (request.getParameter("number") != null) {
-    shark = request.getParameter("number");
-  }
-%>
 
 <div class="form-header">
 	<img src="cust/mantamatcher/img/dive-helmet.jpeg" alt="dive helmet" />
@@ -179,6 +186,11 @@ context=ServletUtilities.getContext(request);
 		  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
 		  </textarea>
 		</div>
+		<div class="input-group">
+			<span class="input-group-addon">How'd you hear about whaleshark.org?</span>
+			<textarea name="notes" id="notes"><%=notes%>
+			</textarea>
+		</div>
 		<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
 		  <%
 		    if (acceptedPayment) {
@@ -203,8 +215,8 @@ context=ServletUtilities.getContext(request);
 
 <jsp:include page="footer.jsp" flush="true" />
 
+<!-- Javascript Section -->
 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
-<!-- New section -->
 <script type="text/javascript">
 	// Publishable Key
 	Stripe.setPublishableKey('pk_test_yiqozX1BvmUhmcFwoFioHcff');
@@ -227,15 +239,11 @@ context=ServletUtilities.getContext(request);
 	};
 
 	function formSwitcher() {
-		var sharky = "";
-		if (<%=request.getParameter("number") != null %>) {
-			sharky = <%=request.getParameter("number")%>;
-		}
+
 		if (<%= request.getAttribute("paidStatus") != null %>) {
 			$("#payment-form").hide();
 			$("#adoption-form").show();
 		}
-		$("#sharkId").val(sharky);
 	}
 	formSwitcher();
 
@@ -245,7 +253,6 @@ context=ServletUtilities.getContext(request);
 
 		 // Disable the submit button to prevent repeated clicks
 		 /*$form.find('button').prop('disabled', true);*/
-
 		 // Enable input fields for building profile
 			/*$(".disabled-input").prop('disabled', false);*/
 

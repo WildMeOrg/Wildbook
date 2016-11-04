@@ -35,6 +35,7 @@ public class StripePayment extends HttpServlet {
     String name = request.getParameter("nameOnCard");
     String email = request.getParameter("email");
     String planName = request.getParameter("planName");
+    String queryShark = request.getParameter("selectedShark");
 
     Boolean paidStatus = false;
 
@@ -51,7 +52,7 @@ public class StripePayment extends HttpServlet {
         cardMap.put("description", "Whaleshark.org one time donation.");
 
         Map<String, String> initialMetadata = new HashMap<String, String>();
-        initialMetadata.put("order_id", "6735");
+        // initialMetadata.put("order_id", "6735");
         initialMetadata.put("name", name);
         initialMetadata.put("email", email);
 
@@ -63,6 +64,7 @@ public class StripePayment extends HttpServlet {
 
         if (charge.getPaid().equals(true)) {
           request.setAttribute("paidStatus", true);
+          session.setAttribute("paid", true);
         }
 
         System.out.println(charge);
@@ -84,6 +86,7 @@ public class StripePayment extends HttpServlet {
         Customer customer = Customer.create(subscriberParams);
         if ( customer.getSubscriptions().getTotalCount() > 0 ) {
           request.setAttribute("paidStatus", true);
+          session.setAttribute("paid", true);
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
@@ -93,7 +96,8 @@ public class StripePayment extends HttpServlet {
     }
     try {
       System.out.println("Redirect success!");
-      getServletContext().getRequestDispatcher("/createadoption.jsp").forward(request, response);
+      System.out.println("Show me da sharky:" + queryShark);
+      getServletContext().getRequestDispatcher("/createadoption.jsp" + queryShark).forward(request, response);
     } catch (IOException ie) {
       System.out.println("Donation failed on redirect... IO exception.");
     } catch (ServletException e) {
