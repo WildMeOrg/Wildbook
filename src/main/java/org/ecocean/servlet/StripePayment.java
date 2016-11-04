@@ -35,9 +35,12 @@ public class StripePayment extends HttpServlet {
     String name = request.getParameter("nameOnCard");
     String email = request.getParameter("email");
     String planName = request.getParameter("planName");
-    String queryShark = request.getParameter("selectedShark");
+
+    HttpSession session = request.getSession();
+    String queryShark = session.getAttribute("queryShark");
 
     Boolean paidStatus = false;
+    Boolean hasNickname = false;
 
     String chargeId = "";
     String customerId = "";
@@ -94,6 +97,7 @@ public class StripePayment extends HttpServlet {
         System.out.println("Token: " + token );
       }
     }
+
     try {
       System.out.println("Redirect success!");
       System.out.println("Show me da sharky:" + queryShark);
