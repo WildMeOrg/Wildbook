@@ -1,7 +1,7 @@
 button, html input[type="button"],
 input[type="reset"],
 input[type="submit"] {
-  background-color: @brand-dark;
+  background-color: @whaleSharkblue;
 	border: 0;
 	color: @mainColor;
 	line-height: 2em;
@@ -10,7 +10,7 @@ input[type="submit"] {
 	vertical-align: middle;
 	margin-right: 10px;
 	margin-top: 15px;
-	}
+}
 
 button.large, html input[type="button"].large,
 input[type="reset"].large,
@@ -27,7 +27,6 @@ input[type="reset"].contrast,
 input[type="submit"].contrast { background-color: @brand-contrast; }
 
 button.adopt {
-	color:@brand-dark;
 	margin-top:0;
 	text-align:center;
 	padding:0 10px;
@@ -57,7 +56,19 @@ margin-left: 10px;
 padding: 0 5px;
 vertical-align: middle;
 display: inline-block;
-background: url(../img/icon_arrow_right_grey.svg) no-repeat center center;
+background: url(../img/icon_arrow_right_white.svg) no-repeat center center;
 background-size: 50%;
-background-color: @brand-contrast;
+border-left: 1px solid white;
+background-color: @whaleSharkblue;
+}
+
+.heroBtn{
+  background-color: white;
+  color: @h1Colour;
+  .button-icon{
+    border-left: 1px solid @h1Colour;
+    background: url(../img/icon_arrow_right_blue.svg) no-repeat center center;
+    background-size: 50%;
+
+  }
 }

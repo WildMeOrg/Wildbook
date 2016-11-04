@@ -7643,12 +7643,13 @@ label {
 /* light gray */
 /* light blue */
 /*dark blue*/
+/*same colour as logo*/
 /* color theme - contains variables */
 button,
 html input[type="button"],
 input[type="reset"],
 input[type="submit"] {
-  background-color: #333333;
+  background-color: #5d8cc1;
   border: 0;
   color: #ffffff;
   line-height: 2em;
@@ -7675,7 +7676,6 @@ input[type="submit"].contrast {
   background-color: #8bff00;
 }
 button.adopt {
-  color: #333333;
   margin-top: 0;
   text-align: center;
   padding: 0 10px;
@@ -7700,9 +7700,19 @@ input[type="submit"].light {
   padding: 0 5px;
   vertical-align: middle;
   display: inline-block;
-  background: url(../img/icon_arrow_right_grey.svg) no-repeat center center;
+  background: url(../img/icon_arrow_right_white.svg) no-repeat center center;
   background-size: 50%;
-  background-color: #8bff00;
+  border-left: 1px solid white;
+  background-color: #5d8cc1;
+}
+.heroBtn {
+  background-color: white;
+  color: #005589;
+}
+.heroBtn .button-icon {
+  border-left: 1px solid #005589;
+  background: url(../img/icon_arrow_right_blue.svg) no-repeat center center;
+  background-size: 50%;
 }
 .main-section {
   padding-top: 50px;
@@ -8667,5 +8677,30 @@ div.state-approved span.state {
 @media screen and (min-width: 600px) {
   .adopters-featured .adopter {
     width: 24%;
+  }
+}
+section.centered {
+  margin: 0 auto;
+  text-align: center;
+}
+.input-s-width {
+  width: 10rem;
+}
+.input-m-width {
+  width: 20rem;
+}
+.input-l-width {
+  width: 30rem;
+}
+.input-group {
+  margin-bottom: 4rem;
+}
+textarea {
+  height: 20rem;
+  width: 30rem;
+}
+@media screen and (min-width: 750px) {
+  .input-group {
+    margin-bottom: 1rem;
   }
 }
