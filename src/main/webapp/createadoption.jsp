@@ -138,11 +138,21 @@ catch (Exception e) {
 		<span class="input-group-addon">Billing Email</span>
 		<input type="text" class="input-l-width" name="email">
 	</div>
-
-	<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
-	<input id="selectedShark" type="hidden" name="selectedShark" value="">
-
-  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
+  <div class="input-col-2">
+		<div class="input-group">
+		  <span class="input-group-addon">CVC</span>
+		  <input type="text" class="input-s-width" data-stripe="cvc">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Billing Zip</span>
+		  <input type="text" class="input-m-width" data-stripe="address_zip">
+		</div>
+		<div class="input-group">
+			<span class="input-group-addon">Billing Email</span>
+			<input type="text" class="input-l-width" name="email">
+		</div>
+	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
+  </div>
 </form>
 <hr>
 <%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
