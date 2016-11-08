@@ -199,9 +199,24 @@ context=ServletUtilities.getContext(request);
 	</div>
 	<div class="input-group">
 	  <span class="input-group-addon">Quote</span>
-	  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Creat a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
+	  <textarea class="" name="adopterQuote" id="adopterQuote" placeholder="Create a custom profile message (e.g. Why are research and conservation for this species important?)."><%=adopterQuote%>
 	  </textarea>
 	</div>
+
+	<%
+		if ((hasNickName == false )||(nick.equals(""))) {
+	%>
+	<h4>This shark doesn't have a nickname yet! Choose one you like.</h4>
+	<div class="input-group">
+		<span class="input-group-addon">Shark Nickname:</span>
+		<input class="input-l-width" type="text" name="newNickName" id="newNickName" value=""	 ></input>
+	</div>
+
+
+	<%
+		}
+	%>
+
 	<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
 	  <%
 	    if (acceptedPayment) {
