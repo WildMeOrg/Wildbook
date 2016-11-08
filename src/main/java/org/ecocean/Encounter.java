@@ -295,6 +295,13 @@ public class Encounter implements java.io.Serializable {
         this.resetDateInMilliseconds();
     }
 
+    public Encounter(Occurrence occ, String individualID) {
+      this.catalogNumber = Util.generateUUID();
+      this.occurrenceID = occ.getOccurrenceID();
+      this.individualID = individualID;
+    }
+
+
 
   /**
    * Returns an array of all of the superSpots for this encounter.
@@ -2200,7 +2207,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
-        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();
@@ -2327,6 +2334,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
 
     public void setOccurrenceID(String vet) {
       if(vet!=null){this.occurrenceID = vet;}
+
       else{this.occurrenceID=null;}
   }
 
