@@ -33,11 +33,9 @@ import java.io.*;
 
 public class DeleteAdoption extends HttpServlet {
 
-
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
-
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -54,7 +52,10 @@ public class DeleteAdoption extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
+
     String number = request.getParameter("number");
+    String customerID = request.getParameter("customerID");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -62,7 +63,13 @@ public class DeleteAdoption extends HttpServlet {
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
-    
+
+    try {
+      Customer.retrieve(customerID);
+    } catch (Exception e) {
+
+    }
+
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(number))) {
 
@@ -73,8 +80,8 @@ public class DeleteAdoption extends HttpServlet {
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
         File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
         if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
-        
-        
+
+
         File serializedBackup = new File(thisAdoptionDir, savedFilename);
         FileOutputStream fout = new FileOutputStream(serializedBackup);
         ObjectOutputStream oos = new ObjectOutputStream(fout);
@@ -101,7 +108,7 @@ public class DeleteAdoption extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-      } 
+      }
       else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -125,5 +132,3 @@ public class DeleteAdoption extends HttpServlet {
 
 
 }
-	
-	
