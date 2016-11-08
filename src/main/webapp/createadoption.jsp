@@ -22,7 +22,7 @@ context=ServletUtilities.getContext(request);
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
 	Shepherd myShepherd = new Shepherd(context);
-	myShepherd.setAction("createadoption.jsp");
+	myShepherd.setAction	("createadoption.jsp");
 	myShepherd.beginDBTransaction();
 
 	String shark = "";
@@ -31,7 +31,7 @@ context=ServletUtilities.getContext(request);
 	}
 
 	// Necessary to persist your selected shark across multiple form submissions.
-	// Payment status is also stored in session, but in servlet for security.
+	// Payment status is also stored in session.
 	if (request.getParameter("number") != null) {
 		session.setAttribute( "queryShark", request.getParameter("number") );
 	}
@@ -39,24 +39,25 @@ context=ServletUtilities.getContext(request);
 	if (session.getAttribute( "queryShark") != null) {
 		sessionShark =(String)session.getAttribute( "queryShark");
 	}
-	boolean sessionPaid = false;
+	Boolean sessionPaid = false;
 	if (session.getAttribute( "paid") != null) {
-		sessionPaid =(boolean)session.getAttribute( "paid");
+		sessionPaid =(Boolean)session.getAttribute( "paid");
 	}
 
-boolean hasNickName = true;
-try {
-	if (sessionShark != null) {
-		MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
-		if (mi.getNickName() == "Unassigned") {
-			hasNickName = false;
+	boolean hasNickName = true;
+	String nick = "";
+	try {
+		if (sessionShark != null) {
+			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
+			nick = mi.getNickName();
+			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
+				hasNickName = false;
+			}
 		}
+	} catch (Exception e) {
+		System.out.println("Error looking up nickname!!");
+		e.printStackTrace();
 	}
-}
-catch (Exception e) {
-	System.out.println("Error looking up nickname!!");
-	e.printStackTrace();
-}
 
 
 	int count = myShepherd.getNumAdoptions();
@@ -89,10 +90,10 @@ catch (Exception e) {
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-		<h3>Session Data:<%= session.getAttribute("queryShark") %><%= session.getAttribute("paid") %><%= hasNickName %></h3>
+		<h3>Query Shark: <%= session.getAttribute("queryShark") %> Paid Status: <%= sessionPaid %> Has Nickname?: <%= hasNickName %> NickName: <%= nick %></h3>
     <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
     <p>
-      Below, you will be able to enter financial informartion, choose your shark, and create your profile.
+      Below, you will be able to enter financial information, choose your shark, and create your profile.
     </p>
   </section>
 
@@ -138,21 +139,11 @@ catch (Exception e) {
 		<span class="input-group-addon">Billing Email</span>
 		<input type="text" class="input-l-width" name="email">
 	</div>
-  <div class="input-col-2">
-		<div class="input-group">
-		  <span class="input-group-addon">CVC</span>
-		  <input type="text" class="input-s-width" data-stripe="cvc">
-		</div>
-		<div class="input-group">
-		  <span class="input-group-addon">Billing Zip</span>
-		  <input type="text" class="input-m-width" data-stripe="address_zip">
-		</div>
-		<div class="input-group">
-			<span class="input-group-addon">Billing Email</span>
-			<input type="text" class="input-l-width" name="email">
-		</div>
-	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
-  </div>
+
+	<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
+	<input id="selectedShark" type="hidden" name="selectedShark" value="">
+
+  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 </form>
 <hr>
 <%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
