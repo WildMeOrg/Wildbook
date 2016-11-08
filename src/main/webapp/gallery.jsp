@@ -494,7 +494,7 @@ int numDataContributors=0;
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
 		                <li>
-                      <button class="large"><a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>">Adopt Me</a></button>
+                      <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large">Adopt Me</button></a>
                     </li>
                   </ul>
                 </td>
