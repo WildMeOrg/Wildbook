@@ -97,10 +97,15 @@ public class StripePayment extends HttpServlet {
       }
     }
 
+    String newQuery = "";
+    if ((!queryShark.equals(null))&&(!queryShark.equals("")) {
+      newQuery = "?number=" + queryShark;
+    }
+
     try {
       System.out.println("Redirect success!");
       System.out.println("Show me da sharky:" + queryShark);
-      getServletContext().getRequestDispatcher("/createadoption.jsp" + queryShark).forward(request, response);
+      getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
     } catch (IOException ie) {
       System.out.println("Donation failed on redirect... IO exception.");
     } catch (ServletException e) {
