@@ -40,7 +40,6 @@ public class StripePayment extends HttpServlet {
     String queryShark = (String)session.getAttribute("queryShark");
 
     Boolean paidStatus = false;
-    Boolean hasNickname = false;
 
     String chargeId = "";
     String customerId = "";
