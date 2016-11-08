@@ -124,7 +124,7 @@ context=ServletUtilities.getContext(request);
             us.</p>
 
           <p><label>View your adopted shark:</label><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals/individual.jsp?number=<%=markedIndividual%>">
+            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
             <h3><%=markedIndividual%></h3>
           </a>.</p>
           <p><a
