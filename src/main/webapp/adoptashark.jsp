@@ -25,7 +25,7 @@ context=ServletUtilities.getContext(request);
 			raised by shark adoptions are used to offset the costs of maintaining this global library and
 			to support new and existing research projects for the world's most mysterious fish.
 		</p>
-		<a href="createadoption.jsp"><button type="button" name="make adoption" class="large">Make Adoption<span class="button-icon" aria-hidden="true"></button></a>
+		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></button></a>
 	</section>
 	<section id="custom-donation-image">
 		<a href="createadoption.jsp"><img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" /></a>
