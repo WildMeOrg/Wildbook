@@ -84,6 +84,8 @@ ImportExcel extends HttpServlet {
     out.println("<p>Num Cols = "+cols+"</p>");
     Occurrence occ = null;
 
+    int printPeriod = 20;
+
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>BEGINNING THE EXCEL LOOP</h2>");
     for (int i=1; i<rows; i++) {
@@ -91,27 +93,39 @@ ImportExcel extends HttpServlet {
         if (committing) myShepherd.beginDBTransaction();
         row = sheet.getRow(i);
 
-        occ = getCurrentOccurrence(occ, row);
-        out.println("row "+i+": "+occ.getComments());
+        occ = getCurrentOccurrence(occ, row, out);
+        if (i%printPeriod==0)  out.println("row "+i+": "+occ.getComments());
 
         Encounter enc = parseEncounter(row, occ);
-
         String indID = enc.getIndividualID();
-        if (indID==null) continue;
-        MarkedIndividual ind = myShepherd.getMarkedIndividual(indID);
+        MarkedIndividual ind = null;
         boolean needToAddEncToInd = false;
-        if (ind==null) {
-          ind = new MarkedIndividual(indID,enc);
-        } else {
-          needToAddEncToInd = true;
+        if (indID!=null) {
+          ind = myShepherd.getMarkedIndividual(indID);
+          if (ind==null) {
+            ind = new MarkedIndividual(indID,enc);
+          } else {
+            needToAddEncToInd = true;
+          }
+
         }
+        // TODO
+
+
+
         if (committing) myShepherd.storeNewEncounter(enc, Util.generateUUID());
         occ.addEncounter(enc);
         if (needToAddEncToInd) ind.addEncounter(enc, context);
-        if (committing && !myShepherd.isMarkedIndividual(indID)) myShepherd.storeNewMarkedIndividual(ind);
+        if (committing && indID!=null  && !myShepherd.isMarkedIndividual(indID)) myShepherd.storeNewMarkedIndividual(ind);
         if (committing) myShepherd.commitDBTransaction();
-        if (i%10==0) {
-          out.println("<p>Parsed row ("+i+"), containing Enc "+enc.getEncounterNumber()+"</p>");
+        if (i%printPeriod==0) {
+          out.println("Parsed row ("+i+"), containing Enc "+enc.getEncounterNumber()+" with country   "+enc.getCountry()
+          +", dateInMillis "+enc.getDateInMilliseconds()
+          +", individualID "+enc.getIndividualID()
+          +", sex "+enc.getSex()
+          +", lifeStage "+enc.getLifeStage()
+          +", and dynamic properties "+enc.getDynamicProperties()
+          );
         }
       }
       catch (Exception e) {
@@ -127,23 +141,23 @@ ImportExcel extends HttpServlet {
 
   // check if oldOcc is the same occurrence as the occurrence on this row
   // if so, return oldOcc. If not, return parseOccurrence(row)
-  public Occurrence getCurrentOccurrence(Occurrence oldOcc, HSSFRow row) {
+  public Occurrence getCurrentOccurrence(Occurrence oldOcc, HSSFRow row, PrintWriter out) {
     if (isOccurrenceOnRow(oldOcc, row)) return oldOcc;
     return parseOccurrence(row);
   }
 
   public boolean isOccurrenceOnRow(Occurrence occ, HSSFRow row) {
     if (occ!=null && !occ.getComments().equals("None")) {
-      return (occ.getComments().equals(makeOccurrenceComment(row)));
+      boolean res = occ.getComments().equals(makeOccurrenceComment(row));
     }
     return false;
   }
 
   public String makeOccurrenceComment(HSSFRow row) {
     // just want a deterministic string
-    String encDate = getString(row, 7);
-    String coordX  = getString(row, 3);
-    String coordY  = getString(row, 4);
+    DateTime encDate = getDateTime(row, 7);
+    Integer coordX  = getInteger(row, 3);
+    Integer coordY  = getInteger(row, 4);
     String individuals = getString(row, 8);
     return (encDate+": "+"("+coordX+", "+coordY+") "+individuals);
   }
@@ -163,9 +177,35 @@ ImportExcel extends HttpServlet {
   public Encounter parseEncounter(HSSFRow row, Occurrence occ) {
     String id = getString(row, 9);
     Encounter enc = new Encounter(occ, id);
+
+    enc.setCountry(getString(row,0));
+    enc.setLocationID(getString(row,1));
+    // col 2-4: coordinates in old system. TODO
+    // col 5-6: info re: camera trap. TODO
+
+    DateTime encDate = getDateTime(row, 7);
+    if (encDate!=null) enc.setDateInMilliseconds(encDate.getMillis());
+    // col 8 is parsed by the occurrence
+    enc.setIndividualID(getString(row, 9));
+    enc.setLifeStage(getStringOrIntString(row, 10));
+    enc.setSex(getString(row, 11));
+    // col 12: genealogi (mother) TODO
+    // col 13 photos per encounter TODO
+    parseDynProp(enc, "lure type", row, 14);
+    parseDynProp(enc, "camera type", row, 15);
+
     // enc.setAgeClass(getString(row,128));
     return enc;
   }
+
+  private void parseDynProp(Encounter enc, String name, HSSFRow row, int i) {
+    String val = getString(row, i);
+    if (val == null) return;
+    enc.setDynamicProperty(name, val);
+  }
+
+
+
 
   // following 'get' functions swallow errors
   public Integer getInteger(HSSFRow row, int i) {
@@ -180,12 +220,27 @@ ImportExcel extends HttpServlet {
   public String getString(HSSFRow row, int i) {
     try {
       String str = row.getCell(i).getStringCellValue();
-      if (str==null || str.equals("")) return null;
-      else return str;
+      if (str.equals("")) return null;
+      return str;
     }
     catch (Exception e) {}
     return null;
   }
+
+  public String getStringOrIntString(HSSFRow row, int i) {
+    try {
+      String str = row.getCell(i).getStringCellValue();
+      if (str.equals("")) return null;
+      return str;
+    }
+    catch (Exception e) { try {
+      return getInteger(row, i).toString();
+    }
+    catch (Exception e2) {} }
+
+    return null;
+  }
+
 
   public Boolean getBooleanFromString(HSSFRow row, int i) {
     try {
@@ -198,36 +253,19 @@ ImportExcel extends HttpServlet {
     return null;
   }
 
-  public DateTime getDateTime(HSSFRow row) {
-    int year = 0;
-    int month = 0;
-    int day = 0;
-    int hour = 0;
-    int minute = 0;
-    int second = 0;
+  public Date getDate(HSSFRow row, int i) {
     try {
-      Date dateWithTimeOnly = row.getCell(7).getDateCellValue();
-      hour = dateWithTimeOnly.getHours();
-      minute = dateWithTimeOnly.getMinutes();
-      second = dateWithTimeOnly.getSeconds();
+      Date date = row.getCell(i).getDateCellValue();
+      return date;
     }
     catch (Exception e) {}
-    /*try {
-      Date dateWithDateOnly = row.getCell(3).getDateCellValue();
-      year = dateWithDateOnly.getYear();
-      month = dateWithDateOnly.getMonth();
-      day = dateWithDateOnly.getDay();
-    }
-    catch (Exception e) {
-    */
-      try {
-        year = getInteger(row, 6).intValue();
-        month = getInteger(row, 5).intValue();
-        day = getInteger(row, 4).intValue();
-    }
-      catch (Exception ex) {}  /*
-    }*/
-    return new DateTime(year, month, day, hour, minute, second, DateTimeZone.forID("Africa/Nairobi"));
+    return null;
+  }
 
+
+  public DateTime getDateTime(HSSFRow row, int i) {
+    Date date = getDate(row, i);
+    if (date == null) return null;
+    return new DateTime(date);
   }
 }
