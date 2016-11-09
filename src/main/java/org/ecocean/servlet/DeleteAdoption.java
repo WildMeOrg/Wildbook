@@ -31,6 +31,11 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.Subscription;
+
 public class DeleteAdoption extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
@@ -64,15 +69,23 @@ public class DeleteAdoption extends HttpServlet {
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
 
-    try {
-      Customer.retrieve(customerID);
-    } catch (Exception e) {
-
-    }
 
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(number))) {
 
+      // This section attempts to delete stripe subscription.
+      if ((customerID != null)&&(customerID != "")) {
+        try {
+          Customer customer = Customer.retrieve(customerID);
+          Subscription subscription = customer.cancelSubscription();
+        } catch (StripeException se) {
+          System.out.println("External Stripe exception deleting subscription.");
+        } catch (Exception e) {
+          System.out.println("Internal exception deleting subscription.");
+        }
+      }
+
+      // This section deletes adoption from database.
       try {
         Adoption ad = myShepherd.getAdoptionDeepCopy(number);
 

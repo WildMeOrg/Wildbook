@@ -128,14 +128,9 @@ else{
 
 
 
-
-
-
-
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
-
 
 %>
 
@@ -305,6 +300,11 @@ int numDataContributors=0;
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
+
+  <% if (request.getParameter("adoptableSharks")!=null) { %>
+    
+
+  <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
