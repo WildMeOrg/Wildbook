@@ -31,13 +31,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 
-public class DeleteAdoption extends HttpServlet {
+import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Customer;
+import com.stripe.model.Subscription;
 
+public class DeleteAdoption extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
-
 
   public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
@@ -54,7 +57,10 @@ public class DeleteAdoption extends HttpServlet {
     PrintWriter out = response.getWriter();
     boolean locked = false;
 
+    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
+
     String number = request.getParameter("number");
+    String customerID = request.getParameter("customerID");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -62,10 +68,24 @@ public class DeleteAdoption extends HttpServlet {
     File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
     //if(!shepherdDataDir.exists()){shepherdDataDir.mkdirs();}
     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
-    
+
+
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(number))) {
 
+      // This section attempts to delete stripe subscription.
+      if ((customerID != null)&&(customerID != "")) {
+        try {
+          Customer customer = Customer.retrieve(customerID);
+          Subscription subscription = customer.cancelSubscription();
+        } catch (StripeException se) {
+          System.out.println("External Stripe exception deleting subscription.");
+        } catch (Exception e) {
+          System.out.println("Internal exception deleting subscription.");
+        }
+      }
+
+      // This section deletes adoption from database.
       try {
         Adoption ad = myShepherd.getAdoptionDeepCopy(number);
 
@@ -73,8 +93,8 @@ public class DeleteAdoption extends HttpServlet {
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
         File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
         if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
-        
-        
+
+
         File serializedBackup = new File(thisAdoptionDir, savedFilename);
         FileOutputStream fout = new FileOutputStream(serializedBackup);
         ObjectOutputStream oos = new ObjectOutputStream(fout);
@@ -101,7 +121,7 @@ public class DeleteAdoption extends HttpServlet {
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
-      } 
+      }
       else {
 
         out.println(ServletUtilities.getHeader(request));
@@ -125,5 +145,3 @@ public class DeleteAdoption extends HttpServlet {
 
 
 }
-	
-	

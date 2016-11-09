@@ -1,6 +1,6 @@
 package org.ecocean.servlet;
 
-import org.ecocean.CommonConfiguration;
+import org.ecocean.*;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -80,7 +80,7 @@ public class StripePayment extends HttpServlet {
       }
     } else {
       try {
-        Map<String, Object> subscriberParams = new HashMap<String, Object>();
+        Map<String, Object> subscriberParams = new HashMap<>();
         subscriberParams.put("source", token);
         subscriberParams.put("plan", planName);
         subscriberParams.put("email", email);
@@ -97,6 +97,17 @@ public class StripePayment extends HttpServlet {
       }
     }
 
+    try {
+      String context = "context0";
+      String langCode = "en";
+      String to = email;
+      String type = "adoptionConfirmation";
+      String text = "Adoption Confirmation";
+      NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
+    } catch (Exception e) {
+      System.out.println("Error in sending email confirmation of adoption.");
+    }
+
     String newQuery = "";
     if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
       newQuery = "?number=" + queryShark;
@@ -104,7 +115,6 @@ public class StripePayment extends HttpServlet {
 
     try {
       System.out.println("Redirect success!");
-      System.out.println("Show me da sharky:" + queryShark);
       getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
     } catch (IOException ie) {
       System.out.println("Donation failed on redirect... IO exception.");

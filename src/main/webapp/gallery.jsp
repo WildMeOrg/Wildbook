@@ -128,14 +128,9 @@ else{
 
 
 
-
-
-
-
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
-
 
 %>
 
@@ -305,6 +300,11 @@ int numDataContributors=0;
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
+
+  <% if (request.getParameter("adoptableSharks")!=null) { %>
+    
+
+  <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -494,7 +494,7 @@ int numDataContributors=0;
                       <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                     </li>
 		                <li>
-                      <button class="large"><a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>">Adopt Me</a></button>
+                      <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large">Adopt Me</button></a>
                     </li>
                   </ul>
                 </td>
