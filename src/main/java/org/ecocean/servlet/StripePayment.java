@@ -14,6 +14,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
 import com.stripe.model.Customer;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class StripePayment extends HttpServlet {
 
@@ -104,8 +105,12 @@ public class StripePayment extends HttpServlet {
       String type = "adoptionConfirmation";
       String text = "Adoption Confirmation";
       System.out.println("About to email new adopter.");
+      // Retrieve background service for processing emails
+      ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
       NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
-    } catch (Exception e) {
+      es.execute(mailer);
+    } 
+    catch (Exception e) {
       System.out.println("Error in sending email confirmation of adoption.");
     }
 
