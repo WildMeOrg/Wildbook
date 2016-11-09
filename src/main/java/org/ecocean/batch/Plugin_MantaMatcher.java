@@ -54,7 +54,9 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   /** Resources for internationalization. */
   private final ResourceBundle bundle;
   /** Collection of media files to process with mmprocess. */
-  private final List<SinglePhotoVideo> list = new ArrayList<SinglePhotoVideo>();
+  private final List<SinglePhotoVideo> list = new ArrayList<>();
+  /** Collection of media files to remove due to problems. */
+  private final List<SinglePhotoVideo> problems = new ArrayList<>();
 
   public Plugin_MantaMatcher(Shepherd shepherd, List<MarkedIndividual> listInd, List<Encounter> listEnc, List<String> errors, List<String> warnings, Locale loc) {
     super(shepherd, listInd, listEnc, errors, warnings, loc);
@@ -69,20 +71,34 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
   @Override
   void preProcess() {
     // Process all images to find MantaMatcher CR images.
-    List<File> done = new ArrayList<File>();
+    List<File> done = new ArrayList<>();
+    Set<File> files = new HashSet<>();
+    for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
+      files.add(spv.getFile());
+    }
     for (SinglePhotoVideo spv : getMapPhoto().keySet()) {
       File f = spv.getFile();
       Matcher m = REGEX_CR.matcher(f.getName());
       if (m.matches()) {
         getMapPhoto().get(spv).setPersist(false);
         if (done.contains(f)) {
-          String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicateFile"), f.getName());
+          String msg = MessageFormat.format(bundle.getString("plugin.warning.duplicate"), f.getName());
           addWarning(msg);
           log.warn(String.format("Duplicate CR image file found: %s", f.getAbsolutePath()));
         } else {
           done.add(f);
-          list.add(spv);
-          log.trace(String.format("Found MantaMatcher CR image: %s", spv.getFilename()));
+          // Check for CR/reference files with non-matching extension.
+          // (Added as a workaround to half-functional GUI CR tool.)
+          File ref = new File(f.getParentFile(), String.format("%s.%s", m.group(1), m.group(2)));
+          if (!files.contains(ref)) {
+            problems.add(spv);
+            String msg = MessageFormat.format(bundle.getString("plugin.warning.incompatibleCR"), f.getName());
+            addWarning(msg);
+            log.warn(String.format("Reference file for CR image file not found: %s", f.getAbsolutePath()));
+          } else {
+            list.add(spv);
+            log.trace(String.format("Found MantaMatcher CR image: %s", spv.getFilename()));
+          }
         }
       }
     }
@@ -122,7 +138,7 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
       File fEH = mmFiles.get("EH");
       File fFT = mmFiles.get("FT");
       File fFEAT = mmFiles.get("FEAT");
-      // Notify user & delete residual files if mmprocess failed.
+      // Notify user & delete residual files if mmprocess problems.
       if (!fEH.exists() || !fFT.exists() || !fFEAT.exists()) {
         String msg = MessageFormat.format(bundle.getString("plugin.warning.mmprocess.failed"), spv.getFile().getName());
         addWarning(msg);
@@ -136,6 +152,16 @@ public final class Plugin_MantaMatcher extends BatchProcessorPlugin {
       incrementCounter();
       // Take a breath to avoid hogging resources through external calls.
       Thread.yield();
+    }
+
+    // Remove SPVs which were identified as problems.
+    for (SinglePhotoVideo spv : problems) {
+      for (Encounter enc : getListEnc()) {
+        if (enc.getCatalogNumber().equals(spv.getCorrespondingEncounterNumber())) {
+          enc.removeSinglePhotoVideo(spv);
+          spv.getFile().delete();
+        }
+      }
     }
 
     // Process encounters to determine which are now MMA-compatible.
