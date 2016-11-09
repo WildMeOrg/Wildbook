@@ -204,8 +204,10 @@ public final class NotificationMailer implements Runnable {
         for (Map.Entry<String, String> me : map.entrySet()) {
           try {
             mailer.replace(me.getKey(), me.getValue() == null ? "" : me.getValue());
-          } catch (IllegalStateException ex) {
+          } 
+          catch (IllegalStateException ex) {
             // Additional safe-guard for when key's value is missing in some map implementations.
+            ex.printStackTrace();
           }
         }
         // Remove REMOVEME section when not applicable (i.e. no hashed email info).
