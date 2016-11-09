@@ -1544,6 +1544,7 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
   }
 
   public void setLocationID(String newLocationID) {
+    if (newLocationID == null) return;
     this.locationID = newLocationID.trim();
   }
 
