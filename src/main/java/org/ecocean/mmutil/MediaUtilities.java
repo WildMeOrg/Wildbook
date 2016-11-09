@@ -260,12 +260,9 @@ public final class MediaUtilities {
           img = tmp;
         }
       }
-    } catch (ImageProcessingException ex) {
-      // Warn, and return original.
-      log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
-    } catch (MetadataException ex) {
-      // Warn, and return original.
-      log.warn("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
+    } catch (ImageProcessingException | MetadataException ex) {
+      // Thrown when image contains no metadata...can be ignored.
+      log.debug("Unable to read metadata for image: " + f.getAbsolutePath(), ex);
     }
     // Return image.
     return img;
