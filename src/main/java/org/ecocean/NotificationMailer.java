@@ -186,6 +186,8 @@ public final class NotificationMailer implements Runnable {
     System.out.println("NoteMailerHere2");
     this.context = context;
     this.sender = CommonConfiguration.getAutoEmailAddress(context);
+    System.out.println("Send this email to: "+to);
+    System.out.println("This email is from: "+sender);
     this.recipients = to;
     this.host = CommonConfiguration.getMailHost(context);
     boolean useSSL = CommonConfiguration.getMailHostSslOption(context);
@@ -195,11 +197,14 @@ public final class NotificationMailer implements Runnable {
       mAuth = mailAuth.split(":", 2);
     try {
       mailer = loadEmailTemplate(langCode, types);
+      System.out.println("ABout to set email host:" + host);
       mailer.setHost(host, useSSL);
       if (mAuth != null)
         mailer.setUseAuth(true, mAuth[0], mAuth[1]);
       // Can also set port/SSL/etc. here if needed.
       // Perform tag replacements.
+      System.out.println("ABout to perform string replacements");
+      
       if (map != null) {
         for (Map.Entry<String, String> me : map.entrySet()) {
           try {
@@ -230,6 +235,8 @@ public final class NotificationMailer implements Runnable {
             mailer.replaceRegexInHtmlText("(?s)<!--@REMOVEME_START@.*@REMOVEME_END@-->", null, false);
         }
       }
+      System.out.println("String replacement done!");
+      
     } catch (IOException ex) {
       // Logged/flagged as error to avoid interrupting client code processing.
       ex.printStackTrace();
