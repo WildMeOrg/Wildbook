@@ -414,7 +414,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
       }
 
-
+      session.setAttribute("paid", false);
 
 
 
