@@ -103,6 +103,7 @@ public class StripePayment extends HttpServlet {
       String to = email;
       String type = "adoptionConfirmation";
       String text = "Adoption Confirmation";
+      System.out.println("About to email new adopter.");
       NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
     } catch (Exception e) {
       System.out.println("Error in sending email confirmation of adoption.");
