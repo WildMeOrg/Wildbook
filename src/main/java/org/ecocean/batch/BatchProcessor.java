@@ -58,6 +58,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 public final class BatchProcessor implements Runnable {
   /** SLF4J logger instance for writing log entries. */
   private static final Logger log = LoggerFactory.getLogger(BatchProcessor.class);
+  /** Flag determining whether to generate thumbnail images during processing (convenience for debugging). */
+  private static final boolean GENERATE_THUMBNAILS = true;
   /** Shepherd instance for persisting data to database. */
   private Shepherd shepherd;
   /** List of individuals. */
@@ -310,7 +312,7 @@ public final class BatchProcessor implements Runnable {
       // 1. Download of media from all encounters.
       // 2. Persistence of encounters.
       // 3. Persistence of individuals.
-      // 4. Thumb for each media item of each encounter.
+      // 4. Thumb for primary media item of each encounter.
       // 5. Copyright-overlay thumb for each encounter.
       maxCount = listInd.size() + listEnc.size() * 2;
       for (Encounter enc : listEnc) {
@@ -629,8 +631,10 @@ public final class BatchProcessor implements Runnable {
               if (MediaUtilities.isAcceptableImageFile(src)) {
                 // Resize image to thumbnail & write to file.
                 try {
-                  createThumbnail(src, dst, 100, 75);
-                  log.trace(String.format("Created thumbnail image for encounter %s", enc.getEncounterNumber()));
+                  if (GENERATE_THUMBNAILS) {
+                    createThumbnail(src, dst, 100, 75);
+                    log.trace(String.format("Created thumbnail image for encounter %s", enc.getEncounterNumber()));
+                  }
                 }
                 catch (Exception ex) {
                   log.warn(String.format("Failed to create thumbnail correctly: %s", dst.getAbsolutePath()), ex);
@@ -647,7 +651,8 @@ public final class BatchProcessor implements Runnable {
                 log.info(String.format("Thumbnail image %s already exists", spv.getDataCollectionEventID()));
               } else {
                 try {
-                  createThumbnailWithOverlay(src, dst, 250, 200, copyText);
+                  if (GENERATE_THUMBNAILS)
+                    createThumbnailWithOverlay(src, dst, 250, 200, copyText);
 //                  log.trace(String.format("Created thumbnail for media item %s", spv.getDataCollectionEventID()));
                 }
                 catch (Exception ex) {
