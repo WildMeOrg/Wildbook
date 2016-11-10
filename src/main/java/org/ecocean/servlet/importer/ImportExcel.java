@@ -73,18 +73,20 @@ ImportExcel extends HttpServlet {
     HSSFCell cell;
 
     int numSheets = wb.getNumberOfSheets();
-    out.println("<p>Num Sheets = "+numSheets+"</p>");
+    out.println("Num Sheets = "+numSheets);
 
     int physicalNumberOfRows = sheet.getPhysicalNumberOfRows();
-    out.println("<p>Num Rows = "+physicalNumberOfRows+"</p>");
+    out.println("Num Rows = "+physicalNumberOfRows);
 
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     int cols = sheet.getRow(0).getPhysicalNumberOfCells(); // No of columns
     int tmp = 0;
-    out.println("<p>Num Cols = "+cols+"</p>");
+    out.println("Num Cols = "+cols);
+    out.println("committing = "+committing);
+
     Occurrence occ = null;
 
-    int printPeriod = 20;
+    int printPeriod = 50;
 
     if (committing) myShepherd.beginDBTransaction();
     out.println("<h2>BEGINNING THE EXCEL LOOP</h2>");
@@ -114,12 +116,26 @@ ImportExcel extends HttpServlet {
 
 
         if (committing) myShepherd.storeNewEncounter(enc, Util.generateUUID());
+        enc.setState("approved");
         occ.addEncounter(enc);
+        if (committing) myShepherd.storeNewOccurrence(occ);
+        enc.setOccurrenceID(occ.getOccurrenceID());
+
+        enc.setDWCDateAdded();
+        enc.setDWCDateLastModified();
+        enc.setSubmitterID("Bulk Import");
+        enc.setVerbatimLocality(enc.getCountry());
+
+
+
         if (needToAddEncToInd) ind.addEncounter(enc, context);
         if (committing && indID!=null  && !myShepherd.isMarkedIndividual(indID)) myShepherd.storeNewMarkedIndividual(ind);
         if (committing) myShepherd.commitDBTransaction();
         if (i%printPeriod==0) {
-          out.println("Parsed row ("+i+"), containing Enc "+enc.getEncounterNumber()+" with country   "+enc.getCountry()
+          out.println("Parsed row ("+i+"), containing Enc "+enc.getEncounterNumber()
+          +" with individualID "+enc.getIndividualID()
+          +" and occurrenceID "+enc.getOccurrenceID()
+          +" with country "+enc.getCountry()
           +", dateInMillis "+enc.getDateInMilliseconds()
           +", individualID "+enc.getIndividualID()
           +", sex "+enc.getSex()
