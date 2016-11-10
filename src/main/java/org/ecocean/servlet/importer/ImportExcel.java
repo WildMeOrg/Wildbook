@@ -119,12 +119,6 @@ ImportExcel extends HttpServlet {
         enc.setState("approved");
         occ.addEncounter(enc);
         if (committing) myShepherd.storeNewOccurrence(occ);
-        enc.setOccurrenceID(occ.getOccurrenceID());
-
-        enc.setDWCDateAdded();
-        enc.setDWCDateLastModified();
-        enc.setSubmitterID("Bulk Import");
-        enc.setVerbatimLocality(enc.getCountry());
 
 
 
@@ -209,6 +203,16 @@ ImportExcel extends HttpServlet {
     // col 13 photos per encounter TODO
     parseDynProp(enc, "lure type", row, 14);
     parseDynProp(enc, "camera type", row, 15);
+
+
+    enc.setOccurrenceID(occ.getOccurrenceID());
+
+    enc.setDWCDateAdded();
+    enc.setDWCDateLastModified();
+    enc.setSubmitterID("Bulk Import");
+    enc.setVerbatimLocality(enc.getCountry());
+    enc.setGenus("Lynx");
+    enc.setSpecificEpithet("pardinus");
 
     // enc.setAgeClass(getString(row,128));
     return enc;
