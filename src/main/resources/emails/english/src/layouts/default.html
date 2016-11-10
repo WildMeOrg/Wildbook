@@ -19,6 +19,9 @@
           <center>
             {{> header}}
             {{> body}}
+            {{#unlesspage 'adoption-confirmation' 'adoption-spotting'}}
+              {{> adopt-an-animal}}
+            {{/unlesspage}}
             {{> footer}}
           </center>
         </td>
