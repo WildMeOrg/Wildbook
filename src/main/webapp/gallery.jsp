@@ -302,8 +302,8 @@ int numDataContributors=0;
   <section class="container-fluid main-section front-gallery galleria">
 
   <% if (request.getParameter("adoptableSharks")!=null) { %>
-    
-
+    <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
+    <p>You can adopt an animal to support whale shark research. Browse the animals below to select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <a href="adoptashark.jsp">here</a>.</p>
   <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
@@ -471,41 +471,30 @@ int numDataContributors=0;
               </span>
               <table><tr>
                 <td>
-                  <ul>
-                    <li>
-                      <%=props.getProperty("individualID")%>: <%=pairName[j]%>
-                    </li>
-                    <li>
-                      <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
-                    </li>
-                    <li>
-                      <%
-                        String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
-                      %>
-                      <%=props.getProperty("sex")%> <%=sexValue%>
-                    </li>
-                  </ul>
+                  <p>
+                    <%=props.getProperty("individualID")%>: <%=pairName[j]%>
+                  </p>
+                  <p>
+                    <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
+                  </p>
+                  <p>
+                    <%
+                      String sexValue = pair[j].getSex();
+                      if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
+                    %>
+                    <%=props.getProperty("sex")%> <%=sexValue%>
+                  </p>
                 </td>
                 <td>
-                  <ul>
-
-                    <li>
-                      <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
-                    </li>
-		                <li>
-                      <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large">Adopt Me</button></a>
-                    </li>
-                  </ul>
+                  <p>
+                    <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
+                  </p>
+                  <div class="gallery-btn-group">
+                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt">Animal Profile<span class="button-icon" aria-hidden="true"></button></a>
+                  </div>
                 </td>
               </tr></table>
-
-
-              <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
-                To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
-              </p>
-
-
             </div>
           </div>
           <%

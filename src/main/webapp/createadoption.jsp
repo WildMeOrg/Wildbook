@@ -91,8 +91,7 @@ context=ServletUtilities.getContext(request);
   <section class="centered">
     <h2>Thank you for your support!</h2>
 		<h3>Query Shark: <%= session.getAttribute("queryShark") %> Paid Status: <%= sessionPaid %> Has Nickname?: <%= hasNickName %> NickName: <%= nick %></h3>
-    <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
-    <h4>Below, you will be able to enter financial information and create your profile.</h4>
+    <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>

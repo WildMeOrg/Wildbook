@@ -25,6 +25,9 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.Adoption;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.NotificationMailer;
+import org.ecocean.MailThreadExecutorService;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
@@ -45,6 +48,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 public class AdoptionAction extends HttpServlet {
@@ -97,7 +102,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
   String number = "";
   String text = "";
 
-  // Saved to the selected shark, not the adooption.
+  // Saved to the selected shark, not the adoption.
   String newNickName = "";
 
   boolean adoptionSuccess = true;
@@ -392,10 +397,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           }
 
           // New logic to change marked individual nickname if necessary in adoption.
+          MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
           if (!newNickName.equals("")) {
             if (adoptionSuccess && !isEdit) {
               try {
-                MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
                 mi.setNickName(newNickName);
                 mi.setNickNamer(adopterName);
               } catch (Exception e) {
@@ -404,16 +409,35 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             }
           }
 
-          else if (adoptionSuccess && isEdit) {
+          // Sends a confirmation email to a a new adopter with cancellation and update information.
+
+          try {
+            String emailContext = "context0";
+            String langCode = "en";
+            String to = ad.getAdopterEmail();
+            String type = "adoptionConfirmation";
+            System.out.println("About to email new adopter.");
+            // Retrieve background service for processing emails
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
+            NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+            es.execute(mailer);
+          }
+          catch (Exception e) {
+            System.out.println("Error in sending email confirmation of adoption.");
+            e.printStackTrace();
+          }
+
+
+          // had && isEdit previously...
+          if (adoptionSuccess) {
             myShepherd.commitDBTransaction();
           }
 
 
 
       }
-
-      // Resets paid adoption attribute for adoption subscription.
-      // Needed so a user cannot continue selecting and adopting sharks after one payment.
+      // Sets adoption paid to false to allow multiple adoptions
       session.setAttribute("paid", false);
 
       //return a forward to display.jsp
