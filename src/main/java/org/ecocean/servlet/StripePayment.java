@@ -106,11 +106,13 @@ public class StripePayment extends HttpServlet {
       NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
     } catch (Exception e) {
       System.out.println("Error in sending email confirmation of adoption.");
+      e.printStackTrace();
     }
 
     String newQuery = "";
     if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
       newQuery = "?number=" + queryShark;
+      e.printStackTrace();
     }
 
     try {
