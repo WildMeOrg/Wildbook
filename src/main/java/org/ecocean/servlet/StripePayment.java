@@ -14,6 +14,7 @@ import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
 import com.stripe.model.Customer;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class StripePayment extends HttpServlet {
 
@@ -97,21 +98,12 @@ public class StripePayment extends HttpServlet {
       }
     }
 
-    try {
-      String context = "context0";
-      String langCode = "en";
-      String to = email;
-      String type = "adoptionConfirmation";
-      String text = "Adoption Confirmation";
-      NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
-    } catch (Exception e) {
-      System.out.println("Error in sending email confirmation of adoption.");
-      e.printStackTrace();
-    }
-
     String newQuery = "";
-    if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
-      newQuery = "?number=" + queryShark;
+    try {
+      if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
+        newQuery = "?number=" + queryShark;
+      }
+    } catch (Exception e) {
       e.printStackTrace();
     }
 
