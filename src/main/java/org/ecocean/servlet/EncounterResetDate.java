@@ -175,7 +175,7 @@ public class EncounterResetDate extends HttpServlet {
           nd = encprops.getProperty("unknown");
         if (od == null || "".equals(od) || "Unknown".equals(od))
           od = encprops.getProperty("unknown");
-        actionResult.setMessageOverrideKey("resetDate").addParams(nd, od);
+        actionResult.setMessageOverrideKey("resetDate").setParams(request.getParameter("number"), nd, od);
 
         String message = "The date of encounter " + request.getParameter("number") + " was changed from " + oldDate + " to " + newDate + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
