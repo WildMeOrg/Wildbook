@@ -91,6 +91,10 @@ try {
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("gallery.jsp");
 
+int count = myShepherd.getNumAdoptions();
+int allSharks = myShepherd.getNumMarkedIndividuals();
+int countAdoptable = allSharks - count;
+
 int numResults = 0;
 
 
