@@ -410,13 +410,14 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           }
 
           // Sends a confirmation email to a a new adopter with cancellation and update information.
-
           try {
             String emailContext = "context0";
             String langCode = "en";
             String to = ad.getAdopterEmail();
             String type = "adoptionConfirmation";
             System.out.println("About to email new adopter.");
+            System.out.println("Adoption Sent:" + ad.getAdopterEmail());
+            System.out.println("Individual Sent:" + mi.getName());
             // Retrieve background service for processing emails
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
             Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
