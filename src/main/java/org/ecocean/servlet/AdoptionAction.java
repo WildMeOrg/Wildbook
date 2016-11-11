@@ -406,23 +406,15 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
           else if (adoptionSuccess && isEdit) {
             myShepherd.commitDBTransaction();
-
           }
-
 
 
 
       }
 
-
-
-
-
-
-
-
-
-
+      // Resets paid adoption attribute for adoption subscription.
+      // Needed so a user cannot continue selecting and adopting sharks after one payment.
+      session.setAttribute("paid", false);
 
       //return a forward to display.jsp
       System.out.println("Ending adoption data submission.");
