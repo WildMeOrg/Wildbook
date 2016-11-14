@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
+	      org.ecocean.media.MediaAsset,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -308,7 +309,7 @@ int numDataContributors=0;
 
   <% if (request.getParameter("adoptableSharks")!=null) { %>
     <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
-    <p>You can adopt an animal to support whale shark research. Browse the animals below to select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <a href="adoptashark.jsp">here</a>.</p>
+    <p>You can adopt an animal to support whale shark research. Browse the animals below and select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <strong><a href="adoptashark.jsp">here</a></strong>.</p>
   <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
@@ -367,6 +368,11 @@ int numDataContributors=0;
           MarkedIndividual indie = pair[j];
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
+	  for (Encounter enJ : indie.getDateSortedEncounters()) {
+ 	       for (MediaAsset maJ : enJ.getMedia()) {
+        	        if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+       	       }
+          }	
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
           maJson.optString("photographer");

@@ -97,8 +97,8 @@ context=ServletUtilities.getContext(request);
 	<%-- BEGIN STRIPE FORM --%>
 	<form action="StripePayment" method="POST" id="payment-form" lang="en">
 		<div class="form-header">
-	    <img src="cust/mantamatcher/img/creditcard.jpeg" alt="credit card" />
 	    <h2>Financial Information</h2>
+			<img src="cust/mantamatcher/img/circle-divider.png"/>
 	  </div>
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">
@@ -155,8 +155,8 @@ context=ServletUtilities.getContext(request);
 
 	<form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
 		<div class="form-header">
-			<img src="cust/mantamatcher/img/dive-helmet.jpeg" alt="dive helmet" />
 			<h2>Adoption Profile</h2>
+			<img src="cust/mantamatcher/img/circle-divider.png"/>
 		</div>
 		<div class="input-col-1">
 			<div class="input-group">
