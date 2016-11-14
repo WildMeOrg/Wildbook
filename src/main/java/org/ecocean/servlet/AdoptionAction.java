@@ -416,8 +416,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             String to = ad.getAdopterEmail();
             String type = "adoptionConfirmation";
             System.out.println("About to email new adopter.");
-            System.out.println("Adoption Sent:" + ad.getAdopterEmail());
-            System.out.println("Individual Sent:" + mi.getName());
             // Retrieve background service for processing emails
             ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
             Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
@@ -430,8 +428,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           }
 
 
-          // had && isEdit previously...
-          if (adoptionSuccess) {
+          if (adoptionSuccess && isEdit) {
             myShepherd.commitDBTransaction();
           }
 

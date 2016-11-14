@@ -92,9 +92,6 @@ try {
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("gallery.jsp");
 
-int count = myShepherd.getNumAdoptions();
-int allSharks = myShepherd.getNumMarkedIndividuals();
-int countAdoptable = allSharks - count;
 
 int numResults = 0;
 
@@ -103,6 +100,10 @@ Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
 
 myShepherd.beginDBTransaction();
+
+int count = myShepherd.getNumAdoptions();
+int allSharks = myShepherd.getNumMarkedIndividuals();
+int countAdoptable = allSharks - count;
 
 if(request.getParameter("adoptableSharks")!=null){
 	//get current time minus two years
