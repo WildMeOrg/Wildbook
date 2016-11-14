@@ -691,7 +691,7 @@ public final class NotificationMailer implements Runnable {
     if (!map.containsKey("@URL_LOCATION@"))
       map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
     if (adp != null) {
-      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&?stripeID=%s&?adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
+      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
       map.put("@ADOPTION_ID@", adp.getID());
       map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
       map.put("@ADOPTER_NAME@", adp.getAdopterName());
