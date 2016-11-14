@@ -30,7 +30,8 @@ context=ServletUtilities.getContext(request);
 	<section id="custom-donation-image">
 		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
 	</section>
-	<section class="donations">
+	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
+	<%-- <section class="donations">
 		<article class="donation-option-group">
 			<div class="donation-option">
 				<div class="donation-circle">
@@ -78,7 +79,7 @@ context=ServletUtilities.getContext(request);
 				</p>
 			</div>
 		</article>
-	</section>
+	</section> --%>
 
 	<section class="adopters-featured">
 			<h2>Join the Family!</h2>
