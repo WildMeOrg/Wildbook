@@ -22,7 +22,7 @@ context=ServletUtilities.getContext(request);
     adoptionID = request.getParameter("adoption");
   }
 
-  String stripeID = "";
+  String customerID = "";
   if (request.getParameter("stripeID") != null) {
     customerID = request.getParameter("stripeID");
   }
