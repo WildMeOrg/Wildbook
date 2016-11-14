@@ -92,6 +92,7 @@ public class StripePayment extends HttpServlet {
           session.setAttribute("paid", true);
           session.setAttribute("stripeID", customer.getId() );
           System.out.println("Stripe ID: " + (String)session.getAttribute("StripeID") );
+
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {

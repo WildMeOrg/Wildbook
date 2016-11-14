@@ -28,9 +28,10 @@ context=ServletUtilities.getContext(request);
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></button></a>
 	</section>
 	<section id="custom-donation-image">
-		<a href="createadoption.jsp"><img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" /></a>
+		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
 	</section>
-	<section class="donations">
+	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
+	<%-- <section class="donations">
 		<article class="donation-option-group">
 			<div class="donation-option">
 				<div class="donation-circle">
@@ -78,58 +79,89 @@ context=ServletUtilities.getContext(request);
 				</p>
 			</div>
 		</article>
-	</section>
+	</section> --%>
 
 	<section class="adopters-featured">
-		<h2>Join the Family!</h2>
-		<article class="adopter-feature-gallery">
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						We're going to need a bigger fish tank.
-					</p>
+			<h2>Join the Family!</h2>
+			<article class="adopter-feature-gallery">
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							We're going to need a bigger fish tank.
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-		</article>
-
-	</section>
+			</article>
+		</section>
 
 
 

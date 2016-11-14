@@ -104,7 +104,7 @@ context=ServletUtilities.getContext(request);
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 
 
-<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
+<p><strong><%=mapping %></strong></p>
 <%
 
   int havegpsSize=haveGPSData.size();
@@ -336,15 +336,15 @@ String lastLatLong="";
 
 
 
-		    
- zoomChangeBoundsListener = 
+
+ zoomChangeBoundsListener =
 	    google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
 	        if ((this.getZoom())&&(this.getZoom()>7)){
 	            this.setZoom(7);
 	        }
 	});
 setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
-		    
+
 
 
 
