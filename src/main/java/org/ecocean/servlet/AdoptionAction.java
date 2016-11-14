@@ -86,7 +86,6 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
 
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 
-
   String adopterName = "";
   String adopterAddress = "";
   String adopterEmail = "";
@@ -104,6 +103,8 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
   // Saved to the selected shark, not the adoption.
   String newNickName = "";
+  // Storing the customer ID here will make the subscription cancellation process easier to do in less moves.
+  String stripeCustomerID = "";
 
   boolean adoptionSuccess = true;
   String failureMessage = "";
@@ -294,6 +295,12 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             id = number;
           }
 
+          // Grab the stripe customer out of session.
+
+          if (session.getAttribute("stripeID") != null) {
+            stripeCustomerID = (String)session.getAttribute("stripeID");
+          }
+
           File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath() + "/" + id);
           if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
 
@@ -353,11 +360,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
           }
 
-
-
-
-
-
           Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
           if (isEdit) {
             ad = myShepherd.getAdoption(number);
@@ -376,6 +378,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           ad.setNotes(notes);
           ad.setAdoptionType(adoptionType);
           ad.setAdopterAddress(adopterAddress);
+          ad.setStripeCustomerId(stripeCustomerID);
 
 
           if((filesOK!=null)&&(filesOK.size()>0)){
