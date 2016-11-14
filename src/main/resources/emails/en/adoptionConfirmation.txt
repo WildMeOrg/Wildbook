@@ -5,7 +5,7 @@ This is a confirmation email for your recent adoption of a @INDIVIDUAL_NICKNAME@
 Thank you for contributing to our efforts in mark-recapture for these
 amazing animals.
 
-@TEXT_CONTENT@
+@ADOPTION_STRIPE_CUSTOMER_ID@
 
 Thanks again for your critical help and support!
 
