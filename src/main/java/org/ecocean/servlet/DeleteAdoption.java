@@ -59,8 +59,9 @@ public class DeleteAdoption extends HttpServlet {
 
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
 
-    String number = request.getParameter("number");
+    String sharkID = request.getParameter("sharkID");
     String customerID = request.getParameter("customerID");
+    String adoptionID = request.getParameter("adoptionID");
 
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -71,27 +72,27 @@ public class DeleteAdoption extends HttpServlet {
 
 
     myShepherd.beginDBTransaction();
-    if ((myShepherd.isAdoption(number))) {
+    if ((myShepherd.isAdoption(adoptionID))) {
 
       // This section attempts to delete stripe subscription.
       if ((customerID != null)&&(customerID != "")) {
         try {
           Customer customer = Customer.retrieve(customerID);
-          Subscription subscription = customer.cancelSubscription();
+          customer.delete();
         } catch (StripeException se) {
-          System.out.println("External Stripe exception deleting subscription.");
+          System.out.println("External Stripe exception deleting customer.");
         } catch (Exception e) {
-          System.out.println("Internal exception deleting subscription.");
+          System.out.println("Internal exception deleting customer.");
         }
       }
 
       // This section deletes adoption from database.
       try {
-        Adoption ad = myShepherd.getAdoptionDeepCopy(number);
+        Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
 
-        String savedFilename = request.getParameter("number") + ".dat";
+        String savedFilename = request.getParameter("adoptionID") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
-        File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
+        File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("adoptionID"));
         if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
 
 
@@ -101,7 +102,7 @@ public class DeleteAdoption extends HttpServlet {
         oos.writeObject(ad);
         oos.close();
 
-        Adoption ad2 = myShepherd.getAdoption(number);
+        Adoption ad2 = myShepherd.getAdoption(adoptionID);
 
         myShepherd.throwAwayAdoption(ad2);
 
@@ -117,7 +118,7 @@ public class DeleteAdoption extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed adoption " + number + ". However, a saved copy an still be restored.");
+        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be restored.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoption.jsp\">Return to the Adoption Create/Edit page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));

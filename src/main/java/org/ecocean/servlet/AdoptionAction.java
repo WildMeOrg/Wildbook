@@ -360,6 +360,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
           }
 
+
           Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
           if (isEdit) {
             ad = myShepherd.getAdoption(number);
