@@ -7714,6 +7714,13 @@ input[type="submit"].light {
   background: url(../img/icon_arrow_right_blue.svg) no-repeat center center;
   background-size: 50%;
 }
+.gallery-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+}
+.gallery-btn-group button {
+  margin: 1rem;
+}
 .main-section {
   padding-top: 50px;
   padding-bottom: 80px;
@@ -8683,24 +8690,113 @@ section.centered {
   margin: 0 auto;
   text-align: center;
 }
-.input-s-width {
+#payment-form,
+#adoption-form {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#payment-form .input-col-1,
+#adoption-form .input-col-1,
+#payment-form .input-col-2,
+#adoption-form .input-col-2 {
+  width: 47rem;
+}
+#payment-form .form-header,
+#adoption-form .form-header {
+  width: 100%;
+  margin: 3rem auto;
+  text-align: center;
+}
+#payment-form .form-header img,
+#adoption-form .form-header img {
+  width: 6rem;
+}
+#payment-form .form-header h2,
+#adoption-form .form-header h2 {
+  margin-top: 1rem;
+}
+#payment-form .input-s-width,
+#adoption-form .input-s-width {
   width: 10rem;
 }
-.input-m-width {
+#payment-form .input-m-width,
+#adoption-form .input-m-width {
   width: 20rem;
 }
-.input-l-width {
+#payment-form .input-l-width,
+#adoption-form .input-l-width {
   width: 30rem;
 }
-.input-group {
+#payment-form .input-group,
+#adoption-form .input-group {
+  width: 20%;
   margin-bottom: 4rem;
 }
-textarea {
-  height: 20rem;
-  width: 30rem;
-}
 @media screen and (min-width: 750px) {
-  .input-group {
+  #payment-form .input-group,
+  #adoption-form .input-group {
     margin-bottom: 1rem;
   }
+}
+#adoption-form textarea {
+  height: 10rem;
+  width: 30rem;
+}
+section.centered {
+  margin: 0 auto;
+  text-align: center;
+}
+#payment-form,
+#adoption-form {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+#payment-form .input-col-1,
+#adoption-form .input-col-1,
+#payment-form .input-col-2,
+#adoption-form .input-col-2 {
+  width: 47rem;
+}
+#payment-form .form-header,
+#adoption-form .form-header {
+  width: 100%;
+  margin: 3rem auto;
+  text-align: center;
+}
+#payment-form .form-header img,
+#adoption-form .form-header img {
+  width: 6rem;
+}
+#payment-form .form-header h2,
+#adoption-form .form-header h2 {
+  margin-top: 1rem;
+}
+#payment-form .input-s-width,
+#adoption-form .input-s-width {
+  width: 10rem;
+}
+#payment-form .input-m-width,
+#adoption-form .input-m-width {
+  width: 20rem;
+}
+#payment-form .input-l-width,
+#adoption-form .input-l-width {
+  width: 30rem;
+}
+#payment-form .input-group,
+#adoption-form .input-group {
+  width: 20%;
+  margin-bottom: 4rem;
+}
+@media screen and (min-width: 750px) {
+  #payment-form .input-group,
+  #adoption-form .input-group {
+    margin-bottom: 1rem;
+  }
+}
+#adoption-form textarea {
+  height: 10rem;
+  width: 30rem;
 }
