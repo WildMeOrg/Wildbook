@@ -28,165 +28,88 @@ context=ServletUtilities.getContext(request);
   String name = request.getParameter("name");
   adoptShepherd.beginDBTransaction();
 
+  boolean hasNickName = true;
+	String nick = "";
+	try {
+		if (sessionShark != null) {
+			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
+			nick = mi.getNickName();
+			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
+				hasNickName = false;
+			}
+		}
+	} catch (Exception e) {
+		System.out.println("Error looking up nickname!!");
+		e.printStackTrace();
+	}
+
   try {
 %>
 
 <style type="text/css">
   <!--
-  .style1 {
-    font-weight: bold
-  }
 
-  table.adopter {
-    border-width: 0px 0px 0px 0px;
-    border-spacing: 0px;
-    border-style: solid solid solid solid;
-    border-color: black black black black;
-    border-collapse: separate;
-
-  }
-
-  table.adopter td {
-    border-width: 1px 1px 1px 1px;
-    padding: 3px 3px 3px 3px;
-    border-style: none none none none;
-    border-color: gray gray gray gray;
-    background-color: #D7E0ED;
-    -moz-border-radius: 0px 0px 0px 0px;
-    font-size: 12px;
-    color: #330099;
-  }
-
-  table.adopter td.name {
-    font-size: 12px;
-    text-align: center;
-    background-color: #D7E0ED;
-
-  }
-
-  table.adopter td.image {
-    padding: 0px 0px 0px 0px;
-
-  }
-
-  .style2 {
-    font-size: x-small;
-    color: #000000;
-  }
 
   -->
 </style>
-
-<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
-
-
-  <%
-    List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
-    int numAdoptions = adoptions.size();
-    int ia = 0;
-    for (ia = 0; ia < numAdoptions; ia++) {
-      Adoption ad = adoptions.get(ia);
-  %>
-  <tr>
-    <td class="image"><img border="0" src="images/meet-adopter-frame.gif"/></td>
-  </tr>
-
-  <%
-    if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
-  %>
-  <tr>
-    <td class="image" style="padding-top: 0px;">
-      <center><img width="188px"
-                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
-    </td>
-  </tr>
-  <%
-    }
-  %>
-
-
-  <tr>
-    <td class="name">
-      <center><strong><font color="#282460" size="+1"><%=ad.getAdopterName()%>
-      </font></strong></center>
-    </td>
-  </tr>
-  <tr>
-    <td>&nbsp;</td>
-  </tr>
-  <%
-    if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
-  %>
-
-  <tr>
-    <td>Why are research and conservation for this species important?</td>
-  </tr>
-  <tr>
-    <td><em>"<%=ad.getAdopterQuote()%>"</em></td>
-  </tr>
-
-  <%
-    }
-
-    if (request.getUserPrincipal()!=null) {
-  %>
-  <tr>
-    <td>&nbsp;</td>
-  </tr>
-  <tr>
-    <td><em>Adoption type:</em><br><%=ad.getAdoptionType()%>
-    </td>
-  </tr>
-  <tr>
-    <td><em>Adoption start:</em><br><%=ad.getAdoptionStartDate()%>
-    </td>
-  </tr>
-  <tr>
-    <td><em>Adoption end:</em><br><%=ad.getAdoptionEndDate()%>
-    </td>
-  </tr>
-  <tr>
-    <td>&nbsp;</td>
-  </tr>
-  <tr>
-    <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
-      this adoption]</a></td>
-  </tr>
-  <tr>
-    <td>&nbsp;</td>
-  </tr>
-  <%
-    }
-  %>
-  <tr>
-    <td>&nbsp;</td>
-  </tr>
-
-  <%
-    }
-
-    if (ia > 0) {
-  %>
-
-
-  <tr>
-    <td class="image"><img border="0" src="images/adopter-frame-bottom.gif"/></td>
-  </tr>
-
-  <%
-    }
-  %>
-</table>
-<p>&nbsp;</p>
-
-
+<article class="adopter-feature-gallery">
+  <div class="adopter">
+    <div class="adopter-header" >
+      <p>
+        Whale Shark Adopter
+      </p>
+    </div>
+    <%
+      List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
+      int numAdoptions = adoptions.size();
+      int ia = 0;
+      for (ia = 0; ia < numAdoptions; ia++) {
+        Adoption ad = adoptions.get(ia);
+    %>
+    <%
+      if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
+    %>
+      <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="adopters picture" />
+      <div class="adopter-details">
+      <%
+        }
+      %>
+      <p>
+        <%=ad.getAdopterName()%>
+      </p>
+      <%
+        if ((mi.getNickName() != null) && (!mi.getNickName().trim().equals(""))) {
+      %>
+        <p>
+          Adopted <%=mi.getNickName()%>
+        </p>
+      <%
+        }
+      %>
+      <%
+        if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
+      %>
+        <p>
+          <%=ad.getAdopterQuote()%>
+        </p>
+      <%
+        }
+      %>
+    </div>
+  </div>
+</article>
 <%
-  } 
+  }
+
+  if (ia > 0) {
+%>
+<%
+  }
+%>
+  }
   catch (Exception e) {
   }
-  adoptShepherd.rollbackDBTransaction();
-  adoptShepherd.closeDBTransaction();
-  adoptShepherd = null;
-
-%>
+  <%
+	  myShepherd.rollbackDBTransaction();
+	  myShepherd.closeDBTransaction();
+	%>

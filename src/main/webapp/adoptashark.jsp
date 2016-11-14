@@ -81,55 +81,86 @@ context=ServletUtilities.getContext(request);
 	</section>
 
 	<section class="adopters-featured">
-		<h2>Join the Family!</h2>
-		<article class="adopter-feature-gallery">
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						We're going to need a bigger fish tank.
-					</p>
+			<h2>Join the Family!</h2>
+			<article class="adopter-feature-gallery">
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							We're going to need a bigger fish tank.
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-			<div class="adopter">
-				<img src="cust/mantamatcher/img/kyle.jpg" alt="" />
-				<div class="adopter-details">
-					<p>
-						Kyle
-					</p>
-					<p>
-						Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
-					</p>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
 				</div>
-			</div>
-		</article>
-
-	</section>
+			</article>
+		</section>
 
 
 
