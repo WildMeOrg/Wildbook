@@ -718,12 +718,12 @@ You too can assist with whale shark research, by submitting photos and sighting 
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
                 <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these sharks and their habitat.</p>
-                <a href="adoptashark.jsp" title="More information about donations">Learn more about how to donate</a>
+                <p>You can make a one time donation or <a href="adoptashark.jsp" title="More information about donations">learn about adopting an animal</a></p>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptananimal.jsp">
+                <a href="oneTimeDonation.jsp">
 	                <button class="large">
-	                    Donate
+	                    One Time Donation
 	                    <span class="button-icon" aria-hidden="true">
 	                </button>
                 </a>
