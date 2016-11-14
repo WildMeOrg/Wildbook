@@ -204,12 +204,12 @@ public final class NotificationMailer implements Runnable {
       // Can also set port/SSL/etc. here if needed.
       // Perform tag replacements.
       System.out.println("ABout to perform string replacements");
-      
+
       if (map != null) {
         for (Map.Entry<String, String> me : map.entrySet()) {
           try {
             mailer.replace(me.getKey(), me.getValue() == null ? "" : me.getValue());
-          } 
+          }
           catch (IllegalStateException ex) {
             // Additional safe-guard for when key's value is missing in some map implementations.
             ex.printStackTrace();
@@ -236,7 +236,7 @@ public final class NotificationMailer implements Runnable {
         }
       }
       System.out.println("String replacement done!");
-      
+
     } catch (IOException ex) {
       // Logged/flagged as error to avoid interrupting client code processing.
       ex.printStackTrace();
@@ -691,7 +691,7 @@ public final class NotificationMailer implements Runnable {
     if (!map.containsKey("@URL_LOCATION@"))
       map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
     if (adp != null) {
-      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=@ADOPTION_ID@&adopter=@ADOPTION_STRIPE_CUSTOMER_ID@&Delete=Delete", map.get("@URL_LOCATION@"), adp.getMarkedIndividual()));
+      map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&?stripeID=%s&?adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
       map.put("@ADOPTION_ID@", adp.getID());
       map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
       map.put("@ADOPTER_NAME@", adp.getAdopterName());

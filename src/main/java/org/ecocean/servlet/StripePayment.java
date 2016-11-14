@@ -90,6 +90,7 @@ public class StripePayment extends HttpServlet {
         if ( customer.getSubscriptions().getTotalCount() > 0 ) {
           request.setAttribute("paidStatus", true);
           session.setAttribute("paid", true);
+          session.setAttribute("stripeID", customer.getId() );
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
@@ -98,25 +99,13 @@ public class StripePayment extends HttpServlet {
       }
     }
 
-    try {
-      String context = "context0";
-      String langCode = "en";
-      String to = email;
-      String type = "adoptionConfirmation";
-      String text = "Adoption Confirmation";
-      System.out.println("About to email new adopter.");
-      // Retrieve background service for processing emails
-      ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-      NotificationMailer mailer = new NotificationMailer(context, langCode, to, type, text);
-      es.execute(mailer);
-    } 
-    catch (Exception e) {
-      System.out.println("Error in sending email confirmation of adoption.");
-    }
-
     String newQuery = "";
-    if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
-      newQuery = "?number=" + queryShark;
+    try {
+      if ((!queryShark.equals(null))&&(!queryShark.equals(""))) {
+        newQuery = "?number=" + queryShark;
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
 
     try {
