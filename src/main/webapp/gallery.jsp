@@ -309,7 +309,7 @@ int numDataContributors=0;
 
   <% if (request.getParameter("adoptableSharks")!=null) { %>
     <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
-    <p>You can adopt an animal to support whale shark research. Browse the animals below to select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <a href="adoptashark.jsp">here</a>.</p>
+    <p>You can adopt an animal to support whale shark research. Browse the animals below and select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <strong><a href="adoptashark.jsp">here</a></strong>.</p>
   <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
