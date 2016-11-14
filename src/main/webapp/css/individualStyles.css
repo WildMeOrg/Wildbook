@@ -363,7 +363,7 @@ td {
 }
 
 .researcherPhotoContainer {
-  max-width: 100%;
+  width: 30rem;
   padding: 2%;
   word-wrap: break-word;
 }
@@ -373,6 +373,6 @@ td {
 }
 
 #researchers {
-  overflow: scroll;
-  max-height: 500px;
+  display: flex;
+  flex-wrap: wrap;
 }
