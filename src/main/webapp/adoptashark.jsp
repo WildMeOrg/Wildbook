@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></button></a>
 	</section>
 	<section id="custom-donation-image">
-		<a href="createadoption.jsp"><img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" /></a>
+		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
 	</section>
 	<section class="donations">
 		<article class="donation-option-group">
