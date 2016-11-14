@@ -90,6 +90,7 @@ public class StripePayment extends HttpServlet {
         if ( customer.getSubscriptions().getTotalCount() > 0 ) {
           request.setAttribute("paidStatus", true);
           session.setAttribute("paid", true);
+          session.setAttribute("stripeID", customer.getId() );
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
