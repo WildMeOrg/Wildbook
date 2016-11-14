@@ -25,6 +25,9 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.ecocean.Adoption;
 import org.ecocean.MarkedIndividual;
+import org.ecocean.NotificationMailer;
+import org.ecocean.MailThreadExecutorService;
+
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
 import org.ecocean.SinglePhotoVideo;
@@ -45,6 +48,8 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 public class AdoptionAction extends HttpServlet {
@@ -81,7 +86,6 @@ public void doGet(HttpServletRequest request, HttpServletResponse response) thro
 
 public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException{
 
-
   String adopterName = "";
   String adopterAddress = "";
   String adopterEmail = "";
@@ -97,8 +101,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
   String number = "";
   String text = "";
 
-  // Saved to the selected shark, not the adooption.
+  // Saved to the selected shark, not the adoption.
   String newNickName = "";
+  // Storing the customer ID here will make the subscription cancellation process easier to do in less moves.
+  String stripeCustomerID = "";
 
   boolean adoptionSuccess = true;
   String failureMessage = "";
@@ -289,6 +295,12 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             id = number;
           }
 
+          // Grab the stripe customer out of session.
+
+          if (session.getAttribute("stripeID") != null) {
+            stripeCustomerID = (String)session.getAttribute("stripeID");
+          }
+
           File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath() + "/" + id);
           if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
 
@@ -348,11 +360,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
           }
 
-
-
-
-
-
           Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
           if (isEdit) {
             ad = myShepherd.getAdoption(number);
@@ -371,6 +378,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           ad.setNotes(notes);
           ad.setAdoptionType(adoptionType);
           ad.setAdopterAddress(adopterAddress);
+          ad.setStripeCustomerId(stripeCustomerID);
 
 
           if((filesOK!=null)&&(filesOK.size()>0)){
@@ -392,10 +400,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
           }
 
           // New logic to change marked individual nickname if necessary in adoption.
+          MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
           if (!newNickName.equals("")) {
             if (adoptionSuccess && !isEdit) {
               try {
-                MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
                 mi.setNickName(newNickName);
                 mi.setNickNamer(adopterName);
               } catch (Exception e) {
@@ -404,25 +412,34 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             }
           }
 
-          else if (adoptionSuccess && isEdit) {
-            myShepherd.commitDBTransaction();
+          // Sends a confirmation email to a a new adopter with cancellation and update information.
+          try {
+            String emailContext = "context0";
+            String langCode = "en";
+            String to = ad.getAdopterEmail();
+            String type = "adoptionConfirmation";
+            System.out.println("About to email new adopter.");
+            // Retrieve background service for processing emails
+            ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+            Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
+            NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+            es.execute(mailer);
+          }
+          catch (Exception e) {
+            System.out.println("Error in sending email confirmation of adoption.");
+            e.printStackTrace();
+          }
 
+
+          if (adoptionSuccess && isEdit) {
+            myShepherd.commitDBTransaction();
           }
 
 
 
-
       }
-
+      // Sets adoption paid to false to allow multiple adoptions
       session.setAttribute("paid", false);
-
-
-
-
-
-
-
-
 
       //return a forward to display.jsp
       System.out.println("Ending adoption data submission.");
