@@ -297,9 +297,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
           // Grab the stripe customer out of session.
 
-          if (session.getAttribute("stripeID") != null) {
-            stripeCustomerID = (String)session.getAttribute("stripeID");
-          }
+          stripeCustomerID = (String)session.getAttribute("stripeID");
 
           File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath() + "/" + id);
           if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
@@ -359,6 +357,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
 
           }
+
 
           Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
           if (isEdit) {

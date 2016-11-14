@@ -17,10 +17,16 @@ context=ServletUtilities.getContext(request);
     sharkID = request.getParameter("number");
   }
 
-  String stripeCustomerID = "";
-  if (request.getParameter("adopter") != null) {
-    stripeCustomerID = request.getParameter("adopter");
+  String adoptionID = "";
+  if (request.getParameter("adoption") != null) {
+    adoptionID = request.getParameter("adoption");
   }
+
+  String stripeID = "";
+  if (request.getParameter("stripeID") != null) {
+    customerID = request.getParameter("stripeID");
+  }
+
 
 %>
 
@@ -31,6 +37,7 @@ context=ServletUtilities.getContext(request);
             <tr>
               <td>
                 <h1 class="intro">Cancel your Adoption</h1>
+                <h3>Shark : <%= sharkID %> - Adoption : <%= adoptionID %> Customer : <%= customerID %></h3>
 
                 <p>You are about to <strong>DELETE</strong> your adoption from the
                 database, and cancel the associated recurring payments.
@@ -48,8 +55,10 @@ context=ServletUtilities.getContext(request);
                     <td align="center" valign="top">
                       <form name="reject_form" method="post" action="../DeleteAdoption">
                         <input name="action" type="hidden" id="action" value="reject">
-                        <input name="number" type="hidden" value=<%=request.getParameter("sharkID")%>>
-                        <input name="customerID" type="hidden" value=<%=request.getParameter("stripeCustomerID")%>>
+                        <input name="adoptionID" type="hidden" value="<%=adoptionID%>">
+                        <input name="customerID" type="hidden" value="<%=customerID%>"%>>
+                        <input name="sharkID" type="hidden" value="<%=sharkID%>"%>>
+
                         <input name="yes" type="submit" id="yes" value="Permanently delete"></form>
                     </td>
                     <td align="left" valign="top">

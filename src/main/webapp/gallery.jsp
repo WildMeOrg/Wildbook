@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
+	      org.ecocean.media.MediaAsset,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -367,6 +368,11 @@ int numDataContributors=0;
           MarkedIndividual indie = pair[j];
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
+	  for (Encounter enJ : indie.getDateSortedEncounters()) {
+ 	       for (MediaAsset maJ : enJ.getMedia()) {
+        	        if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+       	       }
+          }	
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
           maJson.optString("photographer");

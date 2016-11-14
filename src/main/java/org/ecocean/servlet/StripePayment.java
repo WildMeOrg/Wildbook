@@ -91,6 +91,8 @@ public class StripePayment extends HttpServlet {
           request.setAttribute("paidStatus", true);
           session.setAttribute("paid", true);
           session.setAttribute("stripeID", customer.getId() );
+          System.out.println("Stripe ID: " + (String)session.getAttribute("StripeID") );
+
         }
         request.setAttribute("customerId", customer.getId());
       } catch (StripeException e) {
@@ -107,14 +109,24 @@ public class StripePayment extends HttpServlet {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
-    try {
-      System.out.println("Redirect success!");
-      getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
-    } catch (IOException ie) {
-      System.out.println("Donation failed on redirect... IO exception.");
-    } catch (ServletException e) {
-      System.out.println("Servlet Exeption... No redirect.");
+    if (customerId != null) {
+      try {
+        System.out.println("SUBSCRIPTION redirect success!");
+        getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
+      } catch (IOException ie) {
+        System.out.println("Donation failed on redirect... IO exception.");
+      } catch (ServletException e) {
+        System.out.println("Servlet Exeption... No redirect.");
+      }
+    } else {
+      try {
+        System.out.println("ONE TIME DONATION redirect success!");
+        getServletContext().getRequestDispatcher("/makedonation.jsp" + newQuery).forward(request, response);
+      } catch (IOException ie) {
+        System.out.println("Donation failed on redirect... IO exception.");
+      } catch (ServletException e) {
+        System.out.println("Servlet Exeption... No redirect.");
+      }
     }
   }
 }
