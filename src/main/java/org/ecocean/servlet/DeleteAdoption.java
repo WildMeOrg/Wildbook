@@ -62,7 +62,9 @@ public class DeleteAdoption extends HttpServlet {
     String sharkID = request.getParameter("sharkID");
     String customerID = request.getParameter("customerID");
     String adoptionID = request.getParameter("adoptionID");
-
+    System.out.println("Shark : " + sharkID );
+    System.out.println("Adoption : " + adoptionID );
+    System.out.println("Customer : " + customerID );
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
     File webappsDir = new File(rootWebappPath).getParentFile();
