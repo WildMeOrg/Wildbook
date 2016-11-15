@@ -16,8 +16,6 @@ public boolean validateSources(String[] sources) {
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
-
 <style>
 .no, .yes {
 	position: absolute;
@@ -122,16 +120,22 @@ img.ident-img {
 	margin: 0 0 0 40px;
 }
 
+#recaptcha-wrapper {
+	margin: 60px 0;
+}
+
 </style>
 <script type="text/javascript">
 var imageData = [];
 var defaultSpecies = 'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
+var recaptchaValue = false;
 
 function beginProcess() {
 	$('.captcha-error').remove();
-	if (captchaValid()) {
-		$('#myCaptcha').remove();
+	if (recaptchaCompleted()) {
+		recaptchaValue = recaptchaCompleted();
+		$('#recaptcha-wrapper').hide();
 	} else {
 		$('#ident-controls').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 		return;
@@ -246,7 +250,7 @@ function beginIdentify() {
 	});
 	if (assets.length < 1) return;
 	$('#ident-begin-button').hide();
-	var data = { MediaAssetCreate: [ { assets: assets } ] };
+	var data = { MediaAssetCreate: [ { assets: assets } ], recaptchaValue: recaptchaValue };
 console.log('data = %o', data);
 	$.ajax({
 		url: 'MediaAssetCreate',
@@ -390,7 +394,7 @@ function processEncounter(data, id) {
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '">new encounter</a></b>.</div>');
 	var iaData = {
-		xxidentify: {
+		identify: {
 			annotationIds: data.annotations
 		}
 	};
@@ -447,7 +451,6 @@ $(document).ready(function() {
 
 <%
 String context=ServletUtilities.getContext(request);
-Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("match.jsp");
 
@@ -497,27 +500,11 @@ if ((sources != null) && valid) {
 }
 %>
 
-<div id="myCaptcha" style="margin-top: 75px; "></div>
-<script>
-	var captchaWidgetId;
-	function onloadCallback() {
-		captchaWidgetId = grecaptcha.render(
-			'myCaptcha', {
-				'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
-				'theme' : 'light'
-			}
-		);
-	}
-
-function captchaValid() {
-	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-console.log('g-recaptcha-response: %o', recaptachaResponse );
-	return recaptachaResponse;
-}
-
-</script>
-
+<div id="recaptcha-wrapper">
+<%= ServletUtilities.captchaWidget(request) %>
 </div>
+
+<div style="clear: both; margin-bottom: 100px;"></div>
 
 <jsp:include page="footer.jsp" flush="true"/>
 
