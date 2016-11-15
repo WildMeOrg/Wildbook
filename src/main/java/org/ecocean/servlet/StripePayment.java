@@ -30,6 +30,8 @@ public class StripePayment extends HttpServlet {
 
     Map<String, Object> chargeParams = new HashMap<String, Object>();
 
+    PrintWriter out = response.getWriter();
+
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
     String amount = request.getParameter("amount");
