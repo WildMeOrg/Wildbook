@@ -120,6 +120,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
     NOTE: for now we dont allow user to set AssetStore, so we have some "hard-coded" ways to deal with:
     - S3 (via CommonConfiguration settings)
     - local (via CommonConfiguration tmp dir and "filename" value)
+    - URL
 */
         String uploadTmpDir = CommonConfiguration.getUploadTmpDir(context);
         S3AssetStore sourceStoreS3 = null;
@@ -138,6 +139,7 @@ System.out.println("source config -> " + cfg.toString());
         AssetStore targetStore = AssetStore.getDefault(myShepherd); //see below about disabled user-provided stores
         HashMap<String,MediaAssetSet> sets = new HashMap<String,MediaAssetSet>();
         ArrayList<MediaAsset> haveNoSet = new ArrayList<MediaAsset>();
+        URLAssetStore urlStore = URLAssetStore.find(myShepherd);   //this is only needed if we get passed params for url
 
         for (int i = 0 ; i < jarr.length() ; i++) {
             JSONObject st = jarr.optJSONObject(i);
@@ -185,6 +187,7 @@ System.out.println("source config -> " + cfg.toString());
 
                 //TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
                 String fname = params.optString("filename", null);
+                String url = params.optString("url", null);
                 if (fname != null) {  //this is local
                     if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
@@ -195,6 +198,13 @@ System.out.println("source config -> " + cfg.toString());
                     } catch (Exception ex) {
                         System.out.println("WARNING: MediaAssetCreate failed to copyIn " + inFile + " to " + targetMA + ": " + ex.toString());
                         success = false;
+                    }
+
+                } else if (url != null) {
+                    if (urlStore == null) {
+                        System.out.println("WARNING: MediaAssetCreate found no URLAssetStore; skipping url param " + url);
+                    } else {
+                        targetMA = urlStore.create(params);
                     }
 
                 } else {  //if we fall thru, then we are going to assume S3
@@ -254,10 +264,13 @@ System.out.println("no MediaAssetSet; created " + targetMA);
             if ((s.getMediaAssets() != null) && (s.getMediaAssets().size() > 0)) {
                 for (MediaAsset ma : s.getMediaAssets()) {
                     JSONObject jma = new JSONObject();
-                    jma.put("id", ma.getId());
+                    try {
+                        jma = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true));
+                    } catch (Exception ex) {
+                        System.out.println("WARNING: failed sanitizeJson on " + ma + ": " + ex.toString());
+                    }
                     jma.put("_debug", ma.toString());
                     jma.put("_params", ma.getParameters().toString());
-                    jma.put("_url", ma.webURL());
                     jmas.put(jma);
                 }
             }
@@ -269,10 +282,13 @@ System.out.println("no MediaAssetSet; created " + targetMA);
             JSONArray jmas = new JSONArray();
             for (MediaAsset ma : haveNoSet) {
                 JSONObject jma = new JSONObject();
-                jma.put("id", ma.getId());
+                try {
+                    jma = Util.toggleJSONObject(ma.sanitizeJson(request, new org.datanucleus.api.rest.orgjson.JSONObject(), true));
+                } catch (Exception ex) {
+                    System.out.println("WARNING: failed sanitizeJson on " + ma + ": " + ex.toString());
+                }
                 jma.put("_debug", ma.toString());
                 jma.put("_params", ma.getParameters().toString());
-                jma.put("_url", ma.webURL());
                 jmas.put(jma);
             }
             rtn.put("withoutSet", jmas);
