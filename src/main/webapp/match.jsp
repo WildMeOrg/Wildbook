@@ -16,6 +16,8 @@ public boolean validateSources(String[] sources) {
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 
+<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
+
 <style>
 .no, .yes {
 	position: absolute;
@@ -127,6 +129,13 @@ var defaultSpecies = 'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
 
 function beginProcess() {
+	$('.captcha-error').remove();
+	if (captchaValid()) {
+		$('#myCaptcha').remove();
+	} else {
+		$('#ident-controls').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
+		return;
+	}
 	$('#ident-controls input').hide();
 	var validUrls = parseUrls($('#ident-sources').val());
 	if (!validUrls) {
@@ -438,6 +447,7 @@ $(document).ready(function() {
 
 <%
 String context=ServletUtilities.getContext(request);
+Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
 Shepherd myShepherd = new Shepherd(context);
 myShepherd.setAction("match.jsp");
 
@@ -487,7 +497,25 @@ if ((sources != null) && valid) {
 }
 %>
 
+<div id="myCaptcha" style="margin-top: 75px; "></div>
+<script>
+	var captchaWidgetId;
+	function onloadCallback() {
+		captchaWidgetId = grecaptcha.render(
+			'myCaptcha', {
+				'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
+				'theme' : 'light'
+			}
+		);
+	}
 
+function captchaValid() {
+	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
+console.log('g-recaptcha-response: %o', recaptachaResponse );
+	return recaptachaResponse;
+}
+
+</script>
 
 </div>
 
