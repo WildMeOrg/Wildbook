@@ -749,7 +749,10 @@ String rootWebappPath = "xxxxxx";
 
     //  https://developers.google.com/recaptcha/docs/verify
     public static boolean captchaIsValid(HttpServletRequest request) {
-        String context = getContext(request);
+        return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+    }
+    public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
+        if (context == null) context = "context0";
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
         if (recaptchaProps == null) {
             System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
@@ -761,14 +764,13 @@ String rootWebappPath = "xxxxxx";
             System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
             return false;
         }
-        String uresp = request.getParameter("g-recaptcha-response");
         if (uresp == null) {
             System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
             return false;
         }
         JSONObject cdata = new JSONObject();
         cdata.put("secret", secretKey);
-        cdata.put("remoteip", request.getRemoteAddr());  //i guess this is technically optional?
+        cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
         cdata.put("response", uresp);
         JSONObject gresp = null;
         try {
