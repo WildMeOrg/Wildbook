@@ -42,6 +42,7 @@ context=ServletUtilities.getContext(request);
 
 
             myShepherd.beginDBTransaction();
+            String nickName = "";
             try {
               Adoption ad = myShepherd.getAdoption(number);
               shark = ad.getMarkedIndividual();
@@ -52,7 +53,7 @@ context=ServletUtilities.getContext(request);
               }
               if (ad.getMarkedIndividual() != null) {
                 markedIndividual = ad.getMarkedIndividual();
-                nickName = ad.getNickName();
+                nickName = markedIndividual.getNickName();
               }
             }
             catch (Exception e) {
