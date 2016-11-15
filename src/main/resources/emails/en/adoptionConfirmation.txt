@@ -10,3 +10,5 @@ amazing animals.
 Thanks again for your critical help and support!
 
 To cancel your adoption, retain this email and click on the link below.
+
+@ADOPTION_CANCELLATION_LINK@
