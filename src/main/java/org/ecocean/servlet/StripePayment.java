@@ -73,6 +73,8 @@ public class StripePayment extends HttpServlet {
         System.out.println(charge);
 
       } catch (StripeException e) {
+        // Throws if user does not select a plan. 
+        out.println("No plan was selected, or form was missing other data. Card not charged, please try again.");
         System.out.println("Generic error from stripe on donation. ");
         System.out.println("Token: " + token );
       } catch (Exception e) {
