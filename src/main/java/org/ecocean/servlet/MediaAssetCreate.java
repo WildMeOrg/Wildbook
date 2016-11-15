@@ -101,8 +101,18 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         //set up for response
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
-
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+
+        //i guess we are "officially" only allowing logged in users or those who passed captch at this point?
+        if ((AccessControl.simpleUserString(request) == null) &&
+                !ServletUtilities.captchaIsValid(context, j.optString("recaptchaValue", null), request.getRemoteAddr())) {
+            System.out.println("WARNING: MediaAssetCreate failed captcha (for anon user)");
+            response.setStatus(403);
+            out.println("ERROR");
+            out.close();
+            return;
+        }
+
         JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
         myShepherd.commitDBTransaction();
         out.println(res.toString());
