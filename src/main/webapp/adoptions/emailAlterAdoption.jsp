@@ -58,15 +58,15 @@ context=ServletUtilities.getContext(request);
 	boolean hasNickName = true;
 	String nick = "";
 	try {
-		if (sessionShark != null) {
-			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
+		if (sharkID != null) {
+			MarkedIndividual mi = myShepherd.getMarkedIndividual(sharkID);
 			nick = mi.getNickName();
 			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
 				hasNickName = false;
 			}
 		}
 	} catch (Exception e) {
-		System.out.println("Error looking up nickname!!");
+		System.out.println("Error looking up shark nickname for email alteration!!");
 		e.printStackTrace();
 	}
 

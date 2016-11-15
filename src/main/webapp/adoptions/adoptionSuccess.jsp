@@ -52,6 +52,7 @@ context=ServletUtilities.getContext(request);
               }
               if (ad.getMarkedIndividual() != null) {
                 markedIndividual = ad.getMarkedIndividual();
+                nickName = ad.getNickName();
               }
             }
             catch (Exception e) {
@@ -113,9 +114,9 @@ context=ServletUtilities.getContext(request);
 		}
 		}
 		%>
-          <h1 class="intro">Thank you!</h1>
-
-          <p><strong>The adoption was successfully added!</strong></p>
+          <h1 class="intro">Thank you for joining the team!</h1>
+          <h3><%=nickName%> - <%=markedIndividual%></h3>
+          <p><strong>Your adoption was successfully added.</strong></p>
 
           <p>For future reference, this adoption is numbered <strong><%=number%>
           </strong>.</p>
@@ -123,10 +124,8 @@ context=ServletUtilities.getContext(request);
           <p>If you have any questions, please reference this number when contacting
             us.</p>
 
-          <p><label>View your adopted shark:</label><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
-            <h3><%=markedIndividual%></h3>
-          </a>.</p>
+          <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
+            View your adopted shark's profile</a>.</p>
           <p><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
           </a>.</p>
