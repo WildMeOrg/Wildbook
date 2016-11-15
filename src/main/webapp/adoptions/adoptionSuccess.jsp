@@ -51,9 +51,9 @@ context=ServletUtilities.getContext(request);
               } else {
                 hasImages = false;
               }
-              if (ad.getMarkedIndividual() != null) {
-                markedIndividual = ad.getMarkedIndividual();
-                nickName = markedIndividual.getNickName();
+              if (myShepherd.getMarkedIndividual(shark) != null) {
+                MarkedIndividual mi = myShepherd.getMarkedIndividual();
+                nickname = mi.getNickName();
               }
             }
             catch (Exception e) {
@@ -116,7 +116,7 @@ context=ServletUtilities.getContext(request);
 		}
 		%>
           <h1 class="intro">Thank you for joining the team!</h1>
-          <h3><%=nickName%> - <%=markedIndividual%></h3>
+          <h3><%=nickName%> - <%=shark%></h3>
           <p><strong>Your adoption was successfully added.</strong></p>
 
           <p>For future reference, this adoption is numbered <strong><%=number%>
