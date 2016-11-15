@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.MarkedIndividual, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%
 String context="context0";
@@ -52,8 +52,8 @@ context=ServletUtilities.getContext(request);
                 hasImages = false;
               }
               if (myShepherd.getMarkedIndividual(shark) != null) {
-                MarkedIndividual mi = myShepherd.getMarkedIndividual();
-                nickname = mi.getNickName();
+                MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
+                nickName = mi.getNickName();
               }
             }
             catch (Exception e) {
