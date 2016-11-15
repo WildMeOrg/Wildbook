@@ -366,13 +366,13 @@ int numDataContributors=0;
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
+          for (Encounter enJ : indie.getDateSortedEncounters()) {
+            for (MediaAsset maJ : enJ.getMedia()) {
+              if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+            }
+          }
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
-	  for (Encounter enJ : indie.getDateSortedEncounters()) {
- 	       for (MediaAsset maJ : enJ.getMedia()) {
-        	        if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
-       	       }
-          }	
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
           maJson.optString("photographer");
