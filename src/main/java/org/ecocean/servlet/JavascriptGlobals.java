@@ -71,6 +71,7 @@ public class JavascriptGlobals extends HttpServlet {
 		rtn.put("baseUrl", request.getContextPath());
 		rtn.put("rootDir", (new File(getServletContext().getRealPath("/")).getParentFile()).toString());
 		rtn.put("dataUrl", "/" + CommonConfiguration.getDataDirectoryName(context));
+                rtn.put("validEmailRegexPattern", Util.validEmailRegexPattern());
 
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
