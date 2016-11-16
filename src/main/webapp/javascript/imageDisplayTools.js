@@ -117,6 +117,7 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
 
   // TODO: copy into html figure element
   var url = maLib.getUrl(maJson), w, h;
+  console.log("maLib.getUrl(maJson) = "+url);
 
   // have to check to make sure values exist
   if ('metadata' in maJson) {
