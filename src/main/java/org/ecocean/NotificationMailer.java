@@ -692,6 +692,7 @@ public final class NotificationMailer implements Runnable {
       map.put("@URL_LOCATION@", String.format("http://%s", CommonConfiguration.getURLLocation(req)));
     if (adp != null) {
       map.put("@ADOPTION_CANCELLATION_LINK@", String.format("%s/adoptions/emailCancelAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
+      map.put("@ADOPTION_ALTERATION_LINK@", String.format("%s/adoptions/emailAlterAdoption.jsp?number=%s&stripeID=%s&adoption=%s", map.get("@URL_LOCATION@"), adp.getMarkedIndividual(), adp.getStripeCustomerId(), adp.getID()));
       map.put("@ADOPTION_ID@", adp.getID());
       map.put("@ADOPTION_STRIPE_CUSTOMER_ID@", adp.getStripeCustomerId());
       map.put("@ADOPTER_NAME@", adp.getAdopterName());
@@ -703,6 +704,7 @@ public final class NotificationMailer implements Runnable {
       map.put("@ADOPTION_ENCOUNTER@", adp.getEncounter());
       map.put("@ADOPTION_NOTES@", adp.getNotes());
       map.put("@ADOPTION_TYPE@", adp.getAdoptionType());
+      map.put("@ADOPTION_START@", adp.getAdoptionStartDate());
     }
   }
 
