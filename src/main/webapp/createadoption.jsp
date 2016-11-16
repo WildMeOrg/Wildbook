@@ -140,9 +140,6 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</div>
 
-		<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
-		<input id="selectedShark" type="hidden" name="selectedShark" value="">
-
 	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 	</form>
 	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
