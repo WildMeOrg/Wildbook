@@ -2052,28 +2052,41 @@ public class Shepherd {
     return tempShark;
   }
 
+
+  public MarkedIndividual getMarkedIndividualWithNameJostling(String name, Map<String,String> altNameLookupMap) {
+
+    if (altNameLookupMap.containsKey(name)) {
+      return getMarkedIndividualWithNameJostling(altNameLookupMap.get(name));
+    }
+    return getMarkedIndividualWithNameJostling(name);
+
+  }
+
   public MarkedIndividual getMarkedIndividualWithNameJostling(String name) {
-    String lowerCased = null;
-    String capitolized = null;
-    String firstWord = null;
-    try {
-      return getMarkedIndividualQuiet(name);
-    } catch (Exception nsoe1) {
-    try {
-      lowerCased = name.trim().toLowerCase();
-      return getMarkedIndividualQuiet(lowerCased);
-    } catch (Exception nsoe2) {
-    try {
-      capitolized = lowerCased.substring(0,1).toUpperCase() + lowerCased.substring(1);
-      return getMarkedIndividualQuiet(capitolized);
-    } catch (Exception nsoe3) {
-    try {
-      firstWord = lowerCased.split(" ")[0];
-      return getMarkedIndividualQuiet(firstWord);
-    } catch (Exception nsoe4) {
-      System.out.println("getMarkedIndividualWithNameJostling tried "+name+", "+lowerCased+", "+capitolized+", and "+firstWord+" and found no marked individual!");
-      return null;
-    }}}}
+
+    System.out.println("getMarkedIndividualWithNameJostling !!! ");
+
+    if (name==null || name.trim() == null) return null;
+
+    String lowerCased = name.trim().toLowerCase();
+    String capitolized = lowerCased.substring(0,1).toUpperCase() + lowerCased.substring(1);
+    String firstWord = lowerCased.split(" ")[0];
+    String beforeParen = name.split("(")[0];
+    String unaccented = Util.stripAccents(name);
+
+    String[] possibleNames = {name, lowerCased, capitolized, firstWord, beforeParen, unaccented};
+
+    MarkedIndividual indy = null;
+    for (String pName : possibleNames) {
+      try {
+        indy = getMarkedIndividualQuiet(pName);
+      }
+      catch (Exception e) {
+        System.out.println("Exception on possible name "+pName);
+      }
+      if (indy != null) return indy;
+    }
+    return indy;
   }
 
 
