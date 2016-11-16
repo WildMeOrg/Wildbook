@@ -21,6 +21,12 @@ context=ServletUtilities.getContext(request);
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
+	Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
+	if (stripeProps == null) {
+			 System.out.println("There are no available API keys for Stripe!");
+	}
+	String stripePublicKey = stripeProps.getProperty("publicKey");
+
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction	("createadoption.jsp");
 	myShepherd.beginDBTransaction();
@@ -208,6 +214,9 @@ context=ServletUtilities.getContext(request);
 			  </textarea>
 			</div>
 
+			<%-- Recaptcha widget --%>
+			<%= ServletUtilities.captchaWidget(request) %>
+
 			<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
 			  <%
 			    if (acceptedPayment) {
@@ -236,7 +245,7 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
 <script type="text/javascript">
 	// Publishable Key
-	Stripe.setPublishableKey('pk_test_yiqozX1BvmUhmcFwoFioHcff');
+	Stripe.setPublishableKey('<%=stripePublicKey%>');
 
 	var stripeResponseHandler = function(status, response) {
 		var $form = $('#payment-form');

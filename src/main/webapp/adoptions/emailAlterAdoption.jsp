@@ -87,6 +87,10 @@ context=ServletUtilities.getContext(request);
           </table>
         </td>
       </tr>
+
+        <%-- Recaptcha widget --%>
+        <%= ServletUtilities.captchaWidget(request) %>
+
 		    <button class="large" type="submit" name="Submit" value="Submit">Update<span class="button-icon" aria-hidden="true"></span></button>
       </form>
     </table>
