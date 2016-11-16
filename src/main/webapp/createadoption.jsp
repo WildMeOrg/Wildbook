@@ -90,7 +90,6 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-		<h3>Query Shark: <%= session.getAttribute("queryShark") %> Paid Status: <%= sessionPaid %> Has Nickname?: <%= hasNickName %> NickName: <%= nick %></h3>
     <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
   </section>
 
@@ -138,9 +137,10 @@ context=ServletUtilities.getContext(request);
 				<span class="input-group-addon">Billing Email</span>
 				<input type="text" class="input-l-width" name="email">
 			</div>
+				<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
+				<input id="selectedShark" type="hidden" name="selectedShark" value="">
+			  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 		</div>
-
-	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 	</form>
 	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
 
@@ -170,16 +170,6 @@ context=ServletUtilities.getContext(request);
 				}
 			%>
 			<div class="input-group">
-			  <span class="input-group-addon">Adoption Starts</span>
-				<h4 class="adoptionStartHeader"></h4>
-			</div>
-			<input class="input-m-width adoptionStartDate" name="adoptionStartDate" type="hidden" value="<%=adoptionStartDate%>">
-			<%-- Create logic to calculate how long shark would be adopted for with lump sum. --%>
-			<%-- <div class="input-group">
-			  <span class="input-group-addon">Adoption Ends</span>
-			  <input class=" input-m-width" name="adoptionEndDate" type="text" value="<%=adoptionEndDate%>">
-			</div> --%>
-			<div class="input-group">
 			  <span class="input-group-addon">Adopter Name</span>
 			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
 			</div>
@@ -191,6 +181,8 @@ context=ServletUtilities.getContext(request);
 			  <span class="input-group-addon">Address</span>
 			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
 			</div>
+		</div>
+		<div class="input-col-2">
 			<div class="input-group">
 			  <span class="input-group-addon">Profile Photo</span>
 			  <%
@@ -208,8 +200,6 @@ context=ServletUtilities.getContext(request);
 			      }
 			    %>
 			</div>
-		</div>
-		<div class="input-col-2">
 			<div class="input-group">
 			  <span class="input-group-addon">Message</span>
 			  <textarea name="adopterQuote" id="adopterQuote" placeholder="Enter a personal or gift message here. (e.g. Why is research and conservation of this species important?) here."><%=adopterQuote%>
