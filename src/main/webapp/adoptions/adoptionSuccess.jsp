@@ -54,6 +54,7 @@ context=ServletUtilities.getContext(request);
               if (myShepherd.getMarkedIndividual(shark) != null) {
                 MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
                 nickName = mi.getNickName();
+                markedIndividual = mi.getIndividualID();
               }
             }
             catch (Exception e) {
