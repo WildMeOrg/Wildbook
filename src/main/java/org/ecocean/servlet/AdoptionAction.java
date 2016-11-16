@@ -128,6 +128,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
   }
   if (validCaptcha == false) {
     response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "robotJail.jsp");
+    throw new Exception();
   }
 
   //set UTF-8
