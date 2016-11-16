@@ -103,11 +103,32 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
   // Saved to the selected shark, not the adoption.
   String newNickName = "";
-  // Storing the customer ID here will make the subscription cancellation process easier to do in less moves.
+
+  // Storing the customer ID here makes the subscription cancellation process easier to do in less moves.
   String stripeCustomerID = "";
 
   boolean adoptionSuccess = true;
   String failureMessage = "";
+
+  // Checks form submission for recaptcha approval.
+  // Ignores result if form is sent from logged in user.
+  // Redirects to 404 if caught robot. 
+  boolean loggedIn = false;
+  try{
+    if(request.getUserPrincipal() !=null){
+      loggedIn = true;
+    }
+  } catch (NullPointerException ne){
+    System.out.println("Got a null pointer checking for logged in user.");
+  }
+  boolean validCaptcha = false;
+  if (loggedIn != true) {
+  	validCaptcha = ServletUtilities.captchaIsValid(request);
+  	System.out.println("Results from captchaIsValid(): " + validCaptcha );
+  }
+  if (validCaptcha == false) {
+    response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "robotJail.jsp");
+  }
 
   //set UTF-8
   request.setCharacterEncoding("UTF-8");
