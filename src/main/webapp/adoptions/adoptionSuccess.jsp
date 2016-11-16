@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.MarkedIndividual, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%
 String context="context0";
@@ -42,6 +42,7 @@ context=ServletUtilities.getContext(request);
 
 
             myShepherd.beginDBTransaction();
+            String nickName = "";
             try {
               Adoption ad = myShepherd.getAdoption(number);
               shark = ad.getMarkedIndividual();
@@ -50,8 +51,9 @@ context=ServletUtilities.getContext(request);
               } else {
                 hasImages = false;
               }
-              if (ad.getMarkedIndividual() != null) {
-                markedIndividual = ad.getMarkedIndividual();
+              if (myShepherd.getMarkedIndividual(shark) != null) {
+                MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
+                nickName = mi.getNickName();
               }
             }
             catch (Exception e) {
@@ -113,9 +115,9 @@ context=ServletUtilities.getContext(request);
 		}
 		}
 		%>
-          <h1 class="intro">Thank you!</h1>
-
-          <p><strong>The adoption was successfully added!</strong></p>
+          <h1 class="intro">Thank you for joining the team!</h1>
+          <h3><%=nickName%> - <%=shark%></h3>
+          <p><strong>Your adoption was successfully added.</strong></p>
 
           <p>For future reference, this adoption is numbered <strong><%=number%>
           </strong>.</p>
@@ -123,10 +125,8 @@ context=ServletUtilities.getContext(request);
           <p>If you have any questions, please reference this number when contacting
             us.</p>
 
-          <p><label>View your adopted shark:</label><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
-            <h3><%=markedIndividual%></h3>
-          </a>.</p>
+          <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
+            View your adopted shark's profile</a>.</p>
           <p><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
           </a>.</p>

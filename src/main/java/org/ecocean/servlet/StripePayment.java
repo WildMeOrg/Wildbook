@@ -30,6 +30,8 @@ public class StripePayment extends HttpServlet {
 
     Map<String, Object> chargeParams = new HashMap<String, Object>();
 
+    PrintWriter out = response.getWriter();
+
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
     String amount = request.getParameter("amount");
@@ -73,6 +75,8 @@ public class StripePayment extends HttpServlet {
         System.out.println(charge);
 
       } catch (StripeException e) {
+        // Throws if user does not select a plan. 
+        out.println("No plan was selected, or form was missing other data. Card not charged, please try again.");
         System.out.println("Generic error from stripe on donation. ");
         System.out.println("Token: " + token );
       } catch (Exception e) {

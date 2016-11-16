@@ -112,10 +112,6 @@ context=ServletUtilities.getContext(request);
 			</select>
 			</div>
 			<div class="input-group">
-				<span class="input-group-addon">Custom Amount</span>
-				<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
-			</div>
-			<div class="input-group">
 				<span class="input-group-addon">Name On Card</span>
 				<input type="text" class="input-l-width" name="nameOnCard">
 			</div>
