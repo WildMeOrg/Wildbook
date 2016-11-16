@@ -21,6 +21,12 @@ context=ServletUtilities.getContext(request);
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
+	Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
+	if (stripeProps == null) {
+			 System.out.println("There are no available API keys for Stripe!");
+	}
+	String stripePublicKey = stripeProps.getProperty("publicKey");
+
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction	("createadoption.jsp");
 	myShepherd.beginDBTransaction();
@@ -205,7 +211,7 @@ context=ServletUtilities.getContext(request);
 			  <textarea name="adopterQuote" id="adopterQuote" placeholder="Enter a personal or gift message here. (e.g. Why is research and conservation of this species important?) here."><%=adopterQuote%>
 			  </textarea>
 			</div>
-				// Recaptcha widget
+	 				<%-- Recaptcha widget --%>
 					<%= ServletUtilities.captchaWidget(request) %>
 
 			    <button class="large" type="submit" name="Submit" value="Submit">Finish Adoption<span class="button-icon" aria-hidden="true"></span></button>
@@ -230,7 +236,7 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
 <script type="text/javascript">
 	// Publishable Key
-	Stripe.setPublishableKey('pk_test_yiqozX1BvmUhmcFwoFioHcff');
+	Stripe.setPublishableKey('<%=stripePublicKey%>');
 
 	var stripeResponseHandler = function(status, response) {
 		var $form = $('#payment-form');
