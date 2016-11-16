@@ -11,7 +11,7 @@ context=ServletUtilities.getContext(request);
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction	("createadoption.jsp");
+  myShepherd.setAction	("emailAlterAdoption.jsp");
   myShepherd.beginDBTransaction();
 
   String id = "";
@@ -52,7 +52,7 @@ context=ServletUtilities.getContext(request);
   <div class="container maincontent">
     <table border="0">
       <tr>
-        <form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
+        <form id="adoption-form" style="display:none;" action="../AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
       		<div class="form-header">
       			<h2>Update Adoption Profile</h2>
       			<img src="../cust/mantamatcher/img/circle-divider.png"/>
@@ -60,13 +60,8 @@ context=ServletUtilities.getContext(request);
       		</div>
       		<div class="input-col-1">
       			<div class="input-group">
-      			  <span class="input-group-addon">Shark ID</span>
-      			  <input id="sharkId" class=" input-m-width" name="shark" type="hidden" value="<%=sharkID%>" placeholder="">  <%if (!sharkID.equals("")) { %>
-      			    <a href="individuals.jsp?number<%=sharkID%>">Link</a> <%
-      			      }
-      			    %>
+      			  <input id="sharkId" class=" input-m-width" name="shark" type="hidden" value="<%=sharkID%>" placeholder="">
       			</div>
-
           </div>
           <br>
       			<div class="input-group">
