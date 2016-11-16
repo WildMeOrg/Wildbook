@@ -54,32 +54,32 @@ context=ServletUtilities.getContext(request);
       <tr>
         <form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
       		<div class="form-header">
-      			<h2>Adoption Profile</h2>
+      			<h2>Update Adoption Profile</h2>
       			<img src="../cust/mantamatcher/img/circle-divider.png"/>
       		</div>
       		<div class="input-col-1">
       			<div class="input-group">
       			  <span class="input-group-addon">Shark ID</span>
-      			  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="shark" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
-      			    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
+      			  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=sharkID%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!sharkID.equals("")) { %>
+      			    <a href="individuals.jsp?number<%=sharkID%>">Link</a> <%
       			      }
       			    %>
       			</div>
           </div>
       			<div class="input-group">
-      				<span class="input-group-addon">Shark Nickname</span>
+      				<span class="input-group-addon">Change Shark Nickname</span>
       				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
       			</div>
       			<div class="input-group">
-      			  <span class="input-group-addon">Adopter Name</span>
+      			  <span class="input-group-addon">Change Adopter Name</span>
       			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
       			</div>
       			<div class="input-group">
-      			  <span class="input-group-addon">Adopter Email</span>
+      			  <span class="input-group-addon">Change Adopter Email</span>
       			  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
       			</div>
       			<div class="input-group">
-      			  <span class="input-group-addon">Address</span>
+      			  <span class="input-group-addon">Change Address</span>
       			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
       			</div>
             </tr>
