@@ -30,17 +30,17 @@ context=ServletUtilities.getContext(request);
 
   String sharkID = "";
   if (request.getParameter("number") != null) {
-    shark = request.getParameter("number");
+    sharkID = request.getParameter("number");
   }
 
   String adoptionID = "";
   if (request.getParameter("adoption") != null) {
-    shark = request.getParameter("adoption");
+    adoptionID = request.getParameter("adoption");
   }
 
   String stripeID = "";
   if (request.getParameter("stripeID") != null) {
-    shark = request.getParameter("stripeID");
+    stripeID = request.getParameter("stripeID");
   }
 
   %>
