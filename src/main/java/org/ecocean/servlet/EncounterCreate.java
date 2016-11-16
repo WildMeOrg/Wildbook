@@ -234,6 +234,7 @@ public class EncounterCreate extends HttpServlet {
         }
 
         String encLinks = "";
+        String encLinksHtml = "";
         String userEmail = null;
         int ecount = 0;
         JSONObject aj = new JSONObject();  //just for allowedAccess call
@@ -256,6 +257,7 @@ public class EncounterCreate extends HttpServlet {
             }
             ecount++;
             encLinks += " - " + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\n";
+            encLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\">Encounter " + ecount + "</a></li>\n";
         }
         if (ecount < 1) {
             rtn.put("error", "no valid encounters");
@@ -264,13 +266,15 @@ public class EncounterCreate extends HttpServlet {
         }
 
         String taskLinks = "";
+        String taskLinksHtml = "";
         int tcount = 0;
         for (int i = 0 ; i < taskIds.length() ; i++) {
             String id = taskIds.optString(i, null);
             if (id == null) continue;
             //TODO just trusting these are real.  we could verify... but do we need to?
-            taskLinks += " - " + linkPrefix + "/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
             tcount++;
+            taskLinks += " - " + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
+            taskLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">Result " + tcount + "</a></li>\n";
         }
         if (tcount < 1) {
             rtn.put("error", "no valid identification tasks");
@@ -281,6 +285,8 @@ public class EncounterCreate extends HttpServlet {
         Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, (Encounter)null);
         tagMap.put("@ENCLINKS@", encLinks);
         tagMap.put("@TASKLINKS@", taskLinks);
+        tagMap.put("@ENCLINKSHTML@", encLinksHtml);
+        tagMap.put("@TASKLINKSHTML@", taskLinksHtml);
         NotificationMailer mailer = new NotificationMailer(context, null, userEmail, "encountersCreated", tagMap);
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
         es.execute(mailer);
