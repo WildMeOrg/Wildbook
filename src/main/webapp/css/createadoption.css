@@ -15,7 +15,7 @@ section.centered{
 
 #payment-form.form-header, #adoption-form.form-header{
   width: 100%;
-  margin: 3rem auto;
+  margin: 3rem auto 8rem auto;
   text-align: center;
 }
 
