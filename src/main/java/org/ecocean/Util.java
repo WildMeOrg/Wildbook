@@ -10,6 +10,7 @@ import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.text.Normalizer;
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -274,8 +275,8 @@ public class Util {
       if ((coords == null)||(refresh)) {
 
         //execute the JDOQL
-        
-        
+
+
         Query query=myShepherd.getPM().newQuery("SELECT FROM org.ecocean.Encounter WHERE decimalLatitude != null && decimalLongitude != null");
         Collection<Encounter> c = (Collection<Encounter>) (query.execute());
         ArrayList<Encounter> encs=new ArrayList<Encounter>(c);
@@ -294,7 +295,7 @@ public class Util {
         }
 
         query.closeAll();
-        
+
       }
       myShepherd.rollbackDBTransaction();
       myShepherd.closeDBTransaction();
@@ -467,6 +468,14 @@ public class Util {
     public static String decimalLatLonToString(Double ll) {
         if (ll == null) return null;
         return ll.toString();
+    }
+
+    // http://stackoverflow.com/a/15190787
+    public static String stripAccents(String s)
+    {
+        String str = Normalizer.normalize(s, Normalizer.Form.NFD);
+        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return str;
     }
 
 
