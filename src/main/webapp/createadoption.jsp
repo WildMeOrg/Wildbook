@@ -215,15 +215,11 @@ context=ServletUtilities.getContext(request);
 			  <textarea name="adopterQuote" id="adopterQuote" placeholder="Enter a personal or gift message here. (e.g. Why is research and conservation of this species important?) here."><%=adopterQuote%>
 			  </textarea>
 			</div>
+				// Recaptcha widget
+					<%= ServletUtilities.captchaWidget(request) %>
 
-			<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
-			  <%
-			    if (acceptedPayment) {
-			  %>
 			    <button class="large" type="submit" name="Submit" value="Submit">Finish Adoption<span class="button-icon" aria-hidden="true"></span></button>
-			  <%
-			    }
-			  %>
+
 			<%
 			  if (acceptedPayment) {
 			%>
