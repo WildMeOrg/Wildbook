@@ -378,7 +378,7 @@ margin-bottom: 8px !important;
 			
 			
 <script src="http://maps.google.com/maps/api/js?language=<%=langCode%>"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/geoxml3/polys/geoxml3.js"></script>
 
  
 <script type="text/javascript" src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
