@@ -9,6 +9,7 @@ import java.lang.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
@@ -32,7 +33,6 @@ public class StripePayment extends HttpServlet {
 
     PrintWriter out = response.getWriter();
 
-    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
     String token = request.getParameter("stripeToken");
     String amount = request.getParameter("amount");
     String name = request.getParameter("nameOnCard");
@@ -47,7 +47,15 @@ public class StripePayment extends HttpServlet {
     String chargeId = "";
     String customerId = "";
 
-    // int amount = Integer.valueOf(request.getParameter("amount"));
+    String context = "context0";
+    context = ServletUtilities.getContext(request);
+    Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
+    if (stripeProps == null) {
+         System.out.println("There are no available API keys for Stripe!");
+    }
+    String secretKey = stripeProps.getProperty("secretKey");
+    Stripe.apiKey = secretKey;
+
     if (planName.equals("none")) {
       try {
         Map<String, Object> cardMap = new HashMap<String, Object>();
@@ -57,7 +65,6 @@ public class StripePayment extends HttpServlet {
         cardMap.put("description", "Whaleshark.org one time donation.");
 
         Map<String, String> initialMetadata = new HashMap<String, String>();
-        // initialMetadata.put("order_id", "6735");
         initialMetadata.put("name", name);
         initialMetadata.put("email", email);
 
