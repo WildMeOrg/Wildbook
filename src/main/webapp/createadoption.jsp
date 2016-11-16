@@ -169,6 +169,8 @@ context=ServletUtilities.getContext(request);
 			<%
 				}
 			%>
+			<input class="input-m-width adoptionStartDate" name="adoptionStartDate" type="hidden" value="<%=adoptionStartDate%>">
+
 			<div class="input-group">
 			  <span class="input-group-addon">Adopter Name</span>
 			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
@@ -181,35 +183,39 @@ context=ServletUtilities.getContext(request);
 			  <span class="input-group-addon">Address</span>
 			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
 			</div>
+			<div class="input-group">
+				<span class="input-group-addon">Profile Photo</span>
+				<%
+				String adopterImageString="";
+				if(adopterImage!=null){
+					adopterImageString=adopterImage;
+				}
+				%>
+				<input class="input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+				<%
+				if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+				%>
+					<img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+					<%
+						}
+					%>
+			</div>
 		</div>
 		<div class="input-col-2">
-			<div class="input-group">
-			  <span class="input-group-addon">Profile Photo</span>
-			  <%
-			  String adopterImageString="";
-			  if(adopterImage!=null){
-			    adopterImageString=adopterImage;
-			  }
-			  %>
-			  <input class="input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
-			  <%
-			  if ((adopterImage != null) && (!adopterImageString.equals(""))) {
-			  %>
-			    <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
-			    <%
-			      }
-			    %>
-			</div>
 			<div class="input-group">
 			  <span class="input-group-addon">Message</span>
 			  <textarea name="adopterQuote" id="adopterQuote" placeholder="Enter a personal or gift message here. (e.g. Why is research and conservation of this species important?) here."><%=adopterQuote%>
 			  </textarea>
 			</div>
-				// Recaptcha widget
-					<%= ServletUtilities.captchaWidget(request) %>
 
+			<!-- No submit button unless payment is accepted. May switch to totally non visible form prior to payment. -->
+			  <%
+			    if (acceptedPayment) {
+			  %>
 			    <button class="large" type="submit" name="Submit" value="Submit">Finish Adoption<span class="button-icon" aria-hidden="true"></span></button>
-
+			  <%
+			    }
+			  %>
 			<%
 			  if (acceptedPayment) {
 			%>
