@@ -11,7 +11,25 @@ context=ServletUtilities.getContext(request);
   response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
   response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
 
-
+  String id = "";
+  String adopterName = "";
+  String adopterAddress = "";
+  String adopterEmail = "";
+  String adopterImage="";
+  String adoptionStartDate = "";
+  String adoptionEndDate = "";
+  String adopterQuote = "";
+  String adoptionManager = "";
+  String sharkForm = "";
+  String encounterForm = "";
+  String notes = "";
+  String adoptionType = "";
+  
+  String shark = "";
+  if (request.getParameter("number") != null) {
+    shark = request.getParameter("number");
+  }
+  
 %>
 
 <jsp:include page="../header.jsp" flush="true" />
@@ -22,7 +40,7 @@ context=ServletUtilities.getContext(request);
           <form id="adoption-form" style="display:none;" action="AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
         		<div class="form-header">
         			<h2>Adoption Profile</h2>
-        			<img src="cust/mantamatcher/img/circle-divider.png"/>
+        			<img src="../cust/mantamatcher/img/circle-divider.png"/>
         		</div>
         		<div class="input-col-1">
         			<div class="input-group">
@@ -32,16 +50,11 @@ context=ServletUtilities.getContext(request);
         			      }
         			    %>
         			</div>
-        			<%
-        				if ((hasNickName == false )||(nick.equals(""))) {
-        			%>
+        		
         			<div class="input-group">
         				<span class="input-group-addon">Shark Nickname</span>
         				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
         			</div>
-        			<%
-        				}
-        			%>
         			<div class="input-group">
         			  <span class="input-group-addon">Adopter Name</span>
         			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
