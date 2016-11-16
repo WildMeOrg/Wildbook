@@ -9,10 +9,12 @@
          com.drew.metadata.Metadata,
          com.drew.metadata.Tag,
          org.ecocean.*,
+         org.ecocean.media.MediaAsset,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
+	 org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -73,6 +75,19 @@
     }
   }
 
+
+	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
+		if ((request == null) || (enc == null)) return false;
+		JSONObject jobj = new JSONObject();
+		String accessKey = request.getParameter("accessKey");
+		if (accessKey == null) return false;
+		for (MediaAsset ma : enc.getMedia()) {
+			JSONObject p = ma.getParameters();
+			if (p == null) return false;
+			if (!accessKey.equals(p.optString("accessKey", null))) return false;
+		}
+		return true;
+	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
@@ -408,7 +423,7 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
-
+						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
