@@ -366,6 +366,8 @@ function createEncounters() {
 	});
 }
 
+var encIds = [];
+var taskIds = [];
 function createEncounter(data, id) {
 	$.ajax({
 		url: 'EncounterCreate',
@@ -391,8 +393,9 @@ function createEncounter(data, id) {
 
 // .annotations .assets .encounterId
 function processEncounter(data, id) {
+	encIds.push(data.encounterId);
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
-		'" href="encounters/encounter.jsp?number=' + data.encounterId + '">new encounter</a></b>.</div>');
+		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
 	var iaData = {
 		identify: {
 			annotationIds: data.annotations
@@ -403,9 +406,6 @@ function processEncounter(data, id) {
 		data: JSON.stringify(iaData),
 		contentType: 'application/javascript',
 		complete: function(x) {
-			numIdentsLeft--;
-			console.warn('[%d] response: %o', numIdentsLeft, x);
-			if (numIdentsLeft < 1) $('#ident-begin-note').html('<h2>Thank you!</h2>Please check your email for follow-up information regarding your submissions.');
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.tasks || !x.responseJSON.tasks.length) {
 				var msg = 'unknown error';
 				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
@@ -414,14 +414,36 @@ function processEncounter(data, id) {
 			} else {
 				var h = '<div>Started task(s):<ul>';
 				for (var i = 0 ; i < x.responseJSON.tasks.length ; i++) {
+					taskIds.push(x.responseJSON.tasks[i].taskId);
 					h += '<li><a target="_new" href="encounters/matchResults.jsp?taskId=' + x.responseJSON.tasks[i].taskId + '">' + x.responseJSON.tasks[i].taskId + '</a></li>';
 				}
 				h += '</ul></div>';
 				$('#ident-img-wrapper-' + id + ' .ident-img-info').append(h);
 			}
+			numIdentsLeft--;
+			console.warn('[%d] response: %o', numIdentsLeft, x);
+			if (numIdentsLeft < 1) {
+				$('#ident-begin-note').html('<h2>Thank you!</h2>Please check your email for follow-up information regarding your submissions.');
+				sendEmail();
+			}
 		},
 		dataType: 'json',
 		type: 'post'
+	});
+}
+
+function sendEmail() {
+	$.ajax({
+		url: 'EncounterCreate',
+		contentType: 'application/javascript',
+		data: JSON.stringify({
+			encounters: encIds,
+			tasks: taskIds,
+			accessKey: accessKey
+		}),
+		dataType: 'json',
+		complete: function(x) { console.info('sendEmail() -> %o', x); },
+		type: 'POST'
 	});
 }
 
@@ -437,14 +459,6 @@ function parseUrls(txt) {
 	return urls;
 }
 
-$(document).ready(function() {
-	$('#ident-sources').val(
-'https://pacificwhale.files.wordpress.com/2014/03/whale_fluke_prebranding_img.jpg?w=1200\n' +
-'https://upload.wikimedia.org/wikipedia/commons/5/5c/Humpback_whale_fluke_(2).jpg\n' +
-'https://media-cdn.tripadvisor.com/media/photo-s/03/91/a7/6c/pacific-whale-foundation.jpg'
-	);
-
-});
 </script>
 
 <div class="container maincontent">
