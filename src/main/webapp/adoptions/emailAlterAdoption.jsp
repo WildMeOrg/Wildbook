@@ -56,28 +56,34 @@ context=ServletUtilities.getContext(request);
       		<div class="form-header">
       			<h2>Update Adoption Profile</h2>
       			<img src="../cust/mantamatcher/img/circle-divider.png"/>
+            <br>
       		</div>
       		<div class="input-col-1">
       			<div class="input-group">
       			  <span class="input-group-addon">Shark ID</span>
-      			  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=sharkID%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!sharkID.equals("")) { %>
+      			  <input id="sharkId" class=" input-m-width" name="shark" type="hidden" value="<%=sharkID%>" placeholder="">  <%if (!sharkID.equals("")) { %>
       			    <a href="individuals.jsp?number<%=sharkID%>">Link</a> <%
       			      }
       			    %>
       			</div>
+
           </div>
+          <br>
       			<div class="input-group">
       				<span class="input-group-addon">Change Shark Nickname</span>
       				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
       			</div>
+            <br>
       			<div class="input-group">
       			  <span class="input-group-addon">Change Adopter Name</span>
       			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
       			</div>
+            <br>
       			<div class="input-group">
       			  <span class="input-group-addon">Change Adopter Email</span>
       			  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
       			</div>
+            <br>
       			<div class="input-group">
       			  <span class="input-group-addon">Change Address</span>
       			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
@@ -86,6 +92,8 @@ context=ServletUtilities.getContext(request);
           </table>
         </td>
       </tr>
+		    <button class="large" type="submit" name="Submit" value="Submit">Update<span class="button-icon" aria-hidden="true"></span></button>
+      </form>
     </table>
   </div>
 
