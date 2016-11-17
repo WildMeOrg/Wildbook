@@ -11,6 +11,10 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
 import java.text.Normalizer;
+import static java.nio.charset.StandardCharsets.*;
+
+
+
 import org.json.JSONObject;
 import org.json.JSONException;
 
@@ -476,6 +480,11 @@ public class Util {
         String str = Normalizer.normalize(s, Normalizer.Form.NFD);
         str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
         return str;
+    }
+
+    public static String utf8ize(String str) {
+      value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
+      return value;
     }
 
 
