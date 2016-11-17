@@ -15,7 +15,7 @@ context=ServletUtilities.getContext(request);
 
     <jsp:include page="/header.jsp" flush="true" />
 
-        <div class="container maincontent>
+        <div class="container maincontent">
            
 
           	
