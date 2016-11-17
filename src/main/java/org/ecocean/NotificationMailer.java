@@ -197,13 +197,13 @@ public final class NotificationMailer implements Runnable {
       mAuth = mailAuth.split(":", 2);
     try {
       mailer = loadEmailTemplate(langCode, types);
-      System.out.println("ABout to set email host:" + host);
+      System.out.println("About to set email host:" + host);
       mailer.setHost(host, useSSL);
       if (mAuth != null)
         mailer.setUseAuth(true, mAuth[0], mAuth[1]);
       // Can also set port/SSL/etc. here if needed.
       // Perform tag replacements.
-      System.out.println("ABout to perform string replacements");
+      System.out.println("About to perform string replacements");
 
       if (map != null) {
         for (Map.Entry<String, String> me : map.entrySet()) {

@@ -126,9 +126,9 @@ context=ServletUtilities.getContext(request);
           <p>If you have any questions, please reference this number when contacting
             us.</p>
 
-          <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
+          <h3><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
             View your adopted shark's profile</a>.</p>
-          <p><a
+          <h3><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
           </a>.</p>
 

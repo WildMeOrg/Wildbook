@@ -473,12 +473,18 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         // Sets adoption paid to false to allow multiple adoptions
         session.setAttribute("paid", false);
 
+        // This value is only stored in the email specific edit form.
+        boolean emailEdit = false;
+        if (session.getAttribute( "emailEdit")) {
+          emailEdit = (boolean)session.getAttribute( "emailEdit");
+        }
+
         //return a forward to display.jsp
         System.out.println("Ending adoption data submission.");
         //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
-        if ((adoptionSuccess) && (!isEdit)) {
+        if ((adoptionSuccess) && (emailEdit == false)) {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
-        } else if ((adoptionSuccess) && (isEdit)) {
+        } else if ((adoptionSuccess) && (emailEdit == true)) {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
         } else {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
