@@ -28,7 +28,7 @@ context=ServletUtilities.getContext(request);
 	String stripePublicKey = stripeProps.getProperty("publicKey");
 
 	Shepherd myShepherd = new Shepherd(context);
-	myShepherd.setAction	("createadoption.jsp");
+	myShepherd.setAction	("oneTimeDonation.jsp");
 	myShepherd.beginDBTransaction();
 
 	String shark = "";
@@ -53,7 +53,6 @@ context=ServletUtilities.getContext(request);
 
   String id = "";
 
-	String servletURL = "../AdoptionAction";
 
 %>
 
@@ -155,16 +154,7 @@ context=ServletUtilities.getContext(request);
 	jQuery(function($) {
 		$('#payment-form').submit(function(e) {
 		 var $form = $(this);
-
-		 // Disable the submit button to prevent repeated clicks
-		 /*$form.find('button').prop('disabled', true);*/
-		 // Enable input fields for building profile
-			/*$(".disabled-input").prop('disabled', false);*/
-
 		 Stripe.card.createToken($form, stripeResponseHandler);
-
-		 formSwitcher();
-		 // Prevent the form from submitting with the default action
 		 return false;
 		});
 	});
