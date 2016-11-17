@@ -107,26 +107,13 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
   // Storing the customer ID here makes the subscription cancellation process easier to do in less moves.
   String stripeCustomerID = "";
 
+  // Stores some wack response string from google recaptcha.
+  String gresp = "";
+
+
   boolean adoptionSuccess = true;
   String failureMessage = "";
 
-  // Checks form submission for recaptcha approval.
-  // Ignores result if form is sent from logged in user.
-  // Redirects to 404 if caught robot.
-  boolean loggedIn = false;
-  try{
-    if(request.getUserPrincipal() !=null){
-      loggedIn = true;
-    }
-  } catch (NullPointerException ne){
-    System.out.println("Got a null pointer checking for logged in user.");
-  }
-  boolean validCaptcha = false;
-  if (loggedIn != true) {
-  	validCaptcha = ServletUtilities.captchaIsValid(request);
-  	System.out.println("Results from captchaIsValid(): " + validCaptcha );
-  }
-  if (validCaptcha == true) {
     //set UTF-8
     request.setCharacterEncoding("UTF-8");
 
@@ -309,6 +296,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               newNickName = fv.get("newNickName").toString().trim();
             }
 
+
+            if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").toString().equals("")) {
+              gresp = fv.get("g-recaptcha-response").toString().trim();
+            }
+
             if (isEdit) {
               id = number;
             }
@@ -376,44 +368,67 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
             }
 
-
-            Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
-            if (isEdit) {
-              ad = myShepherd.getAdoption(number);
-              ad.setAdopterName(adopterName);
-              ad.setAdopterEmail(adopterEmail);
-              ad.setAdoptionEndDate(adoptionEndDate);
-              ad.setAdoptionStartDate(adoptionStartDate);
+            // This verifies the user being logged in or passing the recapture.
+            boolean loggedIn = false;
+            try{
+              if(request.getUserPrincipal() !=null){
+                loggedIn = true;
+              }
+            } catch (NullPointerException ne){
+              System.out.println("Got a null pointer checking for logged in user.");
             }
-
-
-
-            ad.setAdopterQuote(adopterQuote);
-            ad.setAdoptionManager(adoptionManager);
-            ad.setIndividual(shark);
-            ad.setEncounter(encounter);
-            ad.setNotes(notes);
-            ad.setAdoptionType(adoptionType);
-            ad.setAdopterAddress(adopterAddress);
-            ad.setStripeCustomerId(stripeCustomerID);
-
-
-            if((filesOK!=null)&&(filesOK.size()>0)){
-              ad.setAdopterImage(filesOK.get(0));
+            boolean validCaptcha = false;
+            if (loggedIn != true) {
+              String remoteIP = request.getRemoteAddr();
+              validCaptcha = ServletUtilities.captchaIsValid(context, gresp, remoteIP);
+              System.out.println("Results from captchaIsValid(): " + validCaptcha );
             }
+            if (validCaptcha == true) {
 
-
-            myShepherd.beginDBTransaction();
-
-
-            if (adoptionSuccess && !isEdit) {
               try {
-                myShepherd.storeNewAdoption(ad, id);
+                Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
+                if (isEdit) {
+                  ad = myShepherd.getAdoption(number);
+                  ad.setAdopterName(adopterName);
+                  ad.setAdopterEmail(adopterEmail);
+                  ad.setAdoptionEndDate(adoptionEndDate);
+                  ad.setAdoptionStartDate(adoptionStartDate);
+                }
+
+
+
+                ad.setAdopterQuote(adopterQuote);
+                ad.setAdoptionManager(adoptionManager);
+                ad.setIndividual(shark);
+                ad.setEncounter(encounter);
+                ad.setNotes(notes);
+                ad.setAdoptionType(adoptionType);
+                ad.setAdopterAddress(adopterAddress);
+                ad.setStripeCustomerId(stripeCustomerID);
+
+
+                if((filesOK!=null)&&(filesOK.size()>0)){
+                  ad.setAdopterImage(filesOK.get(0));
+                }
+
+
+                myShepherd.beginDBTransaction();
+
+
+                if (adoptionSuccess && !isEdit) {
+                  try {
+                    myShepherd.storeNewAdoption(ad, id);
+                  }
+                  catch (Exception e) {
+                    adoptionSuccess = false;
+                    failureMessage += "Failed to presist the new adoption.<br>";
+                  }
+                }
+              } catch(Exception e) {
+                System.out.println("The recaptcha passed but something went wrong saving the adoption.");
+                e.printStackTrace();
               }
-              catch (Exception e) {
-                adoptionSuccess = false;
-                failureMessage += "Failed to presist the new adoption.<br>";
-              }
+
             }
 
             // New logic to change marked individual nickname if necessary in adoption.
@@ -470,7 +485,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       //}
 
       myShepherd.closeDBTransaction();
-    }
 
 
   } //end doPOST
