@@ -46,18 +46,28 @@ try {
 
 	Iterator allMAs=myShepherd.getAllMediaAssets();
 
+  int count = 0;
+  int maxCount = 100;
+
+
+
 	while(allMAs.hasNext()){
+
+    count++;
 
 		MediaAsset ma = (MediaAsset) allMAs.next();
     numFixes++;
 
     JSONObject j = ma.sanitizeJson(request, new JSONObject());
-    %><p><%=j.toString()%></p><ul><%
+    %><p><%=j.toString()%></p><%
+
+
+    //LocalAssetStore as = (LocalAssetStore) ma.getStore();
 
 
 
     if (committing) {
-      //ma.updateStandardChildren(myShepherd);
+      ma.updateStandardChildren(myShepherd);
       %><li>updated standard children./li><%
 
       ma.updateMinimalMetadata();
