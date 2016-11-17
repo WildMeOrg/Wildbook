@@ -424,49 +424,49 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
                     failureMessage += "Failed to presist the new adoption.<br>";
                   }
                 }
-              } catch(Exception e) {
-                System.out.println("The recaptcha passed but something went wrong saving the adoption.");
+
+            // New logic to change marked individual nickname if necessary in adoption.
+              MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
+              if (!newNickName.equals("")) {
+                if (adoptionSuccess && !isEdit) {
+                  try {
+                    mi.setNickName(newNickName);
+                    mi.setNickNamer(adopterName);
+                  } catch (Exception e) {
+                    failureMessage += "Retrieving shark to set nickname failed.<br>";
+                  }
+                }
+              }
+
+              // Sends a confirmation email to a a new adopter with cancellation and update information.
+              try {
+                String emailContext = "context0";
+                String langCode = "en";
+                String to = ad.getAdopterEmail();
+                String type = "adoptionConfirmation";
+                System.out.println("About to email new adopter.");
+                // Retrieve background service for processing emails
+                ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+                Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
+                NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+                es.execute(mailer);
+              }
+              catch (Exception e) {
+                System.out.println("Error in sending email confirmation of adoption.");
                 e.printStackTrace();
               }
 
-            }
 
-            // New logic to change marked individual nickname if necessary in adoption.
-            MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
-            if (!newNickName.equals("")) {
-              if (adoptionSuccess && !isEdit) {
-                try {
-                  mi.setNickName(newNickName);
-                  mi.setNickNamer(adopterName);
-                } catch (Exception e) {
-                  failureMessage += "Retrieving shark to set nickname failed.<br>";
-                }
+              if (adoptionSuccess && isEdit) {
+                myShepherd.commitDBTransaction();
               }
-            }
 
-            // Sends a confirmation email to a a new adopter with cancellation and update information.
-            try {
-              String emailContext = "context0";
-              String langCode = "en";
-              String to = ad.getAdopterEmail();
-              String type = "adoptionConfirmation";
-              System.out.println("About to email new adopter.");
-              // Retrieve background service for processing emails
-              ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-              Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
-              NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
-              es.execute(mailer);
-            }
-            catch (Exception e) {
-              System.out.println("Error in sending email confirmation of adoption.");
-              e.printStackTrace();
-            }
+          } catch(Exception e) {
+            System.out.println("The recaptcha passed but something went wrong saving the adoption.");
+            e.printStackTrace();
+          }
 
-
-            if (adoptionSuccess && isEdit) {
-              myShepherd.commitDBTransaction();
-            }
-
+        }
 
 
         }
