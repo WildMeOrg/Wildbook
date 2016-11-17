@@ -15,7 +15,7 @@ context=ServletUtilities.getContext(request);
 %>
 
     <jsp:include page="../header.jsp" flush="true" />
-    
+
         <div class="container maincontent">
           <table border="0">
             <tr>
@@ -38,16 +38,15 @@ context=ServletUtilities.getContext(request);
                     <td align="center" valign="top">
                       <form name="reject_form" method="post" action="../DeleteAdoption">
                         <input name="action" type="hidden" id="action" value="reject">
-                        <input name="number" type="hidden"
-                               value=<%=request.getParameter("number")%>> <input
-                        name="yes" type="submit" id="yes" value="Permanently delete"></form>
+                        <input name="number" type="hidden" value=<%=request.getParameter("number")%>>
+                        <button name="yes" type="submit" id="yes" value="Permanently delete">Permanently Delete<span class="button-icon" aria-hidden="true"></button>
+                      </form>
                     </td>
                     <td align="left" valign="top">
                       <form name="form2" method="get" action="adoption.jsp"><input
-                        name="number" type="hidden"
-                        value=<%=request.getParameter("number")%>> <input name="no"
-                                                                          type="submit" id="no"
-                                                                          value="Cancel"></form>
+                        name="number" type="hidden" value=<%=request.getParameter("number")%>>
+                        <button name="no" type="submit" id="no" value="Cancel">Cancel<span class="button-icon" aria-hidden="true"></button>
+                      </form>
                     </td>
                   </tr>
                 </table>
@@ -56,7 +55,6 @@ context=ServletUtilities.getContext(request);
           </table>
 
         </div>
-       
-        
-      <jsp:include page="../footer.jsp" flush="true"/>
 
+
+      <jsp:include page="../footer.jsp" flush="true"/>
