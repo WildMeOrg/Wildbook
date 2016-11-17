@@ -89,9 +89,7 @@ context=ServletUtilities.getContext(request);
 <link rel="stylesheet" href="css/createadoption.css">
 <div class="container maincontent">
   <section class="centered">
-    <h2>Thank you for your support!</h2>
-		<h3>Query Shark: <%= session.getAttribute("queryShark") %> Paid Status: <%= sessionPaid %> Has Nickname?: <%= hasNickName %> NickName: <%= nick %></h3>
-    <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
+    <h1>Thank you for your support!</h1>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
@@ -142,12 +140,10 @@ context=ServletUtilities.getContext(request);
 				<span class="input-group-addon">Billing Email</span>
 				<input type="text" class="input-l-width" name="email">
 			</div>
+			<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
+			<input id="selectedShark" type="hidden" name="selectedShark" value="">
+			<button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 		</div>
-
-		<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
-		<input id="selectedShark" type="hidden" name="selectedShark" value="">
-
-	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 	</form>
 	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
 
