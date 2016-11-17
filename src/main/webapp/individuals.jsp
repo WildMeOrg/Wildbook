@@ -193,6 +193,9 @@ if (request.getParameter("number")!=null) {
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
+<link rel="stylesheet" href="css/createadoption.css">
+
+
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
@@ -361,8 +364,9 @@ if (request.getParameter("number")!=null) {
           <%
         }
         %>
-        <%-- End of Social Media   --%>
       </div>
+      <%-- End of Social Media   --%>
+
       <br>
       <%-- Descriptions --%>
       <div class="row">
