@@ -21,6 +21,8 @@ context=ServletUtilities.getContext(request);
 
   boolean edit = false;
 
+  session.setAttribute( "emailEdit", false );
+
   String id = "";
   String adopterName = "";
   String adopterAddress = "";
