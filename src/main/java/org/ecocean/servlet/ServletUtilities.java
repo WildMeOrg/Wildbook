@@ -748,41 +748,42 @@ String rootWebappPath = "xxxxxx";
              "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
     }
 
-     //  https://developers.google.com/recaptcha/docs/verify
     public static boolean captchaIsValid(HttpServletRequest request) {
-        String context = getContext(request);
+        return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
+    }
+    public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
+        if (context == null) context = "context0";
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
         if (recaptchaProps == null) {
-             System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
-             return false;
+            System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
+            return false;
         }
         String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
         String secretKey = recaptchaProps.getProperty("secretKey");
         if ((siteKey == null) || (secretKey == null)) {
-             System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
-             return false;
-         }
-        String uresp = request.getParameter("g-recaptcha-response");
+            System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
+            return false;
+        }
         if (uresp == null) {
-             System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
-             return false;
+            System.out.println("WARNING: g-recaptcha-response is null in captchaIsValid(); failing");
+            return false;
         }
         JSONObject cdata = new JSONObject();
         cdata.put("secret", secretKey);
-        cdata.put("remoteip", request.getRemoteAddr());  //i guess this is technically optional?
+        cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
         cdata.put("response", uresp);
         JSONObject gresp = null;
         try {
-             gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
+            gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
         } catch (Exception ex) {
-             System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
-             return false;
+            System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
+            return false;
         }
         if (gresp == null) {  //would this ever happen?
-             System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
-             return false;
+            System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
+            return false;
         }
-        System.out.println("INFO: captchaIsValid() api call returned: "  + gresp.toString());
+        System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
         return gresp.optBoolean("success", false);
-     }
+    }
 }

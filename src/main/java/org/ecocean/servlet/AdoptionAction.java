@@ -107,26 +107,13 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
   // Storing the customer ID here makes the subscription cancellation process easier to do in less moves.
   String stripeCustomerID = "";
 
+  // Stores some wack response string from google recaptcha.
+  String gresp = "";
+
+
   boolean adoptionSuccess = true;
   String failureMessage = "";
 
-  // Checks form submission for recaptcha approval.
-  // Ignores result if form is sent from logged in user.
-  // Redirects to 404 if caught robot.
-  boolean loggedIn = false;
-  try{
-    if(request.getUserPrincipal() !=null){
-      loggedIn = true;
-    }
-  } catch (NullPointerException ne){
-    System.out.println("Got a null pointer checking for logged in user.");
-  }
-  boolean validCaptcha = false;
-  if (loggedIn != true) {
-  	validCaptcha = ServletUtilities.captchaIsValid(request);
-  	System.out.println("Results from captchaIsValid(): " + validCaptcha );
-  }
-  if (validCaptcha == true) {
     //set UTF-8
     request.setCharacterEncoding("UTF-8");
 
@@ -309,6 +296,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               newNickName = fv.get("newNickName").toString().trim();
             }
 
+
+            if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").toString().equals("")) {
+              gresp = fv.get("g-recaptcha-response").toString().trim();
+            }
+
             if (isEdit) {
               id = number;
             }
@@ -376,82 +368,105 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
             }
 
-
-            Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
-            if (isEdit) {
-              ad = myShepherd.getAdoption(number);
-              ad.setAdopterName(adopterName);
-              ad.setAdopterEmail(adopterEmail);
-              ad.setAdoptionEndDate(adoptionEndDate);
-              ad.setAdoptionStartDate(adoptionStartDate);
+            // This verifies the user being logged in or passing the recapture.
+            boolean loggedIn = false;
+            try{
+              if(request.getUserPrincipal() !=null){
+                loggedIn = true;
+              }
+            } catch (NullPointerException ne){
+              System.out.println("Got a null pointer checking for logged in user.");
             }
-
-
-
-            ad.setAdopterQuote(adopterQuote);
-            ad.setAdoptionManager(adoptionManager);
-            ad.setIndividual(shark);
-            ad.setEncounter(encounter);
-            ad.setNotes(notes);
-            ad.setAdoptionType(adoptionType);
-            ad.setAdopterAddress(adopterAddress);
-            ad.setStripeCustomerId(stripeCustomerID);
-
-
-            if((filesOK!=null)&&(filesOK.size()>0)){
-              ad.setAdopterImage(filesOK.get(0));
+            boolean validCaptcha = false;
+            if (loggedIn != true) {
+              String remoteIP = request.getRemoteAddr();
+              validCaptcha = ServletUtilities.captchaIsValid(context, gresp, remoteIP);
+              System.out.println("Results from captchaIsValid(): " + validCaptcha );
             }
+            if ((validCaptcha == true) || (loggedIn == true)) {
 
-
-            myShepherd.beginDBTransaction();
-
-
-            if (adoptionSuccess && !isEdit) {
               try {
-                myShepherd.storeNewAdoption(ad, id);
-              }
-              catch (Exception e) {
-                adoptionSuccess = false;
-                failureMessage += "Failed to presist the new adoption.<br>";
-              }
-            }
+                Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
+                if (isEdit) {
+                  ad = myShepherd.getAdoption(number);
+                  ad.setAdopterName(adopterName);
+                  ad.setAdopterEmail(adopterEmail);
+                  ad.setAdoptionEndDate(adoptionEndDate);
+                  ad.setAdoptionStartDate(adoptionStartDate);
+                }
+
+
+
+                ad.setAdopterQuote(adopterQuote);
+                ad.setAdoptionManager(adoptionManager);
+                ad.setIndividual(shark);
+                ad.setEncounter(encounter);
+                ad.setNotes(notes);
+                ad.setAdoptionType(adoptionType);
+                ad.setAdopterAddress(adopterAddress);
+                ad.setStripeCustomerId(stripeCustomerID);
+
+
+                if((filesOK!=null)&&(filesOK.size()>0)){
+                  ad.setAdopterImage(filesOK.get(0));
+                }
+
+
+                myShepherd.beginDBTransaction();
+
+
+                if (adoptionSuccess && !isEdit) {
+                  try {
+                    myShepherd.storeNewAdoption(ad, id);
+                  }
+                  catch (Exception e) {
+                    adoptionSuccess = false;
+                    failureMessage += "Failed to presist the new adoption.<br>";
+                  }
+                }
 
             // New logic to change marked individual nickname if necessary in adoption.
-            MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
-            if (!newNickName.equals("")) {
-              if (adoptionSuccess && !isEdit) {
-                try {
-                  mi.setNickName(newNickName);
-                  mi.setNickNamer(adopterName);
-                } catch (Exception e) {
-                  failureMessage += "Retrieving shark to set nickname failed.<br>";
+              MarkedIndividual mi = myShepherd.getMarkedIndividual(shark);
+              if (!newNickName.equals("")) {
+                if (adoptionSuccess && !isEdit) {
+                  try {
+                    mi.setNickName(newNickName);
+                    mi.setNickNamer(adopterName);
+                  } catch (Exception e) {
+                    failureMessage += "Retrieving shark to set nickname failed.<br>";
+                  }
                 }
               }
-            }
 
-            // Sends a confirmation email to a a new adopter with cancellation and update information.
-            try {
-              String emailContext = "context0";
-              String langCode = "en";
-              String to = ad.getAdopterEmail();
-              String type = "adoptionConfirmation";
-              System.out.println("About to email new adopter.");
-              // Retrieve background service for processing emails
-              ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-              Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
-              NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
-              es.execute(mailer);
-            }
-            catch (Exception e) {
-              System.out.println("Error in sending email confirmation of adoption.");
-              e.printStackTrace();
-            }
+              // Sends a confirmation email to a a new adopter with cancellation and update information.
+              try {
+                String emailContext = "context0";
+                String langCode = "en";
+                String to = ad.getAdopterEmail();
+                String type = "adoptionConfirmation";
+                System.out.println("About to email new adopter.");
+                // Retrieve background service for processing emails
+                ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+                Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
+                NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+                es.execute(mailer);
+              }
+              catch (Exception e) {
+                System.out.println("Error in sending email confirmation of adoption.");
+                e.printStackTrace();
+              }
 
 
-            if (adoptionSuccess && isEdit) {
-              myShepherd.commitDBTransaction();
-            }
+              if (adoptionSuccess && isEdit) {
+                myShepherd.commitDBTransaction();
+              }
 
+          } catch(Exception e) {
+            System.out.println("The recaptcha passed but something went wrong saving the adoption.");
+            e.printStackTrace();
+          }
+
+        }
 
 
         }
@@ -461,8 +476,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         //return a forward to display.jsp
         System.out.println("Ending adoption data submission.");
         //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
-        if (adoptionSuccess) {
+        if ((adoptionSuccess) && (!isEdit)) {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+        } else if ((adoptionSuccess) && (isEdit)) {
+          response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
         } else {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
         }
@@ -470,7 +487,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       //}
 
       myShepherd.closeDBTransaction();
-    }
 
 
   } //end doPOST

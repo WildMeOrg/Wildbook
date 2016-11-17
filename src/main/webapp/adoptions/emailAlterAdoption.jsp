@@ -84,6 +84,25 @@ context=ServletUtilities.getContext(request);
       			  <span class="input-group-addon">Change Address</span>
       			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
       			</div>
+
+            <div class="input-group">
+              <span class="input-group-addon">Profile Photo</span>
+              <%
+              String adopterImageString="";
+              if(adopterImage!=null){
+                adopterImageString=adopterImage;
+              }
+              %>
+              <input class="input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+              <%
+              if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+              %>
+                <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+                <%
+                  }
+                %>
+            </div>
+
             </tr>
           </table>
         </td>
