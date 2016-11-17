@@ -106,9 +106,8 @@ context=ServletUtilities.getContext(request);
 				<span class="input-group-addon">Billing Email</span>
 				<input type="text" class="input-l-width" name="email">
 			</div>
+			<button type="submit" class="large submit" value="Submit Payment">Make Donation<span class="button-icon" aria-hidden="true"></button>
 		</div>
-
-	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 	</form>
 	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
 
