@@ -2070,11 +2070,20 @@ public class Shepherd {
 
     String lowerCased = name.trim().toLowerCase();
     String capitolized = lowerCased.substring(0,1).toUpperCase() + lowerCased.substring(1);
-    String firstWord = lowerCased.split(" ")[0];
-    String beforeParen = name.split("(")[0];
-    String unaccented = Util.stripAccents(name);
+    String firstWord = capitolized.split(" ")[0];
+    //String
+    String withoutAccents = Util.stripAccents(firstWord);
 
-    String[] possibleNames = {name, lowerCased, capitolized, firstWord, beforeParen, unaccented};
+    String betweenParens = capitolized;
+    int firstParen = capitolized.indexOf("\\(");
+    if (firstParen>=0 && capitolized.indexOf("\\)") > firstParen) {
+      betweenParens = capitolized.substring(firstParen, capitolized.indexOf("\\)"));
+      betweenParens = betweenParens.trim().toLowerCase();
+      betweenParens = betweenParens.substring(0,1).toUpperCase() + betweenParens.substring(1);
+    }
+
+
+    String[] possibleNames = {name, lowerCased, capitolized, firstWord, withoutAccents, betweenParens};
 
     MarkedIndividual indy = null;
     for (String pName : possibleNames) {
