@@ -47,6 +47,7 @@ context=ServletUtilities.getContext(request);
 		sessionPaid =(Boolean)session.getAttribute( "paid");
 	}
 
+	session.setAttribute( "emailEdit", false );
 
 	boolean acceptedPayment = true;
 
@@ -72,6 +73,9 @@ context=ServletUtilities.getContext(request);
 	  </div>
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">
+			<div class="input-group">
+				<input type="hidden" name="planName" value="none">
+			</div>
 			<div class="input-group">
 				<span class="input-group-addon">Amount in Dollars</span>
 				<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Minimum $5">

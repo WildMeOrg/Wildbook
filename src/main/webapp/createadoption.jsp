@@ -50,6 +50,8 @@ context=ServletUtilities.getContext(request);
 		sessionPaid =(Boolean)session.getAttribute( "paid");
 	}
 
+	session.setAttribute( "emailEdit", false );
+
 	boolean hasNickName = true;
 	String nick = "";
 	try {
