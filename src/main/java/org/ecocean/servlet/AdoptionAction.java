@@ -383,7 +383,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               validCaptcha = ServletUtilities.captchaIsValid(context, gresp, remoteIP);
               System.out.println("Results from captchaIsValid(): " + validCaptcha );
             }
-            if (validCaptcha == true) {
+            if ((validCaptcha == true) || (loggedIn == true)) {
 
               try {
                 Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
