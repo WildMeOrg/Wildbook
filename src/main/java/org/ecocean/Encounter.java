@@ -117,7 +117,7 @@ public class Encounter implements java.io.Serializable {
   public String genus = "";
   public String specificEpithet;
   public String lifeStage;
-  public String region;
+  public String country;
 
     private static HashMap<String,ArrayList<Encounter>> _matchEncounterCache = new HashMap<String,ArrayList<Encounter>>();
 
@@ -2320,11 +2320,11 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
       return null;
     }
 
-    public String getregion(){return region;}
+    public String getCountry(){return country;}
 
-    public void setregion(String newregion) {
-      if(newregion!=null){region = newregion;}
-      else{region=null;}
+    public void setCountry(String newCountry) {
+      if(newCountry!=null){country = newCountry;}
+      else{country=null;}
     }
 
     public void setOccurrenceID(String vet) {
