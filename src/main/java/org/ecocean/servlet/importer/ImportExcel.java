@@ -103,7 +103,7 @@ ImportExcel extends HttpServlet {
         MarkedIndividual ind = null;
         boolean needToAddEncToInd = false;
         if (indID!=null) {
-          ind = myShepherd.getMarkedIndividual(indID);
+          ind = myShepherd.getMarkedIndividualQuiet(indID);
           if (ind==null) {
             ind = new MarkedIndividual(indID,enc);
           } else {
@@ -185,8 +185,9 @@ ImportExcel extends HttpServlet {
   }
 
   public Encounter parseEncounter(HSSFRow row, Occurrence occ) {
-    String id = getString(row, 9);
-    Encounter enc = new Encounter(occ, id);
+    String indID = Util.stripAccents(getString(row, 9));
+    //String indID = getString(row, 9);
+    Encounter enc = new Encounter(occ, indID);
 
     enc.setCountry(getString(row,0));
     enc.setLocationID(getString(row,1));
