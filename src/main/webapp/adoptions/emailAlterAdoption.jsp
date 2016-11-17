@@ -28,6 +28,10 @@ context=ServletUtilities.getContext(request);
   String notes = "";
   String adoptionType = "";
 
+  // Simple flag to change landing page after form submission.
+
+  session.setAttribute( "emailEdit", true );
+
   String sharkID = "";
   if (request.getParameter("number") != null) {
     sharkID = request.getParameter("number");
@@ -84,7 +88,7 @@ context=ServletUtilities.getContext(request);
       			  <span class="input-group-addon">Change Address</span>
       			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
       			</div>
-
+            <br>
             <div class="input-group">
               <span class="input-group-addon">Profile Photo</span>
               <%
