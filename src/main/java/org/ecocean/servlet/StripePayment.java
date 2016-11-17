@@ -132,7 +132,7 @@ public class StripePayment extends HttpServlet {
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/donationThanks.jsp");
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
-      } catch (ServletException e) {
+      } catch (Exception e) {
         System.out.println("Servlet Exeption... No redirect.");
       }
     } else {
@@ -141,7 +141,7 @@ public class StripePayment extends HttpServlet {
         getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
-      } catch (ServletException e) {
+      } catch (Exception e) {
         System.out.println("Servlet Exeption... No redirect.");
       }
     }
