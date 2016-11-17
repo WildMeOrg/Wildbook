@@ -133,7 +133,7 @@ public class StripePayment extends HttpServlet {
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
       } catch (Exception e) {
-        System.out.println("Servlet Exeption... No redirect.");
+        System.out.println("General Exeption... No redirect.");
       }
     } else {
       try {
