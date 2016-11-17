@@ -126,10 +126,10 @@ public class StripePayment extends HttpServlet {
     } catch (Exception e) {
       e.printStackTrace();
     }
-    if (!planName.equals("none")) {
+    if (planName.equals("none")) {
       try {
-        System.out.println("SUBSCRIPTION redirect success!");
-        getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
+        System.out.println("ONE TIME DONATION redirect success!");
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/donationThanks.jsp");
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
       } catch (ServletException e) {
@@ -137,8 +137,8 @@ public class StripePayment extends HttpServlet {
       }
     } else {
       try {
-        System.out.println("ONE TIME DONATION redirect success!");
-        getServletContext().getRequestDispatcher("/donationThanks.jsp").forward(request, response);
+        System.out.println("SUBSCRIPTION redirect success!");
+        getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
       } catch (ServletException e) {
