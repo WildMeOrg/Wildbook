@@ -61,7 +61,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-    <h4>This donation will go directly to wildbook</h4>
+    <h4>This donation will go directly to Whaleshark.org.</h4>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
@@ -73,8 +73,8 @@ context=ServletUtilities.getContext(request);
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">
 			<div class="input-group">
-				<span class="input-group-addon">Custom Amount in Whole Dollars</span>
-				<input type="number" class="input-l-width" min="500" max="2000000" name="amount" placeholder="Optional">
+				<span class="input-group-addon">Amount in Dollars</span>
+				<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Minimum $5">
 			</div>
 			<div class="input-group">
 				<span class="input-group-addon">Name On Card</span>
