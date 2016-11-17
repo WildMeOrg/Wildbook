@@ -476,8 +476,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         //return a forward to display.jsp
         System.out.println("Ending adoption data submission.");
         //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
-        if (adoptionSuccess) {
+        if ((adoptionSuccess) && (!isEdit)) {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+        } else if ((adoptionSuccess) && (isEdit)) {
+          response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
         } else {
           response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
         }
