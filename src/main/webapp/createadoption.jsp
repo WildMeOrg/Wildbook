@@ -110,8 +110,7 @@ context=ServletUtilities.getContext(request);
 			<div class="input-group">
 				<span class="input-group-addon">Adoption Type</span>
 				<select id='planName' class="input-l-width" name="planName">
-					<option  value="none" selected="selected">No Subscription</option>
-					<option value="individual">Individual $5/Month</option>
+					<option value="individual" selected="selected">Individual $5/Month</option>
 					<option value="group">Group adoption - $20/Month</option>
 					<option value="corporate">Corporate adoption - $120/Month</option>
 			</select>
