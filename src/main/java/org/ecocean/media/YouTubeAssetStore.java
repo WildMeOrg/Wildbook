@@ -39,6 +39,7 @@ import org.ecocean.Annotation;
 import org.ecocean.YouTube;
 //import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
+import org.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
 
 import org.slf4j.Logger;
@@ -140,6 +141,47 @@ System.out.println("YouTubeAssetStore.grab(" + ma + ") tempdir = " + dir);
     }
 
 
+    //returns success (stuff grabbed and parsed)
+    // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
+    public boolean grabAndParse(MediaAsset ma, boolean wait) throws IOException {
+        boolean processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
+        int count = 0;
+        int max = 100;
+        while (processing && (count < max)) {
+            System.out.println("INFO: YouTubeAssetStore(" + ma + ").grabAndParse, waiting with count=" + count);
+            if (!wait) return false;
+            try {
+                Thread.sleep(2000);
+            } catch (java.lang.InterruptedException ex) {}
+            count++;
+            if (count >= max) return false;
+            processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
+        }
+        //get here, we must not be processing, so lets do that!
+        ma.addDerivationMethod("_processing", true);
+        List<File> grabbed = this.grab(ma);
+        for (File f : grabbed) {
+System.out.println("- grabAndParse: " + f);
+            if (f.getName().matches(".info.json$")) {
+                List<String> lines = Files.readAllLines(f.toPath(), Charset.defaultCharset());
+                JSONObject detailed = null;
+                try {
+                    detailed = new JSONObject(StringUtils.join(lines, ""));
+                } catch (JSONException jex) {
+                    System.out.println("ERROR: " + ma + " grabAndParse() failed to parse YouTube .info.json - " + jex.toString());
+                }
+                if (detailed != null) {
+                    MediaAssetMetadata md = ma.getMetadata();
+                }
+            } else if (f.getName().matches(".jpg$")) {
+                ///////// get image as _thumb child
+            } else if (f.getName().matches(".mp4$")) {
+                ///////// get video as _video child
+            }
+        }
+        return true;
+    }
+
     //this can be overridden if needed, but this should be fine for any AssetStore which can cacheLocal
     //  minimal means width/height/type (MetadataAttributes) only -- good for derived (i.e. exif-boring) images
     public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
@@ -152,22 +194,8 @@ System.out.println("YouTubeAssetStore.grab(" + ma + ") tempdir = " + dir);
             System.out.println(ma + " failed simpleInfo(): " + ex.toString());
         }
 
-        if (!minimal) {  //fetch the big deal in the background (maybe) so we set a placeholder
-/////// TODO check to see if we already have fetched it before.... remove that child? or not-fetch-and-recycle (mp4 and json) ????
+        if (!minimal) {
             data.put("detailed", new JSONObject("{\"_processing\": true}"));
-            List<File> grabbed = this.grab(ma);
-            for (File f : grabbed) {
-                if (f.getName().matches(".info.json$")) {
-                    List<String> lines = Files.readAllLines(f.toPath(), Charset.defaultCharset());
-                    //TODO here we would have to set metadata asynchrounously
-                    JSONObject detailed = new JSONObject(StringUtils.join(lines, ""));
-                    data.put("detailed", detailed);
-                } else if (f.getName().matches(".jpg$")) {
-                    ///////// get image as _thumb child
-                } else if (f.getName().matches(".mp4$")) {
-                    ///////// get video as _video child
-                }
-            }
         }
 
         return new MediaAssetMetadata(data);
