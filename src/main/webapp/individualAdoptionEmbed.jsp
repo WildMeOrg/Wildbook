@@ -46,12 +46,8 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<style type="text/css">
-  <!--
+<link rel="stylesheet" href="css/createadoption.css">
 
-
-  -->
-</style>
 <article class="adopter-feature-gallery">
   <div class="adopter">
     <div class="adopter-header" >
@@ -66,50 +62,52 @@ context=ServletUtilities.getContext(request);
       for (ia = 0; ia < numAdoptions; ia++) {
         Adoption ad = adoptions.get(ia);
     %>
-    <%
-      if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
-    %>
-      <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="adopters picture" />
-      <div class="adopter-details">
-      <%
-        }
-      %>
-      <p>
-        <%=ad.getAdopterName()%>
-      </p>
-      <%
-        if ((mi.getNickName() != null) && (!mi.getNickName().trim().equals(""))) {
-      %>
-        <p>
-          Adopted <%=mi.getNickName()%>
-        </p>
-      <%
-        }
-      %>
-      <%
-        if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
-      %>
-        <p>
-          <%=ad.getAdopterQuote()%>
-        </p>
-      <%
-        }
-      %>
-    </div>
+        <%
+        if ((ad.getAdopterImage() != null) && (!ad.getAdopterImage().trim().equals(""))) {
+        %>
+          <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg" alt="adopters picture" />
+        <%
+          }
+        %>
+        <div class="adopter-details">
+          <p>
+            "<%=ad.getAdopterName()%>"
+          </p>
+          <%
+            if ((ind.getNickName() != null) && (!ind.getNickName().trim().equals(""))) {
+          %>
+            <p>
+              Adopted "<%=ind.getNickName()%>"
+            </p>
+          <%
+            }
+          %>
+          <%
+            if ((ad.getAdopterQuote() != null) && (!ad.getAdopterQuote().trim().equals(""))) {
+          %>
+            <p>
+              "<%=ad.getAdopterQuote()%>"
+            </p>
+          <%
+            }
+          %>
+        </div>
   </div>
 </article>
 <%
-  }
+    }
 
   if (ia > 0) {
 %>
 <%
   }
 %>
+<%
   }
   catch (Exception e) {
   }
-  <%
-	  myShepherd.rollbackDBTransaction();
-	  myShepherd.closeDBTransaction();
-	%>
+  adoptShepherd.rollbackDBTransaction();
+  adoptShepherd.closeDBTransaction();
+  adoptShepherd = null;
+
+%>

@@ -56,17 +56,17 @@ context=ServletUtilities.getContext(request);
                       <form name="reject_form" method="post" action="../DeleteAdoption">
                         <input name="action" type="hidden" id="action" value="reject">
                         <input name="adoptionID" type="hidden" value="<%=adoptionID%>">
-                        <input name="customerID" type="hidden" value="<%=customerID%>"%>>
-                        <input name="sharkID" type="hidden" value="<%=sharkID%>"%>>
-
-                        <input name="yes" type="submit" id="yes" value="Permanently delete"></form>
+                        <input name="customerID" type="hidden" value="<%=customerID%>">
+                        <input name="sharkID" type="hidden" value="<%=sharkID%>">
+                        <button name="yes" type="submit" id="yes" value="Permanently delete">Permanently Delete<span class="button-icon" aria-hidden="true"></button>
+                      </form>
                     </td>
                     <td align="left" valign="top">
                       <form name="form2" method="get" action="adoption.jsp"><input
                         name="number" type="hidden"
-                        value=<%=request.getParameter("number")%>> <input name="no"
-                                                                          type="submit" id="no"
-                                                                          value="Cancel"></form>
+                        value=<%=request.getParameter("number")%>>
+                        <button name="no" type="submit" id="no" value="Cancel">Cancel<span class="button-icon" aria-hidden="true"></button>
+                      </form>
                     </td>
                   </tr>
                 </table>

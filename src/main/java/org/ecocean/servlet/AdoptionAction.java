@@ -474,9 +474,9 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         session.setAttribute("paid", false);
 
         // This value is only stored in the email specific edit form.
-        boolean emailEdit = false;
-        if (session.getAttribute( "emailEdit")) {
-          emailEdit = (boolean)session.getAttribute( "emailEdit");
+        Boolean emailEdit = false;
+        if ((Boolean)session.getAttribute( "emailEdit") != false) {
+          emailEdit = (Boolean)session.getAttribute( "emailEdit");
         }
 
         //return a forward to display.jsp
