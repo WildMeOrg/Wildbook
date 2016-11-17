@@ -1,33 +1,41 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities, org.ecocean.CommonConfiguration,java.awt.*, java.io.File" %>
+         import="org.ecocean.servlet.ServletUtilities,org.ecocean.Adoption, org.ecocean.MarkedIndividual, org.ecocean.CommonConfiguration,org.ecocean.Shepherd,java.awt.*, java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
-  myShepherd.setAction("donationThanks.jsp");
-
 
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
 
 
+  //setup data dir
+    String rootWebappPath = getServletContext().getRealPath("/");
+    File webappsDir = new File(rootWebappPath).getParentFile();
+    File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+     File adoptionsDir=new File(shepherdDataDir.getAbsolutePath()+"/adoptions");
+  if(!adoptionsDir.exists()){adoptionsDir.mkdirs();}
+
+
+  File thisAdoptionDir = new File(adoptionsDir.getAbsolutePath()+"/" + request.getParameter("number"));
+  if(!thisAdoptionDir.exists()){thisAdoptionDir.mkdirs();}
+
 %>
 
-    <jsp:include page="/header.jsp" flush="true" />
+    <jsp:include page="../header.jsp" flush="true" />
 
         <div class="container maincontent">
-           
 
-          	
-          <h1 class="intro">Donation Complete</h1>
-          <p><strong>Your payment was successfully processed.</strong></p>
-	  <p>Thank you for contributing to Whaleshark.org</p>
+          
 
 
+
+          <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>">
+            View your shark's updated profile</a>.</p>
           <p><a
             href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
           </a>.</p>
 
 
         </div>
-        <jsp:include page="/footer.jsp" flush="true"/>
+    <jsp:include page="../footer.jsp" flush="true"/>
