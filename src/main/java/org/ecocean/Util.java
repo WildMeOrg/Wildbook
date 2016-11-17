@@ -483,7 +483,7 @@ public class Util {
     }
 
     public static String utf8ize(String str) {
-      value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
+      String value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
       return value;
     }
 
