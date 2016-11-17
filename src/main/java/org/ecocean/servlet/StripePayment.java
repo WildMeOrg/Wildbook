@@ -39,6 +39,12 @@ public class StripePayment extends HttpServlet {
     String email = request.getParameter("email");
     String planName = request.getParameter("planName");
 
+    Integer pennyAmount = 0;
+
+    if ((amount != null) && (amount != "")) {
+      pennyAmount = ( Integer.parseInt(amount) * 100);
+    }
+
     HttpSession session = request.getSession();
     String queryShark = (String)session.getAttribute("queryShark");
 
@@ -60,7 +66,7 @@ public class StripePayment extends HttpServlet {
       try {
         Map<String, Object> cardMap = new HashMap<String, Object>();
         cardMap.put("source", token);
-        cardMap.put("amount", amount);
+        cardMap.put("amount", Integer.toString(pennyAmount));
         cardMap.put("currency", "usd");
         cardMap.put("description", "Whaleshark.org one time donation.");
 

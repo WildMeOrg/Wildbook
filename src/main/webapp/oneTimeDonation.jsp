@@ -21,6 +21,12 @@ context=ServletUtilities.getContext(request);
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
+	Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
+	if (stripeProps == null) {
+			 System.out.println("There are no available API keys for Stripe!");
+	}
+	String stripePublicKey = stripeProps.getProperty("publicKey");
+
 	Shepherd myShepherd = new Shepherd(context);
 	myShepherd.setAction	("createadoption.jsp");
 	myShepherd.beginDBTransaction();
@@ -35,51 +41,16 @@ context=ServletUtilities.getContext(request);
 	if (request.getParameter("number") != null) {
 		session.setAttribute( "queryShark", request.getParameter("number") );
 	}
-	String sessionShark = null;
-	if (session.getAttribute( "queryShark") != null) {
-		sessionShark =(String)session.getAttribute( "queryShark");
-	}
+
 	Boolean sessionPaid = false;
 	if (session.getAttribute( "paid") != null) {
 		sessionPaid =(Boolean)session.getAttribute( "paid");
 	}
 
-	boolean hasNickName = true;
-	String nick = "";
-	try {
-		if (sessionShark != null) {
-			MarkedIndividual mi = myShepherd.getMarkedIndividual(sessionShark);
-			nick = mi.getNickName();
-			if ((nick.equals("Unassigned"))||(nick.equals(""))) {
-				hasNickName = false;
-			}
-		}
-	} catch (Exception e) {
-		System.out.println("Error looking up nickname!!");
-		e.printStackTrace();
-	}
 
-
-	int count = myShepherd.getNumAdoptions();
-	int allSharks = myShepherd.getNumMarkedIndividuals();
-	int countAdoptable = allSharks - count;
-
-	boolean isOwner = true;
 	boolean acceptedPayment = true;
 
   String id = "";
-  String adopterName = "";
-  String adopterAddress = "";
-  String adopterEmail = "";
-  String adopterImage="";
-  String adoptionStartDate = "";
-  String adoptionEndDate = "";
-  String adopterQuote = "";
-  String adoptionManager = "";
-  String sharkForm = "";
-  String encounterForm = "";
-  String notes = "";
-  String adoptionType = "";
 
 	String servletURL = "../AdoptionAction";
 
@@ -90,8 +61,7 @@ context=ServletUtilities.getContext(request);
 <div class="container maincontent">
   <section class="centered">
     <h2>Thank you for your support!</h2>
-		<h3>Query Shark: <%= session.getAttribute("queryShark") %> Paid Status: <%= sessionPaid %> Has Nickname?: <%= hasNickName %> NickName: <%= nick %></h3>
-    <h4>After filling out the financial information, you will be able to create your profile and choose your sharks nickname.</h4>
+    <h4>This donation will go directly to wildbook</h4>
   </section>
 
 	<%-- BEGIN STRIPE FORM --%>
@@ -103,17 +73,8 @@ context=ServletUtilities.getContext(request);
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">
 			<div class="input-group">
-				<span class="input-group-addon">Adoption Type</span>
-				<select id='planName' class="input-l-width" name="planName">
-					<option  value="none" selected="selected">No Subscription</option>
-					<option value="individual">Individual $5/Month</option>
-					<option value="group">Group adoption - $20/Month</option>
-					<option value="corporate">Corporate adoption - $120/Month</option>
-			</select>
-			</div>
-			<div class="input-group">
-				<span class="input-group-addon">Custom Amount</span>
-				<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
+				<span class="input-group-addon">Custom Amount in Whole Dollars</span>
+				<input type="number" class="input-l-width" min="500" max="2000000" name="amount" placeholder="Optional">
 			</div>
 			<div class="input-group">
 				<span class="input-group-addon">Name On Card</span>
@@ -144,15 +105,9 @@ context=ServletUtilities.getContext(request);
 			</div>
 		</div>
 
-		<%-- Passes selected shark through servlet so we get to keep it after payment. --%>
-		<input id="selectedShark" type="hidden" name="selectedShark" value="">
-
 	  <button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 	</form>
 	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
-
-
-
 
 			<%
 			  if (acceptedPayment) {
@@ -174,7 +129,7 @@ context=ServletUtilities.getContext(request);
 <script type="text/javascript" src="https://js.stripe.com/v2/"></script>
 <script type="text/javascript">
 	// Publishable Key
-	Stripe.setPublishableKey('pk_test_yiqozX1BvmUhmcFwoFioHcff');
+	Stripe.setPublishableKey('<%=stripePublicKey%>');
 
 	var stripeResponseHandler = function(status, response) {
 		var $form = $('#payment-form');
@@ -193,14 +148,6 @@ context=ServletUtilities.getContext(request);
 		}
 	};
 
-	function formSwitcher() {
-		if (<%= sessionPaid %> === true) {
-			$("#payment-form").hide();
-			$("#adoption-form").show();
-		}
-	}
-	formSwitcher();
-
 	jQuery(function($) {
 		$('#payment-form').submit(function(e) {
 		 var $form = $(this);
@@ -217,20 +164,4 @@ context=ServletUtilities.getContext(request);
 		 return false;
 		});
 	});
-</script>
-
-<!-- Auto populate start date with current date. -->
-<script>
-  var myDate, day, month, year, date;
-  myDate = new Date();
-  day = myDate.getDate();
-  if (day <10)
-    day = "0" + day;
-  month = myDate.getMonth() + 1;
-  if (month < 10)
-    month = "0" + month;
-  year = myDate.getFullYear();
-  date = year + "-" + month + "-" + day;
-  $(".adoptionStartDate").val(date);
-	$(".adoptionStartHeader").text(date);
 </script>

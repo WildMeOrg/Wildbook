@@ -15,6 +15,7 @@ context=ServletUtilities.getContext(request);
 
 %>
 <jsp:include page="header.jsp" flush="true"/>
+<link rel="stylesheet" href="css/createadoption.css">
 
 <div class="container maincontent adoption-page">
 	<h1 class="intro-adopt">Adopt a Shark</h1>
