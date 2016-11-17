@@ -49,6 +49,8 @@ if ((jobID == null) || jobID.equals("")) {
 	out.println("{\"success\": true}");
 System.out.println("((((all done with main thread))))");
 }
+myShepherd.rollbackDBTransaction();
+myShepherd.closeDBTransaction();
 
 %>
 
