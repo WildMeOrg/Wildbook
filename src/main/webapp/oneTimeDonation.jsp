@@ -101,15 +101,6 @@ context=ServletUtilities.getContext(request);
 	  <span class="payment-errors"></span>
 		<div class="input-col-1">
 			<div class="input-group">
-				<span class="input-group-addon">Adoption Type</span>
-				<select id='planName' class="input-l-width" name="planName">
-					<option  value="none" selected="selected">No Subscription</option>
-					<option value="individual">Individual $5/Month</option>
-					<option value="group">Group adoption - $20/Month</option>
-					<option value="corporate">Corporate adoption - $120/Month</option>
-			</select>
-			</div>
-			<div class="input-group">
 				<span class="input-group-addon">Custom Amount</span>
 				<input type="number" class="input-l-width" min="5" max="1000000" name="amount" placeholder="Optional">
 			</div>
@@ -145,7 +136,7 @@ context=ServletUtilities.getContext(request);
 			<button type="submit" class="large submit" value="Submit Payment">Next<span class="button-icon" aria-hidden="true"></button>
 		</div>
 	</form>
-	<%-- END STRIPE FORM - BEGIN ADOPTION FORM--%>
+	<%-- END STRIPE FORM --%>
 
 
 
@@ -189,14 +180,6 @@ context=ServletUtilities.getContext(request);
 		}
 	};
 
-	function formSwitcher() {
-		if (<%= sessionPaid %> === true) {
-			$("#payment-form").hide();
-			$("#adoption-form").show();
-		}
-	}
-	formSwitcher();
-
 	jQuery(function($) {
 		$('#payment-form').submit(function(e) {
 		 var $form = $(this);
@@ -207,26 +190,8 @@ context=ServletUtilities.getContext(request);
 			/*$(".disabled-input").prop('disabled', false);*/
 
 		 Stripe.card.createToken($form, stripeResponseHandler);
-
-		 formSwitcher();
 		 // Prevent the form from submitting with the default action
 		 return false;
 		});
 	});
-</script>
-
-<!-- Auto populate start date with current date. -->
-<script>
-  var myDate, day, month, year, date;
-  myDate = new Date();
-  day = myDate.getDate();
-  if (day <10)
-    day = "0" + day;
-  month = myDate.getMonth() + 1;
-  if (month < 10)
-    month = "0" + month;
-  year = myDate.getFullYear();
-  date = year + "-" + month + "-" + day;
-  $(".adoptionStartDate").val(date);
-	$(".adoptionStartHeader").text(date);
 </script>
