@@ -138,12 +138,12 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
+                /SubmitSpots = authc, roles[machinelearning]
+				/InterconnectSubmitSpots = authc, roles[machinelearning]
+				/interconnectSubmitSpots = authc, roles[machinelearning]
 
-				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
-				/SubmitSpotsAndImage = authc, roles[imageProcessor]
+				/encounters/encounterSpotTool.jsp = authc, roles[machinelearning]
+				/SubmitSpotsAndImage = authc, roles[machinelearning]
 	
 		/GenePopExport = authc, roles[researcher]
 		
@@ -559,6 +559,11 @@
   <servlet>
     <servlet-name>MediaAssetCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
   </servlet>
 
   <servlet>
@@ -1330,6 +1335,11 @@
     <servlet-mapping>
       <servlet-name>MediaAssetCreate</servlet-name>
       <url-pattern>/MediaAssetCreate</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+      <servlet-name>EncounterCreate</servlet-name>
+      <url-pattern>/EncounterCreate</url-pattern>
     </servlet-mapping>
 
       <servlet-mapping>
