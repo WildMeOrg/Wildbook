@@ -32,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import org.ecocean.Shepherd;
 import org.ecocean.Util;
 import org.ecocean.Annotation;
 //import org.ecocean.ImageProcessor;
@@ -156,7 +157,7 @@ public class URLAssetStore extends AssetStore {
 
     private String urlFromParameters(JSONObject params) {
         if (params == null) return null;
-        return params.optString("url", null);
+        return params.optString("url");
     }
 
     public static void fetchFileFromURL(URL srcUrl, File targetFile) throws IOException {
@@ -169,6 +170,17 @@ public class URLAssetStore extends AssetStore {
         }
         is.close();
         os.close();
+    }
+
+
+    //this finds "a" (first? one?) URLAssetStore if we have any.  (null if not)
+    public static URLAssetStore find(Shepherd myShepherd) {
+        AssetStore.init(AssetStoreFactory.getStores(myShepherd));
+        if ((AssetStore.getStores() == null) || (AssetStore.getStores().size() < 1)) return null;
+        for (AssetStore st : AssetStore.getStores().values()) {
+            if (st instanceof URLAssetStore) return (URLAssetStore)st;
+        }
+        return null;
     }
 
 }
