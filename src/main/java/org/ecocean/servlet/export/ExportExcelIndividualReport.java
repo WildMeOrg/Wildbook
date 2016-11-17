@@ -108,7 +108,7 @@ public class ExportExcelIndividualReport extends HttpServlet{
         Double ageFirstSighted = indiv.getAgeAtFirstSighting();
         String ageFirstSightedString = "";
         if (ageFirstSighted!=null) {
-          ageFirstSightedString = String.valueOf(Math.round(ageFirstSighted.doubleValue() * 100) / 100);
+          ageFirstSightedString = String.valueOf(ageFirstSighted);
         }
 
 
