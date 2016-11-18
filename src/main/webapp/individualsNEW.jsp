@@ -193,6 +193,9 @@ if (request.getParameter("number")!=null) {
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
+<link rel="stylesheet" href="css/createadoption.css">
+
+
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
@@ -345,7 +348,8 @@ if (request.getParameter("number")!=null) {
           %>
 
       <%-- Social Media Buttons --%>
-      <div>
+
+      <div id="individualSocialButtons">
         <!-- Google PLUS-ONE button -->
         <g:plusone size="small" annotation="none"></g:plusone>
         <!--  Twitter TWEET THIS button -->
@@ -360,8 +364,9 @@ if (request.getParameter("number")!=null) {
           <%
         }
         %>
-        <%-- End of Social Media   --%>
       </div>
+      <%-- End of Social Media   --%>
+
       <br>
       <%-- Descriptions --%>
       <div class="row">
@@ -1454,12 +1459,22 @@ if (request.getParameter("number")!=null) {
         </div>
         <!-- End genetics -->
       </div>
-      <br></br>
+
+      <%-- Map --%>
+      <br>
+      <div>
+        <jsp:include page="individualMapEmbed.jsp" flush="true">
+          <jsp:param name="name" value="<%=name%>"/>
+        </jsp:include>
+      </div>
+      <%-- End of Map --%>
+
       <%-- Start Adoption --%>
       <div>
         <%
           if (CommonConfiguration.allowAdoptions(context)) {
         %>
+          <p><strong>Meet the Adopters</strong></p>
           <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
             <jsp:param name="name" value="<%=name%>"/>
           </jsp:include>
@@ -1497,7 +1512,7 @@ if (request.getParameter("number")!=null) {
                       profilePhotoURL="/"+CommonConfiguration.getDataDirectoryName("context0")+"/users/"+thisUser.getUsername()+"/"+thisUser.getUserImage().getFilename();
                     }
                     %>
-                    <div class="col-xl-3 col-sm-4 col-xs-6 researcherPhotoContainer thumbnail">
+                    <div class="researcherPhotoContainer thumbnail">
                       <%
                       String displayName="";
                       if(thisUser.getFullName()!=null) {
@@ -1561,14 +1576,7 @@ if (request.getParameter("number")!=null) {
       <%-- End Collaborators --%>
       </div>
 
-      <%-- Map --%>
-      <br>
-      <div>
-        <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
-        </jsp:include>
-      </div>
-      <%-- End of Map --%>
+
 
       <br>
       <%-- Comments --%>
