@@ -63,7 +63,7 @@ section.centered{
   align-items: center;
 }
 #individualSocialButtons div, #individualSocialButtons iframe, #individualSocialButtons a{
-  margin-righ: 1rem;
+  margin-right: 1rem;
 }
 
 /*adoptashark - styles are in less file too*/
@@ -110,4 +110,8 @@ section.centered{
     .adopter{
       width: 24%;
     }
+  }
+
+  html{
+    font-family: 'Open Sans', sans-serif;
   }
