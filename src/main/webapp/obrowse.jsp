@@ -1,22 +1,3 @@
-
-<style>
-
-.mediaasset {
-	position: relative;
-}
-.mediaasset img {
-	position: absolute;
-	top: 0;
-	right: 20px;
-	max-width: 350px;
-}
-
-.deprecated {
-	color: #888;
-}
-
-</style>
-
 <%@ page contentType="text/html; charset=utf-8" 
 		language="java"
         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,
@@ -24,7 +5,6 @@ org.ecocean.media.*,
 java.util.ArrayList,
 org.json.JSONObject,
 java.util.Properties" %>
-
 <%!
 
 	public Shepherd myShepherd = null;
@@ -116,9 +96,7 @@ java.util.Properties" %>
 		}
 		return h + "</ul></div>";
 	}
-%>
-
-<%
+%><%
 
 myShepherd = new Shepherd("context0");
 myShepherd.setAction("obrowse.jsp");
@@ -147,6 +125,28 @@ if (id == null) {
 	out.println(showForm());
 	return;
 }
+
+if (!type.equals("MediaAssetMetadata")) { %>
+<style>
+
+.mediaasset {
+	position: relative;
+}
+.mediaasset img {
+	position: absolute;
+	top: 0;
+	right: 20px;
+	max-width: 350px;
+}
+
+.deprecated {
+	color: #888;
+}
+
+</style>
+<%
+}
+
 
 boolean needForm = false;
 
@@ -188,6 +188,7 @@ if (type.equals("Encounter")) {
 	}
 
 } else if (type.equals("MediaAssetMetadata")) {  //note: you pass the actual MediaAsset id here
+	response.setContentType("text/json");
 	try {
 		MediaAsset ma = ((MediaAsset) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(MediaAsset.class, id), true)));
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
