@@ -69,7 +69,7 @@ context=ServletUtilities.getContext(request);
 			<img src="../cust/mantamatcher/img/circle-divider.png"/>
 		</div>
 		<div class="input-col-1">
-      <input name="number" type="hidden" value="<%=number%>" placeholder="">
+      <input name="number" type="hidden" value="<%=adoptionID%>" placeholder="">
 			<input id="sharkId" type="hidden" value="<%=sharkID%>" placeholder="">
       <div class="input-group">
 				<span class="input-group-addon">Change Shark Nickname</span>
