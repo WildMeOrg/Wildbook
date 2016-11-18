@@ -14,17 +14,20 @@ context=ServletUtilities.getContext(request);
   myShepherd.setAction	("emailAlterAdoption.jsp");
   myShepherd.beginDBTransaction();
 
+  Properties stripeProps = ShepherdProperties.getProperties("stripeKeys.properties", "", context);
+  if (stripeProps == null) {
+       System.out.println("There are no available API keys for Stripe!");
+  }
+  String stripePublicKey = stripeProps.getProperty("publicKey");
+
   String id = "";
   String adopterName = "";
   String adopterAddress = "";
   String adopterEmail = "";
   String adopterImage="";
-  String adoptionStartDate = "";
-  String adoptionEndDate = "";
   String adopterQuote = "";
   String adoptionManager = "";
   String sharkForm = "";
-  String encounterForm = "";
   String notes = "";
   String adoptionType = "";
 
@@ -35,16 +38,19 @@ context=ServletUtilities.getContext(request);
   String sharkID = "";
   if (request.getParameter("number") != null) {
     sharkID = request.getParameter("number");
+    session.setAttribute( "sharkID", request.getParameter("number"));
   }
 
   String adoptionID = "";
   if (request.getParameter("adoption") != null) {
     adoptionID = request.getParameter("adoption");
+    session.setAttribute( "adoptionID", request.getParameter("adoption"));
   }
 
   String stripeID = "";
   if (request.getParameter("stripeID") != null) {
     stripeID = request.getParameter("stripeID");
+    session.setAttribute( "stripeID", request.getParameter("stripeID"));
   }
 
   %>
@@ -103,6 +109,47 @@ context=ServletUtilities.getContext(request);
     </div>
 
   </form>
+
+  <%-- END ADOPTION UPDATE FORM -- BEGIN PAYMENT UPDATE FORM --%>
+
+  <form action="../StripeUpdate" method="POST" id="payment-update" lang="en">
+		<div class="form-header">
+	    <h2>Financial Information</h2>
+			<img src=".../cust/mantamatcher/img/circle-divider.png"/>
+	  </div>
+	  <span class="payment-errors"></span>
+		<div class="input-col-2">
+			<div class="input-group">
+				<span class="input-group-addon">Name On Card</span>
+				<input type="text" class="input-l-width" name="nameOnCard">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Card Number</span>
+			  <input type="text" class="input-l-width" data-stripe="number">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Expiration</span>
+			  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
+			  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
+			</div>
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">CVC</span>
+		  <input type="text" class="input-s-width" data-stripe="cvc">
+		</div>
+		<div class="input-group">
+		  <span class="input-group-addon">Billing Zip</span>
+		  <input type="text" class="input-m-width" data-stripe="address_zip">
+		</div>
+
+
+
+	  <button type="submit" class="large submit" value="Update Payment">Update Payment<span class="button-icon" aria-hidden="true"></button>
+	</form>
+
+
+
+
 </div>
 
   <%
@@ -111,3 +158,37 @@ context=ServletUtilities.getContext(request);
   %>
 
 <jsp:include page="../footer.jsp" flush="true"/>
+
+
+<!-- Javascript Section -->
+<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+<script type="text/javascript">
+	// Publishable Key
+	Stripe.setPublishableKey('<%=stripePublicKey%>');
+
+	var stripeResponseHandler = function(status, response) {
+		var $form = $('#payment-update');
+
+		if (response.error) {
+  		// show errors
+  		$form.find('.payment-errors').text(response.error.message);
+  		$form.find('button').prop('disabled', false);
+		} else {
+  		// token contains id, last 4 card digits, and card type
+  		var token = response.id;
+  		//  submit to the server
+  		$form.append($('<input type="hidden" name="stripeToken" />').val(token));
+  		// and re-submit
+		 $form.get(0).submit();
+		}
+	};
+
+	jQuery(function($) {
+		$('#payment-form').submit(function(e) {
+		 var $form = $(this);
+		 Stripe.card.createToken($form, stripeResponseHandler);
+		 // Prevent the form from submitting with the default action
+		 return false;
+		});
+	});
+</script>
