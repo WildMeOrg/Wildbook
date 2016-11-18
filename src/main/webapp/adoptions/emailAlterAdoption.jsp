@@ -54,71 +54,56 @@ context=ServletUtilities.getContext(request);
 <jsp:include page="../header.jsp" flush="true" />
 <link rel="stylesheet" href="css/createadoption.css">
 
-  <div class="container maincontent">
-    <table border="0">
-      <tr>
-        <form id="adoption-form" style="display:none;" action="../AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
-      		<div class="form-header">
-      			<h2>Update Adoption Profile</h2>
-      			<img src="../cust/mantamatcher/img/circle-divider.png"/>
-            <br>
-      		</div>
-      		<div class="input-col-1">
-      			<div class="input-group">
-      			  <input id="sharkId" class=" input-m-width" name="shark" type="hidden" value="<%=sharkID%>" placeholder="">
-      			</div>
-          </div>
-          <br>
-      			<div class="input-group">
-      				<span class="input-group-addon">Change Shark Nickname</span>
-      				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
-      			</div>
-            <br>
-      			<div class="input-group">
-      			  <span class="input-group-addon">Change Adopter Name</span>
-      			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
-      			</div>
-            <br>
-      			<div class="input-group">
-      			  <span class="input-group-addon">Change Adopter Email</span>
-      			  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
-      			</div>
-            <br>
-      			<div class="input-group">
-      			  <span class="input-group-addon">Change Address</span>
-      			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
-      			</div>
-            <br>
-            <div class="input-group">
-              <span class="input-group-addon">Profile Photo</span>
-              <%
-              String adopterImageString="";
-              if(adopterImage!=null){
-                adopterImageString=adopterImage;
-              }
-              %>
-              <input class="input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
-              <%
-              if ((adopterImage != null) && (!adopterImageString.equals(""))) {
-              %>
-                <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
-                <%
-                  }
-                %>
-            </div>
-	    <br>			
-            </tr>
-          </table>
-        </td>
-      </tr>
+<div class="container maincontent">
+  <form id="adoption-form" action="../AdoptionAction" method="post" enctype="multipart/form-data" name="adoption_submission" target="_self" dir="ltr" lang="en">
+		<div class="form-header">
+			<h2>Update Adoption Profile</h2>
+			<img src="../cust/mantamatcher/img/circle-divider.png"/>
+		</div>
+		<div class="input-col-1">
+			<input id="sharkId" type="hidden" value="<%=sharkID%>" placeholder="">
+      <div class="input-group">
+				<span class="input-group-addon">Change Shark Nickname</span>
+				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Change Adopter Name</span>
+			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Change Adopter Email</span>
+			  <input class=" input-l-width" name="adopterEmail" type="text" value="<%=adopterEmail%>"><br/>
+			</div>
+			<div class="input-group">
+			  <span class="input-group-addon">Change Address</span>
+			  <input class=" input-l-width" name="adopterAddress" type="text" value="<%=adopterAddress%>">
+			</div>
+      <div class="input-group">
+        <span class="input-group-addon">Profile Photo</span>
+        <%
+        String adopterImageString="";
+        if(adopterImage!=null){
+          adopterImageString=adopterImage;
+        }
+        %>
+        <input class="input-l-width" name="theFile1" type="file" size="30" value="<%=adopterImageString%>">&nbsp;&nbsp;
+        <%
+        if ((adopterImage != null) && (!adopterImageString.equals(""))) {
+        %>
+          <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+          <%
+            }
+          %>
+      </div>
 
-        <%-- Recaptcha widget --%>
-        <%= ServletUtilities.captchaWidget(request) %>
+      <%-- Recaptcha widget --%>
+      <%= ServletUtilities.captchaWidget(request) %>
 
-		    <button class="large" type="submit" name="Submit" value="Submit">Update<span class="button-icon" aria-hidden="true"></span></button>
-      </form>
-    </table>
-  </div>
+	    <button class="large" type="submit" name="Submit" value="Submit">Update<span class="button-icon" aria-hidden="true"></span></button>
+    </div>
+
+  </form>
+</div>
 
   <%
     myShepherd.rollbackDBTransaction();
