@@ -1,12 +1,3 @@
-.container {
-  width: auto
-}
-.maincontainer {
-  margin-left: 3%;
-  margin-right: 5%;
-  padding-top: 0px;
-}
-
 .mainColumn {
   padding-right: 0 !important;
   padding-left: 0 !important;
@@ -296,10 +287,10 @@ button#zoomOut.btn.btn-default{
   padding-bottom: 8px;
 }
 
-button {
+/*button {
   margin-right: 0px;
   margin-top: 0px;
-}
+}*/
 
 .node circle {
   stroke: none;
