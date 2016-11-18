@@ -281,6 +281,12 @@
     <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
   </servlet>
 
+  <servlet>
+    <description>StripeUpdate</description>
+    <servlet-name>StripeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.StripeUpdate</servlet-class>
+  </servlet>
+
 
   <servlet>
     <description>Dynamic Image Servlet Unsynched</description>
@@ -1239,6 +1245,11 @@
 <servlet-mapping>
   <servlet-name>StripePayment</servlet-name>
   <url-pattern>/StripePayment</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>StripeUpdate</servlet-name>
+  <url-pattern>/StripeUpdate</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
