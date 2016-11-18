@@ -89,7 +89,7 @@ if (request.getParameter("number")!=null) {
 	name=request.getParameter("number").trim();
 	myShepherd.beginDBTransaction();
 	try{
-		
+
 		if(myShepherd.isMarkedIndividual(name)){
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
@@ -192,6 +192,9 @@ if (request.getParameter("number")!=null) {
 </style>
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
+
+  <link rel="stylesheet" href="css/createadoption.css">
+
 
 <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
 <script src="http://d3js.org/d3.v3.min.js"></script>
@@ -297,7 +300,7 @@ if (request.getParameter("number")!=null) {
 
 
 <%---------- Main Div ----------%>
-<div class="container row maincontent maincontainer">
+<div class="container maincontent">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
@@ -345,7 +348,7 @@ if (request.getParameter("number")!=null) {
           %>
 
       <%-- Social Media Buttons --%>
-      <div>
+      <div id="individualSocialButtons">
         <!-- Google PLUS-ONE button -->
         <g:plusone size="small" annotation="none"></g:plusone>
         <!--  Twitter TWEET THIS button -->
@@ -1460,21 +1463,9 @@ if (request.getParameter("number")!=null) {
         <%
           if (CommonConfiguration.allowAdoptions(context)) {
         %>
-
-        <div id="rightcol" style="vertical-align: top;">
-          <div id="menu" style="vertical-align: top;">
-
-
-            <div class="module">
-              <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-                <jsp:param name="name" value="<%=name%>"/>
-              </jsp:include>
-            </div>
-
-
-          </div><!-- end menu -->
-        </div>
-
+          <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+            <jsp:param name="name" value="<%=name%>"/>
+          </jsp:include>
           <%
            }
         %>

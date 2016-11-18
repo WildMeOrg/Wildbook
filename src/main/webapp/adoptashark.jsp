@@ -3,7 +3,7 @@
 
 String context="context0";
 context=ServletUtilities.getContext(request);
-	
+
 	//language setup
 	String langCode="en";
 	if(session.getAttribute("langCode")!=null){langCode=(String)session.getAttribute("langCode");}
@@ -11,94 +11,161 @@ context=ServletUtilities.getContext(request);
 	Properties props=new Properties();
 	props.load(getClass().getResourceAsStream("/bundles/"+langCode+"/submit.properties"));
 
-	
-	
+
+
 %>
 <jsp:include page="header.jsp" flush="true"/>
+<link rel="stylesheet" href="css/createadoption.css">
 
-<div class="container maincontent">
-
-
-		  <h1 class="intro">Adopt a Shark</h1>
-	
-			
-						<table><tr>
-			<td valign="top"><p>You can support the ongoing research of the Wildbook for Whale Sharks photo-identification library by adopting a whale shark. A whale shark adoption allows you to: 
-			<ul>
-			  <li>support cutting-edge whale shark research</li>
-	    <li> receive email updates of resightings of your adopted shark</li>
-		<li>display your photo and a quote from you on the shark's page in our library</li>
-		</ul>
-			<p>Funds raised by shark adoptions are used to offset the costs of maintaining this global library and to support new and existing research projects for the world's most mysterious fish.</p>
-			<p>You can adopt a shark at the following levels:</p>
-			<ul>
-			<li> Children's adoption = USD $25/year</li>
-			  <li> Individual adoption = USD $50/year</li>
-	    <li>Group adoption = USD $200/year </li>
-	          <li>Corporate adoption = USD $1000/year</li>
-		</ul>
-			<p>The cost of your adoption is tax deductible in the United States through Wild Me, a 501(c)(3) non-profit organization.</p>
-			</td>
-			<td width="200" align="left">
-				<p align="center"><a href="http://www.whaleshark.org/individuals.jsp?number=A-001"><img src="images/sample_adoption.gif" border="0" /></a>	
+<div class="container maincontent adoption-page">
+	<h1 class="intro-adopt">Adopt a Shark</h1>
+	<h2>Support cutting edge whale shark research.</h2>
+	<section class="adoption-details">
+		<p>
+			Adopt a whale shark, give it a nickname, and receive updates each time it's spotted! Funds
+			raised by shark adoptions are used to offset the costs of maintaining this global library and
+			to support new and existing research projects for the world's most mysterious fish.
+		</p>
+		<a href="gallery.jsp?adoptableSharks=true"><button type="button" name="make adoption" class="large">Choose a shark<span class="button-icon" aria-hidden="true"></button></a>
+	</section>
+	<section id="custom-donation-image">
+		<img src="cust/mantamatcher/img/shark-donation-scale.jpeg" alt="donation options" />
+	</section>
+	<%--If you dont want to use a custom image for your donation scale, comment out #custom-donation-image above and use the code below for some simple circles with price options  --%>
+	<%-- <section class="donations">
+		<article class="donation-option-group">
+			<div class="donation-option">
+				<div class="donation-circle">
+					<p>Fry</p>
+					<p>$2/m</p>
+				</div>
+				<p>
+					A great option for children
 				</p>
-				  <p align="center"><strong>
-				  Sample whale shark adoption for whale shark A-001. <br />
-				  </strong><strong><a href="http://www.whaleshark.org/individuals.jsp?number=A-003">Click here to see an example. </a> </strong></p>
-	  </td></table>
-			</p>
-			
-			<table><tr><td>
-			<h3>Creating an adoption</h3>
-			<p>To adopt a whale shark, follow these steps.</p>
-			<p>1. Make the appropriate donation using the appropriate PayPal button below.</p>
-<table cellpadding="5">
+			</div>
+			<div class="donation-option">
+				<div class="donation-circle">
+					<p>Whopper</p>
+					<p>$5/m</p>
+				</div>
+				<p>
+					Makes an excellent gift!
+				</p>
+			</div>
+			<div class="donation-option">
+				<div class="donation-circle">
+					<p>Behemoth</p>
+					<p>$20/m</p>
+				</div>
+				<p>
+					Big families and groups
+				</p>
+			</div>
+			<div class="donation-option">
+				<div class="donation-circle">
+					<p>Legend</p>
+					<p>$1000/yr</p>
+				</div>
+				<p>
+					Corporate adoptions and legends of the sea
+				</p>
+			</div>
+			<div class="donation-option">
+				<div class="donation-circle">
+					<p>Custom</p>
+					<p>$?/yr</p>
+				</div>
+				<p>
+					We appreciate your support of ongoing whale shark research
+				</p>
+			</div>
+		</article>
+	</section> --%>
 
-<tr>
-	<td width="250px" valign="top"><em>Use the button below if you would like your Adoption funds directed to Wild Me. Wild Me offers tax deductability in the United States as a 501(c)(3) nonprofit organization.</em></td>
-	
-	<!--
-	<td width="250px" valign="top"><em>Use the button on the right if you would like your Adoption funds directed to ECOCEAN (Australia).</em></td>
-	-->
+	<section class="adopters-featured">
+			<h2>Join the Family!</h2>
+			<article class="adopter-feature-gallery">
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							We're going to need a bigger fish tank.
+						</p>
+					</div>
+				</div>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
+				</div>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
+				</div>
+				<div class="adopter">
+					<div class="adopter-header" >
+						<p>
+							Whale Shark Adopter
+						</p>
+					</div>
+					<img src="cust/mantamatcher/img/someguy.jpg" alt="" />
+					<div class="adopter-details">
+						<p>
+							Some Guy
+						</p>
+						<p>
+							Adopted Finnegan
+						</p>
+						<p>
+							Dun dun. Dun dun. Dun dun dun dun dun dun dun dun, da naaa
+						</p>
+					</div>
+				</div>
+			</article>
+		</section>
 
-</tr>
-<tr><td>	
-<form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="5075222">
-<input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-</form>
-</td>
-
-<!--
-<td><form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-
-<input type="hidden" name="cmd" value="_s-xclick">
-<input type="hidden" name="hosted_button_id" value="47YS8D5TXGZBY">
-<input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-<img alt="" border="0" src="https://www.paypalobjects.com/en_AU/i/scr/pixel.gif" width="1" height="1">
-</form>
- </td>
- -->
-</tr>
-</table>
 
 
-			<p>2. Send an email to <img src="images/adoptions_email.gif" width="228" height="18" align="absmiddle" />. Include the following in the email</p>
-			<ul>
-			  <li> your name and address</li>
-	    <li>your donation amount and the email/userid that made the PayPal donation </li>
-	          <li>the shark you wish to adopt.</li>
-		<li>the email to notify with future resightings of the shark </li>
-		<li>a photo of yourself, your group, or a corporate logo</li>
-		<li>a quote from you stating why whale shark research and conservation are important </li>
-		</ul>
-	<p>Please allow 24-48 hours after receipt of your email for processing. We are currently working to automate and speed this process through PayPal. </p>
-	<p>Your adoption (photograph, name, and quote) will be displayed on the web site page for your shark, and one adoption will be randomly chosen to be displayed on the front page of whaleshark.org.</p>
-	<p><em><strong>Thank you for adopting a shark and supporting our global research efforts! </strong></em></p>
-	</td>
-	</tr></table>
-	   </div>
+
+</div>
 <jsp:include page="footer.jsp" flush="true" />
-

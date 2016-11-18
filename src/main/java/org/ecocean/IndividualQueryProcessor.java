@@ -679,7 +679,7 @@ public class IndividualQueryProcessor {
               }
               locIDFilter+=" )";
 
-            
+
                 if(filter.indexOf("encounters.contains(enc3_"+kwIter+")")==-1){
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
                   filter+="(  encounters.contains(enc3_"+kwIter+")";
@@ -689,10 +689,10 @@ public class IndividualQueryProcessor {
 
                 if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
 
-                
+
                 if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
-            
+
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3_"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3_"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
@@ -1332,7 +1332,9 @@ public class IndividualQueryProcessor {
           else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending", paramMap);}
           else if(request.getParameter("sort").equals("numberLocations")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);}
           else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
-          
+          // Added to show adoptable sharks in gallery.
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
+
           else{
             allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           }

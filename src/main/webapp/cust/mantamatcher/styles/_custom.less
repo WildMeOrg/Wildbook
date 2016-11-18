@@ -17,8 +17,8 @@
 
 h5 { text-decoration: underline; }
 
-.massive { 
-	font-size: 6em; 
+.massive {
+	font-size: 6em;
 	line-height: 1.2em;
 	font-weight: 700;
 	display: block;
@@ -28,8 +28,8 @@ h5 { text-decoration: underline; }
 
 .brand-primary { color: @brand-primary; }
 
-.page-content hr { 
-	border: 3px solid @brand-primary; 
+.page-content hr {
+	border: 3px solid @brand-primary;
 	width: 80%;
 	margin-top: 60px;
 	margin-bottom: 60px;
@@ -37,12 +37,12 @@ h5 { text-decoration: underline; }
 
 .page-content a { text-decoration: underline; }
 
-.maincontent { 
-	margin-top: 70px; 
+.maincontent {
+	margin-top: 70px;
 	margin-bottom: 80px;
 	}
 
-@media (min-width: @screen-md) { 
+@media (min-width: @screen-md) {
 	.maincontent { margin-top: 100px; }
 }
 
@@ -64,12 +64,12 @@ img.pull-left { margin-right: 15px; }
 
 img.pull-right { margin-left: 15px; }
 
-img.round-small { 
+img.round-small {
 	-webkit-clip-path: url("#smallClip");
 			clip-path: url("#smallClip");
 	}
 
-img.round-large { 
+img.round-large {
 	/*-webkit-clip-path: circle();
 	clip-path: circle();*/
 	-webkit-clip-path: url("#largeClip");
@@ -78,75 +78,18 @@ img.round-large {
 
 figure { margin-bottom: 30px; }
 
-figcaption { 
-	font-style: italic; 
+figcaption {
+	font-style: italic;
 	text-align: center;
 	padding-top: 5px;
 	}
 
-/* Buttons */
-button, html input[type="button"], 
-input[type="reset"], 
-input[type="submit"] {
-	background: @brand-primary;
-	border: 0;
-	color: @mainColor;
-	line-height: 2em;
-	padding: 7px 13px;
-	font-weight: 300;
-	vertical-align: middle;
-	margin-right: 10px;
-	margin-top: 15px;
-	}
-
-button.large, html input[type="button"].large, 
-input[type="reset"].large, 
-input[type="submit"].large { 
-	font-size: 1.2em; 
-	padding-top: 0;
-	padding-bottom: 0;
-	padding-right: 0;
-	box-shadow: 2px 1px 2px 1px rgba(51,51,51,.4);
-	}
-
-button.contrast, html input[type="button"].contrast, 
-input[type="reset"].contrast, 
-input[type="submit"].contrast { background-color: @brand-contrast; }
-
-button.light, html input[type="button"].light, 
-input[type="reset"].light, 
-input[type="submit"].light { background-color: @brand-secondary; }
-
-button.light:hover, html input[type="button"].light:hover, 
-input[type="reset"].light:hover, 
-input[type="submit"].light:hover { background-color: @brand-contrast; }
-
-button:hover, html input[type="button"]:hover, 
-input[type="reset"]:hover, 
-input[type="submit"]:hover { background-color: @brand-contrast; }
-
-.button-icon {
-	border-left: 1px solid @mainColor;
-	width: 45px;
-	min-height: 45px;
-	margin-left: 10px;
-	padding: 0 5px;
-	vertical-align: middle;
-	display: inline-block;
-	background: url(../img/icon_arrow_right.svg) no-repeat center center;
-	background-size: 50%;
-	}
-
-/* 
-	Custom modules 
-*/
-
 /* Accordion */
 .accordion {
-	background-color: @brand-primary; 
-	padding: 3px; 
+	background-color: @brand-primary;
+	padding: 3px;
 	border: 1px solid @brand-dark;
-	font-weight: 300; 
+	font-weight: 300;
 	}
 
 	.accordion a { color: @mainColor; }
@@ -155,7 +98,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 .relative { position: relative; }
 
 /* Lists */
-.hor-ul { 
+.hor-ul {
 	text-align: center;
 	display: table;
 	width: 100%;
@@ -176,15 +119,15 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 	margin-bottom: 20px;
 	}
 
-	.block-list a { 
-		text-decoration: none; 
+	.block-list a {
+		text-decoration: none;
 		display: block;
 		padding: 3px;
-		}	
+		}
 
 	.block-list a:hover,
-	.block-list a:focus { 
-		background-color: @brand-primary-opec; 
+	.block-list a:focus {
+		background-color: @brand-primary-opec;
 		cursor: pointer;
 		}
 
@@ -195,7 +138,7 @@ input[type="submit"]:hover { background-color: @brand-contrast; }
 }
 
 	.volunteer-list .name {
-		font-size: .9em; 
+		font-size: .9em;
 		font-weight: 400;
 		}
 
@@ -211,8 +154,8 @@ form table td, form table th {
 	padding-bottom: 4px;
 	}
 
-	form table th { 
-		padding-bottom: 0; 
+	form table th {
+		padding-bottom: 0;
 		font-size: .8em;
 		}
 
@@ -252,28 +195,28 @@ form table td, form table th {
 	}
 
 /* Vimeo video embed */
-.embed-container { 
-	position: relative; 
-	overflow: hidden; 
-	max-width: @screen-lg; 
+.embed-container {
+	position: relative;
+	overflow: hidden;
+	max-width: @screen-lg;
 	max-height: 100%;
 	margin-left: auto;
 	margin-right: auto;
-	} 
+	}
 
-	.embed-container iframe, .embed-container object, 
-	.embed-container embed { 
-		position: absolute; 
-		top: 0; 
-		left: 0; 
-		width: 100%; 
-		height: 100%; 
-		}  
+	.embed-container iframe, .embed-container object,
+	.embed-container embed {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		}
 
 /* Standout sections */
 .focusbox .focusbox-inner {
 	background: @brand-primary;
-	margin: 5px; 
+	margin: 5px;
 	padding: 10px 20px 30px;
 	}
 .focusbox .focusbox-inner.opec { background: @brand-primary-opec; }
@@ -288,20 +231,20 @@ form table td, form table th {
 
 	.focusbox h3 { margin: 0; }
 
-	 .focusbox a { 
-	 	color: @brand-secondary; 
+	 .focusbox a {
+	 	color: @brand-secondary;
 	 	text-decoration: underline;
 	 	}
 
- 	.focusbox .cta { 
- 		margin-top: 35px; 
+ 	.focusbox .cta {
+ 		margin-top: 35px;
  		display: block;
 		}
 
 	.focusbox img { max-width: 81px; }
 
 /* Header */
-.page-header { 
+.page-header {
 	color: @mainColor;
 	padding-top: 20px;
 	}
@@ -310,18 +253,18 @@ form table td, form table th {
 
 	.header-top-wrapper { background: @brand-dark; }
 
-		.header-top-wrapper .container { 
-			padding-top: 10px; 
+		.header-top-wrapper .container {
+			padding-top: 10px;
 			position: relative;
 			}
 
 		.navbar-default .navbar-nav>.report-encounter.active>a,
-		.navbar-default .navbar-nav>.report-encounter >a { 
+		.navbar-default .navbar-nav>.report-encounter >a {
 			background-color: @brand-primary;
 			color: @mainColor;
 			}
 
-		@media (max-width: @screen-md) { 
+		@media (max-width: @screen-md) {
 			.navbar-fixed-top {
 				top: 0;
 				transition: top 1s ease;
@@ -335,7 +278,7 @@ form table td, form table th {
 
 		#wild-me-badge,ibeis-badge { display: none; }
 
-		@media (min-width: @screen-md) { 
+		@media (min-width: @screen-md) {
 			#wild-me-badge {
 				display: block;
 				width: 130px;
@@ -365,8 +308,8 @@ form table td, form table th {
 			}
 
 			@media (min-width: @screen-sm-min) {
-				.search-and-secondary-wrapper { 
-					float: right; 
+				.search-and-secondary-wrapper {
+					float: right;
 					width: auto;
 					margin-top: 30px;
 					}
@@ -431,8 +374,8 @@ form table td, form table th {
 /* Footer */
 .page-footer .container-fluid { background: @brand-light; }
 
-	.footer-section-header { 
-		margin-top: 100px; 
+	.footer-section-header {
+		margin-top: 100px;
 		color: @brand-primary;
 		font-weight: 100;
 		font-size: 2em;
@@ -440,24 +383,24 @@ form table td, form table th {
 		padding-bottom: 3px;
 		}
 
-	.partner-list { margin: 40px 0 80px; }	
+	.partner-list { margin: 40px 0 80px; }
 
-		.partner-list li { 
-			margin-right: 30px; 
+		.partner-list li {
+			margin-right: 30px;
 			margin-bottom: 20px;
 			display: inline-block;
 			vertical-align: bottom;
 			width: 200px;
 			}
 
-			.partner-list li img { 
-				max-width: 100%; 
+			.partner-list li img {
+				max-width: 100%;
 				height: auto;
 				}
 
 		.partner-list.large li { width: 300px; }
 /*
-	Content 
+	Content
 */
 
 /* Hero */
@@ -470,7 +413,7 @@ form table td, form table th {
 
 .hero { position: relative; }
 
-	.hero .container { 
+	.hero .container {
 		margin-top: 10%;
 		}
 
@@ -502,14 +445,14 @@ form table td, form table th {
 
 		.encounter-list img { margin-bottom: 5px; }
 
-		.encounter-list small { 
-			font-size: .8em; 
+		.encounter-list small {
+			font-size: .8em;
 			font-weight: 300;
 			}
 
-		.encounter-list p { 
+		.encounter-list p {
 			font-size: 1.4em;
-			line-height: 1.2em; 
+			line-height: 1.2em;
 			font-weight: 300;
 			}
 
@@ -517,8 +460,8 @@ form table td, form table th {
 
 .adopter-badge {}
 
-	.adopter-badge h2 small { 
-		display: block; 
+	.adopter-badge h2 small {
+		display: block;
 		color: @mainColor;
 		}
 
@@ -532,9 +475,9 @@ form table td, form table th {
 		line-height: 1.5em;
 		}
 
-	.adopter-badge img { 
+	.adopter-badge img {
 		margin-top: 25px;
-		width: 168px; 
+		width: 168px;
 		max-width: 168px;
 		}
 
