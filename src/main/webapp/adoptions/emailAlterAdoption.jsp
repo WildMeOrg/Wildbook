@@ -112,7 +112,7 @@ context=ServletUtilities.getContext(request);
 
   <%-- END ADOPTION UPDATE FORM -- BEGIN PAYMENT UPDATE FORM --%>
 
-  <form action="../StripeUpdate" method="POST" id="payment-update" lang="en">
+  <form action="../StripeUpdate" method="POST" id="payment-form" lang="en">
 		<div class="form-header">
 	    <h2>Financial Information</h2>
 			<img src=".../cust/mantamatcher/img/circle-divider.png"/>
@@ -167,7 +167,7 @@ context=ServletUtilities.getContext(request);
 	Stripe.setPublishableKey('<%=stripePublicKey%>');
 
 	var stripeResponseHandler = function(status, response) {
-		var $form = $('#payment-update');
+		var $form = $('#payment-form');
 
 		if (response.error) {
   		// show errors
