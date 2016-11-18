@@ -105,7 +105,7 @@ context=ServletUtilities.getContext(request);
       <%-- Recaptcha widget --%>
       <%= ServletUtilities.captchaWidget(request) %>
 
-	    <button class="large" type="submit" name="Submit" value="Submit">Update<span class="button-icon" aria-hidden="true"></span></button>
+	    <button class="large" type="submit" name="Submit" value="Submit">Update Profile<span class="button-icon" aria-hidden="true"></span></button>
     </div>
 
   </form>
@@ -115,10 +115,10 @@ context=ServletUtilities.getContext(request);
   <form action="../StripeUpdate" method="POST" id="payment-form" lang="en">
 		<div class="form-header">
 	    <h2>Financial Information</h2>
-			<img src=".../cust/mantamatcher/img/circle-divider.png"/>
+			<img src="../cust/mantamatcher/img/circle-divider.png"/>
 	  </div>
 	  <span class="payment-errors"></span>
-		<div class="input-col-2">
+		<div class="input-col-1">
 			<div class="input-group">
 				<span class="input-group-addon">Name On Card</span>
 				<input type="text" class="input-l-width" name="nameOnCard">
@@ -132,19 +132,16 @@ context=ServletUtilities.getContext(request);
 			  <input type="text" class="input-s-width" data-stripe="exp_month" placeholder="MM">
 			  <input type="text" class="input-s-width" data-stripe="exp_year" placeholder="YY">
 			</div>
-		</div>
-		<div class="input-group">
-		  <span class="input-group-addon">CVC</span>
-		  <input type="text" class="input-s-width" data-stripe="cvc">
-		</div>
-		<div class="input-group">
-		  <span class="input-group-addon">Billing Zip</span>
-		  <input type="text" class="input-m-width" data-stripe="address_zip">
-		</div>
-
-
-
-	  <button type="submit" class="large submit" value="Update Payment">Update Payment<span class="button-icon" aria-hidden="true"></button>
+  		<div class="input-group">
+  		  <span class="input-group-addon">CVC</span>
+  		  <input type="text" class="input-s-width" data-stripe="cvc">
+  		</div>
+  		<div class="input-group">
+  		  <span class="input-group-addon">Billing Zip</span>
+  		  <input type="text" class="input-m-width" data-stripe="address_zip">
+  		</div>
+  	  <button type="submit" class="large submit" value="Update Payment">Update Payment<span class="button-icon" aria-hidden="true"></button>
+    </div>
 	</form>
 
 
