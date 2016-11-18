@@ -3,13 +3,13 @@
 
 <%
   //handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); 
+  response.setHeader("Cache-Control", "no-cache");
 //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); 
+  response.setHeader("Cache-Control", "no-store");
 //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); 
+  response.setDateHeader("Expires", 0);
 //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); 
+  response.setHeader("Pragma", "no-cache");
 //HTTP 1.0 backward compatibility
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -20,6 +20,8 @@ context=ServletUtilities.getContext(request);
   Adoption tempAD = null;
 
   boolean edit = false;
+
+  session.setAttribute( "emailEdit", false );
 
   String id = "";
   String adopterName = "";
@@ -42,7 +44,7 @@ context=ServletUtilities.getContext(request);
   }
 
   boolean isOwner = true;
-  
+
   /**
   if (request.isUserInRole("admin")) {
     isOwner = true;
@@ -102,18 +104,18 @@ context=ServletUtilities.getContext(request);
 <!--
 <script type="text/javascript">
       window.onload = function() {
-	  
+
         Calendar.setup({
           dateField     : 'adoptionStartDate',
           parentElement : 'calendar'
-		
+
         })
         Calendar2.setup({
           dateField     : 'adoptionEndDate',
           parentElement : 'calendar2'
-		
+
         })
-	  
+
 	  }
 </script>
 -->
@@ -209,11 +211,11 @@ context=ServletUtilities.getContext(request);
     	  adopterImageString=adopterImage;
     	}
       %>
-      <td><input name="theFile1" type="file" size="30" value="<%=adopterImageString%>"></input>&nbsp;&nbsp; 
+      <td><input name="theFile1" type="file" size="30" value="<%=adopterImageString%>"></input>&nbsp;&nbsp;
       <%
       if ((adopterImage != null) && (!adopterImageString.equals(""))) {
       %>
-        <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp; 
+        <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
         <%
           }
         %>
@@ -432,13 +434,10 @@ context=ServletUtilities.getContext(request);
 </table>
 <%
   }
-  
+
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 %>
 </div>
 
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-

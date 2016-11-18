@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
      import="org.ecocean.*,
               org.ecocean.servlet.ServletUtilities,
+	      org.ecocean.media.MediaAsset,
               java.util.ArrayList,
               java.util.List,
               java.util.Map,
@@ -10,7 +11,9 @@
               java.util.StringTokenizer,
               org.datanucleus.api.rest.orgjson.JSONObject,
               org.datanucleus.api.rest.orgjson.JSONArray,
-              org.joda.time.DateTime
+              org.joda.time.DateTime,
+              java.util.Collection,
+              javax.jdo.*
               "
 %>
 
@@ -89,31 +92,51 @@ try {
 Shepherd myShepherd=new Shepherd(context);
 myShepherd.setAction("gallery.jsp");
 
+
 int numResults = 0;
 
 
 Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
+
+
 myShepherd.beginDBTransaction();
-String order ="nickName ASC NULLS LAST";
 
-request.setAttribute("rangeStart", startNum);
-request.setAttribute("rangeEnd", endNum);
-MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
+int count = myShepherd.getNumAdoptions();
+int allSharks = myShepherd.getNumMarkedIndividuals();
+int countAdoptable = allSharks - count;
 
-rIndividuals = result.getResult();
+if(request.getParameter("adoptableSharks")!=null){
+	//get current time minus two years
+	Long twoYears=new Long("63072000000");
+	long currentDate=System.currentTimeMillis()-twoYears.longValue();
+    String filter="SELECT FROM org.ecocean.MarkedIndividual WHERE encounters.contains(enc) && (enc.dateInMilliseconds >= "+currentDate+") && ((nickName == null)||(nickName == '')) VARIABLES org.ecocean.Encounter enc";
+    Query query=myShepherd.getPM().newQuery(filter);
+    query.setOrdering("numberEncounters descending");
+    query.setRange(startNum, endNum);
+    Collection c = (Collection) (query.execute());
+	rIndividuals=new Vector<MarkedIndividual>(c);
+    query.closeAll();
+    if(rIndividuals==null){rIndividuals=new Vector<MarkedIndividual>();}
+}
+else{
+	String order ="nickName ASC NULLS LAST";
 
+	request.setAttribute("rangeStart", startNum);
+	request.setAttribute("rangeEnd", endNum);
+	MarkedIndividualQueryResult result = IndividualQueryProcessor.processQuery(myShepherd, request, order);
 
+	rIndividuals = result.getResult();
 
+	//handle any null errors better
+	if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
 
-//handle any null errors better
-if((rIndividuals==null)||(result.getResult()==null)){rIndividuals=new Vector<MarkedIndividual>();}
+}
 
 
 
 if (rIndividuals.size() < listNum) {
   listNum = rIndividuals.size();
 }
-
 
 %>
 
@@ -276,11 +299,18 @@ int numDataContributors=0;
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
+    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true">Adoptable Sharks</a></button>
+
   </div>
 </nav>
 
 <div class="container-fluid">
   <section class="container-fluid main-section front-gallery galleria">
+
+  <% if (request.getParameter("adoptableSharks")!=null) { %>
+    <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
+    <p>You can adopt an animal to support whale shark research. Browse the animals below and select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <strong><a href="adoptashark.jsp">here</a></strong>.</p>
+  <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
 
@@ -336,6 +366,11 @@ int numDataContributors=0;
         for (int j=0; j<2; j++) {
         	if(pair[j]!=null){
           MarkedIndividual indie = pair[j];
+          for (Encounter enJ : indie.getDateSortedEncounters()) {
+            for (MediaAsset maJ : enJ.getMedia()) {
+              if (maJ.getMetadata() != null) maJ.getMetadata().getDataAsString();
+            }
+          }
           ArrayList<JSONObject> al = indie.getExemplarImages(request);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
@@ -447,38 +482,30 @@ int numDataContributors=0;
               </span>
               <table><tr>
                 <td>
-                  <ul>
-                    <li>
-                      <%=props.getProperty("individualID")%>: <%=pairName[j]%>
-                    </li>
-                    <li>
-                      <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
-                    </li>
-                    <li>
-                      <%
-                        String sexValue = pair[j].getSex();
-                        if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
-                      %>
-                      <%=props.getProperty("sex")%> <%=sexValue%>
-                    </li>
-                  </ul>
+                  <p>
+                    <%=props.getProperty("individualID")%>: <%=pairName[j]%>
+                  </p>
+                  <p>
+                    <%=props.getProperty("nickname")%>: <%=pairNickname[j]%>
+                  </p>
+                  <p>
+                    <%
+                      String sexValue = pair[j].getSex();
+                      if (sexValue.equals("male") || sexValue.equals("female") || sexValue.equals("unknown")) {sexValue=props.getProperty(sexValue);}
+                    %>
+                    <%=props.getProperty("sex")%> <%=sexValue%>
+                  </p>
                 </td>
                 <td>
-                  <ul>
-
-                    <li>
-                      <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
-                    </li>
-                  </ul>
+                  <p>
+                    <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
+                  </p>
+                  <div class="gallery-btn-group">
+                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt">Animal Profile<span class="button-icon" aria-hidden="true"></button></a>
+                  </div>
                 </td>
               </tr></table>
-
-
-              <p style="text-align:right; padding-right: 10px; padding-right:1.5rem">
-                To see more, go <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>">here</a>.
-              </p>
-
-
             </div>
           </div>
           <%
