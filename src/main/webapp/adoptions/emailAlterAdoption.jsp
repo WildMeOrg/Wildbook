@@ -115,7 +115,7 @@ context=ServletUtilities.getContext(request);
   <form action="../StripeUpdate" method="POST" id="payment-form" lang="en">
 		<div class="form-header">
 	    <h2>Financial Information</h2>
-			<img src=".../cust/mantamatcher/img/circle-divider.png"/>
+			<img src="../cust/mantamatcher/img/circle-divider.png"/>
 	  </div>
 	  <span class="payment-errors"></span>
 		<div class="input-col-2">
