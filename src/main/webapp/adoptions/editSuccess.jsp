@@ -117,7 +117,6 @@
   		}
   		%>
             <h1 class="intro">Adoption Edit</h1>
-            <h3><%=nickName%> - <%=shark%></h3>
             <p><strong>Your adoption was successfully updated.</strong></p>
 
 
