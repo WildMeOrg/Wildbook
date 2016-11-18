@@ -128,6 +128,22 @@ public class StripePayment extends HttpServlet {
     }
     if (planName.equals("none")) {
       try {
+        String emailContext = "context0";
+        String langCode = "en";
+        String to = email;
+        String type = "oneTimeDonation";
+        String message = "Thank you for you donation to Whaleshark.org of $" + amount + "dollars.";
+        System.out.println("About to email one time donor...");
+        // Retrieve background service for processing emails
+        ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+        NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, message);
+        es.execute(mailer);
+      }
+      catch (Exception e) {
+        System.out.println("Error in sending email confirmation of adoption.");
+        e.printStackTrace();
+      }
+      try {
         System.out.println("ONE TIME DONATION redirect success!");
         response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/donationThanks.jsp");
       } catch (IOException ie) {
@@ -141,7 +157,7 @@ public class StripePayment extends HttpServlet {
         getServletContext().getRequestDispatcher("/createadoption.jsp" + newQuery).forward(request, response);
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
-      } catch (ServletException e) {
+      } catch (Exception e) {
         System.out.println("Servlet Exeption... No redirect.");
       }
     }
