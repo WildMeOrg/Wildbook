@@ -128,6 +128,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       String rootDir = getServletContext().getRealPath("/");
       System.out.println("rootDir=" + rootDir);
 
+      // This value is only stored in the email specific edit form.
+      Boolean emailEdit = false;
+      if ((Boolean)session.getAttribute( "emailEdit") != false) {
+        emailEdit = (Boolean)session.getAttribute( "emailEdit");
+      }
         //setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
         File webappsDir = new File(rootWebappPath).getParentFile();
@@ -439,23 +444,24 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               }
 
               // Sends a confirmation email to a a new adopter with cancellation and update information.
-              try {
-                String emailContext = "context0";
-                String langCode = "en";
-                String to = ad.getAdopterEmail();
-                String type = "adoptionConfirmation";
-                System.out.println("About to email new adopter.");
-                // Retrieve background service for processing emails
-                ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
-                Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
-                NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
-                es.execute(mailer);
+              if (emailEdit == false) {
+                try {
+                  String emailContext = "context0";
+                  String langCode = "en";
+                  String to = ad.getAdopterEmail();
+                  String type = "adoptionConfirmation";
+                  System.out.println("About to email new adopter.");
+                  // Retrieve background service for processing emails
+                  ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
+                  Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
+                  NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+                  es.execute(mailer);
+                }
+                catch (Exception e) {
+                  System.out.println("Error in sending email confirmation of adoption.");
+                  e.printStackTrace();
+                }
               }
-              catch (Exception e) {
-                System.out.println("Error in sending email confirmation of adoption.");
-                e.printStackTrace();
-              }
-
 
               if (adoptionSuccess && isEdit) {
                 myShepherd.commitDBTransaction();
@@ -472,12 +478,6 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         }
         // Sets adoption paid to false to allow multiple adoptions
         session.setAttribute("paid", false);
-
-        // This value is only stored in the email specific edit form.
-        Boolean emailEdit = false;
-        if ((Boolean)session.getAttribute( "emailEdit") != false) {
-          emailEdit = (Boolean)session.getAttribute( "emailEdit");
-        }
 
         //return a forward to display.jsp
         System.out.println("Ending adoption data submission.");

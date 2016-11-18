@@ -35,6 +35,8 @@ context=ServletUtilities.getContext(request);
 
   session.setAttribute( "emailEdit", true );
 
+  String number = (String)session.getAttribute("number");
+
   String sharkID = "";
   if (request.getParameter("number") != null) {
     sharkID = request.getParameter("number");
@@ -67,6 +69,7 @@ context=ServletUtilities.getContext(request);
 			<img src="../cust/mantamatcher/img/circle-divider.png"/>
 		</div>
 		<div class="input-col-1">
+      <input name="number" type="hidden" value="<%=number%>" placeholder="">
 			<input id="sharkId" type="hidden" value="<%=sharkID%>" placeholder="">
       <div class="input-group">
 				<span class="input-group-addon">Change Shark Nickname</span>
