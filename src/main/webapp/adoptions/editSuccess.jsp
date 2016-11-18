@@ -35,7 +35,7 @@
               String addText = "adopter.jpg";
               String markedIndividual = "";
               boolean hasImages = true;
-              String shark = "";
+              String shark = (String)session.getAttribute("sharkID");
 
               String thumbLocation = "file-" +adoptionsDir.getAbsolutePath()+"/"+ number + "/thumb.jpg";
           	addText =  adoptionsDir.getAbsolutePath()+"/" + number + "/" + addText;
@@ -122,7 +122,7 @@
 
 
 
-            <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=markedIndividual%>">
+            <p><a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=shark%>">
               View your shark's updated profile</a>.</p>
             <p><a
               href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
