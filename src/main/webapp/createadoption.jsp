@@ -163,7 +163,7 @@ context=ServletUtilities.getContext(request);
 			<div class="input-group">
 			  <span class="input-group-addon">Shark ID</span>
 			  <input id="sharkId" class=" input-m-width" name="shark" type="text" value="<%=sessionShark%>" placeholder="Browse the gallery and find the shark that suits you">  <%if (!shark.equals("")) { %>
-			    <a href="individuals.jsp?number<%=shark%>">Link</a> <%
+			   <%
 			      }
 			    %>
 			</div>
