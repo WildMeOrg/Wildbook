@@ -132,7 +132,7 @@ public class StripePayment extends HttpServlet {
         String langCode = "en";
         String to = email;
         String type = "oneTimeDonation";
-        String message = "Thank you for you donation to Whaleshark.org of $" + amount + "dollars.";
+        String message = "Thank you for you donation to Whaleshark.org of $" + amount + " dollars.";
         System.out.println("About to email one time donor...");
         // Retrieve background service for processing emails
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();

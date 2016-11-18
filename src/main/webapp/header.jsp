@@ -105,7 +105,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                 <div class="container">
                 <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
                   <div class="search-and-secondary-wrapper">
-                    <a href="adoptashark.jsp"><button name='adopt an animal' class='large adopt'>Adopt a shark</button></a>
+                    <a href="<%=urlLoc%>/adoptashark.jsp"><button name='adopt an animal' class='large adopt'>Adopt a shark</button></a>
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
 
