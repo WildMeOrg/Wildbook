@@ -61,7 +61,7 @@ public class DeleteAdoption extends HttpServlet {
     
     Properties props=ShepherdProperties.getProperties("stripeKeys.properties","",context);
 
-    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
+    Stripe.apiKey = props.getProperty("publicKey");
 
     String sharkID = request.getParameter("sharkID");
     String customerID = request.getParameter("customerID");
