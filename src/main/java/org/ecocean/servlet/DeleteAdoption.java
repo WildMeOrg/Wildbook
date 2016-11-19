@@ -61,7 +61,7 @@ public class DeleteAdoption extends HttpServlet {
     
     Properties props=ShepherdProperties.getProperties("stripeKeys.properties","",context);
 
-    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
+    Stripe.apiKey = props.getProperty("publicKey");
 
     String sharkID = request.getParameter("sharkID");
     String customerID = request.getParameter("customerID");
@@ -80,6 +80,12 @@ public class DeleteAdoption extends HttpServlet {
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(adoptionID))) {
 
+      Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+      if((request.getParameter("customerID")==null)&&(ad.getStripeCustomerId()!=null)){
+        customerID=ad.getStripeCustomerId();
+      }
+
+      
       // This section attempts to delete stripe subscription.
       if ((customerID != null)&&(customerID != "")) {
         try {
@@ -94,7 +100,7 @@ public class DeleteAdoption extends HttpServlet {
 
       // This section deletes adoption from database.
       try {
-        Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+        //Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
 
         String savedFilename = request.getParameter("adoptionID") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
@@ -124,7 +130,7 @@ public class DeleteAdoption extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be by the webmaster.");
+        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be retrieved by the webmaster.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");
         out.println("To restore, cont ");
@@ -147,6 +153,7 @@ public class DeleteAdoption extends HttpServlet {
       out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the encounter that you intended it for in the database.");
       out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the adoption in the database. If you feel you have reached this in error, contact the webmaster.");
       out.println("The webmaster can be reached at <strong>adoptions at whaleshark dot org</strong>.");
+      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");	
       out.println(ServletUtilities.getFooter(context));
 
     }
