@@ -71,10 +71,6 @@ context=ServletUtilities.getContext(request);
 		<div class="input-col-1">
       <input name="number" type="hidden" value="<%=adoptionID%>" placeholder="">
 			<input id="sharkId" type="hidden" name="shark" value="<%=sharkID%>" placeholder="">
-      <div class="input-group">
-				<span class="input-group-addon">Change Shark Nickname</span>
-				<input class="input-l-width" type="text" name="newNickName" id="newNickName"></input>
-			</div>
 			<div class="input-group">
 			  <span class="input-group-addon">Change Adopter Name</span>
 			  <input class=" input-l-width" name="adopterName" type="text" value="<%=adopterName%>">
