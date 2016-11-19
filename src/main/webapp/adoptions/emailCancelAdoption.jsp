@@ -37,7 +37,6 @@ context=ServletUtilities.getContext(request);
             <tr>
               <td>
                 <h1 class="intro">Cancel your Adoption</h1>
-                <h3>Shark : <%= sharkID %> - Adoption : <%= adoptionID %> Customer : <%= customerID %></h3>
 
                 <p>You are about to <strong>DELETE</strong> your adoption from the
                 database, and cancel the associated recurring payments.
