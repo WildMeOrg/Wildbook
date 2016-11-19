@@ -36,6 +36,7 @@ context=ServletUtilities.getContext(request);
   String encounterForm = "";
   String notes = "";
   String adoptionType = "";
+  String stripeID="";
 
   String servletURL = "../AdoptionAction";
 
@@ -77,6 +78,9 @@ context=ServletUtilities.getContext(request);
     }
     notes = tempAD.getNotes();
     adoptionType = tempAD.getAdoptionType();
+    if(tempAD.getStripeCustomerId()!=null){
+    	stripeID=tempAD.getStripeCustomerId();
+    }
   }
 %>
 
@@ -402,8 +406,13 @@ context=ServletUtilities.getContext(request);
   </tr>
   <tr>
     <td>
-      <form action="rejectAdoption.jsp" method="get"><input
-        type="hidden" name="number" value="<%=id%>"/> <input name="Delete"
+      <form action="emailCancelAdoption.jsp" method="get">
+      <input type="hidden" name="adoption" value="<%=id%>"/> 
+        <input type="hidden" name="number" value="<%=sharkForm%>"/> 
+         <input type="hidden" name="stripeID" value="<%=stripeID%>"/> 
+        
+        
+        <input name="Delete"
                                                              type="submit" value="Delete"/></form>
       <br/>
     </td>
