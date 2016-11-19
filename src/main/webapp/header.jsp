@@ -108,7 +108,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a>
                   <div class="search-and-secondary-wrapper">
                     <a href="<%=urlLoc%>/adoptashark.jsp"><button name='adopt an animal' class='large adopt'>Adopt a shark</button></a>
                     <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
@@ -411,13 +411,10 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                             <li class="dropdown-header">Admins Only</li>
                               <li><a href="<%=urlLoc %>/appadmin/admin.jsp"><%=props.getProperty("general")%></a></li>
                               <li><a href="<%=urlLoc %>/appadmin/logs.jsp"><%=props.getProperty("logs")%></a></li>
-                                <li><a href="<%=urlLoc %>/software/software.jsp"><%=props.getProperty("gridSoftware")%></a></li>
-
+                         
                                 <li><a href="<%=urlLoc %>/appadmin/users.jsp?context=context0"><%=props.getProperty("userManagement")%></a></li>
 
-                                <% if (CommonConfiguration.getTapirLinkURL(context) != null) { %>
-                                  <li><a href="<%=CommonConfiguration.getTapirLinkURL(context) %>"><%=props.getProperty("tapirLink")%></a></li>
-                                <% }
+                                <% 
                                 if (CommonConfiguration.getIPTURL(context) != null) { %>
                                   <li><a href="<%=CommonConfiguration.getIPTURL(context) %>"><%=props.getProperty("iptLink")%></a></li>
                                 <% } %>
@@ -428,9 +425,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
                                   <li><a href="<%=urlLoc %>/adoptions/adoption.jsp"><%=props.getProperty("createEditAdoption")%></a></li>
                                   <li><a href="<%=urlLoc %>/adoptions/allAdoptions.jsp"><%=props.getProperty("viewAllAdoptions")%></a></li>
                                   <li class="divider"></li>
-                                <% } %>
-                                <li><a target="_blank" href="http://www.wildme.org/wildbook"><%=props.getProperty("shepherdDoc")%></a></li>
-                                <%
+                                <% } 
                             } //end if admin %>
                         </ul>
                       </li>
