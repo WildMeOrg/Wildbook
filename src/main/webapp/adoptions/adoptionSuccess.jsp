@@ -47,7 +47,7 @@ context=ServletUtilities.getContext(request);
               Adoption ad = myShepherd.getAdoption(number);
               shark = ad.getMarkedIndividual();
               if (ad.getAdopterImage() != null) {
-                addText = ad.getAdopterImage();
+                //addText = ad.getAdopterImage();
               } else {
                 hasImages = false;
               }
@@ -66,7 +66,8 @@ context=ServletUtilities.getContext(request);
 
 	if(!addText.equals("")){
 
-
+		System.out.println("xx thumLoc is: "+thumbLocation);
+		System.out.println("xx addText is: "+addText);
             	File file2process = new File(addText);
             	if(file2process.exists()){
 
