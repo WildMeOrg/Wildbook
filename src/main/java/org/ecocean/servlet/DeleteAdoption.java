@@ -22,12 +22,14 @@ package org.ecocean.servlet;
 import org.ecocean.Adoption;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Properties;
 
 import java.io.*;
 
@@ -56,6 +58,8 @@ public class DeleteAdoption extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
+    
+    Properties props=ShepherdProperties.getProperties("stripeKeys.properties","",context);
 
     Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
 
