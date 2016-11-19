@@ -80,6 +80,12 @@ public class DeleteAdoption extends HttpServlet {
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(adoptionID))) {
 
+      Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+      if((request.getParameter("customerID")==null)&&(ad.getStripeCustomerId()!=null)){
+        customerID=ad.getStripeCustomerId();
+      }
+
+      
       // This section attempts to delete stripe subscription.
       if ((customerID != null)&&(customerID != "")) {
         try {
@@ -94,7 +100,7 @@ public class DeleteAdoption extends HttpServlet {
 
       // This section deletes adoption from database.
       try {
-        Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+        //Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
 
         String savedFilename = request.getParameter("adoptionID") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
