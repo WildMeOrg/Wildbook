@@ -1458,7 +1458,18 @@ if (request.getParameter("number")!=null) {
         <!-- End genetics -->
       </div>
       <br></br>
+
+      <%-- Map --%>
+      <br>
+      <div>
+        <jsp:include page="individualMapEmbed.jsp" flush="true">
+          <jsp:param name="name" value="<%=name%>"/>
+        </jsp:include>
+      </div>
+      <%-- End of Map --%>
+
       <%-- Start Adoption --%>
+      <p><strong>Meet the Adopters</strong></p>
       <div>
         <%
           if (CommonConfiguration.allowAdoptions(context)) {
@@ -1563,15 +1574,6 @@ if (request.getParameter("number")!=null) {
 
       <%-- End Collaborators --%>
       </div>
-
-      <%-- Map --%>
-      <br>
-      <div>
-        <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
-        </jsp:include>
-      </div>
-      <%-- End of Map --%>
 
       <br>
       <%-- Comments --%>
