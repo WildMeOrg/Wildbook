@@ -22,12 +22,14 @@ package org.ecocean.servlet;
 import org.ecocean.Adoption;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Shepherd;
+import org.ecocean.ShepherdProperties;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Properties;
 
 import java.io.*;
 
@@ -56,8 +58,10 @@ public class DeleteAdoption extends HttpServlet {
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked = false;
+    
+    Properties props=ShepherdProperties.getProperties("stripeKeys.properties","",context);
 
-    Stripe.apiKey = "sk_test_sHm3KrvEv0dERpO0Qgg5lkDE";
+    Stripe.apiKey = props.getProperty("publicKey");
 
     String sharkID = request.getParameter("sharkID");
     String customerID = request.getParameter("customerID");
@@ -76,6 +80,12 @@ public class DeleteAdoption extends HttpServlet {
     myShepherd.beginDBTransaction();
     if ((myShepherd.isAdoption(adoptionID))) {
 
+      Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+      if((request.getParameter("customerID")==null)&&(ad.getStripeCustomerId()!=null)){
+        customerID=ad.getStripeCustomerId();
+      }
+
+      
       // This section attempts to delete stripe subscription.
       if ((customerID != null)&&(customerID != "")) {
         try {
@@ -90,7 +100,7 @@ public class DeleteAdoption extends HttpServlet {
 
       // This section deletes adoption from database.
       try {
-        Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
+        //Adoption ad = myShepherd.getAdoptionDeepCopy(adoptionID);
 
         String savedFilename = request.getParameter("adoptionID") + ".dat";
         //File thisEncounterDir=new File(((new File(".")).getCanonicalPath()).replace('\\','/')+"/"+CommonConfiguration.getAdoptionDirectory()+File.separator+request.getParameter("number"));
