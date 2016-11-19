@@ -132,6 +132,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       Boolean emailEdit = false;
       if ((Boolean)session.getAttribute( "emailEdit") != false) {
         emailEdit = (Boolean)session.getAttribute( "emailEdit");
+	number = (String)session.getAttribute("sessionAdoptionID");     
       }
         //setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
@@ -242,6 +243,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             number = fv.get("number").toString();
             if ((number != null) && (!number.equals(""))) {
               isEdit = true;
+	      System.out.println("Ping! Hit adoption number recieved by action servlet.");
               //myShepherd.beginDBTransaction();
             }
 
@@ -389,10 +391,10 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
               System.out.println("Results from captchaIsValid(): " + validCaptcha );
             }
             if ((validCaptcha == true) || (loggedIn == true)) {
-
+	      System.out.println("Ping! Hit the Adoption creation section.");
               try {
                 Adoption ad = new Adoption(id, adopterName, adopterEmail, adoptionStartDate, adoptionEndDate);
-                if (isEdit) {
+                if (isEdit || emailEdit) {
                   ad = myShepherd.getAdoption(number);
                   ad.setAdopterName(adopterName);
                   ad.setAdopterEmail(adopterEmail);
@@ -455,7 +457,9 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
                   ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
                   Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, mi, ad);
                   NotificationMailer mailer = new NotificationMailer(emailContext, langCode, to, type, tagMap);
+                  NotificationMailer adminMailer = new NotificationMailer(emailContext, langCode, CommonConfiguration.getNewSubmissionEmail(emailContext), type, tagMap);
                   es.execute(mailer);
+                  es.execute(adminMailer);
                 }
                 catch (Exception e) {
                   System.out.println("Error in sending email confirmation of adoption.");
@@ -463,7 +467,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
                 }
               }
 
-              if (adoptionSuccess && isEdit) {
+              if ((adoptionSuccess && isEdit)||(emailEdit == true)) {
                 myShepherd.commitDBTransaction();
               }
 

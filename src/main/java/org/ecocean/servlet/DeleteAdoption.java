@@ -130,7 +130,7 @@ public class DeleteAdoption extends HttpServlet {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
-        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be by the webmaster.");
+        out.println("<strong>Success!</strong> I have successfully removed adoption " + adoptionID + ". However, a saved copy an still be retrieved by the webmaster.");
 
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");
         out.println("To restore, cont ");
@@ -153,6 +153,7 @@ public class DeleteAdoption extends HttpServlet {
       out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the encounter that you intended it for in the database.");
       out.println("<strong>Error:</strong> I was unable to remove your adoption file. I cannot find the adoption in the database. If you feel you have reached this in error, contact the webmaster.");
       out.println("The webmaster can be reached at <strong>adoptions at whaleshark dot org</strong>.");
+      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "Return to Wildbook</a></p>\n");	
       out.println(ServletUtilities.getFooter(context));
 
     }
