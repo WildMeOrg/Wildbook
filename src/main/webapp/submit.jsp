@@ -92,7 +92,6 @@ context=ServletUtilities.getContext(request);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 </style>
 
-<script type="text/javascript" src="//geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 <script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
