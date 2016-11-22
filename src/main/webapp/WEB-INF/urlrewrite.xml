@@ -26,7 +26,7 @@
         <name>Domain Name Check EXAMPLE</name>
         <condition name="host" operator="notequal">www.whaleshark.org</condition>
         <from>^(.*)$</from>
-        <to type="redirect">http://www.whaleshark.org$1</to>
+        <to type="redirect">https://www.whaleshark.org$1</to>
     </rule>
 
 <!--
