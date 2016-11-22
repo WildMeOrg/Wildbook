@@ -35,12 +35,15 @@ import java.nio.file.Paths;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import org.ecocean.Util;
+import org.ecocean.Shepherd;
+import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Annotation;
 import org.ecocean.YouTube;
 //import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 import org.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +71,12 @@ public class YouTubeAssetStore extends AssetStore {
     public MediaAsset create(final JSONObject params) throws IllegalArgumentException {
         if (idFromParameters(params) == null) throw new IllegalArgumentException("no id parameter");
         return new MediaAsset(this, params);
+    }
+    //convenience
+    public MediaAsset create(final String ytid) {
+        JSONObject p = new JSONObject();
+        p.put("id", ytid);
+        return create(p);
     }
 
     @Override
@@ -129,7 +138,8 @@ public class YouTubeAssetStore extends AssetStore {
         return params.optString("id", null);
     }
 
-    //how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
+    //most likely you want grabAndParse() really.
+    //  how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
     public static List<File> grab(MediaAsset ma) throws java.io.IOException {
         if (ma == null) return null;
         String id = idFromParameters(ma.getParameters());
@@ -143,7 +153,8 @@ System.out.println("YouTubeAssetStore.grab(" + ma + ") tempdir = " + dir);
 
     //returns success (stuff grabbed and parsed)
     // 'wait' refers only for other process, if we need to do the grabbing, right now it will always wait for that
-    public boolean grabAndParse(MediaAsset ma, boolean wait) throws IOException {
+    //    NOTE: wait is untested!  TODO
+    public static boolean grabAndParse(Shepherd myShepherd, MediaAsset ma, boolean wait) throws IOException {
         boolean processing = ((ma.getDerivationMethod() != null) && ma.getDerivationMethod().optBoolean("_processing", false));
         int count = 0;
         int max = 100;
@@ -159,10 +170,10 @@ System.out.println("YouTubeAssetStore.grab(" + ma + ") tempdir = " + dir);
         }
         //get here, we must not be processing, so lets do that!
         ma.addDerivationMethod("_processing", true);
-        List<File> grabbed = this.grab(ma);
+        List<File> grabbed = YouTubeAssetStore.grab(ma);
         for (File f : grabbed) {
-System.out.println("- grabAndParse: " + f);
-            if (f.getName().matches(".info.json$")) {
+System.out.println("- [" + f.getName() + "] grabAndParse: " + f);
+            if (f.getName().matches(".+.info.json$")) {
                 List<String> lines = Files.readAllLines(f.toPath(), Charset.defaultCharset());
                 JSONObject detailed = null;
                 try {
@@ -170,23 +181,73 @@ System.out.println("- grabAndParse: " + f);
                 } catch (JSONException jex) {
                     System.out.println("ERROR: " + ma + " grabAndParse() failed to parse YouTube .info.json - " + jex.toString());
                 }
+//System.out.println("detailed -> " + detailed);
                 if (detailed != null) {
-                    MediaAssetMetadata md = ma.getMetadata();
+                    JSONObject mj = new JSONObject();
+                    if (ma.getMetadata() != null) {
+                        ma.getMetadata().getDataAsString();  //HACK gets around weird dn caching issue. :(
+                        mj = ma.getMetadata().getData();
+                    }
+                    mj.put("detailed", detailed);
+                    ma.setMetadata(new MediaAssetMetadata(mj));
                 }
-            } else if (f.getName().matches(".jpg$")) {
-                ///////// get image as _thumb child
-            } else if (f.getName().matches(".mp4$")) {
-                ///////// get video as _video child
+
+            //note: these persist the children they make, fbow ?
+            } else if (f.getName().matches(".+.jpg$")) {
+                _createThumbChild(myShepherd, ma, f);
+            } else if (f.getName().matches(".+.mp4$")) {
+                _createVideoChild(myShepherd, ma, f);
             }
         }
         return true;
     }
 
-    //this can be overridden if needed, but this should be fine for any AssetStore which can cacheLocal
-    //  minimal means width/height/type (MetadataAttributes) only -- good for derived (i.e. exif-boring) images
+    private static MediaAsset _createThumbChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
+        if ((f == null) || !f.exists()) {
+            System.out.println("WARNING: could not create thumb child for " + parent + ", file failure on " + f + "; skipping");
+            return null;
+        }
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (astore == null) {
+            System.out.println("WARNING: could not create thumb child for " + parent + ", no valid asset store");
+            return null;
+        }
+        JSONObject sp = astore.createParameters(f);
+        sp.put("key", parent.getUUID() + "/" + f.getName());
+        MediaAsset kid = new MediaAsset(astore, sp);
+        kid.copyIn(f);
+        kid.setParentId(parent.getId());
+        kid.addLabel("_thumb");
+        kid.updateMinimalMetadata();
+        MediaAssetFactory.save(kid, myShepherd);
+System.out.println("thumb child created: " + kid);
+        return kid;
+    }
+
+    private static MediaAsset _createVideoChild(Shepherd myShepherd, MediaAsset parent, File f) throws java.io.IOException {
+        if ((f == null) || !f.exists()) {
+            System.out.println("WARNING: could not create video child for " + parent + ", file failure on " + f + "; skipping");
+            return null;
+        }
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (astore == null) {
+            System.out.println("WARNING: could not create video child for " + parent + ", no valid asset store");
+            return null;
+        }
+        JSONObject sp = astore.createParameters(f);
+        sp.put("key", parent.getUUID() + "/" + f.getName());
+        MediaAsset kid = new MediaAsset(astore, sp);
+        kid.copyIn(f);
+        kid.setParentId(parent.getId());
+        kid.addLabel("_video");
+        kid.updateMinimalMetadata();
+        MediaAssetFactory.save(kid, myShepherd);
+System.out.println("video child created: " + kid);
+        return kid;
+    }
+
     public MediaAssetMetadata extractMetadata(MediaAsset ma, boolean minimal) throws IOException {
         JSONObject data = new JSONObject();
-
         //we (attempt to) let the basic stuff finish synchronously, so we have a populated data chunk to save (hopefully)before the detailed one does
         try {
             data.put("basic", YouTube.simpleInfo(idFromParameters(ma.getParameters())));
@@ -195,10 +256,53 @@ System.out.println("- grabAndParse: " + f);
         }
 
         if (!minimal) {
-            data.put("detailed", new JSONObject("{\"_processing\": true}"));
+            data.put("detailed", new JSONObject("{\"_processing\": true, \"timestamp\": " + System.currentTimeMillis() + "}"));   //assume it will be.... soon?
+            //TODO do actual grabAndProcess here???
         }
 
         return new MediaAssetMetadata(data);
+    }
+
+
+    //this finds "a" (first? one?) YoutubeAssetStore if we have any.  (null if not)
+    public static YouTubeAssetStore find(Shepherd myShepherd) {
+        AssetStore.init(AssetStoreFactory.getStores(myShepherd));
+        if ((AssetStore.getStores() == null) || (AssetStore.getStores().size() < 1)) return null;
+        for (AssetStore st : AssetStore.getStores().values()) {
+            if (st instanceof YouTubeAssetStore) return (YouTubeAssetStore)st;
+        }
+        return null;
+    }
+
+    /*
+        note: this assumes the MediaAsset has been persisted, so we can create our own Shepherd object and
+        affect it accordingly.... there are potentials for race conditions here for sure, especially if the caller has
+        gone on to (or caused something to go on to) further alter the MediaAsset in memory etc.   use caution!
+        TODO perhaps for this reason we should have a synchronous version of this too?
+    */
+    public static void backgroundGrabAndParse(final MediaAsset otherMa, HttpServletRequest request) {
+        String context = ServletUtilities.getContext(request);
+        final Shepherd myShepherd = new Shepherd(context);
+System.out.println("forking >>>>");
+        Runnable rn = new Runnable() {
+            public void run() {
+                myShepherd.setAction("YouTubeAssetStore.backgroundGrabAndParse");
+                myShepherd.beginDBTransaction();
+                MediaAsset ma = MediaAssetFactory.load(otherMa.getId(), myShepherd);
+System.out.println("about to grab!");
+                boolean ok = false;
+                try {
+                    grabAndParse(myShepherd, ma, false);
+                } catch (IOException ex) {
+                    System.out.println("ERROR: IOException grabbing " + ma + ": " + ex.toString());
+                }
+                System.out.println("grabAndParse() -> " + ok + "; " + ((ma.getMetadata() == null) ? "(null metadata)" : ma.getMetadata().getDataAsString()));
+                MediaAssetFactory.save(ma, myShepherd);
+                myShepherd.commitDBTransaction();
+            }
+        };
+        new Thread(rn).start();
+System.out.println("<<<<< out of fork");
     }
 }
 
