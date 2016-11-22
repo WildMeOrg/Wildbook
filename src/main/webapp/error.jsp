@@ -76,7 +76,7 @@ context=ServletUtilities.getContext(request);
           <br>
 
           <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp"><%=props
+            href="//<%=CommonConfiguration.getURLLocation(request) %>/welcome.jsp"><%=props
             .getProperty("clickHere")%>
           </a></p>
         </div>

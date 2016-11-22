@@ -110,7 +110,7 @@ finally{
 <div class='row' id='ind-gallery'>
 <div class="my-gallery" id="enc-gallery" itemscope itemtype="http://schema.org/ImageGallery"> </div>
 
-<script src='http://<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
+<script src='//<%=CommonConfiguration.getURLLocation(request) %>/javascript/imageDisplayTools.js'></script>
 
 <style>
   .my-gallery>figure {
@@ -144,7 +144,7 @@ finally{
   if (unseenImages) {
     console.log('shalom!');
     // link to individual thumbnail search results
-    var thumbGalleryLink = 'http://<%=CommonConfiguration.getURLLocation(request) %>/individualThumbnailSearchResults.jsp?individualID=<%=indID%>';
+    var thumbGalleryLink = '//<%=CommonConfiguration.getURLLocation(request) %>/individualThumbnailSearchResults.jsp?individualID=<%=indID%>';
 
     $('#ind-gallery').append('<p style="text-align:right;">Most recent images shown. <a href="'+thumbGalleryLink+'"><em>See all images.</em></a></p>');
   }
