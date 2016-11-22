@@ -55,12 +55,12 @@ use .json to populate ma.metadata.detailed  -- note: set .detailed = { processin
         String[] cmd = new String[]{"/usr/local/bin/youtube_get.sh", id, targetDir.toString()};
         ProcessBuilder pb = new ProcessBuilder();
         pb.command(cmd);
-System.out.println("before!");
+System.out.println("before .grab() ===[");
 
         try {
             Process proc = pb.start();
             proc.waitFor();
-System.out.println("DONE?????");
+System.out.println("]=== done with .grab()");
         } catch (Exception ex) {
             throw new RuntimeException("YouTube.grab(" + id + ", " + targetDir + ") failed: " + ex.toString());
         }
