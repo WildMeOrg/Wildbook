@@ -66,7 +66,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
 
-    <link rel="stylesheet" href="css/createadoption.css">
+    <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
