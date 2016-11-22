@@ -89,7 +89,7 @@ if (request.getParameter("number")!=null) {
 	name=request.getParameter("number").trim();
 	myShepherd.beginDBTransaction();
 	try{
-		
+
 		if(myShepherd.isMarkedIndividual(name)){
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
@@ -193,12 +193,15 @@ if (request.getParameter("number")!=null) {
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+  <link rel="stylesheet" href="css/createadoption.css">
+
+
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
@@ -297,7 +300,7 @@ if (request.getParameter("number")!=null) {
 
 
 <%---------- Main Div ----------%>
-<div class="container row maincontent maincontainer">
+<div class="container maincontent">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
@@ -345,14 +348,14 @@ if (request.getParameter("number")!=null) {
           %>
 
       <%-- Social Media Buttons --%>
-      <div>
+      <div id="individualSocialButtons">
         <!-- Google PLUS-ONE button -->
         <g:plusone size="small" annotation="none"></g:plusone>
         <!--  Twitter TWEET THIS button -->
         <a href="https://twitter.com/share" class="twitter-share-button" data-count="none">Tweet</a>
         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
         <!-- Facebook LIKE button -->
-        <div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div>
+        <div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div>
         <%
         if(CommonConfiguration.isIntegratedWithWildMe(context)){
           %>
@@ -765,7 +768,7 @@ if (request.getParameter("number")!=null) {
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
-      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+      String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
@@ -809,7 +812,7 @@ if (request.getParameter("number")!=null) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
       <font size="-1"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
       <%
       }
       %>
@@ -1455,26 +1458,25 @@ if (request.getParameter("number")!=null) {
         <!-- End genetics -->
       </div>
       <br></br>
+
+      <%-- Map --%>
+      <br>
+      <div>
+        <jsp:include page="individualMapEmbed.jsp" flush="true">
+          <jsp:param name="name" value="<%=name%>"/>
+        </jsp:include>
+      </div>
+      <%-- End of Map --%>
+
       <%-- Start Adoption --%>
+      <p><strong>Meet the Adopters</strong></p>
       <div>
         <%
           if (CommonConfiguration.allowAdoptions(context)) {
         %>
-
-        <div id="rightcol" style="vertical-align: top;">
-          <div id="menu" style="vertical-align: top;">
-
-
-            <div class="module">
-              <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-                <jsp:param name="name" value="<%=name%>"/>
-              </jsp:include>
-            </div>
-
-
-          </div><!-- end menu -->
-        </div>
-
+          <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+            <jsp:param name="name" value="<%=name%>"/>
+          </jsp:include>
           <%
            }
         %>
@@ -1573,15 +1575,6 @@ if (request.getParameter("number")!=null) {
       <%-- End Collaborators --%>
       </div>
 
-      <%-- Map --%>
-      <br>
-      <div>
-        <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
-        </jsp:include>
-      </div>
-      <%-- End of Map --%>
-
       <br>
       <%-- Comments --%>
       <div class="col-sm-6">
@@ -1672,14 +1665,14 @@ if (request.getParameter("number")!=null) {
   if (myShepherd.isEncounter(name)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
     </HEAD>
     <%
   }
   else if(myShepherd.isOccurrence(name)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
     </HEAD>
     <%
   }
@@ -1691,7 +1684,7 @@ if (request.getParameter("number")!=null) {
     %>
 
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
     </HEAD>
     <%
   } else if (al2.size() > 0) {
@@ -1701,7 +1694,7 @@ if (request.getParameter("number")!=null) {
     %>
 
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
     </HEAD>
     <%
   } else if (al3.size() > 0) {
@@ -1711,7 +1704,7 @@ if (request.getParameter("number")!=null) {
       %>
 
       <meta http-equiv="REFRESH"
-        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
+        content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
       </HEAD>
       <%
   } else {

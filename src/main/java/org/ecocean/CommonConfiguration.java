@@ -115,7 +115,7 @@ public class CommonConfiguration {
 
   //start getter methods
   public static String getURLLocation(HttpServletRequest request) {
-    return request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+    return request.getServerName() + request.getContextPath();
   }
 
 

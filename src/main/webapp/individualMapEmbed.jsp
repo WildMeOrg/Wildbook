@@ -101,10 +101,10 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false"></script>
 
 
-<p><strong><img src="images/2globe_128.gif" width="64" height="64" align="absmiddle"/><%=mapping %></strong></p>
+<p><strong><%=mapping %></strong></p>
 <%
 
   int havegpsSize=haveGPSData.size();
@@ -209,7 +209,7 @@ String lastLatLong="";
 											String encSubdir = indieEnc.subdir();
 					           %>
 					             google.maps.event.addListener(marker,'click', function() {
-					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.getIndividualID()%>\"><%=indieEnc.getIndividualID()%></a></strong><br /><table><tr><td><%=props.getProperty("date")%> <%=indieEnc.getDate()%><%if(indieEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=indieEnc.getSex()%><%}%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
+					                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indieEnc.getIndividualID()%>\"><%=indieEnc.getIndividualID()%></a></strong><br /><table><tr><td><%=props.getProperty("date")%> <%=indieEnc.getDate()%><%if(indieEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=indieEnc.getSex()%><%}%><%if(indieEnc.getSizeAsDouble()!=null){%><br />Size: <%=indieEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=indieEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
 					              });
 
 
@@ -301,7 +301,7 @@ String lastLatLong="";
 						String encSubdir = thisEnc.subdir();
 			%>
             google.maps.event.addListener(marker,'click', function() {
-                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.getIndividualID()%>\"><%=thisEnc.getIndividualID()%></a></strong><br /><table><tr><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
+                 (new google.maps.InfoWindow({content: '<strong><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=thisEnc.getIndividualID()%>\"><%=thisEnc.getIndividualID()%></a></strong><br /><table><tr><td><%=props.getProperty("date") %> <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br /><%=props.getProperty("sex") %> <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" ><%=props.getProperty("gotoEncounter") %></a></td></tr></table>'})).open(map, this);
              });
 
 
@@ -336,15 +336,15 @@ String lastLatLong="";
 
 
 
-		    
- zoomChangeBoundsListener = 
+
+ zoomChangeBoundsListener =
 	    google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
 	        if ((this.getZoom())&&(this.getZoom()>7)){
 	            this.setZoom(7);
 	        }
 	});
 setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
-		    
+
 
 
 

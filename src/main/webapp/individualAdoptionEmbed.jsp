@@ -77,7 +77,7 @@ context=ServletUtilities.getContext(request);
   -->
 </style>
 
-<table class="adopter" bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
+<table bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
 
 
   <%
@@ -150,7 +150,7 @@ context=ServletUtilities.getContext(request);
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -182,7 +182,7 @@ context=ServletUtilities.getContext(request);
 
 
 <%
-  } 
+  }
   catch (Exception e) {
   }
   adoptShepherd.rollbackDBTransaction();
