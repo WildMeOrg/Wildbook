@@ -41,7 +41,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 Properties props = new Properties();
 props = ShepherdProperties.getProperties("header.properties", langCode, context);
 
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 %>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -57,11 +57,16 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
       <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
       <link rel="shortcut icon"
             href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
-      <link href='http://fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
+      <link href='//fonts.googleapis.com/css?family=Oswald:400,300,700' rel='stylesheet' type='text/css'/>
       <link rel="stylesheet" href="<%=urlLoc %>/cust/mantamatcher/css/manta.css" />
+
+      <link href="//fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+
       <link href="<%=urlLoc %>/tools/jquery-ui/css/jquery-ui.css" rel="stylesheet" type="text/css"/>
       <link href="<%=urlLoc %>/tools/hello/css/zocial.css" rel="stylesheet" type="text/css"/>
 	  <link rel="stylesheet" href="<%=urlLoc %>/tools/jquery-ui/css/themes/smoothness/jquery-ui.css" type="text/css" />
+
+    <link rel="stylesheet" href="<%=urlLoc %>/css/createadoption.css">
 
 
       <script src="<%=urlLoc %>/tools/jquery/js/jquery.min.js"></script>
@@ -103,9 +108,11 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             <nav class="navbar navbar-default navbar-fixed-top">
               <div class="header-top-wrapper">
                 <div class="container">
-                <div class="search-and-secondary-wrapper">
+                <a href="http://www.wildme.org" id="wild-me-badge">A Wild me project</a> <a href="http://www.ibeis.org" id="ibeis-badge"></a>
+                  <div class="search-and-secondary-wrapper">
+                    <a href="<%=urlLoc%>/adoptashark.jsp"><button name='adopt an animal' class='large adopt'>Adopt a shark</button></a>
+                    <%-- <a href="<%=urlLoc %>/adoptashark.jsp"><%=props.getProperty("adoptions")%></a> --%>
                     <ul class="secondary-nav hor-ul no-bullets">
-
 
                       <%
 
@@ -224,7 +231,7 @@ String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
             						if(ServletUtilities.getLanguageCode(request).equals(supportedLanguages.get(h))){selected="selected=\"selected\"";}
             						String myLang=supportedLanguages.get(h);
             					%>
-            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="http://<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
+            						<img style="cursor: pointer" id="flag_<%=myLang %>" title="<%=CommonConfiguration.getProperty(myLang, context) %>" src="//<%=CommonConfiguration.getURLLocation(request) %>/images/flag_<%=myLang %>.gif" />
             						<script type="text/javascript">
 
             							$( "#flag_<%=myLang%>" ).click(function() {

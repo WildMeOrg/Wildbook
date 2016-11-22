@@ -383,8 +383,8 @@ var encounterNumber = '<%=num%>';
 
 
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script type="text/javascript" src="//geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
 
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
@@ -597,7 +597,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -3288,7 +3288,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
@@ -6194,7 +6194,7 @@ finally{
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>

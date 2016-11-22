@@ -335,7 +335,7 @@
 										video=false;
 									}
 									else{
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
+										thumbLink="//"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
 									String link=thumbLocs.get(countMe).getWebURL();
@@ -357,7 +357,7 @@
             %>
 >
 <% } else { %><a><% } %>
-            <img width="250px" height="*" class="lazyload" src="http://<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
+            <img width="250px" height="*" class="lazyload" src="//<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
 
             <div 
             	<%
