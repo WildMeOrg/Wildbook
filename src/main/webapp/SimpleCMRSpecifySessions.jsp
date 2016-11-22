@@ -195,7 +195,7 @@ if(request.getParameter("includeQueryComments")!=null){
 
 
 <p>
-<form name="simpleCMR" action="http://<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="get">
+<form name="simpleCMR" action="//<%=CommonConfiguration.getURLLocation(request)%>/SimpleCMROutput?<%=additionalParameters %>" method="get">
 
 <%
 Enumeration params=request.getParameterNames();
