@@ -29,7 +29,7 @@
 			<p><img src="images/whaleshark_example.jpg" width="444" height="293" border="1" /></p>
 			<p>This is how our computer database sees the natural patterning in this image:</p>
 			<p><img src="images/example_processed.jpg" width="437" height="429" border="1" /> </p>
-			<p>To prevent double-counting sharks where images of the same shark from different sides may be sent in separately, we only give an unidentified, unmatched shark a new number (e.g. <a href="http://www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a>, <a href="http://www.whaleshark.org/individuals.jsp?shark=A-002">A-002</a>, etc.) if we have a left-side pattern. For previously sighted individuals, such as <a href="http://www.whaleshark.org/individuals.jsp?shark=H-019">H-019</a> in Utila, Honduras, a pattern match looks like this in our database:</p>
+			<p>To prevent double-counting sharks where images of the same shark from different sides may be sent in separately, we only give an unidentified, unmatched shark a new number (e.g. <a href="//www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a>, <a href="http://www.whaleshark.org/individuals.jsp?shark=A-002">A-002</a>, etc.) if we have a left-side pattern. For previously sighted individuals, such as <a href="http://www.whaleshark.org/individuals.jsp?shark=H-019">H-019</a> in Utila, Honduras, a pattern match looks like this in our database:</p>
 			<p><img src="images/whaleshark_example_simple_match.gif" width="555" height="184" border="1" /> </p>
 			<p><strong>2. Right-side spot patterning.</strong> Similar to left-side patterning, right-side patterning can be scanned into our database and used to identify a previously sighted shark if it also has a right-side pattern. However, we do not allocate new shark numbers to unmatched right-side patterns. They remain unmatched in our system until the shark is sighted again and properly identified with a left-side pattern.</p>
 			<p><img src="images/whaleshark_example_right.jpg" width="449" height="443" border="1" /> </p>
@@ -37,11 +37,11 @@
 			<table width="358">
 				<tr><td><img src="images/whaleshark_example_scar.jpg" width="356" height="356" border="1" /></td></tr>
 				<tr>
-				  <td>This visible caudal (tail) fin scar helps to identify shark <a href="http://www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a> (&quot;Stumpy&quot;) at Ningaloo Marine Park in Western Australia. </td>
+				  <td>This visible caudal (tail) fin scar helps to identify shark <a href="//www.whaleshark.org/individuals.jsp?shark=A-001">A-001</a> (&quot;Stumpy&quot;) at Ningaloo Marine Park in Western Australia. </td>
 				</tr>
 		</table>
 			<p>Once you have your whale shark photographs or frame grabs from video, you can submit them directly to the Wildbook for Whale Sharks at:<br />
-			  <a href="http://www.whaleshark.org/submit.jsp">http://www.whaleshark.org/submit.jsp
+			  <a href="//www.whaleshark.org/submit.jsp">http://www.whaleshark.org/submit.jsp
             </a></p>
 			<p>Using  the email address you supply in your encounter report, our database can automatically keep you informed of how your data is used and can notify you whenever an identified shark that you reported is resighted.</p>
 			<p>Thank you for contributing to this global effort to protect the whale sharks! </p>

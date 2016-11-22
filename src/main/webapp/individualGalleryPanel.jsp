@@ -61,7 +61,7 @@ Shepherd imageShepherd = new Shepherd(context);
 myShepherd.setAction("individualGalleryPanel.jsp");
 imageShepherd.beginDBTransaction();
 String indID = request.getParameter("individualID");
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String imgUrl = urlLoc+"/cust/mantamatcher/img/hero_manta.jpg";
 String nickname = indID;
 

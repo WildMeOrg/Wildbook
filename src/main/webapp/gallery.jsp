@@ -37,7 +37,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 props = ShepherdProperties.getProperties("individuals.properties", langCode,context);
 
 //String langCode = "en";
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
 //some sorting and filtering work
 String sortString="";
@@ -473,12 +473,12 @@ int numDataContributors=0;
                 if(pairNickname[j]!=null){shareTitle=CommonConfiguration.getHTMLTitle(context)+": "+pairNickname[j];}
                 %>
 
-                <a href="https://www.facebook.com/sharer/sharer.php?u=http://norppagalleria.wwf.fi/gallery.jsp&title=<%=shareTitle %>&endorseimage=http://norppagalleria.wwf.fi/images/image_for_sharing_individual.jpg" title="Jaa Facebookissa" class="btnx" target="_blank" rel="external" >
+                <a href="https://www.facebook.com/sharer/sharer.php?u=<%=urlLoc %>/gallery.jsp&title=<%=shareTitle %>&endorseimage=<%=urlLoc %>/images/image_for_sharing_individual.jpg" title="Wildbook" class="btnx" target="_blank" rel="external" >
                 	<i class="icon icon-facebook-btn" aria-hidden="true"></i>
                 </a>
 
-                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
-                <a target="_blank" rel="external" href="https://plus.google.com/share?url=http://norppagalleria.wwf.fi/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="http://twitter.com/intent/tweet?status=<%=shareTitle %>+<%=urlLoc %>/gallery.jsp"><i class="icon icon-twitter-btn" aria-hidden="true"></i></a>
+                <a target="_blank" rel="external" href="https://plus.google.com/share?url=<%=urlLoc %>/gallery.jsp"><i class="icon icon-google-plus-btn" aria-hidden="true"></i></a>
               </span>
               <table><tr>
                 <td>
