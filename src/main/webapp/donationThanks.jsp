@@ -22,7 +22,7 @@ context=ServletUtilities.getContext(request);
           <p>You will shortly recieve a <strong>one time</strong> email to confirm your payment that you can retain for tax purposes.</p>
 
           <p><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>"><h3>Wildbook Home</h3>
           </a>.</p>
 
 
