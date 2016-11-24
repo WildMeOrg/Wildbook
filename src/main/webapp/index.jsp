@@ -367,7 +367,7 @@ finally{
             <br>
             <br>
             <h4 style="color: white;">Our work is possible with the generous support of:</h4>
-            <img border="1px" src="images/QWSP_Logo_small.png" height="125px" width="170px" /> <img border="1px" src="images/Siren_Fleet_small.jpg" height="125px" width="128px"  />
+            <img border="1px" src="images/QWSP_Logo_small.png" height="125px" width="170px" /> <img border="1px" src="images/Siren_Fleet_small.gif" height="125px" width="128px"  />
         </div>
 
 	</div>
@@ -520,7 +520,7 @@ You too can assist with whale shark research, by submitting photos and sighting 
 	                           Encounter thisEnc=latestIndividuals.get(i);
 	                           %>
 	                            <li>
-	                                <img src="cust/mantamatcher/img/whalesharkbw.svg" alt="" class="pull-left" />
+	                                <img src="cust/mantamatcher/img/whalesharkbw.png" alt="" class="pull-left" />
 	                                <small>
 	                                    <time>
 	                                        <%=thisEnc.getDate() %>
@@ -637,14 +637,12 @@ You too can assist with whale shark research, by submitting photos and sighting 
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/whaleshark.svg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
-                    <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1 style="color: #005589;-webkit-text-fill-color: #005589;">Why we do this</h1>
+                      <h1 style="color: #005589;-webkit-text-fill-color: #005589;">Why we do this</h1>
                         <p class="lead">
                             <i>&ldquo;Wildbook for Whale Sharks has pioneered the way for a new generation of global scale, collaborative wildlife projects that blend citizen science and computer vision to help researchers get bigger and more detailed pictures of some of the world's most mysterious species.&rdquo;</i> - Jason Holmberg, Information Architect</p>
                         <a href="whoAreWe.jsp" title="">Learn more about the Researchers and Volunteers</a><br>
                         <a href="http://www.wildme.org" title="">Learn more about Wild Me and Wildbook</a>
-                    </div>
+                    
                 </div>
             </article>
         <main>
