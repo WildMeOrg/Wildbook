@@ -110,7 +110,7 @@ public class MassSetLocationCodeFromLocationString extends HttpServlet {
         //myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully changed the location code to " + locCode + " for " + count + " encounters based on the location string: " + matchString + "."));
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       //failure due to exception

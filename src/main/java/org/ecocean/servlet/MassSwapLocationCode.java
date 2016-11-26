@@ -97,7 +97,7 @@ public class MassSwapLocationCode extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully changed the location code " + oldLocCode + " to " + newLocCode + " for " + count + " encounters."));
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to the Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       //failure due to exception

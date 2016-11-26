@@ -110,13 +110,13 @@ public class OccurrenceSetIndividualCount extends HttpServlet {
         myShepherd.commitDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Individual count has been updated from " + oldIndieCount + " to " + newIndieCount+".");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occcurence " + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occcurence " + request.getParameter("number") + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       else {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> Individual count was NOT updated because another user is currently modifying the record for this occurrence or the value input does not translate to a valid integer count.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
 
@@ -125,7 +125,7 @@ public class OccurrenceSetIndividualCount extends HttpServlet {
     else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("number") + "\">Return to occurrence " + request.getParameter("number") + "</a></p>\n");
      out.println(ServletUtilities.getFooter(context));
 
     }

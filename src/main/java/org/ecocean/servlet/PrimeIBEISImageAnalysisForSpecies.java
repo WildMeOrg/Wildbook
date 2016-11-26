@@ -76,14 +76,14 @@ public class PrimeIBEISImageAnalysisForSpecies extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully sent all "+genus+" "+species+" annotations and media assets to image analysis.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       else{
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> I was NOT successful sending all "+genus+" "+species+" annotations and media assets to image analysis.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/scanTaskAdmin.jsp" + "\">Return to Grid Administration" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
       }
       
