@@ -59,7 +59,7 @@ public class StripeUpdate extends HttpServlet {
 
     try {
       System.out.println("Adopter PAYMENT UPDATE redirect success!");
-      response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
+      response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
     } catch (IOException ie) {
       System.out.println("Payment update failed on redirect... IO exception.");
     } catch (Exception e) {
