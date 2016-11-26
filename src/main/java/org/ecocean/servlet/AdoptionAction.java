@@ -487,11 +487,11 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
         System.out.println("Ending adoption data submission.");
         //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
         if ((adoptionSuccess) && (emailEdit == false)) {
-          response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+          response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
         } else if ((adoptionSuccess) && (emailEdit == true)) {
-          response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
+          response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/editSuccess.jsp");
         } else {
-          response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
+          response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
         }
 
       //}

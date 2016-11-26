@@ -2415,7 +2415,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         }
 
         public String getUrl(HttpServletRequest request) {
-          return "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
+          return request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
         }
 
         /**

@@ -145,7 +145,7 @@ public class StripePayment extends HttpServlet {
       }
       try {
         System.out.println("ONE TIME DONATION redirect success!");
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/donationThanks.jsp");
+        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/donationThanks.jsp");
       } catch (IOException ie) {
         System.out.println("Donation failed on redirect... IO exception.");
       } catch (Exception e) {

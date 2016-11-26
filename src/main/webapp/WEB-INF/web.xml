@@ -242,7 +242,7 @@
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
-					/ResurrectDeletedAdoption = = authc,roles[admin]
+					
 
 
             </param-value>
@@ -1082,10 +1082,7 @@
     <servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>ResurrectDeletedAdoption</servlet-name>
-    <servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
-  </servlet>
+
 
       <servlet>
            <servlet-name>MozRobustByMonths</servlet-name>
@@ -1686,10 +1683,7 @@
         <url-pattern>/IndividualSetYearOfBirth</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>ResurrectDeletedAdoption</servlet-name>
-    <url-pattern>/ResurrectDeletedAdoption</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>IndividualRemoveEncounter</servlet-name>
