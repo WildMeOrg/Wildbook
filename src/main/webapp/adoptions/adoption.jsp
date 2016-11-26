@@ -424,27 +424,7 @@ context=ServletUtilities.getContext(request);
 	<%
 	  }
 	
-	  if (isOwner) {
-	%>
-	<table class="adoption" width="720px">
-	  <tr>
-	    <td>
-	      <h3><a name="restore" id="restore"></a>Restore a deleted adoption</h3>
-	    </td>
-	  </tr>
-	  <tr>
-	    <td>
-	      <form action="../ResurrectDeletedAdoption" method="get"
-	            name="restoreDeletedAdoption">Adoption #: <input name="number"
-	                                                             type="text" size="25"/> <input
-	        type="submit" name="Submit"
-	        value="Submit"/></form>
-	      <br/>
-	  </tr>
-	  </td>
-	</table>
-	<%
-	  }
+	  
   }
   catch(Exception e){e.printStackTrace();}
   finally{
