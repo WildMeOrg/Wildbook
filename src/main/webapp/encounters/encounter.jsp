@@ -141,6 +141,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 <jsp:include page="../header.jsp" flush="true"/>
 
+<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+
+
   <style type="text/css">
 
 
@@ -237,8 +240,8 @@ td.measurement{
     These files must be located on your server.
   -->
 
-  <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
+
+  
   <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
 
   <!--
@@ -312,10 +315,10 @@ td.measurement{
 	
 	
 		//adding the fullscreen control to exit fullscreen
-	    	  var fsControlDiv = document.createElement('DIV');
-	    	  var fsControl = new FSControl(fsControlDiv, map);
-	    	  fsControlDiv.index = 1;
-	    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+	    	//  var fsControlDiv = document.createElement('DIV');
+	    	//  var fsControl = new FSControl(fsControlDiv, map);
+	    	//  fsControlDiv.index = 1;
+	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
 
@@ -383,8 +386,6 @@ var encounterNumber = '<%=num%>';
 
 
 
-<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-<script type="text/javascript" src="//geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
 
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
