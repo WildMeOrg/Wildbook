@@ -102,7 +102,8 @@ context=ServletUtilities.getContext(request);
 %>
 
 <script src="//maps.google.com/maps/api/js?sensor=false"></script>
-
+ <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
+ 
 
 <p><strong><%=mapping %></strong></p>
 <%
@@ -346,6 +347,12 @@ String lastLatLong="";
 setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
 
 
+var options = {
+        imagePath: 'javascript/markerclusterer/m',
+        maxZoom: 10
+    };
+
+var markerCluster = new MarkerClusterer(map, markers, options);
 
 
 
