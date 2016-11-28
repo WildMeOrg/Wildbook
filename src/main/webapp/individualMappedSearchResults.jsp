@@ -150,6 +150,7 @@ margin-bottom: 8px !important;
 
 <script src="//maps.google.com/maps/api/js?sensor=false&v=3.9&language=<%=langCode %>"></script>
 <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script>
+<script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
 <script type="text/javascript" src="javascript/GeoJSON.js"></script>
 
 
