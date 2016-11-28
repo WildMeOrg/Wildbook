@@ -225,7 +225,8 @@ myShepherd.rollbackDBTransaction();
  %>
  
  var options = {
-         imagePath: '../javascript/markerclusterer/m'
+         imagePath: '../javascript/markerclusterer/m',
+         maxZoom: 10
      };
 
 var markerCluster = new MarkerClusterer(map, markers, options);
