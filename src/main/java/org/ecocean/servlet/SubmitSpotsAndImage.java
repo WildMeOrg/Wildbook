@@ -17,6 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/// please also see:   src/main/java/org/ecocean/servlet/SubmitSpotsAnd_README.txt
+
 package org.ecocean.servlet;
 
 import com.oreilly.servlet.multipart.FilePart;
@@ -88,15 +90,18 @@ public class SubmitSpotsAndImage extends HttpServlet {
     if (refSpots == null) throw new IOException("invalid refSpots");
 
     AssetStore store = AssetStore.getDefault(myShepherd);
-    //this should put it in the same old (pre-MediaAsset) location to maintain url pattern
-    JSONObject params = store.createParameters(new File("encounters/" + Encounter.subdir(encId) + "/extract" + (rightSide ? "Right" : "") + encId + ".jpg"));
+    //no longer maintaining "encounters/..." dir pattern for our general (e.g. non-whaleshark) codebase! onward to the future!
+    JSONObject params = store.createParameters(new File(Encounter.subdir(encId) + "/spots-" + (rightSide ? "right" : "left") + ".jpg"));
 System.out.println("====> params = " + params);
     MediaAsset ma = store.create(params);
+    File edir = ma.localPath().getParent().toFile();
+System.out.println("edir ? " + edir);
+    if (!edir.exists()) edir.mkdirs();
     ma.copyInBase64(json.optString("imageData", null));
-    ma.addLabel("_spot" + (rightSide ? "Right" : ""));  //we are sticking with "legacy" '_spot' for left
+    ma.addLabel("_spot" + (rightSide ? "Right" : "Left"));
     ma.setParentId(maId);
     ma.addDerivationMethod("spotTool", json.optJSONObject("imageToolValues"));
-    //ma.updateMinimalMetadata();
+    ma.updateMinimalMetadata();
     MediaAssetFactory.save(ma, myShepherd);
 System.out.println("created???? " + ma);
 
@@ -107,6 +112,7 @@ System.out.println("created???? " + ma);
         enc.setSpots(spots);
         enc.setLeftReferenceSpots(refSpots);
     }
+
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 
