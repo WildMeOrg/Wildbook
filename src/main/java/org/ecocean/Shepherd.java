@@ -184,6 +184,49 @@ public class Shepherd {
   }
 
 
+  public boolean storeNewDataSheet(DataSheet indie) {
+
+    for (DataPoint dp: indie.getData()) {
+      storeNewDataPoint(dp);
+    }
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new DataSheet in Shepherd.storeNewDataSheet().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public boolean storeNewDataPoint(DataPoint indie) {
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(indie);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new Nest in Shepherd.storeNewDataPoint().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public DataPoint getDataPoint(String id) {
+    DataPoint tempEnc = null;
+    try {
+      tempEnc = ((DataPoint) (pm.getObjectById(pm.newObjectIdInstance(DataPoint.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
 
 
   public boolean storeNewMarkedIndividual(MarkedIndividual indie) {

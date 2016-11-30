@@ -1,0 +1,144 @@
+<!DOCTYPE jdo PUBLIC "-//Sun Microsystems, Inc.//DTD Java Data Objects Metadata 2.0//EN" "http://java.sun.com/dtd/jdo_2_0.dtd">
+
+<jdo>
+<package name="org.ecocean.datacollection">
+
+
+
+
+  <class name="DataCollectionEvent" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="correspondingEncounterNumber">
+      <column name="CORRESPONDINGENCOUNTERNUMBER"/>
+    </field>
+
+    <field name="DataCollectionEventID" primary-key="true" value-strategy="native">
+      <column name="DataCollectionEventID"/>
+    </field>
+    <field name="samplingProtocol">
+      <column name="SAMPLINGPROTOCOL"/>
+    </field>
+    <field name="samplingEffort">
+      <column name="SAMPLINGEFFORT"/>
+    </field>
+    <field name="eventStartDate">
+      <column name="EVENTSTARTDATE"/>
+    </field>
+    <field name="eventEndDate">
+      <column name="EVENTENDDATE"/>
+    </field>
+    <field name="fieldNumber">
+      <column name="FIELDNUMBER"/>
+    </field>
+    <field name="fieldNotes">
+      <column name="FIELDNOTES"/>
+    </field>
+
+    <field name="eventRemarks">
+      <column name="EVENTREMARKS"/>
+    </field>
+    <field name="institutionID">
+      <column name="INSTITUTIONID"/>
+    </field>
+    <field name="collectionID">
+      <column name="COLLECTIONID"/>
+    </field>
+    <field name="datasetID">
+      <column name="DATASETID"/>
+    </field>
+    <field name="institutionCode">
+      <column name="INSTITUTIONCODE"/>
+    </field>
+    <field name="collectionCode">
+      <column name="COLLECTIONCODE"/>
+    </field>
+    <field name="datasetName">
+      <column name="DATASETNAME"/>
+    </field>
+    <field name="type">
+      <column name="TYPE"/>
+    </field>
+  </class>
+
+  <class name="MeasurementEvent" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value" persistence-modifier="persistent">
+      <column name="VALUE"/>
+    </field>
+    <field name="units" persistence-modifier="persistent">
+      <column name="UNITS"/>
+    </field>
+  </class>
+
+  <class name="DataPoint" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="id" persistence-modifier="persistent" primary-key="true">
+      <column name="ID"/>
+    </field>
+    <field name="name" persistence-modifier="persistent">
+      <column name="NAME"/>
+    </field>
+    <field name="units">
+      <column name="UNITS"/>
+    </field>
+  </class>
+
+  <class name="DataSheet" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="id" persistence-modifier="persistent">
+      <column name="ID"/>
+    </field>
+    <field name="data" persistence-modifier="persistent" default-fetch-group="true">
+      <collection element-type="org.ecocean.datacollection.DataPoint"/>
+      <join/>
+    </field>
+  </class>
+
+
+  <class name="Count" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+  <class name="LongCount" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+
+  <class name="Amount" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+
+  <class name="Observation" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+  <class name="Instant" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+  <class name="Check" identity-type="application">
+    <inheritance strategy="new-table"/>
+    <field name="value">
+      <column name="VALUE"/>
+    </field>
+  </class>
+
+
+</package>
+</jdo>
