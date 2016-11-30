@@ -3,18 +3,20 @@ package org.ecocean;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
+//import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.text.Normalizer;
+import static java.nio.charset.StandardCharsets.*;
+
+
+
 import org.json.JSONObject;
 import org.json.JSONException;
-
-import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 
 //EXIF-related imports
 import java.io.File;
@@ -45,9 +47,9 @@ import com.reijns.I3S.Point2D;
 
 public class Util {
 
-  //MeasurementEvent static values
+  //Measurement static values
   private static final String MEASUREMENT = "measurement";
-  private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementEventType";
+  private static final String BIOLOGICALMEASUREMENT = "biologicalMeasurementType";
   private static final String UNITS = MEASUREMENT + "Units";
   private static final String BIOLOGICALMEASUREMENTUNITS = BIOLOGICALMEASUREMENT.replaceAll("Type", "Units");
   private static final String METAL_TAG_LOCATION = "metalTagLocation";
@@ -56,8 +58,8 @@ public class Util {
   //GPS coordinate caching for Encounter Search and Individual Search
   private static ArrayList<Point2D> coords;
 
-  public static List<MeasurementEventDesc> findMeasurementEventDescs(String langCode,String context) {
-    List<MeasurementEventDesc> list = new ArrayList<MeasurementEventDesc>();
+  public static List<MeasurementDesc> findMeasurementDescs(String langCode,String context) {
+    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedPropertyValues(MEASUREMENT,context);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedPropertyValues(UNITS,context);
@@ -66,14 +68,14 @@ public class Util {
         String unit = units.get(i);
         String typeLabel = findLabel(type, langCode,context);
         String unitsLabel = findLabel(unit, langCode,context);
-        list.add(new MeasurementEventDesc(type, typeLabel, unit, unitsLabel));
+        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
   }
 
-  public static List<MeasurementEventDesc> findBiologicalMeasurementDescs(String langCode, String context) {
-    List<MeasurementEventDesc> list = new ArrayList<MeasurementEventDesc>();
+  public static List<MeasurementDesc> findBiologicalMeasurementDescs(String langCode, String context) {
+    List<MeasurementDesc> list = new ArrayList<MeasurementDesc>();
     List<String> types = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENT,context);
     if (types.size() > 0) {
       List<String> units = CommonConfiguration.getIndexedPropertyValues(BIOLOGICALMEASUREMENTUNITS,context);
@@ -82,7 +84,7 @@ public class Util {
         String unit = units.get(i);
         String typeLabel = findLabel(type, langCode, context);
         String unitsLabel = findLabel(unit, langCode, context);
-        list.add(new MeasurementEventDesc(type, typeLabel, unit, unitsLabel));
+        list.add(new MeasurementDesc(type, typeLabel, unit, unitsLabel));
       }
     }
     return list;
@@ -207,13 +209,13 @@ public class Util {
     return sb.toString();
   }
 
-  public static class MeasurementEventDesc {
+  public static class MeasurementDesc {
     private String type;
     private String label;
     private String units;
     private String unitsLabel;
 
-    private MeasurementEventDesc(String type, String label, String units, String unitsLabel) {
+    private MeasurementDesc(String type, String label, String units, String unitsLabel) {
       this.type = type;
       this.label = label;
       this.units = units;
@@ -472,67 +474,17 @@ public class Util {
         return ll.toString();
     }
 
-    // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
-    public static int getNumSections(int collectionSize, int itemsPerSection) {
-      return (collectionSize - 1)/itemsPerSection + 1;
+    // http://stackoverflow.com/a/15190787
+    public static String stripAccents(String s)
+    {
+        String str = Normalizer.normalize(s, Normalizer.Form.NFD);
+        str = str.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return str;
     }
 
-    public static String prettyPrintDateTime(DateTime dt) {
-      System.out.println("prettyPrintDateTime:");
-      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
-      boolean isOnlyDate = dateTimeIsOnlyDate(dt);
-      String currentToString = dt.toString();
-      if (isOnlyDate) {
-        currentToString = currentToString.split("T")[0];
-      }
-      return (currentToString);
-    }
-
-    public static boolean dateTimeIsOnlyDate(DateTime dt) {
-      try {
-        return (dt.millisOfDay().get()==0);
-      } catch (Exception e) {
-        return false;
-      }
-    }
-
-    public static String capitolizeFirstLetterOnly(String str) {
-      String lower = str.toLowerCase();
-      if (lower.length()<=1) return (lower.toUpperCase());
-      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
-    }
-
-    public static boolean requestHasVal(HttpServletRequest request, String paramName) {
-      return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
-    }
-
-    public static String addToJDOFilter(String constraint, String filter, String origFilter) {
-      if (filter.equals(origFilter)) return (filter + constraint);
-      else return (filter + " && " + constraint);
-    }
-
-    public static String jdoStringContainsConstraint(String fieldName, String containsThis) {
-      return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
-    }
-
-    public static String undoUrlEncoding(String str) {
-      return str.replaceAll("%20", " ").trim();
-    }
-
-    public static <T> String toString(Enumeration<T> things) {
-      StringBuilder result = new StringBuilder("[");
-      while (things.hasMoreElements()) {
-        T thing = things.nextElement();
-        result.append(thing.toString());
-        if (things.hasMoreElements()) result.append(", ");
-      }
-      result.append("]");
-      return result.toString();
-    }
-
-    public static String toString(Object obj) {
-      if (obj == null) return null;
-      return obj.toString();
+    public static String utf8ize(String str) {
+      String value = str.replaceAll("ñ","ñ"); // AAAAAAAAAAAAAAA
+      return value;
     }
 
 
