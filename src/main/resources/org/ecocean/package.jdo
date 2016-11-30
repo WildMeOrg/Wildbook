@@ -3,6 +3,10 @@
 <jdo>
   <package name="org.ecocean">
 
+    <class name="StudySite" identity-type="application">
+      <field name="id" primary-key="true"> </field>
+    </class>
+
     <class name="Adoption" identity-type="application">
       <field name="adopterName" persistence-modifier="persistent">
         <column jdbc-type="LONGVARCHAR"/>
@@ -413,7 +417,7 @@
       </field>
 
       <field name="patterningPassport" persistence-modifier="persistent" element-type="org.ecocean.PatterningPassport"/>
-	  
+
 	  <field name="webURL" persistence-modifier="none"></field>
 
     </class>

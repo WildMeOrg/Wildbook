@@ -352,6 +352,33 @@ public class Shepherd {
     //pmf=null;
   }
 
+  public boolean storeNewStudySite(StudySite stu) {
+
+    beginDBTransaction();
+    try {
+      pm.makePersistent(stu);
+      commitDBTransaction();
+    } catch (Exception e) {
+      rollbackDBTransaction();
+      System.out.println("I failed to create a new StudySite in Shepherd.storeNewStudySite().");
+      e.printStackTrace();
+      return false;
+    }
+    return true;
+  }
+
+  public StudySite getStudySite(String id) {
+    StudySite tempEnc = null;
+    try {
+      tempEnc = ((StudySite) (pm.getObjectById(pm.newObjectIdInstance(StudySite.class, id.trim()), true)));
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return tempEnc;
+  }
+
+
+
 
   public Encounter getEncounter(String num) {
     Encounter tempEnc = null;
