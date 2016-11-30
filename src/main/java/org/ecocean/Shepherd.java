@@ -25,6 +25,7 @@ import org.ecocean.genetics.*;
 import org.ecocean.social .*;
 import org.ecocean.security.Collaboration;
 import org.ecocean.media.*;
+import org.ecocean.datacollection.*;
 
 import javax.jdo.*;
 import javax.servlet.http.HttpServletRequest;
