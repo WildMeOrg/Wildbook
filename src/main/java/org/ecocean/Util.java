@@ -3,7 +3,7 @@ package org.ecocean;
 //import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-//import java.util.Enumeration;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Locale;
 import java.util.MissingResourceException;
@@ -13,7 +13,8 @@ import java.util.UUID;
 import java.text.Normalizer;
 import static java.nio.charset.StandardCharsets.*;
 
-
+import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 
 import org.json.JSONObject;
 import org.json.JSONException;
@@ -473,6 +474,70 @@ public class Util {
         if (ll == null) return null;
         return ll.toString();
     }
+
+    // e.g. you have collectionSize = 13 items you want displayed in sections with 3 per section.
+    public static int getNumSections(int collectionSize, int itemsPerSection) {
+      return (collectionSize - 1)/itemsPerSection + 1;
+    }
+
+    public static String prettyPrintDateTime(DateTime dt) {
+      System.out.println("prettyPrintDateTime:");
+      System.out.println("  dt.hourOfDay = "+dt.hourOfDay().get());
+      boolean isOnlyDate = dateTimeIsOnlyDate(dt);
+      String currentToString = dt.toString();
+      if (isOnlyDate) {
+        currentToString = currentToString.split("T")[0];
+      }
+      return (currentToString);
+    }
+
+    public static boolean dateTimeIsOnlyDate(DateTime dt) {
+      try {
+        return (dt.millisOfDay().get()==0);
+      } catch (Exception e) {
+        return false;
+      }
+    }
+
+    public static String capitolizeFirstLetterOnly(String str) {
+      String lower = str.toLowerCase();
+      if (lower.length()<=1) return (lower.toUpperCase());
+      return (lower.substring(0,1).toUpperCase() + lower.substring(1));
+    }
+
+    public static boolean requestHasVal(HttpServletRequest request, String paramName) {
+      return ((request.getParameter(paramName)!=null) && (!request.getParameter(paramName).equals("")));
+    }
+
+    public static String addToJDOFilter(String constraint, String filter, String origFilter) {
+      if (filter.equals(origFilter)) return (filter + constraint);
+      else return (filter + " && " + constraint);
+    }
+
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis) {
+      return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
+    }
+
+    public static String undoUrlEncoding(String str) {
+      return str.replaceAll("%20", " ").trim();
+    }
+
+    public static <T> String toString(Enumeration<T> things) {
+      StringBuilder result = new StringBuilder("[");
+      while (things.hasMoreElements()) {
+        T thing = things.nextElement();
+        result.append(thing.toString());
+        if (things.hasMoreElements()) result.append(", ");
+      }
+      result.append("]");
+      return result.toString();
+    }
+
+    public static String toString(Object obj) {
+      if (obj == null) return null;
+      return obj.toString();
+    }
+
 
     // http://stackoverflow.com/a/15190787
     public static String stripAccents(String s)
