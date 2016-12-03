@@ -597,9 +597,7 @@ function allGood(d) {
 <body <%if (request.getParameter("noscript") == null) {%>
   xonload="initialize()" <%}%>>
 
- <script type="text/javascript" src="//geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
- 
  
 <script src="../javascript/imageTools.js"></script>
 <script>
