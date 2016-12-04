@@ -501,7 +501,13 @@ int numDataContributors=0;
                     <%=props.getProperty("numencounters")%>: <%=pair[j].totalEncounters()%>
                   </p>
                   <div class="gallery-btn-group">
+                  <%
+                  if(CommonConfiguration.allowAdoptions(context)){
+                  %>
                     <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+                  <%
+                  }
+                  %>  
                     <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt">Animal Profile<span class="button-icon" aria-hidden="true"></button></a>
                   </div>
                 </td>
