@@ -321,7 +321,14 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
+                  <%
+                  if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+                  <%
+                  }
+                  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
@@ -336,7 +343,14 @@ if (request.getParameter("number")!=null) {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%>
+            <%
+            if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md">Nickname Me!<span class="button-icon" aria-hidden="true"></button></a>
+                  <%
+                  }
+            if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
               <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
               <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
