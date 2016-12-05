@@ -1548,17 +1548,17 @@ if (request.getParameter("number")!=null) {
                         <%
                         if(thisUser.getAffiliation()!=null){
                           %>
-                          <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                          <p><strong><%=props.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                           <%
                         }
                         if(thisUser.getUserProject()!=null){
                           %>
-                          <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                          <p><strong><%=props.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                           <%
                             }
                             if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><p>
+                            <p><strong><%=props.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><p>
                             <%
                               }
                               if(thisUser.getUserStatement()!=null){
