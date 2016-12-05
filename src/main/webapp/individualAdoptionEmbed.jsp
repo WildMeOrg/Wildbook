@@ -77,9 +77,8 @@ context=ServletUtilities.getContext(request);
   -->
 </style>
 
-<table bgcolor="#D7E0ED" style="background-color:#D7E0Ed " width="190px">
 
-
+<div style="width: 100%;">
   <%
     List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForMarkedIndividual(name,context);
     int numAdoptions = adoptions.size();
@@ -87,6 +86,9 @@ context=ServletUtilities.getContext(request);
     for (ia = 0; ia < numAdoptions; ia++) {
       Adoption ad = adoptions.get(ia);
   %>
+  <div style="float:left; margin: 5px;">
+  <table style="background-color:#D7E0Ed " width="190px">
+  
   <tr>
     <td class="image"><img border="0" src="images/meet-adopter-frame.gif"/></td>
   </tr>
@@ -162,11 +164,8 @@ context=ServletUtilities.getContext(request);
   <tr>
     <td>&nbsp;</td>
   </tr>
-
   <%
-    }
-
-    if (ia > 0) {
+      if (ia > 0) {
   %>
 
 
@@ -178,6 +177,15 @@ context=ServletUtilities.getContext(request);
     }
   %>
 </table>
+</div>
+
+  <%
+    }
+%>
+</div>
+<div style="float:left; margin: 5px;">
+<a href="createadoption.jsp?number=<%=name%>"><button class="btn btn-md">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+</div>
 <p>&nbsp;</p>
 
 
