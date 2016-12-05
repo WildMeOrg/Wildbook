@@ -11,13 +11,16 @@ context=ServletUtilities.getContext(request);
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
+  int firstSubmissionYear=1980;
 
   int firstYear = 1980;
   myShepherd.beginDBTransaction();
   try {
     firstYear = myShepherd.getEarliestSightingYear();
     nowYear = myShepherd.getLastSightingYear();
-  } catch (Exception e) {
+    firstSubmissionYear=myShepherd.getFirstSubmissionYear();
+  } 
+  catch (Exception e) {
     e.printStackTrace();
   }
 
@@ -708,6 +711,150 @@ function FSControl(controlDiv, map) {
 		<td><%=props.getProperty("end") %> <input type="text" id="DODend" name="DODend" /></td>
 	</tr>
 </table>
+
+      <p><strong><%=props.getProperty("addedsightingDates")%></strong></p>
+
+      <table width="720">
+        <tr>
+          <td width="670"><label><em>
+          
+          
+          
+            &nbsp;<%=props.getProperty("day")%>
+          </em> <em> <select name="addedday1" id="addedday1">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="28">28</option>
+            <option value="29">29</option>
+            <option value="30">30</option>
+            <option value="31">31</option>
+          </select> <%=props.getProperty("month")%>
+          </em> <em> <select name="addedmonth1" id="addedmonth1">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select> <%=props.getProperty("year")%>
+          </em> <select name="addedyear1" id="addedyear1">
+            <% 
+            
+            int currentYear=cal.get(1);
+            for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
+            <option value="<%=q%>"
+
+              <%
+                if (q == firstSubmissionYear) {
+              %>
+                    selected
+              <%
+                }
+              %>
+              ><%=q%>
+            </option>
+
+            <% } %>
+          </select> &nbsp;to <em>&nbsp;<%=props.getProperty("day")%>
+          </em> <em> <select name="addedday2"
+                             id="addedday2">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+            <option value="13">13</option>
+            <option value="14">14</option>
+            <option value="15">15</option>
+            <option value="16">16</option>
+            <option value="17">17</option>
+            <option value="18">18</option>
+            <option value="19">19</option>
+            <option value="20">20</option>
+            <option value="21">21</option>
+            <option value="22">22</option>
+            <option value="23">23</option>
+            <option value="24">24</option>
+            <option value="25">25</option>
+            <option value="26">26</option>
+            <option value="27">27</option>
+            <option value="28">28</option>
+            <option value="29">29</option>
+            <option value="30">30</option>
+            <option value="31" selected>31</option>
+          </select> <%=props.getProperty("month")%>
+          </em> <em> <select name="addedmonth2" id="addedmonth2">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12" selected>12</option>
+          </select> <%=props.getProperty("year")%>
+          </em>
+            <select name="addedyear2" id="addedyear2">
+              <% for (int q = currentYear; q >= firstSubmissionYear; q--) { %>
+              <option value="<%=q%>"
+
+                <%
+                  if (q == nowYear) {
+                %>
+                      selected
+                <%
+                  }
+                %>
+                ><%=q%>
+              </option>
+
+              <% } %>
+            </select>
+          </label></td>
+        </tr>
+		</table>
       <script>
 	$( "#DOBstart" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
     $( "#DOBend" ).datepicker().datepicker('option', 'dateFormat', 'yy-mm-dd');
