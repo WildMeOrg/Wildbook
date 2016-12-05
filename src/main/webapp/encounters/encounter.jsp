@@ -2542,19 +2542,19 @@ else {
                         if(thisUser.getAffiliation()!=null){
                         %>
                         <p><strong><%=displayName %></strong></p>
-                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                         <%
                         }
 
                         if(thisUser.getUserProject()!=null){
                         %>
-                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                         <%
                         }
 
                         if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
                             <%
                           }
 

@@ -101,7 +101,7 @@ context=ServletUtilities.getContext(request);
   try {
 %>
 
-<script src="//maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
  <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
  
 
