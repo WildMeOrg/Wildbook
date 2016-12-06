@@ -568,20 +568,14 @@ $(function() {
 
 								} //end while
 
-
-    						%>
-
-
-                <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-                <h1 class="<%=classColor%>" id="headerText">
-                <%=encprops.getProperty("title") %><%=livingStatus %>
-                <% }
-                else {
-                 %>
-                 <h1 class="<%=classColor%>" id="headerText">
-                   <%=encprops.getProperty("title") %><%=livingStatus %>
-                 </h1>
-                 <%}%></h1>
+				String individuo=encprops.getProperty("unassigned");					
+				if(enc.getIndividualID()!=null){
+					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				}				
+    			%>
+               	<h1 class="<%=classColor%>" id="headerText">
+                	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
+                </h1>
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
