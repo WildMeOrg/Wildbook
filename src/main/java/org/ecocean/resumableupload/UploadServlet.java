@@ -24,6 +24,7 @@ import ec.com.mapache.ngflow.upload.HttpUtils;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.AccessControl;
 
 /**
  *
@@ -66,13 +67,20 @@ public class UploadServlet extends HttpServlet {
                 throw new IOException("error parsing request: " + ex.toString());
             }
 
+            boolean anonUser = AccessControl.isAnonymous(request);
             FileItem fileChunk = null;
+            String recaptchaValue = null;
             for (FileItem item : multiparts) {
-                if (!item.isFormField()) {
+                if (item.isFormField()) {
+                    if (item.getFieldName().equals("recaptchaValue")) recaptchaValue = item.getString("UTF-8");
+                } else {
                     fileChunk = item;
                     break;  //we only do first one.  ?
                 }
             }
+            String context = ServletUtilities.getContext(request);
+            if (anonUser && (recaptchaValue == null)) throw new IOException("no recaptcha value");
+            if (anonUser && !ServletUtilities.captchaIsValid(context, recaptchaValue, request.getRemoteAddr())) throw new IOException("invalid recaptcha value");
             if (fileChunk == null) throw new IOException("doPost could not find file chunk");
 
 		System.out.println("Do Post");
