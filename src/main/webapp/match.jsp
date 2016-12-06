@@ -15,6 +15,8 @@ public boolean validateSources(String[] sources) {
 <jsp:include page="header.jsp" flush="true"/>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
+<script src="https://sdk.amazonaws.com/js/aws-sdk-2.2.33.min.js"></script>
+<script src="tools/flow.min.js"></script>
 
 <style>
 .no, .yes {
@@ -124,6 +126,45 @@ img.ident-img {
 	margin: 60px 0;
 }
 
+
+/* uploader stuff */
+
+div#file-activity {
+	font-family: sans;
+	border: solid 2px black;
+	padding: 8px;
+	margin: 20px;
+	min-height: 200px;
+}
+div.file-item {
+	position: relative;
+	background-color: #DDD;
+	border-radius: 3px;
+	margin: 2px;
+}
+
+div.file-item div {
+	display: inline-block;
+	padding: 3px 7px;
+	overflow: hidden;
+}
+.file-name {
+	width: 30%;
+}
+.file-size {
+	width: 8%;
+}
+
+.file-bar {
+	position: absolute;
+	width: 0;
+	height: 100%;
+	padding: 0 !important;
+	left: 0;
+	border-radius: 3px;
+	background-color: rgba(100,100,100,0.3);
+}
+
 </style>
 <script type="text/javascript">
 var imageData = [];
@@ -224,7 +265,7 @@ function updateBeginNote() {
 		if (imageData[i].success) ok++;
 	}
 	var selected = $('.yes');
-	var h = '<b>' + selected.length + ' of ' + ok + '</b> to identify (species <i id="ident-species">' + defaultSpecies + '</i>)';
+	var h = '<b>' + selected.length + ' of ' + ok + '</b> to identify (species <i xxxxxid="ident-species">' + defaultSpecies + '</i>)';
 	if (selected.length < 1) {
 		$('#ident-begin-button').hide();
 	} else {
@@ -459,6 +500,358 @@ function parseUrls(txt) {
 	return urls;
 }
 
+
+
+/* ===============[ all uploader-related below ]==============
+
+https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/browser-examples.html#Amazon_S3
+"Uploading a local file using the File API"
+
+*/
+
+
+function uploadFinished() {
+	$('#method-upload').hide();
+  	//document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
+	console.log('upload finished. Files added: '+filenames);
+	if (filenames.length < 1) return;  //fail
+	var assetsArr = [];
+	for (var i = 0 ; i < filenames.length ; i++) {
+		assetsArr.push({filename: filenames[i], accessKey: accessKey});
+	}
+
+
+console.warn('assetsArr = %o', assetsArr);
+      console.log("creating mediaAsset for filename "+filenames[0]);
+      $.ajax({
+        url: 'MediaAssetCreate',
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/javascript',
+        data: JSON.stringify({
+          recaptchaValue: recaptchaValue,
+          "MediaAssetCreate": [
+            {"assets": assetsArr}
+           ]
+        }),
+		complete: function(x) {
+			console.warn('MediaAssetCreate response: %o', x);
+			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.withoutSet || !x.responseJSON.withoutSet.length) {
+				var msg = 'unknown error';
+				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
+				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
+				$('#ident-workarea').html('<p class="error">' + msg + '</p>');
+			} else {
+				for (var i = 0 ; i < x.responseJSON.withoutSet.length ; i++) {
+					var h = '<div class="ident-img-wrapper" id="ident-img-wrapper-' + i + '">';
+					h += '<img class="ident-img" id="ident-img-' + i + '" src="' + x.responseJSON.withoutSet[i].url + '" />';
+					h += '<div class="yes-no-icon yes"></div>';
+					h += '</div>';
+					$('#ident-workarea').append(h);
+				}
+				promptUserForMore(x.responseJSON);
+			}
+		},
+/*
+        success: function(d) {
+          console.info('Success! Got back '+JSON.stringify(d));
+          var maId = d.withoutSet[0].id;
+          console.info('parsed id = '+maId);
+
+          var ajaxData = {"attach":"true","EncounterID":"","MediaAssetID":maId};
+          var ajaxDataString = JSON.stringify(ajaxData);
+          console.info("ajaxDataString="+ajaxDataString);
+
+
+
+          $.ajax({
+            url: '../MediaAssetAttach',
+            type: 'POST',
+            dataType: 'json',
+            contentType: "application/json",
+            data: ajaxDataString,
+            success: function(d) {
+              console.info("I attached MediaAsset "+maId+" to encounter ");
+            },
+            error: function(x,y,z) {
+              console.warn("failed to MediaAssetAttach");
+              console.warn('%o %o %o', x, y, z);
+            }
+          });
+
+
+        },
+        error: function(x,y,z) {
+          console.warn('%o %o %o', x, y, z);
+        }
+*/
+
+      });
+}
+
+
+var uploaderFlow;
+var uploaderS3Bucket;
+var forceLocal = (document.location.search == '?forceLocal');
+var mediaAssetSetId = false;
+var randomPrefix = Math.floor(Math.random() * 100000);  //this is only used for filenames when we dont get a mediaAssetSetId -- which is hopefully never
+var keyToFilename = {};
+var pendingUpload = -1;
+var filenames = [];
+
+//TODO we should make this more generic wrt elements and events
+function uploaderInit(completionCallback) {
+
+    if (useS3Direct()) {
+        $('#uptype').html('S3-direct');
+        console.info("uploader is using direct-to-s3 uploading to bucket %s", wildbookGlobals.uploader.s3_bucket);
+		AWS.config.credentials = {
+			accessKeyId: wildbookGlobals.uploader.s3_accessKeyId,
+			secretAccessKey: wildbookGlobals.uploader.s3_secretAccessKey
+  		};
+  		AWS.config.region = wildbookGlobals.uploader.s3_region;
+		uploaderS3Bucket = new AWS.S3({params: {Bucket: wildbookGlobals.uploader.s3_bucket}});
+
+		document.getElementById('upload-button').addEventListener('click', function(ev) {
+			$('#upload-button-message').html('');
+			recaptchaValue = recaptchaCompleted();
+			if (!recaptchaValue) {
+				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
+				return;
+			}
+			$('#recaptcha-wrapper').hide();
+                        document.getElementById('upcontrols').style.display = 'none';
+			var files = document.getElementById('file-chooser').files;
+                        pendingUpload = files.length;
+			for (var i = 0 ; i < files.length ; i++) {
+				var params = {
+					Key: filenameToKey(files[i].name),
+					ContentType: files[i].type,
+					Body: files[i]
+				};
+				var mgr = uploaderS3Bucket.upload(params, function(err, data) {
+                                        var dkey = data.key || data.Key;  //weirdly the case changes on the K for multipart! grrr
+					var el = findElement(dkey, -1);
+console.info('complete? err=%o data=%o', err, data);
+					if (err) {
+						updateProgress(el, -1, err, 'rgba(250,120,100,0.3)');
+                                                pendingUpload--;
+                                                if (pendingUpload == 0) completionCallback();
+					} else {
+						updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
+                                                pendingUpload--;
+                                                if (pendingUpload == 0) completionCallback();
+					}
+				});
+				mgr.on('httpUploadProgress', function(data) {
+//console.info('progress? %o', data);
+//console.log('%o %o', data.key, data.size);
+					var el = findElement(data.key, data.total);
+					var p = ((data.loaded / data.total) * 100) + '%';
+					updateProgress(el, p, 'uploading');
+				}, false);
+			}
+  		}, false);
+
+
+	} else {
+        $('#uptype').html('server local');
+            console.info("uploader is using uploading direct to host (not S3)");
+		flow = new Flow({
+  			target:'ResumableUpload',
+			forceChunkSize: true,
+  			query: { mediaAssetSetId: mediaAssetSetId },
+			testChunks: false,
+		});
+		document.getElementById('upload-button').addEventListener('click', function(ev) {
+			$('#upload-button-message').html('');
+			recaptchaValue = recaptchaCompleted();
+			if (!recaptchaValue) {
+				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
+				return;
+			}
+			$('#recaptcha-wrapper').hide();
+			flow.opts.query.recaptchaValue = recaptchaValue;
+			var files = flow.files;
+//console.log('files --> %o', files);
+                        pendingUpload = files.length;
+                        for (var i = 0 ; i < files.length ; i++) {
+//console.log('%d %o', i, files[i]);
+                            filenameToKey(files[i].name);
+                        }
+                        document.getElementById('upcontrols').style.display = 'none';
+console.warn('pendingUpload -> %o', pendingUpload);
+			flow.upload();
+		}, false);
+
+		flow.assignBrowse(document.getElementById('file-chooser'));
+		//flow.assignDrop(document.getElementById('dropTarget'));
+
+		flow.on('fileAdded', function(file, event){
+    			console.log('added %o %o', file, event);
+			pendingUpload++;
+		});
+		flow.on('fileProgress', function(file, chunk){
+			var el = findElement(file.name, file.size);
+			var p = ((file._prevUploadedSize / file.size) * 100) + '%';
+			updateProgress(el, p, 'uploading');
+    			console.log('progress %o %o', file._prevUploadedSize, file);
+		});
+		flow.on('fileSuccess', function(file,message){
+			filenames.push(file.name);
+			var el = findElement(file.name, file.size);
+			updateProgress(el, -1, 'completed', 'rgba(200,250,180,0.3)');
+    			console.log('success %o %o', file, message);
+                        pendingUpload--;
+                        if (pendingUpload == 0) completionCallback();
+		});
+		flow.on('fileError', function(file, message){
+    			console.log('error %o %o', file, message);
+                        pendingUpload--;
+                        if (pendingUpload == 0) completionCallback();
+		});
+
+	}
+}
+
+
+function useS3Direct() {
+	return false;  //for these purposes i dont think we can go right to S3 since we need to confirm botlessness
+    return (!forceLocal && wildbookGlobals && wildbookGlobals.uploader && (wildbookGlobals.uploader.type == 's3direct'));
+}
+
+
+function requestMediaAssetSet(callback) {
+    $.ajax({
+        url: 'MediaAssetCreate?requestMediaAssetSet',
+        type: 'GET',
+        dataType: 'json',
+        success: function(d) {
+            console.info('success got MediaAssetSet: %o -> %s', d, d.mediaAssetSetId);
+            mediaAssetSetId = d.mediaAssetSetId;
+            callback(d);
+        },
+        error: function(a,b,c) {
+            console.log('error getting MediaAssetSet: %o %o %o', a,b,c);
+            alert('error getting Set ID');
+        },
+    });
+}
+
+/*
+{
+"MediaAssetCreate": [
+	{
+    	"setId":"567d00b5-b44e-485a-9d77-10987f6dd3e6",
+      "assets": [
+        {"bucket": "flukebook-dev-upload-tmp", "key": "567d00b5-b44e-485a-9d77-10987f6dd3e6/11854-r043-4f25.jpg"},
+        {"bucket": "abc", "key": "xyz"}
+        ]
+    }
+]
+}*/
+
+function createMediaAssets(setId, bucket, keys, callback) {
+    var assetData = [];
+    for (var i = 0 ; i < keys.length ; i++) {
+        assetData.push({bucket: bucket, key: keys[i]});
+    }
+    $.ajax({
+        url: 'MediaAssetCreate',
+        type: 'POST',
+        data: JSON.stringify({
+            MediaAssetCreate: [{
+                setId: setId,
+                assets: assetData
+            }]
+        }),
+        dataType: 'json',
+        success: function(d) {
+            if (d.success && d.sets) {
+                console.info('successfully created MediaAssets: %o', d.sets);
+                callback(d);
+            } else {
+                console.log('error creating MediaAssets: %o', d);
+                alert('error saving on server');
+                callback(d);
+            }
+        },
+        error: function(a,b,c) {
+            console.log('error creating MediaAssets: %o %o %o', a,b,c);
+            alert('error saving on server');
+            callback({error: a});
+        },
+    });
+}
+
+
+function filenameToKey(fname) {
+    var key = fname;
+    if (useS3Direct()) key = (mediaAssetSetId || randomPrefix) + '/' + fname;
+    keyToFilename[key] = fname;
+console.info('key = %s', key);
+    return key;
+}
+
+function findElement(key, size) {
+        var name = keyToFilename[key];
+        if (!name) {
+            console.warn('could not find filename for key %o; bailing!', key);
+            return false;
+        }
+	var items = document.getElementsByClassName('file-item');
+	for (var i = 0 ; i < items.length ; i++) {
+		if ((name == items[i].getAttribute('data-name')) && ((size < 0) || (size == items[i].getAttribute('data-size')))) return items[i];
+	}
+	return false;
+}
+
+function getOffset(name, size) {
+	var files = document.getElementById('file-chooser').files;
+	for (var i = 0 ; i < files.length ; i++) {
+console.warn('%o %o', size, files[i].size);
+console.warn('%o %o', name, files[i].name);
+		if ((size == files[i].size) &&  (name == files[i].name)) return i;
+	}
+	return -1;
+}
+
+
+function finfo(o) {
+	console.info('%o', o);
+}
+
+function filesChanged(f) {
+	var h = '';
+	for (var i = 0 ; i < f.files.length ; i++) {
+		h += '<div class="file-item" id="file-item-' + i + '" data-i="' + i + '" data-name="' + f.files[i].name + '" data-size="' + f.files[i].size + '"><div class="file-name">' + f.files[i].name + '</div><div class="file-size">' + niceSize(f.files[i].size) + '</div><div class="file-status"></div><div class="file-bar"></div></div>';
+	}
+	document.getElementById('file-activity').innerHTML = h;
+}
+
+function updateProgress(el, width, status, bg) {
+	if (!el) return;
+	var els = el.children;
+	if (width < 0) {  //special, means 100%
+		els[3].style.width = '100%';
+	} else if (width) {
+		els[3].style.width = width;
+	}
+	if (status) els[2].innerHTML = status;
+	if (bg) els[3].style.backgroundColor = bg;
+}
+
+function niceSize(s) {
+	if (s < 1024) return s + 'b';
+	if (s < 1024*1024) return Math.floor(s/1024) + 'k';
+	return Math.floor(s/(1024*1024) * 10) / 10 + 'M';
+}
+
+
+
+$(document).ready(function() {
+	uploaderInit(uploadFinished);
+});
 </script>
 
 <div class="container maincontent">
@@ -478,9 +871,9 @@ if ((sources != null) && valid) {
 
 %>
 
-<h1>Enter URLs of fluke images to identify</h1>
+<h1>Identify humpback fluke images</h1>
 <p style="color: #AAA; margin-bottom: 20px;">
-<b style="background-color: #99C; color: #FFF; padding: 2px 8px; border-radius: 4px; margin-right: 15px;">Beta testing</b> Currently supporting only <b>humpback flukes</b> (<i>Megaptera novaeangliae</i>)
+<b style="background-color: #99C; color: #FFF; padding: 2px 8px; border-radius: 4px; margin-right: 15px;">Beta testing</b> Currently supporting only <b>humpback flukes</b> (<i id="ident-species">Megaptera novaeangliae</i>)
 </p>
 
 <div id="ident-message">
@@ -490,7 +883,30 @@ if ((sources != null) && valid) {
 <div id="ident-workarea"></div>
 <div style="clear: both;"></div>
 
-<textarea id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
+<div id="method-upload">
+
+
+	<div style="margin-top: 100px; padding: 5px; display: none;" >upload method being used: <b><span id="uptype"></span></b></div>
+
+	<div id="file-activity"></div>
+
+	<div id="updone"></div>
+
+	<div id="upcontrols" style="padding: 20px;">
+		<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+		<button id="upload-button">begin upload</button>
+		<div id="upload-button-message" style="display: inline-block;"></div>
+	</div>
+
+</div>
+
+<div id="method-url" style="display: none;">
+	<textarea id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
+
+	<div id="ident-controls">
+		<input type="button" value="continue" onClick="return beginProcess();" />
+	</div>
+</div>
 
 <div id="ident-main-form">
 	<p>Enter <b>email address</b> below and <b>set dates</b> for sightings above.</p>
@@ -498,10 +914,6 @@ if ((sources != null) && valid) {
 	<p>
 		<input type="button" value="start identification" onClick="return createEncounters();" />
 	</p>
-</div>
-
-<div id="ident-controls">
-	<input type="button" value="continue" onClick="return beginProcess();" />
 </div>
 
 
