@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.ecocean.media.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.net.URL;
 
 import java.io.*;
 
@@ -104,8 +105,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
         //i guess we are "officially" only allowing logged in users or those who passed captch at this point?
-        if ((AccessControl.simpleUserString(request) == null) &&
-                !ServletUtilities.captchaIsValid(context, j.optString("recaptchaValue", null), request.getRemoteAddr())) {
+        if (AccessControl.isAnonymous(request) && !ServletUtilities.captchaIsValid(context, j.optString("recaptchaValue", null), request.getRemoteAddr())) {
             System.out.println("WARNING: MediaAssetCreate failed captcha (for anon user)");
             response.setStatus(403);
             out.println("ERROR");
@@ -198,10 +198,12 @@ System.out.println("source config -> " + cfg.toString());
                 //TODO we should probably also use the "SETID/" prefix (see below) standard for local too right?????
                 String fname = params.optString("filename", null);
                 String url = params.optString("url", null);
+                String accessKey = params.optString("accessKey", null);  //kinda specialty use to validate certain anon-uploaded cases (e.g. match.jsp)
                 if (fname != null) {  //this is local
                     if (fname.indexOf("..") > -1) continue;  //no hax0ring plz
                     File inFile = new File(uploadTmpDir, fname);
                     params = targetStore.createParameters(inFile);
+                    if (accessKey != null) params.put("accessKey", accessKey);
                     targetMA = targetStore.create(params);
                     try {
                         targetMA.copyIn(inFile);
@@ -228,6 +230,7 @@ System.out.println("source config -> " + cfg.toString());
 
                     File fakeFile = new File(params.get("key").toString());
                     params = targetStore.createParameters(fakeFile); //really just use bucket here
+                    if (accessKey != null) params.put("accessKey", accessKey);
                     String dirId = setId;
                     if (dirId == null) dirId = Util.generateUUID();
                     params.put("key", Util.hashDirectories(dirId, "/") + "/" + fakeFile.getName());
@@ -298,6 +301,9 @@ System.out.println("no MediaAssetSet; created " + targetMA);
                 } catch (Exception ex) {
                     System.out.println("WARNING: failed sanitizeJson on " + ma + ": " + ex.toString());
                 }
+                //"url" does not get set in sanitizeJson cuz it uses a new Shepherd object, sigh.  so:
+                URL u = ma.safeURL(myShepherd);
+                if (u != null) jma.put("url", u.toString());
                 jma.put("_debug", ma.toString());
                 jma.put("_params", ma.getParameters().toString());
                 jmas.put(jma);
