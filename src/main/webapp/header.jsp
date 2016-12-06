@@ -113,7 +113,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
                   %>
-                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'>Adopt a shark</button></a>
+                    <a href="<%=urlLoc%>/adoptananimal.jsp"><button name='adopt an animal' class='large adopt'><%=props.getProperty("adoptAnAnimal") %></button></a>
                   <%
                   }
                   %> 
