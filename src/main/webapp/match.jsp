@@ -165,12 +165,74 @@ div.file-item div {
 	background-color: rgba(100,100,100,0.3);
 }
 
+#method-control {
+	margin-bottom: 10px;
+}
+
+#method-control a {
+	background-color: #DDD;
+	padding: 2px 10px;
+	border-radius: 3px;
+	cursor: pointer;
+	font-size: 0.8em;
+	margin-left: 30px;
+}
+#method-control a:hover {
+	text-decoration: none;
+	background-color: #BBB;
+}
+
+#wait-block {
+	z-index: 20;
+	border-radius: 15px;
+	opacity: 0.9;
+	text-align: center;
+	position: fixed;
+	left: 30%;
+	top: 40%;
+	height: 100px;
+	width: 40%;
+	background-color: #EFA;
+	box-shadow: 10px 10px 5px #888888;
+	display: none;
+}
+#wait-block p {
+	margin-top: 20px;
+	font-size: 1.3em;
+}
+
 </style>
 <script type="text/javascript">
+var currentMethod = 'upload';
 var imageData = [];
 var defaultSpecies = 'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
 var recaptchaValue = false;
+
+function waitOn(txt) {
+	if (!txt) txt = 'Please wait...';
+	$('#wait-block p').text(txt);
+	$('#wait-block').show();
+}
+
+function waitOff() {
+	$('#wait-block').hide();
+}
+
+function switchMethod() {
+	$('#method-' + currentMethod).hide();
+	if (currentMethod == 'upload') {
+		currentMethod = 'url';
+		$('#method-control b').text('Enter image URLs');
+		$('#method-control a').text('Upload images instead');
+	} else {
+		currentMethod = 'upload';
+		$('#method-control b').text('Upload image files');
+		$('#method-control a').text('Use image URLs instead');
+	}
+	$('#method-' + currentMethod).show();
+	return false;
+}
 
 function beginProcess() {
 	$('.captcha-error').remove();
@@ -293,12 +355,14 @@ function beginIdentify() {
 	$('#ident-begin-button').hide();
 	var data = { MediaAssetCreate: [ { assets: assets } ], recaptchaValue: recaptchaValue };
 console.log('data = %o', data);
+	waitOn('Saving images...');
 	$.ajax({
 		url: 'MediaAssetCreate',
 		contentType: 'application/javascript',
 		data: JSON.stringify(data),
 		dataType: 'json',
 		complete: function(x) {
+			waitOff();
 			console.warn('response: %o', x);
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success) {
 				var msg = 'unknown error';
@@ -410,12 +474,14 @@ function createEncounters() {
 var encIds = [];
 var taskIds = [];
 function createEncounter(data, id) {
+	waitOn('Saving data...');
 	$.ajax({
 		url: 'EncounterCreate',
 		contentType: 'application/javascript',
 		data: JSON.stringify(data),
 		dataType: 'json',
 		complete: function(x) {
+			waitOff();
 			numEncsLeft--;
 			console.warn('%d) [%o] response: %o', numEncsLeft, id, x);
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success) {
@@ -442,11 +508,13 @@ function processEncounter(data, id) {
 			annotationIds: data.annotations
 		}
 	};
+	waitOn('Starting identification...');
 	$.ajax({
 		url: 'ia',
 		data: JSON.stringify(iaData),
 		contentType: 'application/javascript',
 		complete: function(x) {
+			waitOff();
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.tasks || !x.responseJSON.tasks.length) {
 				var msg = 'unknown error';
 				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
@@ -474,6 +542,7 @@ function processEncounter(data, id) {
 }
 
 function sendEmail() {
+	waitOn('Finishing...');
 	$.ajax({
 		url: 'EncounterCreate',
 		contentType: 'application/javascript',
@@ -483,7 +552,10 @@ function sendEmail() {
 			accessKey: accessKey
 		}),
 		dataType: 'json',
-		complete: function(x) { console.info('sendEmail() -> %o', x); },
+		complete: function(x) {
+			console.info('sendEmail() -> %o', x);
+			waitOff();
+		},
 		type: 'POST'
 	});
 }
@@ -523,6 +595,7 @@ function uploadFinished() {
 
 console.warn('assetsArr = %o', assetsArr);
       console.log("creating mediaAsset for filename "+filenames[0]);
+	waitOn('Saving data...');
       $.ajax({
         url: 'MediaAssetCreate',
         type: 'POST',
@@ -535,6 +608,7 @@ console.warn('assetsArr = %o', assetsArr);
            ]
         }),
 		complete: function(x) {
+			waitOff();
 			console.warn('MediaAssetCreate response: %o', x);
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.withoutSet || !x.responseJSON.withoutSet.length) {
 				var msg = 'unknown error';
@@ -871,10 +945,17 @@ if ((sources != null) && valid) {
 
 %>
 
+<div id="wait-block"><p>Please wait....</p><img src="images/image-processing.gif" /></div>
+
 <h1>Identify humpback fluke images</h1>
 <p style="color: #AAA; margin-bottom: 20px;">
 <b style="background-color: #99C; color: #FFF; padding: 2px 8px; border-radius: 4px; margin-right: 15px;">Beta testing</b> Currently supporting only <b>humpback flukes</b> (<i id="ident-species">Megaptera novaeangliae</i>)
 </p>
+
+<div id="method-control">
+	<b>Upload image files</b>
+	<a onClick="return switchMethod()">Use image URLs instead</a>
+</div>
 
 <div id="ident-message">
 	<%= ((sources == null) ? "" : "<p class=\"error\">there was an error parsing sources</p>") %>
@@ -901,7 +982,7 @@ if ((sources != null) && valid) {
 </div>
 
 <div id="method-url" style="display: none;">
-	<textarea id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
+	<textarea placeholder="https://www.example.com/images/fluke.jpg" id="ident-sources"><%= ((sources == null) ? "" : StringUtils.join(sources, "\n")) %></textarea>
 
 	<div id="ident-controls">
 		<input type="button" value="continue" onClick="return beginProcess();" />
