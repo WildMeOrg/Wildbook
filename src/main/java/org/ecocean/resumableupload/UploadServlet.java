@@ -24,6 +24,7 @@ import ec.com.mapache.ngflow.upload.HttpUtils;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.servlet.ServletUtilities;
+import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.AccessControl;
 
 /**
@@ -78,9 +79,7 @@ public class UploadServlet extends HttpServlet {
                     break;  //we only do first one.  ?
                 }
             }
-            String context = ServletUtilities.getContext(request);
-            if (anonUser && (recaptchaValue == null)) throw new IOException("no recaptcha value");
-            if (anonUser && !ServletUtilities.captchaIsValid(context, recaptchaValue, request.getRemoteAddr())) throw new IOException("invalid recaptcha value");
+            if (!ReCAPTCHA.sessionIsHuman(request)) throw new IOException("failed sessionIsHuman()");
             if (fileChunk == null) throw new IOException("doPost could not find file chunk");
 
 		System.out.println("Do Post");

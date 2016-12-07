@@ -585,6 +585,15 @@
     <servlet-class>org.ecocean.servlet.BatchUpload</servlet-class>
   </servlet>
 
+	<servlet>
+		<servlet-name>ReCAPTCHA</servlet-name>
+		<servlet-class>org.ecocean.servlet.ReCAPTCHA</servlet-class>
+	</servlet>
+	<servlet-mapping>
+ 		<servlet-name>ReCAPTCHA</servlet-name>
+		<url-pattern>/ReCAPTCHA</url-pattern>
+	</servlet-mapping>
+
    <servlet-mapping>
     <servlet-name>BatchUpload</servlet-name>
     <url-pattern>/BatchUpload/*</url-pattern>
