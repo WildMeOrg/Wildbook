@@ -55,7 +55,9 @@ public class ClassEditTemplate {
       }
 
       if (c == DateTime.class){
-        DateTime dt = DateTime.parse(valueAsString);
+        DateTime dt = null;
+        if (isLongString(valueAsString)) dt = new DateTime(Long.parseLong(valueAsString));
+        else dt = DateTime.parse(valueAsString);
         Method setter = obj.getClass().getMethod(setterName, DateTime.class);
         setter.invoke(obj, dt);
         System.out.println("updateObjectField: just invoked "+setterName+" with value "+dt);
@@ -64,6 +66,15 @@ public class ClassEditTemplate {
     } catch (Exception e) {
       System.out.println("updateObjectField: was not able to invoke "+setterName+" with value "+valueAsString);
       e.printStackTrace();
+    }
+  }
+
+  private static boolean isLongString(String str) {
+    try {
+      Long l = Long.parseLong(str);
+      return true;
+    } catch (NumberFormatException nfe) {
+      return false;
     }
   }
 
@@ -233,6 +244,23 @@ public class ClassEditTemplate {
 
   }
 
+  public static void printOutClassFieldModifierRow(Object obj, Method getMethod, String[] setOptions, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
+    String classNamePrefix = ""; // e.g. "occ"
+    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
+    else classNamePrefix = className.toLowerCase();
+
+    String printValue;
+    if (getMethod.invoke(obj)==null) printValue = "";
+    else printValue = getMethod.invoke(obj).toString();
+    String fieldName = prettyFieldNameFromGetMethod(getMethod);
+    String inputName = inputElemName(getMethod, classNamePrefix);
+
+    printOutClassFieldSelectorRow(fieldName, printValue, setOptions, inputName, out, false);
+
+  }
+
+
 
   // custom method to replicate a very specific table row format on this page
   public static void printOutClassFieldModifierRow(String fieldName, String printValue, String units, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
@@ -270,7 +298,30 @@ public class ClassEditTemplate {
     out.println("\n</tr>");
   }
 
+  public static void printOutDateTimeModifierRow(Object obj, Method getMethod, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
+
+    String className = obj.getClass().getSimpleName(); // e.g. "Occurrence"
+    String classNamePrefix = ""; // e.g. "occ"
+    if (className.length()>2) classNamePrefix = className.substring(0,3).toLowerCase();
+    else classNamePrefix = className.toLowerCase();
+
+    String printValue;
+    if (getMethod.invoke(obj)==null) printValue = "";
+    else printValue = getMethod.invoke(obj).toString();
+    String fieldName = prettyFieldNameFromGetMethod(getMethod);
+    String inputName = inputElemName(getMethod, classNamePrefix);
+
+    System.out.println("About to printOutDateTimeModifierRow("+fieldName+", "+printValue+", null, "+inputName+", out, false)");
+
+    printOutDateTimeModifierRow(fieldName, printValue, (String) null, inputName, out, false);
+
+  }
+
+
   public static void printOutClassFieldSelectorRow(String fieldName, String printValue, String[] possibleValues, String inputName, javax.servlet.jsp.JspWriter out, boolean isSequential) throws IOException, IllegalAccessException, InvocationTargetException {
+
+    System.out.println("printOutClassFieldSelectorRow!");
+
     printFieldRowStart(printValue, out, isSequential);
 
     printFieldLabelCell(fieldName, out);
@@ -399,8 +450,8 @@ public class ClassEditTemplate {
 
   public static void printUnmodifiableField(String fieldName, String printValue, javax.servlet.jsp.JspWriter out) throws IOException, IllegalAccessException, InvocationTargetException {
     out.println("\n<tr>");
-    out.println("\n\t<td>"+fieldName+"</td>");
-    out.println("\n\t<td>"+printValue+"</td>");
+    out.println("\n\t<td><em>"+fieldName+"</em></td>");
+    out.println("\n\t<td><em>"+printValue+"</em></td>");
     out.println("\n</tr>");
   }
 

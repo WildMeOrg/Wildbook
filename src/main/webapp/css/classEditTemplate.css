@@ -3,6 +3,10 @@ form table td, form table th {
   padding-top: 2px;
 }
 
+td.value select {
+  width: 100%;
+}
+
 tr.padding-below td {
   padding-bottom: 20px;
 }
