@@ -532,7 +532,7 @@ function processEncounter(data, id) {
 			numIdentsLeft--;
 			console.warn('[%d] response: %o', numIdentsLeft, x);
 			if (numIdentsLeft < 1) {
-				$('#ident-begin-note').html('<h2>Thank you!</h2>Please check your email for follow-up information regarding your submissions.');
+				$('#ident-begin-note').html('<h2>Thank you!</h2><p>Please check your email for follow-up information regarding your submissions.</p>');
 				sendEmail();
 			}
 		},
@@ -555,6 +555,7 @@ function sendEmail() {
 		complete: function(x) {
 			console.info('sendEmail() -> %o', x);
 			waitOff();
+			$('#ident-begin-note').append('<input type="button" onClick="document.location.reload()" value="Do more" />');
 		},
 		type: 'POST'
 	});
