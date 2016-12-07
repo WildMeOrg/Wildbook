@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
          import="org.ecocean.*, org.ecocean.servlet.ServletUtilities, java.awt.Dimension, java.io.File, java.util.*, java.util.concurrent.ThreadPoolExecutor,
 org.apache.commons.lang3.StringUtils,
+org.ecocean.servlet.ReCAPTCHA,
 javax.servlet.http.HttpSession" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%!
@@ -207,7 +208,6 @@ var currentMethod = 'upload';
 var imageData = [];
 var defaultSpecies = 'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
-var recaptchaValue = false;
 
 function waitOn(txt) {
 	if (!txt) txt = 'Please wait...';
@@ -237,12 +237,12 @@ function switchMethod() {
 function beginProcess() {
 	$('.captcha-error').remove();
 	if (recaptchaCompleted()) {
-		recaptchaValue = recaptchaCompleted();
 		$('#recaptcha-wrapper').hide();
 	} else {
 		$('#ident-controls').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 		return;
 	}
+	recaptchaVerify();
 	$('#ident-controls input').hide();
 	var validUrls = parseUrls($('#ident-sources').val());
 	if (!validUrls) {
@@ -353,7 +353,7 @@ function beginIdentify() {
 	});
 	if (assets.length < 1) return;
 	$('#ident-begin-button').hide();
-	var data = { MediaAssetCreate: [ { assets: assets } ], recaptchaValue: recaptchaValue };
+	var data = { MediaAssetCreate: [ { assets: assets } ] };
 console.log('data = %o', data);
 	waitOn('Saving images...');
 	$.ajax({
@@ -561,6 +561,26 @@ function sendEmail() {
 	});
 }
 
+
+function recaptchaVerify() {
+	var cvalue = recaptchaCompleted();
+	console.info('recaptchaVerify() using %s', cvalue);
+	waitOn('Validating...');
+	$.ajax({
+		type: 'GET',
+		url: 'ReCAPTCHA?recaptchaValue=' + cvalue,
+		async: false,
+		complete: function(d) {
+			console.info('recaptchaVerify() got %o', d);
+			//we dont really do much on the client side, cuz we most care about session on server... but we could do more here,
+			//  especially handle errors etc.   :/    TODO
+			waitOff();
+		},
+		dataType: 'json'
+	});
+console.warn('fell out of recaptchaVerify() !!!!!!!!!');
+}
+
 function parseUrls(txt) {
 	var urls = [];
 	var regex = /^https*:\/\/\S+/img;
@@ -603,7 +623,6 @@ console.warn('assetsArr = %o', assetsArr);
         dataType: 'json',
         contentType: 'application/javascript',
         data: JSON.stringify({
-          recaptchaValue: recaptchaValue,
           "MediaAssetCreate": [
             {"assets": assetsArr}
            ]
@@ -688,12 +707,11 @@ function uploaderInit(completionCallback) {
 		uploaderS3Bucket = new AWS.S3({params: {Bucket: wildbookGlobals.uploader.s3_bucket}});
 
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
-			$('#upload-button-message').html('');
-			recaptchaValue = recaptchaCompleted();
-			if (!recaptchaValue) {
+			if (!recaptchaCompleted()) {
 				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 				return;
 			}
+			recaptchaVerify();
 			$('#recaptcha-wrapper').hide();
                         document.getElementById('upcontrols').style.display = 'none';
 			var files = document.getElementById('file-chooser').files;
@@ -740,13 +758,12 @@ console.info('complete? err=%o data=%o', err, data);
 		});
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
 			$('#upload-button-message').html('');
-			recaptchaValue = recaptchaCompleted();
-			if (!recaptchaValue) {
+			if (!recaptchaCompleted()) {
 				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 				return;
 			}
+			recaptchaVerify();
 			$('#recaptcha-wrapper').hide();
-			flow.opts.query.recaptchaValue = recaptchaValue;
 			var files = flow.files;
 //console.log('files --> %o', files);
                         pendingUpload = files.length;
@@ -1009,7 +1026,7 @@ if ((sources != null) && valid) {
 %>
 
 <div id="recaptcha-wrapper">
-<%= ServletUtilities.captchaWidget(request) %>
+<%= ReCAPTCHA.captchaWidget(request) %>
 </div>
 
 <div style="clear: both; margin-bottom: 100px;"></div>

@@ -70,9 +70,6 @@ import javax.servlet.http.Cookie;
 
 public class ServletUtilities {
 
-    private static Map<String,Boolean> recaptchaCache = new HashMap<String,Boolean>();
-    private static Map<String,Boolean> recaptchaPending = new HashMap<String,Boolean>();
-
   public static String getHeader(HttpServletRequest request) {
     try {
       FileReader fileReader = new FileReader(findResourceOnFileSystem("servletResponseTemplate.htm"));
@@ -730,107 +727,6 @@ String rootWebappPath = "xxxxxx";
         response.setHeader("Access-Control-Allow-Origin", "*");
         response.setHeader("Access-Control-Allow-Methods", "GET, POST");
         if (request.getHeader("Access-Control-Request-Headers") != null) response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
-    }
-
-
-    /* see webapps/captchaExample.jsp for implementation */
-
-    //note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
-    public static String captchaWidget(HttpServletRequest request) {
-        return captchaWidget(request, null);
-    }
-    public static String captchaWidget(HttpServletRequest request, String params) {
-        String context = getContext(request);
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
-        String siteKey = recaptchaProps.getProperty("siteKey");
-        String secretKey = recaptchaProps.getProperty("secretKey");  //really dont need this here
-        if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
-        return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
-            "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
-            "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
-    }
-
-    //  https://developers.google.com/recaptcha/docs/verify
-    //note: we also keep a HashMap cache of captcha results, so that it can be checked multiple times.
-    //  if ever we need a non-cache-checking version later, we can modify accordingly (like pass a noCache boolean?)
-    public static boolean captchaIsValid(HttpServletRequest request) {
-        return captchaIsValid(getContext(request), request.getParameter("g-recaptcha-response"), request.getRemoteAddr());
-    }
-    public static boolean captchaIsValid(String context, String uresp, String remoteIP) {
-        if (context == null) context = "context0";
-        Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
-        if (recaptchaProps == null) {
-            System.out.println("WARNING: no recaptcha.properties for captchaIsValid(); failing");
-            return false;
-        }
-        String siteKey = recaptchaProps.getProperty("siteKey");  //really dont need this here
-        String secretKey = recaptchaProps.getProperty("secretKey");
-        if ((siteKey == null) || (secretKey == null)) {
-            System.out.println("WARNING: could not determine keys for captchaIsValid(); failing");
-            return false;
-        }
-        if (uresp == null) {
-            System.out.println("WARNING: recaptcha value is null in captchaIsValid(); failing");
-            return false;
-        }
-
-        //here we check if we know the answer already; return if we do
-        Boolean cached = getCaptchaCacheValue(uresp);
-        //if (cached != null) return cached;
-        if (cached != null) {
-System.out.println("****** * * * * * * * * returning captchaCache: " + cached);
-            return cached;
-        }
-
-System.out.println("no cache for recaptchaValue below; asking guru.\n========================\n" + uresp);
-        setCaptchaPending(uresp, true);
-        JSONObject cdata = new JSONObject();
-        cdata.put("secret", secretKey);
-        cdata.put("remoteip", remoteIP);  //i guess this is technically optional (so we dont care if null?)
-        cdata.put("response", uresp);
-        JSONObject gresp = null;
-        try {
-            gresp = RestClient.post(new URL("https://www.google.com/recaptcha/api/siteverify"), cdata);
-        } catch (Exception ex) {
-            System.out.println("WARNING: exception calling captcha api in captchaIsValid(); failing: " + ex.toString());
-            return false;
-        }
-        if (gresp == null) {  //would this ever happen?
-            System.out.println("WARNING: null return from captcha api in captchaIsValid(); failing");
-            return false;
-        }
-        System.out.println("INFO: captchaIsValid() api call returned: " + gresp.toString());
-        boolean valid = gresp.optBoolean("success", false);
-        setCaptchaCacheValue(uresp, valid);
-        setCaptchaPending(uresp, false);
-        return valid;
-    }
-
-    private static synchronized void setCaptchaCacheValue(String recaptchaValue, boolean value) {
-        recaptchaCache.put(recaptchaValue, value);
-    }
-    private static synchronized void setCaptchaPending(String recaptchaValue, boolean value) {
-        recaptchaPending.put(recaptchaValue, value);
-    }
-
-    //this is the messy one, cuz we need to know if we should wait for pending...
-    private static synchronized Boolean getCaptchaCacheValue(String recaptchaValue) {
-        if ((recaptchaCache.get(recaptchaValue) == null) && (recaptchaPending.get(recaptchaValue) == null)) return null;  //know nothing!
-        if (recaptchaPending.get(recaptchaValue)) {
-            int count = 30;
-            while ((count > 0) && recaptchaPending.get(recaptchaValue)) {
-                System.out.println("INFO: waiting on recaptcha [" + count + "]");
-                try {
-                    Thread.sleep(300);
-                } catch (java.lang.InterruptedException ex) {}
-                count--;
-            }
-            if (recaptchaPending.get(recaptchaValue)) return null;  //still waiting??? give up.
-            //if we fall thru here means not-pending so cache should be set.... right???? so we can fall further thru:
-        }
-System.out.println("----> getCaptchaCacheValue seems to think: " + recaptchaCache.get(recaptchaValue));
-        return recaptchaCache.get(recaptchaValue);
     }
 
 

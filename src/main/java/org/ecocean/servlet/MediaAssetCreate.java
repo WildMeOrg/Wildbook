@@ -104,9 +104,8 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         PrintWriter out = response.getWriter();
         JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
 
-        //i guess we are "officially" only allowing logged in users or those who passed captch at this point?
-        if (AccessControl.isAnonymous(request) && !ServletUtilities.captchaIsValid(context, j.optString("recaptchaValue", null), request.getRemoteAddr())) {
-            System.out.println("WARNING: MediaAssetCreate failed captcha (for anon user)");
+        if (!ReCAPTCHA.sessionIsHuman(request)) {
+            System.out.println("WARNING: MediaAssetCreate failed sessionIsHuman()");
             response.setStatus(403);
             out.println("ERROR");
             out.close();
