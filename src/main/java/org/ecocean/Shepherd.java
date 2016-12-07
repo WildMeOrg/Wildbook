@@ -421,6 +421,31 @@ public class Shepherd {
     return tempEnc;
   }
 
+  public StudySite getStudySiteByName(String name) {
+    StudySite sitey = null;
+    try {
+      String filter = "SELECT FROM org.ecocean.StudySite WHERE name == '"+name+"'";
+      Query q = pm.newQuery(filter);
+      Collection c = (Collection) q.execute();
+      ArrayList<StudySite> sites = new ArrayList<StudySite>(c);
+      sitey = sites.get(0);
+    } catch (Exception nsoe) {
+      return null;
+    }
+    return sitey;
+  }
+
+  public List<StudySite> getStudySitesAtLocation(String locationID) {
+    try {
+      String filter = "SELECT FROM org.ecocean.StudySite WHERE locationID == '"+locationID+"'";
+      Query q = pm.newQuery(filter);
+      Collection c = (Collection) q.execute();
+      return new ArrayList<StudySite>(c);
+    } catch (Exception nsoe) {
+      return new ArrayList<StudySite>();
+    }
+  }
+
 
 
 
