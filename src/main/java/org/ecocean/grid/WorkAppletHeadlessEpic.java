@@ -180,7 +180,7 @@ public class WorkAppletHeadlessEpic {
             //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             String encNumParam = "&newEncounterNumber=" + holdEncNumber;
            
-            URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            URL u = new URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
             con = u.openConnection();
@@ -325,7 +325,7 @@ public class WorkAppletHeadlessEpic {
               //if we have results to send, send 'em!
               if (resultsSize > 0) {
 
-                URL finishScan = new URL("http://www.flukebook.org/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
+                URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
                 System.out.println("Trying to send results to: "+finishScan.toString());
                 URLConnection finishConnection = finishScan.openConnection();
 
