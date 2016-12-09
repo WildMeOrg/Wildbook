@@ -220,18 +220,17 @@ public class EncounterCreate extends HttpServlet {
     private static JSONObject sendEmail(HttpServletRequest request, JSONArray encIds, JSONArray taskIds, String accessKey) {
         JSONObject rtn = new JSONObject("{\"success\": false}");
         String context = ServletUtilities.getContext(request);
-        Shepherd myShepherd = new Shepherd(context);
-        myShepherd.setAction("EncounterCreate.sendEmail.class");
-        myShepherd.beginDBTransaction();
+        
 
         String linkPrefix = null;
         try {
             linkPrefix = CommonConfiguration.getServerURL(request, request.getContextPath());
         } catch (java.net.URISyntaxException ex) {  //"should never happen"
             rtn.put("error", "bad URL configuration: " + ex.toString());
-            myShepherd.rollbackDBTransaction();
+
             return rtn;
         }
+
 
         String encLinks = "";
         String encLinksHtml = "";
@@ -239,29 +238,42 @@ public class EncounterCreate extends HttpServlet {
         int ecount = 0;
         JSONObject aj = new JSONObject();  //just for allowedAccess call
         aj.put("accessKey", accessKey);
-        for (int i = 0 ; i < encIds.length() ; i++) {
-            Encounter enc = myShepherd.getEncounter(encIds.optString(i, "_FAIL_"));
-            if (enc == null) continue;
-            if ((enc.getMedia() == null) || (enc.getMedia().size() < 1)) continue;
-            boolean allowed = false;
-            for (MediaAsset ma : enc.getMedia()) {
-                if (allowedAccess(ma, aj, request, myShepherd)) allowed = true;  //this means we only need key to *one* of the assets.  good?
-            }
-            if (!allowed) continue;
-            //ok, this is really us!
-            if (userEmail == null) {
-                userEmail = enc.getSubmitterEmail();
-            } else if (!userEmail.equals(enc.getSubmitterEmail())) {
-                rtn.put("error", "inconsistent encounter email addresses");
-                return rtn;
-            }
-            ecount++;
-            encLinks += " - " + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\n";
-            encLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\">Encounter " + ecount + "</a></li>\n";
+        
+        Shepherd tShepherd = new Shepherd(context);
+        tShepherd.setAction("EncounterCreate.sendEmail.class");
+        tShepherd.beginDBTransaction();
+        try{
+          for (int i = 0 ; i < encIds.length() ; i++) {
+              Encounter enc = tShepherd.getEncounter(encIds.optString(i, "_FAIL_"));
+              if (enc == null) continue;
+              if ((enc.getMedia() == null) || (enc.getMedia().size() < 1)) continue;
+              boolean allowed = false;
+              for (MediaAsset ma : enc.getMedia()) {
+                  if (allowedAccess(ma, aj, request, tShepherd)) allowed = true;  //this means we only need key to *one* of the assets.  good?
+              }
+              if (!allowed) continue;
+              //ok, this is really us!
+              if (userEmail == null) {
+                  userEmail = enc.getSubmitterEmail();
+              } else if (!userEmail.equals(enc.getSubmitterEmail())) {
+                  rtn.put("error", "inconsistent encounter email addresses");
+                  return rtn;
+              }
+              ecount++;
+              encLinks += " - " + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\n";
+              encLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/encounter.jsp?number=" + enc.getCatalogNumber() + "&accessKey=" + accessKey + "\">Encounter " + ecount + "</a></li>\n";
+          }
+        }
+        catch(Exception e){
+          e.printStackTrace();
+        }
+        finally{
+          tShepherd.rollbackDBTransaction();
+          tShepherd.closeDBTransaction();
         }
         if (ecount < 1) {
             rtn.put("error", "no valid encounters");
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             return rtn;
         }
 
@@ -278,7 +290,7 @@ public class EncounterCreate extends HttpServlet {
         }
         if (tcount < 1) {
             rtn.put("error", "no valid identification tasks");
-            myShepherd.rollbackDBTransaction();
+            //myShepherd.rollbackDBTransaction();
             return rtn;
         }
 
@@ -291,7 +303,7 @@ public class EncounterCreate extends HttpServlet {
         ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
         es.execute(mailer);
         es.shutdown();
-        myShepherd.rollbackDBTransaction();
+        //myShepherd.rollbackDBTransaction();
         rtn.put("success", true);
         rtn.put("message", "email sent successfully");
         return rtn;
