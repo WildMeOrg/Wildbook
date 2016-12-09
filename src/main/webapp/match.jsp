@@ -950,8 +950,8 @@ $(document).ready(function() {
 
 <%
 String context=ServletUtilities.getContext(request);
-Shepherd myShepherd = new Shepherd(context);
-myShepherd.setAction("match.jsp");
+//Shepherd myShepherd = new Shepherd(context);
+//myShepherd.setAction("match.jsp");
 
 // TODO maybe have some config to disable this!
 
