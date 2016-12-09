@@ -44,7 +44,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static String thisURLRoot = "www.flukebook.org";
+  public static String thisURLRoot = "https://www.whaleshark.org";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -82,7 +82,7 @@ public class WorkAppletHeadlessEpic {
 
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-    //if(args[0]!=null)thisURLRoot=args[0];
+    if(args[0]!=null)thisURLRoot=args[0];
     a.getGoing();
   }
 
