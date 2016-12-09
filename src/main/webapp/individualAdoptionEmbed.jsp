@@ -99,7 +99,7 @@ context=ServletUtilities.getContext(request);
   <tr>
     <td class="image" style="padding-top: 0px;">
       <center><img width="188px"
-                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/thumb.jpg"/></center>
+                   src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=ad.getID()%>/adopter.jpg"/></center>
     </td>
   </tr>
   <%
