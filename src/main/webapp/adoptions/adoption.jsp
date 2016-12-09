@@ -221,7 +221,7 @@ context=ServletUtilities.getContext(request);
 	      <%
 	      if ((adopterImage != null) && (!adopterImageString.equals(""))) {
 	      %>
-	        <img src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/thumb.jpg" align="absmiddle"/>&nbsp;
+	        <img width="190px" heoght="*"  src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=id%>/adopter.jpg" align="absmiddle"/>&nbsp;
 	        <%
 	          }
 	        %>
