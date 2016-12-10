@@ -21,7 +21,6 @@ package org.ecocean.grid;
 
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 import java.util.GregorianCalendar;
@@ -180,7 +179,7 @@ public class WorkAppletHeadlessEpic {
             //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             String encNumParam = "&newEncounterNumber=" + holdEncNumber;
            
-            URL u = new URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            java.net.URL u = new java.net.URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
             con = (HttpsURLConnection)u.openConnection();
@@ -325,7 +324,7 @@ public class WorkAppletHeadlessEpic {
               //if we have results to send, send 'em!
               if (resultsSize > 0) {
 
-                URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
+                URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler2?" + "group=true&nodeIdentifier=" + nodeID);
                 System.out.println("Trying to send results to: "+finishScan.toString());
                 HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
 
