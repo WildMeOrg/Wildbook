@@ -23,7 +23,7 @@ package org.ecocean.grid;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
@@ -99,7 +99,7 @@ public class WorkAppletHeadlessEpic {
     long startTime=(new GregorianCalendar()).getTimeInMillis();
     
     //server connection
-    URLConnection con=null;
+    HttpsURLConnection con=null;
 
 
     //whether this is a right-side pattern scan or a left-side
@@ -183,7 +183,7 @@ public class WorkAppletHeadlessEpic {
             URL u = new URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
-            con = u.openConnection();
+            con = (HttpsURLConnection)u.openConnection();
             
             con.setDoInput(true);
             con.setDoOutput(true);
@@ -327,7 +327,7 @@ public class WorkAppletHeadlessEpic {
 
                 URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
                 System.out.println("Trying to send results to: "+finishScan.toString());
-                URLConnection finishConnection = finishScan.openConnection();
+                HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
 
                 // inform the connection that we will send output and accept input
                 finishConnection.setDoInput(true);
