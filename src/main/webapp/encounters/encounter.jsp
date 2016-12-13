@@ -91,6 +91,9 @@ File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectory
 File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 File encounterDir = new File(encountersDir, num);
 
+String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+
 
   GregorianCalendar cal = new GregorianCalendar();
   int nowYear = cal.get(1);
@@ -283,11 +286,11 @@ td.measurement{
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
 	              var mapZoom = 1;
-	          	
+
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = new google.maps.LatLng(0, 0);
 
-	
+
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
 	                center: center,
@@ -297,20 +300,20 @@ td.measurement{
 	                scrollwheel: false,
 	                disableDoubleClickZoom: true,
 	        	});
-	
+
 	        	if(marker!=null){
 					marker.setMap(map);
 					//map.setCenter(marker.position);
-	
+
 	 			//alert("Setting center!");
 				}
-	
+
 	        	google.maps.event.addListener(map, 'click', function(event) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-	
-	
+
+
 		//adding the fullscreen control to exit fullscreen
 	    	  var fsControlDiv = document.createElement('DIV');
 	    	  var fsControl = new FSControl(fsControlDiv, map);
@@ -870,7 +873,7 @@ $(function() {
 
 
 					<%
-	
+
 					if(!enc.hasMarkedIndividual()) {
 					%>
 
@@ -938,7 +941,7 @@ $(function() {
 								}
 									else{
 										%>
-										
+
 										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
@@ -958,7 +961,7 @@ $(function() {
                       </div>
                     </form>
                     <br>
-									<%	
+									<%
 									}
 								%>
 							</div>
@@ -1764,7 +1767,7 @@ $(document).ready(function() {
   $("#editLocation").click(function() {
     $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
 
-    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
+    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #studySiteIDcheck, #studySiteIDerror, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
 
     $("#depthDiv, #elevationDiv").removeClass("has-error");
 
@@ -1795,6 +1798,28 @@ if(enc.getLocation()!=null){
 %>
 
 <em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
+<br>
+
+
+<!-- Create hyperlink to study site page -->
+<%
+String prettyStudySiteID = enc.getStudySiteID();
+if (prettyStudySiteID!=null) {
+  if (myShepherd.isStudySiteWithName(prettyStudySiteID)) {
+    // build hyperlink to studysite page
+    String actualID = myShepherd.getStudySiteByName(prettyStudySiteID).getID();
+    String stuUrl = urlLoc + "/studySite.jsp?number="+actualID;
+
+    prettyStudySiteID = "<a href="+stuUrl+">"+prettyStudySiteID+"</a>";
+
+  }
+} else prettyStudySiteID = "none";
+%>
+
+
+<em><%=encprops.getProperty("studySiteID")%> <span id="displayStudySiteID">: <%=prettyStudySiteID%></span></em>
+
+
 <%
 }
 %>
@@ -1970,6 +1995,7 @@ if(enc.getLocation()!=null){
 <!-- start locationID -->
 <script type="text/javascript">
   $(document).ready(function() {
+
     $("#setLocationBtn").click(function(event) {
       event.preventDefault();
 
@@ -1991,9 +2017,10 @@ if(enc.getLocation()!=null){
     });
 
     $("#selectCode").click(function() {
-      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide()
+      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide();
       $("#setLocationBtn").show();
     });
+
   });
 </script>
 
@@ -2001,6 +2028,7 @@ if(enc.getLocation()!=null){
   <div class="highlight resultMessageDiv" id="locationIDerrorDiv"></div>
 
   <p class="editTextLocation"><strong><%=encprops.getProperty("setLocationID")%></strong></p>
+
   <form name="addLocCode" class="editFormLocation">
     <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
     <input name="action" type="hidden" value="addLocCode" />
@@ -2061,6 +2089,87 @@ if(enc.getLocation()!=null){
 </div>
 <!-- end locationID -->
 
+<!-- start studySiteID -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setStudySiteBtn").click(function(event) {
+
+      console.log("");
+      console.log("");
+      console.log("");
+      console.log("setStudySiteBtn has been pressed!");
+
+      event.preventDefault();
+
+      $("#setStudySiteBtn").hide();
+
+      console.log('study site button clicked!');
+
+      var number = '<%=enc.getCatalogNumber()%>';
+      var stuID = $("#selectStuCode").val();
+
+      console.log("number = "+number);
+      console.log("stuid = " +stuID);
+
+      $.post("../EncounterSetStudySite", {"number": number, "stuID": stuID},
+      function() {
+        console.log("success!");
+        $("#studySiteIDerrorDiv").hide();
+        $("#studySiteIDcheck").show();
+        $("#displayStudySiteID").html(stuID);
+      })
+      .fail(function(response) {
+        console.log("failure!");
+        $("#studySiteIDerror, #studySiteIDerrorDiv").show();
+        $("#studySiteIDerrorDiv").html(response.responseText);
+      });
+    });
+
+
+    $("#selectStuCode").click(function() {
+      console.log("CLIIIICK!!!");
+      $("#studySiteIDIDerror, #studySiteIDcheck, #studySiteIDerrorDiv").hide();
+      $("#setStudySiteIDBtn").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="studySiteIDerrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setStudySiteID")%></strong></p>
+
+  <form name="addStuCode" class="editFormLocation">
+
+    <input name="number" type="hidden" value="<%=num%>" id="studySiteIDnumber"/>
+    <input name="action" type="hidden" value="addStuCode" />
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+
+        <select name="selectStuCode" id="selectStuCode" class="form-control" size=="1">
+          <option value=""></option>
+          <%
+          String locID = enc.getLocationID();
+          if (locID.equals("")) locID = null;
+          List<StudySite> studySites = myShepherd.getStudySitesAtLocation(locID);
+
+          for (StudySite stu : studySites){
+            String stuName = stu.getName();
+            %><option value="<%=stuName %>"><%=stuName%></option><%
+          }
+          %>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="Set Study Site ID" type="submit" id="setStudySiteBtn" value="<%=encprops.getProperty("setStudySiteID")%>" class="btn btn-sm"/>
+        <span class="form-control-feedback" id="studySiteIDcheck">&check;</span>
+        <span class="form-control-feedback" id="studySiteIDerror">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+<!-- end studySiteID -->
 
 <!-- start depth -->
 <script type="text/javascript">
@@ -3207,7 +3316,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
-        	
+
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
@@ -3216,22 +3325,22 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		if(isOwner){
 		%>
 	        <div id="add-image-zone" class="bc4">
-	
+
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
-	
+
 	          <div class="flow-box bc4" style="text-align:center" >
-	
+
 	            <div id="file-activity" style="display:none"></div>
-	
+
 	            <div id="updone"></div>
-	
+
 	            <div id="upcontrols">
 	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
 	              <div id="flowbuttons">
-	
+
 	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
 	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-	
+
 	              </div>
 	            </div>
 	          </div>
@@ -3386,7 +3495,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         </div>
       </form>
     </div>
-   
+
 
     <!-- start releaseDate -->
     <script type="text/javascript">
@@ -3529,7 +3638,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <br /><br />
- 
+
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
@@ -6194,8 +6303,6 @@ finally{
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
-String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>

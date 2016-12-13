@@ -96,7 +96,7 @@ input#informOthers.form-control, input#photoName.form-control, input#photoPhone.
   width: 70px;
 }
 
-#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton, #addDynPropBtn, #dynEdit, #createOccur {
+#setMB, #individualRemoveEncounterBtn, #setAltIDbtn, #Create, #addOccurrence, #removeOccurrenceBtn, #setVerbatimEventDateBtn, #AddDate, #addResetDate, #AddDepth, #setLocationBtn, #setStudySiteBtn, #addLocation, #countryFormBtn, #editContact, #editPhotographer, #setOthers, #AddElev, #taxBtn, #addStatus, #addSex, #addScar, #editBehavior, #addLife, #editComment, #editPattern, #editWork, #Assign, #setGPSbutton, #addDynPropBtn, #dynEdit, #createOccur {
   margin-bottom: 0px;
   margin-top: 2px;
   margin-left: 0px;
