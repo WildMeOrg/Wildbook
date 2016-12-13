@@ -422,26 +422,81 @@ public class Shepherd {
   }
 
   public StudySite getStudySiteByName(String name) {
-    StudySite sitey = null;
     try {
       String filter = "SELECT FROM org.ecocean.StudySite WHERE name == '"+name+"'";
       Query q = pm.newQuery(filter);
       Collection c = (Collection) q.execute();
       ArrayList<StudySite> sites = new ArrayList<StudySite>(c);
-      sitey = sites.get(0);
+      return sites.get(0);
     } catch (Exception nsoe) {
       return null;
     }
-    return sitey;
   }
 
-  public List<StudySite> getStudySitesAtLocation(String locationID) {
+  public boolean isStudySiteWithName(String name) {
+    return (getStudySiteByName(name) != null);
+  }
+
+  public List<StudySite> getAllStudySites(int range) {
     try {
-      String filter = "SELECT FROM org.ecocean.StudySite WHERE locationID == '"+locationID+"'";
+      String filter = "SELECT FROM org.ecocean.StudySite";
       Query q = pm.newQuery(filter);
+      if (range>0) q.setRange(0, range);
       Collection c = (Collection) q.execute();
       return new ArrayList<StudySite>(c);
     } catch (Exception nsoe) {
+      return new ArrayList<StudySite>();
+    }
+  }
+
+  public List<StudySite> getAllStudySites() {
+    return getAllStudySites(-1);
+  }
+
+  public List<StudySite> getStudySitesWithNames(int range) {
+    try {
+      String filter = "SELECT FROM org.ecocean.StudySite WHERE name != null";
+      Query q = pm.newQuery(filter);
+      if (range>0) q.setRange(0, range);
+      q.setOrdering("name descending");
+      Collection c = (Collection) q.execute();
+      return new ArrayList<StudySite>(c);
+    } catch (Exception nsoe) {
+      return new ArrayList<StudySite>();
+    }
+  }
+
+
+  public List<StudySite> getStudySitesWithNames() {
+    return getStudySitesWithNames(-1);
+  }
+
+
+  public List<StudySite> getStudySitesAtLocation(String locationID) {
+    return getStudySitesAtLocation(locationID, true);
+  }
+
+
+  public List<StudySite> getStudySitesAtLocation(String locationID, boolean withNames) {
+    try {
+
+      System.out.println("getStudySitesAtLocation!"+
+                          " locationID = "+locationID+
+                          " location isNull = "+(locationID==null));
+
+      if (locationID == null) {
+        if (withNames) return getStudySitesWithNames();
+        else return getAllStudySites();
+      }
+
+      String filter = "SELECT FROM org.ecocean.StudySite WHERE locationID == '"+locationID+"'";
+      if (withNames) filter += " && name != null";
+      Query q = pm.newQuery(filter);
+      if (withNames) q.setOrdering("name ascending");
+      Collection c = (Collection) q.execute();
+      return new ArrayList<StudySite>(c);
+    } catch (Exception nsoe) {
+      System.out.println("A terrible error!");
       return new ArrayList<StudySite>();
     }
   }
