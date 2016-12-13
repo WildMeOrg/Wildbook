@@ -52,6 +52,22 @@
   if (studySiteID!=null) {
     sitey = myShepherd.getStudySite(studySiteID);
     System.out.println("myShepherd grabbed StudySite #"+studySiteID);
+
+    if (sitey.getLocationID()!=null) {
+      String loc = sitey.getLocationID();
+      System.out.println("Sitey's locationID = "+loc);
+      List<StudySite> sites = myShepherd.getStudySitesAtLocation(loc);
+      System.out.println("Found "+sites.size()+" other sites at this location");
+      List<String> siteIDs = new ArrayList<String>();
+      for (StudySite siteyPeer : sites) {
+        siteIDs.add(siteyPeer.getID());
+      }
+      System.out.println("StudySite IDs = "+siteIDs);
+
+
+    }
+
+
   }
   else {
     System.out.println("new StudySite error!: myShepherd failed to find a StudySite # upon loading studySite.jsp");
