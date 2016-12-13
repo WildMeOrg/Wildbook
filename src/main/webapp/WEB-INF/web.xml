@@ -732,6 +732,11 @@
   </servlet>
 
   <servlet>
+    <servlet-name>EncounterSetStudySite</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetStudySite</servlet-class>
+  </servlet>
+
+  <servlet>
     <servlet-name>IndividualAddComment</servlet-name>
     <servlet-class>org.ecocean.servlet.IndividualAddComment</servlet-class>
   </servlet>
@@ -1598,6 +1603,11 @@
   <servlet-mapping>
     <servlet-name>EncounterSetLocationID</servlet-name>
     <url-pattern>/EncounterSetLocationID</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetStudySite</servlet-name>
+    <url-pattern>/EncounterSetStudySite</url-pattern>
   </servlet-mapping>
 
   <servlet-mapping>
