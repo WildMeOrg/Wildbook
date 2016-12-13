@@ -123,6 +123,8 @@ public class Encounter implements java.io.Serializable {
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
     */
 
+  private String studySiteID;
+
   //An URL to a thumbnail image representing the encounter.
   //This is
   private String dwcImageURL;
@@ -1591,6 +1593,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
       return;
     }
     this.individualID = indy;
+  }
+
+  public String getStudySiteID() {
+    return studySiteID;
+  }
+
+  public void setStudySiteID(String studySiteID) {
+    this.studySiteID = studySiteID;
   }
 
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
