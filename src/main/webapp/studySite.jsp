@@ -42,6 +42,9 @@
   Properties props = new Properties();
   String langCode=ServletUtilities.getLanguageCode(request);
 
+
+  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+
   String studySiteID = request.getParameter("number");
   int nFieldsPerSubtable = 8;
 
@@ -130,13 +133,14 @@
   }
 %>
 
-
+<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
 <div class="container maincontent">
+  <div class="row">
+
   <form method="post" onsubmit="return classEditTemplate.checkBeforeDeletion()" action="studySite.jsp?number=<%=studySiteID%>" id="classEditTemplateForm">
 
 
-<div class="row">
   <div class="col-xs-12">
     <h1>StudySite</h1>
     <p class="studySiteidlabel"><em>id <%=studySiteID%></em><p>
@@ -185,9 +189,6 @@
         %>
       </table>
     </div>
-  </div>
-
-  <div class="row">
     <div class="col-sm-12">
       </hr>
       <div class="submit" style="position:relative">
@@ -199,8 +200,132 @@
   </div>
 </form>
 
+<div class="row">
+<div class="col-md-6">
 
-</div>
+<h2> Map </h2>
+<p><em>For illustration only. To set lat/long, please use form.</em></p>
+
+<script type="text/javascript">
+
+  var map;
+  var marker;
+  var center = new google.maps.LatLng(0, 0);
+
+  function placeMarker(location) {
+
+  	if(marker!=null){marker.setMap(null);}
+  	marker = new google.maps.Marker({
+  	  position: location,
+  	  map: map,
+  	  visible: true
+  	});
+
+    var ne_lat_element = document.getElementById('lat');
+    var ne_long_element = document.getElementById('longitude');
+
+    ne_lat_element.value = location.lat();
+    ne_long_element.value = location.lng();
+	}
+
+  function initialize() {
+    var mapZoom = 1;
+    var center = new google.maps.LatLng(0, 0);
+    map = new google.maps.Map(document.getElementById('map_canvas'), {
+      zoom: mapZoom,
+      center: center,
+      mapTypeId: google.maps.MapTypeId.HYBRID,
+      zoomControl: true,
+      scaleControl: false,
+      scrollwheel: false,
+      disableDoubleClickZoom: true,
+	  });
+
+  	if(marker!=null){
+	    marker.setMap(map);
+    }
+
+  	google.maps.event.addListener(map, 'click', function(event) {
+	    placeMarker(event.latLng);
+    });
+
+  }
+
+
+
+
+  // START MAP and GPS SETTER
+
+  var markers = [];
+  var latLng = new google.maps.LatLng(<%=sitey.getLatitude()%>, <%=sitey.getLongitude()%>);
+
+
+  <%
+  String markerText="";
+
+  String haploColor="CC0000";
+  String defaultMarkerColor = encprops.getProperty("defaultMarkerColor");
+  if(defaultMarkerColor!=null){
+    haploColor=defaultMarkerColor;
+  }
+  %>
+
+  marker = new google.maps.Marker({
+    icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    position:latLng,
+    map:map
+  });
+
+  <%
+  if((sitey.getLatitude()==null)&&(sitey.getLongitude()==null)){
+  %>  marker.setVisible(false); <%
+  } %>
+
+  markers.push(marker);
+  google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+
+<%
+if((request.getUserPrincipal()!=null)){
+%>
+  <div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
+<%
+}
+else {
+%>
+<p><%=encprops.getProperty("nomap") %></p>
+<%
+}
+%>
+<!-- adding ne submit GPS-->
+
+
+
+<%
+  String longy="";
+  String laty="";
+  if(sitey.getLatitude()!=null){laty=sitey.getLatitude().toString();}
+  if(sitey.getLongitude()!=null){longy=sitey.getLongitude().toString();}
+
+%>
+
+
+
+    <a name="gps"></a>
+    <div>
+      <br>
+      <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
+
+      <br/>
+      <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+    </div>
+<br /> <br />
+<!--end adding submit GPS-->
+</div> </div><!-- END MAP and GPS SETTER -->
+
+
+
+
 
 <style>
 
@@ -210,38 +335,6 @@
   }
 
 </style>
-
-<script>
-
-$(document).ready(function() {
-
-  $('.eggButton').click(function() {
-
-    var dataSheetRow = $(this).closest('.row.dataSheet');
-    var dataSheetNum = classEditTemplate.extractIntFromString(dataSheetRow.attr('id'));
-    var lastTable = dataSheetRow.find('table.studySite-field-table').last();
-    var eggDiamTemplate = lastTable.find('tr.sequential').first();
-    var eggWeightTemplate = lastTable.find('tr.sequential').last();
-
-
-    var oldFieldName = $(eggWeightTemplate).find('td.fieldName').html();
-    console.log("oldFieldName = "+oldFieldName);
-    var eggNum = classEditTemplate.extractIntFromString(oldFieldName) + 1;
-    var newEggDiamRow = classEditTemplate.createNumberedRowFromTemplate(eggDiamTemplate, eggNum, dataSheetNum);
-    //var newEggWeightRow = classEditTemplate.createEggWeightFromTemplate(lastTableRow, eggNum, dataSheetNum);
-    var newEggWeightRow = classEditTemplate.createNumberedRowFromTemplate(eggWeightTemplate, eggNum, dataSheetNum);
-
-    lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
-    lastTable.append(newEggDiamRow);
-    lastTable = classEditTemplate.updateSubtableIfNeeded(lastTable);
-    lastTable.append(newEggWeightRow);
-
-  })
-
-}
-)
-
-</script>
 
 
 
