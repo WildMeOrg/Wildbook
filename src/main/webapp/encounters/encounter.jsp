@@ -257,25 +257,21 @@ td.measurement{
   var center = new google.maps.LatLng(0, 0);
 
 
-          function placeMarker(location) {
+  function placeMarker(location) {
 
-          //alert("entering placeMarker!");
+  	if(marker!=null){marker.setMap(null);}
+  	marker = new google.maps.Marker({
+      position: location,
+      map: map,
+      visible: true
+  	});
 
-          	if(marker!=null){marker.setMap(null);}
-          	marker = new google.maps.Marker({
-          	      position: location,
-          	      map: map,
-          	      visible: true
-          	  });
-
-          	  //map.setCenter(location);
-
-          	    var ne_lat_element = document.getElementById('lat');
-          	    var ne_long_element = document.getElementById('longitude');
+    var ne_lat_element = document.getElementById('lat');
+    var ne_long_element = document.getElementById('longitude');
 
 
-          	    ne_lat_element.value = location.lat();
-          	    ne_long_element.value = location.lng();
+    ne_lat_element.value = location.lat();
+    ne_long_element.value = location.lng();
 	}
 	</script>
 
