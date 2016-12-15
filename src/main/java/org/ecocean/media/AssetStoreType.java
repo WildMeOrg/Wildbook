@@ -25,6 +25,7 @@ public enum AssetStoreType {
     LOCAL,
     S3,
     URL,
-    YouTube
+    YouTube,
+    Twitter
     // TODO Azure, SCP...
 }
