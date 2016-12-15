@@ -3,9 +3,10 @@ package org.ecocean;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Properties;
 import org.ecocean.servlet.ServletUtilities;
+import org.json.JSONObject;
+import org.json.JSONException;
 /*
 import java.net.URL;
-import org.json.JSONObject;
 import java.io.File;
 import java.util.List;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.security.InvalidKeyException;
 */
 import twitter4j.*;
 import twitter4j.conf.ConfigurationBuilder;
+import twitter4j.json.DataObjectFactory;
 
 public class TwitterUtil {
     private static TwitterFactory tfactory = null;
@@ -25,6 +27,7 @@ public class TwitterUtil {
     public static void init(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         tfactory = getTwitterFactory(context);
+System.out.println("INFO: initialized TwitterUtil.tfactory");
     }
 
     public static boolean isActive() {
@@ -39,6 +42,35 @@ public class TwitterUtil {
         return tw.search(query);
     }
 
+    public static Status getTweet(long tweetId) {
+        Twitter tw = tfactory.getInstance();
+        try {
+            return tw.showStatus(tweetId);
+        } catch (TwitterException tex) {
+            System.out.println("ERROR: TwitterUtil.getTweet(" + tweetId + ") threw " + tex.toString());
+            return null;
+        } catch (Exception ex) {
+            System.out.println("ERROR: TwitterUtil.getTweet(" + tweetId + ") threw " + ex.toString());
+        }
+        return null;
+    }
+
+    public static String toJSONString(Object obj) {
+        if (obj == null) return null;
+        //TODO catch exceptions etc and return null
+        return DataObjectFactory.getRawJSON(obj);
+    }
+    public static JSONObject toJSONObject(Object obj) {
+        String s = toJSONString(obj);
+        if (s == null) return null;
+        try {
+            JSONObject j = new JSONObject(s);
+            return j;
+        } catch (JSONException ex) {
+            System.out.println("ERROR: TwitterUtil.toJSONObject() could not parse '" + s + "' as JSON: " + ex.toString());
+            return null;
+        }
+    }
 
     //http://twitter4j.org/en/configuration.html
     public static TwitterFactory getTwitterFactory(String context) {
@@ -58,6 +90,7 @@ public class TwitterUtil {
             .setOAuthConsumerKey(consumerKey)
             .setOAuthConsumerSecret(consumerSecret)
             .setOAuthAccessToken(accessToken)
+            .setJSONStoreEnabled(true)
             .setOAuthAccessTokenSecret(accessTokenSecret);
         return new TwitterFactory(cb.build());
     }
