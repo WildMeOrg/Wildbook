@@ -60,7 +60,7 @@ public class YouTubeAssetStore extends AssetStore {
     }
 
     YouTubeAssetStore(final Integer id, final String name, final AssetStoreConfig config, final boolean writable) {
-        super(id, name, AssetStoreType.URL, config, false);
+        super(id, name, AssetStoreType.YouTube, config, false);
     }
 
     public AssetStoreType getType() {
