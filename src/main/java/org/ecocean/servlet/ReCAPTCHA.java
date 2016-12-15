@@ -82,9 +82,10 @@ public class ReCAPTCHA extends HttpServlet {
     /* see webapps/captchaExample.jsp for implementation */
     //note: this only handles single-widget (per page) ... if we need multiple, will have to extend things here
     public static String captchaWidget(HttpServletRequest request) {
-        return captchaWidget(request, null);
+        return captchaWidget(request, null, null);
     }
-    public static String captchaWidget(HttpServletRequest request, String params) {
+    // params & tagAttributes, see:  https://developers.google.com/recaptcha/docs/display#config
+    public static String captchaWidget(HttpServletRequest request, String params, String tagAttributes) {
         String context = ServletUtilities.getContext(request);
         Properties recaptchaProps = ShepherdProperties.getProperties("recaptcha.properties", "", context);
         if (recaptchaProps == null) return "<div class=\"error captcha-error captcha-missing-properties\">Unable to get captcha settings.</div>";
@@ -93,7 +94,7 @@ public class ReCAPTCHA extends HttpServlet {
         if ((siteKey == null) || (secretKey == null)) return "<div class=\"error captcha-error captcha-missing-key\">Unable to get captcha key settings.</div>";
         return "<script>function recaptchaCompleted() { return (grecaptcha && grecaptcha.getResponse(0)); }</script>\n" +
             "<script src='https://www.google.com/recaptcha/api.js" + ((params == null) ? "" : "?" + params) + "' async defer></script>\n" +
-            "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\"></div>";
+            "<div class=\"g-recaptcha\" data-sitekey=\"" + siteKey + "\" " + ((tagAttributes == null) ? "" : tagAttributes) + "></div>";
     }
 
     //  https://developers.google.com/recaptcha/docs/verify
