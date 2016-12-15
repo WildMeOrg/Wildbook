@@ -95,12 +95,18 @@ public class EncounterCreate extends HttpServlet {
         String species = jin.optString("species", null);
         long dateMilliseconds = jin.optLong("dateMilliseconds", -1);
         String dateString = jin.optString("dateString", null);
+        String locationString = jin.optString("locationString", "");
         String email = jin.optString("email", null);
         //NOTE: technically we could not require date and rely on exif data -- but we simply cant be sure it is there/correct
         if ((jsrcs == null) || (jsrcs.length() < 1) || (species == null) || ((dateMilliseconds < 0) && (dateString == null)) ||
                 !Util.isValidEmailAddress(email)) {
             rtn.put("error", "invalid input for sources or species or date or email");
             return rtn;
+        }
+
+        //we save this for later usage
+        if (AccessControl.isAnonymous(request)) {
+            request.getSession().setAttribute("USER_EMAIL", email);
         }
 
         String context = ServletUtilities.getContext(request);
@@ -187,6 +193,7 @@ public class EncounterCreate extends HttpServlet {
                     enc.setHour(Integer.parseInt(dateString.substring(11,13)));
                     enc.setMinutes(dateString.substring(14,16));
                 }
+                if (!locationString.equals("")) enc.setVerbatimLocality(locationString);
             } catch (java.lang.NumberFormatException nfe) {
                 System.out.println("ERROR: could not parse date from [" + dateString + "]: " + nfe.toString());
             }
@@ -238,7 +245,14 @@ public class EncounterCreate extends HttpServlet {
         int ecount = 0;
         JSONObject aj = new JSONObject();  //just for allowedAccess call
         aj.put("accessKey", accessKey);
-        
+
+        /*
+            make a big assumption here -- same # of encs as tasks, and encs map one-to-one to tasks.
+            and encs have only one asset each.  while this is likely all true for now,
+            this may not always be true. :( but this saves us some work (for now)                           TODO fix?
+        */
+        String[] fname = new String[encIds.length()];
+
         Shepherd tShepherd = new Shepherd(context);
         tShepherd.setAction("EncounterCreate.sendEmail.class");
         tShepherd.beginDBTransaction();
@@ -249,6 +263,7 @@ public class EncounterCreate extends HttpServlet {
               if ((enc.getMedia() == null) || (enc.getMedia().size() < 1)) continue;
               boolean allowed = false;
               for (MediaAsset ma : enc.getMedia()) {
+                  fname[i] = ma.getFilename();
                   if (allowedAccess(ma, aj, request, tShepherd)) allowed = true;  //this means we only need key to *one* of the assets.  good?
               }
               if (!allowed) continue;
@@ -286,15 +301,19 @@ public class EncounterCreate extends HttpServlet {
             //TODO just trusting these are real.  we could verify... but do we need to?
             tcount++;
             taskLinks += " - " + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\n";
-            taskLinksHtml += "<li><a href=\"" + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">Result " + tcount + "</a></li>\n";
+            taskLinksHtml += "<li><a title=\"" + id + "\" href=\"" + linkPrefix + "/encounters/matchResults.jsp?taskId=" + id + "&accessKey=" + accessKey + "\">(" + tcount + ") " + ((i >= fname.length) ? "Result " + (i+1) : fname[i]) + "</a></li>\n";
         }
+/*  we are going to allow this now -- so they at least get *something* ... i.e. if encounters get made
         if (tcount < 1) {
             rtn.put("error", "no valid identification tasks");
             //myShepherd.rollbackDBTransaction();
             return rtn;
         }
+*/
+        if (tcount < 1) taskLinks = "<p style=\"font-size: 1.3em; padding: 10px 20px; color: #F00;\">There were errors during processing.  Please forward us this email for assistance.</p>";
 
         Map<String, String> tagMap = NotificationMailer.createBasicTagMap(request, (Encounter)null);
+        tagMap.put("@ACCESSKEY@", accessKey);
         tagMap.put("@ENCLINKS@", encLinks);
         tagMap.put("@TASKLINKS@", taskLinks);
         tagMap.put("@ENCLINKSHTML@", encLinksHtml);
