@@ -11,6 +11,10 @@ public boolean validateSources(String[] sources) {
 }
 
 %>
+
+<%
+    boolean amHuman = ReCAPTCHA.sessionIsHuman(request);
+%>
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 <jsp:include page="header.jsp" flush="true"/>
@@ -20,6 +24,69 @@ public boolean validateSources(String[] sources) {
 <script src="tools/flow.min.js"></script>
 
 <style>
+<% if (!amHuman) { %>
+#entire-form {
+	display: none;
+}
+<% } %>
+
+#disclaimer {
+	margin: 15px;
+	padding: 20px;
+	border: solid 1px #999;
+	font-size: 0.8em;
+	color: #888;
+}
+
+#file-input {
+	width: 80%;
+	margin: 10%;
+	background-color: #CFF;
+	padding: 20px;
+	border-radius: 10px;
+	margin-top: 20px;
+	text-align: center;
+}
+
+#upcontrols {
+	display: none;
+}
+
+#steps {
+	padding: 15px;
+}
+
+.step {
+	display: inline-block;
+	background-color: #DDD;
+	border-radius: 5px;
+	padding: 5px 10px;
+	color: #FFF;
+	font-size: 1.3em;
+	margin: 0 8px;
+}
+
+.step-active {
+	background-color: #386;
+	color: #EEE;
+}
+
+.step-num {
+	color: #CCC;
+	font-weight: bold;
+	margin-right: 10px;
+	padding: 0 8px;
+	height: 1.8em;
+	font-size: 1.5em;
+	width: 1.8em;
+	background-color: #FFF;
+	border-radius: 0.9em;
+}
+
+.step-active .step-num {
+	color: #555;
+}
+
 .no, .yes {
 	position: absolute;
 	right: -10px;
@@ -66,7 +133,7 @@ textarea {
 }
 
 img.ident-img {
-	max-height: 150px;
+	max-height: 250px;
 	max-width: 500px;
 }
 .ident-img-wrapper {
@@ -75,8 +142,8 @@ img.ident-img {
 	display: inline-block;
 	margin: 10px;
 	float: left;
-	min-height: 200px;
-	min-width: 200px;
+	min-height: 300px;
+	min-width: 300px;
 }
 
 .ident-img-info {
@@ -87,6 +154,8 @@ img.ident-img {
 	background-color: #FFF;
 	padding: 6px;
 	opacity: 0.7;
+	width: 94%;
+	word-wrap: break-word;
 	border-radius: 5px;
 }
 .ident-img-info:hover {
@@ -109,7 +178,9 @@ img.ident-img {
 	margin-top: 10px;
 }
 
-.ident-date {
+.ident-date, .ident-location {
+	display: block;
+	margin: 5px;
 	width: 9em;
 }
 
@@ -124,18 +195,19 @@ img.ident-img {
 }
 
 #recaptcha-wrapper {
-	margin: 60px 0;
+	padding: 10px 50px;
 }
 
 
 /* uploader stuff */
 
 div#file-activity {
+	display:  none;
 	font-family: sans;
 	border: solid 2px black;
 	padding: 8px;
 	margin: 20px;
-	min-height: 200px;
+	min-height: 100px;
 }
 div.file-item {
 	position: relative;
@@ -150,7 +222,9 @@ div.file-item div {
 	overflow: hidden;
 }
 .file-name {
-	width: 30%;
+	width: 50%;
+	font-size: 0.9em;
+	white-space: nowrap;
 }
 .file-size {
 	width: 8%;
@@ -167,6 +241,7 @@ div.file-item div {
 }
 
 #method-control {
+	display: none;  /* disabling url method for now */
 	margin-bottom: 10px;
 }
 
@@ -204,10 +279,16 @@ div.file-item div {
 
 </style>
 <script type="text/javascript">
+var amHuman = <%=amHuman%>;
 var currentMethod = 'upload';
 var imageData = [];
 var defaultSpecies = 'Megaptera novaeangliae';
 var accessKey = wildbook.uuid();
+
+function activateStep(num) {
+	$('.step-active').removeClass('step-active');
+	$('#step-' + num).addClass('step-active');
+}
 
 function waitOn(txt) {
 	if (!txt) txt = 'Please wait...';
@@ -242,7 +323,7 @@ function beginProcess() {
 		$('#ident-controls').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 		return;
 	}
-	recaptchaVerify();
+	//recaptchaVerify();
 	$('#ident-controls input').hide();
 	var validUrls = parseUrls($('#ident-sources').val());
 	if (!validUrls) {
@@ -386,7 +467,13 @@ function promptUserForMore(d) {
 	$('.yes').closest('.ident-img-wrapper').each(function(i,el) {
 		if (!d.withoutSet || !d.withoutSet[i]) return;
 		var id = el.getAttribute('id').substring(18);
-		var h = '<div title="' + d.withoutSet[i].id + '" class="ident-img-info">successfully saved<br />';
+		var fname = 'successfully saved';
+		if (d.withoutSet[i].filename) {
+			fname = d.withoutSet[i].filename;
+			var l = fname.lastIndexOf('/');
+			if (l > -1) fname = fname.substring(l + 1);
+		}
+		var h = '<div title="' + d.withoutSet[i].id + '" class="ident-img-info">' + fname + '<br />';
 		h += '<input class="ident-date" placeholder="sighting date" id="user-date-' + id + '"';
 		if (d.withoutSet[i].dateTime) {
 			var dt = new Date(d.withoutSet[i].dateTime);
@@ -395,7 +482,9 @@ function promptUserForMore(d) {
 			var dt = new Date();
 			h += ' value="' + dt.toISOString().substring(0,10) + '" ';
 		}
-		h += ' /></div>';
+		h += ' />';
+		h += '<input class="ident-location" placeholder="location (optional)" title="location description (optional)" id="user-location-' + id + '" />';
+		h += '</div>';
 		$(el).append(h).find('img').data('media-asset-id', d.withoutSet[i].id);
 	});
 /*
@@ -432,6 +521,8 @@ function identSetDate(i) {
 var numEncsLeft = 0;
 var numIdentsLeft = 0;
 function createEncounters() {
+	activateStep(3);
+	$('.no').closest('.ident-img-wrapper').hide();
 	$('.tmp-error').remove();
 	$('.error-input').removeClass('error-input');
 	var email = $('#ident-email').val();
@@ -441,6 +532,8 @@ function createEncounters() {
 		$('#ident-email').addClass('error-input');
 		fail = true;
 	}
+	$('.ident-toggle').removeClass('ident-toggle');
+	$('#click-instructions').remove();
 	$('.yes').closest('.ident-img-wrapper').find('img').each(function(i, el) {
 		var id = el.id.substring(10);
 		if (!$('#user-date-' + id).val()) {
@@ -453,9 +546,12 @@ function createEncounters() {
 
 	$('#ident-main-form').hide();
 	$('#ident-controls').show();
+	$('.ident-img-info input').hide();
 	numEncsLeft = $('.yes').length;
 	numIdentsLeft = numEncsLeft;
-	$('.yes').closest('.ident-img-wrapper').find('img').each(function(i, el) {
+	var usable = $('.yes').closest('.ident-img-wrapper').find('img');
+	window.setTimeout(function() { gaveUp(); }, 17000 * usable.length);
+	usable.each(function(i, el) {
 		var id = el.id.substring(10);
 		var srcs = [{
 			maLabels: ['matching only'],
@@ -465,8 +561,9 @@ function createEncounters() {
 			accessKey: accessKey,
 			sources: srcs,
 			dateString: $('#user-date-' + id).val(),
+			locationString: $('#user-location-' + id).val(),
 			email: email,
-			species: $('#ident-species').text()
+			species: defaultSpecies
 		}, id);
 	});
 }
@@ -521,24 +618,42 @@ function processEncounter(data, id) {
 				if (x.responseJSON && x.responseJSON.error) msg = x.responseJSON.error;
 				$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div class="error">' + msg + '</div>');
 			} else {
-				var h = '<div>Started task(s):<ul>';
+				var h = '<div>Started task';
+				if (x.responseJSON.tasks.length > 1) {
+					h += 's: <ul>';
+				} else {
+					h += ' ';
+				}
 				for (var i = 0 ; i < x.responseJSON.tasks.length ; i++) {
 					taskIds.push(x.responseJSON.tasks[i].taskId);
 					h += '<li><a target="_new" href="encounters/matchResults.jsp?taskId=' + x.responseJSON.tasks[i].taskId + '">' + x.responseJSON.tasks[i].taskId + '</a></li>';
 				}
-				h += '</ul></div>';
+				h += ((x.responseJSON.tasks.length > 1) ? '</ul>' : '') + '</div>';
 				$('#ident-img-wrapper-' + id + ' .ident-img-info').append(h);
 			}
 			numIdentsLeft--;
 			console.warn('[%d] response: %o', numIdentsLeft, x);
-			if (numIdentsLeft < 1) {
-				$('#ident-begin-note').html('<h2>Thank you!</h2><p>Please check your email for follow-up information regarding your submissions.</p>');
-				sendEmail();
-			}
+			if (numIdentsLeft < 1) wrapThingsUp();
 		},
 		dataType: 'json',
 		type: 'post'
 	});
+}
+
+
+function gaveUp() {
+	console.warn('oops, timer gave up on waiting for createEncounters()');
+	wrapThingsUp();
+}
+
+var allCompleted = false;
+function wrapThingsUp() {
+	if (allCompleted) return;
+	allCompleted = true;
+	waitOff();
+	$('#ident-begin-note').remove();
+	$('#disclaimer').before('<div id="ident-begin-note"><h2>Thank you!</h2><p>Please check your email for follow-up information regarding your submissions.</p></div>');
+	sendEmail();
 }
 
 function sendEmail() {
@@ -562,19 +677,38 @@ function sendEmail() {
 }
 
 
-function recaptchaVerify() {
+//called by recaptcha widget when user has success
+function recaptchaSuccess(response) {
+	console.warn('callback from ReCAPTCHA -- sending to server for backend validation');
+	recaptchaVerify(function(d) {
+		if (d && d.responseJSON && d.responseJSON.success && d.responseJSON.valid) {
+			$('#recaptcha-wrapper').remove();
+			$('#entire-form').show();
+			//this is kinda hacky, but lets us make sure this behaves as expected
+			window.recaptchaCompleted = function() { return true; }
+		} else {
+			$('#recaptcha-wrapper').html('<p class="error">There was a problem verifying.  Please reload and try again.</p>');
+		}
+	});
+}
+
+//note: now this should(!) only be called once when not amHuman known... and as 0th step.  thus we can NOT do synchronous call and instead use callback
+function recaptchaVerify(callback) {
+<% if (amHuman) out.println("return true; //amHuman short-circuit\n"); %>
+	if (amHuman) return true;
 	var cvalue = recaptchaCompleted();
 	console.info('recaptchaVerify() using %s', cvalue);
 	waitOn('Validating...');
 	$.ajax({
 		type: 'GET',
 		url: 'ReCAPTCHA?recaptchaValue=' + cvalue,
-		async: false,
 		complete: function(d) {
 			console.info('recaptchaVerify() got %o', d);
 			//we dont really do much on the client side, cuz we most care about session on server... but we could do more here,
 			//  especially handle errors etc.   :/    TODO
 			waitOff();
+			amHuman = true;
+			if (callback) callback(d);
 		},
 		dataType: 'json'
 	});
@@ -604,6 +738,7 @@ https://docs.aws.amazon.com/AWSJavaScriptSDK/guide/browser-examples.html#Amazon_
 
 
 function uploadFinished() {
+	$('#method-control').hide();
 	$('#method-upload').hide();
   	//document.getElementById('updone').innerHTML = '<i>Upload complete. Refresh page to see new image.</i>';
 	console.log('upload finished. Files added: '+filenames);
@@ -637,12 +772,35 @@ console.warn('assetsArr = %o', assetsArr);
 				$('#ident-workarea').html('<p class="error">' + msg + '</p>');
 			} else {
 				for (var i = 0 ; i < x.responseJSON.withoutSet.length ; i++) {
-					var h = '<div class="ident-img-wrapper" id="ident-img-wrapper-' + i + '">';
+					var h = '<div class="ident-img-wrapper ident-toggle" id="ident-img-wrapper-' + i + '">';
 					h += '<img class="ident-img" id="ident-img-' + i + '" src="' + x.responseJSON.withoutSet[i].url + '" />';
-					h += '<div class="yes-no-icon yes"></div>';
+					h += '<div class="yes-no-icon yes" title="de-select this image"></div>';
 					h += '</div>';
 					$('#ident-workarea').append(h);
+					imageData.push({ success: true });  //hacktacular!
 				}
+				activateStep(2);
+				$('#ident-main-form').before('<p id="click-instructions">Click checkmark to (de-)select images. <span style="margin-left: 15px;" id="ident-begin-note"></span></p>');
+				updateBeginNote();
+				$('.ident-img-wrapper').css('background-image', 'none');
+				$('.ident-toggle .yes-no-icon').bind('click', function(ev) {
+console.log(ev);
+console.log(ev.currentTarget);
+					var jel = $(ev.currentTarget);
+console.log('jel = %o', jel);
+					if (jel.hasClass('yes')) {
+						jel.removeClass('yes');
+						jel.addClass('no');
+						jel.attr('title', 'select this image');
+						jel.parent().find('img').css('opacity', 0.2);
+					} else {
+						jel.removeClass('no');
+						jel.addClass('yes');
+						jel.attr('title', 'de-select this image');
+						jel.parent().find('img').css('opacity', 1);
+					}
+					updateBeginNote();
+				});
 				promptUserForMore(x.responseJSON);
 			}
 		},
@@ -707,12 +865,14 @@ function uploaderInit(completionCallback) {
 		uploaderS3Bucket = new AWS.S3({params: {Bucket: wildbookGlobals.uploader.s3_bucket}});
 
 		document.getElementById('upload-button').addEventListener('click', function(ev) {
-			if (!recaptchaCompleted()) {
+			if (!amHuman && !recaptchaCompleted()) {
 				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 				return;
 			}
+/*
 			recaptchaVerify();
 			$('#recaptcha-wrapper').hide();
+*/
                         document.getElementById('upcontrols').style.display = 'none';
 			var files = document.getElementById('file-chooser').files;
                         pendingUpload = files.length;
@@ -762,8 +922,10 @@ console.info('complete? err=%o data=%o', err, data);
 				$('#upload-button-message').append('<p class="captcha-error error">Please confirm you are not a robot below.</p>');
 				return;
 			}
+/*
 			recaptchaVerify();
 			$('#recaptcha-wrapper').hide();
+*/
 			var files = flow.files;
 //console.log('files --> %o', files);
                         pendingUpload = files.length;
@@ -782,6 +944,9 @@ console.warn('pendingUpload -> %o', pendingUpload);
 		flow.on('fileAdded', function(file, event){
     			console.log('added %o %o', file, event);
 			pendingUpload++;
+			$('#file-input').hide();
+			$('#file-activity').show();
+			$('#upcontrols').show();
 		});
 		flow.on('fileProgress', function(file, chunk){
 			var el = findElement(file.name, file.size);
@@ -950,8 +1115,8 @@ $(document).ready(function() {
 
 <%
 String context=ServletUtilities.getContext(request);
-//Shepherd myShepherd = new Shepherd(context);
-//myShepherd.setAction("match.jsp");
+Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("match.jsp");
 
 // TODO maybe have some config to disable this!
 
@@ -966,10 +1131,24 @@ if ((sources != null) && valid) {
 <div id="wait-block"><p>Please wait....</p><img src="images/image-processing.gif" /></div>
 
 <h1>Identify humpback fluke images</h1>
-<p style="color: #AAA; margin-bottom: 20px;">
-<b style="background-color: #99C; color: #FFF; padding: 2px 8px; border-radius: 4px; margin-right: 15px;">Beta testing</b> Currently supporting only <b>humpback flukes</b> (<i id="ident-species">Megaptera novaeangliae</i>)
-</p>
 
+<div id="steps">
+	<div id="step-1" class="step step-active">
+		<span class="step-num">1</span>
+		Upload images
+	</div>
+	<div id="step-2" class="step">
+		<span class="step-num">2</span>
+		Add metadata
+	</div>
+	<div id="step-3" class="step">
+		<span class="step-num">3</span>
+		Start matching
+	</div>
+</div>
+
+
+<div id="entire-form">
 <div id="method-control">
 	<b>Upload image files</b>
 	<a onClick="return switchMethod()">Use image URLs instead</a>
@@ -987,12 +1166,15 @@ if ((sources != null) && valid) {
 
 	<div style="margin-top: 100px; padding: 5px; display: none;" >upload method being used: <b><span id="uptype"></span></b></div>
 
-	<div id="file-activity"></div>
+	<div id="file-input">
+		<input style="display: inline-block;" type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
+	</div>
+	<div id="file-activity">
+	</div>
 
 	<div id="updone"></div>
 
 	<div id="upcontrols" style="padding: 20px;">
-		<input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" /> 
 		<button id="upload-button">begin upload</button>
 		<div id="upload-button-message" style="display: inline-block;"></div>
 	</div>
@@ -1007,11 +1189,23 @@ if ((sources != null) && valid) {
 	</div>
 </div>
 
+<%
+	String emailVal = "";
+	if (AccessControl.isAnonymous(request)) {
+		emailVal = (String)request.getSession().getAttribute("USER_EMAIL");
+	} else {
+		String username = request.getUserPrincipal().getName();
+		User user = null;
+		if (username != null) user = myShepherd.getUser(username);
+		if (user != null) emailVal = user.getEmailAddress();
+	}
+	if (emailVal == null) emailVal = "";
+%>
 <div id="ident-main-form">
-	<p>Enter <b>email address</b> below and <b>set dates</b> for sightings above.</p>
-	<input id="ident-email" type="email" placeholder="email address (required)" style="width: 18em;" />
+	<p>Enter <b>email address</b> below and <b>set dates and locations</b> for sightings above.</p>
+	<input id="ident-email" value="<%=emailVal%>" type="email" placeholder="email address (required)" style="width: 18em;" />
 	<p>
-		<input type="button" value="start identification" onClick="return createEncounters();" />
+		<input type="button" id="ident-begin-button" value="start identification" onClick="return createEncounters();" />
 	</p>
 </div>
 
@@ -1025,10 +1219,25 @@ if ((sources != null) && valid) {
 }
 %>
 
-<div id="recaptcha-wrapper">
-<%= ReCAPTCHA.captchaWidget(request) %>
-</div>
+</div> <!-- entire-form -->
 
+<% if (amHuman) { %>
+	<script>
+		function recaptchaCompleted() { return true; } //amHuman-certified
+	</script>
+
+<% } else { //unknown human! %>
+	<div id="recaptcha-wrapper">
+	<p>Let's verify that you are human...</p>
+	<%= ReCAPTCHA.captchaWidget(request, null, "data-callback=\"recaptchaSuccess\"") %>
+	</div>
+<% } %>
+
+<div id="disclaimer">
+<b>DISCLAIMER:</b>
+Images are for non-profit scientific research purposes only.
+Data will be removed after 7 days unless you take further action to incorporate it into Flukebook.org.
+</div>
 <div style="clear: both; margin-bottom: 100px;"></div>
 
 <jsp:include page="footer.jsp" flush="true"/>
