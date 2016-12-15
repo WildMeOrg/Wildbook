@@ -264,6 +264,10 @@ public class EncounterCreate extends HttpServlet {
               boolean allowed = false;
               for (MediaAsset ma : enc.getMedia()) {
                   fname[i] = ma.getFilename();
+                  if (fname[i] != null) {  //only take final part to drop (pseudo)dirs ... maybe we should do this via File or something, meh.
+                      int s = fname[i].lastIndexOf("/");
+                      if (s > -1) fname[i] = fname[i].substring(s + 1);
+                  }
                   if (allowedAccess(ma, aj, request, tShepherd)) allowed = true;  //this means we only need key to *one* of the assets.  good?
               }
               if (!allowed) continue;
