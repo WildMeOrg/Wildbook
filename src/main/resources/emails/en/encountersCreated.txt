@@ -4,7 +4,9 @@ You have submitted some photos for identification.  Thank you!
 You can view their progress here:
 @TASKLINKS@
 
-And here are the photos:
-@ENCLINKS@
-
+-----
 (links to help etc)
+
+
+[@ACCESSKEY@]
+
