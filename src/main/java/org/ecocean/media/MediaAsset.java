@@ -853,6 +853,7 @@ public class MediaAsset implements java.io.Serializable {
               jobj.put("userLatitude",this.getLatitude());
               jobj.put("userLongitude",this.getLongitude());
               jobj.put("userDateTime",this.getUserDateTime());
+              jobj.put("filename", this.getFilename());  //this can "vary" depending on store type
             }
 
             jobj.put("occurrenceID",this.getOccurrenceID());
