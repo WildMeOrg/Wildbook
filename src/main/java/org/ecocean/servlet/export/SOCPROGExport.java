@@ -116,21 +116,25 @@ public class SOCPROGExport extends HttpServlet{
         Label indieLabel = new Label(0, 0, "Date");
         sheet.addCell(indieLabel);
         
+        Label popLabel3b = new Label(1, 0, "Location");
+        sheet.addCell(popLabel3b);
         
         
-        Label popLabel = new Label(1, 0, "Lat");
+        Label popLabel = new Label(2, 0, "Lat");
         sheet.addCell(popLabel);
 
-        Label popLabel2 = new Label(2, 0, "Long");
+        Label popLabel2 = new Label(3, 0, "Long");
         sheet.addCell(popLabel2);
         
-        Label popLabel3 = new Label(3, 0, "ElevationOrDepth");
+        Label popLabel3 = new Label(4, 0, "ElevationOrDepth");
         sheet.addCell(popLabel3);
         
-        Label popLabel3a = new Label(4, 0, "LocationID");
+        Label popLabel3a = new Label(5, 0, "LocationID");
         sheet.addCell(popLabel3a);
+        
 
-        Label popLabel4 = new Label(5, 0, "ID");
+
+        Label popLabel4 = new Label(6, 0, "ID");
         sheet.addCell(popLabel4);
         
         
@@ -209,53 +213,58 @@ public class SOCPROGExport extends HttpServlet{
                     jxl.write.DateTime encLabel = new jxl.write.DateTime(0, count, localCalendar.getTime(),dateFormat);
                     sheet.addCell(encLabel);
                     
+                    if(enc.getLocation()!=null){
+                      Label popLabel3loc = new Label(1, count, enc.getLocation());
+                      sheet.addCell(popLabel3loc);
+                    }
+                    
                     
                     if((enc.getLongitudeAsDouble()!=null)&&(enc.getLatitudeAsDouble()!=null)){
-                      jxl.write.Number popLabel1a = new jxl.write.Number(1, count, enc.getLatitudeAsDouble(),numbersFormat);
+                      jxl.write.Number popLabel1a = new jxl.write.Number(2, count, enc.getLatitudeAsDouble(),numbersFormat);
                       sheet.addCell(popLabel1a);
 
                     
-                      jxl.write.Number popLabel2a = new jxl.write.Number(2, count, enc.getLongitudeAsDouble(),numbersFormat);
+                      jxl.write.Number popLabel2a = new jxl.write.Number(3, count, enc.getLongitudeAsDouble(),numbersFormat);
                       sheet.addCell(popLabel2a);
                     }
                     else{
                       
-                      jxl.write.Label popLabel1a = new jxl.write.Label(1, count, "NaN");
+                      jxl.write.Label popLabel1a = new jxl.write.Label(2, count, "NaN");
                       sheet.addCell(popLabel1a);
 
                     
-                      jxl.write.Label popLabel2a = new jxl.write.Label(2, count, "NaN");
+                      jxl.write.Label popLabel2a = new jxl.write.Label(3, count, "NaN");
                       sheet.addCell(popLabel2a);
                       
                     }
                     
                     if((enc.getMaximumDepthInMeters()!=null)||(enc.getMaximumElevationInMeters()!=null)){
                       if(enc.getMaximumDepthInMeters()!=null){
-                        jxl.write.Number popLabel3c = new jxl.write.Number(3, count, enc.getMaximumDepthInMeters(),numbersFormat);
+                        jxl.write.Number popLabel3c = new jxl.write.Number(4, count, enc.getMaximumDepthInMeters(),numbersFormat);
                         sheet.addCell(popLabel3c);
                       }
                       else{
-                        jxl.write.Number popLabel3c = new jxl.write.Number(3, count, enc.getMaximumElevationInMeters(),numbersFormat);
+                        jxl.write.Number popLabel3c = new jxl.write.Number(4, count, enc.getMaximumElevationInMeters(),numbersFormat);
                         sheet.addCell(popLabel3c);
                       }
                     }
                     else{
                       
-                      jxl.write.Label popLabel3c = new jxl.write.Label(3, count, "NaN");
+                      jxl.write.Label popLabel3c = new jxl.write.Label(4, count, "NaN");
                       sheet.addCell(popLabel3c);
                       
                     }
                     
                     
                     if(enc.getLocationID()!=null){
-                      Label popLabel3d = new Label(4, count, enc.getLocationID());
+                      Label popLabel3d = new Label(5, count, enc.getLocationID());
                       sheet.addCell(popLabel3d);
                     }
                     
                     
                     //
                     if(enc.getIndividualID()!=null){
-                      Label popLabel4a1 = new Label(5, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
+                      Label popLabel4a1 = new Label(6, count, enc.getIndividualID().replaceAll("[^a-zA-Z0-9]", ""));
                       sheet.addCell(popLabel4a1);
                       
                       Label popLabel4a2 = new Label(0, count, enc.getIndividualID());
