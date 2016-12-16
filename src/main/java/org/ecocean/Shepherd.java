@@ -2400,9 +2400,9 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     String filter = "";
     if (rightSide) {
-      filter = "this.numSpotsRight > 0";
+      filter = "this.rightSpots != null";
     } else {
-      filter = "this.numSpotsLeft > 0";
+      filter = "this.spots != null";
     }
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     int num = 0;

@@ -201,8 +201,9 @@ public class Encounter implements java.io.Serializable {
   public String distinguishingScar = "None";
   //describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
 
-  private int numSpotsLeft = 0;
-  private int numSpotsRight = 0;
+  //DEPRECATING OLD DATA CONSTRUCT
+  //private int numSpotsLeft = 0;
+  //private int numSpotsRight = 0;
 
 
   //SPOTS
