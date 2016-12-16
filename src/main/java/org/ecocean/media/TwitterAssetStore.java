@@ -24,7 +24,12 @@ import java.nio.file.Path;
 import java.net.URL;
 import java.io.IOException;
 import org.json.JSONObject;
+import org.json.JSONArray;
 import org.ecocean.TwitterUtil;
+import org.ecocean.media.MediaAssetMetadata;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /*
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -61,6 +66,8 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class TwitterAssetStore extends AssetStore {
+    private static final String METADATA_KEY_RAWJSON = "twitterRawJson";
+
     public TwitterAssetStore(final String name) {
         this(null, name, null, false);
     }
@@ -162,6 +169,53 @@ public class TwitterAssetStore extends AssetStore {
         }
     }
 
+/*   TODO not really sure what to do with updateChild() and friends here..... hmmmm...
+
+    public List<String> allChildTypes() {
+        return Arrays.asList(new String[]{"entity"});
+    }
+    //awkwardly named subset of the above which will be used to determine which should be derived with updateStandardChildren()
+    public List<String> standardChildTypes() {
+        return Arrays.asList(new String[]{"entity"});
+    }
+    public MediaAsset updateChild(MediaAsset parent, String type, HashMap<String,Object> opts) throws IOException {
+    }
+*/
+
+
+/*  regarding media (etc) in tweets:  seems .extended_entities.media is the same as .entities.media ???  but extended (duh?) might have more details?
+        https://dev.twitter.com/overview/api/entities-in-twitter-objects
+        https://dev.twitter.com/overview/api/entities
+*/
+
+///// note: might also want to walk .entities.urls -- https://dev.twitter.com/overview/api/entities-in-twitter-objects#urls
+    public static List<MediaAsset> entitiesAsMediaAssets(MediaAsset ma) {
+        JSONObject raw = getRawJSONObject(ma);
+        AssetStore store = ma.getStore();
+        if (raw == null) return null;
+        if ((raw.optJSONObject("extended_entities") == null) || (raw.getJSONObject("extended_entities").optJSONArray("media") == null)) return null;
+        List<MediaAsset> mas = new ArrayList<MediaAsset>();
+        JSONArray jarr = raw.getJSONObject("extended_entities").getJSONArray("media");
+        for (int i = 0 ; i < jarr.length() ; i++) {
+            JSONObject p = jarr.optJSONObject(i);
+            if (p == null) continue;
+            p.put("id", p.optString("id_str", null));  //squash the long id at "id" with string
+            MediaAsset kid = store.create(p);
+            kid.setParentId(ma.getId());
+            //derivationMethods?  metadata? (of image) etc.... ??
+            mas.add(kid);
+        }
+        return mas;
+    }
+
+    //this assumes we already set metadata
+    public static JSONObject getRawJSONObject(MediaAsset ma) {
+        if (ma == null) return null;
+        MediaAssetMetadata md = ma.getMetadata();
+        if ((md == null) || (md.getData() == null)) return null;
+        return md.getData().optJSONObject(METADATA_KEY_RAWJSON);
+    }
+    
 /*
     //most likely you want grabAndParse() really.
     //  how should we thread in bkgd??? ... probably this should by synchrous, but stuff can bg when needed (e.g. extractMetadata)
@@ -280,7 +334,7 @@ System.out.println("video child created: " + kid);
         Long id = longIdFromParameters(ma.getParameters());
         if (id == null) return new MediaAssetMetadata(data);
         Status tweet = TwitterUtil.getTweet(id);
-        data.put("twitterRawJson", TwitterUtil.toJSONObject(tweet));
+        data.put(METADATA_KEY_RAWJSON, TwitterUtil.toJSONObject(tweet));
         return new MediaAssetMetadata(data);
     }
 
