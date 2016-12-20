@@ -16,6 +16,11 @@ import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.lang.Runnable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
 // global variables are initialized, and do so if necessary.
@@ -100,8 +105,33 @@ public class StartupWildbook implements ServletContextListener {
         } catch (Exception ex) {}
 System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
-        if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
-        IBEISIA.primeIA();
+        //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
+        if ((res != null) && res.toString().equals("jndi:/localhost/")) {
+            IBEISIA.primeIA();
+        }
+
+        System.out.println("+ queue service starting");
+        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
+        ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+            int count = 0;
+            public void run() {
+                ++count;
+                System.out.println("==== Executed! " + count + " ====");
+                if (count > 13) {
+                    schedExec.shutdown();
+                }
+            }
+        },
+        10,  //initial delay
+        10,  //period delay *after* execution finishes
+        TimeUnit.SECONDS);
+        System.out.println("---- about to awaitTermination() ----");
+        try {
+            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+        } catch (java.lang.InterruptedException ex) {
+            System.out.println("WARNING: queue interrupted! " + ex.toString());
+        }
+        System.out.println("==== schedExec.shutdown() called, apparently");
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
