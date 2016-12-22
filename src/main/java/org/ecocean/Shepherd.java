@@ -2402,9 +2402,9 @@ public class Shepherd {
     Extent encClass = pm.getExtent(Encounter.class, true);
     String filter = "";
     if (rightSide) {
-      filter = "this.numSpotsRight > 0";
+      filter = "this.rightSpots != null";
     } else {
-      filter = "this.numSpotsLeft > 0";
+      filter = "this.spots != null";
     }
     Query acceptedEncounters = pm.newQuery(encClass, filter);
     int num = 0;
@@ -2808,7 +2808,7 @@ public class Shepherd {
 					if(!nameString.equals(imageName)){hasKeyword=false;}
 			}
       if (hasKeyword && isAcceptableVideoFile(imageName)) {
-              m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+              m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
               //thumbs.add(m_thumb);
               thumbs.add(images.get(i));
       }
@@ -2887,7 +2887,7 @@ public class Shepherd {
             if(!nameString.equals(imageName)){hasKeyword=false;}
         }
         if (hasKeyword && isAcceptableVideoFile(imageName)) {
-                m_thumb = "http://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
+                m_thumb = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/images/video.jpg" + "BREAK" + enc.getEncounterNumber() + "BREAK" + imageName;
                 //thumbs.add(m_thumb);
                 thumbs.add(images.get(i));
         }

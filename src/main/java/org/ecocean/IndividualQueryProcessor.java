@@ -479,6 +479,88 @@ public class IndividualQueryProcessor {
     }
     //end verbatimEventDate filters-----------------------------------------------
 
+    //start date added filter----------------------------
+    if((request.getParameter("addedday1")!=null)&&(request.getParameter("addedmonth1")!=null)&&(request.getParameter("addedyear1")!=null)&&(request.getParameter("addedday2")!=null)&&(request.getParameter("addedmonth2")!=null)&&(request.getParameter("addedyear2")!=null)) {
+      try{
+
+        //get our date values
+        int addedday1=(new Integer(request.getParameter("addedday1"))).intValue();
+        int addedday2=(new Integer(request.getParameter("addedday2"))).intValue();
+        int addedmonth1=(new Integer(request.getParameter("addedmonth1"))).intValue();
+        int addedmonth2=(new Integer(request.getParameter("addedmonth2"))).intValue();
+        int addedyear1=(new Integer(request.getParameter("addedyear1"))).intValue();
+        int addedyear2=(new Integer(request.getParameter("addedyear2"))).intValue();
+
+        prettyPrint.append("Encounter creation dates between: "+addedyear1+"-"+addedmonth1+"-"+addedday1+" and "+addedyear2+"-"+addedmonth2+"-"+addedday2+"<br />");
+
+        //order our values
+        int addedminYear=addedyear1;
+        int addedminMonth=addedmonth1;
+        int addedminDay=addedday1;
+        int addedmaxYear=addedyear2;
+        int addedmaxMonth=addedmonth2;
+        int addedmaxDay=addedday2;
+        if(addedyear1>addedyear2) {
+          addedminDay=addedday2;
+          addedminMonth=addedmonth2;
+          addedminYear=addedyear2;
+          addedmaxDay=addedday1;
+          addedmaxMonth=addedmonth1;
+          addedmaxYear=addedyear1;
+        }
+        else if(addedyear1==addedyear2) {
+          if(addedmonth1>addedmonth2) {
+              addedminDay=addedday2;
+              addedminMonth=addedmonth2;
+              addedminYear=addedyear2;
+              addedmaxDay=addedday1;
+              addedmaxMonth=addedmonth1;
+              addedmaxYear=addedyear1;
+          }
+          else if(addedmonth1==addedmonth2) {
+            if(addedday1>addedday2) {
+              addedminDay=addedday2;
+              addedminMonth=addedmonth2;
+              addedminYear=addedyear2;
+              addedmaxDay=addedday1;
+              addedmaxMonth=addedmonth1;
+              addedmaxYear=addedyear1;
+            }
+          }
+        }
+
+        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
+
+        //let's do some month and day checking to avoid exceptions
+        org.joda.time.DateTime addedtestMonth1=new org.joda.time.DateTime(addedminYear,addedminMonth,1,0,0);
+        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();    
+        org.joda.time.DateTime addedtestMonth2=new org.joda.time.DateTime(addedmaxYear,addedmaxMonth,1,0,0);
+        if(addedtestMonth2.dayOfMonth().getMaximumValue()<addedmaxDay) addedmaxDay=addedtestMonth2.dayOfMonth().getMaximumValue();
+    
+    
+        org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
+        org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
+    
+    
+        
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_INDIVIDUAL_WHERE)){
+          filter+="((enc.dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (enc.dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+        }
+        else{
+          filter+=" && ((enc.dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (enc.dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+    
+        }
+        
+    //end date added filter------------------------------------------
+      } catch(NumberFormatException nfe) {
+        //do nothing, just skip on
+        nfe.printStackTrace();
+          }
+        }
+    
+    
+    
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
     String releaseDateToStr = request.getParameter("releaseDateTo");
     String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
@@ -679,7 +761,7 @@ public class IndividualQueryProcessor {
               }
               locIDFilter+=" )";
 
-            
+
                 if(filter.indexOf("encounters.contains(enc3_"+kwIter+")")==-1){
                   if(kwIter>0){filter+=" "+photoKeywordOperator+" ";}
                   filter+="(  encounters.contains(enc3_"+kwIter+")";
@@ -689,10 +771,10 @@ public class IndividualQueryProcessor {
 
                 if(filter.indexOf("photo"+kwIter+".features.contains(feat"+kwIter+")")==-1){filter+=" && photo"+kwIter+".features.contains(feat"+kwIter+")";}
 
-                
+
                 if(filter.indexOf("feat"+kwIter+".asset.keywords.contains(word"+kwIter+")")==-1){filter+=" && feat"+kwIter+".asset.keywords.contains(word"+kwIter+")";}
                 filter+=(" && "+locIDFilter+")");
-            
+
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Encounter enc3_"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Encounter enc3_"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Annotation photo"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Annotation photo"+kwIter;}
               if(!jdoqlVariableDeclaration.contains("org.ecocean.Keyword word"+kwIter)){jdoqlVariableDeclaration+=";org.ecocean.Keyword word"+kwIter;}
@@ -1332,7 +1414,9 @@ public class IndividualQueryProcessor {
           else if(request.getParameter("sort").equals("numberEncounters")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberEncounters descending", paramMap);}
           else if(request.getParameter("sort").equals("numberLocations")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "numberLocations descending", paramMap);}
           else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
-          
+          // Added to show adoptable sharks in gallery.
+          else if(request.getParameter("sort").equals("dateTimeLatestSighting")) {allSharks=myShepherd.getAllMarkedIndividuals(query, "dateTimeLatestSighting descending", paramMap);}
+
           else{
             allSharks=myShepherd.getAllMarkedIndividuals(query, "individualID ascending", paramMap);
           }

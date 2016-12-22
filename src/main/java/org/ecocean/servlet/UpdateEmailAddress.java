@@ -121,7 +121,7 @@ public class UpdateEmailAddress extends HttpServlet {
 
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Success!</strong> I successfully replaced " + numChanges + " instance(s) of email address " + findEmail + " with " + replaceEmail + ".");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
 
     } 
@@ -131,7 +131,7 @@ public class UpdateEmailAddress extends HttpServlet {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I encountered an exception trying to replace this email address. The exception is listed below.");
       out.println("<pre>" + e.getMessage() + "</pre>");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/admin.jsp\">Return to Administration</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
       e.printStackTrace();
     }

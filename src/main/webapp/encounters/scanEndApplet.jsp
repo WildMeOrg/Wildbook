@@ -219,7 +219,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 </p>
 <p>The following encounter(s) received the highest
   match values against a <%=side%>-side scan of encounter <a
-    href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
+    href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=num%>"><%=num%></a>.</p>
 
 
 <%
@@ -238,7 +238,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
 
 
 <%
-    String feedURL = "http://" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
+    String feedURL = "//" + CommonConfiguration.getURLLocation(request) + "/TrackerFeed?number=" + num;
     String baseURL = "/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/";
 
     //System.out.println("Base URL is: " + baseURL);
@@ -300,14 +300,14 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         <tr>
           <td>
             <a
-                  href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
+                  href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=results[p].getIndividualName()%>"><%=results[p].getIndividualName()%>
                 </a>
           </td>
           <%if (results[p].encounterNumber.equals("N/A")) {%>
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=results[p].encounterNumber%>"><%=results[p].encounterNumber%>
           </a></td>
           <%
             }
@@ -357,7 +357,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
         
         <tr align="left" valign="top">
           <td>
-            <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
+            <a href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=enc1.attributeValue("assignedToShark")%>">
             	<%=enc1.attributeValue("assignedToShark")%>
             </a>
           </td>
@@ -365,7 +365,7 @@ File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
           <td>N/A</td>
           <%} else {%>
           <td><a
-            href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
+            href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc1.attributeValue("number")%>">Link
           </a></td>
           <%
             }
