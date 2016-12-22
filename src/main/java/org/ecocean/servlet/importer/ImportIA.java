@@ -78,6 +78,8 @@ public class ImportIA extends HttpServlet {
        }
 
 
+    //do not group into (any) Occurrences -- this will force one Annotation per Encounter as well
+    boolean disableOccurrence = true;
 
     for (int i = 0; i < fancyImageSetUUIDS.length(); i++) {
         if ((testingLimit > 0) && (i >= testingLimit)) continue;
@@ -175,27 +177,58 @@ System.out.println("iaNamesArray ----> " + iaNamesArray);
       }
 
       for (String name : uniqueNames) {
-        if (IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
+        if (disableOccurrence || IBEISIA.unknownName(name)) {   // we need one encounter per annot for unknown!
             for (Annotation ann : annotGroups.get(name)) {
                 Encounter enc = new Encounter(ann);
                 enc.setMatchedBy("IBEIS IA");
+                String sex = null;
+                try {
+                    sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
+System.out.println("--- sex=" + sex);
+                } catch (Exception ex) {}
+                Double age = null;
+                try {
+                    //guess this assumes we have at least one annot and it has age; could walk thru if not?
+                    age = IBEISIA.iaAgeFromAnnotUUID(annotGroups.get(name).get(0).getId());
+                } catch (Exception ex) {}
+                if (age != null) enc.setAge(age);
                 myShepherd.beginDBTransaction();
                 myShepherd.storeNewEncounter(enc, Util.generateUUID());
                 myShepherd.storeNewAnnotation(ann);
                 myShepherd.commitDBTransaction();
                 myShepherd.beginDBTransaction();
                 System.out.println("IA-IMPORT: " + enc);
-                if (occ == null) {
+
+                if (!IBEISIA.unknownName(name)) {  //disableOccurrence case...
+                    enc.setIndividualID(name);
+                    if (myShepherd.isMarkedIndividual(name)) {
+                        MarkedIndividual ind = myShepherd.getMarkedIndividual(name);
+                        if ((ind.getSex() == null) && (sex != null)) ind.setSex(sex); //only if not set already
+                        ind.addEncounter(enc, context);
+                    } else {
+                        MarkedIndividual ind = new MarkedIndividual(name, enc);
+                        if (sex != null) ind.setSex(sex);
+                        myShepherd.storeNewMarkedIndividual(ind);
+                        System.out.println("IA-IMPORT: new indiv " + ind);
+                    }
+                }
+
+                if (disableOccurrence) {
+                    //do nothing!
+                } else if (occ == null) {
                     occ = myShepherd.getOccurrence(occID);
                     if (occ == null) occ = new Occurrence(occID, enc);
 System.out.println("NEW OCC created (via unnamed) " + occ);
+                    myShepherd.getPM().makePersistent(occ);
+                    System.out.println("IA-IMPORT: " + occ);
+                    myShepherd.commitDBTransaction();
                 } else {
                     occ.addEncounter(enc);
 System.out.println("using old OCC (via unnamed) " + occ);
+                    myShepherd.getPM().makePersistent(occ);
+                    System.out.println("IA-IMPORT: " + occ);
+                    myShepherd.commitDBTransaction();
                 }
-                myShepherd.getPM().makePersistent(occ);
-                System.out.println("IA-IMPORT: " + occ);
-                myShepherd.commitDBTransaction();
             }
 
         } else {
@@ -218,7 +251,7 @@ System.out.println("using old OCC (via unnamed) " + occ);
         */
             String sex = null;
             try {
-            sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
+                sex = IBEISIA.iaSexFromAnnotUUID(annotGroups.get(name).get(0).getId());
 System.out.println("--- sex=" + sex);
             } catch (Exception ex) {}
             Double age = null;
@@ -265,9 +298,12 @@ System.out.println("using old OCC " + occ);
 
       }
 
+      if (occ != null) {
 System.out.println("zzzzzzzzzzzzzzzzzz " + occ);
         myShepherd.getPM().makePersistent(occ);
         myShepherd.commitDBTransaction();
+      }
+
     }
 
     //myShepherd.closeDBTransaction();
