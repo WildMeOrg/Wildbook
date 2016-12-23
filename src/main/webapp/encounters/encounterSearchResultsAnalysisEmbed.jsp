@@ -491,7 +491,7 @@
                      	  haploColor = haploprops.getProperty(haplo);
                         }
 					%>
-					'#<%=haploColor%>',
+					'#<%=haploColor %>',
 					<%
                    }
                    %>
@@ -508,8 +508,8 @@
       google.setOnLoadCallback(drawStateChart);
       function drawStateChart() {
         var statesdata = new google.visualization.DataTable();
-        statesdata.addColumn('string', 'State');
-        statesdata.addColumn('number', 'Number');
+        statesdata.addColumn('string', '<%=encprops.getProperty("state") %>');
+        statesdata.addColumn('number', '<%=encprops.getProperty("number") %>');
         statesdata.addRows([
           <%
          
@@ -680,8 +680,8 @@
       google.setOnLoadCallback(drawDiscoveryCurve);
      function drawDiscoveryCurve() {
        var discoveryCurveData = new google.visualization.DataTable();
-       discoveryCurveData.addColumn('number', 'No. encounters at new individual discoveries');
-       discoveryCurveData.addColumn('number', 'No. Marked Individuals');
+       discoveryCurveData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
+       discoveryCurveData.addColumn('number', '<%=encprops.getProperty("numberIndividuals") %>');
        discoveryCurveData.addRows([
          <%
          Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
@@ -705,7 +705,7 @@
          width: 450, height: 300,
          title: '<%=encprops.getProperty("discoveryCurveTitle") %> (n=<%=markedIndividuals.size()%>)',
          hAxis: {title: '<%=encprops.getProperty("discoveryEncounters") %>'},
-         vAxis: {title: '<%=encprops.getProperty("numberMarkedIndividuslas") %>'},
+         vAxis: {title: '<%=encprops.getProperty("numberIndividuals") %>'},
          pointSize: 3,
        };
      var discoveryCurveChart = new google.visualization.ScatterChart(document.getElementById('discoveryCurve_div'));
@@ -716,8 +716,8 @@
      google.setOnLoadCallback(drawFrequencyChart);
     function drawFrequencyChart() {
       var frequencyData = new google.visualization.DataTable();
-      frequencyData.addColumn('number', 'Week No.');
-      frequencyData.addColumn('number', 'No. Encounters');
+      frequencyData.addColumn('number', '<%=encprops.getProperty("weekNumber") %>');
+      frequencyData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
       frequencyData.addRows([
         <%
         //Enumeration<Integer> discoveryKeys=discoveryCurveInflectionPoints.keys();
@@ -741,7 +741,7 @@
         width: 450, height: 300,
         title: '<%=encprops.getProperty("weeklyTitle") %>',
         hAxis: {title: '<%=encprops.getProperty("weekNumber") %>'},
-        vAxis: {title: '<%=encprops.getProperty("numMatchingEncounters") %>'},
+        vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
       };
     var frequencyChart = new google.visualization.ColumnChart(document.getElementById('frequency_div'));
     frequencyChart.draw(frequencyData, frequencyChartOptions);
@@ -754,8 +754,8 @@
     google.setOnLoadCallback(drawYearAddedChart);
    function drawYearAddedChart() {
      var yearAddedData = new google.visualization.DataTable();
-     yearAddedData.addColumn('string', 'Year');
-     yearAddedData.addColumn('number', 'No. Encounters');
+     yearAddedData.addColumn('string', '<%=encprops.getProperty("weekNumber") %>');
+     yearAddedData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
      yearAddedData.addRows([
        <%
        
@@ -799,7 +799,7 @@
        width: 450, height: 300,
        title: '<%=encprops.getProperty("encountersByYearTitle") %>',
        hAxis: {title: '<%=encprops.getProperty("year") %>'},
-       vAxis: {title: '<%=encprops.getProperty("numMatchingEncounters") %>'},
+       vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
      };
    var yearAddedChart = new google.visualization.ColumnChart(document.getElementById('yearadded_div'));
    yearAddedChart.draw(yearAddedData, yearAddedChartOptions);
@@ -811,8 +811,8 @@
    google.setOnLoadCallback(drawYearTotalsChart);
   function drawYearTotalsChart() {
     var yearTotalsData = new google.visualization.DataTable();
-    yearTotalsData.addColumn('string', 'Year');
-    yearTotalsData.addColumn('number', 'No. Encounters Total');
+    yearTotalsData.addColumn('string', '<%=encprops.getProperty("year") %>');
+    yearTotalsData.addColumn('number', '<%=encprops.getProperty("numberEncounters") %>');
     yearTotalsData.addRows([
       <%
 
@@ -838,7 +838,7 @@
       width: 450, height: 300,
       title: '<%=encprops.getProperty("encounterTotalsTitle") %>',
       hAxis: {title: '<%=encprops.getProperty("year") %>'},
-      vAxis: {title: '<%=encprops.getProperty("numMatchingEncounters") %>'},
+      vAxis: {title: '<%=encprops.getProperty("numberEncounters") %>'},
     };
   var yearTotalsChart = new google.visualization.ColumnChart(document.getElementById('yeartotals_div'));
   yearTotalsChart.draw(yearTotalsData, yearTotalsChartOptions);
