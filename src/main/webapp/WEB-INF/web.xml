@@ -80,7 +80,7 @@
     <filter-name>UTF8Filter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
-
+<!--
   <filter>
     <filter-name>UrlRewriteFilter</filter-name>
     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
@@ -91,7 +91,7 @@
     <dispatcher>REQUEST</dispatcher>
     <dispatcher>FORWARD</dispatcher>
 </filter-mapping>
-
+-->
 
   <filter>
         <filter-name>ShiroFilter</filter-name>
@@ -138,9 +138,9 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[imageProcessor]
-				/InterconnectSubmitSpots = authc, roles[imageProcessor]
-				/interconnectSubmitSpots = authc, roles[imageProcessor]
+                /SubmitSpots = authc, roles[machinelearning]
+				/InterconnectSubmitSpots = authc, roles[machinelearning]
+				/interconnectSubmitSpots = authc, roles[machinelearning]
 
 				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
 				/SubmitSpotsAndImage = authc, roles[imageProcessor]
@@ -239,12 +239,11 @@
 				    /MyAccountRemoveProfileImage = authc
 
 					/IndividualSetNickname = authc, roles[researcher]
-					/AdoptionAction = authc,roles[admin]
 
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
-					/ResurrectDeletedAdoption = = authc,roles[admin]
+					
 
 
             </param-value>
@@ -277,9 +276,17 @@
     <url-pattern>/di/ImgFilter/*</url-pattern>
   </filter-mapping>
 
+  <servlet>
+    <description>StripePayment</description>
+    <servlet-name>StripePayment</servlet-name>
+    <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
+  </servlet>
 
-
-
+  <servlet>
+    <description>StripeUpdate</description>
+    <servlet-name>StripeUpdate</servlet-name>
+    <servlet-class>org.ecocean.servlet.StripeUpdate</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -565,6 +572,11 @@
   <servlet>
     <servlet-name>MediaAssetCreate</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetCreate</servlet-class>
+  </servlet>
+
+  <servlet>
+    <servlet-name>EncounterCreate</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
   </servlet>
 
   <servlet>
@@ -1064,10 +1076,6 @@
     <servlet-class>org.ecocean.servlet.ResurrectDeletedEncounter</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>ResurrectDeletedAdoption</servlet-name>
-    <servlet-class>org.ecocean.servlet.ResurrectDeletedAdoption</servlet-class>
-  </servlet>
 
 
 
@@ -1218,6 +1226,15 @@
 
 
 
+<servlet-mapping>
+  <servlet-name>StripePayment</servlet-name>
+  <url-pattern>/StripePayment</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>StripeUpdate</servlet-name>
+  <url-pattern>/StripeUpdate</url-pattern>
+</servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>SubmitSpotsAndImage</servlet-name>
@@ -1341,6 +1358,11 @@
     <servlet-mapping>
       <servlet-name>MediaAssetCreate</servlet-name>
       <url-pattern>/MediaAssetCreate</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+      <servlet-name>EncounterCreate</servlet-name>
+      <url-pattern>/EncounterCreate</url-pattern>
     </servlet-mapping>
 
       <servlet-mapping>
@@ -1656,10 +1678,7 @@
         <url-pattern>/IndividualSetYearOfBirth</url-pattern>
   </servlet-mapping>
 
-  <servlet-mapping>
-    <servlet-name>ResurrectDeletedAdoption</servlet-name>
-    <url-pattern>/ResurrectDeletedAdoption</url-pattern>
-  </servlet-mapping>
+
 
   <servlet-mapping>
     <servlet-name>IndividualRemoveEncounter</servlet-name>

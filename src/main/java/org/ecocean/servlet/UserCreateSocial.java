@@ -87,7 +87,7 @@ import org.scribe.oauth.*;
         }
 			WebContext ctx = new J2EContext(request, response);
 			//String callbackUrl = "http://localhost.wildme.org/a/UserCreateSocial?type=facebook";
-			String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
+			String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=facebook";
 			fbclient.setCallbackUrl(callbackUrl);
 
 			OAuthCredentials credentials = null;
@@ -159,7 +159,7 @@ System.out.println("email: " + facebookProfile.getEmail());
             String otoken = request.getParameter("oauth_token");
 
             OAuthService service = null;
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=flickr";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/UserCreateSocial?type=flickr";
             try {
                 service = SocialAuth.getFlickrOauth(context, callbackUrl);
             } catch (Exception ex) {

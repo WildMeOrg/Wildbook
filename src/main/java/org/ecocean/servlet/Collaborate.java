@@ -127,7 +127,7 @@ System.out.println(collabs);
           tagMap.put("@CONTEXT_NAME@", ContextConfiguration.getNameForContext(context));
           tagMap.put("@USER@", username);
           tagMap.put("@SENDER@", currentUsername);
-          tagMap.put("@LINK@", String.format("http://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
+          tagMap.put("@LINK@", String.format(request.getScheme()+"://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
           tagMap.put("@TEXT_CONTENT@", optionalMessage == null ? "" : optionalMessage);
 					System.out.println("/Collaborate: attempting email to (" + username + ") " + mailTo);
 					ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
