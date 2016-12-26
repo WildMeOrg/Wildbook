@@ -504,11 +504,11 @@ int numDataContributors=0;
                   <%
                   if(CommonConfiguration.allowAdoptions(context)){
                   %>
-                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt">Adopt Me<span class="button-icon" aria-hidden="true"></button></a>
+                    <a href="<%=urlLoc%>/createadoption.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
                   <%
                   }
                   %>  
-                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt">Animal Profile<span class="button-icon" aria-hidden="true"></button></a>
+                    <a href="<%=urlLoc%>/individuals.jsp?number=<%=pairName[j]%>"><button class="large adopt"><%=props.getProperty("viewProfile") %><span class="button-icon" aria-hidden="true"></button></a>
                   </div>
                 </td>
               </tr></table>
