@@ -110,28 +110,36 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
             IBEISIA.primeIA();
         }
 
-        System.out.println("+ queue service starting");
-        final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
-        ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
-            int count = 0;
-            public void run() {
-                ++count;
-                System.out.println("==== Executed! " + count + " ====");
-                if (count > 13) {
-                    schedExec.shutdown();
+        File qdir = ScheduledQueue.setQueueDir(context);
+        if (qdir == null) {
+            System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
+        } else {
+            System.out.println("+ queue service starting; dir = " + qdir.toString());
+            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
+            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+                int count = 0;
+                public void run() {
+                    ++count;
+                    boolean cont = ScheduledQueue.checkQueue();
+                    System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
+                    if (!cont) {
+                        System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
+                        schedExec.shutdown();
+                    }
                 }
+            },
+            10,  //initial delay  ... TODO these could be configurable, obvs
+            10,  //period delay *after* execution finishes
+            TimeUnit.SECONDS);
+            System.out.println("---- about to awaitTermination() ----");
+            try {
+                schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            } catch (java.lang.InterruptedException ex) {
+                System.out.println("WARNING: queue interrupted! " + ex.toString());
             }
-        },
-        10,  //initial delay
-        10,  //period delay *after* execution finishes
-        TimeUnit.SECONDS);
-        System.out.println("---- about to awaitTermination() ----");
-        try {
-            schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
-        } catch (java.lang.InterruptedException ex) {
-            System.out.println("WARNING: queue interrupted! " + ex.toString());
+            System.out.println("==== schedExec.shutdown() called, apparently");
         }
-        System.out.println("==== schedExec.shutdown() called, apparently");
+
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
