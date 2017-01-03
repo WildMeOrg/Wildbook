@@ -8,6 +8,9 @@ import javax.servlet.ServletContext;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.Files;
+import org.ecocean.servlet.IAGateway;
+import org.json.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 public class ScheduledQueue {
 
@@ -48,8 +51,39 @@ System.out.println(">>>>> root path = " +  root);
             return true;
         }
 
-        System.out.println("INFO: ScheduledQueue successfully engaged file " + activeFile.toString() + "; made .active");
-/////////// TODO DO STUFF! !!!!!! ////////////
+        System.out.println("INFO: ScheduledQueue successfully engaged file " + nextFile.toString() + "; made .active");
+
+        // for now we assume we *only* support json content... fix if you need to, future
+        String fcontents = null;
+        JSONObject jobj = null;
+        try {
+            fcontents = StringUtils.join(Files.readAllLines(activeFile.toPath(), java.nio.charset.Charset.defaultCharset()), "");
+            jobj = new JSONObject(fcontents);
+        } catch (Exception ex) {
+            System.out.println("ERROR: ScheduledQueue could not read or parse json for " + nextFile + ": " + ex.toString());
+            jobj = new JSONObject();  //this allows passthru for completion
+        }
+
+        if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
+            JSONObject res = new JSONObject("\"success\": false");
+            res.put("taskId", jobj.getString("taskId"));
+            String context = jobj.optString("context", "context0");
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("ScheduledQueue.detect");
+            myShepherd.beginDBTransaction();
+            String baseUrl = jobj.optString("baseUrl", null);
+            try {
+                JSONObject rtn = IAGateway._doDetect(jobj.getJSONObject("detect"), res, myShepherd, context, baseUrl);
+                System.out.println("INFO: ScheduledQueue 'detect' from " + nextFile + " successful --> " + rtn.toString());
+                myShepherd.commitDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("ERROR: ScheduledQueue 'detect' from " + nextFile + " threw exception: " + ex.toString());
+                myShepherd.rollbackDBTransaction();
+            }
+            myShepherd.closeDBTransaction();
+        } else {
+            System.out.println("WARNING: ScheduledQueue unable to use json data in " + nextFile + "; ignoring");
+        }
 
         File completedFile = new File(nextFile.toString() + ".complete");
         if (completedFile.exists()) {
