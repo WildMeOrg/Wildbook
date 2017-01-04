@@ -203,8 +203,9 @@ public class Encounter implements java.io.Serializable {
   public String distinguishingScar = "None";
   //describes how this encounter was matched to an existing shark - by eye, by pattern recognition algorithm etc.
 
-  private int numSpotsLeft = 0;
-  private int numSpotsRight = 0;
+  //DEPRECATING OLD DATA CONSTRUCT
+  //private int numSpotsLeft = 0;
+  //private int numSpotsRight = 0;
 
 
   //SPOTS
@@ -2417,7 +2418,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         }
 
         public String getUrl(HttpServletRequest request) {
-          return "http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
+          return request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + this.getCatalogNumber();
         }
 
         /**

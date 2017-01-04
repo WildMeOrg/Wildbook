@@ -21,9 +21,8 @@ package org.ecocean.grid;
 
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
@@ -44,7 +43,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static String thisURLRoot = "www.flukebook.org";
+  public static String thisURLRoot = "https://www.whaleshark.org";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -82,7 +81,7 @@ public class WorkAppletHeadlessEpic {
 
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
-    //if(args[0]!=null)thisURLRoot=args[0];
+    if(args[0]!=null)thisURLRoot=args[0];
     a.getGoing();
   }
 
@@ -99,7 +98,7 @@ public class WorkAppletHeadlessEpic {
     long startTime=(new GregorianCalendar()).getTimeInMillis();
     
     //server connection
-    URLConnection con=null;
+    HttpsURLConnection con=null;
 
 
     //whether this is a right-side pattern scan or a left-side
@@ -180,10 +179,10 @@ public class WorkAppletHeadlessEpic {
             //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             String encNumParam = "&newEncounterNumber=" + holdEncNumber;
            
-            URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            java.net.URL u = new java.net.URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
-            con = u.openConnection();
+            con = (HttpsURLConnection)u.openConnection();
             
             con.setDoInput(true);
             con.setDoOutput(true);
@@ -325,9 +324,9 @@ public class WorkAppletHeadlessEpic {
               //if we have results to send, send 'em!
               if (resultsSize > 0) {
 
-                URL finishScan = new URL("http://www.flukebook.org/ScanWorkItemResultsHandler?" + "group=true&nodeIdentifier=" + nodeID);
+                URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler2?" + "group=true&nodeIdentifier=" + nodeID);
                 System.out.println("Trying to send results to: "+finishScan.toString());
-                URLConnection finishConnection = finishScan.openConnection();
+                HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
 
                 // inform the connection that we will send output and accept input
                 finishConnection.setDoInput(true);

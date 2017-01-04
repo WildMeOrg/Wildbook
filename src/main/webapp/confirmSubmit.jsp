@@ -55,7 +55,7 @@ context=ServletUtilities.getContext(request);
 new_message.append("<html><body>");
 
   new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
-    "view it at:<br>http://" + CommonConfiguration.getURLLocation(request) +
+    "view it at:<br>" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
     ".jsp?number="+ number);
   new_message.append("<br><br>Quick stats:<br>");
@@ -207,7 +207,7 @@ new_message.append("<html><body>");
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
 <p>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
+	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>
 <%
 

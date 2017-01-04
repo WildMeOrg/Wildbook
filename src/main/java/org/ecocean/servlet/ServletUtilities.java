@@ -376,7 +376,7 @@ public class ServletUtilities {
         }
         else if (request.isUserInRole(enc.getLocationCode())) {
           isOwner = true;
-        } 
+        }
         else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
           isOwner = true;
         }
@@ -390,11 +390,11 @@ public class ServletUtilities {
     //if (request.isUserInRole("admin")) {
       if (request.getUserPrincipal()!=null) {
           //return true;
-        
+
         if (request.isUserInRole("admin")) {
           return true;
         }
-    
+
         Vector encounters = sharky.getEncounters();
         int numEncs = encounters.size();
         for (int y = 0; y < numEncs; y++) {
@@ -404,16 +404,16 @@ public class ServletUtilities {
           }
         }
       }
-    //} 
+    //}
     return false;
   }
 
   //occurrence
   public static boolean isUserAuthorizedForOccurrence(Occurrence sharky, HttpServletRequest request) {
-    
+
       if (request.getUserPrincipal()!=null) {
-        
-          if (request.isUserInRole("admin")) {  return true;  } 
+
+          if (request.isUserInRole("admin")) {  return true;  }
           ArrayList<Encounter> encounters = sharky.getEncounters();
           int numEncs = encounters.size();
           for (int y = 0; y < numEncs; y++) {
@@ -423,7 +423,7 @@ public class ServletUtilities {
             }
           }
       }
-      
+
 
     return false;
   }

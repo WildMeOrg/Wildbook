@@ -87,7 +87,7 @@ import org.scribe.oauth.*;
             System.out.println("SocialAuth.getFacebookClient threw exception " + ex.toString());
         }
 			WebContext ctx = new J2EContext(request, response);
-			fbclient.setCallbackUrl("http://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=facebook");
+			fbclient.setCallbackUrl(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=facebook");
 
 			OAuthCredentials credentials = null;
 			try {
@@ -149,7 +149,7 @@ System.out.println("*** trying redirect?");
         String otoken = request.getParameter("oauth_token");
 
         OAuthService service = null;
-        String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=flickr";
+        String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/LoginUserSocial?type=flickr";
         try {
             service = SocialAuth.getFlickrOauth(context, callbackUrl);
         } catch (Exception ex) {
