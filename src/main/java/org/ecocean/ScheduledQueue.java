@@ -11,10 +11,12 @@ import java.nio.file.Files;
 import org.ecocean.servlet.IAGateway;
 import org.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
+import java.io.PrintWriter;
 
 public class ScheduledQueue {
 
     private static File queueDir = null;
+    private static int rapidIterationDepth = 0;
 
     public static File getQueueDir() {
         return queueDir;
@@ -26,6 +28,7 @@ System.out.println(">>>>> root path = " +  root);
         queueDir = new File("/tmp/ScheduledQueue");
         return queueDir;
     }
+
     public static boolean checkQueue() {
         if (queueDir == null) {
             System.out.println("ERROR: ScheduledQueue.checkQueue queueDir is null; failing");
@@ -97,7 +100,31 @@ System.out.println(">>>>> root path = " +  root);
             return true;
         }
 
-        return true;  //one more time...
+        boolean cont = true;
+        //this chunk cycles rapidly thru all of queue without waiting between jobs (by not returning to ScheduledExecutorService)...
+        //  this could be "bad" as it will not let that code do anything else (e.g. break on stop file).
+        //  not sure if this is insanity, but can be commented out to prevent
+        nextFile = getNextFile();
+        if ((nextFile != null) && (rapidIterationDepth < 10)) {   //depth is a sanity valve... only recurse so far rapidly, then bail (for a breather)
+            System.out.println("INFO: ScheduledQueue.checkQueue() rapidly iterating [depth=" + rapidIterationDepth + "] due to existence of file " + nextFile);
+            rapidIterationDepth++;
+            cont = checkQueue();  //will keep recursing and will fall thru when no more files || reached max depth
+        }
+
+        rapidIterationDepth = 0;
+        return cont;
+    }
+
+    public static String addToQueue(String contents) throws java.io.FileNotFoundException, java.io.IOException {
+        if (queueDir == null) throw new RuntimeException("ScheduledQueue.addToQueue() failed, queueDir is not set");
+        String qid = Util.generateUUID();
+        File tmpFile = new File(queueDir, "addToQueue-" + qid + ".tmp");  //write to tmp file first so it doesnt (yet) get picked up by queue til done
+        PrintWriter qout = new PrintWriter(tmpFile);
+        qout.print(contents);
+        qout.close();
+        tmpFile.renameTo(new File(queueDir, qid));
+System.out.println("INFO: addToQueue added " + qid);
+        return qid;
     }
 
     //current algorithm is "oldest" (FIFO); filename simply must be a valid uuid (with no extension)
