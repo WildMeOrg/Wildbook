@@ -112,7 +112,7 @@ import org.scribe.oauth.*;
         }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
@@ -172,7 +172,7 @@ System.out.println("*** trying redirect?");
             String otoken = request.getParameter("oauth_token");
 
             OAuthService service = null;
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             try {
                 service = SocialAuth.getFlickrOauth(context, callbackUrl);

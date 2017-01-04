@@ -75,7 +75,7 @@ public class StartupWildbook implements ServletContextListener {
 
     String rootDir = request.getSession().getServletContext().getRealPath("/");
     String dataDir = ServletUtilities.dataDir("context0", rootDir);
-    String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+    String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
     String dataUrl = urlLoc + "/wildbook_data_dir";
     myShepherd.beginDBTransaction();
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);

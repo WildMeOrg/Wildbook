@@ -75,14 +75,14 @@ public class IndividualAddComment extends HttpServlet {
           myShepherd.commitDBTransaction();
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have successfully added your comments.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
           String message = "A new comment has been added to " + request.getParameter("individual") + ". The new comment is: \n" + request.getParameter("comments");
           ServletUtilities.informInterestedIndividualParties(request, request.getParameter("individual"), message,context);
         } else {
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I did NOT add your comments. Another user is currently modifying this record. Please try to add your comments again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("shark") + "\">Return to individual " + request.getParameter("individual") + "</a></p>\n");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("shark") + "\">Return to individual " + request.getParameter("individual") + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
 
         }
@@ -91,7 +91,7 @@ public class IndividualAddComment extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> You are not authorized to modify this database record.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }
@@ -100,7 +100,7 @@ public class IndividualAddComment extends HttpServlet {
       myShepherd.rollbackDBTransaction();
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Failure:</strong> I do not have enough information to add your comments.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
+      out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + request.getParameter("individual") + "\">Return to " + request.getParameter("individual") + "</a></p>\n");
       out.println(ServletUtilities.getFooter(context));
     }
 

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+service tomcat7 stop
+rm /var/lib/tomcat7/webapps/wildbook.war
+rm -r /var/lib/tomcat7/webapps/wildbook
+cp target/

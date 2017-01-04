@@ -267,7 +267,7 @@ console.log(pdata);
   </script>
 
 
-    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold%7CInconsolata%7CPT+Sans:400,700">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Droid+Sans:regular,bold%7CInconsolata%7CPT+Sans:400,700">
  
  <jsp:include page="../header.jsp" flush="true"/>
 
@@ -275,7 +275,7 @@ console.log(pdata);
 
   
 
-<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+<script src="//code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
 
 <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
  <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>

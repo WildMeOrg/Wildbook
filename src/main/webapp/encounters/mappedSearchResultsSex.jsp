@@ -56,22 +56,6 @@
     		
   %>
 
-    <style type="text/css">
-
-      
-      .full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-}
-
-
-    </style>
   
 
 <style type="text/css">
@@ -139,7 +123,7 @@ margin-bottom: 8px !important;
   
     <jsp:include page="../header.jsp" flush="true"/>
 
-    <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+    <script src="//maps.google.com/maps/api/js?sensor=false"></script>
 
 
     <script type="text/javascript">
@@ -152,14 +136,10 @@ margin-bottom: 8px !important;
         var map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
+          mapTypeId: google.maps.MapTypeId.HYBRID,
+          fullscreenControl: true
         });
 
-    	  //adding the fullscreen control to exit fullscreen
-    	  var fsControlDiv = document.createElement('DIV');
-    	  var fsControl = new FSControl(fsControlDiv, map);
-    	  fsControlDiv.index = 1;
-    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
         
         var markers = [];
@@ -223,10 +203,10 @@ if(rEncounters.size()>0){
     	String individualLinkString="";
     	//if this is a MarkedIndividual, provide a link to it
     	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().toLowerCase().equals("unassigned"))){
-    		individualLinkString="<strong><a target=\"_blank\" href=\"http://"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividualID()+"</a></strong><br />";
+    		individualLinkString="<strong><a target=\"_blank\" href=\"//"+CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+thisEnc.getIndividualID()+"\">"+thisEnc.getIndividualID()+"</a></strong><br />";
     	}
     	%>
-    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
+    	(new google.maps.InfoWindow({content: '<%=individualLinkString %><table><tr><td><img align=\"top\" border=\"1\" src=\"/<%=CommonConfiguration.getDataDirectoryName(context)%>/encounters/<%=encSubdir%>/thumb.jpg\"></td><td>Date: <%=thisEnc.getDate()%><%if(thisEnc.getSex()!=null){%><br />Sex: <%=thisEnc.getSex()%><%}%><%if(thisEnc.getSizeAsDouble()!=null){%><br />Size: <%=thisEnc.getSize()%> m<%}%><br /><br /><a target=\"_blank\" href=\"//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=thisEnc.getEncounterNumber()%>\" >Go to encounter</a></td></tr></table>'})).open(map, this);
 
           
 			});
@@ -246,82 +226,6 @@ myShepherd.rollbackDBTransaction();
  //markerClusterer = new MarkerClusterer(map, markers, {gridSize: 10});
 
       }
-      
-      
-
-      function fullScreen(){
-    		$("#map_canvas").addClass('full_screen_map');
-    		$('html, body').animate({scrollTop:0}, 'slow');
-    		initialize();
-    		
-    		//hide header
-    		$("#header_menu").hide();
-    		
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute fullscreen!");
-    	}
-
-
-    	function exitFullScreen() {
-    		$("#header_menu").show();
-    		$("#map_canvas").removeClass('full_screen_map');
-
-    		initialize();
-    		if(overlaysSet){overlaysSet=false;setOverlays();}
-    		//alert("Trying to execute exitFullScreen!");
-    	}
-
-
-    	//making the exit fullscreen button
-    	function FSControl(controlDiv, map) {
-
-    	  // Set CSS styles for the DIV containing the control
-    	  // Setting padding to 5 px will offset the control
-    	  // from the edge of the map
-    	  controlDiv.style.padding = '5px';
-
-    	  // Set CSS for the control border
-    	  var controlUI = document.createElement('DIV');
-    	  controlUI.style.backgroundColor = '#f8f8f8';
-    	  controlUI.style.borderStyle = 'solid';
-    	  controlUI.style.borderWidth = '1px';
-    	  controlUI.style.borderColor = '#a9bbdf';;
-    	  controlUI.style.boxShadow = '0 1px 3px rgba(0,0,0,0.5)';
-    	  controlUI.style.cursor = 'pointer';
-    	  controlUI.style.textAlign = 'center';
-    	  controlUI.title = 'Toggle the fullscreen mode';
-    	  controlDiv.appendChild(controlUI);
-
-    	  // Set CSS for the control interior
-    	  var controlText = document.createElement('DIV');
-    	  controlText.style.fontSize = '12px';
-    	  controlText.style.fontWeight = 'bold';
-    	  controlText.style.color = '#000000';
-    	  controlText.style.paddingLeft = '4px';
-    	  controlText.style.paddingRight = '4px';
-    	  controlText.style.paddingTop = '3px';
-    	  controlText.style.paddingBottom = '2px';
-    	  controlUI.appendChild(controlText);
-    	  //toggle the text of the button
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	      controlText.innerHTML = 'Exit Fullscreen';
-    	    } else {
-    	      controlText.innerHTML = 'Fullscreen';
-    	    }
-
-    	  // Setup the click event listeners: toggle the full screen
-
-    	  google.maps.event.addDomListener(controlUI, 'click', function() {
-
-    	   if($("#map_canvas").hasClass("full_screen_map")){
-    	    exitFullScreen();
-    	    } else {
-    	    fullScreen();
-    	    }
-    	  });
-
-    	}
-
       
       
       google.maps.event.addDomListener(window, 'load', initialize);
@@ -393,13 +297,13 @@ myShepherd.rollbackDBTransaction();
  
  <div id="map-container">
  
- 
- <table cellpadding="3">
+
+ <table width="100%">
  <tr>
- <td valign="top">
-  <div id="map_canvas" style="width: 770px; height: 510px; "></div>
+ <td valign="top" width="90%">
+  <div id="map_canvas" style="width: 100%; height: 500px; "></div>
  </td>
- <td valign="top">
+ <td valign="top" width="10%">
  <table>
  <tr><th>Color Key</th></tr>
 <%

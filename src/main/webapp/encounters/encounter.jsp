@@ -141,6 +141,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 <jsp:include page="../header.jsp" flush="true"/>
 
+<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+
+
   <style type="text/css">
 
 
@@ -237,8 +240,8 @@ td.measurement{
     These files must be located on your server.
   -->
 
-  <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
+
+  
   <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
 
   <!--
@@ -312,10 +315,10 @@ td.measurement{
 	
 	
 		//adding the fullscreen control to exit fullscreen
-	    	  var fsControlDiv = document.createElement('DIV');
-	    	  var fsControl = new FSControl(fsControlDiv, map);
-	    	  fsControlDiv.index = 1;
-	    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+	    	//  var fsControlDiv = document.createElement('DIV');
+	    	//  var fsControl = new FSControl(fsControlDiv, map);
+	    	//  fsControlDiv.index = 1;
+	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
 
@@ -383,8 +386,6 @@ var encounterNumber = '<%=num%>';
 
 
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
 
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
@@ -567,20 +568,14 @@ $(function() {
 
 								} //end while
 
-
-    						%>
-
-
-                <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-                <h1 class="<%=classColor%>" id="headerText">
-                <%=encprops.getProperty("title") %><%=livingStatus %>
-                <% }
-                else {
-                 %>
-                 <h1 class="<%=classColor%>" id="headerText">
-                   <%=encprops.getProperty("title") %><%=livingStatus %>
-                 </h1>
-                 <%}%></h1>
+				String individuo=encprops.getProperty("unassigned");					
+				if(enc.getIndividualID()!=null){
+					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				}				
+    			%>
+               	<h1 class="<%=classColor%>" id="headerText">
+                	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
+                </h1>
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
@@ -597,7 +592,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -613,7 +608,604 @@ $(function() {
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
 
+<%-- START LOCATION --%>
+<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+<h2>
+	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/>
+  <%=encprops.getProperty("location") %>
+  <button class="btn btn-md" type="button" name="button" id="editLocation">Edit</button>
+  <button class="btn btn-md" type="button" name="button" id="closeEditLocation" style="display:none;">Close Edit</button>
+</h2>
 
+
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
+    buttons.toggle();
+  });
+  $("#editLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
+
+    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
+
+    $("#depthDiv, #elevationDiv").removeClass("has-error");
+
+    $("#depthDiv, #elevationDiv").removeClass("has-success");
+
+  });
+
+  $("#closeEditLocation").click(function() {
+    $(".editFormLocation, .editTextLocation, .resultMessageDiv").hide();
+  });
+});
+</script>
+
+
+<% }
+else {
+ %>
+ <h2>
+ 	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
+ </h2>
+
+ <%}%>
+
+
+
+<%
+if(enc.getLocation()!=null){
+%>
+
+<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
+<%
+}
+%>
+
+<br>
+
+<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
+<em><%=encprops.getProperty("locationID") %></em><span>: <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
+
+<br>
+
+
+  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
+    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
+  <em><%=encprops.getProperty("country") %></em>
+  <%
+  if(enc.getCountry()!=null){
+  %>
+  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
+  <%
+  }
+    %>
+
+  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
+    <%
+		if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
+		%>
+<br />
+<em><%=encprops.getProperty("depth") %>
+
+  <%
+    if (enc.getDepthAsDouble() !=null) {
+  %>
+  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
+  } else {
+  %> <%=encprops.getProperty("unknown") %>
+  <%
+    }
+
+%>
+</em>
+<%
+  }
+%>
+<!-- End Display maximumDepthInMeters -->
+
+<!-- start location  -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#addLocation").click(function(event) {
+      event.preventDefault();
+
+      $("#addLocation").hide();
+
+      var number = $("#setLocationNumber").val();
+      var encounter = $("#setLocationEncounter").val();
+      var location = $("#locationInput").val();
+
+      $.post("../EncounterSetLocation", {"number": number, "encounter": encounter, "location": location},
+      function() {
+        $("#setLocationErrorDiv").hide();
+        $("#setLocationCheck").show();
+        $("#displayLocation").html(location);
+      })
+      .fail(function(response) {
+        $("#setLocationError, #setLocationErrorDiv").show();
+        $("#setLocationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#locationInput").click(function() {
+      $("#setLocationError, #setLocationCheck, #setLocationErrorDiv").hide()
+      $("#addLocation").show();
+    });
+  });
+</script>
+<div>
+  <div class="highlight resultMessageDiv" id="setLocationErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocation")%></strong></p>
+  <form name="setLocation" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="setLocationNumber"/>
+    <input name="action" type="hidden" value="setLocation" />
+    <input name="encounter" type="hidden" value="<%=num%>" id="setLocationEncounter">
+
+  <%
+  String thisLocation="";
+  if(enc.getLocation()!=null){
+    thisLocation=enc.getLocation().trim();
+  }
+  %>
+  <div class="form-group row">
+    <div class="col-sm-5">
+      <textarea name="location" class="form-control" id="locationInput"><%=thisLocation%></textarea>
+    </div>
+    <div class="col-sm-3">
+      <input name="Add" type="submit" id="addLocation" value="<%=encprops.getProperty("setLocation")%>" class="btn btn-sm"/>
+      <span class="form-control-feedback" id="setLocationCheck">&check;</span>
+      <span class="form-control-feedback" id="setLocationError">X</span>
+    </div>
+  </div>
+  </form>
+</div>
+<!-- end location -->
+
+
+<!-- start country -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#countryFormBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#countryFormBtn").hide();
+
+      var encounter = $("#countryEncounter").val();
+      var country = $("#selectCountry").val();
+
+      $.post("../EncounterSetCountry", {"encounter": encounter, "country": country},
+      function() {
+        $("#countryErrorDiv").hide();
+        $("#countryCheck").show();
+        $("#displayCountry").html(country);
+      })
+      .fail(function(response) {
+        $("#countryError, #countryErrorDiv").show();
+        $("#countryErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCountry").click(function() {
+      $("#countryError, #countryCheck, #countryErrorDiv").hide()
+      $("#countryFormBtn").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="countryErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("resetCountry")%></strong></p>
+  <span class="editTextLocation"><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></span>
+
+  <form name="countryForm" class="editFormLocation">
+    <input name="encounter" type="hidden" value="<%=num%>" id="countryEncounter" />
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <select name="country" id="selectCountry" size="1" class="form-control">
+          <option value=""></option>
+
+          <%
+          String[] locales = Locale.getISOCountries();
+          for (String countryCode : locales) {
+            Locale obj = new Locale("", countryCode);
+            %>
+            <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
+
+            <%
+          }
+          %>
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <input name="<%=encprops.getProperty("set")%>" type="submit" id="countryFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+        <span class="form-control-feedback" id="countryCheck">&check;</span>
+        <span class="form-control-feedback" id="countryError">X</span>
+      </div>
+    </div>
+  </form>
+</div>
+<!-- end country popup-->
+
+<!-- start locationID -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setLocationBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#setLocationBtn").hide();
+
+      var number = $("#locationIDnumber").val();
+      var code = $("#selectCode").val();
+
+      $.post("../EncounterSetLocationID", {"number": number, "code": code},
+      function() {
+        $("#locationIDerrorDiv").hide();
+        $("#locationIDcheck").show();
+        $("#displayLocationID").html(code);
+      })
+      .fail(function(response) {
+        $("#locationIDerror, #locationIDerrorDiv").show();
+        $("#locationIDerrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectCode").click(function() {
+      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide()
+      $("#setLocationBtn").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="locationIDerrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocationID")%></strong></p>
+  <form name="addLocCode" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
+    <input name="action" type="hidden" value="addLocCode" />
+
+        <%
+        if(CommonConfiguration.getProperty("locationID0",context)==null){
+        %>
+        <div class="form-group row">
+          <div class="col-sm-5">
+            <input name="code" type="text" class="form-control" id="selectCode"/>
+          </div>
+          <div class="col-sm-3">
+            <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
+          </div>
+        </div>
+        <%
+        }
+        else{
+          //iterate and find the locationID options
+          %>
+          <div class="form-group row">
+            <div class="col-sm-5">
+              <select name="code" id="selectCode" class="form-control" size=="1">
+                <option value=""></option>
+
+                <%
+                boolean hasMoreLocs=true;
+                int codeTaxNum=0;
+                while(hasMoreLocs){
+                  String currentLoc = "locationID"+codeTaxNum;
+                  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
+                    %>
+
+                    <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
+                    <%
+                    codeTaxNum++;
+                  }
+                  else{
+                    hasMoreLocs=false;
+                  }
+
+                }
+                %>
+
+              </select>
+            </div>
+            <div class="col-sm-3">
+              <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
+              <span class="form-control-feedback" id="locationIDcheck">&check;</span>
+              <span class="form-control-feedback" id="locationIDerror">X</span>
+            </div>
+          </div>
+      <%
+        }
+        %>
+
+    </form>
+</div>
+<!-- end locationID -->
+
+
+<!-- start depth -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddDepth").click(function(event) {
+      event.preventDefault();
+
+      $("#AddDepth").hide();
+
+      var number = $("#depthNumber").val();
+      var depth = $("#depthInput").val();
+
+      $.post("../EncounterSetMaximumDepth", {"number": number, "depth": depth},
+      function() {
+        $("#depthErrorDiv").hide();
+        $("#depthDiv").addClass("has-success");
+        $("#depthCheck").show();
+        $("#displayDepth").html(depth);
+      })
+      .fail(function(response) {
+        $("#depthDiv").addClass("has-error");
+        $("#depthError, #depthErrorDiv").show();
+        $("#depthErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#depthInput").click(function() {
+      $("#depthError, #depthCheck, #depthErrorDiv").hide()
+      $("#depthDiv").removeClass("has-success");
+      $("#depthDiv").removeClass("has-error");
+      $("#AddDepth").show();
+    });
+  });
+</script>
+
+<div>
+  <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setDepth")%></strong></p>
+  <form name="setencdepth" class="editFormLocation">
+    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+    <input name="number" type="hidden" value="<%=num%>" id="depthNumber" />
+    <input name="action" type="hidden" value="setEncounterDepth" />
+    <div class="form-group row">
+      <div class="col-sm-5" id="depthDiv">
+        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="depthCheck">&check;</span>
+        <span class="form-control-feedback" id="depthError">X</span>
+      </div>
+      <div class="col-sm-3">
+        <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
+      </div>
+    </div>
+  </form>
+</div>
+
+
+<!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
+<%
+  if (CommonConfiguration.showProperty("maximumElevationInMeters",context)) {
+%>
+<br />
+<em><%=encprops.getProperty("elevation") %></em>
+&nbsp;
+<%
+    if (enc.getMaximumElevationInMeters()!=null) {
+  %>
+  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
+  } else {
+  %>
+  <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
+  <%
+    }
+
+  %>
+
+  <%
+  %>
+
+
+<%
+%>
+<!-- start elevation -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#AddElev").click(function(event) {
+      event.preventDefault();
+
+      $("#AddElev").hide();
+
+      var number = $("#elevationNumber").val();
+      var elevation = $("#elevation").val();
+
+      $.post("../EncounterSetMaximumElevation", {"number": number, "elevation": elevation},
+      function() {
+        $("#elevationErrorDiv").hide();
+        $("#elevationDiv").addClass("has-success");
+        $("#elevationCheck").show();
+        $("#displayElevation").html(elevation);
+      })
+      .fail(function(response) {
+        $("#elevationDiv").addClass("has-error");
+        $("#elevationError, #elevationErrorDiv").show();
+        $("#elevationErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#elevationInput").click(function() {
+      $("#elevationError, #elevationCheck, #elevationErrorDiv").hide()
+      $("#elevationDiv").removeClass("has-success");
+      $("#elevationDiv").removeClass("has-error");
+      $("#AddElev").show();
+    });
+  });
+</script>
+<div>
+  <div class="highlight resultMessageDiv" id="elevationErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setElevation")%></strong></p>
+  <form name="setencelev" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="elevationNumber" />
+    <input name="action" type="hidden" value="setEncounterElevation" />
+    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
+    <div class="form-group row">
+      <div class="col-sm-5" id="elevationDiv">
+        <input name="elevation" type="text" id="elevation" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
+        <span class="form-control-feedback" id="elevationCheck">&check;</span>
+        <span class="form-control-feedback" id="elevationError">X</span>
+      </div>
+    </div>
+    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
+  </form>
+</div>
+<!-- end elevation  -->
+<%
+%>
+
+<%
+  }
+%>
+<!-- End Display maximumElevationInMeters -->
+
+	<!-- START MAP and GPS SETTER -->
+
+    <script type="text/javascript">
+        var markers = [];
+        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
+        //bounds.extend(latLng);
+         	<%
+         	//currently unused programatically
+           	String markerText="";
+
+           	String haploColor="CC0000";
+           	if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
+        	   	haploColor=encprops.getProperty("defaultMarkerColor");
+           	}
+
+
+           	%>
+
+       marker = new google.maps.Marker({
+    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
+    	   position:latLng,
+    	   map:map
+    	});
+
+	   		<%
+	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
+	   		%>
+	   			marker.setVisible(false);
+
+	   		<%
+	   		}
+ 			%>
+
+       markers.push(marker);
+       //map.fitBounds(bounds);
+
+    	//}
+
+
+
+      google.maps.event.addDomListener(window, 'load', initialize);
+    </script>
+
+ 	<%
+ 	if((request.getUserPrincipal()!=null)){
+ 	%>
+ 		<p><%=encprops.getProperty("map_note") %></p>
+ 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
+ 	<%
+ 	}
+ 	else {
+ 	%>
+ 	<p><%=encprops.getProperty("nomap") %></p>
+ 	<%
+ 	}
+ 	%>
+ 	<!-- adding ne submit GPS-->
+
+
+
+ 	<%
+ 	if(isOwner){
+ 		String longy="";
+       	String laty="";
+       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
+       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
+
+     	%>
+
+      <script type="text/javascript">
+        $(document).ready(function() {
+          $("#setGPSbutton").click(function(event) {
+            event.preventDefault();
+
+            var number = $("#gpsNumber").val();
+            var lat = $("#lat").val();
+            var longitude = $("#longitude").val();
+
+            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
+            function() {
+              $("#latCheck, #longCheck").show();
+            })
+            .fail(function(response) {
+              $("#gpsErrorDiv").show();
+              $("#gpsErrorDiv").html(response.responseText);
+              $("#latCheck, #longCheck").hide();
+            });
+          });
+
+          $("#lat, #longitude, #map_canvas").click(function() {
+            $("#gpsErrorDiv").hide()
+            $("#latCheck, #longCheck").hide();
+          });
+        });
+      </script>
+
+
+     	<a name="gps"></a>
+        <div>
+          <br>
+          <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
+          <form name="resetGPSform" class="editFormLocation">
+            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
+            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
+            <div class="form-group row">
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("latitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
+                <span class="form-control-feedback" id="latCheck">&check;</span>
+              </div>
+              <div class="col-sm-2">
+                <label><%=encprops.getProperty("longitude")%>:</label>
+              </div>
+              <div class="col-sm-3">
+                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
+                <span class="form-control-feedback" id="longCheck">&check;</span>
+              </div>
+            </div>
+            <div class="form-group row">
+              <div class="col-sm-3">
+                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
+
+              </div>
+            </div>
+          </form>
+
+          <br/>
+          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
+        </div>
+
+     	<%
+ 		}  //end isOwner
+     	%>
+<br /> <br />
+ <!--end adding submit GPS-->
+ <!-- END MAP and GPS SETTER -->
+
+<div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
         <!-- START IDENTITY ATTRIBUTE -->
         <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
@@ -1245,9 +1837,9 @@ $(function() {
                       %>
     <!-- END OCCURRENCE ATTRIBUTE -->
 
-
+</div>
 <%-- START CONTACT INFORMATION --%>
-        <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
+        <div>
 
 
           <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -1745,603 +2337,6 @@ $(function() {
         </div>
 <%-- END CONTACT INFORMATION --%>
 
-<%-- START LOCATION --%>
-<% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-<h2>
-	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/>
-  <%=encprops.getProperty("location") %>
-  <button class="btn btn-md" type="button" name="button" id="editLocation">Edit</button>
-  <button class="btn btn-md" type="button" name="button" id="closeEditLocation" style="display:none;">Close Edit</button>
-</h2>
-
-
-
-<script type="text/javascript">
-$(document).ready(function() {
-  var buttons = $("#editLocation, #closeEditLocation").on("click", function(){
-    buttons.toggle();
-  });
-  $("#editLocation").click(function() {
-    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
-
-    $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
-
-    $("#depthDiv, #elevationDiv").removeClass("has-error");
-
-    $("#depthDiv, #elevationDiv").removeClass("has-success");
-
-  });
-
-  $("#closeEditLocation").click(function() {
-    $(".editFormLocation, .editTextLocation, .resultMessageDiv").hide();
-  });
-});
-</script>
-
-
-<% }
-else {
- %>
- <h2>
- 	<img src="../images/2globe_128.gif" width="40px" height="40px" align="absmiddle"/> <%=encprops.getProperty("location") %>
- </h2>
-
- <%}%>
-
-
-
-<%
-if(enc.getLocation()!=null){
-%>
-
-<em><%=encprops.getProperty("locationDescription")%> <span id="displayLocation"><%=enc.getLocation()%></span></em>
-<%
-}
-%>
-
-<br>
-
-<a href="<%=CommonConfiguration.getWikiLocation(context)%>locationID" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-<em><%=encprops.getProperty("locationID") %></em><span>: <span id="displayLocationID"><%=enc.getLocationCode()%></span></span>
-
-<br>
-
-
-  <a href="<%=CommonConfiguration.getWikiLocation(context)%>country" target="_blank"><img
-    src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"></a>
-  <em><%=encprops.getProperty("country") %></em>
-  <%
-  if(enc.getCountry()!=null){
-  %>
-  <span>: <span id="displayCountry"><%=enc.getCountry()%></span></span>
-  <%
-  }
-    %>
-
-  <!-- Display maximumDepthInMeters so long as show_maximumDepthInMeters is not false in commonCOnfiguration.properties-->
-    <%
-		if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
-		%>
-<br />
-<em><%=encprops.getProperty("depth") %>
-
-  <%
-    if (enc.getDepthAsDouble() !=null) {
-  %>
-  <span id="displayDepth"><%=enc.getDepth()%></span> <%=encprops.getProperty("meters")%> <%
-  } else {
-  %> <%=encprops.getProperty("unknown") %>
-  <%
-    }
-
-%>
-</em>
-<%
-  }
-%>
-<!-- End Display maximumDepthInMeters -->
-
-<!-- start location  -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#addLocation").click(function(event) {
-      event.preventDefault();
-
-      $("#addLocation").hide();
-
-      var number = $("#setLocationNumber").val();
-      var encounter = $("#setLocationEncounter").val();
-      var location = $("#locationInput").val();
-
-      $.post("../EncounterSetLocation", {"number": number, "encounter": encounter, "location": location},
-      function() {
-        $("#setLocationErrorDiv").hide();
-        $("#setLocationCheck").show();
-        $("#displayLocation").html(location);
-      })
-      .fail(function(response) {
-        $("#setLocationError, #setLocationErrorDiv").show();
-        $("#setLocationErrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#locationInput").click(function() {
-      $("#setLocationError, #setLocationCheck, #setLocationErrorDiv").hide()
-      $("#addLocation").show();
-    });
-  });
-</script>
-<div>
-  <div class="highlight resultMessageDiv" id="setLocationErrorDiv"></div>
-
-  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocation")%></strong></p>
-  <form name="setLocation" class="editFormLocation">
-    <input name="number" type="hidden" value="<%=num%>" id="setLocationNumber"/>
-    <input name="action" type="hidden" value="setLocation" />
-    <input name="encounter" type="hidden" value="<%=num%>" id="setLocationEncounter">
-
-  <%
-  String thisLocation="";
-  if(enc.getLocation()!=null){
-    thisLocation=enc.getLocation().trim();
-  }
-  %>
-  <div class="form-group row">
-    <div class="col-sm-5">
-      <textarea name="location" class="form-control" id="locationInput"><%=thisLocation%></textarea>
-    </div>
-    <div class="col-sm-3">
-      <input name="Add" type="submit" id="addLocation" value="<%=encprops.getProperty("setLocation")%>" class="btn btn-sm"/>
-      <span class="form-control-feedback" id="setLocationCheck">&check;</span>
-      <span class="form-control-feedback" id="setLocationError">X</span>
-    </div>
-  </div>
-  </form>
-</div>
-<!-- end location -->
-
-
-<!-- start country -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#countryFormBtn").click(function(event) {
-      event.preventDefault();
-
-      $("#countryFormBtn").hide();
-
-      var encounter = $("#countryEncounter").val();
-      var country = $("#selectCountry").val();
-
-      $.post("../EncounterSetCountry", {"encounter": encounter, "country": country},
-      function() {
-        $("#countryErrorDiv").hide();
-        $("#countryCheck").show();
-        $("#displayCountry").html(country);
-      })
-      .fail(function(response) {
-        $("#countryError, #countryErrorDiv").show();
-        $("#countryErrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#selectCountry").click(function() {
-      $("#countryError, #countryCheck, #countryErrorDiv").hide()
-      $("#countryFormBtn").show();
-    });
-  });
-</script>
-
-<div>
-  <div class="highlight resultMessageDiv" id="countryErrorDiv"></div>
-
-  <p class="editTextLocation"><strong><%=encprops.getProperty("resetCountry")%></strong></p>
-  <span class="editTextLocation"><font size="-1"><%=encprops.getProperty("leaveBlank")%></font></span>
-
-  <form name="countryForm" class="editFormLocation">
-    <input name="encounter" type="hidden" value="<%=num%>" id="countryEncounter" />
-    <div class="form-group row">
-      <div class="col-sm-5">
-        <select name="country" id="selectCountry" size="1" class="form-control">
-          <option value=""></option>
-
-          <%
-          String[] locales = Locale.getISOCountries();
-          for (String countryCode : locales) {
-            Locale obj = new Locale("", countryCode);
-            %>
-            <option value="<%=obj.getDisplayCountry() %>"><%=obj.getDisplayCountry() %></option>
-
-            <%
-          }
-          %>
-        </select>
-      </div>
-      <div class="col-sm-3">
-        <input name="<%=encprops.getProperty("set")%>" type="submit" id="countryFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
-        <span class="form-control-feedback" id="countryCheck">&check;</span>
-        <span class="form-control-feedback" id="countryError">X</span>
-      </div>
-    </div>
-  </form>
-</div>
-<!-- end country popup-->
-
-<!-- start locationID -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#setLocationBtn").click(function(event) {
-      event.preventDefault();
-
-      $("#setLocationBtn").hide();
-
-      var number = $("#locationIDnumber").val();
-      var code = $("#selectCode").val();
-
-      $.post("../EncounterSetLocationID", {"number": number, "code": code},
-      function() {
-        $("#locationIDerrorDiv").hide();
-        $("#locationIDcheck").show();
-        $("#displayLocationID").html(code);
-      })
-      .fail(function(response) {
-        $("#locationIDerror, #locationIDerrorDiv").show();
-        $("#locationIDerrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#selectCode").click(function() {
-      $("#locationIDerror, #locationIDcheck, #locationIDerrorDiv").hide()
-      $("#setLocationBtn").show();
-    });
-  });
-</script>
-
-<div>
-  <div class="highlight resultMessageDiv" id="locationIDerrorDiv"></div>
-
-  <p class="editTextLocation"><strong><%=encprops.getProperty("setLocationID")%></strong></p>
-  <form name="addLocCode" class="editFormLocation">
-    <input name="number" type="hidden" value="<%=num%>" id="locationIDnumber"/>
-    <input name="action" type="hidden" value="addLocCode" />
-
-        <%
-        if(CommonConfiguration.getProperty("locationID0",context)==null){
-        %>
-        <div class="form-group row">
-          <div class="col-sm-5">
-            <input name="code" type="text" class="form-control" id="selectCode"/>
-          </div>
-          <div class="col-sm-3">
-            <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
-          </div>
-        </div>
-        <%
-        }
-        else{
-          //iterate and find the locationID options
-          %>
-          <div class="form-group row">
-            <div class="col-sm-5">
-              <select name="code" id="selectCode" class="form-control" size=="1">
-                <option value=""></option>
-
-                <%
-                boolean hasMoreLocs=true;
-                int codeTaxNum=0;
-                while(hasMoreLocs){
-                  String currentLoc = "locationID"+codeTaxNum;
-                  if(CommonConfiguration.getProperty(currentLoc,context)!=null){
-                    %>
-
-                    <option value="<%=CommonConfiguration.getProperty(currentLoc,context)%>"><%=CommonConfiguration.getProperty(currentLoc,context)%></option>
-                    <%
-                    codeTaxNum++;
-                  }
-                  else{
-                    hasMoreLocs=false;
-                  }
-
-                }
-                %>
-
-              </select>
-            </div>
-            <div class="col-sm-3">
-              <input name="Set Location ID" type="submit" id="setLocationBtn" value="<%=encprops.getProperty("setLocationID")%>" class="btn btn-sm"/>
-              <span class="form-control-feedback" id="locationIDcheck">&check;</span>
-              <span class="form-control-feedback" id="locationIDerror">X</span>
-            </div>
-          </div>
-      <%
-        }
-        %>
-
-    </form>
-</div>
-<!-- end locationID -->
-
-
-<!-- start depth -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#AddDepth").click(function(event) {
-      event.preventDefault();
-
-      $("#AddDepth").hide();
-
-      var number = $("#depthNumber").val();
-      var depth = $("#depthInput").val();
-
-      $.post("../EncounterSetMaximumDepth", {"number": number, "depth": depth},
-      function() {
-        $("#depthErrorDiv").hide();
-        $("#depthDiv").addClass("has-success");
-        $("#depthCheck").show();
-        $("#displayDepth").html(depth);
-      })
-      .fail(function(response) {
-        $("#depthDiv").addClass("has-error");
-        $("#depthError, #depthErrorDiv").show();
-        $("#depthErrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#depthInput").click(function() {
-      $("#depthError, #depthCheck, #depthErrorDiv").hide()
-      $("#depthDiv").removeClass("has-success");
-      $("#depthDiv").removeClass("has-error");
-      $("#AddDepth").show();
-    });
-  });
-</script>
-
-<div>
-  <div class="highlight resultMessageDiv" id="depthErrorDiv"></div>
-
-  <p class="editTextLocation"><strong><%=encprops.getProperty("setDepth")%></strong></p>
-  <form name="setencdepth" class="editFormLocation">
-    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-    <input name="number" type="hidden" value="<%=num%>" id="depthNumber" />
-    <input name="action" type="hidden" value="setEncounterDepth" />
-    <div class="form-group row">
-      <div class="col-sm-5" id="depthDiv">
-        <input name="depth" type="text" id="depthInput" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
-        <span class="form-control-feedback" id="depthCheck">&check;</span>
-        <span class="form-control-feedback" id="depthError">X</span>
-      </div>
-      <div class="col-sm-3">
-        <input name="AddDepth" type="submit" id="AddDepth" value="<%=encprops.getProperty("setDepth")%>" class="btn btn-sm editFormBtn"/>
-      </div>
-    </div>
-  </form>
-</div>
-
-
-<!-- Display maximumElevationInMeters so long as show_maximumElevationInMeters is not false in commonCOnfiguration.properties-->
-<%
-  if (CommonConfiguration.showProperty("maximumElevationInMeters",context)) {
-%>
-<br />
-<em><%=encprops.getProperty("elevation") %></em>
-&nbsp;
-<%
-    if (enc.getMaximumElevationInMeters()!=null) {
-  %>
-  <span id="displayElevation"><%=enc.getMaximumElevationInMeters()%></span><%=encprops.getProperty("meters")%> <%
-  } else {
-  %>
-  <span id="displayElevation"><%=encprops.getProperty("unknown") %></span>
-  <%
-    }
-
-  %>
-
-  <%
-  %>
-
-
-<%
-%>
-<!-- start elevation -->
-<script type="text/javascript">
-  $(document).ready(function() {
-    $("#AddElev").click(function(event) {
-      event.preventDefault();
-
-      $("#AddElev").hide();
-
-      var number = $("#elevationNumber").val();
-      var elevation = $("#elevation").val();
-
-      $.post("../EncounterSetMaximumElevation", {"number": number, "elevation": elevation},
-      function() {
-        $("#elevationErrorDiv").hide();
-        $("#elevationDiv").addClass("has-success");
-        $("#elevationCheck").show();
-        $("#displayElevation").html(elevation);
-      })
-      .fail(function(response) {
-        $("#elevationDiv").addClass("has-error");
-        $("#elevationError, #elevationErrorDiv").show();
-        $("#elevationErrorDiv").html(response.responseText);
-      });
-    });
-
-    $("#elevationInput").click(function() {
-      $("#elevationError, #elevationCheck, #elevationErrorDiv").hide()
-      $("#elevationDiv").removeClass("has-success");
-      $("#elevationDiv").removeClass("has-error");
-      $("#AddElev").show();
-    });
-  });
-</script>
-<div>
-  <div class="highlight resultMessageDiv" id="elevationErrorDiv"></div>
-
-  <p class="editTextLocation"><strong><%=encprops.getProperty("setElevation")%></strong></p>
-  <form name="setencelev" class="editFormLocation">
-    <input name="number" type="hidden" value="<%=num%>" id="elevationNumber" />
-    <input name="action" type="hidden" value="setEncounterElevation" />
-    <input name="lengthUnits" type="hidden" id="lengthUnits" value="Meters" />
-    <div class="form-group row">
-      <div class="col-sm-5" id="elevationDiv">
-        <input name="elevation" type="text" id="elevation" class="form-control"/><span><%=encprops.getProperty("meters")%></span>
-        <span class="form-control-feedback" id="elevationCheck">&check;</span>
-        <span class="form-control-feedback" id="elevationError">X</span>
-      </div>
-    </div>
-    <input name="AddElev" type="submit" id="AddElev" value="<%=encprops.getProperty("setElevation")%>" class="btn btn-sm editFormBtn"/>
-  </form>
-</div>
-<!-- end elevation  -->
-<%
-%>
-
-<%
-  }
-%>
-<!-- End Display maximumElevationInMeters -->
-
-	<!-- START MAP and GPS SETTER -->
-
-    <script type="text/javascript">
-        var markers = [];
-        var latLng = new google.maps.LatLng(<%=enc.getDecimalLatitude()%>, <%=enc.getDecimalLongitude()%>);
-        //bounds.extend(latLng);
-         	<%
-         	//currently unused programatically
-           	String markerText="";
-
-           	String haploColor="CC0000";
-           	if((encprops.getProperty("defaultMarkerColor")!=null)&&(!encprops.getProperty("defaultMarkerColor").trim().equals(""))){
-        	   	haploColor=encprops.getProperty("defaultMarkerColor");
-           	}
-
-
-           	%>
-
-       marker = new google.maps.Marker({
-    	   icon: 'https://chart.googleapis.com/chart?chst=d_map_pin_letter&chld=<%=markerText%>|<%=haploColor%>',
-    	   position:latLng,
-    	   map:map
-    	});
-
-	   		<%
-	   		if((enc.getDecimalLatitude()==null)&&(enc.getDecimalLongitude()==null)){
-	   		%>
-	   			marker.setVisible(false);
-
-	   		<%
-	   		}
- 			%>
-
-       markers.push(marker);
-       //map.fitBounds(bounds);
-
-    	//}
-
-
-
-      google.maps.event.addDomListener(window, 'load', initialize);
-    </script>
-
- 	<%
- 	if((request.getUserPrincipal()!=null)){
- 	%>
- 		<p><%=encprops.getProperty("map_note") %></p>
- 		<div id="map_canvas" style="width: 510px; height: 350px; overflow: hidden;"></div>
- 	<%
- 	}
- 	else {
- 	%>
- 	<p><%=encprops.getProperty("nomap") %></p>
- 	<%
- 	}
- 	%>
- 	<!-- adding ne submit GPS-->
-
-
-
- 	<%
- 	if(isOwner){
- 		String longy="";
-       	String laty="";
-       	if(enc.getLatitudeAsDouble()!=null){laty=enc.getLatitudeAsDouble().toString();}
-       	if(enc.getLongitudeAsDouble()!=null){longy=enc.getLongitudeAsDouble().toString();}
-
-     	%>
-
-      <script type="text/javascript">
-        $(document).ready(function() {
-          $("#setGPSbutton").click(function(event) {
-            event.preventDefault();
-
-            var number = $("#gpsNumber").val();
-            var lat = $("#lat").val();
-            var longitude = $("#longitude").val();
-
-            $.post("../EncounterSetGPS", {"number": number, "lat": lat, "longitude": longitude},
-            function() {
-              $("#latCheck, #longCheck").show();
-            })
-            .fail(function(response) {
-              $("#gpsErrorDiv").show();
-              $("#gpsErrorDiv").html(response.responseText);
-              $("#latCheck, #longCheck").hide();
-            });
-          });
-
-          $("#lat, #longitude, #map_canvas").click(function() {
-            $("#gpsErrorDiv").hide()
-            $("#latCheck, #longCheck").hide();
-          });
-        });
-      </script>
-
-
-     	<a name="gps"></a>
-        <div>
-          <br>
-          <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
-          <form name="resetGPSform" class="editFormLocation">
-            <input name="number" type="hidden" value="<%=num%>" id="gpsNumber"/>
-            <input name="action" type="hidden" value="resetGPS" id="gpsAction"/>
-            <div class="form-group row">
-              <div class="col-sm-2">
-                <label><%=encprops.getProperty("latitude")%>:</label>
-              </div>
-              <div class="col-sm-3">
-                <input name="lat" type="text" id="lat" class="form-control" value="<%=laty%>" />
-                <span class="form-control-feedback" id="latCheck">&check;</span>
-              </div>
-              <div class="col-sm-2">
-                <label><%=encprops.getProperty("longitude")%>:</label>
-              </div>
-              <div class="col-sm-3">
-                <input name="longitude" type="text" id="longitude" class="form-control" value="<%=longy%>" />
-                <span class="form-control-feedback" id="longCheck">&check;</span>
-              </div>
-            </div>
-            <div class="form-group row">
-              <div class="col-sm-3">
-                <input name="setGPSbutton" type="submit" id="setGPSbutton" value="<%=encprops.getProperty("setGPS")%>" class="btn btn-sm"/>
-
-              </div>
-            </div>
-          </form>
-
-          <br/>
-          <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
-        </div>
-
-     	<%
- 		}  //end isOwner
-     	%>
-<br /> <br />
- <!--end adding submit GPS-->
- <!-- END MAP and GPS SETTER -->
-
 
 <%-- START METADATA --%>
 <table>
@@ -2541,19 +2536,19 @@ else {
                         if(thisUser.getAffiliation()!=null){
                         %>
                         <p><strong><%=displayName %></strong></p>
-                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                         <%
                         }
 
                         if(thisUser.getUserProject()!=null){
                         %>
-                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                         <%
                         }
 
                         if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
                             <%
                           }
 
@@ -3200,47 +3195,6 @@ else {
   <%-- START RIGHT COLUMN --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
-<%
-String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
-%>
-    <%-- START IMAGES --%>
-        <jsp:include page="encounterMediaGallery.jsp" flush="true">
-        	<jsp:param name="encounterNumber" value="<%=num%>" />
-        	<jsp:param name="queryString" value="<%=queryString%>" />
-        	
-        	<jsp:param name="isOwner" value="<%=isOwner %>" />
-        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-      	</jsp:include>
-
-		<%
-		if(isOwner){
-		%>
-	        <div id="add-image-zone" class="bc4">
-	
-	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
-	
-	          <div class="flow-box bc4" style="text-align:center" >
-	
-	            <div id="file-activity" style="display:none"></div>
-	
-	            <div id="updone"></div>
-	
-	            <div id="upcontrols">
-	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-	              <div id="flowbuttons">
-	
-	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-	
-	              </div>
-	            </div>
-	          </div>
-	        </div>
-        <%
-        }
-        %>
-    <%-- END IMAGES --%>
-
 
     <!-- start DATE section -->
     <table>
@@ -3288,7 +3242,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
@@ -3511,6 +3465,47 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     </td>
     </tr>
     </table>
+<%
+String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
+%>
+    <%-- START IMAGES --%>
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
+        	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="queryString" value="<%=queryString%>" />
+        	
+        	<jsp:param name="isOwner" value="<%=isOwner %>" />
+        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+      	</jsp:include>
+
+		<%
+		if(isOwner){
+		%>
+	        <div id="add-image-zone" class="bc4">
+	
+	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
+	
+	          <div class="flow-box bc4" style="text-align:center" >
+	
+	            <div id="file-activity" style="display:none"></div>
+	
+	            <div id="updone"></div>
+	
+	            <div id="upcontrols">
+	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+	              <div id="flowbuttons">
+	
+	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+	
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+        <%
+        }
+        %>
+    <%-- END IMAGES --%>
+
 
       <%
 
@@ -6194,7 +6189,7 @@ finally{
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>

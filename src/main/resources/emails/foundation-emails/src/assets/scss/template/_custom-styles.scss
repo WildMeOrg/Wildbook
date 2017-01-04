@@ -1,0 +1,21 @@
+.header{
+  background-color: $header-colour;
+}
+
+h1, h2{
+  color: $header-text-colour;
+}
+
+.certificate{
+  border: 8px double #5d8cc1;
+  background-color: white;
+}
+
+.cert-stamp{
+  width: 100px;
+}
+
+#email-signature{
+  font-size: 1.5rem;
+  color: $light-blue;
+}
