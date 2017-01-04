@@ -31,6 +31,7 @@ import org.ecocean.Cluster;
 import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
+import org.ecocean.ScheduledQueue;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -480,7 +481,24 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
     } catch (java.net.URISyntaxException ex) {}
 
-    if (j.optJSONObject("detect") != null) {
+    if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+        //TODO could probably add other stuff (e.g. security/user etc)
+        j.put("__context", context);
+        j.put("__baseUrl", baseUrl);
+        j.put("__enqueuedByIAGateway", System.currentTimeMillis());
+        //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
+        if (j.optString("taskId", null) != null) {
+            taskId = j.getString("taskId");
+            res.put("taskId", taskId);
+        } else {
+            j.put("taskId", taskId);
+        }
+        String qid = ScheduledQueue.addToQueue(j.toString());
+        System.out.println("INFO: taskId=" + taskId + " enqueued to " + qid);
+        res.remove("error");
+        res.put("success", "true");
+
+    } else if (j.optJSONObject("detect") != null) {
         res = _doDetect(j, res, myShepherd, context, baseUrl);
 
     } else if (j.optJSONObject("identify") != null) {
