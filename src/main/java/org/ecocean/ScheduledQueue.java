@@ -23,9 +23,10 @@ public class ScheduledQueue {
     }
 
     public static File setQueueDir(ServletContext context) {
-        String root = context.getRealPath("/");
-System.out.println(">>>>> root path = " +  root);
-        queueDir = new File("/tmp/ScheduledQueue");
+        //String root = context.getRealPath("/");
+        String qd = CommonConfiguration.getProperty("ScheduledQueueDir", "context0");
+        if (qd == null) qd = "/tmp/ScheduledQueue";
+        queueDir = new File(qd);
         return queueDir;
     }
 
