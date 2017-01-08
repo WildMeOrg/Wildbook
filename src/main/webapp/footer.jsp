@@ -22,6 +22,9 @@
                     <img src="<%=urlLoc %>/images/WildBook_logo_72dpi-01.png" alt=" logo" class="pull-right" style="
 											height: 150px;
 										"/>
+										<img src="<%=urlLoc %>/images/wwf_logo.jpg" alt=" logo" class="pull-right" style="
+											height: 150px;
+										"/>
 
 
 
