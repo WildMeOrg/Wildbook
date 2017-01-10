@@ -132,8 +132,8 @@ margin-bottom: 8px !important;
   	    //var gmap_styles = [{"stylers":[{"visibility":"off"}]},{"featureType":"water","stylers":[{"visibility":"on"},{"color":"#00c0f7"}]},{"featureType":"landscape","stylers":[{"visibility":"on"},{"color":"#005589"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"color":"#00c0f7"},{"weight":1}]}]
 
 
-        var center = new google.maps.LatLng(0,0);
-        var mapZoom = 8;
+        var center = new google.maps.LatLng(40.05, -3.75);
+        var mapZoom = 6;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
 
 
@@ -374,7 +374,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12">
             <h1 class="hidden">Wildbook</h1>
-            <h2>Study, identify, and protect the Iberian Lynx!</h2>
+            <h2>Study, identify,</br> and protect </br>the Iberian Lynx!</h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -399,9 +399,7 @@ finally{
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. Match result<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Match result<span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
@@ -413,7 +411,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  />
+					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  style="height: 336px; width: 336xp; border-radius: 50%;"/>
 				</div>
 			</div>
 			<div class="item">
@@ -429,35 +427,13 @@ finally{
 			</div>
 			<div class="item">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Researcher verification</h3>
-					<p class="lead">
-						When you submit an identification photo, a local researcher receives a notification. This researcher will double check that the information you submitted is correct (so don't worry if you are unsure about which species you saw!).
-					</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_researcher_verification.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-					<h3>Matching process</h3>
-					<p class="lead">
-						Once a researcher is happy with all the data accompanying the identification photo, they will look for a photo match, using multiple computer assisted algorithms. It's like facial recognition software for animals.
-						</p>
-				</div>
-				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_matching_process.jpg" alt=""  />
-				</div>
-			</div>
-			<div class="item">
-				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching Results</h3>
 					<p class="lead">
 						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  />
+					<img class="pull-right" src="images/how_it_works_match_result.jpg" alt=""  style="max-height: 336px; max-width:336xp; border-radius:50%;"/>
 				</div>
 			</div>
 		</div>
@@ -638,7 +614,7 @@ finally{
         <main class="container">
             <article class="text-center">
                 <div class="row">
-                    <img src="cust/mantamatcher/img/why-we-do-this.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
+                    <img src="cust/mantamatcher/img/why-we-do-this.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" style="border-radius: 50%;"/>
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
                         <h1>Why we do this</h1>
                         <p class="lead">Place an inspirational quote here.</p>
