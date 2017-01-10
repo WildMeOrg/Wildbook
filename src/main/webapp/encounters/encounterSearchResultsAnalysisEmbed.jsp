@@ -97,6 +97,7 @@
     //rEncounters = queryResult.getResult();
 
     Query acceptedEncounters = myShepherd.getPM().newQuery(request.getParameter("jdoqlString"));
+    acceptedEncounters.setOrdering("dwcDateAddedLong ascending");
     Collection c = (Collection) (acceptedEncounters.execute());
     rEncounters=new Vector(c);
     acceptedEncounters.closeAll();
