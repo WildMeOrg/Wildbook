@@ -4,7 +4,7 @@
 <%@ page import="java.util.Iterator" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Properties" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>         
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
@@ -46,11 +46,11 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <script type="text/javascript" src="../javascript/geoxml3.js"></script>
 <script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
  <script type="text/javascript" src="../javascript/markerclusterer/markerclusterer.js"></script>
- 
+
 </head>
 
 <style type="text/css">v\:* {
-  behavior: url(#default#VML);  
+  behavior: url(#default#VML);
 }
 </style>
 
@@ -98,7 +98,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
   encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
 
-  
+
 %>
 
 <div class="container maincontent">
@@ -120,14 +120,14 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   <%
 		if(request.getParameter("referenceImageName")!=null){
-			
+
 			if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
 				SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
 				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
 				String encNum=mySPV.getCorrespondingEncounterNumber();
 				Encounter thisEnc = myShepherd.getEncounter(encNum);
-				
-				
+
+
 		%>
 <p><strong><%=encprops.getProperty("referenceImage") %></strong></p>
 
@@ -139,10 +139,10 @@ String langCode=ServletUtilities.getLanguageCode(request);
 <table>
 											<tr>
 												<td align="left" valign="top">
-										
+
 												<table>
 										<%
-										
+
 										//prep the params
 										if(thisEnc.getLocation()!=null){
 										%>
@@ -159,7 +159,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 										<%
 										if(thisEnc.getIndividualID()!=null){
 										%>
-											<tr><td><span class="caption"><%=encprops.getProperty("identifiedAs") %> 
+											<tr><td><span class="caption"><%=encprops.getProperty("identifiedAs") %>
 											<%
 											if(!thisEnc.getIndividualID().equals("Unassigned")){
 											%>
@@ -180,15 +180,15 @@ String langCode=ServletUtilities.getLanguageCode(request);
 										}
 										%>
 										<tr><td><span class="caption"><%=encprops.getProperty("encounter") %> <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %></a></span></td></tr>
-										
 
-										
-										
+
+
+
 <%
 										if(thisEnc.getVerbatimEventDate()!=null){
 										%>
 											<tr>
-											
+
 											<td><span class="caption"><%=encprops.getProperty("verbatimEventDate") %> <%=thisEnc.getVerbatimEventDate() %></span></td></tr>
 										<%
 										}
@@ -213,7 +213,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
         color="#000000"><%=encprops.getProperty("locationFilter") %></font></a></h4>
 
 
-    
+
 <script type="text/javascript">
 //alert("Prepping map functions.");
 var center = new google.maps.LatLng(0, 0);
@@ -225,12 +225,12 @@ var overlays = [];
 
 
 var overlaysSet=false;
- 
+
 var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
 var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
- 
+
 
   function initialize() {
 	//alert("initializing map!");
@@ -274,10 +274,10 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
         //alert("Finished initialize method!");
 
-          
+
  }
-  
- 
+
+
   function setOverlays() {
 	  //alert("In setOverlays!");
 	  if(!overlaysSet){
@@ -288,50 +288,50 @@ var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearch
 
          });
 
-		
-	
+
+
         geoXml.parse(filename);
-        
+
     	var iw = new google.maps.InfoWindow({
     		content:'<%=encprops.getProperty("loadingMapData") %>',
     		position:center});
-         
+
     	iw.open(map);
-    	
+
     	google.maps.event.addListener(map, 'center_changed', function(){iw.close();});
 
 		  overlaysSet=true;
       }
-	    
+
    }
- 
-//not using this function right now. kept because it might be useful later  
-function useData(doc){	
+
+//not using this function right now. kept because it might be useful later
+function useData(doc){
 	geoXmlDoc = doc;
 	kml = geoXmlDoc[0];
     if (kml.markers) {
 	 for (var i = 0; i < kml.markers.length; i++) {
 	     //if(i==0){alert(kml.markers[i].getVisible());
 	 }
-   } 
+   }
 }
 
 
 
   google.maps.event.addDomListener(window, 'load', initialize);
-  
-  
+
+
     </script>
 
     <div id="map">
       <p><%=encprops.get("useTheArrow") %></p>
 
       <div id="map_canvas" style="width: 770px; height: 510px; "></div>
-      
+
       <div id="map_overlay_buttons">
- 
+
           <input type="button" value="<%=encprops.getProperty("loadMarkers") %>" onclick="setOverlays();" />&nbsp;
- 
+
 
       </div>
       <p><%=encprops.getProperty("northeastCorner") %> <%=encprops.getProperty("latitude") %> <input type="text" id="ne_lat" name="ne_lat"></input> <%=encprops.getProperty("longitude") %>
@@ -393,8 +393,27 @@ function useData(doc){
       <%
         }
       %>
-      
-      
+
+      <p><strong><%=encprops.getProperty("studySiteName")%></strong> <span class="para"></span> <br>
+        (<em><%=encprops.getProperty("locationIDExample")%>
+        </em>)</p>
+
+
+      <select multiple name="studySiteName" id="studySiteName" size="10">
+        <option value="None"></option>
+        <%
+          String[] siteNames = myShepherd.getUniqueStudySiteNames();
+          for (String name : siteNames) {
+            if (!name.equals("")&&(!name.equals("None"))) {
+        %>
+        <option value="<%=name%>"><%= name%></option>
+        <%
+            }
+          }
+        %>
+      </select>
+
+
       <%
 
 if(CommonConfiguration.showProperty("showCountry",context)){
@@ -406,18 +425,18 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         </em>
 
 </td></tr><tr><td>
-  
+
   <select name="country" id="country" multiple="multiple" size="5">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMoreCountries=true;
   			       int stageNum=0;
-  			       
+
   			       while(hasMoreCountries){
   			       	  String currentCountry = "country"+stageNum;
   			       	  if(CommonConfiguration.getProperty(currentCountry,context)!=null){
   			       	  	%>
-  			       	  	 
+
   			       	  	  <option value="<%=CommonConfiguration.getProperty(currentCountry,context)%>"><%=CommonConfiguration.getProperty(currentCountry,context)%></option>
   			       	  	<%
   			       		stageNum++;
@@ -425,21 +444,21 @@ if(CommonConfiguration.showProperty("showCountry",context)){
   			          else{
   			        	hasMoreCountries=false;
   			          }
-  			          
+
 			       }
 			       if(stageNum==0){%>
 			    	   <em><%=encprops.getProperty("noCountries")%></em>
-			       <% 
+			       <%
 			       }
 			       %>
-			       
+
 
   </select>
   </td></tr></table>
 <%
 }
 %>
-      
+
     </div>
   </td>
 
@@ -461,9 +480,9 @@ if(CommonConfiguration.showProperty("showCountry",context)){
     <div id="date" style="display:none;">
       <p><%=encprops.getProperty("dateInstructions") %></p>
       <strong><%=encprops.getProperty("sightingDates")%></strong><br/>
-      
 
-      
+
+
       <table width="720">
         <tr>
           <td width="670"><label><em>
@@ -645,16 +664,16 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <p><strong><%= encprops.getProperty("releaseDate") %></strong></p>
         <p>From: <input name="releaseDateFrom"/> to <input name="releaseDateTo"/> <%=encprops.getProperty("releaseDateFormat") %></p>
       </c:if>
-   
-     
+
+
       <p><strong><%=encprops.getProperty("addedsightingDates")%></strong></p>
 
       <table width="720">
         <tr>
           <td width="670"><label><em>
-          
-          
-          
+
+
+
             &nbsp;<%=encprops.getProperty("day")%>
           </em> <em> <select name="addedday1" id="addedday1">
             <option value="1" selected>1</option>
@@ -704,8 +723,8 @@ if(CommonConfiguration.showProperty("showCountry",context)){
             <option value="12">12</option>
           </select> <%=encprops.getProperty("year")%>
           </em> <select name="addedyear1" id="addedyear1">
-            <% 
-            
+            <%
+
             int currentYear=cal.get(1);
             for (int q = firstSubmissionYear; q <= currentYear; q++) { %>
             <option value="<%=q%>"
@@ -834,7 +853,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <td>
          <strong><%=encprops.getProperty("genusSpecies")%></strong>: <select name="genusField" id="genusField">
 		<option value=""></option>
-				       
+
 				       <%
 				       boolean hasMoreTax=true;
 				       int taxNum=0;
@@ -842,7 +861,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				       	  String currentGenuSpecies = "genusSpecies"+taxNum;
 				       	  if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
 				       	  	%>
-				       	  	 
+
 				       	  	  <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context)%></option>
 				       	  	<%
 				       		taxNum++;
@@ -850,11 +869,11 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				          else{
 				             hasMoreTax=false;
 				          }
-				          
+
 				       }
 				       %>
-				       
-				       
+
+
 			      </select>
         </td>
 	</tr>
@@ -872,7 +891,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
           </label>
           </td>
         </tr>
-        
+
 
 
         <tr>
@@ -888,7 +907,7 @@ if(CommonConfiguration.showProperty("showCountry",context)){
 				List<String> behavs = myShepherd.getAllBehaviors();
 				int totalBehavs=behavs.size();
 
-				
+
 				if(totalBehavs>1){
 				%>
 
@@ -929,18 +948,18 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 %>
 <tr valign="top">
   <td><strong><%=encprops.getProperty("lifeStage")%>:</strong>
-  
+
   <select name="lifeStageField" id="lifeStageField">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMoreStages=true;
   			       int stageNum=0;
-  			       
+
   			       while(hasMoreStages){
   			       	  String currentLifeStage = "lifeStage"+stageNum;
   			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
-  			       	  	 
+
   			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
@@ -948,12 +967,12 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
   			          else{
   			        	hasMoreStages=false;
   			          }
-  			          
+
 			       }
 			       if(stageNum==0){%>
 			    	   <p><em><%=encprops.getProperty("noStages")%></em></p>
 			       <% }
-			       
+
  %>
   </select></td>
 </tr>
@@ -966,18 +985,18 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 %>
 <tr valign="top">
   <td><strong><%=encprops.getProperty("patterningCode")%></strong>
-  
+
   <select name="patterningCodeField" id="patterningCodeField">
   	<option value="None" selected="selected"></option>
   <%
   			       boolean hasMorePatterningCodes=true;
   			       int stageNum=0;
-  			       
+
   			       while(hasMorePatterningCodes){
   			       	  String currentLifeStage = "patterningCode"+stageNum;
   			       	  if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
   			       	  	%>
-  			       	  	 
+
   			       	  	  <option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
   			       	  	<%
   			       		stageNum++;
@@ -985,12 +1004,12 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   			          else{
   			        	hasMorePatterningCodes=false;
   			          }
-  			          
+
 			       }
 			       if(stageNum==0){%>
 			    	   <p><em><%=encprops.getProperty("noPatterningCodes")%></em></p>
 			       <% }
-			       
+
  %>
   </select></td>
 </tr>
@@ -1023,7 +1042,7 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:if>
 <tr><td>
       <p><strong><%=encprops.getProperty("hasPhoto")%> </strong>
-            <label> 
+            <label>
             	<input name="hasPhoto" type="checkbox" id="hasPhoto" value="hasPhoto" />
             </label>
       </p>
@@ -1059,9 +1078,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
     </tr>
            <tr><td>
       <p>
-            <label> 
+            <label>
             	<input name="photoKeywordOperator" type="checkbox" id="photoKeywordOperator" value="_OR_" />
-            </label> <%=encprops.getProperty("orPhotoKeywords")%> 
+            </label> <%=encprops.getProperty("orPhotoKeywords")%>
       </p>
       </td></tr>
     <%
@@ -1073,10 +1092,10 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </td>
 </tr>
         <%
-					
+
 				}
 				%>
-  
+
 
 
 </table>
@@ -1097,8 +1116,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <div id="identity" style="display:none; ">
       <p><%=encprops.getProperty("identityInstructions") %></p>
-      <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%> 
-   
+      <input name="resightOnly" type="checkbox" id="resightOnly" value="true" /> <%=encprops.getProperty("include")%>
+
    <select name="numResights" id="numResights">
       <option value="1" selected>1</option>
       <option value="2">2</option>
@@ -1127,9 +1146,9 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
                              alt="Help" width="15" height="15" border="0"
                              align="absmiddle"/></a></span>
         <br></em></p>
-        
-        
-            
+
+
+
             <p><strong><%=encprops.getProperty("individualID")%></strong> <em> <input
               name="individualID" type="text" id="individualID" size="25"
               maxlength="100"> <span class="para"><a
@@ -1137,11 +1156,11 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
               target="_blank"><img src="../images/information_icon_svg.gif"
                                    alt="Help" width="15" height="15" border="0" align="absmiddle"/></a></span>
               <br />
-              
+
               <%=encprops.getProperty("multipleIndividualID")%></em></p>
-        
-      
-        
+
+
+
     </div>
   </td>
 </tr>
@@ -1165,8 +1184,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
         <div id="tags" style="display:none;">
         <p><%=encprops.getProperty("tagsInstructions") %></p>
         <c:if test="${showMetalTags}">
-            <% 
-              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context)); 
+            <%
+              pageContext.setAttribute("metalTagDescs", Util.findMetalTagDescs(langCode,context));
             %>
             <h5><%=encprops.getProperty("metalTags") %></h5>
             <table>
@@ -1219,14 +1238,14 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
   <td>
     <div id="genetics" style="display:none; ">
       <p><%=encprops.getProperty("biologicalInstructions") %></p>
-      
+
       <p><strong><%=encprops.getProperty("hasTissueSample")%>: </strong>
-            <label> 
+            <label>
             	<input name="hasTissueSample" type="checkbox" id="hasTissueSample" value="hasTissueSample" />
             </label>
       </p>
       <p><strong><%=encprops.getProperty("tissueSampleID")%>:</strong>
-        <input name="tissueSampleID" type="text" size="50">    
+        <input name="tissueSampleID" type="text" size="50">
       </p>
       <p><strong><%=encprops.getProperty("haplotype")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation(context)%>haplotype"
@@ -1264,8 +1283,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
         }
       %>
-      
-      
+
+
     <p><strong><%=encprops.getProperty("geneticSex")%>:</strong> <span class="para">
       <a href="<%=CommonConfiguration.getWikiLocation(context)%>geneticSex"
         target="_blank"><img src="../images/information_icon_svg.gif"
@@ -1302,8 +1321,8 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
       <%
         }
       %>
-      
-      
+
+
       <%
     pageContext.setAttribute("items", Util.findBiologicalMeasurementDescs(langCode,context));
 %>
@@ -1327,20 +1346,20 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
 </c:forEach>
 <tr><td></td></tr>
 </table>
-    
-      <p><strong><%=encprops.getProperty("msmarker")%>:</strong> 
+
+      <p><strong><%=encprops.getProperty("msmarker")%>:</strong>
       <span class="para">
       	<a href="<%=CommonConfiguration.getWikiLocation(context)%>loci" target="_blank">
       		<img src="../images/information_icon_svg.gif" alt="Help" border="0" align="absmiddle"/>
       	</a>
-      </span> 
+      </span>
    </p>
 <p>
 
       <%
         List<String> loci = myShepherd.getAllLoci();
         int totalLoci = loci.size();
-		
+
         if (totalLoci >= 1) {
 			%>
             <table border="0">
@@ -1350,16 +1369,16 @@ if(CommonConfiguration.showProperty("showPatterningCode",context)){
             String word = loci.get(n);
             if (!word.equals("")) {
         	%>
-        	
+
         	<tr><td width="100px"><input name="<%=word%>" type="checkbox" value="<%=word%>"><%=word%></input></td><td><%=encprops.getProperty("allele")%> 1: <input name="<%=word%>_alleleValue0" type="text" size="5" maxlength="10" />&nbsp;&nbsp;</td><td><%=encprops.getProperty("allele")%> 2: <input name="<%=word%>_alleleValue1" type="text" size="5" maxlength="10" /></td></tr>
-        		
+
         	<%
             }
           }
 %>
 <tr><td colspan="3">
 
-<%=encprops.getProperty("alleleRelaxValue")%>: +/- 
+<%=encprops.getProperty("alleleRelaxValue")%>: +/-
 <%
 int alleleRelaxMaxValue=0;
 try{
@@ -1371,7 +1390,7 @@ catch(Exception d){}
 <%
 for(int k=0;k<alleleRelaxMaxValue;k++){
 %>
-	<option value="<%=k%>"><%=k%></option>	
+	<option value="<%=k%>"><%=k%></option>
 <%
 }
 %>
@@ -1379,7 +1398,7 @@ for(int k=0;k<alleleRelaxMaxValue;k++){
 </td></tr>
 </table>
 <%
-      } 
+      }
 else {
       %>
       <p><em><%=encprops.getProperty("noLoci")%>
@@ -1387,7 +1406,7 @@ else {
       <%
         }
       %>
-   
+
 </p>
 
 
@@ -1423,7 +1442,7 @@ else {
      		<p><select size="<%=(numProps+1) %>" multiple="multiple" name="state" id="state">
      		<option value="None"></option>
      		<%
-     		
+
      		for(int y=0;y<numProps;y++){
      		%>
      			<option value="<%=values.get(y) %>"><%=values.get(y) %></option>
@@ -1434,7 +1453,7 @@ else {
 			</p>
 		</td>
         </tr>
-		
+
 		<tr>
   <td><br /><strong><%=encprops.getProperty("submitterName")%></strong>
     <input name="nameField" type="text" size="60"> <br> <em><%=encprops.getProperty("namesBlank")%>
@@ -1472,7 +1491,7 @@ else {
             if(users.get(n).getFullName()!=null){
             	userFullName=users.get(n).getFullName();
             }
-            
+
         	%>
         	<option value="<%=username%>"><%=userFullName%></option>
         	<%
@@ -1516,6 +1535,3 @@ inShepherd.closeDBTransaction();
 <br />
 </div>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-

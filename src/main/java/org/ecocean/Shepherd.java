@@ -471,6 +471,16 @@ public class Shepherd {
     return getStudySitesWithNames(-1);
   }
 
+  public String[] getUniqueStudySiteNames() {
+    List<StudySite> sites = getStudySitesWithNames();
+    Set<String> names = new HashSet<String>();
+    for (StudySite stu : sites) {
+      if (!names.contains(stu.getName())) names.add(stu.getName());
+    }
+    return names.toArray(new String[0]);
+  }
+
+
 
   public List<StudySite> getStudySitesAtLocation(String locationID) {
     return getStudySitesAtLocation(locationID, true);
@@ -2024,7 +2034,7 @@ public class Shepherd {
         SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
         spv.setWebURL(webURL);
         spv.setDataCollectionEventID(ma.getUUID());
-  
+
         //add Keywords
         if(ma.getKeywords()!=null){
           ArrayList<Keyword> alkw=ma.getKeywords();
@@ -2034,7 +2044,7 @@ public class Shepherd {
             spv.addKeyword(kw);
           }
         }
-  
+
         myArray.add(spv);
 
     }
