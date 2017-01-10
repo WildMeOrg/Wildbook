@@ -31,6 +31,7 @@ import org.ecocean.Cluster;
 import org.ecocean.Resolver;
 import org.ecocean.media.*;
 import org.ecocean.identity.*;
+import org.ecocean.ScheduledQueue;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -475,75 +476,32 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
     JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
     String taskId = Util.generateUUID();
     res.put("taskId", taskId);
+    String baseUrl = null;
+    try {
+        baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+    } catch (java.net.URISyntaxException ex) {}
 
-    if (j.optJSONObject("detect") != null) {
-        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-        List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
-        ArrayList<String> validIds = new ArrayList<String>();
-
-        if (j.getJSONObject("detect").optJSONArray("mediaAssetIds") != null) {
-            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetIds");
-            for (int i = 0 ; i < ids.length() ; i++) {
-                int id = ids.optInt(i, 0);
-System.out.println(id);
-                if (id < 1) continue;
-                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
-                if (ma != null) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
-                    mas.add(ma);
-                }
-            }
-        } else if (j.getJSONObject("detect").optJSONArray("mediaAssetSetIds") != null) {
-            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetSetIds");
-            for (int i = 0 ; i < ids.length() ; i++) {
-                MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
-                if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0))
-                    mas.addAll(set.getMediaAssets());
-            }
+    if (j.optBoolean("enqueue", false)) {  //short circuits and just blindly writes out to queue and is done!  magic?
+        //TODO could probably add other stuff (e.g. security/user etc)
+        j.put("__context", context);
+        j.put("__baseUrl", baseUrl);
+        j.put("__enqueuedByIAGateway", System.currentTimeMillis());
+        //incoming json *probably* (should have) has taskId set... but if not i guess we use the one we generated???
+        if (j.optString("taskId", null) != null) {
+            taskId = j.getString("taskId");
+            res.put("taskId", taskId);
         } else {
-            res.put("success", false);
-            res.put("error", "unknown detect value");   
+            j.put("taskId", taskId);
         }
+        String qid = ScheduledQueue.addToQueue(j.toString());
+        System.out.println("INFO: taskId=" + taskId + " enqueued to " + qid);
+        res.remove("error");
+        res.put("success", "true");
 
-        if (mas.size() > 0) {
-            for (MediaAsset ma : mas) {
-                validIds.add(Integer.toString(ma.getId()));
-                if (ma.getOccurrence() == null) needOccurrences.add(ma);
-            }
-            if (needOccurrences.size() > 0) {  //first we make occurrences where needed
-                List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
-                res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
-            }
+    } else if (j.optJSONObject("detect") != null) {
+        res = _doDetect(j, res, myShepherd, context, baseUrl);
 
-            IBEISIA.waitForIAPriming();
-            boolean success = true;
-            try {
-                String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas));
-                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl);
-                res.put("sendDetect", sent);
-                String jobId = null;
-                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
-                    jobId = sent.optString("response", null);
-                res.put("jobId", jobId);
-                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
-            } catch (Exception ex) {
-                success = false;
-                throw new IOException(ex.toString());
-            }
-            if (!success) {
-                for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
-                }
-            }
-            res.remove("error");
-            res.put("success", true);
-        } else {
-            res.put("error", "no valid MediaAssets");
-        }
-
-    } 
-    else if (j.optJSONObject("identify") != null) {
+    } else if (j.optJSONObject("identify") != null) {
         ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
         ArrayList<String> validIds = new ArrayList<String>();
         int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
@@ -658,6 +616,82 @@ System.out.println("anns -> " + anns);
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
   }
+
+
+    public static JSONObject _doDetect(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
+        if (res == null) throw new RuntimeException("IAGateway._doDetect() called without res passed in");
+        String taskId = res.optString("taskId", null);
+        if (taskId == null) throw new RuntimeException("IAGateway._doDetect() has no taskId passed in");
+        if (baseUrl == null) return res;
+        if (jin == null) return res;
+        JSONObject j = jin.optJSONObject("detect");
+        if (j == null) return res;  // "should never happen"
+        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
+        List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
+        ArrayList<String> validIds = new ArrayList<String>();
+
+        if (j.getJSONObject("detect").optJSONArray("mediaAssetIds") != null) {
+            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetIds");
+            for (int i = 0 ; i < ids.length() ; i++) {
+                int id = ids.optInt(i, 0);
+System.out.println(id);
+                if (id < 1) continue;
+                MediaAsset ma = MediaAssetFactory.load(id, myShepherd);
+                if (ma != null) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_PROCESSING);
+                    mas.add(ma);
+                }
+            }
+        } else if (j.getJSONObject("detect").optJSONArray("mediaAssetSetIds") != null) {
+            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetSetIds");
+            for (int i = 0 ; i < ids.length() ; i++) {
+                MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
+                if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0))
+                    mas.addAll(set.getMediaAssets());
+            }
+        } else {
+            res.put("success", false);
+            res.put("error", "unknown detect value");   
+        }
+
+        if (mas.size() > 0) {
+            for (MediaAsset ma : mas) {
+                validIds.add(Integer.toString(ma.getId()));
+                if (ma.getOccurrence() == null) needOccurrences.add(ma);
+            }
+            if (needOccurrences.size() > 0) {  //first we make occurrences where needed
+                List<Occurrence> occs = Cluster.defaultCluster(needOccurrences, myShepherd);
+                res.put("_occurrenceNote", "created " + occs.size() + " Occurrences out of " + mas.size() + " MediaAssets");
+            }
+
+            IBEISIA.waitForIAPriming();
+            boolean success = true;
+            try {
+                res.put("sendMediaAssets", IBEISIA.sendMediaAssets(mas));
+                JSONObject sent = IBEISIA.sendDetect(mas, baseUrl);
+                res.put("sendDetect", sent);
+                String jobId = null;
+                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
+                    jobId = sent.optString("response", null);
+                res.put("jobId", jobId);
+                IBEISIA.log(taskId, validIds.toArray(new String[validIds.size()]), jobId, new JSONObject("{\"_action\": \"initDetect\"}"), context);
+            } catch (Exception ex) {
+                success = false;
+                throw new IOException(ex.toString());
+            }
+            if (!success) {
+                for (MediaAsset ma : mas) {
+                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
+                }
+            }
+            res.remove("error");
+            res.put("success", true);
+        } else {
+            res.put("error", "no valid MediaAssets");
+        }
+        return res;
+    }
+
 
 
     private JSONObject _sendIdentificationTask(Annotation ann, HttpServletRequest request, JSONObject queryConfigDict,

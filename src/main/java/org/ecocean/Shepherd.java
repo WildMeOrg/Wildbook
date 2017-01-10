@@ -2034,7 +2034,6 @@ public class Shepherd {
         SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
         spv.setWebURL(webURL);
         spv.setDataCollectionEventID(ma.getUUID());
-
         //add Keywords
         if(ma.getKeywords()!=null){
           ArrayList<Keyword> alkw=ma.getKeywords();
@@ -2044,7 +2043,6 @@ public class Shepherd {
             spv.addKeyword(kw);
           }
         }
-
         myArray.add(spv);
 
     }
