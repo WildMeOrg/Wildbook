@@ -413,7 +413,7 @@ finally{
 
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
-					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  style="height: 336px; width: 336xp; border-radius: 50%;"/>
+					<img class="pull-right" src="images/how_it_works_bellyshot_of_manta.jpg" alt=""  style="width: 336xp; border-radius: 50%;"/>
 				</div>
 			</div>
 			<div class="item">
