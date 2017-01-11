@@ -22,7 +22,8 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
-Properties indexProps=ShepherdProperties.getProperties("index.properties", "", context);
+String langCode=ServletUtilities.getLanguageCode(request);
+Properties indexProps=ShepherdProperties.getProperties("index.properties", langCode, context);
 
 
 //check for and inject a default user 'tomcat' if none exists
@@ -375,7 +376,7 @@ finally{
     <div class="container relative">
         <div class="col-xs-12">
             <h1 class="hidden">Wildbook</h1>
-            <h2>Study, identify,</br> and protect </br>the Iberian Lynx!</h2>
+            <h2><%= indexProps.getProperty("catchphrase")%></h2>
             <!--
             <button id="watch-movie" class="large light">
 				Watch the movie
@@ -394,20 +395,20 @@ finally{
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header">How it works</h2>
+	<h2 class="section-header">indexProps.getProperty("howItWorks")</h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
-	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. Photograph an animal<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. Submit photo/video<span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Match result<span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=indexProps.getProperty("photographAnAnimal")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=indexProps.getProperty("submitPhoto")%><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=indexProps.getProperty("matchingProcess")%><span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
 			<div class="item active">
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Photograph the ID area</h3>
 					<p class="lead">
-						Animals with patterned features can often be identified uniquely. By taking a picture, you can match that pattern to others already in the database. Your animal might be new to the database, or it might be a new sighting of one we have seen before!
+          <%=indexProps.getProperty("photoIdPar")%>
 					</p>
 
 				</div>
@@ -419,7 +420,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Submit PhotoID or sighting</h3>
 					<p class="lead">
-						You can upload files from your computer, or take them directly from your Flickr or Facebook account. Be sure to enter when and where you saw the animal, and add other information, such as species or sex, if you can. You will receive email updates when your animal is processed.
+          <%=indexProps.getProperty("submitPhotoPar")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -430,7 +431,7 @@ finally{
 				<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
 					<h3>Matching Results</h3>
 					<p class="lead">
-						Wildbook uses computer vision to compare new IDs to the existing database. Researchers then visually confirm a match to an existing animal in the database, or create a new individual profile.
+          <%=indexProps.getProperty("matchingProcessPar")%>
 					</p>
 				</div>
 				<div class="col-xs-12 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-4 col-lg-offset-2">
@@ -491,7 +492,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
+                    <h2>	                                        <%=indexProps.getProperty("latestEncounters") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -531,12 +532,12 @@ finally{
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=indexProps.getProperty("seeMoreEncounters") %></a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Top spotters (past 30 days)</h2>
+                    <h2><%=indexProps.getProperty("topSpotters") %></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
                     myShepherd.beginDBTransaction();
@@ -588,7 +589,7 @@ finally{
                    %>
 
                     </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
+                    <a href="whoAreWe.jsp" title="" class="cta"><%=indexProps.getProperty("seeAllSpotters") %></a>
                 </div>
             </section>
         </div>
@@ -599,14 +600,14 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span><%=indexProps.getProperty("identifiedIndividuals") %> </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span><%=indexProps.getProperty("reportedEncounters") %> </i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span><%=indexProps.getProperty("contributors") %> </i></p>
             </section>
         </div>
 
@@ -617,9 +618,9 @@ finally{
                 <div class="row">
                     <img src="cust/mantamatcher/img/why-we-do-this.jpg" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" style="border-radius: 50%;"/>
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
-                        <p class="lead">Place an inspirational quote here.</p>
-                        <a href="#" title="">I want to know more</a>
+                        <h1><%=indexProps.getProperty("whyWeDoThis") %></h1>
+                        <p class="lead"><%=indexProps.getProperty("inspirationalQuote") %></p>
+                        <a href="#" title=""><%=indexProps.getProperty("iWantToKnowMore") %></a>
                     </div>
                 </div>
             </article>
@@ -629,7 +630,7 @@ finally{
 </div>
 
 <div class="container main-section">
-    <h2 class="section-header">Encounters around the world</h2>
+    <h2 class="section-header"><%=indexProps.getProperty("encountersAroundTheWorld") %></h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
