@@ -395,7 +395,7 @@ finally{
 
 <section class="container text-center main-section">
 
-	<h2 class="section-header">indexProps.getProperty("howItWorks")</h2>
+	<h2 class="section-header"><%=indexProps.getProperty("howItWorks")%></h2>
 
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
