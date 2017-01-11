@@ -299,7 +299,7 @@ int numDataContributors=0;
 
     <button type="button" class="btn-link"><a href="gallery.jsp?sort=numberEncounters"><%=props.getProperty("mostSightings") %></a></button>
 
-    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true">Adoptable Sharks</a></button>
+    <button type="button" class="btn-link"><a href="gallery.jsp?adoptableSharks=true"><%=props.getProperty("adoptableSharks") %></a></button>
 
   </div>
 </nav>
@@ -308,8 +308,8 @@ int numDataContributors=0;
   <section class="container-fluid main-section front-gallery galleria">
 
   <% if (request.getParameter("adoptableSharks")!=null) { %>
-    <h3>There are currently <%=countAdoptable%> sharks available for adoption.</h3>
-    <p>You can adopt an animal to support whale shark research. Browse the animals below and select the one you would like to adopt. If you would like to learn more about whale shark adoptions, you may do so <strong><a href="adoptashark.jsp">here</a></strong>.</p>
+    <h3><%=props.getProperty("numAdoptable").replaceAll("%NUM%", (new Integer(countAdoptable)).toString()) %></h3>
+    <p><%=props.getProperty("adoptOne") %> <strong><a href="adoptashark.jsp"><%=props.getProperty("learnMore") %></a></strong></p>
   <% } %>
 
     <% if(request.getParameter("locationCodeField")!=null) {%>
@@ -535,7 +535,7 @@ int numDataContributors=0;
           }
           %>
 
-          see more
+          <%=props.getProperty("seeMore") %>
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href= "<%=urlLoc%>/gallery.jsp?startNum=<%=endNum%>&endNum=<%=endNum+numIndividualsOnPage%><%=sortString %><%=locationCodeFieldString %>"> <img border="0" alt="" src="<%=urlLoc%>/cust/mantamatcher/img/wwf-blue-arrow-right.png"/></a>
         </p>

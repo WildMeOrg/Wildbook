@@ -248,7 +248,7 @@ var colDefn = [
 */
 	{
 		key: 'thumb',
-		label: 'Thumb',
+		label: '<%=props.getProperty("thumbnail") %>',
 		value: _colThumb,
 		nosort: true,
 	},
