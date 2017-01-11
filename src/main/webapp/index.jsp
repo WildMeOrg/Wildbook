@@ -22,6 +22,7 @@ String context=ServletUtilities.getContext(request);
 Shepherd myShepherd=null;
 myShepherd=new Shepherd(context);
 myShepherd.setAction("index.jsp");
+Properties indexProps=ShepherdProperties.getProperties("index.properties", "", context);
 
 
 //check for and inject a default user 'tomcat' if none exists
@@ -440,7 +441,7 @@ finally{
 	</div>
 </section>
 
-<div class="container-fluid relative data-section">
+<div class="container-fluid relative data-section" style="background-image:url(images/alternate_lynx.jpg)">
 
     <aside class="container main-section">
         <div class="row">
