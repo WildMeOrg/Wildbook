@@ -42,7 +42,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
-    createMatchGraph(request);
+
     
   }
 
@@ -117,6 +117,7 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
         if ((res != null) && res.toString().equals("jndi:/localhost/")) {
             IBEISIA.primeIA();
+        createMatchGraph();
         }
 
         File qdir = ScheduledQueue.setQueueDir(context);
@@ -156,10 +157,10 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
     }
     
     
-    public static void createMatchGraph(HttpServletRequest request){
+    public static void createMatchGraph(){
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-      es.execute(new MatchGraphCreationThread(request));
+      es.execute(new MatchGraphCreationThread());
       
     }
     
