@@ -157,6 +157,7 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
     
     
     public static void createMatchGraph(HttpServletRequest request){
+      System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread(request));
       
