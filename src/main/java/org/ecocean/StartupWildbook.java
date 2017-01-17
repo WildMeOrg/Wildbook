@@ -12,9 +12,14 @@ import javax.servlet.ServletContext;
 import java.net.URL;
 
 import org.ecocean.*;
+import org.ecocean.grid.MatchGraphCreationThread;
+import org.ecocean.grid.ScanTaskCleanupThread;
+import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
+import java.util.concurrent.ThreadPoolExecutor;
 
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
@@ -29,7 +34,8 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
-
+    createMatchGraph(request);
+    
   }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
@@ -107,6 +113,14 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
     }
+    
+    
+    public static void createMatchGraph(HttpServletRequest request){
+      ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
+      es.execute(new MatchGraphCreationThread(request));
+      
+    }
+    
 }
 
 

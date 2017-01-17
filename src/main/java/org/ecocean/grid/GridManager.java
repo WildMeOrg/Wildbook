@@ -32,8 +32,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Enumeration;
 
 import org.apache.commons.math.stat.descriptive.SummaryStatistics;
+
 
 public class GridManager {
 
@@ -66,11 +68,10 @@ public class GridManager {
   private String C = "0.99";
   private String secondRun = "true";
   
-  //SummaryStatistics
-  private static SummaryStatistics dtwStats=null;
-  private static SummaryStatistics i3sStats=null;
-  private static SummaryStatistics proportionStats=null;
-  private static SummaryStatistics intersectionStats=null;
+  private static ConcurrentHashMap<String,EncounterLite> matchGraph=new ConcurrentHashMap<String, EncounterLite>();
+  private static int numRightPatterns=0;
+  private static int numLeftPatterns=0;
+
 
   //hold uncompleted scanWorkItems
   private ArrayList<ScanWorkItem> toDo = new ArrayList<ScanWorkItem>();
@@ -628,6 +629,37 @@ public class GridManager {
   }
   
   public Integer getScanTaskSize(String scanTaskID){return scanTaskSizes.get(scanTaskID);}
+  
+  public static ConcurrentHashMap<String,EncounterLite> getMatchGraph(){return matchGraph;}
+  public static void addMatchGraphEntry(String elID,EncounterLite el){
+    matchGraph.put(elID, el);
+    resetPatternCounts();
+  }
+  public static void removeMatchGraphEntry(String elID){
+    if(matchGraph.containsKey(elID)){
+      matchGraph.remove(elID);
+    }
+    resetPatternCounts();
+   }
+  public static EncounterLite getMatchGraphEncounterLiteEntry(String elID){
+    return matchGraph.get(elID);
+  }
+  public static synchronized int getNumRightPatterns(){return numRightPatterns;}
+  public static synchronized int getNumLeftPatterns(){return numLeftPatterns;}
+  
+  /*
+   * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare against.
+   */
+  private static synchronized void resetPatternCounts(){
+    Enumeration<String> keys=getMatchGraph().keys();
+    while(keys.hasMoreElements()){
+      String key=keys.nextElement();
+      EncounterLite el=getMatchGraphEncounterLiteEntry(key);
+      if((el.getSpots()!=null)&&(el.getSpots().size()>0)){numLeftPatterns++;}
+      if((el.getRightSpots()!=null)&&(el.getRightSpots().size()>0)){numRightPatterns++;}
+    }
+    
+  }
     
 
 }
