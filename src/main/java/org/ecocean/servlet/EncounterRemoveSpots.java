@@ -22,7 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
-
+import org.ecocean.grid.GridManagerFactory;
 import org.json.JSONObject;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,6 +32,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.ecocean.grid.EncounterLite;
+import org.ecocean.grid.GridManager;
 
 
 public class EncounterRemoveSpots extends HttpServlet {
@@ -63,6 +67,9 @@ public class EncounterRemoveSpots extends HttpServlet {
     boolean locked = false;
 
     boolean isOwner = true;
+    
+    GridManager gm = GridManagerFactory.getGridManager();
+    //ConcurrentHashMap<String,EncounterLite> chm= gm.getMatchGraph();
 
     /*
       if(request.getParameter("number")!=null){
@@ -91,10 +98,11 @@ public class EncounterRemoveSpots extends HttpServlet {
     if (request.getParameter("number") != null) {
       String side = "left";
       myShepherd.beginDBTransaction();
-      Encounter despotMe = myShepherd.getEncounter(request.getParameter("number"));
+
       boolean assigned = false;
 
       try {
+        Encounter despotMe = myShepherd.getEncounter(request.getParameter("number"));
         if (despotMe.getIndividualID()==null) {
 
           if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("true"))) {
@@ -105,7 +113,8 @@ public class EncounterRemoveSpots extends HttpServlet {
             side = "right";
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
             //despotMe.setNumRightSpots(0);
-          } else if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("false"))) {
+          } 
+          else if ((request.getParameter("rightSide") != null) && (request.getParameter("rightSide").equals("false"))) {
 
             despotMe.removeSpots();
             despotMe.removeLeftSpotMediaAssets(myShepherd);
@@ -114,32 +123,41 @@ public class EncounterRemoveSpots extends HttpServlet {
             despotMe.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>Removed " + side + "-side spot data.</p>");
             //despotMe.setNumLeftSpots(0);
           }
-        } else {
+          gm.addMatchGraphEntry(request.getParameter("number"), new EncounterLite(despotMe));
+          myShepherd.commitDBTransaction();
+        } 
+        else {
           locked = true;
           myShepherd.rollbackDBTransaction();
           assigned = true;
         }
 
-      } catch (Exception le) {
+      } 
+      catch (Exception le) {
         locked = true;
         le.printStackTrace();
         myShepherd.rollbackDBTransaction();
+      }
+      finally{
+        myShepherd.closeDBTransaction();
       }
 
 
       out.println(ServletUtilities.getHeader(request));
       if (!locked) {
-        myShepherd.commitDBTransaction();
+        
         out.println("<strong>Success:</strong> I have removed spot data for encounter " + request.getParameter("number") + ".");
         out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
         String message = "The spot-matching data for encounter " + request.getParameter("number") + " was removed.";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
+      } 
+      else {
 
         if (assigned) {
           out.println("<strong>Failure:</strong> I was NOT able to remove the spot data because the encounter has been assigned to a marked individual. Please try to remove the spot data again after removing the encounter from the individual if appropriate.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        } else {
+        } 
+        else {
 
           out.println("<strong>Failure:</strong> I was NOT able to remove the spot data because another user is currently modifying this encounter, or you did not specify a side to remove spot data from. Please try to remove the spot data again in a few seconds.");
           out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -148,7 +166,8 @@ public class EncounterRemoveSpots extends HttpServlet {
 
 
       out.println(ServletUtilities.getFooter(context));
-    } else {
+    } 
+    else {
       out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
       out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
@@ -156,7 +175,7 @@ public class EncounterRemoveSpots extends HttpServlet {
     }
 
     out.close();
-    myShepherd.closeDBTransaction();
+    
   }
 }
 	

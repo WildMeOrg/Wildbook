@@ -99,6 +99,35 @@ public class ScanWorkItem implements java.io.Serializable {
     createTime = System.currentTimeMillis();
 
   }
+  
+  public ScanWorkItem(EncounterLite newEnc, EncounterLite existingEnc, String uniqueNum, String taskID, Properties props) {
+    this.newEncounter = newEnc;
+    this.existingEncounter = existingEnc;
+    this.uniqueNum = uniqueNum;
+    this.taskID = taskID;
+
+    //algorithm parameter read-ins
+    this.epsilon = new Double(props.getProperty("epsilon"));
+    this.R = new Double(props.getProperty("R"));
+    this.Sizelim = new Double(props.getProperty("Sizelim"));
+    this.maxTriangleRotation = new Double(props.getProperty("maxTriangleRotation"));
+    this.C = new Double(props.getProperty("C"));
+
+    //boolean read-ins
+    this.secondRun = true;
+    String secondRunString = (String) props.get("secondRun");
+    if (secondRunString.equals("false")) {
+      secondRun = false;
+    }
+    this.rightScan = false;
+    String rightScanString = (String) props.get("rightScan");
+    if (rightScanString.equals("true")) {
+      rightScan = true;
+    }
+
+    createTime = System.currentTimeMillis();
+
+  }
 
   //public scanWorkItemResult getResult(){
   //return result;
