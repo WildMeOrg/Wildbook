@@ -34,7 +34,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
-    createMatchGraph(request);
+
     
   }
 
@@ -108,6 +108,7 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
         if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
         IBEISIA.primeIA();
+        createMatchGraph();
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
@@ -115,10 +116,10 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
     }
     
     
-    public static void createMatchGraph(HttpServletRequest request){
+    public static void createMatchGraph(){
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
-      es.execute(new MatchGraphCreationThread(request));
+      es.execute(new MatchGraphCreationThread());
       
     }
     
