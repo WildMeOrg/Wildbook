@@ -651,6 +651,8 @@ public class GridManager {
    * Convenience method to speed ScanWorkItemCreationThread by always maintaining and recalculating accurate counts of potential patterns to compare against.
    */
   private static synchronized void resetPatternCounts(){
+    numLeftPatterns=0;
+    numRightPatterns=0;
     Enumeration<String> keys=getMatchGraph().keys();
     while(keys.hasMoreElements()){
       String key=keys.nextElement();
