@@ -123,6 +123,8 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
+        } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
+            System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
             final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
@@ -130,8 +132,14 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
                 int count = 0;
                 public void run() {
                     ++count;
-                    boolean cont = ScheduledQueue.checkQueue();
-                    System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
+                    boolean cont = true;
+                    try {
+                        cont = ScheduledQueue.checkQueue();
+                    } catch (Exception ex) {
+                        System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
+                        cont = false;
+                    }
+                    if (count % 100 == 1) System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
                     if (!cont) {
                         System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
                         schedExec.shutdown();

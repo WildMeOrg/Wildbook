@@ -91,9 +91,9 @@ public class IAGateway extends HttpServlet {
         response.setContentType("text/plain");
         getOut = IBEISIA.iaStatus(request).toString();
 
-///////////////
-    } 
-    else if (request.getParameter("getJobResultFromTaskID") != null) {
+    /* this is currently (i think!) only used from matchResults.jsp (e.g. flukebook) and as such doesnt really know about [the newish] ident review etc.
+        so we are going to kinda munge the review list into a results list and hope for the best */
+    } else if (request.getParameter("getJobResultFromTaskID") != null) {
         JSONObject res = new JSONObject("{\"success\": false, \"error\": \"unknown\"}");
         String context = ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
@@ -106,6 +106,7 @@ public class IAGateway extends HttpServlet {
         if ((logs == null) || (logs.size() < 1)) {
             res.put("error", "could not find any record for task ID = " + taskID);
 
+//simpleResultsFromAnnotPairDict(JSONArray apd, String qid)
         } else {
             JSONObject apd = null;
             String qid = null;
@@ -502,104 +503,7 @@ System.out.println("[taskId=" + taskId + "] attempting passthru to " + url);
         res = _doDetect(j, res, myShepherd, context, baseUrl);
 
     } else if (j.optJSONObject("identify") != null) {
-        ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
-        ArrayList<String> validIds = new ArrayList<String>();
-        int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
-
-        //currently this implies each annotation should be sent one-at-a-time TODO later will be allow clumping (to be sent as multi-annotation
-        //  query lists.... *when* that is supported by IA
-        JSONArray alist = j.getJSONObject("identify").optJSONArray("annotationIds");
-        if ((alist != null) && (alist.length() > 0)) {
-            for (int i = 0 ; i < alist.length() ; i++) {
-                String aid = alist.optString(i, null);
-                if (aid == null) continue;
-                Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
-                if (ann == null) continue;
-                anns.add(ann);
-                validIds.add(aid);
-            }
-        }
-
-        //i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that
-        // now, we just send these all in one at a time.  hope that is good enough!   TODO
-        JSONArray olist = j.getJSONObject("identify").optJSONArray("occurrenceIds");
-        if ((olist != null) && (olist.length() > 0)) {
-            for (int i = 0 ; i < olist.length() ; i++) {
-                String oid = olist.optString(i, null);
-                if (oid == null) continue;
-                Occurrence occ = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
-//System.out.println("occ -> " + occ);
-                if (occ == null) continue;
-                List<MediaAsset> mas = occ.getAssets();
-//System.out.println("mas -> " + mas);
-                if ((mas == null) || (mas.size() < 1)) continue;
-                for (MediaAsset ma : mas) {
-                    ArrayList<Annotation> maAnns = ma.getAnnotations();
-//System.out.println("maAnns -> " + maAnns);
-                    if ((maAnns == null) || (maAnns.size() < 1)) continue;
-                    for (Annotation ann : maAnns) {
-                        if (validIds.contains(ann.getId())) continue;
-                        anns.add(ann);
-                        validIds.add(ann.getId());
-                    }
-                }
-            }
-        }
-System.out.println("anns -> " + anns);
-
-        JSONArray taskList = new JSONArray();
-/* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
-   things to consider for that - we probably have to further subdivide by species ... other considerations?   */
-        for (Annotation ann : anns) {
-            JSONObject taskRes = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, limitTargetSize);
-/*
-            String species = ann.getSpecies();
-            if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
-            boolean success = true;
-            String annTaskId = Util.generateUUID();
-            JSONObject taskRes = new JSONObject();
-            taskRes.put("taskId", annTaskId);
-            JSONArray jids = new JSONArray();
-            jids.put(ann.getId());  //for now there is only one 
-            taskRes.put("annotationIds", jids);
-            try {
-                String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-                //TODO we might want to cache this examplars list (per species) yes?
-                ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
-                if ((exemplars == null) || (exemplars.size() < 10)) throw new IOException("suspiciously empty exemplar set for species " + species);
-                if ((limitTargetSize > -1) && (exemplars.size() > limitTargetSize)) {
-                    res.put("_limitTargetSize", limitTargetSize);
-                    System.out.println("WARNING: limited identification exemplar list size from " + exemplars.size() + " to " + limitTargetSize);
-                    exemplars = new ArrayList(exemplars.subList(0, limitTargetSize));
-                }
-                taskRes.put("exemplarsSize", exemplars.size());
-                ArrayList<Annotation> qanns = new ArrayList<Annotation>();
-                qanns.add(ann);
-                JSONObject sent = IBEISIA.beginIdentifyAnnotations(qanns, exemplars, myShepherd, species, annTaskId, baseUrl, context);
-                taskRes.put("beginIdentify", sent);
-                String jobId = null;
-                if ((sent.optJSONObject("status") != null) && sent.getJSONObject("status").optBoolean("success", false))
-                    jobId = sent.optString("response", null);
-                taskRes.put("jobId", jobId);
-                //validIds.toArray(new String[validIds.size()])
-                IBEISIA.log(annTaskId, ann.getId(), jobId, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
-            } catch (Exception ex) {
-                success = false;
-                throw new IOException(ex.toString());
-            }
-/* TODO ?????????
-            if (!success) {
-                for (MediaAsset ma : mas) {
-                    ma.setDetectionStatus(IBEISIA.STATUS_ERROR);
-                }
-            }
-*/
-            taskList.put(taskRes);
-        }
-        if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
-        res.put("tasks", taskList);
-        res.put("success", true);
-
+        res = _doIdentify(j, res, myShepherd, context, baseUrl);
 
     } else if (j.optJSONObject("resolver") != null) {
         res = Resolver.processAPIJSONObject(j.getJSONObject("resolver"), myShepherd);
@@ -630,8 +534,8 @@ System.out.println("anns -> " + anns);
         List<MediaAsset> needOccurrences = new ArrayList<MediaAsset>();
         ArrayList<String> validIds = new ArrayList<String>();
 
-        if (j.getJSONObject("detect").optJSONArray("mediaAssetIds") != null) {
-            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetIds");
+        if (j.optJSONArray("mediaAssetIds") != null) {
+            JSONArray ids = j.getJSONArray("mediaAssetIds");
             for (int i = 0 ; i < ids.length() ; i++) {
                 int id = ids.optInt(i, 0);
 System.out.println(id);
@@ -642,8 +546,8 @@ System.out.println(id);
                     mas.add(ma);
                 }
             }
-        } else if (j.getJSONObject("detect").optJSONArray("mediaAssetSetIds") != null) {
-            JSONArray ids = j.getJSONObject("detect").getJSONArray("mediaAssetSetIds");
+        } else if (j.optJSONArray("mediaAssetSetIds") != null) {
+            JSONArray ids = j.getJSONArray("mediaAssetSetIds");
             for (int i = 0 ; i < ids.length() ; i++) {
                 MediaAssetSet set = myShepherd.getMediaAssetSet(ids.optString(i));
                 if ((set != null) && (set.getMediaAssets() != null) && (set.getMediaAssets().size() > 0))
@@ -693,15 +597,80 @@ System.out.println(id);
     }
 
 
+    public static JSONObject _doIdentify(JSONObject jin, JSONObject res, Shepherd myShepherd, String context, String baseUrl) throws ServletException, IOException {
+        if (res == null) throw new RuntimeException("IAGateway._doIdentify() called without res passed in");
+        String taskId = res.optString("taskId", null);
+        if (taskId == null) throw new RuntimeException("IAGateway._doIdentify() has no taskId passed in");
+        if (baseUrl == null) return res;
+        if (jin == null) return res;
+        JSONObject j = jin.optJSONObject("identify");
+        if (j == null) return res;  // "should never happen"
+        ArrayList<Annotation> anns = new ArrayList<Annotation>();  //what we ultimately run on.  occurrences are irrelevant now right?
+        ArrayList<String> validIds = new ArrayList<String>();
+        int limitTargetSize = j.optInt("limitTargetSize", -1);  //really "only" for debugging/testing, so use if you know what you are doing
 
-    private JSONObject _sendIdentificationTask(Annotation ann, HttpServletRequest request, JSONObject queryConfigDict,
-                                               JSONObject userConfidence, int limitTargetSize) throws IOException {
-        String context = ServletUtilities.getContext(request);
-        
+        //currently this implies each annotation should be sent one-at-a-time TODO later will be allow clumping (to be sent as multi-annotation
+        //  query lists.... *when* that is supported by IA
+        JSONArray alist = j.optJSONArray("annotationIds");
+        if ((alist != null) && (alist.length() > 0)) {
+            for (int i = 0 ; i < alist.length() ; i++) {
+                String aid = alist.optString(i, null);
+                if (aid == null) continue;
+                Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, aid), true)));
+                if (ann == null) continue;
+                anns.add(ann);
+                validIds.add(aid);
+            }
+        }
+
+        //i think that "in the future" co-occurring annotations should be sent together as one set of query list; but since we dont have support for that
+        // now, we just send these all in one at a time.  hope that is good enough!   TODO
+        JSONArray olist = j.optJSONArray("occurrenceIds");
+        if ((olist != null) && (olist.length() > 0)) {
+            for (int i = 0 ; i < olist.length() ; i++) {
+                String oid = olist.optString(i, null);
+                if (oid == null) continue;
+                Occurrence occ = ((Occurrence) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Occurrence.class, oid), true)));
+//System.out.println("occ -> " + occ);
+                if (occ == null) continue;
+                List<MediaAsset> mas = occ.getAssets();
+//System.out.println("mas -> " + mas);
+                if ((mas == null) || (mas.size() < 1)) continue;
+                for (MediaAsset ma : mas) {
+                    ArrayList<Annotation> maAnns = ma.getAnnotations();
+//System.out.println("maAnns -> " + maAnns);
+                    if ((maAnns == null) || (maAnns.size() < 1)) continue;
+                    for (Annotation ann : maAnns) {
+                        if (validIds.contains(ann.getId())) continue;
+                        anns.add(ann);
+                        validIds.add(ann.getId());
+                    }
+                }
+            }
+        }
+System.out.println("anns -> " + anns);
+
+        JSONArray taskList = new JSONArray();
+/* currently we are sending annotations one at a time (one per query list) but later we will have to support clumped sets...
+   things to consider for that - we probably have to further subdivide by species ... other considerations?   */
+        for (Annotation ann : anns) {
+            JSONObject taskRes = _sendIdentificationTask(ann, context, baseUrl, IBEISIA.queryConfigDict(), null, limitTargetSize,
+                                                         ((anns.size() == 1) ? taskId : null));  //we use passed taskId if only 1 ann but generate otherwise
+            taskList.put(taskRes);
+        }
+        if (limitTargetSize > -1) res.put("_limitTargetSize", limitTargetSize);
+        res.put("tasks", taskList);
+        res.put("success", true);
+        return res;
+    }
+
+
+    private static JSONObject _sendIdentificationTask(Annotation ann, String context, String baseUrl, JSONObject queryConfigDict,
+                                               JSONObject userConfidence, int limitTargetSize, String annTaskId) throws IOException {
         String species = ann.getSpecies();
         if ((species == null) || (species.equals(""))) throw new IOException("species on Annotation " + ann + " invalid: " + species);
         boolean success = true;
-        String annTaskId = Util.generateUUID();
+        if (annTaskId == null) annTaskId = Util.generateUUID();
         JSONObject taskRes = new JSONObject();
         taskRes.put("taskId", annTaskId);
         JSONArray jids = new JSONArray();
@@ -712,7 +681,6 @@ System.out.println("+ starting ident task " + annTaskId);
         myShepherd.setAction("IAGateway._sendIdentificationTask");
         myShepherd.beginDBTransaction();
         try {
-            String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
             //TODO we might want to cache this examplars list (per species) yes?
 
             ///note: this can all go away if/when we decide not to need limitTargetSize
@@ -958,6 +926,10 @@ System.out.println("trying again:\n" + u.toString());
     private void checkIdentificationIterationStatus(String annId, String taskId, HttpServletRequest request) throws IOException {
         if (annId == null) return;
         String context = ServletUtilities.getContext(request);
+        String baseUrl = null;
+        try {
+            baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+        } catch (java.net.URISyntaxException ex) {}
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("IAGateway.checkIdentificationIterationStatus");
         myShepherd.beginDBTransaction();
@@ -985,11 +957,12 @@ System.out.println(" - state(" + a1 + ", " + a2 + ") -> " + state);
             if (state != null) matchingStateList.put(new JSONArray(new String[]{a1, a2, state}));
         }
         //if ((numReviewed >= rlist.length()) || (numReviewed % IDENTIFICATION_REVIEWS_BEFORE_SEND == 0)) {
+
         if (matchingStateList.length() >= rlist.length()) {
             System.out.println("((((( once more thru the outer loop )))))");
             Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, annId), true)));
             if (ann == null)  {myShepherd.rollbackDBTransaction();myShepherd.closeDBTransaction();return;}
-            JSONObject rtn = _sendIdentificationTask(ann, request, IBEISIA.queryConfigDict(), null, -1);
+            JSONObject rtn = _sendIdentificationTask(ann, context, baseUrl, IBEISIA.queryConfigDict(), null, -1, null);
             /////// at this point, we can consider this current task done
             IBEISIA.setActiveTaskId(request, null);  //reset it so it can discovered when results come back
             ann.setIdentificationStatus(IBEISIA.STATUS_PROCESSING);

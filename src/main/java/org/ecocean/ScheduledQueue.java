@@ -68,16 +68,18 @@ public class ScheduledQueue {
             jobj = new JSONObject();  //this allows passthru for completion
         }
 
+        //this must have a taskId coming in, cuz otherwise how would (detached, async) caller know what it is!
+        // __context and __baseUrl should be set -- this is done automatically in IAGateway, but if getting here by some other method, do the work!
         if ((jobj.optJSONObject("detect") != null) && (jobj.optString("taskId", null) != null)) {
-            JSONObject res = new JSONObject("\"success\": false");
+            JSONObject res = new JSONObject("{\"success\": false}");
             res.put("taskId", jobj.getString("taskId"));
-            String context = jobj.optString("context", "context0");
+            String context = jobj.optString("__context", "context0");
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("ScheduledQueue.detect");
             myShepherd.beginDBTransaction();
-            String baseUrl = jobj.optString("baseUrl", null);
+            String baseUrl = jobj.optString("__baseUrl", null);
             try {
-                JSONObject rtn = IAGateway._doDetect(jobj.getJSONObject("detect"), res, myShepherd, context, baseUrl);
+                JSONObject rtn = IAGateway._doDetect(jobj, res, myShepherd, context, baseUrl);
                 System.out.println("INFO: ScheduledQueue 'detect' from " + nextFile + " successful --> " + rtn.toString());
                 myShepherd.commitDBTransaction();
             } catch (Exception ex) {
@@ -85,6 +87,29 @@ public class ScheduledQueue {
                 myShepherd.rollbackDBTransaction();
             }
             myShepherd.closeDBTransaction();
+
+        } else if ((jobj.optJSONObject("identify") != null) && (jobj.optString("taskId", null) != null)) {  //ditto about taskId
+System.out.println("identify TOP!");
+            JSONObject res = new JSONObject("{\"success\": false}");
+            res.put("taskId", jobj.getString("taskId"));
+            String context = jobj.optString("__context", "context0");
+System.out.println(" > context = " + context);
+System.out.println(" > taskId = " + jobj.getString("taskId"));
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("ScheduledQueue.identify");
+            myShepherd.beginDBTransaction();
+            String baseUrl = jobj.optString("__baseUrl", null);
+System.out.println("--- BEFORE _doIdentify() ---");
+            try {
+                JSONObject rtn = IAGateway._doIdentify(jobj, res, myShepherd, context, baseUrl);
+                System.out.println("INFO: ScheduledQueue 'identify' from " + nextFile + " successful --> " + rtn.toString());
+                myShepherd.commitDBTransaction();
+            } catch (Exception ex) {
+                System.out.println("ERROR: ScheduledQueue 'identify' from " + nextFile + " threw exception: " + ex.toString());
+                myShepherd.rollbackDBTransaction();
+            }
+            myShepherd.closeDBTransaction();
+
         } else {
             System.out.println("WARNING: ScheduledQueue unable to use json data in " + nextFile + "; ignoring");
         }

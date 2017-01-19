@@ -281,6 +281,15 @@
     <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
   </servlet>
 
+	<servlet>
+                <servlet-name>ReCAPTCHA</servlet-name>
+                <servlet-class>org.ecocean.servlet.ReCAPTCHA</servlet-class>
+	</servlet>
+	<servlet-mapping>
+                <servlet-name>ReCAPTCHA</servlet-name>
+                <url-pattern>/ReCAPTCHA</url-pattern>
+	</servlet-mapping>
+
   <servlet>
     <description>StripeUpdate</description>
     <servlet-name>StripeUpdate</servlet-name>

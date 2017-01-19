@@ -78,28 +78,30 @@ public class MediaAssetMetadata implements java.io.Serializable {
 
 
     //for now(?) this just searches down into exif structure, returns HashMap of key:values whose keys match regex
-    //  deeper values with same keys will overwrite earlier
+    //  key is "tree-like" as it recurses: "level1:level2:key" => "value" (to help prevent squashing)
+    //   .. however, squashing may occur cuz of lowercase-ing
     //  note also that keys will be squashed to lowercase (hence squashing regex)
     public HashMap<String,String> findRecurse(String regex) {
         if ((getData() == null) || (getData().optJSONObject("exif") == null)) return null;
-        return _find(getData().getJSONObject("exif"), regex.toLowerCase());
+        return _find(getData().getJSONObject("exif"), null, regex.toLowerCase());
     }
 
-    private static HashMap<String,String> _find(JSONObject jobj, String regex) {
+    private static HashMap<String,String> _find(JSONObject jobj, String keyPrefix, String regex) {
         if (jobj == null) return null;
         HashMap<String,String> found = new HashMap<String,String>();
         Iterator<String> it = jobj.keys();
         while (it.hasNext()) {
             String k = it.next();
+            String fullK = ((keyPrefix == null) ? k : keyPrefix + ":" + k);
             JSONObject sub = jobj.optJSONObject(k);
             if (sub != null) {  //recurse down...
-                HashMap<String,String> fsub = _find(sub, regex);
+                HashMap<String,String> fsub = _find(sub, fullK, regex);
                 if (fsub != null) found.putAll(fsub);
                 continue;
             }
             //here on out, we assume we have key:value pairs
             if (!k.toLowerCase().matches(regex)) continue;
-            found.put(k, jobj.optString(k, null));
+            found.put(fullK, jobj.optString(k, null));
         }
         return found;
     }
@@ -127,7 +129,7 @@ oh, and incidentally GPS block often has time in it too.  :( :( :(   @@
 
     public DateTime getDateTime() {
         if ((getData() == null) || (getData().optJSONObject("exif") == null)) return null;
-        HashMap<String,String> matches = _find(getData().getJSONObject("exif"), ".*date.*");
+        HashMap<String,String> matches = _find(getData().getJSONObject("exif"), null, ".*date.*");
 //System.out.println("MediaAssetMetadata.getDateTime() ----> " + matches);
         //we attempt to find "the most prevalant" one.  ugh.  give me a break.
         HashMap<DateTime,Integer> count = new HashMap<DateTime,Integer>();
