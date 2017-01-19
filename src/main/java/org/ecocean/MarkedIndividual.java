@@ -1824,7 +1824,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
   }
 
   public String getUrl(HttpServletRequest request) {
-    return "http://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID();
+    return request.getScheme()+"://" + CommonConfiguration.getURLLocation(request)+"/individuals.jsp?number="+this.getIndividualID();
   }
 
 
@@ -1868,6 +1868,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+              //do nothing and don't include it if it has NoProfilePhoto keyword
+              else if(ma.hasKeyword("NoProfilePhoto")){}
               //otherwise, just add it to the bottom of the stack
               else{
                 al.add(j);

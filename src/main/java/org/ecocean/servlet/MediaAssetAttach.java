@@ -95,7 +95,7 @@ public class MediaAssetAttach extends HttpServlet {
     else if (args.optString("detach")!=null && args.optString("detach").equals("true")) {
       if (alreadyAttached) {
         enc.removeMediaAsset(ma);
-        String undoLink = "http://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+maID;
+        String undoLink = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/MediaAssetAttach?attach=true&EncounterID="+encID+"&MediaAssetID="+maID;
         String comments = "Detached MediaAsset " + maID + ". To undo this action, visit " + undoLink;
         enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br>" + comments + " </p>");
         res.put("action","detach");

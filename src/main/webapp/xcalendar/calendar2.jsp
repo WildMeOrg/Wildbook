@@ -119,7 +119,7 @@ context=ServletUtilities.getContext(request);
       return false;
     });
     scheduler.attachEvent("onClick", function (event_id, native_event_object) {
-      var myLink = 'http://' + '<%=CommonConfiguration.getURLLocation(request)%>' + '/encounters/encounter.jsp?number=' + event_id;
+      var myLink = '//' + '<%=CommonConfiguration.getURLLocation(request)%>' + '/encounters/encounter.jsp?number=' + event_id;
       window.open(myLink, 'mywindow', '')
     });
 

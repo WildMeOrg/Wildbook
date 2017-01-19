@@ -51,7 +51,7 @@ margin-top: 0px !important;
 margin-bottom: 8px !important;
 </style>
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false"></script>
 
 
 <script src="cust/mantamatcher/js/google_maps_style_vars.js"></script>
@@ -721,9 +721,9 @@ finally{
                 <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
             </div>
             <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="adoptananimal.jsp">
-	                <button class="large contrast">
-	                    Donate
+                <a href="oneTimeDonation.jsp">
+	                <button class="large">
+	                    One Time Donation
 	                    <span class="button-icon" aria-hidden="true">
 	                </button>
                 </a>

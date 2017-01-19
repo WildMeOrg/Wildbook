@@ -659,7 +659,6 @@ public class MediaAsset implements java.io.Serializable {
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
         if (AccessControl.isAnonymous(request)) bestType = "mid";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
-//System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
         //gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
@@ -1066,6 +1065,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     // this implies basically that it is set once when the MediaAsset is created, so make sure that happens, *cough*
     public MediaAssetMetadata getMetadata() {
         return metadata;
+    }
+    public void setMetadata(MediaAssetMetadata md) {
+        metadata = md;
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;

@@ -72,6 +72,15 @@ public class URLAssetStore extends AssetStore {
         if (urlFromParameters(params) == null) throw new IllegalArgumentException("no url parameter");
         return new MediaAsset(this, params);
     }
+    //convenience
+    public MediaAsset create(final URL url) {
+        return create(url.toString());
+    }
+    public MediaAsset create(final String url) {
+        JSONObject p = new JSONObject();
+        p.put("url", url);
+        return create(p);
+    }
 
     @Override
     public boolean cacheLocal(MediaAsset ma, boolean force) {

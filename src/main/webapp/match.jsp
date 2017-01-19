@@ -601,6 +601,7 @@ function processEncounter(data, id) {
 	$('#ident-img-wrapper-' + id + ' .ident-img-info').append('<div>created <b><a target="_new" title="' + data.encounterId +
 		'" href="encounters/encounter.jsp?number=' + data.encounterId + '&accessKey=' + accessKey + '">new encounter</a></b>.</div>');
 	var iaData = {
+		enqueue: true,
 		identify: {
 			annotationIds: data.annotations
 		}
@@ -612,6 +613,11 @@ function processEncounter(data, id) {
 		contentType: 'application/javascript',
 		complete: function(x) {
 			waitOff();
+			//this allows us the singular case of just a .taskId being returned
+			if ((x.status == 200) && x.responseJSON && x.responseJSON.taskId) {
+				console.info("converting taskId %s to .tasks array", x.responseJSON.taskId);
+				x.responseJSON.tasks = [ { taskId: x.responseJSON.taskId } ];
+			}
 			if ((x.status != 200) || !x.responseJSON || !x.responseJSON.success || !x.responseJSON.tasks || !x.responseJSON.tasks.length) {
 				var msg = 'unknown error';
 				if (x.status != 200) msg = 'server error: ' + x.status + ' ' + x.statusText;
