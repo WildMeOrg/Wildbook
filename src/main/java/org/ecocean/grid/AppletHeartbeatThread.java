@@ -26,7 +26,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+//import java.net.URLConnection;
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * COmment
@@ -87,15 +88,15 @@ public class AppletHeartbeatThread implements Runnable, ISharkGridThread {
     URL u=null;
     InputStream inputStreamFromServlet=null;
     BufferedReader in=null;
-    URLConnection finishConnection=null;
+    HttpsURLConnection finishConnection=null;
     
     try {
       
-      u = new URL("http://"+rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
+      u = new URL(rootURL + "/GridHeartbeatReceiver?nodeIdentifier=" + appletID + "&numProcessors=" + numProcessors + "&version=" + version);
       
       System.out.println("...sending heartbeat...thump...thump...to: "+u.toString());
       
-      finishConnection = u.openConnection();
+      finishConnection = (HttpsURLConnection)u.openConnection();
 
       inputStreamFromServlet = finishConnection.getInputStream();
       in = new BufferedReader(new InputStreamReader(inputStreamFromServlet));

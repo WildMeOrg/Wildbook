@@ -150,7 +150,7 @@ User user = null;
             }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
             fbclient.setCallbackUrl(callbackUrl);
 
             OAuthCredentials credentials = null;

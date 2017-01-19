@@ -277,7 +277,7 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
+      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
       if (st.getUniqueNumber().equals("TuningTask")) {
         gotoURL = "endTuningTask.jsp";
       }

@@ -98,7 +98,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the Library submitter ID for encounter " + encounterNumber + " from " + prevSubmitter + " to " + submitter + ".</p>");
         response.setStatus(HttpServletResponse.SC_OK);
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message = "The submitter ID for encounter " + encounterNumber + " was changed from " + prevSubmitter + " to " + submitter + ".";
         ServletUtilities.informInterestedParties(request, encounterNumber, message,context);
@@ -108,7 +108,7 @@ public class EncounterSetSubmitterID extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user. Please wait a few seconds before trying to remove this data file again.");
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encounterNumber + "\">Return to encounter " + encounterNumber + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }

@@ -123,7 +123,7 @@ public class OccurrenceAddEncounter extends HttpServlet {
             //out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT added to occurrence " + request.getParameter("occurrence") + ". Please try to add the encounter again after a few seconds.");
             //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/occurrence.jsp?number=" + request.getParameter("occurrence") + "\">View occurrence " + request.getParameter("occurrence") + ".</a></p>\n");
             //out.println(ServletUtilities.getFooter(context));
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 

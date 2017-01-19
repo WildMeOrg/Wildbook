@@ -1,0 +1,117 @@
+/*these styles are in createadoption less file but arent compiling. styles from other less files are below too and are signified by comments. some of the files in the less file have compiled previously. if able to get the less files to compile, delete this css file*/
+section.centered{
+  margin: 0 auto;
+  text-align: center;
+}
+
+#payment-form, #adoption-form{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+#payment-form.input-col-1, #adoption-form.input-col-2{
+  width: 47rem;
+}
+
+#payment-form.form-header, #adoption-form.form-header{
+  width: 100%;
+  margin: 3rem auto 8rem auto;
+  text-align: center;
+}
+
+#payment-form.form-header img, #adoption-form.form-header img{
+  width: 3rem;
+  margin-top: -.3rem;
+  margin-bottom: 2rem;
+}
+
+#payment-form.form-header h2, #adoption-form.form-header h2{
+  margin-top: 1rem;
+}
+
+#payment-form.input-s-width, #adoption-form.input-s-width{
+  width: 10rem;
+}
+
+#payment-form.input-m-width, #adoption-form.input-m-width{
+  width: 20rem;
+}
+
+#payment-form.input-l-width, #adoption-form.input-l-width{
+  width: 30rem;
+}
+
+#payment-form.input-group, #adoption-form.input-group{
+  width: 20%;
+  margin-bottom: 4rem;
+}
+@media screen and (min-width: 750px){
+  #payment-form.input-group, #adoption-form.input-group{
+    margin-bottom: 1rem;
+  }
+}
+
+#adoption-form textarea{
+    height: 10rem;
+    width: 30rem;
+}
+
+/*style from buttons less file*/
+#individualSocialButtons{
+  display: flex;
+  align-items: center;
+}
+#individualSocialButtons div, #individualSocialButtons iframe, #individualSocialButtons a{
+  margin-right: 1rem;
+}
+
+/*adoptashark - styles are in less file too*/
+.adopters-featured{
+  margin-top: 6rem;}
+.adopters-featured h2{
+    color: @h1Colour;
+  }
+.adopter-feature-gallery{
+  display: flex;
+  justify-content: space-between;
+    flex-wrap: wrap;
+    margin-top: 3rem;
+  }
+  .adopter{
+    width: 48%;
+    margin-bottom: 1rem;
+    border: 1px solid #a7a7a7;
+  }
+  .adopter-details{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  }
+  .adopter-details  p{
+      width: 85%;
+      margin-bottom: 3rem;
+    }
+  .adopter-details  p:first-of-type{
+      text-align: center;
+      margin: 1rem 0;
+      font-weight: 400;
+    }
+    .adopter-header{
+      margin: 0;
+      background-color: #005589;
+      color: white;
+      text-align: center;
+      line-height: 4rem;
+    }
+  .adopter-header p{margin: 0;}
+  @media screen and (min-width: 600px){
+    .adopter{
+      width: 24%;
+    }
+  }
+
+  body{
+    font-family: 'Open Sans', sans-serif;
+  }

@@ -89,8 +89,8 @@ public class IndividualSetNickName extends HttpServlet {
         myShepherd.closeDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the nickname for " + sharky + " to " + nickname + ".</p>");
-        response.setStatus(HttpServletResponse.SC_OK);
-        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+
+        //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
         //out.println(ServletUtilities.getFooter(context));
         String message = "The nickname for " + sharky + " was set as " + nickname + ".";
 
@@ -100,7 +100,7 @@ public class IndividualSetNickName extends HttpServlet {
         //out.println(ServletUtilities.getHeader(request));
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This record is currently being modified by another user. Please wait a few seconds before trying to nickname this individual again.");
-        //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        //out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
         //out.println(ServletUtilities.getFooter(context));
 
       }
