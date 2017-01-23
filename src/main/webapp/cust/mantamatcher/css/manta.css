@@ -7519,11 +7519,11 @@ label {
   display: block;
   background: url(../img/tc_logo.png) no-repeat;
 }
-@media (min-width: 768px) {
+@media (min-width: 80px) {
   .navbar-brand {
     height: 80px;
-    width: 100%;
-    max-width: 350px;
+    width: 80px;
+    max-width: 80px;
     clear: none;
     float: left;
   }
@@ -7705,11 +7705,11 @@ input[type="submit"].light {
   border-left: 1px solid white;
   background-color: #5d8cc1;
 }
-.heroBtn {
+.Btn {
   background-color: white;
   color: #005589;
 }
-.heroBtn .button-icon {
+.Btn .button-icon {
   border-left: 1px solid #005589;
   background: url(../img/icon_arrow_right_blue.svg) no-repeat center center;
   background-size: 50%;
@@ -8126,7 +8126,7 @@ ibeis-badge {
 /* Hero */
 .hero,
 .data-section {
-  background-image: url("../img/hero_manta.jpg");
+  background-image: url("../img/turtle_conservancy.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;
