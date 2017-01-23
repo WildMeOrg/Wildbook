@@ -657,9 +657,9 @@ public class MediaAsset implements java.io.Serializable {
         //TODO should be block "original" ???  is that overkill??
         if (bestType == null) bestType = "master";
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
-        if (AccessControl.simpleUserString(request) == null) bestType = "watermark";
+        if (AccessControl.isAnonymous(request)) bestType = "watermark";
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
-System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
+//System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
         //gotta consider that we are the best!
         if (this.hasLabel("_" + bestType)) return this;
@@ -676,7 +676,7 @@ System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
         for (String t : types) {
             if (t.equals(bestType)) gotBest = true;
             if (!gotBest) continue;  //skip over any "better" types until we get to best we can use
-System.out.println("   ....  ??? do we have a " + t);
+//System.out.println("   ....  ??? do we have a " + t);
             //now try to see if we have one!
             ArrayList<MediaAsset> kids = top.findChildrenByLabel(myShepherd, "_" + t);
             if ((kids != null) && (kids.size() > 0)) return kids.get(0); ///not sure how to pick if we have more than one!  "probably rare" case anyway....
@@ -853,6 +853,7 @@ System.out.println("   ....  ??? do we have a " + t);
               jobj.put("userLatitude",this.getLatitude());
               jobj.put("userLongitude",this.getLongitude());
               jobj.put("userDateTime",this.getUserDateTime());
+              jobj.put("filename", this.getFilename());  //this can "vary" depending on store type
             }
 
             jobj.put("occurrenceID",this.getOccurrenceID());
@@ -1065,6 +1066,9 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     // this implies basically that it is set once when the MediaAsset is created, so make sure that happens, *cough*
     public MediaAssetMetadata getMetadata() {
         return metadata;
+    }
+    public void setMetadata(MediaAssetMetadata md) {
+        metadata = md;
     }
     public MediaAssetMetadata updateMetadata() throws IOException {  //TODO should this overwrite existing, or append?
         if (store == null) return null;

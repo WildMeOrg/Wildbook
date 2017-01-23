@@ -468,6 +468,9 @@ single scan are allowed to exceed the total.</span>
   <%}%>
 
 </p>
+
+<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %></p>
+<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %></p>
 <%
 
   } catch (Exception e) {

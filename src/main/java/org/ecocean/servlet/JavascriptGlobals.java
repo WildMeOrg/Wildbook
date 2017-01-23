@@ -34,6 +34,7 @@ import java.io.*;
 import java.util.*;
 
 import org.ecocean.security.SocialAuth;
+import org.ecocean.servlet.ReCAPTCHA;
 import org.ecocean.identity.IBEISIA;
 
 import org.w3c.dom.Document;
@@ -67,10 +68,12 @@ public class JavascriptGlobals extends HttpServlet {
 
 		rtn.put("context", context);
 		rtn.put("username", username);
+                rtn.put("sessionIsHuman", ReCAPTCHA.sessionIsHuman(request));
 		rtn.put("langCode", langCode);
 		rtn.put("baseUrl", request.getContextPath());
 		rtn.put("rootDir", (new File(getServletContext().getRealPath("/")).getParentFile()).toString());
 		rtn.put("dataUrl", "/" + CommonConfiguration.getDataDirectoryName(context));
+                rtn.put("validEmailRegexPattern", Util.validEmailRegexPattern());
 
 		HashMap props = new HashMap();
 		HashMap lang = new HashMap();
