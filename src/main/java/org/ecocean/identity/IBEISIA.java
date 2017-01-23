@@ -2267,15 +2267,14 @@ System.out.println(">>>>>>>> age -> " + rtn);
     public static JSONObject iaStatus(HttpServletRequest request) {
         String context = ServletUtilities.getContext(request);
         JSONObject rtn = new JSONObject();
-        boolean enabled = iaEnabled(request);
-        rtn.put("timestamp", System.currentTimeMillis());
-        rtn.put("iaEnabled", enabled);
-        if (!enabled) return rtn;
-
         String utest = CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context);
-        URL iau = iaURL(context, "");
-        rtn.put("iaURL", iau.toString());
-        rtn.put("iaEnabled", true);
+        if (utest == null) {
+            rtn.put("iaURL", (String)null);
+            rtn.put("iaEnabled", false);
+        } else {
+            URL iau = iaURL(context, "");
+            rtn.put("iaURL", iau.toString());
+            rtn.put("iaEnabled", true);
 /*  turns out this is kinda crazy expensive on the IA side!  so we certainly dont want to do this unless we really need to.
             try {
                 // these 2 seem borked
@@ -2287,6 +2286,8 @@ System.out.println(">>>>>>>> age -> " + rtn);
                 if ((r != null) && (r.optString("response", null) != null)) rtn.put("iaDbInfo", r.getString("response"));
             } catch (Exception ex) {}
 */
+        }
+        rtn.put("timestamp", System.currentTimeMillis());
         JSONObject settings = new JSONObject();  //TODO this is just one, as a kind of sanity check/debugging -- sh/could expand to more if needed
         settings.put("IBEISIARestUrlAddAnnotations", CommonConfiguration.getProperty("IBEISIARestUrlAddAnnotations", context));
         rtn.put("settings", settings);

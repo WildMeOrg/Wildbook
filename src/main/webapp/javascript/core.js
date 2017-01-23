@@ -210,6 +210,19 @@ console.log('is %o', ajax);
         return encodeURI(url).replace(new RegExp('#', 'g'), '%23').replace(new RegExp('\\?', 'g'), '%3F');
     },
 
+// h/t http://stackoverflow.com/a/105074
+    uuid: function() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    },
+
+    isValidEmailAddress: function(addr) {
+        var regex = new RegExp(wildbookGlobals.validEmailRegexPattern);
+        return regex.test(addr);
+    },
+
     openInTab: function(url) {
         var win = window.open(url, '_blank');
         win.focus();

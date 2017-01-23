@@ -26,6 +26,9 @@ import com.oreilly.servlet.multipart.Part;
 
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Util;
+import org.ecocean.grid.EncounterLite;
+import org.ecocean.grid.GridManager;
+import org.ecocean.grid.GridManagerFactory;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
 import org.ecocean.SuperSpot;
@@ -38,6 +41,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -103,10 +107,16 @@ System.out.println("created???? " + ma);
     if (rightSide) {
         enc.setRightSpots(spots);
         enc.setRightReferenceSpots(refSpots);
-    } else {
+    } 
+    else {
         enc.setSpots(spots);
         enc.setLeftReferenceSpots(refSpots);
     }
+    
+    //reset the entry in the GridManager graph
+    GridManager gm = GridManagerFactory.getGridManager();
+    gm.addMatchGraphEntry(encId, new EncounterLite(enc));
+    
     myShepherd.commitDBTransaction();
     myShepherd.closeDBTransaction();
 

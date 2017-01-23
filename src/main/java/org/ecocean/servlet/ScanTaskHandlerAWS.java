@@ -2,7 +2,7 @@ package org.ecocean.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+//import java.util.Vector;
 
 import javax.jdo.FetchPlan;
 import javax.servlet.ServletConfig;
@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Properties;
+//import java.util.Properties;
 
 import org.ecocean.*;
 import org.ecocean.grid.*;
@@ -181,10 +181,12 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					int numComparisons=0;
 					if(rightScan.equals("true")){
 						//sideIdentifier="R";
-						numComparisons=myShepherd.getNumEncountersWithSpotData(true);
+						//numComparisons=myShepherd.getNumEncountersWithSpotData(true);
+					  numComparisons=gm.getNumRightPatterns();
 					}
 					else{
-						numComparisons=myShepherd.getNumEncountersWithSpotData(false);
+						//numComparisons=myShepherd.getNumEncountersWithSpotData(false);
+					  numComparisons=gm.getNumLeftPatterns();
 					}
 					myShepherd.getPM().getFetchPlan().setGroup(FetchPlan.DEFAULT);
 
@@ -204,7 +206,9 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 
 
 							st=new ScanTask(myShepherd, taskIdentifier, props2, request.getParameter("encounterNumber"), writeThis);
+							
 							st.setNumComparisons(numComparisons-1);
+							
 							if(request.getRemoteUser()!=null){st.setSubmitter(request.getRemoteUser());}
 							System.out.println("scanTaskHandler: About to create a scanTask...");
 							successfulStore=myShepherd.storeNewTask(st);
@@ -248,10 +252,13 @@ public class ScanTaskHandlerAWS extends HttpServlet {
 					                  if(restartTask.getUniqueNumber().startsWith("scanR")){
 					                    isRightScan=true;
 					                    writeThis=restartTask.getWriteThis();
-					                    numComparisons=myShepherd.getNumEncountersWithSpotData(true);
-
+					                    //numComparisons=myShepherd.getNumEncountersWithSpotData(true);
+					                    numComparisons=gm.getNumRightPatterns();
 					                  }
-					                  else{numComparisons=myShepherd.getNumEncountersWithSpotData(false);}
+					                  else{
+					                    //numComparisons=myShepherd.getNumEncountersWithSpotData(false);
+					                    numComparisons=gm.getNumLeftPatterns();
+					                  }
 					                  st.setFinished(false);
 					                  st.setNumComparisons(numComparisons-1);
 					                  es.execute(new ScanTaskCleanupThread(taskIdentifier));
