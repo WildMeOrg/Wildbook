@@ -7508,8 +7508,8 @@ label {
   }
 }
 .navbar-brand {
-  height: 60px;
-  width: 243px;
+  height: 80px;
+  width: 80px;
   margin-bottom: 10px;
   margin-left: auto;
   margin-right: auto;
@@ -7517,7 +7517,7 @@ label {
   clear: both;
   float: none;
   display: block;
-  background: url(../img/wildbook_logo_white.svg) no-repeat;
+  background: url(../img/tc_logo.png) no-repeat;
 }
 @media (min-width: 768px) {
   .navbar-brand {
