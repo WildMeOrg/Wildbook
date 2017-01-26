@@ -660,7 +660,7 @@ finally{
 </div>
 
 <div class="container main-section">
-    <h2 class="section-header">Encounters around the world</h2>
+    <h2 class="section-header"><%= props.getProperty("gMapHeader") %></h2>
 
       <div id="map_canvas" style="width: 100% !important; height: 510px;"></div>
 
@@ -671,24 +671,11 @@ finally{
 
         <!-- Complete header for adoption section in index properties file -->
         <%=props.getProperty("adoptionHeader") %>
-      <!--
-        <h2 class="section-header">How can I help?</h2>
-        <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
-      -->
         <section class="adopt-section row">
 
             <!-- Complete text body for adoption section in index properties file -->
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
               <%=props.getProperty("adoptionBody") %>
-              <!--
-                <h3 class="uppercase">Adopt an animal</h3>
-                <ul>
-                    <li>Support individual research programs in different regions</li>
-          					<li>Receive email updates when we resight your adopted animal</li>
-          					<li>Display your photo and a quote on the animal's page in our database</li>
-                </ul>
-                <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
-              -->
             </div>
             <%
             myShepherd.beginDBTransaction();
@@ -728,24 +715,8 @@ finally{
         </section>
 
 
-        <hr />
-        <%=props.getProperty("donationText") %>
-  <!-- <section class="donate-section">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h3>Donate</h3>
-                <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
-                <a href="adoptananimal.jsp" title="More information about donations">Learn more about how to donate</a>
-            </div>
-            <div class="col-xs-12 col-sm-5 col-md-5 col-lg-5 col-sm-offset-1 col-md-offset-1 col-lg-offset-1">
-                <a href="oneTimeDonation.jsp">
-	                <button class="large">
-	                    One Time Donation
-	                    <span class="button-icon" aria-hidden="true">
-	                </button>
-                </a>
-            </div>
-        </section> -->
-
+        <hr/>
+        <%= props.getProperty("donationText") %>
     </section>
 </div>
 
