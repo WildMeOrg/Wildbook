@@ -90,6 +90,12 @@ public final class MantaMatcher extends DispatchServlet {
   }
 
   public void displayResults(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    
+    String context="context0";
+    context=ServletUtilities.getContext(req);
+    Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("MantaMatcher.class_1");
+    shepherd.beginDBTransaction();
     try {
       // Parse encounter for which to get MantaMatcher algorithm results.
       String num = req.getParameter("spv");
@@ -97,10 +103,9 @@ public final class MantaMatcher extends DispatchServlet {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
       
-      String context="context0";
-      context=ServletUtilities.getContext(req);
+
       
-      Shepherd shepherd = new Shepherd(context);
+
       SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
@@ -111,21 +116,31 @@ public final class MantaMatcher extends DispatchServlet {
       req.setAttribute(REQUEST_KEY_RESULTS, mmaResults);
       getServletContext().getRequestDispatcher(JSP_MMA_RESULTS).forward(req, res);
 
-    } catch (Exception ex) {
+    } 
+    catch (Exception ex) {
       handleException(req, res, ex);
+    }
+    finally{
+      shepherd.rollbackDBTransaction();
+      shepherd.closeDBTransaction();
     }
   }
 
   public void displayResultsRegional(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    
+    String context="context0";
+    context=ServletUtilities.getContext(req);
+    Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("MantaMatcher.class_2");
+    shepherd.beginDBTransaction();
     try {
       // Parse encounter for which to get MantaMatcher algorithm results.
       String num = req.getParameter("spv");
       if (num == null || "".equals(num.trim())) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified");
       }
-      String context="context0";
-      context=ServletUtilities.getContext(req);
-      Shepherd shepherd = new Shepherd(context);
+
+
       SinglePhotoVideo spv = shepherd.getSinglePhotoVideo(num);
       if (spv == null) {
         throw new IllegalArgumentException("Invalid SinglePhotoVideo specified: " + num);
@@ -138,6 +153,10 @@ public final class MantaMatcher extends DispatchServlet {
 
     } catch (Exception ex) {
       handleException(req, res, ex);
+    }
+    finally{
+      shepherd.rollbackDBTransaction();
+      shepherd.commitDBTransaction();
     }
   }
 
@@ -154,12 +173,15 @@ public final class MantaMatcher extends DispatchServlet {
     File dataDir = new File(ServletUtilities.dataDir(context, rootDir));
     // Parse MantaMatcher results files ready for display.
     Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("MantaMatcher.class_3");
+    shepherd.beginDBTransaction();
     try {
       // Load results file.
       String text = new String(FileUtilities.loadFile(mmaResults));
       // Parse results.
       return MMAResultsProcessor.parseMatchResults(shepherd, text, spv, dataDir);
     } finally {
+      shepherd.rollbackDBTransaction();
       shepherd.closeDBTransaction();
     }
   }
@@ -168,6 +190,8 @@ public final class MantaMatcher extends DispatchServlet {
     String context="context0";
     context = ServletUtilities.getContext(req);
     Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("MantaMatcher.class_4");
+    shepherd.beginDBTransaction();
     File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
 
     try {
@@ -194,7 +218,7 @@ public final class MantaMatcher extends DispatchServlet {
         }
       }
       shepherd.commitDBTransaction();
-      shepherd.closeDBTransaction();
+      //shepherd.closeDBTransaction();
 
       // Write output to response.
       res.setCharacterEncoding("UTF-8");
@@ -216,9 +240,10 @@ public final class MantaMatcher extends DispatchServlet {
 
     } catch (Exception ex) {
       shepherd.rollbackDBTransaction();
-      shepherd.closeDBTransaction();
+   
       handleException(req, res, ex);
     }
+    finally{   shepherd.closeDBTransaction();}
   }
 
   // Admin utility method to scan encounters & their data folders for
@@ -227,13 +252,14 @@ public final class MantaMatcher extends DispatchServlet {
     String context="context0";
     context = ServletUtilities.getContext(req);
     Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("MantaMatcher.class_5");
     File dataDir = new File(ServletUtilities.dataDir(context, getServletContext().getRealPath("/")));
     // Format string for encounter page URL (with placeholder).
     String pageUrlFormatEnc = "//" + CommonConfiguration.getURLLocation(req) + "/encounters/encounter.jsp?number=%s";
 
     Map<File, String> files = new TreeMap<>();
     Map<File, String> failed = new TreeMap<>();
-
+    shepherd.beginDBTransaction();
     try {
       // Perform MMA-compatible flag updates.
       shepherd.beginDBTransaction();
@@ -314,9 +340,11 @@ public final class MantaMatcher extends DispatchServlet {
       }
 
     } catch (Exception ex) {
-      shepherd.rollbackDBTransaction();
-      shepherd.closeDBTransaction();
+     // shepherd.rollbackDBTransaction();
       handleException(req, res, ex);
     }
+    finally{      
+      shepherd.rollbackDBTransaction();
+      shepherd.closeDBTransaction();}
   }
 }

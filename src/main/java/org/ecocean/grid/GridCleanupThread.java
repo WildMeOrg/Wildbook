@@ -55,6 +55,7 @@ private String context="context0";
 
   public void cleanup() {
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("GridCleanupThread.class");
 
     myShepherd.beginDBTransaction();
 
