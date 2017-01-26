@@ -97,15 +97,26 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         String context="context0";
         //context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class_2");
         myShepherd.beginDBTransaction();
         //set up for response
         response.setContentType("text/plain");
         PrintWriter out = response.getWriter();
+        try{
 
-        JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
-        JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
-        myShepherd.commitDBTransaction();
-        out.println(res.toString());
+  
+          JSONObject j = ServletUtilities.jsonFromHttpServletRequest(request);
+          JSONObject res = createMediaAssets(j.optJSONArray("MediaAssetCreate"), myShepherd, request);
+          myShepherd.commitDBTransaction();
+          out.println(res.toString());
+        }
+        catch(Exception e){
+          e.printStackTrace();
+          myShepherd.rollbackDBTransaction();
+        }
+        finally{myShepherd.closeDBTransaction();}
+        
+        
         out.close();
     }
 
