@@ -406,9 +406,9 @@ finally{
 	<div id="howtocarousel" class="carousel slide" data-ride="carousel">
 		<ol class="list-inline carousel-indicators slide-nav">
 	        <li data-target="#howtocarousel" data-slide-to="0" class="active">1. <%=props.getProperty("carouselPhoto") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. /video<%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. Researcher verification<%=props.getProperty("carouselVerify") %><span class="caret"></span></li>
-	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. Matching process<%=props.getProperty("carouselMatching") %><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="1" class="">2. <%=props.getProperty("carouselSubmit") %><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="2" class="">3. <%=props.getProperty("carouselVerify") %><span class="caret"></span></li>
+	        <li data-target="#howtocarousel" data-slide-to="3" class="">4. <%=props.getProperty("carouselMatching") %><span class="caret"></span></li>
 	        <li data-target="#howtocarousel" data-slide-to="4" class="">5. <%=props.getProperty("carouselResult") %><span class="caret"></span></li>
 	    </ol>
 		<div class="carousel-inner text-left">
@@ -491,7 +491,7 @@ finally{
             %>
                 <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                     <div class="focusbox-inner opec">
-                        <h2>Our contributors</h2>
+                        <h2><%=props.getProperty("ourContributors") %></h2>
                         <div>
                             <img src="<%=profilePhotoURL %>" width="80px" height="*" alt="" class="pull-left" />
                             <p><%=featuredUser.getFullName() %>
@@ -522,7 +522,7 @@ finally{
 
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Latest animal encounters</h2>
+                    <h2><%=props.getProperty("latestEncs") %></h2>
                     <ul class="encounter-list list-unstyled">
 
                        <%
@@ -562,12 +562,12 @@ finally{
                         %>
 
                     </ul>
-                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta">See more encounters</a>
+                    <a href="encounters/searchResults.jsp?state=approved" title="" class="cta"><%=props.getProperty("seeMoreEncs") %></a>
                 </div>
             </section>
             <section class="col-xs-12 col-sm-6 col-md-4 col-lg-4 padding focusbox">
                 <div class="focusbox-inner opec">
-                    <h2>Top spotters (past 30 days)</h2>
+                    <h2><%=props.getProperty("topSpotters")%></h2>
                     <ul class="encounter-list list-unstyled">
                     <%
                     myShepherd.beginDBTransaction();
@@ -605,7 +605,7 @@ finally{
 	                                    <%
 	                                      }
 	                                    %>
-	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> encounters<span></p>
+	                                    <p><a href="#" title=""><%=spotter %></a>, <span><%=numUserEncs %> <%=props.getProperty("encounters") %><span></p>
 	                                </li>
 
 	                           <%
@@ -619,7 +619,7 @@ finally{
                    %>
 
                     </ul>
-                    <a href="whoAreWe.jsp" title="" class="cta">See all spotters</a>
+                    <a href="whoAreWe.jsp" title="" class="cta"><%=props.getProperty("allSpotters") %></a>
                 </div>
             </section>
         </div>
@@ -630,14 +630,14 @@ finally{
     <section class="container text-center  main-section">
         <div class="row">
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified individuals</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> <%=props.getProperty("identifiedInd") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
-                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported encounters</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> <%=props.getProperty("reportedEncs") %></i></p>
             </section>
             <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
 
-                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> contributors</i></p>
+                <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> <%=props.getProperty("contributors") %></i></p>
             </section>
         </div>
 
@@ -648,9 +648,9 @@ finally{
                 <div class="row">
                     <img src="cust/mantamatcher/img/why-we-do-this.png" alt="" class="pull-left col-xs-7 col-sm-4 col-md-4 col-lg-4 col-xs-offset-2 col-sm-offset-1 col-md-offset-1 col-lg-offset-1" />
                     <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 text-left">
-                        <h1>Why we do this</h1>
-                        <p class="lead">Place an inspirational quote here.</p>
-                        <a href="#" title="">I want to know more</a>
+                        <h1><%=props.getProperty("whyWeDoThis") %></h1>
+                        <p class="lead"><%=props.getProperty("contributors") %></p>
+                        <a href="#" title=""><%=props.getProperty("contributors") %></a>
                     </div>
                 </div>
             </article>
@@ -666,21 +666,29 @@ finally{
 
 </div>
 
-<!--
 <div class="container-fluid">
     <section class="container main-section">
+
+        <!-- Complete header for adoption section in index properties file -->
+        <%=props.getProperty("adoptionHeader") %>
+      <!--
         <h2 class="section-header">How can I help?</h2>
         <p class="lead text-center">If you are not on site, there are still other ways to get engaged</p>
-
+      -->
         <section class="adopt-section row">
+
+            <!-- Complete text body for adoption section in index properties file -->
             <div class=" col-xs-12 col-sm-6 col-md-6 col-lg-6">
+              <%=props.getProperty("adoptionBody") %>
+              <!--
                 <h3 class="uppercase">Adopt an animal</h3>
                 <ul>
                     <li>Support individual research programs in different regions</li>
-					<li>Receive email updates when we resight your adopted animal</li>
-					<li>Display your photo and a quote on the animal's page in our database</li>
-</ul>
+          					<li>Receive email updates when we resight your adopted animal</li>
+          					<li>Display your photo and a quote on the animal's page in our database</li>
+                </ul>
                 <a href="adoptananimal.jsp" title="">Learn more about adopting an individual animal in our study</a>
+              -->
             </div>
             <%
             myShepherd.beginDBTransaction();
@@ -721,7 +729,8 @@ finally{
 
 
         <hr />
-        <section class="donate-section">
+        <%=props.getProperty("donationText") %>
+  <!-- <section class="donate-section">
             <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
                 <h3>Donate</h3>
                 <p>Donations, including in-kind, large or small, are always welcome. Your support helps the continued development of our project and can support effective, science-based conservation management, and safeguard these animals and their habitat.</p>
@@ -735,11 +744,10 @@ finally{
 	                </button>
                 </a>
             </div>
-        </section>
+        </section> -->
 
     </section>
 </div>
--->
 
 <jsp:include page="footer.jsp" flush="true"/>
 
