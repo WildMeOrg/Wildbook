@@ -1,10 +1,17 @@
 <%@ page
 		contentType="text/html; charset=utf-8"
 		language="java"
-     	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration"
+     	import="org.ecocean.CommonConfiguration,org.ecocean.ContextConfiguration,java.util.Properties,org.ecocean.servlet.ServletUtilities"
 %>
         <%
         String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+
+				// Make a properties object for lang support.
+				Properties props = new Properties();
+				// Find what language we are in.
+				String langCode = ServletUtilities.getLanguageCode(request);
+				// Grab the properties file with the correct language strings.
+				props = ShepherdProperties.getProperties("footer.properties", langCode,context);
         %>
 
         <!-- footer -->
