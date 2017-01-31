@@ -225,7 +225,6 @@
 
           interpolateZoom([view.x, view.y], view.k);
         }
-<<<<<<< HEAD
 
         d3.select('#zoomIn').on('click', zoomClick);
         d3.select('#zoomOut').on('click', zoomClick);
