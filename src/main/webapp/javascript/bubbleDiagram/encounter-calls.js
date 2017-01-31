@@ -1,3 +1,11 @@
+// lang  dictionary contains all language specific text. It is loaded in individuals jsp and contains
+// all the necessary keys from individuals.properties with the same syntax.
+var dict = {}; 
+var languageTable = function(words) {
+	dict = words;
+}
+
+
 var makeCooccurrenceChart = function(items) {
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
@@ -129,7 +137,7 @@ var getData = function(individualID) {
       for (var prop in dataObject) {
         var whale = new Object();
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
-        items.push(whale);
+        items.push(whale);	
       }
       if (items.length > 0) {
         getSexHaploData(individualID, items);
@@ -166,41 +174,41 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     .data(d3.keys(items[0]))
     .enter().append("th").text(function(d){
       if(d === "text") {
-        return "Occurring With";
+        return dict['occurringWith'];
       } if (d === "count"){
         return "# Co-occurrences";
       } if (d === "behavior") {
-        return "Behavior";
+        return dict['behavior'];
       } if(d === "alternateID") {
-        return "Alt ID";
+        return dict['alternateID'];
       }if (d === "sex") {
-        return "Sex";
+        return dict['sex'];
       } if (d === "haplotype") {
-        return "Haplotype";
+        return dict['haplotype'];
       } if (d === "location") {
-        return "Location";
+        return dict['location'];
       } if (d === "dataTypes") {
-        return "Data Types";
+        return dict['dataTypes'];
       } if (d === "date") {
-        return "Date";
+        return dict['date'];
       } if(d === "occurringWith") {
-        return "Occurring With";
+        return dict['occurringWith'];
       } if(d === "catalogNumber") {
-        return "Catalog Number";
+        return dict['catalogNumber'];
       } if(d === "roles") {
-        return "Roles";
+        return dict['roles'];
       } if(d === "relationshipWith") {
-        return "Relationship With";
+        return dict['relationshipWith'];
       } if(d === "type") {
-        return "Type";
+        return dict['type'];
       } if(d === "socialUnit") {
-        return "Social Unit";
+        return dict['socialUnit'];
       } if(d === "edit") {
-        return "Edit";
+        return dict['edit'];
       } if(d === "remove") {
-        return "Remove";
+        return dict['remove'];
       } if(d === "relationshipID") {
-        return "Relationship ID";
+        return  dict['relationshipID'];
       }
     })
     .on("click", function(d){
