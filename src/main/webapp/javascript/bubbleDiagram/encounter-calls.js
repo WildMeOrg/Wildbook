@@ -220,7 +220,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
     tr.enter().append("tr").attr("class", function(d){
       if(d.relationshipID !=null && d.relationshipID != 'undefined') {
-        return d.relationshipID;
+        return	 d.relationshipID;
       }
       return d3.values(d)[0];
     });
@@ -283,10 +283,10 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       }if (b === "") {
         b = "0";
       }
-      var parseA = parseInt(a);
+      var parseA = unixCrunch(a);
       if(parseA) {
         var whaleA = parseA;
-        var whaleB = parseInt(b);
+        var whaleB = unixCrunch(b);
         return whaleA < whaleB ? 1 : whaleA == whaleB ? 0 : -1;
       } else
         return a.localeCompare(b);
@@ -296,6 +296,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       return b ? 1 : a ? -1 : 0;
     }
   }
+  
+  function unixCrunch(date) {
+	  date = date.replace("-","/");
+	  return new Date(date).getTime()/1000;
+  }
+  
 };
 
 
