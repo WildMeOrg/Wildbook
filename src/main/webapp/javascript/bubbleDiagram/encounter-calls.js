@@ -176,7 +176,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       if(d === "text") {
         return dict['occurringWith'];
       } if (d === "count"){
-        return "# Co-occurrences";
+        return dict['occurrenceNumber'];
       } if (d === "behavior") {
         return dict['behavior'];
       } if(d === "alternateID") {
@@ -245,7 +245,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
           return d[0].italics() + "-" + d[1];
         }
         if(d.length > 2) {
-          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
+          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
           }
         }
         if(d == "GOS") {
@@ -324,7 +324,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
 
         } else {
-          date = "Unknown";
+          date = dict['unknown'];
         }
         if(jsonData.encounters[i].verbatimLocality) {
           var location = jsonData.encounters[i].verbatimLocality;
