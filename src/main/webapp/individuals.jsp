@@ -86,6 +86,7 @@ context=ServletUtilities.getContext(request);
   String relationshipID = props.getProperty("relationshipID");
   String edit = props.getProperty("edit");
   String remove = props.getProperty("remove");
+  String occurrenceNumber = props.getProperty("occurrenceNumber");
   
   String name = "";
   Shepherd myShepherd = new Shepherd(context);
@@ -315,7 +316,7 @@ if (request.getParameter("number")!=null) {
 var tableDictionary = {}
 
 tableDictionary['sex'] = "<%= sex %>";
-tableDictionary['location'] = <%= location %>;
+tableDictionary['location'] = "<%= location %>";
 tableDictionary['alternateID'] = "<%= alternateID %>";
 tableDictionary['occurringWith'] = "<%= occurringWith %>";
 tableDictionary['behavior'] = "<%= behavior %>";
@@ -329,6 +330,11 @@ tableDictionary['socialUnit'] = "<%= socialUnit %>";
 tableDictionary['relationshipID'] = "<%= relationshipWith %>";
 tableDictionary['edit'] = "<%= edit %>";
 tableDictionary['remove'] = "<%= remove %>";
+tableDictionary['date'] = "<%= date %>";
+tableDictionary['unknown'] = "<%= unknown %>";
+tableDictionary['nickname'] = "<%= nickname %>";
+tableDictionary['occurenceNumber'] = "<%= occurrenceNumber %>";
+
 
 $(document).ready(function() {
     languageTable(tableDictionary);
