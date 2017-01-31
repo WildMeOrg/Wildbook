@@ -44,16 +44,12 @@ context=ServletUtilities.getContext(request);
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
-  String alternateID = props.getProperty("alternateID");
-  String sex = props.getProperty("sex");
   String setsex = props.getProperty("setsex");
   String numencounters = props.getProperty("numencounters");
   String encnumber = props.getProperty("number");
-  String dataTypes = props.getProperty("dataTypes");
   String date = props.getProperty("date");
   String size = props.getProperty("size");
   String spots = props.getProperty("spots");
-  String location = props.getProperty("location");
   String mapping = props.getProperty("mapping");
   String mappingnote = props.getProperty("mappingnote");
   String setAlternateID = props.getProperty("setAlternateID");
@@ -67,7 +63,6 @@ context=ServletUtilities.getContext(request);
   String addDataFile = props.getProperty("addDataFile");
   String sendFile = props.getProperty("sendFile");
   String researcherComments = props.getProperty("researcherComments");
-  String edit = props.getProperty("edit");
   String matchingRecord = props.getProperty("matchingRecord");
   String tryAgain = props.getProperty("tryAgain");
   String addComments = props.getProperty("addComments");
@@ -76,6 +71,22 @@ context=ServletUtilities.getContext(request);
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
+  String sex = props.getProperty("sex");
+  String location = props.getProperty("location");
+  String alternateID = props.getProperty("alternateID");
+  String occurringWith = props.getProperty("occurringWith");
+  String behavior = props.getProperty("behavior");
+  String haplotype = props.getProperty("location");
+  String dataTypes = props.getProperty("dataTypes"); 
+  String catalogNumber = props.getProperty("catalogNumber");
+  String rolesOf = props.getProperty("roles");
+  String relationshipWith = props.getProperty("relationshipWith");
+  String typeOf = props.getProperty("type");
+  String socialUnit = props.getProperty("socialUnit");
+  String relationshipID = props.getProperty("relationshipID");
+  String edit = props.getProperty("edit");
+  String remove = props.getProperty("remove");
+  
   String name = "";
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
@@ -84,6 +95,7 @@ context=ServletUtilities.getContext(request);
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
+
 <%
 if (request.getParameter("number")!=null) {
 	name=request.getParameter("number").trim();
@@ -297,7 +309,31 @@ if (request.getParameter("number")!=null) {
   });
 
 </script>
+<script>
+ // Needed to get language specific values into javascript for table rendering.
+ 
+var tableDictionary = {}
 
+tableDictionary['sex'] = "<%= sex %>";
+tableDictionary['location'] = <%= location %>;
+tableDictionary['alternateID'] = "<%= alternateID %>";
+tableDictionary['occurringWith'] = "<%= occurringWith %>";
+tableDictionary['behavior'] = "<%= behavior %>";
+tableDictionary['haplotype'] = "<%= haplotype %>";
+tableDictionary['dataTypes'] = "<%= dataTypes %>";
+tableDictionary['catalogNumber'] = "<%= catalogNumber %>";
+tableDictionary['roles'] = "<%= rolesOf %>";
+tableDictionary['relationshipWith'] = "<%= relationshipWith %>";
+tableDictionary['type'] = "<%= typeOf %>";
+tableDictionary['socialUnit'] = "<%= socialUnit %>";
+tableDictionary['relationshipID'] = "<%= relationshipWith %>";
+tableDictionary['edit'] = "<%= edit %>";
+tableDictionary['remove'] = "<%= remove %>";
+
+$(document).ready(function() {
+    languageTable(tableDictionary);
+});
+</script>
 
 <%---------- Main Div ----------%>
 <div class="container maincontent">
@@ -335,7 +371,6 @@ if (request.getParameter("number")!=null) {
               <button class="btn btn-md" type="button" name="button" id="closeEdit"><%=props.getProperty("closeEdit") %></button>
             </div>
             <%}%></h1>
-
 
 
             <%
