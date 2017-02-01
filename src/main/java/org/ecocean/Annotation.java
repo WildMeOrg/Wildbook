@@ -397,7 +397,7 @@ public class Annotation implements java.io.Serializable {
 
     public String findIndividualId(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
-        if (enc == null) return null;
+        if ((enc == null) || !enc.hasMarkedIndividual()) return null;
         return enc.getIndividualID();  //is this one of those things that can be "None" ?
     }
 
