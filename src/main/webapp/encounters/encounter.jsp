@@ -9,10 +9,12 @@
          com.drew.metadata.Metadata,
          com.drew.metadata.Tag,
          org.ecocean.*,
+         org.ecocean.media.MediaAsset,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
+	 org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -73,6 +75,19 @@
     }
   }
 
+
+	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
+		if ((request == null) || (enc == null)) return false;
+		JSONObject jobj = new JSONObject();
+		String accessKey = request.getParameter("accessKey");
+		if (accessKey == null) return false;
+		for (MediaAsset ma : enc.getMedia()) {
+			JSONObject p = ma.getParameters();
+			if (p == null) return false;
+			if (!accessKey.equals(p.optString("accessKey", null))) return false;
+		}
+		return true;
+	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
@@ -241,7 +256,7 @@ td.measurement{
   -->
 
 
-  
+
   <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
 
   <!--
@@ -286,11 +301,11 @@ td.measurement{
 	            //alert("Initializing map!");
 	              //var mapZoom = 1;
 	              var mapZoom = 1;
-	          	
+
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = new google.maps.LatLng(0, 0);
 
-	
+
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
 	                center: center,
@@ -300,20 +315,20 @@ td.measurement{
 	                scrollwheel: false,
 	                disableDoubleClickZoom: true,
 	        	});
-	
+
 	        	if(marker!=null){
 					marker.setMap(map);
 					//map.setCenter(marker.position);
-	
+
 	 			//alert("Setting center!");
 				}
-	
+
 	        	google.maps.event.addListener(map, 'click', function(event) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-	
-	
+
+
 		//adding the fullscreen control to exit fullscreen
 	    	//  var fsControlDiv = document.createElement('DIV');
 	    	//  var fsControl = new FSControl(fsControlDiv, map);
@@ -409,7 +424,7 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
-
+						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -568,10 +583,10 @@ $(function() {
 
 								} //end while
 
-				String individuo=encprops.getProperty("unassigned");					
+				String individuo=encprops.getProperty("unassigned");
 				if(enc.getIndividualID()!=null){
 					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
-				}				
+				}
     			%>
                	<h1 class="<%=classColor%>" id="headerText">
                 	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
@@ -1462,7 +1477,7 @@ if(enc.getLocation()!=null){
 
 
 					<%
-	
+
 					if(!enc.hasMarkedIndividual()) {
 					%>
 
@@ -1530,7 +1545,7 @@ if(enc.getLocation()!=null){
 								}
 									else{
 										%>
-										
+
 										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
                       <span class="highlight" id="removeErrorDiv"></span>
                       <span class="successHighlight" id="removeSuccessDiv"></span>
@@ -1550,7 +1565,7 @@ if(enc.getLocation()!=null){
                       </div>
                     </form>
                     <br>
-									<%	
+									<%
 									}
 								%>
 							</div>
@@ -3340,7 +3355,7 @@ else {
         </div>
       </form>
     </div>
-   
+
 
     <!-- start releaseDate -->
     <script type="text/javascript">
@@ -3472,7 +3487,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         <jsp:include page="encounterMediaGallery.jsp" flush="true">
         	<jsp:param name="encounterNumber" value="<%=num%>" />
         	<jsp:param name="queryString" value="<%=queryString%>" />
-        	
+
         	<jsp:param name="isOwner" value="<%=isOwner %>" />
         	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
       	</jsp:include>
@@ -3481,22 +3496,22 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 		if(isOwner){
 		%>
 	        <div id="add-image-zone" class="bc4">
-	
+
 	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
-	
+
 	          <div class="flow-box bc4" style="text-align:center" >
-	
+
 	            <div id="file-activity" style="display:none"></div>
-	
+
 	            <div id="updone"></div>
-	
+
 	            <div id="upcontrols">
 	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
 	              <div id="flowbuttons">
-	
+
 	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
 	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-	
+
 	              </div>
 	            </div>
 	          </div>
@@ -3524,7 +3539,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <br /><br />
- 
+
 
 
 <%-- OBSERVATION ATTRIBUTES --%>

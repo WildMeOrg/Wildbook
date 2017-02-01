@@ -83,6 +83,8 @@ import org.datanucleus.api.rest.orgjson.JSONException;
 public class Encounter implements java.io.Serializable {
   static final long serialVersionUID = -146404246317385604L;
 
+    public static final String STATE_MATCHING_ONLY = "matching_only";
+
   /**
    * The following attributes are described in the Darwin Core quick reference at:
    * http://rs.tdwg.org/dwc/terms/#dcterms:type
@@ -260,7 +262,7 @@ public class Encounter implements java.io.Serializable {
    * NOTE: technically this is DEPRECATED cuz, SinglePhotoVideos? really?
    */
   public Encounter(int day, int month, int year, int hour, String minutes, String size_guess, String location, String submitterName, String submitterEmail, List<SinglePhotoVideo> images) {
-    System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
+    if (images != null) System.out.println("WARNING: danger! deprecated SinglePhotoVideo-based Encounter constructor used!");
     this.verbatimLocality = location;
     this.recordedBy = submitterName;
     this.submitterEmail = submitterEmail;

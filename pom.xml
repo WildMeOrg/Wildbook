@@ -404,6 +404,12 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
+	
+<dependency>
+    <groupId>org.twitter4j</groupId>
+    <artifactId>twitter4j-core</artifactId>
+    <version>4.0.5</version>
+</dependency>
 
 	   <!-- START QR code generating dependencies-->
         <dependency>
@@ -425,6 +431,7 @@
 	<artifactId>c3p0</artifactId>
 	<version>0.9.5.2</version>
 </dependency>
+
 
 <dependency>
     <groupId>org.apache.commons</groupId>

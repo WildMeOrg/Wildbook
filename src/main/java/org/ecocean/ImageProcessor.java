@@ -24,6 +24,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.File;
 
+import org.ecocean.media.MediaAsset;
+import java.util.Calendar;
 import java.util.Arrays;
 import javax.imageio.*;
 import java.awt.image.BufferedImage;
@@ -32,6 +34,10 @@ import java.awt.image.BufferedImage;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 
 /**
  * Does actual comparison processing of batch-uploaded images.
@@ -60,35 +66,40 @@ public final class ImageProcessor implements Runnable {
     private int width = 0;
     private int height = 0;
     private float[] transform = new float[0];
+    private MediaAsset parentMA = null;
 
 
-  public ImageProcessor(String context, String action, int width, int height, String imageSourcePath, String imageTargetPath, String arg) {
+  public ImageProcessor(String context, String action, int width, int height, String imageSourcePath, String imageTargetPath, String arg, MediaAsset pma) {
         this.context = context;
         this.width = width;
         this.height = height;
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
         this.arg = arg;
+        this.parentMA = pma;
         if ((action != null) && action.equals("watermark")) {
             this.command = CommonConfiguration.getProperty("imageWatermarkCommand", this.context);
+        } else if ((action != null) && action.equals("maintainAspectRatio")) {
+            this.command = CommonConfiguration.getProperty("imageResizeMaintainAspectCommand", this.context);
         } else {
             this.command = CommonConfiguration.getProperty("imageResizeCommand", this.context);
         }
     }
 
     //no need for action when passing a transform, as it can only be one
-    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float w, float h, float[] transform) {
+    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float w, float h, float[] transform, MediaAsset pma) {
         this.context = context;
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
         this.width = Math.round(w);
         this.height = Math.round(h);
         this.transform = transform;
+        this.parentMA = pma;
         this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
     }
 
     //the crop-only version of transforming; only takes x,y,w,h
-    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float x, float y, float w, float h) {
+    public ImageProcessor(String context, String imageSourcePath, String imageTargetPath, float x, float y, float w, float h, MediaAsset pma) {
         this.context = context;
         this.imageSourcePath = imageSourcePath;
         this.imageTargetPath = imageTargetPath;
@@ -101,6 +112,7 @@ public final class ImageProcessor implements Runnable {
         this.transform[3] = 1;
         this.transform[4] = x;
         this.transform[5] = y;
+        this.parentMA = pma;
         this.command = CommonConfiguration.getProperty("imageTransformCommand", this.context);
     }
 
@@ -124,11 +136,46 @@ public final class ImageProcessor implements Runnable {
             return;            
         }
 
+        String comment = CommonConfiguration.getProperty("imageComment", this.context);
+        if (comment == null) comment = "%year All rights reserved. | wildbook.org";
+        String cname = ContextConfiguration.getNameForContext(this.context);
+        if (cname != null) comment += " | " + cname;
+        String maId = "unknown";
+        String rotation = "";
+        if (this.parentMA != null) {
+            if (this.parentMA.getUUID() != null) {
+                maId = this.parentMA.getUUID();
+                comment += " | parent " + maId;
+            } else {
+                maId = this.parentMA.setHashCode();
+                comment += " | parent hash " + maId; //a stretch, but maybe should never happen?
+            }
+            if (this.parentMA.hasLabel("rotate90")) {
+                rotation = "-flip -transpose";
+            } else if (this.parentMA.hasLabel("rotate180")) {
+                rotation = "-flip -flop";
+            } else if (this.parentMA.hasLabel("rotate270")) {
+                rotation = "-flip -transverse";
+            }
+        }
+        comment += " | v" + Long.toString(System.currentTimeMillis());
+        try {
+            InetAddress ip = InetAddress.getLocalHost();
+            comment += ":" + ip.toString() + ":" + ip.getHostName();
+        } catch (UnknownHostException e) {}
+
+        int year = Calendar.getInstance().get(Calendar.YEAR);
+        comment = comment.replaceAll("%year", Integer.toString(year));
+        //TODO should we handle ' better? -- this also assumes command uses '%comment' quoting  :/
+        comment = comment.replaceAll("'", "");
+
         String fullCommand;
         fullCommand = this.command.replaceAll("%width", Integer.toString(this.width))
                                   .replaceAll("%height", Integer.toString(this.height))
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
+                                  .replaceAll("%maId", maId)
+                                  .replaceAll("%additional", rotation)
                                   .replaceAll("%arg", this.arg);
 
         //walk thru transform array and replace "tN" with transform[N]
@@ -144,6 +191,8 @@ public final class ImageProcessor implements Runnable {
         for (int i = 0 ; i < command.length ; i++) {
             if (command[i].equals("%imagesource")) command[i] = this.imageSourcePath;
             if (command[i].equals("%imagetarget")) command[i] = this.imageTargetPath;
+            //note this assumes comment stands alone. :/
+            if (command[i].equals("%comment")) command[i] = comment;
 System.out.println("COMMAND[" + i + "] = (" + command[i] + ")");
         }
 //System.out.println("done run()");

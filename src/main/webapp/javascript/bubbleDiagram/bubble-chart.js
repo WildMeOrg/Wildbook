@@ -111,14 +111,12 @@
         var circles = [];
         var interval = 0;
         var options = self.options;
+
         var val = self.values[circles.length];
         var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
         var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
 
         while (circles.length < self.options.data.items.length && ++interval < self.intervalMax) {
-          // var val = self.values[circles.length];
-          // var rad = 10 + Math.max((val * options.radiusMax) / self.valueMax, options.radiusMin);
-          // var dist = 5 + self.innerRadius + rad + 0 * (self.outerRadius - self.innerRadius - rad * 2);
           var angle = Math.random() * pi2 ;
           var cx = self.centralPoint + dist * Math.cos(angle);
           var cy = self.centralPoint + dist * Math.sin(angle);
@@ -130,7 +128,6 @@
             var dy = circle.cy - cy;
             var r = circle.r + rad;
             if (dx * dx + dy * dy < (r - delta * r - delta)) {
-	      console.log(r - delta );
               hit = true;
               return false;
             }
@@ -422,4 +419,200 @@
       };
     })();
   });
+=======
 
+        d3.select('#zoomIn').on('click', zoomClick);
+        d3.select('#zoomOut').on('click', zoomClick);
+
+        self.circlePositions = self.randomCirclesPositions(options.intersectDelta);
+
+        var node = self.svg.selectAll(".node")
+          .data(self.circlePositions)
+          .enter().append("g")
+          .attr("class", function (d) {return ["node", options.data.classed(d.item)].join(" w");});
+
+        var fnColor = d3.scale.category20();
+
+        node.append("circle")
+          .attr({r: function (d) {return d.r;}, cx: function (d) {return d.cx;}, cy: function (d) {return d.cy;}})
+          .style("fill", function (d) {
+                if(d.item.sex == "female") {
+                  return "pink";
+                } else if (d.item.sex == "male") {
+                  return "deepskyblue";
+                } else {
+                  return "lightgray";
+                }
+            })
+          .attr("opacity", "0.8");
+        node.sort(function (a, b) {return options.data.eval(b.item) - options.data.eval(a.item);});
+
+        self.transition = {};
+        self.event = $.microObserver.get($.misc.uuid());
+
+        if (options.supportResponsive) {
+          $(window).resize(function() {
+            var width = $(options.container).width();
+            self.svg.attr("width", width);
+            self.svg.attr("height", width);
+          });
+          $(window).resize();
+        }
+      },
+
+      getCirclePositions: function () {
+        return this.circlePositions;
+      },
+
+      moveToCentral: function (node) {
+        var self = this;
+        var toCentralPoint = d3.svg.transform()
+          .translate(function (d) {
+            var cx = node.select('circle').attr("cx");
+            var dx = self.centralPoint - d.cx;
+            var dy = self.centralPoint - d.cy;
+            return [dx, dy];
+          });
+        self.centralNode = node;
+        self.transition.centralNode = node.classed({active: true})
+          .transition().duration(self.options.transitDuration);
+        self.transition.centralNode.attr('transform', toCentralPoint)
+          .select("circle")
+          .style("fill", function (d) {
+                if(d.item.sex == "female") {
+                  return "pink";
+                } else if (d.item.sex == "male") {
+                  return "deepskyblue";
+                } else {
+                  return "lightgray";
+                }
+            })
+          .style("stroke", "white")
+          .style("stroke-width", "5px")
+          .attr('r', function (d) {return self.options.innerRadius;});
+      },
+
+      moveToReflection: function (node, swapped) {
+        var self = this;
+        var toReflectionPoint = d3.svg.transform()
+          .translate(function (d) {
+            var dx = 2 * (self.centralPoint - d.cx);
+            var dy = 2 * (self.centralPoint - d.cy);
+            return [dx, dy];
+          });
+
+        node.transition()
+          .duration(self.options.transitDuration)
+          .delay(function (d, i) {return i * 10;})
+          .attr('transform', swapped ? "" : toReflectionPoint)
+          .select("circle")
+          .attr('r', function (d) {return d.r;});
+      },
+
+      reset: function (node) {
+        var self = this;
+        var fnColor = d3.scale.category20();
+        node.classed({active: false});
+        d3.selectAll(".node:not(.active) circle").style("fill", function (d) {
+                if(d.item.sex == "female") {
+                  return "pink";
+                } else if (d.item.sex == "male") {
+                  return "deepskyblue";
+                } else {
+                  return "lightgray";
+                }
+            }).style("stroke", "none");
+        d3.selectAll("circle").filter(function(d) {return d.r == 90;}).style("fill", function (d) {
+                if(d.item.sex == "female") {
+                  return "pink";
+                } else if (d.item.sex == "male") {
+                  return "deepskyblue";
+                } else {
+                  return "lightgray";
+                }
+            })
+            .style("stroke", "white").style("stroke-width", "5px");
+      },
+
+      registerClickEvent: function (node) {
+        var self = this;
+        var swapped = false;
+        node.style("cursor", "pointer").on("click", function (d) {
+          self.clickedNode = d3.select(this);
+          self.event.send("click", self.clickedNode);
+          self.reset(self.centralNode);
+          self.moveToCentral(self.clickedNode);
+          self.moveToReflection(self.svg.selectAll(".node:not(.active)"), swapped);
+          swapped = !swapped;
+
+        });
+      },
+
+      getNodes: function () {
+        return this.svg.selectAll(".node");
+      },
+
+      get: function () {
+        return this.svg;
+      }
+    });
+
+    MicroPlugin.mixin(d3.svg.BubbleChart);
+
+    return d3.svg.BubbleChart;
+  }));
+
+
+  //lines
+  d3.svg.BubbleChart.define("lines", function (options) {
+    var self = this;
+
+    self.setup = (function () {
+      var original = self.setup;
+      return function () {
+        var fn = original.apply(this, arguments);
+        var node = self.getNodes();
+        $.each(options.format, function (i, f) {
+          node.append("text")
+            .classed(f.classed)
+            .style(f.style)
+            .attr(f.attr)
+            .text(function (d) {return d.item[f.textField];});
+        });
+        return fn;
+      };
+    })();
+
+    self.reset = (function (node) {
+      var original = self.reset;
+      return function (node) {
+        var fn = original.apply(this, arguments);
+        $.each(options.format, function (i, f) {
+          var tNode = d3.select(node.selectAll("text")[0][i]);
+          tNode.classed(f.classed).text(function (d) {return d.item[f.textField];})
+            .transition().duration(self.getOptions().transitDuration)
+            .style(f.style)
+            .attr(f.attr);
+        });
+        return fn;
+      };
+    })();
+
+    self.moveToCentral = (function (node) {
+      var original = self.moveToCentral;
+      return function (node) {
+        var fn = original.apply(this, arguments);
+        $.each(options.centralFormat, function (i, f) {
+          var tNode = d3.select(node.selectAll("text")[0][i]);
+          tNode.transition().duration(self.getOptions().transitDuration)
+            .style(f.style)
+            .attr(f.attr);
+          f.classed !== undefined && tNode.classed(f.classed);
+          f.textField !== undefined && tNode.text(function (d) {return d.item[f.textField];});
+        });
+        return fn;
+      };
+    })();
+  });
+
+>>>>>>> 0afce5023d525e988f44865061471a7daa784001
