@@ -1842,8 +1842,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return resultArray;
   }
 
-
+  
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+    return getExemplarImages(req, 5);
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -1868,6 +1872,8 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
               
               //put ProfilePhotos at the beginning
               if(ma.hasKeyword("ProfilePhoto")){al.add(0, j);}
+              //do nothing and don't include it if it has NoProfilePhoto keyword
+              else if(ma.hasKeyword("NoProfilePhoto")){}
               //otherwise, just add it to the bottom of the stack
               else{
                 al.add(j);
@@ -1877,6 +1883,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
             
           }
+          if(al.size()>numResults){return al;}
         }
     //}
     }

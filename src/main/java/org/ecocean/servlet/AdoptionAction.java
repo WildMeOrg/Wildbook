@@ -304,6 +304,17 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             }
 
 
+      //return a forward to display.jsp
+      System.out.println("Ending adoption data submission.");
+      //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
+      if (adoptionSuccess) {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+      } else {
+        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+      }
+
             if ((fv.get("g-recaptcha-response") != null) && !fv.get("g-recaptcha-response").toString().equals("")) {
               gresp = fv.get("g-recaptcha-response").toString().trim();
             }
@@ -387,7 +398,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
             boolean validCaptcha = false;
             if (loggedIn != true) {
               String remoteIP = request.getRemoteAddr();
-              validCaptcha = ServletUtilities.captchaIsValid(context, gresp, remoteIP);
+              validCaptcha = ReCAPTCHA.captchaIsValid(context, gresp, remoteIP);
               System.out.println("Results from captchaIsValid(): " + validCaptcha );
             }
             if ((validCaptcha == true) || (loggedIn == true)) {
@@ -501,35 +512,5 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
   } //end doPOST
 
-/*
-  public static String forHTMLTag(String aTagFragment) {
-    final StringBuffer result = new StringBuffer();
 
-    final StringCharacterIterator iterator = new StringCharacterIterator(aTagFragment);
-    char character = iterator.current();
-    while (character != CharacterIterator.DONE) {
-      if (character == '<') {
-        result.append("_");
-      } else if (character == '>') {
-        result.append("_");
-      } else if (character == '\"') {
-        result.append("_");
-      } else if (character == '\'') {
-        result.append("_");
-      } else if (character == '\\') {
-        result.append("_");
-      } else if (character == '&') {
-        result.append("_");
-      } else if (character == ' ') {
-        result.append("_");
-      } else {
-        //the char is not a special one
-        //add it to the result as is
-        result.append(character);
-      }
-      character = iterator.next();
-    }
-    return result.toString();
-  }
-*/
 }

@@ -33,6 +33,10 @@ public class AccessControl implements java.io.Serializable {
     public boolean isAnonymous() {
         return (username == null);
     }
+    //this static version is handy when you have no AccessControl to look at
+    public static boolean isAnonymous(final HttpServletRequest request) {
+        return ((request == null) || request.getUserPrincipal() == null);
+    }
 
     public static JSONObject userAsJSONObject(final HttpServletRequest request) {
         JSONObject uj = new JSONObject();
@@ -47,6 +51,7 @@ public class AccessControl implements java.io.Serializable {
 
     //null when not logged in
     public static String simpleUserString(final HttpServletRequest request) {
+        if (request == null) return null;
         return ((request.getUserPrincipal() == null) ? null : request.getUserPrincipal().getName());
     }
 }

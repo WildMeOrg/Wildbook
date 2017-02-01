@@ -31,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -1861,30 +1862,33 @@ public class Shepherd {
     int numAnnots=al.size();
     ArrayList<SinglePhotoVideo> myArray=new ArrayList<SinglePhotoVideo>();
     for(int i=0;i<numAnnots;i++){
-      
-      MediaAsset ma=al.get(i).getMediaAsset();
-      AssetStore as=ma.getStore();
-      String fullFileSystemPath=as.localPath(ma).toString();
-      String webURL=ma.webURLString();
-      int lastIndex=webURL.lastIndexOf("/")+1;
-      String filename=webURL.substring(lastIndex);
-      SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
-      spv.setWebURL(webURL);
-      spv.setDataCollectionEventID(ma.getUUID());
-      
-      //add Keywords
-      if(ma.getKeywords()!=null){
-        ArrayList<Keyword> alkw=ma.getKeywords();
-        int numKeywords=alkw.size();
-        for(int y=0;y<numKeywords;y++){
-          Keyword kw=alkw.get(y);
-          spv.addKeyword(kw);
+      try{
+        MediaAsset ma=al.get(i).getMediaAsset();
+        AssetStore as=ma.getStore();
+        String fullFileSystemPath=as.localPath(ma).toString();
+        URL u = ma.safeURL(this);
+        String webURL = ((u == null) ? null : u.toString());
+        int lastIndex=webURL.lastIndexOf("/")+1;
+        String filename=webURL.substring(lastIndex);
+        SinglePhotoVideo spv=new SinglePhotoVideo(encNum, filename, fullFileSystemPath);
+        spv.setWebURL(webURL);
+        spv.setDataCollectionEventID(ma.getUUID());
+  
+        //add Keywords
+        if(ma.getKeywords()!=null){
+          ArrayList<Keyword> alkw=ma.getKeywords();
+          int numKeywords=alkw.size();
+          for(int y=0;y<numKeywords;y++){
+            Keyword kw=alkw.get(y);
+            spv.addKeyword(kw);
+          }
         }
-      }
-      
-      myArray.add(spv);
-      
-      
+  
+        myArray.add(spv);
+
+    }
+    catch(Exception e){}
+
     }
     return myArray;
   }

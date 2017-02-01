@@ -469,5 +469,17 @@ public class Util {
         return ll.toString();
     }
 
+    //   h/t  https://www.mkyong.com/regular-expressions/how-to-validate-email-address-with-regular-expression/
+    public static String validEmailRegexPattern() {
+        //return "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";  //THIS FAILED on sito.org+foo@gmail.com !!
+        return "^[_A-Za-z0-9-\\+\\.]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
+    }
+
+    public static boolean isValidEmailAddress(String email) {
+        if (email == null) return false;
+        java.util.regex.Pattern patt = java.util.regex.Pattern.compile(validEmailRegexPattern());
+        java.util.regex.Matcher matcher = patt.matcher(email);
+        return matcher.matches();
+    }
 
 }
