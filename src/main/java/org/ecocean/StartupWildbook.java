@@ -45,7 +45,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
-    
+
   }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
@@ -94,7 +94,7 @@ public class StartupWildbook implements ServletContextListener {
     myShepherd.commitDBTransaction();
 
   }
-  
+
   public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
     int numKeywords=myShepherd.getNumKeywords();
     if(numKeywords==0){
@@ -109,7 +109,7 @@ public class StartupWildbook implements ServletContextListener {
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
         URL res = null;
         try {
             res = context.getResource("/");
@@ -122,7 +122,8 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         createMatchGraph();
         }
 
-        File qdir = ScheduledQueue.setQueueDir(context);
+        //File qdir = ScheduledQueue.setQueueDir(context);
+        File qdir = null;
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
         } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
@@ -165,15 +166,13 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
     }
-    
-    
+
+
     public static void createMatchGraph(){
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread());
-      
+
     }
-    
+
 }
-
-
