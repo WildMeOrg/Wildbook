@@ -277,7 +277,6 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                       <label class="search-field-header">
                             <form name="form2" method="get" action="<%=urlLoc %>/individuals.jsp">
 	                            <input type="text" id="search-site" placeholder="nickname, id, site, encounter nr., etc." class="search-query form-control navbar-search ui-autocomplete-input" autocomplete="off" name="number" />
-	                            <input type="hidden" name="langCode" value="<%=langCode%>"/>
 	                            <input type="submit" value="search" />
                           </form>
                       </label>
