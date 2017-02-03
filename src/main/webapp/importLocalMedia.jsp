@@ -12,24 +12,25 @@ java.io.*,java.util.*, java.io.FileInputStream, java.io.File, java.io.FileNotFou
     int bestIndex = -1;
     if (millis == null) return bestIndex;
     try {
-    for (Integer index : timeRankMap.keySet()) {
-      long diff = Math.abs(millis.longValue() - timeRankMap.get(index).longValue());
-      if ( diff <= tolerance && diff < bestDistance) {
-        bestDistance = diff;
-        bestIndex = index.intValue();
+      for (Integer index : timeRankMap.keySet()) {
+        long diff = Math.abs(millis.longValue() - timeRankMap.get(index).longValue());
+        if ( diff <= tolerance && diff < bestDistance) {
+          bestDistance = diff;
+          bestIndex = index.intValue();
+        }
       }
-    }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       System.out.println("ERROR: getBestIndex on input ("+millis+", "+timeRankMap+", "+tolerance+")");
       e.printStackTrace();
     }
     return bestIndex;
   }
+
   public int getBestIndex(Long millis, Map<Integer, Long> timeRankMap) {
     long oneWeekInMilliseconds = 604800000;
     return getBestIndex(millis, timeRankMap, oneWeekInMilliseconds * 10);
   }
+  
   public boolean isDirectoryWithFiles(File dir) {
     try {
       return (dir.isDirectory() && dir.list().length > 0);

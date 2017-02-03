@@ -295,6 +295,12 @@
     <servlet-name>StripeUpdate</servlet-name>
     <servlet-class>org.ecocean.servlet.StripeUpdate</servlet-class>
   </servlet>
+  
+  <servlet>
+    <description>ImportExcel</description>
+    <servlet-name>ImportExcel</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportExcel</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -1231,6 +1237,11 @@
 <servlet-mapping>
   <servlet-name>StripeUpdate</servlet-name>
   <url-pattern>/StripeUpdate</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>ImportExcel</servlet-name>
+  <url-pattern>/ImportExcel</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
