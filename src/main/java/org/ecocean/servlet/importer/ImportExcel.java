@@ -42,6 +42,10 @@ import javax.servlet.http.HttpServletResponse;
 
 public class ImportExcel extends HttpServlet {
 
+  static PrintWriter out;
+  static String context; 
+  static String baseURL;
+  
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
   }
@@ -51,8 +55,11 @@ public class ImportExcel extends HttpServlet {
   }
   
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
-    String context=ServletUtilities.getContext(request);
+    out = response.getWriter();
+    context = ServletUtilities.getContext(request);
+    baseURL = getBaseURL(request); 
     
+    out.println("Importer usage in browser: https://yourhost/ImportExcel?exceldir='yourexceldirectory'&imgdir='yourimagedirectory'&commit='trueorfalse' ");
     // set up a Shepherd
     // He will make sure that the default asset store is created if Wildbook hasn't made one for whatever reason.
     Shepherd startShepherd=null;
@@ -64,15 +71,26 @@ public class ImportExcel extends HttpServlet {
       StartupWildbook.initializeWildbook(request, startShepherd);
     }
     
-    Shepherd myShepherd = new Shepherd(context);
-    PrintWriter out = response.getWriter();
-        
-    String filename = "/tortoise_excel/GeometricJointData*.xlxs";
-    if (request.getParameter("filename") != null) filename = request.getParameter("filename");
-    File dataFile = new File(filename);
-    boolean dataFound = dataFile.exists();
-
-    out.println("Excel File found="+String.valueOf(dataFound)+" at "+dataFile.getAbsolutePath());
+    boolean committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
+    
+    String exceldir = "/excel_imports/";
+    if (request.getParameter("exceldir") != null) exceldir = request.getParameter("exceldir");
+    File[] excelFileList = getFiles(exceldir);
+    boolean excelFound = excelFileList.length > 0;
+    for (File file : excelFileList) {
+      processExcel(file, response, committing);
+    }
+    
+    String imagedir = "/image_imports/";
+    if (request.getParameter("imagedir") != null) exceldir = request.getParameter("imagedir");
+    File[] imageFileList = getFiles(imagedir);
+    boolean imagesFound = excelFileList.length > 0;
+    for (File file : imageFileList) {
+      processImage(file, response, committing);
+    }
+    
+    out.println("Excel File(s) found = "+String.valueOf(excelFound)+" at "+excelFileList[0].getAbsolutePath());
+    out.println("Image File(s) found = "+String.valueOf(imagesFound)+" at "+imageFileList[0].getAbsolutePath());
     
     //Create Workbook instance holding reference to .xls file 
     // XSSF is used for .xlxs files
@@ -84,17 +102,27 @@ public class ImportExcel extends HttpServlet {
     // persist images in asset store, then associate with encounter
     // be careful of commiting one and not the other, if you do it will contain a reference to 
     // that object in RAM, but not the persisted one if at all. 
+  }
+  
+  public void processImage(File dataFile, HttpServletResponse response, boolean committing) throws IOException {
+    Shepherd myShepherd = new Shepherd(context);
     
-    boolean committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
+    String rootDir = getServletContext().getRealPath("/");
     
+    String assetStorePath="/data/wildbook_data_dir";
+    String assetStoreURL= baseURL + "/wildbook_data_dir";
+  }
+  
+  public void processExcel(File dataFile, HttpServletResponse response, boolean committing) throws IOException {  
+    
+    Shepherd myShepherd = new Shepherd(context);
     
     FileInputStream fs = new FileInputStream(dataFile);
     XSSFWorkbook wb = new XSSFWorkbook(fs);
-      //POIFSFileSystem fs = new POIFSFileSystem(dataFIStream);
-      //HSSFWorkbook wb = new HSSFWorkbook(fs);
+    //POIFSFileSystem fs = new POIFSFileSystem(dataFIStream);
+    //HSSFWorkbook wb = new HSSFWorkbook(fs);
     XSSFSheet sheet;
     XSSFRow row;
-    XSSFCell cell;
     
     sheet = wb.getSheetAt(0);
     
@@ -105,7 +133,6 @@ public class ImportExcel extends HttpServlet {
     } else {
       out.println("+++ Success creating FileInputStream and XSSF Worksheet +++");
     }
-
     
     int numSheets = wb.getNumberOfSheets();
     out.println("Num Sheets = "+numSheets);
@@ -115,7 +142,7 @@ public class ImportExcel extends HttpServlet {
 
     int rows = sheet.getPhysicalNumberOfRows();; // No of rows
     int cols = sheet.getRow(0).getPhysicalNumberOfCells(); // No of columns
-    int tmp = 0;
+    // int tmp = 0;
     out.println("Num Cols = "+cols);
     out.println("committing = "+committing);
 
@@ -140,8 +167,6 @@ public class ImportExcel extends HttpServlet {
             needToAddEncToInd = true;
           }
         }
-        // TODO
-        
         try {
           enc.setState("approved");
           if (committing) myShepherd.storeNewEncounter(enc, Util.generateUUID());
@@ -149,7 +174,6 @@ public class ImportExcel extends HttpServlet {
           e.printStackTrace();
           out.println("!!! Failed to Store New Encounter !!!");
         }
-
         if (needToAddEncToInd) ind.addEncounter(enc, context);
         if (committing && indID!=null  && !myShepherd.isMarkedIndividual(indID)) myShepherd.storeNewMarkedIndividual(ind);
         if (committing) myShepherd.commitDBTransaction();
@@ -165,7 +189,6 @@ public class ImportExcel extends HttpServlet {
           +", identification notes "+enc.getIdentificationRemarks()
           );
         }
-        
       }
       catch (Exception e) {
         fs.close();
@@ -178,10 +201,35 @@ public class ImportExcel extends HttpServlet {
     wb.close();
   }
 
+  public File[] getFiles(String path) {
+    try {
+      File folder = new File(path);
+      System.out.println("+++++ "+folder.toString()+" FOLDER STRING +++++");
+      File[] arr = folder.listFiles();
+      System.out.println(arr.toString() + "  ARRAY STRING");
+      for (File file : arr) {
+        if (file.isFile()) {
+          System.out.println("++ FOUND FILE: "+file.getName()+" at "+ file.getAbsolutePath());
+        }
+      }
+      return arr;
+    } catch (Exception e) {
+      System.out.println("+++++ ERROR: Failed to get list of files from folder. +++++");
+      e.printStackTrace();
+      return null;
+    }
+  }
+  
+  public static String getBaseURL(HttpServletRequest request) {
+    String scheme = request.getScheme() + "://";
+    String name = request.getServerName();
+    String port = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
+    String path = request.getContextPath();
+    return scheme + name + port + path;
+  }
+  
   public Encounter parseEncounter(XSSFRow row) {
-    
     String indID = stripAccents(getString(row, 12)); 
-    
     Encounter enc = new Encounter();
     
     enc.setIndividualID(indID);
