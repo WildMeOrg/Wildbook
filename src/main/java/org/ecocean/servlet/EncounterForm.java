@@ -52,6 +52,7 @@ import org.ecocean.Encounter;
 import org.ecocean.Measurement;
 import org.ecocean.Shepherd;
 import org.ecocean.media.*;
+import org.ecocean.identity.IBEISIA;
 import org.ecocean.ShepherdProperties;
 import org.ecocean.SinglePhotoVideo;
 import org.ecocean.tag.AcousticTag;
@@ -325,6 +326,9 @@ System.out.println("*** trying redirect?");
         List<FileItem> formFiles = new ArrayList<FileItem>();
         List<File> socialFiles = new ArrayList<File>();
 
+        ArrayList<MediaAsset> assetsForDetection = new ArrayList<MediaAsset>();
+
+
       //Calendar date = Calendar.getInstance();
 
         long maxSizeMB = CommonConfiguration.getMaxMediaSizeInMegabytes(context);
@@ -592,7 +596,15 @@ System.out.println("enc ?= " + enc.toString());
                     ma.addLabel("_original");
                     ma.copyIn(tmpFile);
                     ma.updateMetadata();
+
+                    // here is where we should send the MediaAsset to detection
+                    // ia.sendDetection with singleton list, or go outside of loop to have whole locationDescription
+
+
+
+                    // this is adding the trivial annotation for the mediaasset (non-IA)
                     newAnnotations.add(new Annotation(Util.taxonomyString(genus, specificEpithet), ma));
+                    assetsForDetection.add(ma);
                 } else {
                     System.out.println("failed to write file " + tmpFile);
                 }
@@ -965,6 +977,20 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
 
 
+      System.out.println("Encounter form is sending stuff to detection!");
+      try {
+        ArrayList<MediaAsset> assets = enc.getMedia();
+        String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
+        IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
+//        IBEISIA.beginDetect(assets, baseUrl, context);
+        System.out.println("beginDetect has been called");
+
+      } catch (Exception e) {
+
+        System.out.println("Error on EncForm sending things to detection");
+        e.printStackTrace();
+
+      }
 
 
       //return a forward to display.jsp
