@@ -182,6 +182,13 @@ public class Annotation implements java.io.Serializable {
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
+    public boolean isUnity() {
+      boolean ans = features.get(0).isUnity();
+      System.out.println("annot "+toString()+" ans = "+ans);
+      System.out.println("it first feature is "+features.get(0));
+      return (ans);
+    }
+
     public double getTheta() {
         return theta;
     }
@@ -197,6 +204,11 @@ public class Annotation implements java.io.Serializable {
         ArrayList<Feature> fts = getFeatures();
         if ((fts == null) || (fts.size() < 1) || (fts.get(0) == null)) {
             System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
+
+            if (fts==null) System.out.println("above warning because fts == null");
+            else if (fts.size() < 1) System.out.println("above warning because fts.size() < 1");
+            else if (fts.get(0) == null) System.out.println("above warning because fts.get(0) == null");
+
             return __getMediaAsset();
         }
         return fts.get(0).getMediaAsset();  //should this instead return first feature *that has a MediaAsset* ??
@@ -345,6 +357,7 @@ public class Annotation implements java.io.Serializable {
 	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request) throws org.datanucleus.api.rest.orgjson.JSONException {
             return this.sanitizeJson(request, false);
         }
+
 
 ///////////////////// TODO fix this for Feature upgrade ////////////////////////
         /**

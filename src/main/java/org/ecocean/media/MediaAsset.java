@@ -295,6 +295,30 @@ public class MediaAsset implements java.io.Serializable {
         parametersAsString = p.toString();
     }
 
+    private static boolean isAscii(char ch) {
+      return ch < 128;
+    }
+    private static boolean isAscii(String str) {
+      char[] chars = str.toCharArray();
+      for (char ch: chars) {
+        if (!isAscii(ch) || (ch=='ñ')) return false;
+      }
+      return true;
+    }
+    // public boolean isCleanForIBEIS() {
+    //   try {
+    //     String thePath = parameters.getString("path");
+    //     return (isAscii(thePath) && this.isMimeTypeMajor("image") && this.getWidth()!=0 && this.getHeight()!=0);
+    //   } catch (Exception e) {
+    //     return false;
+    //   }
+    // }
+    public boolean isCleanForIBEIS() {
+      return (this.isMimeTypeMajor("image") &&
+              this.getWidth()!=0 &&
+              this.getHeight()!=0);
+    }
+
 
     ///note: really the only place that should call getParametersAsString or setParametersAsString is datanucleus...
     ///  always use getParameters() and setParameters() instead!
@@ -869,7 +893,7 @@ System.out.println("   ....  ??? do we have a " + t);
                 }
                 jobj.put("keywords", new org.datanucleus.api.rest.orgjson.JSONArray(ka.toString()));
             }
-            
+
             myShepherd.rollbackDBTransaction();
             myShepherd.closeDBTransaction();
 
@@ -1002,7 +1026,7 @@ System.out.println(">> updateStandardChildren(): type = " + type);
     public ArrayList<Keyword> getKeywords() {
         return keywords;
     }
-    
+
     public boolean hasKeyword(String keywordName){
       if(keywords!=null){
         int numKeywords=keywords.size();
@@ -1011,10 +1035,10 @@ System.out.println(">> updateStandardChildren(): type = " + type);
           if((kw.getIndexname().equals(keywordName))||(kw.getReadableName().equals(keywordName))){return true;}
         }
       }
-      
+
       return false;
     }
-    
+
     public boolean hasKeyword(Keyword key){
       if(keywords!=null){
         if(keywords.contains(key)){return true;}
