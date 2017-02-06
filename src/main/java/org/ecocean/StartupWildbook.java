@@ -78,12 +78,13 @@ public class StartupWildbook implements ServletContextListener {
     String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
     String dataUrl = urlLoc + "/wildbook_data_dir";
     myShepherd.beginDBTransaction();
+    System.out.println("Setting localAssetStore url to "+dataUrl);
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
     myShepherd.getPM().makePersistent(as);
     myShepherd.commitDBTransaction();
 
   }
-  
+
   public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
     int numKeywords=myShepherd.getNumKeywords();
     if(numKeywords==0){
@@ -98,7 +99,7 @@ public class StartupWildbook implements ServletContextListener {
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
         URL res = null;
         try {
             res = context.getResource("/");
@@ -110,7 +111,8 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
             IBEISIA.primeIA();
         }
 
-        File qdir = ScheduledQueue.setQueueDir(context);
+        //File qdir = ScheduledQueue.setQueueDir(context);
+        File qdir = null; //testing to see if this block causes issues
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
         } else {
@@ -121,7 +123,7 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
                 public void run() {
                     ++count;
                     boolean cont = ScheduledQueue.checkQueue();
-                    System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
+                    //System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
                     if (!cont) {
                         System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
                         schedExec.shutdown();
@@ -146,5 +148,3 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         System.out.println("* StartupWildbook destroyed called");
     }
 }
-
-
