@@ -918,6 +918,14 @@ $(document).ready(function() {
               var markedIndividual1DirectionalDescriptor = $("#descriptor1").val();
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
+              
+              if (startTime == "-1") { 
+                  startTime = "Start Time";
+                }        
+              if (endTime == "-1") { 
+                  endTime = "End Time";
+              }
+
 
               $.post("RelationshipCreate", {
                 "type": type,

@@ -386,8 +386,20 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
       var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
       var socialUnit = jsonData.relatedSocialUnitName;
-      var startTime = new Date(jsonData.startTime);
-      var endTime = new Date(jsonData.endTime);
+      
+      var startTime;
+      var endTime;
+      if (jsonData.startTime == "-1") {
+    	  startTime = null;;
+      } else {
+    	  startTime = new Date(jsonData.startTime);
+      }
+      if (jsonData.endTime == "-1") {
+    	  endTime = null;
+      } else {
+    	  endTime = new Date(jsonData.endTime);
+      }
+
       var bidirectional = jsonData.bidirectional;
 
       $("#addRelationshipForm").show();

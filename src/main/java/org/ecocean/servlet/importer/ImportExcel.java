@@ -3,6 +3,8 @@ package org.ecocean.servlet.importer;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
+
 import java.net.*;
 import java.sql.Time;
 import java.text.Normalizer;
@@ -65,6 +67,7 @@ public class ImportExcel extends HttpServlet {
     Shepherd startShepherd=null;
     startShepherd=new Shepherd(context);
     startShepherd.setAction("ImportExcel.class");
+    
     //check for and inject a default user 'tomcat' if none exists
     if (!CommonConfiguration.isWildbookInitialized(startShepherd)) {
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
@@ -78,15 +81,17 @@ public class ImportExcel extends HttpServlet {
     File[] excelFileList = getFiles(exceldir);
     boolean excelFound = excelFileList.length > 0;
     for (File file : excelFileList) {
+      out.println("++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
       processExcel(file, response, committing);
     }
     
     String imagedir = "/image_imports/";
-    if (request.getParameter("imagedir") != null) exceldir = request.getParameter("imagedir");
+    if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
-    boolean imagesFound = excelFileList.length > 0;
+    boolean imagesFound = imageFileList.length > 0;
     for (File file : imageFileList) {
-      processImage(file, response, committing);
+      out.println("++ Processing Image File: "+file.getName()+" at "+ file.getAbsolutePath());
+      processImage(file, response, committing, imagedir);
     }
     
     out.println("Excel File(s) found = "+String.valueOf(excelFound)+" at "+excelFileList[0].getAbsolutePath());
@@ -104,13 +109,88 @@ public class ImportExcel extends HttpServlet {
     // that object in RAM, but not the persisted one if at all. 
   }
   
-  public void processImage(File dataFile, HttpServletResponse response, boolean committing) throws IOException {
+  public void processImage(File imageFile, HttpServletResponse response, boolean committing, String imagedir) throws IOException {
+    
     Shepherd myShepherd = new Shepherd(context);
-    
     String rootDir = getServletContext().getRealPath("/");
-    
     String assetStorePath="/data/wildbook_data_dir";
     String assetStoreURL= baseURL + "/wildbook_data_dir";
+    LocalAssetStore assetStore = null;
+    try {
+      if (committing) myShepherd.beginDBTransaction();
+      assetStore = new LocalAssetStore("Turtle-Conservancy-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+      if (committing) myShepherd.getPM().makePersistent(assetStore);
+      if (committing) myShepherd.commitDBTransaction();
+      out.println("++++ Success creating asset store at "+assetStoreURL+" ++++");
+    } catch (Exception e) {
+      out.println("++++ Failed to create and persist local asset store at "+assetStoreURL+" ++++");
+      e.printStackTrace();      
+    }
+        
+    String encountersDirPath=assetStorePath+"/encounters";
+    String photoFileName = null;
+    String photoNumber = null;
+    try {
+      if (committing) myShepherd.beginDBTransaction();
+      photoFileName = imageFile.getName();
+      photoNumber = photoFileName.substring(4,6);
+      out.println("++++ Photo number "+photoNumber+" Identified! ++++");
+    } catch (Exception e) {
+      out.println("!!!! Error grabbing image number to search for matching encounter. !!!!");
+      e.printStackTrace();
+    }
+    
+    File photo = new File(imagedir, photoFileName);
+    JSONObject params = assetStore.createParameters(photo);
+    MediaAsset ma = null;
+    try {
+      ma = new MediaAsset(assetStore, params);
+      out.println("++++ Created a media asset with params: "+ma.getParameters().toString()+" ++++");
+    } catch (Exception e) {
+      out.println("!!!! Error creating media asset for image number "+photoNumber+" !!!!");
+      e.printStackTrace();
+    }
+    
+    if (committing) {
+      try {
+        ma.copyIn(photo);
+        myShepherd.getPM().makePersistent(ma);
+        ma.updateStandardChildren(myShepherd);
+        ma.updateMinimalMetadata();
+      } catch (Exception e) {
+        out.println("!!!! Error persisting media asset !!!!");
+        e.printStackTrace(); 
+      }
+    }
+    
+    Annotation ann = new Annotation("Psammobates geometricus", ma);
+    if (committing) {
+      try {
+        myShepherd.storeNewAnnotation(ann);
+      } catch (Exception e) {
+        out.println("!!!! Error storing new annotation for media asset !!!!");
+        e.printStackTrace(); 
+      }
+    }
+    
+    Encounter match = null;
+    Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
+    while (allEncs.hasNext() == true) {
+      Encounter enc = allEncs.next();
+      if (enc.getDynamicPropertyValue("imageNum") == photoNumber) {
+        // Associate after commiting
+      }
+    } 
+    
+    // You are trying to create media assets for each image file. Each image has a photo number
+    // at the 4-6 character of it's file name.
+    // Each encounter should have a photo number as well. Create the media assets, then create the encounters.
+    // Then associate each encounter with the appropriate media assets. 
+    // SAVE ASSET --> GET NUMBER --> SEARCH ENCOUNTER NUMBERS -->>> SAVE PAIR 
+    
+    
+    // THE END
+    myShepherd.closeDBTransaction();
   }
   
   public void processExcel(File dataFile, HttpServletResponse response, boolean committing) throws IOException {  
@@ -119,8 +199,6 @@ public class ImportExcel extends HttpServlet {
     
     FileInputStream fs = new FileInputStream(dataFile);
     XSSFWorkbook wb = new XSSFWorkbook(fs);
-    //POIFSFileSystem fs = new POIFSFileSystem(dataFIStream);
-    //HSSFWorkbook wb = new HSSFWorkbook(fs);
     XSSFSheet sheet;
     XSSFRow row;
     
@@ -149,7 +227,7 @@ public class ImportExcel extends HttpServlet {
     int printPeriod = 25;
 
     if (committing) myShepherd.beginDBTransaction();
-    out.println("+++++ BEGINNING THE EXCEL LOOP +++++");
+    out.println("+++++ LOOPING THROUGH FILE +++++");
     for (int i=1; i<rows; i++) {
       try {
         if (committing) myShepherd.beginDBTransaction();
@@ -252,9 +330,10 @@ public class ImportExcel extends HttpServlet {
     enc.setLivingStatus(getLiving(notes));
     enc.setIdentificationRemarks(notes);
  
-    parseDynProp(enc, "Ross Number", row, 7);
-    parseDynProp(enc, "Vicki Number", row, 6);
-    parseDynProp(enc, "Encounter Time", row, 3);
+    parseDynProp(enc, "rossNum", row, 7);
+    parseDynProp(enc, "vickiNum", row, 6);
+    parseDynProp(enc, "encounterTime", row, 3);
+    parseDynProp(enc, "imageNum", row, 13);
     
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
