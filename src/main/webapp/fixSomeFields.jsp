@@ -79,6 +79,10 @@ int numUnknown = 0;
 int numFemale  = 0;
 int numMale    = 0;
 
+int numMas = 0;
+int maxMas = 0;
+String bestEncID = "none";
+
 
 %><h3>committing = <%=committing%></h3><%
 
@@ -88,27 +92,20 @@ try {
 	String rootDir = getServletContext().getRealPath("/");
 	String baseDir = ServletUtilities.dataDir(context, rootDir).replaceAll("dev_data_dir", "caribwhale_data_dir");
 
-	Iterator allEncs=myShepherd.getAllEncounters();
+	Iterator allAnns=myShepherd.getAllAnnotationsNoQuery();
 
   int count = 0;
   int maxCount = 100;
 
 
-	while(allEncs.hasNext()){
+	while(allAnns.hasNext()){
 
     count++;
 
-		Encounter enc = (Encounter) allEncs.next();
-
-    enc.setSex(standardizedEncounterSex(enc));
-    if (enc.getSex() != null && enc.getSex().equals("parse error!")) badEncIDs.add(enc.getCatalogNumber());
+		Annotation ann = (Annotation) allAnns.next();
+    ann.setIsExemplar(true);
 
     numFixes++;
-
-    String shortName = enc.getCatalogNumber();
-    try {shortName = shortName.substring(0,8);} catch(IndexOutOfBoundsException e) {}
-    %><p>Enc <%=shortName%> has new sex <%=enc.getSex()%></p><%
-
     if (committing) {
       myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
@@ -118,7 +115,7 @@ try {
 
 	}
 
-  Iterator allAnns=myShepherd.getAllAnnotationsNoQuery();
+  //Iterator allAnns=myShepherd.getAllAnnotationsNoQuery();
 /*
   while(allAnns.hasNext()){
 
@@ -143,10 +140,9 @@ finally{
 %>
 
 </ul>
-<p>Num Modified: <%=numFixes %></p>
-
-<p>Sex Distribution: <ul>
-<li>Num not parseable: <%=badEncIDs.size()%></li>
+<p>Num Encounters: <%=numFixes %></p>
+<p>Num MediaAssets: <%=numMas%></p>
+<p>Best encounter = <%=bestEncID%> with <%=maxMas%> mas. <ul>
 </ul></p>
 
 </body>
