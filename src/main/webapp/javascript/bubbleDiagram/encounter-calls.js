@@ -377,7 +377,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         console.log("error")
       }
       jsonData = json;
-
+      console.log(jsonData);
+      console.log("Relationship ID in getRelationshipData: " + relationshipID);
       var type = jsonData.type;
       var individual1 = jsonData.markedIndividualName1;
       var individual2 = jsonData.markedIndividualName2;
@@ -386,8 +387,21 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
       var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
       var socialUnit = jsonData.relatedSocialUnitName;
-      var startTime = new Date(jsonData.startTime);
-      var endTime = new Date(jsonData.endTime);
+
+      var startTime;
+      var endTime;
+     
+      if (jsonData.startTime == "-1") {
+    	  startTime = null;;
+      } else {
+    	  startTime = new Date(jsonData.startTime);
+      }
+      if (jsonData.endTime == "-1") {
+    	  endTime = null;
+      } else {
+    	  endTime = new Date(jsonData.endTime);
+      }
+
       var bidirectional = jsonData.bidirectional;
 
       $("#addRelationshipForm").show();
@@ -402,8 +416,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       $("#role2").val(role2);
       $("#descriptor2").val(descriptor2);
       $("#socialUnit").val(socialUnit);
-      $("#startTime").val(startTime);
-      $("#endTime").val(endTime);
+      $("#startTime").val(startTime.toISOString().substr(0,10));
+      $("#endTime").val(endTime.toISOString().substr(0,10));
       $("#bidirectional").val(bidirectional);
     });
   }
@@ -436,6 +450,16 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     jsonData = json;
     for(var i = 0; i < jsonData.length; i++) {
       var relationshipID = jsonData[i]._id;
+      var startTime = jsonData[i].startTime;
+      var endTime = jsonData[i].endTime;
+      if (startTime == "-1") {
+        startTime = "Start Time";
+      } 
+      if (endTime == "-1") {
+	endTime = "End Time";
+      }
+		
+      console.log("RelID in getrelationshiptabledata " + relationshipID);
       if(jsonData[i].markedIndividualName1 != individualID) {
         var whaleID = jsonData[i].markedIndividualName1;
         var markedIndividual = jsonData[i].markedIndividualName2;
@@ -465,10 +489,12 @@ var getIndividualData = function(relationshipArray) {
       if(error) {
         console.log("error")
       }
+      
       jsonData = json;
       var individualInfo = relationshipArray.filter(function(obj) {
         return obj.relationshipWith[0] === jsonData.individualID;
       })[0];
+      console.log(individualInfo.relationshipWith);
       individualInfo.relationshipWith[1] = jsonData.nickName;
       individualInfo.relationshipWith[2] = jsonData.alternateid;
       individualInfo.relationshipWith[3] = jsonData.sex;
@@ -484,7 +510,7 @@ var getIndividualData = function(relationshipArray) {
             relationshipArray[j].relationshipWith[3] = jsonData.sex;
             relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
           }
-        }
+	}
         makeTable(relationshipArray, "#relationshipHead", "#relationshipBody",null);
       }
     });
