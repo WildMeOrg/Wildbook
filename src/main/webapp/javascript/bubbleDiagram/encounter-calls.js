@@ -377,7 +377,6 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         console.log("error")
       }
       jsonData = json;
-      console.log(jsonData);
       console.log("Relationship ID in getRelationshipData: " + relationshipID);
       var type = jsonData.type;
       var individual1 = jsonData.markedIndividualName1;
@@ -459,7 +458,6 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 	endTime = "End Time";
       }
 		
-      console.log("RelID in getrelationshiptabledata " + relationshipID);
       if(jsonData[i].markedIndividualName1 != individualID) {
         var whaleID = jsonData[i].markedIndividualName1;
         var markedIndividual = jsonData[i].markedIndividualName2;
