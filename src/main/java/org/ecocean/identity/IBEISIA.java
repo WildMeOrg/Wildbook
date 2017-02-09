@@ -154,10 +154,13 @@ System.out.println("sendMediaAssets(): sending " + ct);
         map.put("annot_species_list", new ArrayList<String>());
         map.put("annot_bbox_list", new ArrayList<int[]>());
 
+
+
         for (Annotation ann : anns) {
             if (!needToSend(ann)) continue;
             int[] bbox = ann.getBbox();
             if (bbox == null) throw new RuntimeException("failed to add " + ann + "; could not getBbox()");
+            //map.get("annot_bbox_list").add(cleanBBox(bbox));
             map.get("annot_bbox_list").add(bbox);
             map.get("image_uuid_list").add(toFancyUUID(ann.getMediaAsset().getUUID()));
             map.get("annot_uuid_list").add(toFancyUUID(ann.getUUID()));
@@ -168,12 +171,14 @@ System.out.println("sendMediaAssets(): sending " + ct);
 
 System.out.println("sendAnnotations(): sending " + ct);
         if (ct < 1) return null;
+        //if (ct < 10) System.out.println(map);
 
         //this should only be checking for missing images, i guess?
         boolean tryAgain = true;
         JSONObject res = null;
         while (tryAgain) {
             res = RestClient.post(url, new JSONObject(map));
+            //if (ct<10) System.out.println("res="+res);
             tryAgain = iaCheckMissing(res);
         }
         return res;
@@ -181,14 +186,13 @@ System.out.println("sendAnnotations(): sending " + ct);
 
     //note: if tanns here is null, then it is exemplar for this species
     public static JSONObject sendIdentify(ArrayList<Annotation> qanns, ArrayList<Annotation> tanns, JSONObject queryConfigDict,
-                                          JSONObject userConfidence, String baseUrl)
+                                          JSONObject userConfidence, String baseUrl, Shepherd myShepherd)
                                           throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendIdentify() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartIdentifyAnnotations", "context0");
         if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartIdentifyAnnotations is not set");
         URL url = new URL(u);
 
-        Shepherd myShepherd = new Shepherd("context0");
         myShepherd.setAction("IBEISIA.sendIdentify");
         myShepherd.beginDBTransaction();
 
@@ -215,6 +219,8 @@ System.out.println("sendAnnotations(): sending " + ct);
             qnlist.add(IA_UNKNOWN_NAME);
         }
 
+        System.out.println("species = "+species);
+        System.out.println("first tanns isNull = "+(tanns==null));
         boolean setExemplarCaches = false;
         if (tanns == null) {
 System.out.println("--- exemplar!");
@@ -227,6 +233,11 @@ System.out.println("     free ride :)");
                 tlist = targetIdsListCache.get(species);
                 tnlist = targetNameListCache.get(species);
             }
+        }
+
+        System.out.println("second tanns isNull="+(tanns==null));
+        if (tanns!=null) {
+          System.out.println("n tanns = "+tanns.size());
         }
 
         if (tanns != null) for (Annotation ann : tanns) {
@@ -248,6 +259,8 @@ System.out.println("     free ride :)");
                 tnlist.add(indivId);
             }
         }
+        System.out.println("n tlist = "+tlist.size());
+
 //query_config_dict={'pipeline_root' : 'BC_DTW'}
         // find indices of bad names
         //List<Integer> badIndices = new ArrayList<Integer>();
@@ -278,6 +291,7 @@ System.out.println("     free ride :)");
         map.put("database_annot_uuid_list", tlist);
         map.put("query_annot_name_list", qnlist);
         map.put("database_annot_name_list", tnlist);
+        //map.put("model_tag","lynx");
 
 
 System.out.println("===================================== qlist & tlist =========================");
@@ -285,9 +299,12 @@ System.out.println(qlist + " callback=" + baseUrl + "/IBEISIAGetJobStatus.jsp");
 System.out.println("tlist.size()=" + tlist.size());
 System.out.println("tnlist.size()=" + tnlist.size());
 //System.out.println("map = "+map);
-myShepherd.rollbackDBTransaction();
-myShepherd.closeDBTransaction();
-        return RestClient.post(url, new JSONObject(map));
+JSONObject jsonMap = new JSONObject(map);
+System.out.println("JSON map size= "+jsonMap.length());
+JSONObject res = RestClient.post(url, jsonMap);
+//myShepherd.rollbackDBTransaction();
+//myShepherd.closeDBTransaction();
+        return res;
     }
 
 
@@ -646,6 +663,53 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         return tryAgain;
     }
 
+    public static boolean iaCheckMissing2(JSONObject res, Shepherd myShepherd) {
+/////System.out.println("########## iaCheckMissing res -> " + res);
+//if (res != null) throw new RuntimeException("fubar!");
+        if (!((res != null) && (res.getJSONObject("status") != null) && (res.getJSONObject("status").getInt("code") == 600))) return false;  // not a needy 600
+        boolean tryAgain = false;
+
+//TODO handle loop where we keep trying to add same objects but keep failing (e.g. store count of attempts internally in class?)
+
+        if ((res.getJSONObject("response") != null) && res.getJSONObject("response").has("missing_image_uuid_list")) {
+            JSONArray list = res.getJSONObject("response").getJSONArray("missing_image_uuid_list");
+            if (list.length() > 0) {
+                for (int i = 0 ; i < list.length() ; i++) {
+                    String uuid = fromFancyUUID(list.getJSONObject(i));
+System.out.println("**** FAKE ATTEMPT to sendMediaAssets: uuid=" + uuid);
+                    //TODO actually send the mediaasset duh ... future-jon, please fix this
+                }
+            }
+        }
+
+        if ((res.getJSONObject("response") != null) && res.getJSONObject("response").has("missing_annot_uuid_list")) {
+            JSONArray list = res.getJSONObject("response").getJSONArray("missing_annot_uuid_list");
+            if (list.length() > 0) {
+                ArrayList<Annotation> anns = new ArrayList<Annotation>();
+                try{
+                  for (int i = 0 ; i < list.length() ; i++) {
+                      String uuid = fromFancyUUID(list.getJSONObject(i));
+                      Annotation ann = ((Annotation) (myShepherd.getPM().getObjectById(myShepherd.getPM().newObjectIdInstance(Annotation.class, uuid), true)));
+                      anns.add(ann);
+                  }
+                }
+                catch(Exception e){e.printStackTrace();}
+                finally{
+                }
+                //would this ever recurse? seems like a 600 would only happen inside sendAnnotations for missing MediaAssets. is this true? TODO
+System.out.println("**** attempting to make up for missing Annotation(s): " + anns.toString());
+                JSONObject srtn = null;
+                try {
+                    sendAnnotations(anns);
+                } catch (Exception ex) { }
+System.out.println(" returned --> " + srtn);
+                if ((srtn != null) && (srtn.getJSONObject("status") != null) && srtn.getJSONObject("status").getBoolean("success")) tryAgain = true;  //it "worked"?
+            }
+        }
+System.out.println("iaCheckMissing -> " + tryAgain);
+        return tryAgain;
+    }
+
 
     private static Object mediaAssetToUri(MediaAsset ma) {
 //System.out.println("=================== mediaAssetToUri " + ma + "\n" + ma.getParameters() + ")\n");
@@ -723,57 +787,76 @@ System.out.println("iaCheckMissing -> " + tryAgain);
         log(taskID, jobID, new JSONObject("{\"_action\": \"initIdentify\"}"), context);
         JSONObject identRtn = null;
 
+        ArrayList<Annotation> filteredTanns = new ArrayList<Annotation>();
+        ArrayList<Annotation> filteredQanns = new ArrayList<Annotation>();
+
+
         try {
             for (Annotation ann : qanns) {
-                MediaAsset ma = ann.getDerivedMediaAsset();
-                if (ma == null) ma = ann.getMediaAsset();
+                MediaAsset ma = ann.getMediaAsset();
                 if ((ma== null) || !ma.isCleanForIBEIS()) {
-                  System.out.println("Dirty asset found in qanns! "+ma.getId()+" this.toString()="+ann.toString()+" and ass.toString()="+ma.toString());
+                  if (ma==null) System.out.println("Null asset found in qanns! Annot.toString()="+ann.toString()+". Its asset is null.");
+                  else if (ma!=null) System.out.println("Dirty asset found in qanns! Annot.toString()="+ann.toString()+". Asset toString()="+ma.toString());//really weird that we get a nullpointerexception if we try and print ma.toString() here
                   continue;
                 }
                 allAnns.add(ann);
+                filteredQanns.add(ann);
                 System.out.println("Just added to qanns "+ann);
                 if (ma != null) mas.add(ma);
             }
 
             boolean isExemplar = false;
+            System.out.println("before tanns==null check. Tanns=null:"+(tanns==null));
             if (tanns == null) {
+              System.out.println("null tanns passed to beginIdentifyAnnot. Getting exemplars.");
                 isExemplar = true;
                 if ((alreadySentExemplar.get(species) == null) || !alreadySentExemplar.get(species)) {
                   System.out.println("   ... have to set tanns.  :(");
                     tanns = Annotation.getExemplars(species, myShepherd);
-                    alreadySentExemplar.put(species, true);
+                    //alreadySentExemplar.put(species, true);
                 }
             }
+            System.out.println("after tanns==null check. Tanns=null:"+(tanns==null));
+
 
             System.out.println("- mark 2");
             System.out.println("jobID="+jobID);
+            System.out.println("tanns=null:"+(tanns==null));
+
             if (tanns != null) {
+              System.out.println("n tanns = "+tanns.size());
             for (Annotation ann : tanns) {
                 MediaAsset ma = ann.getDerivedMediaAsset();
                 if (ma == null) ma = ann.getMediaAsset();
                 if ((ma== null) || !ma.isCleanForIBEIS()) {
-                  System.out.println("Dirty asset found in tanns! "+ma.getId());
                   continue;
+                } else {
+                  filteredTanns.add(ann);
+                  allAnns.add(ann);
+                  if (ma != null) mas.add(ma);
                 }
-
-                allAnns.add(ann);
-
-                if (ma != null) mas.add(ma);
             }
             }
+
+            System.out.println("About to send media and annots to IA.");
+            System.out.println("mas.size()="+mas.size());
+            System.out.println("allaAnns.size()="+allAnns.size());
 
             results.put("sendMediaAssets", sendMediaAssets(mas));
             results.put("sendAnnotations", sendAnnotations(allAnns));
+
 
             if (isExemplar) tanns = null;  //reset it for sendIdentify() below
 
             //this should attempt to repair missing Annotations
             boolean tryAgain = true;
+            System.out.println("Starting the beginIdentify while loop");
             while (tryAgain) {
-                identRtn = sendIdentify(qanns, tanns, queryConfigDict, userConfidence, baseUrl);
-                tryAgain = iaCheckMissing(identRtn);
+                identRtn = sendIdentify(filteredQanns, filteredTanns, queryConfigDict, userConfidence, baseUrl, myShepherd);
+                tryAgain = iaCheckMissing2(identRtn, myShepherd);
+                //tryAgain = iaCheckMissing(identRtn);
             }
+            System.out.println("Finished the beginIdentify while loop");
             results.put("sendIdentify", identRtn);
 
             //System.out.println("sendIdentify ---> " + identRtn);
@@ -862,87 +945,6 @@ System.out.println("iaCheckMissing -> " + tryAgain);
 
         return results;
     }
-
-
-
-    //a slightly different flavor -- we can explicitely pass the query annotation
-	//  NOTE!!! TODO this might be redundant with beginIdentifyAnnotaions above. (this came from crc)
-/*
-    public static JSONObject beginIdentify(Annotation qann, ArrayList<Encounter> targetEncs, Shepherd myShepherd, String species, String taskID, String baseUrl, String context) {
-        //TODO possibly could exclude qencs from tencs?
-        String jobID = "-1";
-        JSONObject results = new JSONObject();
-        results.put("success", false);  //pessimism!
-        ArrayList<MediaAsset> mas = new ArrayList<MediaAsset>();
-        ArrayList<Annotation> tanns = new ArrayList<Annotation>();
-        ArrayList<Annotation> allAnns = new ArrayList<Annotation>();
-
-        if (targetEncs.size() < 1) {
-            results.put("error", "targetEncs is empty");
-            return results;
-        }
-
-        log(taskID, qann.getId(), jobID, new JSONObject("{\"_action\": \"init\"}"), context);
-
-        try {
-            allAnns.add(qann);
-            MediaAsset qma = qann.getDerivedMediaAsset();
-            if (qma == null) qma = qann.getMediaAsset();
-            if (qma != null) mas.add(qma);
-
-            for (Encounter enc : targetEncs) {
-                ArrayList<Annotation> annotations = enc.getAnnotations();
-                for (Annotation ann : annotations) {
-                    if (qann.getId().equals(ann.getId())) continue;  //skip the query annotation
-                    allAnns.add(ann);
-                    tanns.add(ann);
-                    MediaAsset ma = ann.getDerivedMediaAsset();
-                    if (ma == null) ma = ann.getMediaAsset();
-                    if (ma != null) mas.add(ma);
-                }
-            }
-
-            results.put("sendMediaAssets", sendMediaAssets(mas));
-            results.put("sendAnnotations", sendAnnotations(allAnns));
-
-            //this should attempt to repair missing Annotations
-            boolean tryAgain = true;
-            JSONObject identRtn = null;
-            while (tryAgain) {
-                ArrayList<Annotation> qanns = new ArrayList<Annotation>();
-                qanns.add(qann);
-                identRtn = sendIdentify(qanns, tanns, baseUrl);
-                tryAgain = iaCheckMissing(identRtn);
-            }
-            results.put("sendIdentify", identRtn);
-
-            //if ((identRtn != null) && (identRtn.get("status") != null) && identRtn.get("status")  //TODO check success == true  :/
-//########## iaCheckMissing res -> {"response":[],"status":{"message":"","cache":-1,"code":200,"success":true}}
-            if ((identRtn != null) && identRtn.has("status") && identRtn.getJSONObject("status").getBoolean("success")) {
-                jobID = identRtn.get("response").toString();
-                results.put("success", true);
-            } else {
-System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn);
-                results.put("error", identRtn.get("status"));
-                results.put("success", false);
-            }
-
-        } catch (Exception ex) {  //most likely from sendFoo()
-            System.out.println("WARN: IBEISIA.beginIdentity() failed due to an exception: " + ex.toString());
-            ex.printStackTrace();
-            results.put("success", false);
-            results.put("error", ex.toString());
-        }
-
-        JSONObject jlog = new JSONObject();
-        jlog.put("_action", "sendIdentify");
-        jlog.put("_response", results);
-        log(taskID, jobID, jlog, context);
-
-        return results;
-    }
-
-*/
 
 
     public static IdentityServiceLog log(String taskID, String jobID, JSONObject jlog, String context) {
@@ -1064,57 +1066,6 @@ System.out.println("beginIdentify() unsuccessful on sendIdentify(): " + identRtn
         alreadySentAnn.put(ann.getId(), true);
     }
 
-/*   no longer needed??
-    public static JSONObject send(URL url, JSONObject jobj) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
-System.out.println("SENDING: ------\n" + jobj.toString() + "\n---------- to " + iaUrl.toString());
-        JSONObject jrtn = RestClient.post(iaUrl, jobj);
-System.out.println("RESPONSE:\n" + jrtn.toString());
-        return jrtn;
-    }
-*/
-
-
-
-/*
-image_attrs = {
-    ~'image_rowid': 'INTEGER',
-    'image_uuid': 'UUID',
-    'image_uri': 'TEXT',
-    'image_ext': 'TEXT',
-    *'image_original_name': 'TEXT',
-    'image_width': 'INTEGER',
-    'image_height': 'INTEGER',
-    *'image_time_posix': 'INTEGER',
-    *'image_gps_lat': 'REAL',
-    *'image_gps_lon': 'REAL',
-    !'image_toggle_enabled': 'INTEGER',
-    !'image_toggle_reviewed': 'INTEGER',
-    ~'image_note': 'TEXT',
-    *'image_timedelta_posix': 'INTEGER',
-    *'image_original_path': 'TEXT',
-    !'image_location_code': 'TEXT',
-    *'contributor_tag': 'TEXT',
-    *'party_tag': 'TEXT',
-}
-*/
-
-/*
-    public static JSONObject imageJSONObjectFromMediaAsset(MediaAsset ma) {
-        JSONObject obj = new JSONObject();
-        obj.put("image_uuid", ma.getUUID());
-        ImageAttributes iatt = ma.getImageAttributes();
-        obj.put("image_width", (int) iatt.getWidth());
-        obj.put("image_height", (int) iatt.getHeight());
-        obj.put("image_ext", iatt.getExtension());
-
-        JSONObject params = new JSONObject(ma.getParameters(), JSONObject.getNames(ma.getParameters()));
-        params.put("store_type", ma.getStore().getType());
-        obj.put("image_storage_parameters", params);
-        return obj;
-    }
-*/
-
-
         //String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
     public static ArrayList<String> startTrainingJobs(ArrayList<Encounter> encs, String taskPrefix, String taxonomyString, Shepherd myShepherd, String baseUrl, String context) {
         ArrayList<String> ids = new ArrayList<String>();
@@ -1194,6 +1145,27 @@ System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber
         System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
         return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
     }
+
+    public static Annotation convertAnnotationWiggleBox(MediaAsset ma, JSONObject iaResult) {
+        if (iaResult == null) return null;
+        System.out.println("about to generate feature");
+
+        double width = iaResult.optDouble("width", 0);
+        double height = iaResult.optDouble("height", 0);
+
+        if (width>=1) width-=1;
+        if (height>=1) height-=1;
+
+        Feature ft = ma.generateFeatureFromBbox(
+          width,
+          height,
+          iaResult.optDouble("xtl", 0),
+          iaResult.optDouble("ytl", 0)
+        );
+        System.out.println("convertAnnotationWiggleBox() generated ft = " + ft + "; params = " + ft.getParameters());
+        return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
+    }
+
 
     public static String convertSpeciesToString(String iaClassLabel) {
         String[] s = convertSpecies(iaClassLabel);
@@ -2632,5 +2604,11 @@ System.out.println("waitForIAPriming() patiently waiting");
         return;
     }
 
+  public static int[] cleanBBox(int[] bbox) {
+    int newBoxX = (bbox[0]>0) ? bbox[0]-1 : bbox[0]+1;
+    int newBoxY = (bbox[1]>0) ? bbox[1]-1 : bbox[1]+1;
+
+    return (new int[] {newBoxX, newBoxY, bbox[2], bbox[3]});
+  }
 
 }
