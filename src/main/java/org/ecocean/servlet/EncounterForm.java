@@ -597,6 +597,8 @@ System.out.println("enc ?= " + enc.toString());
                     ma.copyIn(tmpFile);
                     ma.updateMetadata();
 
+                    //myShepherd.
+
                     // here is where we should send the MediaAsset to detection
                     // ia.sendDetection with singleton list, or go outside of loop to have whole locationDescription
 
@@ -968,6 +970,19 @@ System.out.println("depth --> " + fv.get("depth").toString());
                 Logger log = LoggerFactory.getLogger(EncounterForm.class);
                 log.info("New encounter submission: <a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + encID+"\">"+encID+"</a>");
 System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
+
+                myShepherd.commitDBTransaction();
+                myShepherd.closeDBTransaction();
+                //myShepherd.beginDBTransaction();
+
+
+                String baseUrl = "";
+                try {baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());}
+                catch (Exception E) {};
+                System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
+                IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
+
+
             }
 
       if (newnum.equals("fail")) {
@@ -979,9 +994,8 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
 
       System.out.println("Encounter form is sending stuff to detection!");
       try {
-        ArrayList<MediaAsset> assets = enc.getMedia();
-        String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
-        IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
+        //ArrayList<MediaAsset> assets = enc.getMedia();
+
 //        IBEISIA.beginDetect(assets, baseUrl, context);
         System.out.println("beginDetect has been called");
 
