@@ -138,13 +138,13 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[machinelearning]
-				/InterconnectSubmitSpots = authc, roles[machinelearning]
-				/interconnectSubmitSpots = authc, roles[machinelearning]
+                /SubmitSpots = authc, roles[imageProcessor]
+				/InterconnectSubmitSpots = authc, roles[imageProcessor]
+				/interconnectSubmitSpots = authc, roles[imageProcessor]
 
-				/encounters/encounterSpotTool.jsp = authc, roles[machinelearning]
-				/SubmitSpotsAndImage = authc, roles[machinelearning]
-	
+				/encounters/encounterSpotTool.jsp = authc, roles[imageProcessor]
+				/SubmitSpotsAndImage = authc, roles[imageProcessor]
+
 		/GenePopExport = authc, roles[researcher]
 
 		/IndividualSetNickname = authc, roles[researcher]
@@ -281,15 +281,6 @@
     <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
   </servlet>
 
-	<servlet>
-                <servlet-name>ReCAPTCHA</servlet-name>
-                <servlet-class>org.ecocean.servlet.ReCAPTCHA</servlet-class>
-	</servlet>
-	<servlet-mapping>
-                <servlet-name>ReCAPTCHA</servlet-name>
-                <url-pattern>/ReCAPTCHA</url-pattern>
-	</servlet-mapping>
-
   <servlet>
     <description>StripeUpdate</description>
     <servlet-name>StripeUpdate</servlet-name>
@@ -389,11 +380,14 @@
         <servlet-name>UserRemoveProfileImage</servlet-name>
         <servlet-class>org.ecocean.servlet.UserRemoveProfileImage</servlet-class>
   </servlet>
-  
 
-  
-  
-  
+   <servlet>
+          <servlet-name>GenerateQRCodeImage</servlet-name>
+          <servlet-class>org.ecocean.servlet.GenerateQRCodeImage</servlet-class>
+    </servlet>
+
+
+
 
   <servlet>
     <servlet-name>EncounterSetSubmitterPhotographerContactInfo</servlet-name>
@@ -577,11 +571,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>EncounterCreate</servlet-name>
-    <servlet-class>org.ecocean.servlet.EncounterCreate</servlet-class>
-  </servlet>
-
-  <servlet>
     <servlet-name>MediaAssetsForUser</servlet-name>
     <servlet-class>org.ecocean.servlet.MediaAssetsForUser</servlet-class>
   </servlet>
@@ -705,9 +694,12 @@
         <servlet-name>EncounterSearchExportEmailAddresses</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportEmailAddresses</servlet-class>
   </servlet>
-  
 
-  
+        <servlet>
+        <servlet-name>ningalooPradel</servlet-name>
+        <servlet-class>org.ecocean.servlet.NingalooPradel</servlet-class>
+  </servlet>
+
      <servlet>
         <servlet-name>EncounterSearchExportShapefile</servlet-name>
         <servlet-class>org.ecocean.servlet.export.EncounterSearchExportShapefile</servlet-class>
@@ -760,7 +752,10 @@
       <servlet-class>org.ecocean.servlet.OccurrenceRemoveEncounter</servlet-class>
   </servlet>
 
-
+          <servlet>
+        <servlet-name>CRCExportReport</servlet-name>
+        <servlet-class>org.ecocean.servlet.export.CRCExportReport</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>IndividualCreate</servlet-name>
@@ -819,6 +814,10 @@
     <servlet-class>org.ecocean.servlet.EncounterRemoveImage</servlet-class>
   </servlet>
 
+    <servlet>
+         <servlet-name>mitFeed</servlet-name>
+  	<servlet-class>org.ecocean.servlet.MitFeed</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -889,8 +888,11 @@
       <servlet-class>org.ecocean.servlet.TissueSampleSetSexAnalysis</servlet-class>
   </servlet>
 
+  <servlet>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+	<servlet-class>org.ecocean.servlet.NingalooRobustByMonths</servlet-class>
+  </servlet>
 
-  
    <servlet>
     <servlet-name>EncounterSetScarring</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetScarring</servlet-class>
@@ -908,8 +910,12 @@
 
 
 
-  
- 
+      <servlet>
+           <servlet-name>MozPradel</servlet-name>
+    	<servlet-class>org.ecocean.servlet.MozPradel</servlet-class>
+  </servlet>
+
+
 
   <servlet>
     <servlet-name>TissueSampleSetMicrosatelliteMarkers</servlet-name>
@@ -937,7 +943,10 @@
     <servlet-class>org.ecocean.servlet.EncounterDelete</servlet-class>
   </servlet>
 
-
+    <servlet>
+      <servlet-name>NingalooByMonthsSonification</servlet-name>
+      <servlet-class>org.ecocean.servlet.NingalooByMonthsSonification</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>EncounterAddComment</servlet-name>
@@ -1075,6 +1084,10 @@
 
 
 
+      <servlet>
+           <servlet-name>MozRobustByMonths</servlet-name>
+    	<servlet-class>org.ecocean.servlet.MozRobustByMonths</servlet-class>
+  </servlet>
 
   <servlet>
     <servlet-name>ScanWorkItemResultsHandler</servlet-name>
@@ -1221,7 +1234,10 @@
 <url-pattern>/rest/*</url-pattern>
 </servlet-mapping>
 
-
+     <servlet-mapping>
+        <servlet-name>CRCExportReport</servlet-name>
+        <url-pattern>/CRCExportReport</url-pattern>
+  </servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>StripePayment</servlet-name>
@@ -1357,11 +1373,6 @@
       <url-pattern>/MediaAssetCreate</url-pattern>
     </servlet-mapping>
 
-    <servlet-mapping>
-      <servlet-name>EncounterCreate</servlet-name>
-      <url-pattern>/EncounterCreate</url-pattern>
-    </servlet-mapping>
-
       <servlet-mapping>
              <servlet-name>MediaAssetsForUser</servlet-name>
              <url-pattern>/MediaAssetsForUser</url-pattern>
@@ -1445,7 +1456,15 @@
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
 
+ <servlet-mapping>
+       <servlet-name>ningalooRobustByMonths</servlet-name>
+       <url-pattern>/ningalooRobustByMonths</url-pattern>
+  </servlet-mapping>
 
+    <servlet-mapping>
+         <servlet-name>ningalooPradel</servlet-name>
+         <url-pattern>/CJS</url-pattern>
+  </servlet-mapping>
 
   <!--
   <servlet-mapping>
@@ -1685,12 +1704,15 @@
     <servlet-name>IndividualAddEncounter</servlet-name>
     <url-pattern>/IndividualAddEncounter</url-pattern>
   </servlet-mapping>
-  
-  
-  
-  
-  
-  
+
+
+    <servlet-mapping>
+      <servlet-name>GenerateQRCodeImage</servlet-name>
+      <url-pattern>/GenerateQRCodeImage</url-pattern>
+  </servlet-mapping>
+
+
+
     <servlet-mapping>
       <servlet-name>OccurrenceAddEncounter</servlet-name>
       <url-pattern>/OccurrenceAddEncounter</url-pattern>
@@ -1749,8 +1771,11 @@
     <servlet-name>EncounterSetMaximumElevation</servlet-name>
     <url-pattern>/EncounterSetMaximumElevation</url-pattern>
   </servlet-mapping>
-  
 
+      <servlet-mapping>
+           <servlet-name>MozPradel</servlet-name>
+           <url-pattern>/MozPradel</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterSetLocation</servlet-name>
@@ -1785,7 +1810,10 @@
     <url-pattern>/EncounterSetOccurrenceRemarks</url-pattern>
   </servlet-mapping>
 
-
+   <servlet-mapping>
+         <servlet-name>MozRobustByMonths</servlet-name>
+         <url-pattern>/MozRobustByMonths</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>MassSetLocationCodeFromLocationString</servlet-name>
@@ -1796,8 +1824,11 @@
     <servlet-name>MassSwapLocationCode</servlet-name>
     <url-pattern>/MassSwapLocationCode</url-pattern>
   </servlet-mapping>
-  
 
+    <servlet-mapping>
+      <servlet-name>NingalooByMonthsSonification</servlet-name>
+      <url-pattern>/NingalooByMonthsSonification</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>MassExposeGBIF</servlet-name>
@@ -1958,6 +1989,10 @@
     <url-pattern>/ScanResultsServlet</url-pattern>
   </servlet-mapping>
 
+    <servlet-mapping>
+      <servlet-name>mitFeed</servlet-name>
+      <url-pattern>/MITFeed</url-pattern>
+  </servlet-mapping>
 
   <servlet-mapping>
     <servlet-name>EncounterAddImage</servlet-name>

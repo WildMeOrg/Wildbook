@@ -98,6 +98,7 @@ NOTE: for now(?) we *require* a *valid* setId *and* that the asset *key be prefi
         String context="context0";
         //context=ServletUtilities.getContext(request);
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("MediaAssetCreate.class_2");
         myShepherd.beginDBTransaction();
         //set up for response
         response.setContentType("text/plain");

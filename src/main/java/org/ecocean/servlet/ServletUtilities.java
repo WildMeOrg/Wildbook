@@ -380,6 +380,11 @@ public class ServletUtilities {
         else if ((((enc.getSubmitterID() != null) && (request.getRemoteUser() != null) && (enc.getSubmitterID().equals(request.getRemoteUser()))))) {
           isOwner = true;
         }
+        
+        //whaleshark.org custom
+        if((request.getRemoteUser().equals("rgrampus"))&&(enc.getLocationCode().startsWith("2h"))){isOwner=false;}
+        
+        
       }
       return isOwner;
   //}

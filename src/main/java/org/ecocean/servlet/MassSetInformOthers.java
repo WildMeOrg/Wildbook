@@ -58,6 +58,7 @@ public class MassSetInformOthers extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("MassSetInformOthers.class");
 
     //set up for response
     response.setContentType("text/html");

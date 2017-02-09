@@ -455,7 +455,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         startTime = "Start Time";
       } 
       if (endTime == "-1") {
-	endTime = "End Time";
+    	  endTime = "End Time";
       }
 		
       if(jsonData[i].markedIndividualName1 != individualID) {
