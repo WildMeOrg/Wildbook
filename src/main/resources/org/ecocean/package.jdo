@@ -315,17 +315,17 @@
       <field name="id" primary-key="true">
         <column length="36"/>
       </field>
-		<field name="isExemplar">
-<!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
-			<column default-value="0" />
--->
-			<column default-value="false" />
-		</field>
+  		<field name="isExemplar">
+  <!--  note, if you are using mysql, which maybe you shouldnt be?, you want this here:
+  			<column default-value="0" />
+  -->
+  			<column default-value="false" />
+  		</field>
 
-            	<field name="features" persistence-modifier="persistent" default-fetch-group="false" recursion-depth="2" mapped-by="annotation" >
-                	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
-                	<join />
-            	</field>
+    	<field name="features" persistence-modifier="persistent" default-fetch-group="true" recursion-depth="2" mapped-by="annotation" cacheable="false" >
+        	<collection element-type="org.ecocean.media.Feature" dependent-element="true" />
+        	<join />
+    	</field>
 
       <field name="mediaAsset" persistence-modifier="persistent" element-type="org.ecocean.media.MediaAsset" recursion-depth="3"/>
       <!--
