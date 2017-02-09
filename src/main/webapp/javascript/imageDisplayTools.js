@@ -152,6 +152,59 @@ maLib.maJsonToFigureElemCaption = function(maJson, intoElem, caption, maCaptionF
   return;
 }
 
+// mainCaption is visible on the main page (ie before entering gallery)
+// taskID is a datum that will sit on the image so that imageEnhancer can later add it to the dropdown
+maLib.maJsonToFigureElemCaption2 = function(maJson, intoElem, caption, mainCaption, taskID) {
+    if (maLib.nonImageDisplay(maJson, intoElem, caption, maCaptionFunction)) return;  // true means it is done!
+  //var maCaptionFunction = typeof maCaptionFunction !== 'undefined' ?  b : ma.defaultCaptionFunction;
+  caption = caption || "";
+  var maCaptionFunction = maLib.blankCaptionFunction;
+  caption = caption || '';
+
+  // TODO: copy into html figure element
+  var url = maLib.getUrl(maJson), w, h;
+  console.log("maLib.getUrl(maJson) = "+url);
+
+  // have to check to make sure values exist
+  if ('metadata' in maJson) {
+    w = maJson.metadata.width;
+    h = maJson.metadata.height;
+  }
+  if (!url) {
+    console.log('failed to parse into html this MediaAsset: '+JSON.stringify(maJson));
+    return;
+  }
+  var wxh = w+'x'+h;
+  var watermarkUrl = maLib.getChildUrl('_watermark');
+
+  var fig = $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>');
+  fig.append(
+    $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+      mkImgWithTaskID(maJson, taskID)
+    )
+  );
+  fig.append('<figcaption itemprop="caption description">'+caption+maCaptionFunction(maJson)+'</figcaption>');
+
+
+  intoElem.append(fig);
+
+
+  var extraCaption = $('<p class="main-page-caption"><em>'+mainCaption+'<em></p>');
+  intoElem.append(extraCaption);
+
+
+  /*
+    $('<figure itemprop="associatedMedia" itemscope itemtype="http://schema.org/ImageObject"/>').append(
+      $('<a href="'+url+'" itemprop="contentUrl" data-size="'+wxh+'"/>').append(
+        '<img src="'+url+'"itemprop="contentUrl" alt="Image description"/>'
+      )
+    )
+  );
+  */
+  maLib.testExtraction(maJson);
+  return;
+}
+
 maLib.maJsonToFigureElemCaptionGrid = function(maJson, intoElem, caption, maCaptionFunction) {
   intoElem.append('<div class=\"col-md-4\"></div>');
   intoElem = intoElem.find('div.col-md-4').last();
@@ -576,6 +629,11 @@ console.warn('>>>>>>>>>>>>>>>>>>>>>>>>> %o', url);
 function mkImg(maJson) {
     var url = maLib.getUrl(maJson);
     return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
+}
+
+function mkImgWithTaskID(maJson, taskID) {
+    var url = maLib.getUrl(maJson);
+    return '<img class="lazyload" id="figure-img-' + maJson.id + '" data-enh-mediaAssetId="' + maJson.id + '" data-enh-taskId="' + taskID+ '" src="/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="' + url + '" itemprop="contentUrl" alt="Image description"/>';
 }
 
 // execute above function

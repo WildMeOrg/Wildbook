@@ -74,7 +74,14 @@ if((request.getParameter("rangeStart")!=null)&&(request.getParameter("rangeEnd")
 
 // collect every MediaAsset as JSON into the 'all' array
 JSONArray all = new JSONArray();
+// these are visible in the photoswipe gallery
 List<String[]> captionLinks = new ArrayList<String[]>();
+// these are visible on the main page
+List<String> mainCaptions = new ArrayList<String>();
+
+List<String> taskIDs = new ArrayList<String>();
+
+
 try {
 
 	Collection c = (Collection) (query.execute());
@@ -157,28 +164,51 @@ try {
 		      String[] tasks = IBEISIA.findTaskIDsFromObjectID(ann.getId(), imageShepherd);
 		      MediaAsset ma = ann.getMediaAsset();
 		      String filename = ma.getFilename();
-		      
+
 		      String individualID="";
 		      if(enc.getIndividualID()!=null){
 		    	  individualID=encprops.getProperty("individualID")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a><br>";
 		      }
-		      
+
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
 		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
 		      capos[0]+=individualID;
-		      
+
 		      capos[0]+=encprops.getProperty("encounter")+"&nbsp;<a target=\"_blank\" style=\"color: white;\" href=\"encounter.jsp?number="+enc.getCatalogNumber()+"\">"+enc.getCatalogNumber()+"</a><br>";
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
-		      
+
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
 		      captionLinks.add(capos);
+
+
+          // get IA stuff?
+
+          String idStatus = ann.getIdentificationStatus();
+          taskIDs.add(idStatus);
+
+          if (idStatus==null) idStatus="Waiting for detection... (refresh page for changes)";
+          else {
+            // we know that ann has a not-null idStatus.
+            idStatus = "Identification has been run.";
+            //idStatus = "idStatus: <em><a href=\"matchResults.jsp?taskId="+idStatus+"\">in progress</a></em>";
+          }
+
+/*
+          if (false && idStatus == null) idStatus = "";
+          else {
+            idStatus = "idStatus = "+idStatus;
+            // we know that ann has a not-null idStatus.
+            idStatus = idStatus+" <a href=\""+CommonConfiguration.getURLLocation(request)+""\">Match Results</a>";
+          }
+*/
+          mainCaptions.add(idStatus);
 		      //end caption render JSP side
-		      
+
 		      // SKIPPING NON-TRIVIAL ANNOTATIONS FOR NOW! TODO
 		  		//if (!ann.isTrivial()) continue;  ///or not?
 
-		  		
+
 		  		if (ma != null) {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
 		  			if (j != null) {
@@ -214,6 +244,20 @@ for (int i=0; i<captionLinks.size(); i++) {
   captions.put(cappy);
 }
 
+// similar to the above loop, this collects captions that will
+// be visible on[]
+JSONArray mainCaptionsJSON = new JSONArray();
+for (int i=0; i<mainCaptions.size(); i++) {
+  // let's practice by printing the annotation id
+  mainCaptionsJSON.put(mainCaptions.get(i));
+}
+
+// similar to the above loop, this collects the taskIDs
+JSONArray taskIDsJSON = new JSONArray();
+for (int i=0; i<taskIDs.size(); i++) {
+  // let's practice by printing the annotation id
+  taskIDsJSON.put(taskIDs.get(i));
+}
 
 %>
 
@@ -222,6 +266,11 @@ for (int i=0; i<captionLinks.size(); i++) {
 .image-enhancer-wrapper {
 	cursor: -webkit-zoom-in;
 	cursor: -moz-zoom-in;
+}
+
+.main-page-caption {
+  text-align: center;
+  margin-top: -24px;
 }
 
 .image-enhancer-wrapper div {
@@ -267,7 +316,12 @@ if(request.getParameter("encounterNumber")!=null){
   var captions = <%=captions.toString()%>
   captions.forEach( function(elem) {
     console.log("caption here: "+elem);
-  })
+  });
+  var mainCaptions = <%=mainCaptionsJSON.toString()%>
+  mainCaptions.forEach( function(elem) {
+    console.log("mainCaptions here: "+elem);
+  });
+  var taskIDs = <%=taskIDsJSON.toString()%>
 
   //
   var removeAsset = function(maId) {
@@ -302,7 +356,7 @@ if(request.getParameter("encounterNumber")!=null){
     if (<%=isGrid%>) {
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
-      maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+      maLib.maJsonToFigureElemCaption2(elem, $('#enc-gallery'), captions[index], mainCaptions[index], taskIDs[index]);
     }
 
 /*   now added to image hamburger menu
@@ -388,16 +442,18 @@ function doImageEnhancer(sel) {
 <%
 if((CommonConfiguration.getProperty("useSpotPatternRecognition", context)!=null)&&(CommonConfiguration.getProperty("useSpotPatternRecognition", context).equals("true"))){
 %>
+
+
 	opt.menu.push(
             [
-		'spot mapping',
+		'match results',
 		function(enh) {
 			if (!enh || !enh.imgEl || !enh.imgEl.context) {
 				alert('could not determine id');
 				return;
 			}
-			var mid = enh.imgEl.context.id.substring(11);
-			wildbook.openInTab('encounterSpotTool.jsp?imageID=' + mid);
+      var taskID = enh.imgEl.data('enh-taskid');
+			wildbook.openInTab('matchResults.jsp?taskId=' + taskID);
 		}
             ],
             [
