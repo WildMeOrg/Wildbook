@@ -203,7 +203,7 @@ public class Annotation implements java.io.Serializable {
     public MediaAsset getMediaAsset() {
         ArrayList<Feature> fts = getFeatures();
         if ((fts == null) || (fts.size() < 1) || (fts.get(0) == null)) {
-            System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset().  please fix!");
+            System.out.println("WARNING: annotation " + this.getId() + " is featureless, falling back to deprecated __getMediaAsset(). fts = "+fts);
 
             if (fts==null) System.out.println("above warning because fts == null");
             else if (fts.size() < 1) System.out.println("above warning because fts.size() < 1");
