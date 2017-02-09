@@ -657,7 +657,7 @@ public class MediaAsset implements java.io.Serializable {
         //TODO should be block "original" ???  is that overkill??
         if (bestType == null) bestType = "master";
         //note, this next line means bestType may get bumped *up* for anon user.... so we should TODO some logic in there if ever needed
-        if (AccessControl.isAnonymous(request)) bestType = "watermark";
+        if (AccessControl.simpleUserString(request) == null) bestType = "halfpage";  //VERY wwfseals-specific TODO configurable, like the list of types. future!
         if (store instanceof URLAssetStore) bestType = "original";  //this is cuz it is assumed to be a "public" url
 //System.out.println(" = = = = bestSafeAsset() wanting bestType=" + bestType);
 
