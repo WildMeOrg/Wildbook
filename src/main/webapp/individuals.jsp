@@ -216,7 +216,7 @@ if (request.getParameter("number")!=null) {
 <script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
 <script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
-<script src="javascript/bubbleDiagram/encounter-calls.js"></script>
+<script src="javascript/bubbleDiagram/encounter-calls2.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
 
 
@@ -906,9 +906,19 @@ $(document).ready(function() {
 
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
+		
+	      var persistenceID = "";
+	      var relationshipID = $("#inputPersistenceID").val();
+	      if ((relationshipID != null) && (relationshipID != "")) {
+              	persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
 
+              }
+                 
+	      
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
+	      console.log("editRELATIONSHIP indy.jsp : " + markedIndividualName1);
+              console.log(markedIndividualName2);
               var markedIndividualRole1 = $("#role1").val();
               var markedIndividualName2 = $("#individual2").val();
               var markedIndividualRole2 = $("#role2").val();
@@ -919,7 +929,16 @@ $(document).ready(function() {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
+	      if (startTime == "-1") { 
+                 startTime = "";
+              }        
+              if (endTime == "-1") { 
+                 endTime = "";
+              }
+		
+   	      console.log("persistenceID sent to encounter-calls: " + persistenceID + " relationshipID: "+ relationshipID );
               $.post("RelationshipCreate", {
+	        "persistenceID": persistenceID,
                 "type": type,
                 "markedIndividualName1": markedIndividualName1,
                 "markedIndividualRole1": markedIndividualRole1,
@@ -933,16 +952,17 @@ $(document).ready(function() {
                 "bidirectional": bidirectional
               },
               function(response) {
-                $("#setRelationshipResultDiv").show();
-                $("#relationshipSuccessDiv").html(response);
+                window.location.reload(true);
                 $("#relationshipErrorDiv").empty();
                 $("#addRelationshipForm").hide();
                 <% String relationshipIndividualID = sharky.getIndividualID();%>
                 getRelationshipTableData("<%=relationshipIndividualID%>");
+		
                 $("#communityTable").empty();
                 $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
               })
               .fail(function(response) {
+		console.log("Relationship update failure!");
                 $("#setRelationshipResultDiv").show();
                 $("#relationshipErrorDiv").html(response.responseText);
                 $("#relationshipSuccessDiv").empty();
@@ -988,6 +1008,7 @@ $(document).ready(function() {
               <div class="col-xs-9 col-sm-3">
                 <select required name="type" class="form-control relationshipInput" id="type">
                   <%
+		  String indID = sharky.getIndividualID();
                   List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
                   int numTypes=types.size();
                   for(int g=0;g<numTypes;g++){
@@ -1006,10 +1027,10 @@ $(document).ready(function() {
               <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
-              </div>
+              </div>	
               <div class="col-xs-9 col-sm-3">
                 <p id="individual1set"><%=sharky.getIndividualID()%></p>
-                <input required class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
+                <input required class="form-control relationshipInput" type="text" value="<%=indID%>" id="individual1" placeholder="<%=indID%>"/>
               </div>
 
             </div>
@@ -1088,16 +1109,19 @@ $(document).ready(function() {
                 <label><%=props.getProperty("startTime")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="<%=props.getProperty("startTime")%>"/>
-              </div>
+                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="YYYY-MM-DD"/>
+           	<p style="font-size:0.6em;">YYYY-MM-DD</p>  
+	    </div>
             </div>
             <div class="form-group row">
               <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("endTime")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="<%=props.getProperty("endTime")%>"/>
-              </div>
+		
+               <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="YYYY-MM-DD"/>
+	       <p style="font-size:0.6em;">YYYY-MM-DD</p>
+	      </div>
             </div>
             <div class="form-group row">
               <div class="col-xs-3 col-sm-2">
@@ -1121,6 +1145,7 @@ $(document).ready(function() {
                   %>
                   <option value="false" <%=selected%>>false</option>
                 </select>
+		<input id="inputPersistenceID" class="form-control persistenceID" name="persistenceID" type="hidden" value="">
               </div>
             </div>
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
@@ -1152,7 +1177,7 @@ $(document).ready(function() {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree(<%=individualID%>);
+            setupFamilyTree("<%=individualID%>");
           </script>
         </div>
 
@@ -1182,8 +1207,10 @@ $(document).ready(function() {
               var deletedType = "";
               $(document).on('click', '.editRelationshipBtn', function () {
                 $("#setRelationshipResultDiv").hide();
-                var relationshipID = ($(this).attr("value"));
+                var relationshipID = $(".editRelationshipBtn").val();
                 getRelationshipData(relationshipID);
+		$("#inputPersistenceID").val(relationshipID);
+		$("#individual1").val("<%=individualID%>");
               });
 
               $(document).on('click', '.deleteRelationshipBtn', function () {
@@ -1217,6 +1244,7 @@ $(document).ready(function() {
 
                 $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
+		  window.location.reload(true);
                   $("#communityTable").empty();
                   $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
                   getRelationshipTableData("<%=individualID%>");
