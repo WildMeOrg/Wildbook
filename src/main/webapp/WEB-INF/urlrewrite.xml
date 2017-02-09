@@ -11,14 +11,23 @@
 <urlrewrite use-query-string="true">
 
 <!--
-
+    <rule>
+        <note>
+            The rule means that requests to /test/status/ will be redirected to /rewrite-status
+            the url will be rewritten.
+        </note>
+        <from>/test/status/</from>
+        <to type="redirect">%{context-path}/rewrite-status</to>
+    </rule>
+	-->
+	
+	
     <rule>
         <name>Domain Name Check EXAMPLE</name>
-        <condition name="host" operator="notequal">www.wildbook.org</condition>
+        <condition name="host" operator="notequal">www.whaleshark.org</condition>
         <from>^(.*)$</from>
-        <to type="redirect">http://www.wildbook.org$1</to>
+        <to type="redirect">https://www.whaleshark.org$1</to>
     </rule>
--->
 
 <!--
     <outbound-rule>
