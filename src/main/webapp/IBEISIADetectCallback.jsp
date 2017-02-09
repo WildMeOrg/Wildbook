@@ -138,30 +138,43 @@ private void tryToGet(String jobID, String context, HttpServletRequest request) 
       System.out.println("isLynx = "+isLynx);
       System.out.println("checking that this is executed...");
       ArrayList<Annotation> annotsToID = new ArrayList<Annotation>();
+
+
       for (int i=0; i<maUUID.length; i++) {
         if (!isLynxArray[i]) continue; // negative detection result -- array OOB except.
         JSONObject thisRes = jobResultList.getJSONArray(i).getJSONObject(0);
-        annotsToID.add(lynxDetectCallback(thisRes, maUUID[i], myShepherd));
+
+        //taskUUIDs.add(Util.generateUUID());
+        annotsToID.add(lynxDetectCallback(thisRes, maUUID[i], myShepherd)); // return this to user so they can find flukebook results page
       }
 
       // return if annotsToID is empty
-      myShepherd.beginDBTransaction();
 
       String species = annotsToID.get(0).getSpecies();
-      ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
+      //ArrayList<Annotation> exemplars = Annotation.getExemplars(species, myShepherd);
+      ArrayList<Annotation> exemplars = null;
+
       JSONObject queryConfigDict = null;
       JSONObject userConfidence = null;
 
-      System.out.println("might be about to break?");
       System.out.println("request isNull="+(request==null));
       //String baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());
       String baseUrl = "http://lynx.wildbook.org:80";
 
 
-      String newTaskID = Util.generateUUID(); // return this to user so they can find flukebook results page
+
+
+
 
       System.out.println("about to call beginIdentifyAnnotations");
-      IBEISIA.beginIdentifyAnnotations(annotsToID, exemplars, queryConfigDict, userConfidence, myShepherd, species, newTaskID, baseUrl, context);
+
+      for (Annotation ann: annotsToID) {
+        ArrayList<Annotation> justThis = new ArrayList<Annotation>();
+        justThis.add(ann);
+        String thisTaskID = ann.getIdentificationStatus();
+        IBEISIA.beginIdentifyAnnotations(justThis, exemplars, queryConfigDict, userConfidence, myShepherd, species, thisTaskID, baseUrl, context);
+      }
+
       System.out.println("done with beginIdentifyAnnotations");
   	}
   } catch (Exception ex) {
@@ -290,10 +303,10 @@ private Annotation lynxDetectCallback(JSONObject jobResItem, String assetUUID, S
   System.out.println("lynxDetectCallback!");
   System.out.println("jobResItem = "+jobResItem);
 
-  myShepherd.beginDBTransaction();
+  //myShepherd.beginDBTransaction();
 
   MediaAsset asset = MediaAssetFactory.loadByUuid(assetUUID, myShepherd);
-  System.out.println("asset = "+asset);
+  System.out.println("lynxDetectCallback has asset = "+asset+" and its clean status is "+asset.isCleanForIBEIS());
 
   Annotation newAnn = createAnnotationFromLynxIAResult(jobResItem, asset, myShepherd);
   //Annotation oldAnn = null; //TODO
@@ -301,26 +314,34 @@ private Annotation lynxDetectCallback(JSONObject jobResItem, String assetUUID, S
   // might have weird behavior if there are multiple encounters
   Encounter oldEnc = oldAnn.findEncounter(myShepherd);
 
+
+  // here we create what will be used as the IA ID task ID
+  newAnn.setIdentificationStatus(Util.generateUUID());
+
+
   System.out.println("I have a new annotation!");
   System.out.println("newAnn = "+newAnn.toString());
+  System.out.println("newAnn's ID status = "+newAnn.getIdentificationStatus());
 
   System.out.println("Attaching newAnn to oldEnc");
   oldEnc.addAnnotationReplacingUnityFeature(newAnn);
-  myShepherd.commitDBTransaction();
   asset.setDetectionStatus("lynx");
+
   System.out.println("I added it and it's time to persist");
+
+
 
   //
 
-  try {
-    myShepherd.commitDBTransaction();
-  } catch (Exception e) {
-    System.out.println("Exception on commiting Shepherd transaction!");
-    e.printStackTrace();
-    myShepherd.rollbackDBTransaction();
-  } finally {
-    myShepherd.closeDBTransaction();
-  }
+  // try {
+  //   myShepherd.commitDBTransaction();
+  // } catch (Exception e) {
+  //   System.out.println("Exception on commiting Shepherd transaction!");
+  //   e.printStackTrace();
+  //   myShepherd.rollbackDBTransaction();
+  // } finally {
+  //   myShepherd.closeDBTransaction();
+  // }
 
   return newAnn;
 
@@ -338,7 +359,7 @@ public static Encounter getOrigEncounter(MediaAsset asset, Shepherd myShepherd) 
 public static Annotation createAnnotationFromLynxIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd) {
     FeatureType.initAll(myShepherd);
 
-    Annotation ann = IBEISIA.convertAnnotation(asset, jann);
+    Annotation ann = IBEISIA.convertAnnotationWiggleBox(asset, jann);
     if (ann == null) return null;
     //Encounter enc = new Encounter(ann);
     String[] sp = IBEISIA.convertSpecies(ann.getSpecies());
@@ -350,6 +371,13 @@ public static Annotation createAnnotationFromLynxIAResult(JSONObject jann, Media
     //    enc.setOccurrenceID(occ.getOccurrenceID());
     //    occ.addEncounter(enc);
     //}
+    // set exemplar = true by default
+    ann.setIsExemplar(true);
+
+    // wiggle the bounding box
+
+
+
     myShepherd.getPM().makePersistent(ann);
     System.out.println("Persisted annotation = "+ann.toString());
     //System.out.println("(x,y,w,h) = ("+ann.getX()+", "+ann.getY()+", "+ann.getWidth()+", "+ann.getHeight()+") and #features = "+ann.getFeatures().size());

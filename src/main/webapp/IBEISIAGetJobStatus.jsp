@@ -23,15 +23,15 @@ org.ecocean.media.*
 
 <%
 
-//Shepherd myShepherd=null;
+Shepherd myShepherd=null;
 
 String context = "context0";
 
-//myShepherd = new Shepherd(context);
-//myShepherd.setAction("IBEISIAGetJobStatus.jsp");
+myShepherd = new Shepherd(context);
+myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 
-//String rootDir = getServletContext().getRealPath("/");
-//String baseDir = ServletUtilities.dataDir("context0", rootDir);
+String rootDir = getServletContext().getRealPath("/");
+String baseDir = ServletUtilities.dataDir("context0", rootDir);
 
 response.setHeader("Content-type", "application/javascript");
 
@@ -70,7 +70,7 @@ System.out.println("---<< jobID=" + jobID + ", trying spawn . . . . . . . . .. .
 System.out.println("((( done runIt() )))");
 	return;
 }
- 
+
 private void tryToGet(String jobID, String context) {
 System.out.println("<<<<<<<<<< tryToGet(" + jobID + ")----");
 	JSONObject statusResponse = new JSONObject();
@@ -89,7 +89,7 @@ System.out.println(statusResponse.toString());
 	jlog.put("jobID", jobID);
 
 	//Shepherd myShepherd=new Shepherd(context);
-	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");			
+	//myShepherd.setAction("IBEISIAGetJobStatus.jsp");
 	//we have to find the taskID associated with this IBEIS-IA job
 	String taskID = IBEISIA.findTaskIDFromJobID(jobID, context);
 	if (taskID == null) {
@@ -125,8 +125,11 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		all.put("jobResult", rlog);
 
 		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
+    JSONObject procCopy = new JSONObject(proc, JSONObject.getNames(proc));
+
 System.out.println("processCallback returned --> " + proc);
 	}
+  JSONObject procCopy = pro
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
 	ex.printStackTrace();
@@ -145,6 +148,3 @@ System.out.println("-------- >>> " + all.toString() + "\n#######################
 
 
 %>
-
-
-
