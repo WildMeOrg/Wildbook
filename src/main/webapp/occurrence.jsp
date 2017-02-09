@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration,
+         import="javax.jdo.Query,org.ecocean.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*, org.ecocean.security.Collaboration, 
          com.google.gson.Gson,
          org.datanucleus.api.rest.orgjson.JSONObject
          " %>
@@ -29,7 +29,7 @@ context=ServletUtilities.getContext(request);
   Properties props = new Properties();
   //String langCode = "en";
   String langCode=ServletUtilities.getLanguageCode(request);
-
+  
 
 
   //load our variables for the submit page
@@ -53,8 +53,8 @@ context=ServletUtilities.getContext(request);
 
 %>
 
-
-
+ 
+  
   <style type="text/css">
     <!--
     .style1 {
@@ -75,8 +75,8 @@ context=ServletUtilities.getContext(request);
 
     -->
   </style>
-
-
+  
+  
   <jsp:include page="header.jsp" flush="true"/>
 
 
@@ -95,7 +95,7 @@ context=ServletUtilities.getContext(request);
       $(".slider").show();
     });
 </script>
-
+ 
 <!--  FACEBOOK LIKE BUTTON -->
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
@@ -165,7 +165,7 @@ context=ServletUtilities.getContext(request);
 <td valign="middle">
  <h1><strong><img align="absmiddle" src="images/occurrence.png" />&nbsp;<%=props.getProperty("occurrence") %></strong>: <%=sharky.getOccurrenceID()%></h1>
 <p class="caption"><em><%=props.getProperty("description") %></em></p>
- <table><tr valign="middle">
+ <table><tr valign="middle">  
   <td>
     <!-- Google PLUS-ONE button -->
 <g:plusone size="small" annotation="none"></g:plusone>
@@ -181,7 +181,7 @@ context=ServletUtilities.getContext(request);
 </td>
 </tr></table> </td></tr></table>
 
-<p><%=props.getProperty("groupBehavior") %>:
+<p><%=props.getProperty("groupBehavior") %>: 
 <%
 if(sharky.getGroupBehavior()!=null){
 %>
@@ -194,27 +194,27 @@ if(sharky.getGroupBehavior()!=null){
 
 
 <div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-
+                         			
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
 
   <tr>
     <td align="left" valign="top">
       <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
             <%=props.getProperty("groupBehavior") %>:
-
+        
         <%
         if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
         %>
-        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea>
+        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea> 
         <%
         }
-        else{
+        else{   
         %>
-
+        	
         	<select name="behaviorComment" id="behaviorComment">
         		<option value=""></option>
-
+   
    				<%
    				boolean hasMoreStages=true;
    				int taxNum=0;
@@ -222,7 +222,7 @@ if(sharky.getGroupBehavior()!=null){
    	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
    	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
    	  				%>
-
+   	  	 
    	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
    	  				<%
    					taxNum++;
@@ -230,12 +230,12 @@ if(sharky.getGroupBehavior()!=null){
       				else{
          				hasMoreStages=false;
       				}
-
+      
    				}
    			%>
   			</select>
-
-
+        
+        
         <%
         }
         %>
@@ -263,7 +263,7 @@ $("a#groupB").click(function() {
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
-<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>:
+<p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 <%
 if(sharky.getIndividualCount()!=null){
 %>
@@ -278,16 +278,16 @@ if(sharky.getIndividualCount()!=null){
 
 
 <div id="dialogIndies" title="<%=props.getProperty("setIndividualCount") %>" style="display:none">
-
+            
 <table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF" >
 
   <tr>
     <td align="left" valign="top">
       <form name="set_individualCount" method="post" action="OccurrenceSetIndividualCount">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" />
+            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
             <%=props.getProperty("newIndividualCount") %>:
 
-        <input name="count" type="text" id="count" size="5" maxlength="7"></input>
+        <input name="count" type="text" id="count" size="5" maxlength="7"></input> 
         <input name="individualCountButton" type="submit" id="individualCountName" value="<%=props.getProperty("set") %>">
         </form>
     </td>
@@ -312,7 +312,7 @@ $("a#indies").click(function() {
 
 
 
-<p><%=props.getProperty("locationID") %>:
+<p><%=props.getProperty("locationID") %>: 
 <%
 if(sharky.getLocationID()!=null){
 %>
@@ -329,13 +329,13 @@ if(sharky.getLocationID()!=null){
 <p><strong><%=sharky.getNumberEncounters()%>
 </strong>
   <%=props.getProperty("numencounters") %>
-</p>
+</p> 
 
 <table id="results" width="100%">
   <tr class="lineitem">
       <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("date") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("individualID") %></strong></td>
-
+    
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("location") %></strong></td>
     <td class="lineitem" bgcolor="#99CCFF"><strong><%=props.getProperty("dataTypes") %></strong></td>
     <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("encnum") %></strong></td>
@@ -345,7 +345,7 @@ if(sharky.getLocationID()!=null){
 
    <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("behavior") %></td>
  <td class="lineitem" align="left" valign="top" bgcolor="#99CCFF"><strong><%=props.getProperty("haplotype") %></td>
-
+ 
   </tr>
   <%
     Encounter[] dateSortedEncs = sharky.getDateSortedEncounters(false);
@@ -353,7 +353,7 @@ if(sharky.getLocationID()!=null){
     int total = dateSortedEncs.length;
     for (int i = 0; i < total; i++) {
       Encounter enc = dateSortedEncs[i];
-
+      
   %>
   <tr>
       <td class="lineitem"><%=enc.getDate()%>
@@ -381,8 +381,8 @@ if(sharky.getLocationID()!=null){
     <td class="lineitem"><%=location%>
     </td>
     <td width="100" height="32px" class="lineitem">
-    	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
-
+    	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%>">
+    		
     		<%
     		//if the encounter has photos, show photo folder icon
     		if ((enc.getMedia().size()>0)){
@@ -390,7 +390,7 @@ if(sharky.getLocationID()!=null){
     			<img src="images/Crystal_Clear_filesystem_folder_image.png" height="32px" width="*" />
     		<%
     		}
-
+    		
     		//if the encounter has a tissue sample, show an icon
     		if((enc.getTissueSamples()!=null) && (enc.getTissueSamples().size()>0)){
     		%>
@@ -399,16 +399,16 @@ if(sharky.getLocationID()!=null){
     		}
     		//if the encounter has a measurement, show the measurement icon
     		if(enc.hasMeasurements()){
-    		%>
+    		%>	
     			<img src="images/ruler.png" height="32px" width="*" />
-        	<%
+        	<%	
     		}
     		%>
-
+    		
     	</a>
     </td>
     <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=enc.getEncounterNumber()%><%if(request.getParameter("noscript")!=null){%>&noscript=null<%}%>"><%=enc.getEncounterNumber()%>
     </a></td>
 
     <%
@@ -433,40 +433,40 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
     <td class="lineitem"><%=sexValue %></td>
 
 
-
-
+    
+  
     <td class="lineitem">
     <%
     if(enc.getBehavior()!=null){
     %>
     <%=enc.getBehavior() %>
-    <%
+    <%	
     }
     else{
     %>
     &nbsp;
-    <%
+    <%	
     }
     %>
     </td>
-
+    
   <td class="lineitem">
     <%
     if(enc.getHaplotype()!=null){
     %>
     <%=enc.getHaplotype() %>
-    <%
+    <%	
     }
     else{
     %>
     &nbsp;
-    <%
+    <%	
     }
     %>
     </td>
   </tr>
   <%
-
+      
     } //end for
 
   %>
@@ -480,21 +480,21 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 <br />
 <p><strong><%=props.getProperty("imageGallery") %></strong></p>
 
-
+   
 
 
     <div class="slider col-sm-12 center-slider">
       <%-- Get images for slider --%>
       <%
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
-      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+      String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
       int numPhotos=photoObjectArray.size();
 	if(numPhotos>0){
 	      for (int extraImgNo=0; extraImgNo<numPhotos; extraImgNo++) {
 	        JSONObject newMaJson = new JSONObject();
 	        newMaJson = photoObjectArray.get(extraImgNo);
-	        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/noimage.jpg");
-
+	        String newimgUrl = newMaJson.optString("url", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+	
 	        %>
 	        <div class="crop-outer">
 	          <div class="crop">
@@ -573,13 +573,13 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 
 <%
 
-}
+} 
 
 
 
-
-  }
-
+    
+  } 
+							
   catch (Exception eSharks_jsp) {
     System.out.println("Caught and handled an exception in occurrence.jsp!");
     eSharks_jsp.printStackTrace();
@@ -593,3 +593,6 @@ if(enc.getSex()!=null){sexValue=enc.getSex();}
 %>
 </div>
 <jsp:include page="footer.jsp" flush="true"/>
+
+
+

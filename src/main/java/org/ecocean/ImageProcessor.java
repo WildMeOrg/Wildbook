@@ -142,6 +142,7 @@ public final class ImageProcessor implements Runnable {
         String cname = ContextConfiguration.getNameForContext(this.context);
         if (cname != null) comment += " | " + cname;
         String maId = "unknown";
+        String rotation = "";
         if (this.parentMA != null) {
             if (this.parentMA.getUUID() != null) {
                 maId = this.parentMA.getUUID();
@@ -149,6 +150,13 @@ public final class ImageProcessor implements Runnable {
             } else {
                 maId = this.parentMA.setHashCode();
                 comment += " | parent hash " + maId; //a stretch, but maybe should never happen?
+            }
+            if (this.parentMA.hasLabel("rotate90")) {
+                rotation = "-flip -transpose";
+            } else if (this.parentMA.hasLabel("rotate180")) {
+                rotation = "-flip -flop";
+            } else if (this.parentMA.hasLabel("rotate270")) {
+                rotation = "-flip -transverse";
             }
         }
         comment += " | v" + Long.toString(System.currentTimeMillis());
@@ -161,14 +169,15 @@ public final class ImageProcessor implements Runnable {
         comment = comment.replaceAll("%year", Integer.toString(year));
         //TODO should we handle ' better? -- this also assumes command uses '%comment' quoting  :/
         comment = comment.replaceAll("'", "");
-System.out.println("++++>> comment: " + comment);
 
         String fullCommand;
         fullCommand = this.command.replaceAll("%width", Integer.toString(this.width))
                                   .replaceAll("%height", Integer.toString(this.height))
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
-                                  .replaceAll("%maId", maId);
+                                  .replaceAll("%maId", maId)
+                                  .replaceAll("%additional", rotation)
+                                  .replaceAll("%arg", this.arg);
 
         //walk thru transform array and replace "tN" with transform[N]
         if (this.transform.length > 0) {

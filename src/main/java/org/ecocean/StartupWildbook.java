@@ -12,9 +12,22 @@ import javax.servlet.ServletContext;
 import java.net.URL;
 
 import org.ecocean.*;
+import org.ecocean.grid.MatchGraphCreationThread;
+import org.ecocean.grid.ScanTaskCleanupThread;
+import org.ecocean.grid.SharkGridThreadExecutorService;
 import org.ecocean.media.LocalAssetStore;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.identity.IBEISIA;
+
+
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.lang.Runnable;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ScheduledFuture;
+
+import java.util.concurrent.ThreadPoolExecutor;
+
 
 
 // This little collection of functions will be called on webapp start. static Its main purpose is to check that certain
@@ -29,6 +42,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureTomcatUserExists(myShepherd);
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
+
 
   }
 
@@ -70,7 +84,7 @@ public class StartupWildbook implements ServletContextListener {
 
     String rootDir = request.getSession().getServletContext().getRealPath("/");
     String dataDir = ServletUtilities.dataDir("context0", rootDir);
-    String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+    String urlLoc = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request);
     String dataUrl = urlLoc + "/wildbook_data_dir";
     myShepherd.beginDBTransaction();
     LocalAssetStore as = new LocalAssetStore("Default Local AssetStore", new File(dataDir).toPath(), dataUrl, true);
@@ -78,7 +92,7 @@ public class StartupWildbook implements ServletContextListener {
     myShepherd.commitDBTransaction();
 
   }
-  
+
   public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
     int numKeywords=myShepherd.getNumKeywords();
     if(numKeywords==0){
@@ -93,20 +107,70 @@ public class StartupWildbook implements ServletContextListener {
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
         System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
         URL res = null;
         try {
             res = context.getResource("/");
         } catch (Exception ex) {}
 System.out.println("  StartupWildbook.contextInitialized() res = " + res);
         //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
-        if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
-        IBEISIA.primeIA();
+        //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
+        if ((res != null) && res.toString().equals("jndi:/localhost/")) {
+            IBEISIA.primeIA();
+        createMatchGraph();
+        }
+
+        //File qdir = ScheduledQueue.setQueueDir(context);
+        File qdir = null;
+        if (qdir == null) {
+            System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
+        } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
+            System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
+        } else {
+            System.out.println("+ queue service starting; dir = " + qdir.toString());
+            final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
+            ScheduledFuture schedFuture = schedExec.scheduleWithFixedDelay(new Runnable() {
+                int count = 0;
+                public void run() {
+                    ++count;
+                    boolean cont = true;
+                    try {
+                        cont = ScheduledQueue.checkQueue();
+                    } catch (Exception ex) {
+                        System.out.println("!!!! ScheduledQueue.checkQueue() got an exception; halting: " + ex.toString() + " !!!!");
+                        cont = false;
+                    }
+                    if (count % 100 == 1) System.out.println("==== ScheduledQueue run [count " + count + "]; queueDir=" + ScheduledQueue.getQueueDir() + "; continue = " + cont + " ====");
+                    if (!cont) {
+                        System.out.println(":::: ScheduledQueue shutdown via discontinue signal ::::");
+                        schedExec.shutdown();
+                    }
+                }
+            },
+            10,  //initial delay  ... TODO these could be configurable, obvs
+            10,  //period delay *after* execution finishes
+            TimeUnit.SECONDS);
+            System.out.println("---- about to awaitTermination() ----");
+            try {
+                schedExec.awaitTermination(5000, TimeUnit.MILLISECONDS);
+            } catch (java.lang.InterruptedException ex) {
+                System.out.println("WARNING: queue interrupted! " + ex.toString());
+            }
+            System.out.println("==== schedExec.shutdown() called, apparently");
+        }
+
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
     }
+
+
+    public static void createMatchGraph(){
+      System.out.println("Entering createMatchGraph StartupWildbook method.");
+      ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
+      es.execute(new MatchGraphCreationThread());
+
+    }
+
 }
-
-

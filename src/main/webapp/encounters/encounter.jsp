@@ -9,10 +9,12 @@
          com.drew.metadata.Metadata,
          com.drew.metadata.Tag,
          org.ecocean.*,
+         org.ecocean.media.MediaAsset,
          org.ecocean.servlet.ServletUtilities,
          org.ecocean.Util,org.ecocean.Measurement,
          org.ecocean.Util.*, org.ecocean.genetics.*,
          org.ecocean.tag.*, java.awt.Dimension,
+	 org.json.JSONObject,
          javax.jdo.Extent, javax.jdo.Query,
          java.io.File, java.text.DecimalFormat,
          java.util.*,org.ecocean.security.Collaboration" %>
@@ -73,6 +75,19 @@
     }
   }
 
+
+	public boolean checkAccessKey(HttpServletRequest request, Encounter enc) {
+		if ((request == null) || (enc == null)) return false;
+		JSONObject jobj = new JSONObject();
+		String accessKey = request.getParameter("accessKey");
+		if (accessKey == null) return false;
+		for (MediaAsset ma : enc.getMedia()) {
+			JSONObject p = ma.getParameters();
+			if (p == null) return false;
+			if (!accessKey.equals(p.optString("accessKey", null))) return false;
+		}
+		return true;
+	}
 %>
 <link type='text/css' rel='stylesheet' href='../javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
@@ -140,6 +155,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 <jsp:include page="../header.jsp" flush="true"/>
+
+<script src="//maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+
 
   <style type="text/css">
 
@@ -237,8 +255,8 @@ td.measurement{
     These files must be located on your server.
   -->
 
-  <script type="text/javascript" src="../highslide/highslide/highslide-with-gallery.js"></script>
-  <link rel="stylesheet" type="text/css" href="../highslide/highslide/highslide.css"/>
+
+
   <link rel="stylesheet" type="text/css" href="../css/encounterStyles.css">
 
   <!--
@@ -287,7 +305,7 @@ td.measurement{
 	              //var center = new google.maps.LatLng(10.8, 160.8);
 	              var center = new google.maps.LatLng(61.85873973955086, 28.89593124389648);
 
-	
+
 	              map = new google.maps.Map(document.getElementById('map_canvas'), {
 	                zoom: mapZoom,
 	                center: center,
@@ -297,25 +315,25 @@ td.measurement{
 	                scrollwheel: false,
 	                disableDoubleClickZoom: true,
 	        	});
-	
+
 	        	if(marker!=null){
 					marker.setMap(map);
 					//map.setCenter(marker.position);
-	
+
 	 			//alert("Setting center!");
 				}
-	
+
 	        	google.maps.event.addListener(map, 'click', function(event) {
 						//alert("Clicked map!");
 					    placeMarker(event.latLng);
 				  });
-	
-	
+
+
 		//adding the fullscreen control to exit fullscreen
-	    	  var fsControlDiv = document.createElement('DIV');
-	    	  var fsControl = new FSControl(fsControlDiv, map);
-	    	  fsControlDiv.index = 1;
-	    	  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
+	    	//  var fsControlDiv = document.createElement('DIV');
+	    	//  var fsControl = new FSControl(fsControlDiv, map);
+	    	//  fsControlDiv.index = 1;
+	    	//  map.controls[google.maps.ControlPosition.TOP_RIGHT].push(fsControlDiv);
 
 
 
@@ -383,8 +401,6 @@ var encounterNumber = '<%=num%>';
 
 
 
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
 
 
   <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
@@ -408,7 +424,7 @@ var encounterNumber = '<%=num%>';
       			Encounter enc = myShepherd.getEncounter(num);
             String encNum = enc.getCatalogNumber();
 						boolean visible = enc.canUserAccess(request);
-
+						if (!visible) visible = checkAccessKey(request, enc);
 						if (!visible) {
 							String blocker = "";
 							List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
@@ -479,7 +495,7 @@ $(function() {
         showSecond:false,
         showMillisec:false,
         showMicrosec:false,
-        showTimezone:false
+        showTimezone:false,
 
       <%
       //set a default date if we cann
@@ -567,20 +583,14 @@ $(function() {
 
 								} //end while
 
-
-    						%>
-
-
-                <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-                <h1 class="<%=classColor%>" id="headerText">
-                <%=encprops.getProperty("title") %><%=livingStatus %>
-                <% }
-                else {
-                 %>
-                 <h1 class="<%=classColor%>" id="headerText">
-                   <%=encprops.getProperty("title") %><%=livingStatus %>
-                 </h1>
-                 <%}%></h1>
+				String individuo=encprops.getProperty("unassigned");
+				if(enc.getIndividualID()!=null){
+					individuo=encprops.getProperty("of")+"&nbsp;<a href=\"../individuals.jsp?number="+enc.getIndividualID()+"\">"+enc.getIndividualID()+"</a>";
+				}
+    			%>
+               	<h1 class="<%=classColor%>" id="headerText">
+                	<%=encprops.getProperty("title") %> <%=individuo %> <%=livingStatus %>
+                </h1>
 
 
     			<p class="caption"><em><%=encprops.getProperty("description") %></em></p>
@@ -597,7 +607,7 @@ $(function() {
 							</td>
 							<td>
 								<!-- Facebook SHARE button -->
-								<div class="fb-share-button" data-href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
+								<div class="fb-share-button" data-href="//<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" data-type="button_count"></div></td>
 						</tr>
 					</table>
           </div>
@@ -612,1138 +622,6 @@ $(function() {
 
 
             <div class="col-xs-12 col-sm-6" style="vertical-align: top;padding-left: 10px;">
-
-
-        <!-- START IDENTITY ATTRIBUTE -->
-        <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
-        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
-        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
-      </h2>
-
-
-
-        <script type="text/javascript">
-        $(document).ready(function() {
-          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
-            buttons.toggle();
-          });
-          $("#editIdentity").click(function() {
-            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
-
-            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
-
-            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
-
-            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
-          });
-
-          $("#closeEditIdentity").click(function() {
-            $(".editForm, .editText, .resultMessageDiv").hide();
-          });
-        });
-        </script>
-
-
-        <% }
-        else {
-         %>
-         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
-         <%}%>
-
-
-    							<%
-    							if (!enc.hasMarkedIndividual()) {
-  								%>
-    							<p class="para">
-    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
-                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>">
-                     <span id="displayIndividualID"></span></a></p>
-    							</p>
-                  <p>
-                    <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
-                      <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
-                  </p>
-
-    							<%
-    							}
-    							else {
-    							%>
-    							<div>
-    								<p><%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
-
-          <%-- START MATCHED BY --%>
-    								<p>
-                      <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
-                        <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
-                    </p>
-
-                    <script type="text/javascript">
-                    $(document).ready(function() {
-                      $("#matchedBy option[value='Pattern match']").attr('selected','selected');
-
-                      $("#setMB").click(function(event) {
-                        event.preventDefault();
-                        $("#setMB").hide();
-
-                        var number = $("#setMBnumber").val();
-                        var matchedBy = $("#matchedBy").val();
-
-                        $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
-                        function() {
-                          $("#matchErrorDiv").hide();
-                          $("#matchCheck").show();
-                          $("#displayMatchedBy").html(matchedBy);
-
-                        })
-                        .fail(function(response) {
-                          $("#matchError, #matchErrorDiv").show();
-                          $("#matchErrorDiv").html(response.responseText);
-                        });
-                      });
-
-                      $("#matchedBy").click(function() {
-                        $("#matchError, #matchCheck, #matchErrorDiv").hide();
-                        $("#setMB").show();
-                      });
-                    });
-                    </script>
-
-                    <div class="highlight resultMessageDiv" id="matchErrorDiv"></div>
-                    <form name="setMBT" class="editForm">
-                      <input name="number" type="hidden" value="<%=num%>" id="setMBnumber"/>
-                      <div class="form-group row" id="selectMatcher">
-                        <div class="col-sm-3">
-                          <label><%=encprops.getProperty("matchedBy")%>: </label>
-                        </div>
-                        <div class="col-sm-5 col-xs-10">
-                          <select name="matchedBy" id="matchedBy" size="1" class="form-control">
-                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-                          </select>
-                        </div>
-                        <div class="col-sm-3">
-                          <input name="setMB" type="submit" id="setMB" value='<%=encprops.getProperty("set")%>' class="btn btn-sm editFormBtn"/>
-                          <span id="matchCheck">&check;</span>
-                          <span id="matchError">X</span>
-                        </div>
-                      </div>
-                    </form>
-    							</div>
-    							<%
-      							} //end else
-      							%>
-      <%-- END MATCHED BY --%>
-
-      <%-- START MANAGE IDENTITY --%>
-
-     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
-
-  									<%
-  									if(!enc.hasMarkedIndividual()) {
-  									%>
-
-                    <script type="text/javascript">
-                    $(document).ready(function() {
-
-                      $("#Add").click(function(event) {
-                        event.preventDefault();
-
-                        $("#Add").hide();
-
-                        var number = $("#individualAddEncounterNumber").val();
-                        var individual = $("#individualAddEncounterInput").val();
-                        var matchType = $("#matchType").val();
-                        var noemail = $( "input:checkbox:checked" ).val();
-                        var action = $("#individualAddEncounterAction").val();
-
-                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
-                        function() {
-                          $("#individualErrorDiv").hide();
-                          $("#individualDiv").addClass("has-success");
-                          $("#individualCheck, #matchedByCheck").show();
-                          $("#displayIndividualID").html(individual);
-                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
-                          $("#displayMatchedBy").html(matchType);
-
-                        })
-                        .fail(function(response) {
-                          $("#individualDiv").addClass("has-error");
-                          $("#individualError, #matchedByError, #individualErrorDiv").show();
-                          $("#individualErrorDiv").html(response.responseText);
-                        });
-                      });
-
-                      $("#individualAddEncounterInput, #matchType").click(function() {
-                        $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
-                        $("#individualDiv").removeClass("has-success");
-                        $("#individualDiv").removeClass("has-error");
-                        $("#Add").show();
-                        $("#setRemoveResultDiv").hide();
-                      });
-                    });
-                    </script>
-
-                    <div class="editText">
-                      <h3><%=encprops.getProperty("manageIdentity")%></h3>
-                      <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
-                    </div>
-
-                    <div class="highlight resultMessageDiv" id="individualErrorDiv"></div>
-
-                    <p><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
-
-                    <form name="add2shark" class="editForm">
-                      <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
-                      <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
-                      <div class="form-group row" id="individualDiv">
-                        <div class="col-sm-3">
-                          <label><%=encprops.getProperty("individual")%>:</label>
-                        </div>
-                        <div class="col-sm-5 col-xs-10">
-                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
-                          <span class="form-control-feedback" id="individualCheck">&check;</span>
-                          <span class="form-control-feedback" id="individualError">X</span>
-                        </div>
-                      </div>
-                      <div class="form-group row" id="matchedByDiv">
-                        <div class="col-sm-3">
-                          <label><%=encprops.getProperty("matchedBy")%>: </label>
-                        </div>
-                        <div class="col-sm-5 col-xs-10">
-                          <select name="matchType" id="matchType" class="form-control" size="1">
-                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
-                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
-                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
-                          </select>
-                          <span class="form-control-feedback" id="matchedByCheck">&check;</span>
-                          <span class="form-control-feedback" id="matchedByError">X</span>
-                        </div>
-                      </div>
-                      <div class="form-group row">
-                        <div class="col-sm-5 col-xs-10">
-                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
-                        </div>
-                      </div>
-                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
-                    </form>
-
-									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
-									<%
-  									}
-  		 	  	  					//Remove from MarkedIndividual if not unassigned
-		  							%>
-
-                    <script type="text/javascript">
-                    $(document).ready(function() {
-
-                      $("#individualRemoveEncounterBtn").click(function(event) {
-                        event.preventDefault();
-
-                        $("#individualRemoveEncounterBtn").hide();
-
-                        var number = $("#individualRemoveEncounterNumber").val();
-                        var individual = $("#displayIndividualID").text();
-
-                        $.post("../IndividualRemoveEncounter", {"number": number},
-                        function(response) {
-                          $("#setRemoveResultDiv").show();
-                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter #" + number + " was successfully removed from " + individual + ".");
-                          $("#removeErrorDiv").empty();
-                          $("#removeShark").hide();
-                          $("#removeLabel").hide();
-                          $("#manageIdentityMessage").hide();
-                          $("#displayIndividualID").html("");
-                        })
-                        .fail(function(response) {
-                          $("#setRemoveResultDiv").show();
-                          $("#removeErrorDiv").html("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
-                          $("#removeSuccessDiv").empty();
-                          $("#individualRemoveEncounterBtn").show();
-                          $("#removeLabel").show();
-                          $("#manageIdentityMessage").show();
-                        });
-                      });
-                    });
-                    </script>
-
-
-					<%
-	
-					if(!enc.hasMarkedIndividual()) {
-					%>
-
-                  <script type="text/javascript">
-                  $(document).ready(function() {
-
-                    $("#createSharkBtn").click(function(event) {
-                      event.preventDefault();
-
-                      $("#createSharkBtn").hide();
-
-                      var number = $("#individualCreateNumber").val();
-                      var individual = $("#createSharkIndividual").val();
-                      var action = $("#individualCreateAction").val();
-                      var noemail = $("input:checkbox:checked").val();
-
-                      $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
-                      function() {
-                        $("#indCreateCheck").show();
-                        $("#createSharkDiv").addClass("has-success");
-                        $("#displayIndividualID").html(individual);
-                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
-                      })
-                      .fail(function(response) {
-                        $("#individualCreateErrorDiv, #indCreateError").show();
-                        $("#individualCreateErrorDiv").html(response.responseText);
-                        $("#createSharkDiv").addClass("has-error");
-                      });
-                    });
-
-                    $("#createSharkIndividual").click(function() {
-                      $("#individualCreateErrorDiv, #indCreateError, #indCreateCheck").hide();
-                      $("#createSharkDiv").removeClass("has-success");
-                      $("#createSharkDiv").removeClass("has-error");
-                      $("#createSharkBtn").show();
-                    });
-                  });
-                  </script>
-
-
-
-                  <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
-
-                  <form name="createShark" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
-                    <input name="action" type="hidden" value="create" id="individualCreateAction"/>
-                    <div class="form-group row">
-                      <div class="col-sm-4">
-                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
-                      </div>
-                      <div class="col-sm-5 col-xs-10" id="createSharkDiv">
-                        <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
-                        <span class="form-control-feedback" id="indCreateCheck">&check;</span>
-                        <span class="form-control-feedback" id="indCreateError">X</span>
-                      </div>
-                    </div>
-                    <div class="form-group row">
-                      <div class="col-sm-5 col-xs-10">
-                        <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
-                      </div>
-                    </div>
-                    <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
-                  </form>
-								<%
-								}
-									else{
-										%>
-										
-										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
-                      <span class="highlight" id="removeErrorDiv"></span>
-                      <span class="successHighlight" id="removeSuccessDiv"></span>
-                    </div>
-                    <div class="editText" id="manageIdentityMessage">
-                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
-                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
-                    </div>
-                    <form class="editForm" id="removeShark" name="removeShark">
-                      <div class="form-group row">
-                        <div class="col-sm-12 col-xs-10">
-                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
-                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
-                          <input name="action" type="hidden" value="remove" />
-                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
-                        </div>
-                      </div>
-                    </form>
-                    <br>
-									<%	
-									}
-								%>
-							</div>
-
-<!-- END INDIVIDUALID ATTRIBUTE -->
-
-<!-- START ALTERNATEID ATTRIBUTE -->
-            <%
-            String alternateID="";
-            if(enc.getAlternateID()!=null){
-              alternateID=enc.getAlternateID();
-            }
-            %>
-            <p>
-              <img align="absmiddle" src="../images/alternateid.gif">
-              <%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span>
-            </p>
-
-
-          <script type="text/javascript">
-            $(document).ready(function() {
-              $("#setAltIDbtn").click(function(event) {
-                event.preventDefault();
-
-                $("#setAltIDbtn").hide();
-
-                var encounter = $("#altIDencounter").val();
-                var alternateid = $("#alternateid").val();
-
-                $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
-                function() {
-                  $("#altIdErrorDiv").hide();
-                  $("#altIdDiv").addClass("has-success");
-                  $("#altIdCheck").show();
-                  $("#displayAltID").html(alternateid);
-                })
-                .fail(function(response) {
-                  $("#altIdDiv").addClass("has-error");
-                  $("#altIdError, #altIdErrorDiv").show();
-                  $("#altIdErrorDiv").html(response.responseText);
-                });
-              });
-
-              $("#alternateid").click(function() {
-                $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
-                $("#altIdDiv").removeClass("has-success");
-                $("#altIdDiv").removeClass("has-error");
-                $("#setAltIDbtn").show();
-              });
-            });
-          </script>
-
-          <div class="highlight resultMessageDiv" id="altIdErrorDiv"></div>
-            <form name="setAltID" class="editForm">
-              <input name="encounter" type="hidden" value="<%=num%>" id="altIDencounter"/>
-              <div class="form-group row">
-                <div class="col-sm-3">
-                  <label><%=encprops.getProperty("setAlternateID")%>:</label>
-                </div>
-                <div class="col-sm-5 col-xs-10" id="altIdDiv">
-                  <input name="alternateid" id="alternateid" type="text" class="form-control" placeholder="<%=encprops.getProperty("alternate_id")%>"/>
-                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
-                  <span class="form-control-feedback" id="altIdError">X</span>
-                </div>
-                <div class="col-sm-4">
-                  <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
-                </div>
-              </div>
-            </form>
-
-        <!-- END ALTERNATEID ATTRIBUTE -->
-
-
-				<!-- START EVENTID ATTRIBUTE -->
- 						<%
-    					if (enc.getEventID() != null) {
-  						%>
-  							<p class="para">
-  								<%=encprops.getProperty("eventID") %>: <%=enc.getEventID() %>
-  							</p>
-  						<%
-    					}
-  						%>
-				<!-- END EVENTID ATTRIBUTE -->
-
-
-				<!-- START OCCURRENCE ATTRIBUTE -->
-						<p class="para">
-							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
-							<%
-							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
-							%>
-								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
-							<%
-							}
-							else{
-							%>
-								<span id="displayOccurrenceID"><%=encprops.getProperty("none_assigned") %></span>
-							<%
-							}
-      				%>
-  					</p>
-
-              <%
-                //Remove from occurrence if assigned
-                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
-              %>
-              <script type="text/javascript">
-                $(document).ready(function() {
-
-                  $("#removeOccurrenceBtn").click(function(event) {
-                    event.preventDefault();
-
-                    $("#removeOccurrenceBtn").hide();
-
-                    var number = $("#occurrenceRemoveEncounterNumber").val();
-                    var occurrence = $("#displayOccurrenceID").val();
-
-                    $.post("../OccurrenceRemoveEncounter", {"number": number},
-                    function(response) {
-                      $("#occurrenceRemoveResultDiv").show();
-                      $("#occurRemoveSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully removed from occurrence " + occurrence + ".");
-                      $("#occurRemoveErrorDiv").empty();
-                      $("#removeOccurrenceBtn").hide();
-                      $("#removeOccurLabel").hide();
-                      $("#occurrenceEditMessage").hide();
-                      $("#displayOccurrenceID").html("");
-                      $("#")
-                    })
-                    .fail(function(response) {
-                      $("#occurrenceRemoveResultDiv").show();
-                      $("#occurRemoveErrorDiv").html(response.responseText);
-                      $("#occurRemoveSuccessDiv").empty();
-                      $("#removeOccurrenceBtn").show();
-                      $("#removeOccurLabel").show();
-                      $("#occurrenceEditMessage").show();
-                    });
-                  });
-                });
-              </script>
-
-              <div class="editText" id="occurrenceEditMessage">
-                <h3><%=encprops.getProperty("assignOccurrence")%></h3>
-                <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
-              </div>
-              <div id="occurrenceRemoveResultDiv" class="resultMessageDiv">
-                <span class="highlight" id="occurRemoveErrorDiv"></span>
-                <span class="successHighlight" id="occurRemoveSuccessDiv"></span>
-              </div>
-              <form class="editForm" name="removeOccurrence">
-                <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
-                <input name="action" type="hidden" value="remove" id="occurrenceRemoveEncounterAction"/>
-                <div class="form-group row">
-                  <div class="col-sm-12">
-                    <label id="removeOccurLabel" class="highlight"><strong><%=encprops.getProperty("removeFromOccurrence")%></strong></label>
-                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="removeOccurrenceBtn" class="btn btn-sm editFormBtn"/>
-                  </div>
-                </div>
-              </form>
-
-                <br />
-                <%
-                }
-                //create new Occurrence with name
-
-                if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
-                %>
-                <script type="text/javascript">
-                  $(document).ready(function() {
-                    $("#createOccur").click(function(event) {
-                      event.preventDefault();
-
-                      $("#createOccur").hide();
-
-                      var occurrence = $("#createOccurrenceInput").val();
-                      var number = $("#createOccurNumber").val();
-
-                      $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number},
-                      function() {
-                        $("#createOccurErrorDiv").hide();
-                        $("#occurDiv").addClass("has-success");
-                        $("#createOccurCheck").show();
-                        $("#displayOccurrenceID").html(occurrence);
-                      })
-                      .fail(function(response) {
-                        $("#occurDiv").addClass("has-error");
-                        $("#createOccurError, #createOccurErrorDiv").show();
-                        $("#createOccurErrorDiv").html(response.responseText);
-                      });
-                    });
-
-                    $("#createOccurrenceInput").click(function() {
-                      $("#createOccurError, #createOccurCheck, #createOccurErrorDiv").hide()
-                      $("#occurDiv").removeClass("has-success");
-                      $("#occurDiv").removeClass("has-error");
-                      $("#createOccur").show();
-                    });
-                  });
-                </script>
-                <div class="editText">
-                  <h3><%=encprops.getProperty("assignOccurrence")%></h3>
-                  <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
-                </div>
-
-                <div class="highlight resultMessageDiv" id="createOccurErrorDiv"></div>
-
-                  <form name="createOccurrence" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>" id="createOccurNumber"/>
-                    <div class="form-group row">
-                      <div class="col-sm-3">
-                        <label><%=encprops.getProperty("createOccurrence")%>:</label>
-                      </div>
-                      <div class="col-sm-5 col-xs-10" id="occurDiv">
-                        <input name="occurrence" type="text" id="createOccurrenceInput" class="form-control" placeholder="<%=encprops.getProperty("newOccurrenceID")%>" />
-                        <span class="form-control-feedback" id="createOccurCheck">&check;</span>
-                        <span class="form-control-feedback" id="createOccurError">X</span>
-                      </div>
-                      <div class="col-sm-4">
-                        <input name="Create" type="submit" id="createOccur" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
-                      </div>
-                    </div>
-                  </form>
-
-                  <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
-
-                  <script type="text/javascript">
-                    $(document).ready(function() {
-                      $("#addOccurrence").click(function(event) {
-                        event.preventDefault();
-
-                        $("#addOccurrence").hide();
-
-                        var occurrence = $("#add2OccurrenceInput").val();
-                        var number = $("#addOccurNumber").val();
-                        var action = $("#addOccurAction").val();
-
-                        $.post("../OccurrenceAddEncounter", {"occurrence": occurrence, "number": number, "action": action},
-                        function() {
-                          $("#addOccurErrorDiv").hide();
-                          $("#addDiv").addClass("has-success");
-                          $("#createOccurCheck").show();
-                          $("#displayOccurrenceID").html(occurrence);
-                        })
-                        .fail(function(response) {
-                          $("#addDiv").addClass("has-error");
-                          $("#addOccurError, #addOccurErrorDiv").show();
-                          $("#addOccurErrorDiv").html(response.responseText);
-                          $("#addOccurrence").show();
-                        });
-                      });
-
-                      $("#add2OccurrenceInput").click(function() {
-                        $("#addOccurError, #addOccurCheck, #addOccurErrorDiv").hide()
-                        $("#addDiv").removeClass("has-success");
-                        $("#addDiv").removeClass("has-error");
-                        $("#addOccurrence").show();
-                        $("#addOccurErrorDiv").hide();
-                      });
-                    });
-                  </script>
-
-                  <div class="highlight resultMessageDiv" id="addOccurErrorDiv"></div>
-
-                  <form name="add2occurrence" class="editForm">
-                    <input name="number" type="hidden" value="<%=num%>" id="addOccurNumber"/>
-                    <input name="action" type="hidden" value="add" id="addOccurAction"/>
-                    <div class="form-group row">
-                      <div class="col-sm-3">
-                        <label><%=encprops.getProperty("add2Occurrence")%>: </label>
-                      </div>
-                      <div class="col-sm-5 col-xs-10" id="addDiv">
-                        <input name="occurrence" id="add2OccurrenceInput" type="text" class="form-control" placeholder="<%=encprops.getProperty("occurrenceID")%>"/>
-                        <span class="form-control-feedback" id="addOccurCheck">&check;</span>
-                        <span class="form-control-feedback" id="addOccurError">X</span>
-                      </div>
-                      <div class="col-sm-4">
-                        <input name="Add" type="submit" id="addOccurrence" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
-                      </div>
-                    </div>
-                  </form>
-
-                    <%
-                      }
-                      %>
-    <!-- END OCCURRENCE ATTRIBUTE -->
-
-
-<%-- START CONTACT INFORMATION --%>
-        <div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
-
-
-          <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
-          <h2>
-            <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
-            <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
-            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;">Close Edit</button>
-          </h2>
-
-
-          <script type="text/javascript">
-          $(document).ready(function() {
-            var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
-              buttons.toggle();
-            });
-            $("#editContactBtn").click(function() {
-              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
-
-              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
-
-              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
-
-              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
-
-            });
-
-            $("#closeEditContact").click(function() {
-              $(".editFormContact, .editTextContact, .resultMessageDiv").hide();
-            });
-          });
-          </script>
-
-
-          <% }
-          else {
-           %>
-           <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
-
-           <%}%>
-
-
-
-
-          <p class="para"><em><%=encprops.getProperty("submitter") %></em>
-
-          <%
-          if(enc.getSubmitterName()!=null){
-            %>
-            <br/><span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
-            <%
-          }
-          if (isOwner) {
-
-            if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
-              //break up the string
-              StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
-              while(stzr.hasMoreTokens()) {
-                String nextie=stzr.nextToken();
-                %>
-                <br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a>
-                <%
-              }
-
-            }
-            else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
-              %> <br/>
-              <a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
-              <%
-            }
-
-            if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
-              %>
-              <br/><span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
-              <%
-            }
-            if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
-              %>
-              <br /><span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
-              <%
-                }
-
-                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
-                <br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
-                <%
-                  }
-                  if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
-                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
-                  <%
-                    }
-
-                    }
-                    %>
-                  </p>
-
-                  <p class="para">
-                    <em><%=encprops.getProperty("photographer") %></em>
-                    <%
-                      %>
-
-                      <%
-                        if(enc.getPhotographerName()!=null){
-                        %>
-                        <br/><span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
-                        <%
-                          }
-
-                          if (isOwner) {
-
-                          if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
-                          %>
-                          <br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
-                          <%
-                            }
-                            if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
-                            %>
-                            <br/><span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
-                            <%
-                              }
-                              if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
-                              %>
-                              <br/><span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
-                              <%
-                                }
-
-                                %>
-                                <%
-                                  }
-                                  %>
-                                </p>
-
-                              <%
-                                if(isOwner){
-                                %>
-
-                                <p class="para">
-                                  <em>
-                                    <%=encprops.getProperty("inform_others") %>
-                                  </em>
-                                  <%
-
-                                    %>
-
-                                  <%
-
-                                    %>
-                                    <br/>
-                                    <%
-                                      if(enc.getInformOthers()!=null){
-
-                                      if(enc.getInformOthers().indexOf(",")!=-1) {
-                                      //break up the string
-                                      StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
-
-                                      while(stzr.hasMoreTokens()) {
-                                      %>
-                                      <%=stzr.nextToken()%><br/>
-                                      <%
-                                        }
-
-                                        }
-                                        else{
-                                        %>
-                                        <span id="displayInformOthers"><%=enc.getInformOthers()%></span><br/> <%
-                                        }
-                                        }
-                                        else {
-                                        %>
-                                        <%=encprops.getProperty("none") %>
-                                        <%
-                                          }
-                                          %>
-                                        </p>
-                                        <%
-                                          %>
-
-          <!-- start submitter -->
-          <script type="text/javascript">
-            $(document).ready(function() {
-              $("#editContact").click(function(event) {
-                event.preventDefault();
-
-                $("#editContact").hide();
-
-                var contact = $("#submitter").val();
-                var number = $("#submitNumber").val();
-                var action = $("#submitAction").val();
-                var name = $("#submitName").val();
-                var email = $("#submitEmail").val();
-                var phone = $("#submitPhone").val();
-                var address = $("#submitAddress").val();
-                var submitterOrganization = $("#submitOrg").val();
-                var submitterProject = $("#submitProject").val();
-
-                $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address, "submitterOrganization": submitterOrganization, "submitterProject": submitterProject},
-                function() {
-                  $("#submitErrorDiv").hide();
-                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-success");
-                  $("#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").show();
-                  $("#displaySubmitName").html(name);
-                  $("#displaySubmitEmail").html(email);
-                  $("#displaySubmitPhone").html(phone);
-                  $("#displaySubmitAddress").html(address);
-                  $("#displaySubmitOrg").html(submitterOrganization);
-                  $("#displaySubmitProject").html(submitterProject);
-                })
-                .fail(function(response) {
-                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-error");
-                  $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError").show();
-                  $("#submitErrorDiv").html(response.responseText);
-                });
-              });
-
-              $("#setPersonalDetailsForm").click(function() {
-                $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").hide()
-                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-success");
-                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-error");
-                $("#editContact").show();
-              });
-            });
-          </script>
-
-          <div>
-            <div class="highlight resultMessageDiv" id="submitErrorDiv"></div>
-
-            <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)</strong></p>
-            <form name="setPersonalDetails" class="editFormContact" id="setPersonalDetailsForm">
-              <input type="hidden" name="contact" value="submitter" id="submitter"/>
-              <input name="number" type="hidden" value="<%=num%>" id="submitNumber"/>
-              <input name="action" type="hidden" value="editcontact" id="submitAction"/>
-              <%
-
-                String sName="";
-                if(enc.getSubmitterName()!=null){sName=enc.getSubmitterName();}
-                String sEmail="";
-                if(enc.getSubmitterEmail()!=null){sEmail=enc.getSubmitterEmail();}
-                String sPhone="";
-                if(enc.getSubmitterPhone()!=null){sPhone=enc.getSubmitterPhone();}
-                String sAddress="";
-                if(enc.getSubmitterAddress()!=null){sAddress=enc.getSubmitterAddress();}
-                String sOrg="";
-                if(enc.getSubmitterOrganization()!=null){sOrg=enc.getSubmitterOrganization();}
-                String sProject="";
-                if(enc.getSubmitterProject()!=null){sProject=enc.getSubmitterProject();}
-
-                %>
-
-                <div class="form-group row">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("name")%></label>
-                  </div>
-                  <div class="col-sm-5" id="submitNameDiv">
-                    <input id="submitName" name="name" type="text" value="<%=sName %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitNameCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitNameError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("email")%></label>
-                  </div>
-                  <div class="col-sm-5" id="submitEmailDiv">
-                    <input id="submitEmail" name="email" type="text" value="<%=sEmail %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitEmailCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitEmailError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("phone")%></label>
-                  </div>
-                  <div class="col-sm-5" id="submitPhoneDiv">
-                    <input id="submitPhone" name="phone" type="text" value="<%=sPhone %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitPhoneCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitPhoneError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("address")%></label>
-                  </div>
-                  <div class="col-sm-5" id="submitAddressDiv">
-                    <input id="submitAddress" name="address" type="text" value="<%=sAddress %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitAddressCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitAddressError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row" id="submitOrgDiv">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("submitterOrganization")%></label>
-                  </div>
-                  <div class="col-sm-5">
-                    <input id="submitOrg" name="submitterOrganization" type="text" value="<%=sOrg %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitOrgCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitOrgError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row" id="submitProjectDiv">
-                  <div class="col-sm-3">
-                    <label><%=encprops.getProperty("submitterProject")%></label>
-                  </div>
-                  <div class="col-sm-5">
-                    <input id="submitProject" name="submitterProject" type="text" value="<%=sProject %>" class="form-control"></input>
-                    <span class="form-control-feedback" id="submitProjectCheck">&check;</span>
-                    <span class="form-control-feedback" id="submitProjectError">X</span>
-                  </div>
-                </div>
-                <div class="form-group row">
-                  <div class="col-sm-3"></div>
-                  <div class="col-sm-5">
-                    <input name="EditContact" type="submit" id="editContact" value="Update" class="btn bnt-sm editFormBtn"/>
-                  </div>
-                </div>
-              </form>
-            </div>
-
-            <!-- end submitter  -->
-
-            <!-- start photographer -->
-            <script type="text/javascript">
-              $(document).ready(function() {
-                $("#editPhotographer").click(function(event) {
-                  event.preventDefault();
-
-                  $("#editPhotographer").hide();
-
-                  var contact = $("#photographer").val();
-                  var number = $("#photoNumber").val();
-                  var action = $("#photoAction").val();
-                  var name = $("#photoName").val();
-                  var email = $("#photoEmail").val();
-                  var phone = $("#photoPhone").val();
-                  var address = $("#photoAddress").val();
-
-
-                  $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address},
-                  function() {
-                    $("#photoErrorDiv").hide();
-                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-success");
-                    $("#photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").show();
-                    $("#displayPhotoName").html(name);
-                    $("#displayPhotoEmail").html(email);
-                    $("#displayPhotoPhone").html(phone);
-                    $("#displayPhotoAddress").html(address);
-                  })
-                  .fail(function(response) {
-                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-error");
-                    $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError").show();
-                    $("#photoErrorDiv").html(response.responseText);
-                  });
-                });
-
-                $("#setPhotographerInfoForm").click(function() {
-                  $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").hide()
-                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-success");
-                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-error");
-                  $("#editPhotographer").show();
-                });
-              });
-            </script>
-            <div>
-              <div class="highlight resultMessageDiv" id="photoErrorDiv"></div>
-
-              <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)</strong></p>
-              <form id="setPhotographerInfoForm" class="editFormContact">
-                <input type="hidden" name="contact" value="photographer" id="photographer"/>
-                <input name="number" type="hidden" value="<%=num%>" id="photoNumber"/>
-                <input name="action" type="hidden" value="editcontact" id="photoAction"/>
-
-                <%
-
-                  String pName="";
-                  if(enc.getPhotographerName()!=null){pName=enc.getPhotographerName();}
-                  String pEmail="";
-                  if(enc.getPhotographerEmail()!=null){pEmail=enc.getPhotographerEmail();}
-                  String pPhone="";
-                  if(enc.getPhotographerPhone()!=null){pPhone=enc.getPhotographerPhone();}
-                  String pAddress="";
-                  if(enc.getPhotographerAddress()!=null){pAddress=enc.getPhotographerAddress();}
-
-                  %>
-
-                  <div class="form-group row">
-                    <div class="col-sm-3">
-                      <label><%=encprops.getProperty("name")%></label>
-                    </div>
-                    <div class="col-sm-5" id="photoNameDiv">
-                      <input id="photoName" name="name" type="text" size="20" value="<%=pName %>" class="form-control"></input>
-                      <span class="form-control-feedback" id="photoNameCheck">&check;</span>
-                      <span class="form-control-feedback" id="photoNameError">X</span>
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <div class="col-sm-3">
-                      <label><%=encprops.getProperty("email")%></label>
-                    </div>
-                    <div class="col-sm-5" id="photoEmailDiv">
-                      <input id="photoEmail" name="email" type="text" value="<%=pEmail %>" class="form-control"></input>
-                      <span class="form-control-feedback" id="photoEmailCheck">&check;</span>
-                      <span class="form-control-feedback" id="photoEmailError">X</span>
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <div class="col-sm-3">
-                      <label><%=encprops.getProperty("phone")%></label>
-                    </div>
-                    <div class="col-sm-5" id="photoPhoneDiv">
-                      <input id="photoPhone" name="phone" type="text" size="20" value="<%=pPhone %>" class="form-control"></input></input>
-                      <span class="form-control-feedback" id="photoPhoneCheck">&check;</span>
-                      <span class="form-control-feedback" id="photoPhoneError">X</span>
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <div class="col-sm-3">
-                      <label><%=encprops.getProperty("address")%></label>
-                    </div>
-                    <div class="col-sm-5" id="photoAddressDiv">
-                      <input id="photoAddress" name="address" type="text" value="<%=pAddress %>" class="form-control"/>
-                      <span class="form-control-feedback" id="photoAddressCheck">&check;</span>
-                      <span class="form-control-feedback" id="photoAddressError">X</span>
-                    </div>
-                  </div>
-                  <div class="form-group row">
-                    <div class="col-sm-3"></div>
-                    <div class="col-sm-5">
-                      <input name="EditContact" type="submit" id="editPhotographer" value="Update" class="btn btn-sm editFormBtn"/>
-                    </div>
-                  </div>
-                </form>
-              </div>
-
-              <!-- end photographer  -->
-
-              <%-- start inform others --%>
-              <script type="text/javascript">
-                $(document).ready(function() {
-                  $("#setOthers").click(function(event) {
-                    event.preventDefault();
-
-                    $("#setOthers").hide();
-
-                    var encounter = $("#informEncounter").val();
-                    var informothers = $("#informOthers").val();
-
-                    $.post("../EncounterSetInformOthers", {"encounter": encounter, "informothers": informothers},
-                    function() {
-                      $("#informErrorDiv").hide();
-                      $("#informOthersDiv").addClass("has-success");
-                      $("#informCheck").show();
-                      $("#displayInformOthers").html(informothers);
-                    })
-                    .fail(function(response) {
-                      $("#informOthersDiv").addClass("has-error");
-                      $("#informError, #informErrorDiv").show();
-                      $("#informErrorDiv").html(response.responseText);
-                    });
-                  });
-
-                  $("#informOthers").click(function() {
-                    $("#informError, #informCheck, #informErrorDiv").hide()
-                    $("#informOthersDiv").removeClass("has-success");
-                    $("#informOthersDiv").removeClass("has-error");
-                    $("#setOthers").show();
-                  });
-                });
-              </script>
-
-              <div>
-                <div class="highlight resultMessageDiv" id="informErrorDiv"></div>
-
-                <p class="editTextContact">
-                  <strong><%=encprops.getProperty("setOthersToInform")%></strong>
-                  <span class="editTextContact"><em><%=encprops.getProperty("separateEmails") %></em></span>
-                </p>
-                <form name="setOthers" class="editFormContact">
-                  <input name="encounter" type="hidden" value="<%=num%>" id="informEncounter"/>
-                  <div class="form-group row">
-                    <div class="col-sm-6" id="informOthersDiv">
-                      <input class="form-control" name="informothers" type="text" id="informOthers"
-                        <%if(enc.getInformOthers()!=null){ %>
-                        value="<%=enc.getInformOthers().trim()%>"
-                        <%}%> />
-                        <span class="form-control-feedback" id="informCheck">&check;</span>
-                        <span class="form-control-feedback" id="informError">X</span>
-                      </div>
-                      <div class="col-sm-3">
-                        <input name="Set" type="submit" id="setOthers" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-                <!-- end inform others  -->
-                <%
-                  }
-                  %>
-        </div>
-<%-- END CONTACT INFORMATION --%>
 
 <%-- START LOCATION --%>
 <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
@@ -2342,6 +1220,1138 @@ if(enc.getLocation()!=null){
  <!--end adding submit GPS-->
  <!-- END MAP and GPS SETTER -->
 
+<div style="background-color: #E8E8E8;padding-left: 10px;padding-right: 10px;padding-top: 10px;padding-bottom: 10px;">
+        <!-- START IDENTITY ATTRIBUTE -->
+        <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+        <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %>
+        <button class="btn btn-md" type="button" name="button" id="editIdentity">Edit</button>
+        <button class="btn btn-md" type="button" name="button" id="closeEditIdentity" style="display:none;">Close Edit</button>
+      </h2>
+
+
+
+        <script type="text/javascript">
+        $(document).ready(function() {
+          var buttons = $("#editIdentity, #closeEditIdentity").on("click", function(){
+            buttons.toggle();
+          });
+          $("#editIdentity").click(function() {
+            $("#matchCheck, #matchError, #individualCheck, #individualError, #matchedByCheck, #matchedByError, #indCreateCheck, #indCreateError, #altIdCheck, #altIdError, #createOccurCheck, #createOccurError, #addOccurCheck, #addOccurError").hide();
+
+            $(".editForm, .editText, #setMB, #Add, #individualRemoveEncounterBtn, #Create, #setAltIDbtn, #createOccur, #addOccurrence, #removeOccurrenceBtn").show();
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-error");
+
+            $("#individualDiv, #createSharkDiv, #altIdErrorDiv, #occurDiv, #addDiv").removeClass("has-success");
+          });
+
+          $("#closeEditIdentity").click(function() {
+            $(".editForm, .editText, .resultMessageDiv").hide();
+          });
+        });
+        </script>
+
+
+        <% }
+        else {
+         %>
+         <h2><img align="absmiddle" src="../images/wild-me-logo-only-100-100.png" width="40px" height="40px" /> <%=encprops.getProperty("identity") %></h2>
+         <%}%>
+
+
+    							<%
+    							if (!enc.hasMarkedIndividual()) {
+  								%>
+    							<p class="para">
+    								 <%=encprops.getProperty("identified_as") %> <%=ServletUtilities.handleNullString(enc.getIndividualID())%>
+                     <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>">
+                     <span id="displayIndividualID"></span></a></p>
+    							</p>
+                  <p>
+                    <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
+                      <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                  </p>
+
+    							<%
+    							}
+    							else {
+    							%>
+    							<div>
+    								<p><%=encprops.getProperty("identified_as") %> <a href="../individuals.jsp?langCode=<%=langCode%>&number=<%=enc.getIndividualID()%><%if(request.getParameter("noscript")!=null){%>&noscript=true<%}%>"><span id="displayIndividualID"><%=enc.getIndividualID()%></span></a></p>
+
+          <%-- START MATCHED BY --%>
+    								<p>
+                      <img align="absmiddle" src="../images/Crystal_Clear_app_matchedBy.gif">
+                        <span><%=encprops.getProperty("matched_by") %>:<span id="displayMatchedBy"><%=enc.getMatchedBy()%></span></span>
+                    </p>
+
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#matchedBy option[value='Pattern match']").attr('selected','selected');
+
+                      $("#setMB").click(function(event) {
+                        event.preventDefault();
+                        $("#setMB").hide();
+
+                        var number = $("#setMBnumber").val();
+                        var matchedBy = $("#matchedBy").val();
+
+                        $.post("../EncounterSetMatchedBy", {"number": number, "matchedBy": matchedBy},
+                        function() {
+                          $("#matchErrorDiv").hide();
+                          $("#matchCheck").show();
+                          $("#displayMatchedBy").html(matchedBy);
+
+                        })
+                        .fail(function(response) {
+                          $("#matchError, #matchErrorDiv").show();
+                          $("#matchErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#matchedBy").click(function() {
+                        $("#matchError, #matchCheck, #matchErrorDiv").hide();
+                        $("#setMB").show();
+                      });
+                    });
+                    </script>
+
+                    <div class="highlight resultMessageDiv" id="matchErrorDiv"></div>
+                    <form name="setMBT" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="setMBnumber"/>
+                      <div class="form-group row" id="selectMatcher">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchedBy" id="matchedBy" size="1" class="form-control">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                        </div>
+                        <div class="col-sm-3">
+                          <input name="setMB" type="submit" id="setMB" value='<%=encprops.getProperty("set")%>' class="btn btn-sm editFormBtn"/>
+                          <span id="matchCheck">&check;</span>
+                          <span id="matchError">X</span>
+                        </div>
+                      </div>
+                    </form>
+    							</div>
+    							<%
+      							} //end else
+      							%>
+      <%-- END MATCHED BY --%>
+
+      <%-- START MANAGE IDENTITY --%>
+
+     							<div id="dialogIdentity" title="<%=encprops.getProperty("manageIdentity")%>" class="editForm">
+
+  									<%
+  									if(!enc.hasMarkedIndividual()) {
+  									%>
+
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+
+                      $("#Add").click(function(event) {
+                        event.preventDefault();
+
+                        $("#Add").hide();
+
+                        var number = $("#individualAddEncounterNumber").val();
+                        var individual = $("#individualAddEncounterInput").val();
+                        var matchType = $("#matchType").val();
+                        var noemail = $( "input:checkbox:checked" ).val();
+                        var action = $("#individualAddEncounterAction").val();
+
+                        $.post("../IndividualAddEncounter", {"number": number, "individual": individual, "matchType": matchType, "noemail": noemail, "action": action},
+                        function() {
+                          $("#individualErrorDiv").hide();
+                          $("#individualDiv").addClass("has-success");
+                          $("#individualCheck, #matchedByCheck").show();
+                          $("#displayIndividualID").html(individual);
+                          $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                          $("#displayMatchedBy").html(matchType);
+
+                        })
+                        .fail(function(response) {
+                          $("#individualDiv").addClass("has-error");
+                          $("#individualError, #matchedByError, #individualErrorDiv").show();
+                          $("#individualErrorDiv").html(response.responseText);
+                        });
+                      });
+
+                      $("#individualAddEncounterInput, #matchType").click(function() {
+                        $("#individualError, #individualCheck, #matchedByCheck, #matchedByError, #individualErrorDiv").hide()
+                        $("#individualDiv").removeClass("has-success");
+                        $("#individualDiv").removeClass("has-error");
+                        $("#Add").show();
+                        $("#setRemoveResultDiv").hide();
+                      });
+                    });
+                    </script>
+
+                    <div class="editText">
+                      <h3><%=encprops.getProperty("manageIdentity")%></h3>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></em></small></p>
+                    </div>
+
+                    <div class="highlight resultMessageDiv" id="individualErrorDiv"></div>
+
+                    <p><strong><%=encprops.getProperty("add2MarkedIndividual")%></strong></p>
+
+                    <form name="add2shark" class="editForm">
+                      <input name="number" type="hidden" value="<%=num%>" id="individualAddEncounterNumber"/>
+                      <input name="action" type="hidden" value="add" id="individualAddEncounterAction"/>
+                      <div class="form-group row" id="individualDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("individual")%>:</label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <input name="individual" type="text" class="form-control" id="individualAddEncounterInput"/>
+                          <span class="form-control-feedback" id="individualCheck">&check;</span>
+                          <span class="form-control-feedback" id="individualError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row" id="matchedByDiv">
+                        <div class="col-sm-3">
+                          <label><%=encprops.getProperty("matchedBy")%>: </label>
+                        </div>
+                        <div class="col-sm-5 col-xs-10">
+                          <select name="matchType" id="matchType" class="form-control" size="1">
+                            <option value="Unmatched first encounter"><%=encprops.getProperty("unmatchedFirstEncounter")%></option>
+                            <option value="Visual inspection"><%=encprops.getProperty("visualInspection")%></option>
+                            <option value="Pattern match" selected><%=encprops.getProperty("patternMatch")%></option>
+                          </select>
+                          <span class="form-control-feedback" id="matchedByCheck">&check;</span>
+                          <span class="form-control-feedback" id="matchedByError">X</span>
+                        </div>
+                      </div>
+                      <div class="form-group row">
+                        <div class="col-sm-5 col-xs-10">
+                          <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                        </div>
+                      </div>
+                        <input name="Add" type="submit" id="Add" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                    </form>
+
+									<p><strong>--<%=encprops.getProperty("or") %>--</strong><p>
+									<%
+  									}
+  		 	  	  					//Remove from MarkedIndividual if not unassigned
+		  							%>
+
+                    <script type="text/javascript">
+                    $(document).ready(function() {
+
+                      $("#individualRemoveEncounterBtn").click(function(event) {
+                        event.preventDefault();
+
+                        $("#individualRemoveEncounterBtn").hide();
+
+                        var number = $("#individualRemoveEncounterNumber").val();
+                        var individual = $("#displayIndividualID").text();
+
+                        $.post("../IndividualRemoveEncounter", {"number": number},
+                        function(response) {
+                          $("#setRemoveResultDiv").show();
+                          $("#removeSuccessDiv").html("<strong>Success:</strong> Encounter #" + number + " was successfully removed from " + individual + ".");
+                          $("#removeErrorDiv").empty();
+                          $("#removeShark").hide();
+                          $("#removeLabel").hide();
+                          $("#manageIdentityMessage").hide();
+                          $("#displayIndividualID").html("");
+                        })
+                        .fail(function(response) {
+                          $("#setRemoveResultDiv").show();
+                          $("#removeErrorDiv").html("<strong>Error:</strong> You can't remove this encounter from a marked individual because it is not assigned to one.");
+                          $("#removeSuccessDiv").empty();
+                          $("#individualRemoveEncounterBtn").show();
+                          $("#removeLabel").show();
+                          $("#manageIdentityMessage").show();
+                        });
+                      });
+                    });
+                    </script>
+
+
+					<%
+
+					if(!enc.hasMarkedIndividual()) {
+					%>
+
+                  <script type="text/javascript">
+                  $(document).ready(function() {
+
+                    $("#createSharkBtn").click(function(event) {
+                      event.preventDefault();
+
+                      $("#createSharkBtn").hide();
+
+                      var number = $("#individualCreateNumber").val();
+                      var individual = $("#createSharkIndividual").val();
+                      var action = $("#individualCreateAction").val();
+                      var noemail = $("input:checkbox:checked").val();
+
+                      $.post("../IndividualCreate", {"number": number, "individual": individual, "action": action, "noemail": noemail},
+                      function() {
+                        $("#indCreateCheck").show();
+                        $("#createSharkDiv").addClass("has-success");
+                        $("#displayIndividualID").html(individual);
+                        $('#displayIndividualID').closest('a').prop('href', '../individuals.jsp?number=' + individual);
+                      })
+                      .fail(function(response) {
+                        $("#individualCreateErrorDiv, #indCreateError").show();
+                        $("#individualCreateErrorDiv").html(response.responseText);
+                        $("#createSharkDiv").addClass("has-error");
+                      });
+                    });
+
+                    $("#createSharkIndividual").click(function() {
+                      $("#individualCreateErrorDiv, #indCreateError, #indCreateCheck").hide();
+                      $("#createSharkDiv").removeClass("has-success");
+                      $("#createSharkDiv").removeClass("has-error");
+                      $("#createSharkBtn").show();
+                    });
+                  });
+                  </script>
+
+
+
+                  <div class="highlight resultMessageDiv" id="individualCreateErrorDiv"></div>
+
+                  <form name="createShark" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="individualCreateNumber"/>
+                    <input name="action" type="hidden" value="create" id="individualCreateAction"/>
+                    <div class="form-group row">
+                      <div class="col-sm-4">
+                        <p><strong><%=encprops.getProperty("createMarkedIndividual")%></strong></p>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="createSharkDiv">
+                        <input name="individual" type="text" id="createSharkIndividual" class="form-control" value="<%=getNextIndividualNumber(enc, myShepherd,context)%>"/>
+                        <span class="form-control-feedback" id="indCreateCheck">&check;</span>
+                        <span class="form-control-feedback" id="indCreateError">X</span>
+                      </div>
+                    </div>
+                    <div class="form-group row">
+                      <div class="col-sm-5 col-xs-10">
+                        <label><input name="noemail" type="checkbox" value="noemail" /> <%=encprops.getProperty("suppressEmail")%></label>
+                      </div>
+                    </div>
+                    <input name="Create" type="submit" id="createSharkBtn" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                  </form>
+								<%
+								}
+									else{
+										%>
+
+										                    <div id="setRemoveResultDiv" class="resultMessageDiv">
+                      <span class="highlight" id="removeErrorDiv"></span>
+                      <span class="successHighlight" id="removeSuccessDiv"></span>
+                    </div>
+                    <div class="editText" id="manageIdentityMessage">
+                      <p><strong><%=encprops.getProperty("manageIdentity")%></strong></p>
+                      <p><em><small><%=encprops.getProperty("identityMessage") %></small></em></p>
+                    </div>
+                    <form class="editForm" id="removeShark" name="removeShark">
+                      <div class="form-group row">
+                        <div class="col-sm-12 col-xs-10">
+                          <label id="removeLabel" class="highlight"><strong><%=encprops.getProperty("removeFromMarkedIndividual")%></strong></label>
+                          <input name="number" type="hidden" value="<%=num%>" id="individualRemoveEncounterNumber"/>
+                          <input name="action" type="hidden" value="remove" />
+                          <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="individualRemoveEncounterBtn" class="btn btn-sm editFormBtn"/>
+                        </div>
+                      </div>
+                    </form>
+                    <br>
+									<%
+									}
+								%>
+							</div>
+
+<!-- END INDIVIDUALID ATTRIBUTE -->
+
+<!-- START ALTERNATEID ATTRIBUTE -->
+            <%
+            String alternateID="";
+            if(enc.getAlternateID()!=null){
+              alternateID=enc.getAlternateID();
+            }
+            %>
+            <p>
+              <img align="absmiddle" src="../images/alternateid.gif">
+              <%=encprops.getProperty("alternate_id")%>: <span id="displayAltID"><%=alternateID%></span>
+            </p>
+
+
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#setAltIDbtn").click(function(event) {
+                event.preventDefault();
+
+                $("#setAltIDbtn").hide();
+
+                var encounter = $("#altIDencounter").val();
+                var alternateid = $("#alternateid").val();
+
+                $.post("../EncounterSetAlternateID", {"encounter": encounter, "alternateid": alternateid},
+                function() {
+                  $("#altIdErrorDiv").hide();
+                  $("#altIdDiv").addClass("has-success");
+                  $("#altIdCheck").show();
+                  $("#displayAltID").html(alternateid);
+                })
+                .fail(function(response) {
+                  $("#altIdDiv").addClass("has-error");
+                  $("#altIdError, #altIdErrorDiv").show();
+                  $("#altIdErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#alternateid").click(function() {
+                $("#altIdError, #altIdCheck, #altIdErrorDiv").hide()
+                $("#altIdDiv").removeClass("has-success");
+                $("#altIdDiv").removeClass("has-error");
+                $("#setAltIDbtn").show();
+              });
+            });
+          </script>
+
+          <div class="highlight resultMessageDiv" id="altIdErrorDiv"></div>
+            <form name="setAltID" class="editForm">
+              <input name="encounter" type="hidden" value="<%=num%>" id="altIDencounter"/>
+              <div class="form-group row">
+                <div class="col-sm-3">
+                  <label><%=encprops.getProperty("setAlternateID")%>:</label>
+                </div>
+                <div class="col-sm-5 col-xs-10" id="altIdDiv">
+                  <input name="alternateid" id="alternateid" type="text" class="form-control" placeholder="<%=encprops.getProperty("alternate_id")%>"/>
+                  <span class="form-control-feedback" id="altIdCheck">&check;</span>
+                  <span class="form-control-feedback" id="altIdError">X</span>
+                </div>
+                <div class="col-sm-4">
+                  <input name="Set" type="submit" id="setAltIDbtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                </div>
+              </div>
+            </form>
+
+        <!-- END ALTERNATEID ATTRIBUTE -->
+
+
+				<!-- START EVENTID ATTRIBUTE -->
+ 						<%
+    					if (enc.getEventID() != null) {
+  						%>
+  							<p class="para">
+  								<%=encprops.getProperty("eventID") %>: <%=enc.getEventID() %>
+  							</p>
+  						<%
+    					}
+  						%>
+				<!-- END EVENTID ATTRIBUTE -->
+
+
+				<!-- START OCCURRENCE ATTRIBUTE -->
+						<p class="para">
+							<img width="24px" height="24px" align="absmiddle" src="../images/occurrence.png" />&nbsp;<%=encprops.getProperty("occurrenceID") %>:
+							<%
+							if(myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null){
+							%>
+								<a href="../occurrence.jsp?number=<%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %>"><span id="displayOccurrenceID"><%=myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber()).getOccurrenceID() %></span></a>
+							<%
+							}
+							else{
+							%>
+								<span id="displayOccurrenceID"><%=encprops.getProperty("none_assigned") %></span>
+							<%
+							}
+      				%>
+  					</p>
+
+              <%
+                //Remove from occurrence if assigned
+                if((myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())!=null) && isOwner) {
+              %>
+              <script type="text/javascript">
+                $(document).ready(function() {
+
+                  $("#removeOccurrenceBtn").click(function(event) {
+                    event.preventDefault();
+
+                    $("#removeOccurrenceBtn").hide();
+
+                    var number = $("#occurrenceRemoveEncounterNumber").val();
+                    var occurrence = $("#displayOccurrenceID").val();
+
+                    $.post("../OccurrenceRemoveEncounter", {"number": number},
+                    function(response) {
+                      $("#occurrenceRemoveResultDiv").show();
+                      $("#occurRemoveSuccessDiv").html("<strong>Success:</strong> Encounter " + number + " was successfully removed from occurrence " + occurrence + ".");
+                      $("#occurRemoveErrorDiv").empty();
+                      $("#removeOccurrenceBtn").hide();
+                      $("#removeOccurLabel").hide();
+                      $("#occurrenceEditMessage").hide();
+                      $("#displayOccurrenceID").html("");
+                      $("#")
+                    })
+                    .fail(function(response) {
+                      $("#occurrenceRemoveResultDiv").show();
+                      $("#occurRemoveErrorDiv").html(response.responseText);
+                      $("#occurRemoveSuccessDiv").empty();
+                      $("#removeOccurrenceBtn").show();
+                      $("#removeOccurLabel").show();
+                      $("#occurrenceEditMessage").show();
+                    });
+                  });
+                });
+              </script>
+
+              <div class="editText" id="occurrenceEditMessage">
+                <h3><%=encprops.getProperty("assignOccurrence")%></h3>
+                <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+              </div>
+              <div id="occurrenceRemoveResultDiv" class="resultMessageDiv">
+                <span class="highlight" id="occurRemoveErrorDiv"></span>
+                <span class="successHighlight" id="occurRemoveSuccessDiv"></span>
+              </div>
+              <form class="editForm" name="removeOccurrence">
+                <input name="number" type="hidden" value="<%=num%>" id="occurrenceRemoveEncounterNumber"/>
+                <input name="action" type="hidden" value="remove" id="occurrenceRemoveEncounterAction"/>
+                <div class="form-group row">
+                  <div class="col-sm-12">
+                    <label id="removeOccurLabel" class="highlight"><strong><%=encprops.getProperty("removeFromOccurrence")%></strong></label>
+                    <input type="submit" name="Submit" value="<%=encprops.getProperty("remove")%>" id="removeOccurrenceBtn" class="btn btn-sm editFormBtn"/>
+                  </div>
+                </div>
+              </form>
+
+                <br />
+                <%
+                }
+                //create new Occurrence with name
+
+                if(isOwner && (myShepherd.getOccurrenceForEncounter(enc.getCatalogNumber())==null)){
+                %>
+                <script type="text/javascript">
+                  $(document).ready(function() {
+                    $("#createOccur").click(function(event) {
+                      event.preventDefault();
+
+                      $("#createOccur").hide();
+
+                      var occurrence = $("#createOccurrenceInput").val();
+                      var number = $("#createOccurNumber").val();
+
+                      $.post("../OccurrenceCreate", {"occurrence": occurrence, "number": number},
+                      function() {
+                        $("#createOccurErrorDiv").hide();
+                        $("#occurDiv").addClass("has-success");
+                        $("#createOccurCheck").show();
+                        $("#displayOccurrenceID").html(occurrence);
+                      })
+                      .fail(function(response) {
+                        $("#occurDiv").addClass("has-error");
+                        $("#createOccurError, #createOccurErrorDiv").show();
+                        $("#createOccurErrorDiv").html(response.responseText);
+                      });
+                    });
+
+                    $("#createOccurrenceInput").click(function() {
+                      $("#createOccurError, #createOccurCheck, #createOccurErrorDiv").hide()
+                      $("#occurDiv").removeClass("has-success");
+                      $("#occurDiv").removeClass("has-error");
+                      $("#createOccur").show();
+                    });
+                  });
+                </script>
+                <div class="editText">
+                  <h3><%=encprops.getProperty("assignOccurrence")%></h3>
+                  <p class="editText"><em><small><%=encprops.getProperty("occurrenceMessage")%></small></em></p>
+                </div>
+
+                <div class="highlight resultMessageDiv" id="createOccurErrorDiv"></div>
+
+                  <form name="createOccurrence" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="createOccurNumber"/>
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("createOccurrence")%>:</label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="occurDiv">
+                        <input name="occurrence" type="text" id="createOccurrenceInput" class="form-control" placeholder="<%=encprops.getProperty("newOccurrenceID")%>" />
+                        <span class="form-control-feedback" id="createOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="createOccurError">X</span>
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Create" type="submit" id="createOccur" value="<%=encprops.getProperty("create")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+
+                  <p class="editText"><strong>--<%=encprops.getProperty("or") %>--</strong></p>
+
+                  <script type="text/javascript">
+                    $(document).ready(function() {
+                      $("#addOccurrence").click(function(event) {
+                        event.preventDefault();
+
+                        $("#addOccurrence").hide();
+
+                        var occurrence = $("#add2OccurrenceInput").val();
+                        var number = $("#addOccurNumber").val();
+                        var action = $("#addOccurAction").val();
+
+                        $.post("../OccurrenceAddEncounter", {"occurrence": occurrence, "number": number, "action": action},
+                        function() {
+                          $("#addOccurErrorDiv").hide();
+                          $("#addDiv").addClass("has-success");
+                          $("#createOccurCheck").show();
+                          $("#displayOccurrenceID").html(occurrence);
+                        })
+                        .fail(function(response) {
+                          $("#addDiv").addClass("has-error");
+                          $("#addOccurError, #addOccurErrorDiv").show();
+                          $("#addOccurErrorDiv").html(response.responseText);
+                          $("#addOccurrence").show();
+                        });
+                      });
+
+                      $("#add2OccurrenceInput").click(function() {
+                        $("#addOccurError, #addOccurCheck, #addOccurErrorDiv").hide()
+                        $("#addDiv").removeClass("has-success");
+                        $("#addDiv").removeClass("has-error");
+                        $("#addOccurrence").show();
+                        $("#addOccurErrorDiv").hide();
+                      });
+                    });
+                  </script>
+
+                  <div class="highlight resultMessageDiv" id="addOccurErrorDiv"></div>
+
+                  <form name="add2occurrence" class="editForm">
+                    <input name="number" type="hidden" value="<%=num%>" id="addOccurNumber"/>
+                    <input name="action" type="hidden" value="add" id="addOccurAction"/>
+                    <div class="form-group row">
+                      <div class="col-sm-3">
+                        <label><%=encprops.getProperty("add2Occurrence")%>: </label>
+                      </div>
+                      <div class="col-sm-5 col-xs-10" id="addDiv">
+                        <input name="occurrence" id="add2OccurrenceInput" type="text" class="form-control" placeholder="<%=encprops.getProperty("occurrenceID")%>"/>
+                        <span class="form-control-feedback" id="addOccurCheck">&check;</span>
+                        <span class="form-control-feedback" id="addOccurError">X</span>
+                      </div>
+                      <div class="col-sm-4">
+                        <input name="Add" type="submit" id="addOccurrence" value="<%=encprops.getProperty("add")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+
+                    <%
+                      }
+                      %>
+    <!-- END OCCURRENCE ATTRIBUTE -->
+
+</div>
+<%-- START CONTACT INFORMATION --%>
+        <div>
+
+
+          <% if (isOwner && CommonConfiguration.isCatalogEditable(context)) { %>
+          <h2>
+            <img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %>
+            <button class="btn btn-md" type="button" name="button" id="editContactBtn">Edit</button>
+            <button class="btn btn-md" type="button" name="button" id="closeEditContact" style="display:none;">Close Edit</button>
+          </h2>
+
+
+          <script type="text/javascript">
+          $(document).ready(function() {
+            var buttons = $("#editContactBtn, #closeEditContact").on("click", function(){
+              buttons.toggle();
+            });
+            $("#editContactBtn").click(function() {
+              $(".editFormContact, .editTextContact, #editContact, #editPhotographer, #setOthers").show();
+
+              $("#submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck, #informError, #informCheck").hide();
+
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-error");
+
+              $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv, #photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv, #informOthersDiv").removeClass("has-success");
+
+            });
+
+            $("#closeEditContact").click(function() {
+              $(".editFormContact, .editTextContact, .resultMessageDiv").hide();
+            });
+          });
+          </script>
+
+
+          <% }
+          else {
+           %>
+           <h2><img align="absmiddle" src="../images/Crystal_Clear_kuser2.png" width="40px" height="42px" /> <%=encprops.getProperty("contactInformation") %></h2>
+
+           <%}%>
+
+
+
+
+          <p class="para"><em><%=encprops.getProperty("submitter") %></em>
+
+          <%
+          if(enc.getSubmitterName()!=null){
+            %>
+            <br/><span id="displaySubmitName"><%=enc.getSubmitterName()%></span>
+            <%
+          }
+          if (isOwner) {
+
+            if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))&&(enc.getSubmitterEmail().indexOf(",")!=-1)) {
+              //break up the string
+              StringTokenizer stzr=new StringTokenizer(enc.getSubmitterEmail(),",");
+              while(stzr.hasMoreTokens()) {
+                String nextie=stzr.nextToken();
+                %>
+                <br/><a href="mailto:<%=nextie%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><%=nextie%></a>
+                <%
+              }
+
+            }
+            else if((enc.getSubmitterEmail()!=null)&&(!enc.getSubmitterEmail().equals(""))) {
+              %> <br/>
+              <a href="mailto:<%=enc.getSubmitterEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displaySubmitEmail"><%=enc.getSubmitterEmail()%></a></span>
+              <%
+            }
+
+            if((enc.getSubmitterPhone()!=null)&&(!enc.getSubmitterPhone().equals(""))){
+              %>
+              <br/><span id="displaySubmitPhone"><%=enc.getSubmitterPhone()%></span>
+              <%
+            }
+            if((enc.getSubmitterAddress()!=null)&&(!enc.getSubmitterAddress().equals(""))){
+              %>
+              <br /><span id="displaySubmitAddress"><%=enc.getSubmitterAddress()%></span>
+              <%
+                }
+
+                if((enc.getSubmitterOrganization()!=null)&&(!enc.getSubmitterOrganization().equals(""))){%>
+                <br/><span id="displaySubmitOrg"><%=enc.getSubmitterOrganization()%></span>
+                <%
+                  }
+                  if((enc.getSubmitterProject()!=null)&&(!enc.getSubmitterProject().equals(""))){%>
+                  <br/><span id="displaySubmitProject"><%=enc.getSubmitterProject()%></span>
+                  <%
+                    }
+
+                    }
+                    %>
+                  </p>
+
+                  <p class="para">
+                    <em><%=encprops.getProperty("photographer") %></em>
+                    <%
+                      %>
+
+                      <%
+                        if(enc.getPhotographerName()!=null){
+                        %>
+                        <br/><span id="displayPhotoName"><%=enc.getPhotographerName()%></span>
+                        <%
+                          }
+
+                          if (isOwner) {
+
+                          if((enc.getPhotographerEmail()!=null)&&(!enc.getPhotographerEmail().equals(""))){
+                          %>
+                          <br/><a href="mailto:<%=enc.getPhotographerEmail()%>?subject=<%=encprops.getProperty("contactEmailMessageHeading") %><%=enc.getCatalogNumber()%>:<%=CommonConfiguration.getProperty("htmlTitle",context)%>"><span id="displayPhotoEmail"><%=enc.getPhotographerEmail()%></span></a>
+                          <%
+                            }
+                            if((enc.getPhotographerPhone()!=null)&&(!enc.getPhotographerPhone().equals(""))){
+                            %>
+                            <br/><span id="displayPhotoPhone"><%=enc.getPhotographerPhone()%></span>
+                            <%
+                              }
+                              if((enc.getPhotographerAddress()!=null)&&(!enc.getPhotographerAddress().equals(""))){
+                              %>
+                              <br/><span id="displayPhotoAddress"><%=enc.getPhotographerAddress()%></span>
+                              <%
+                                }
+
+                                %>
+                                <%
+                                  }
+                                  %>
+                                </p>
+
+                              <%
+                                if(isOwner){
+                                %>
+
+                                <p class="para">
+                                  <em>
+                                    <%=encprops.getProperty("inform_others") %>
+                                  </em>
+                                  <%
+
+                                    %>
+
+                                  <%
+
+                                    %>
+                                    <br/>
+                                    <%
+                                      if(enc.getInformOthers()!=null){
+
+                                      if(enc.getInformOthers().indexOf(",")!=-1) {
+                                      //break up the string
+                                      StringTokenizer stzr=new StringTokenizer(enc.getInformOthers(),",");
+
+                                      while(stzr.hasMoreTokens()) {
+                                      %>
+                                      <%=stzr.nextToken()%><br/>
+                                      <%
+                                        }
+
+                                        }
+                                        else{
+                                        %>
+                                        <span id="displayInformOthers"><%=enc.getInformOthers()%></span><br/> <%
+                                        }
+                                        }
+                                        else {
+                                        %>
+                                        <%=encprops.getProperty("none") %>
+                                        <%
+                                          }
+                                          %>
+                                        </p>
+                                        <%
+                                          %>
+
+          <!-- start submitter -->
+          <script type="text/javascript">
+            $(document).ready(function() {
+              $("#editContact").click(function(event) {
+                event.preventDefault();
+
+                $("#editContact").hide();
+
+                var contact = $("#submitter").val();
+                var number = $("#submitNumber").val();
+                var action = $("#submitAction").val();
+                var name = $("#submitName").val();
+                var email = $("#submitEmail").val();
+                var phone = $("#submitPhone").val();
+                var address = $("#submitAddress").val();
+                var submitterOrganization = $("#submitOrg").val();
+                var submitterProject = $("#submitProject").val();
+
+                $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address, "submitterOrganization": submitterOrganization, "submitterProject": submitterProject},
+                function() {
+                  $("#submitErrorDiv").hide();
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-success");
+                  $("#submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").show();
+                  $("#displaySubmitName").html(name);
+                  $("#displaySubmitEmail").html(email);
+                  $("#displaySubmitPhone").html(phone);
+                  $("#displaySubmitAddress").html(address);
+                  $("#displaySubmitOrg").html(submitterOrganization);
+                  $("#displaySubmitProject").html(submitterProject);
+                })
+                .fail(function(response) {
+                  $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").addClass("has-error");
+                  $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError").show();
+                  $("#submitErrorDiv").html(response.responseText);
+                });
+              });
+
+              $("#setPersonalDetailsForm").click(function() {
+                $("#submitErrorDiv, #submitNameError, #submitEmailError, #submitPhoneError, #submitAddressError, #submitOrgError, #submitProjectError, #submitNameCheck, #submitEmailCheck, #submitPhoneCheck, #submitAddressCheck, #submitOrgCheck, #submitProjectCheck").hide()
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-success");
+                $("#submitNameDiv, #submitEmailDiv, #submitPhoneDiv, #submitAddressDiv, #submitOrgDiv, #submitProjectDiv").removeClass("has-error");
+                $("#editContact").show();
+              });
+            });
+          </script>
+
+          <div>
+            <div class="highlight resultMessageDiv" id="submitErrorDiv"></div>
+
+            <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("submitter")%>)</strong></p>
+            <form name="setPersonalDetails" class="editFormContact" id="setPersonalDetailsForm">
+              <input type="hidden" name="contact" value="submitter" id="submitter"/>
+              <input name="number" type="hidden" value="<%=num%>" id="submitNumber"/>
+              <input name="action" type="hidden" value="editcontact" id="submitAction"/>
+              <%
+
+                String sName="";
+                if(enc.getSubmitterName()!=null){sName=enc.getSubmitterName();}
+                String sEmail="";
+                if(enc.getSubmitterEmail()!=null){sEmail=enc.getSubmitterEmail();}
+                String sPhone="";
+                if(enc.getSubmitterPhone()!=null){sPhone=enc.getSubmitterPhone();}
+                String sAddress="";
+                if(enc.getSubmitterAddress()!=null){sAddress=enc.getSubmitterAddress();}
+                String sOrg="";
+                if(enc.getSubmitterOrganization()!=null){sOrg=enc.getSubmitterOrganization();}
+                String sProject="";
+                if(enc.getSubmitterProject()!=null){sProject=enc.getSubmitterProject();}
+
+                %>
+
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("name")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitNameDiv">
+                    <input id="submitName" name="name" type="text" value="<%=sName %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitNameCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitNameError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("email")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitEmailDiv">
+                    <input id="submitEmail" name="email" type="text" value="<%=sEmail %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitEmailCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitEmailError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("phone")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitPhoneDiv">
+                    <input id="submitPhone" name="phone" type="text" value="<%=sPhone %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitPhoneCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitPhoneError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("address")%></label>
+                  </div>
+                  <div class="col-sm-5" id="submitAddressDiv">
+                    <input id="submitAddress" name="address" type="text" value="<%=sAddress %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitAddressCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitAddressError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row" id="submitOrgDiv">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("submitterOrganization")%></label>
+                  </div>
+                  <div class="col-sm-5">
+                    <input id="submitOrg" name="submitterOrganization" type="text" value="<%=sOrg %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitOrgCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitOrgError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row" id="submitProjectDiv">
+                  <div class="col-sm-3">
+                    <label><%=encprops.getProperty("submitterProject")%></label>
+                  </div>
+                  <div class="col-sm-5">
+                    <input id="submitProject" name="submitterProject" type="text" value="<%=sProject %>" class="form-control"></input>
+                    <span class="form-control-feedback" id="submitProjectCheck">&check;</span>
+                    <span class="form-control-feedback" id="submitProjectError">X</span>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-5">
+                    <input name="EditContact" type="submit" id="editContact" value="Update" class="btn bnt-sm editFormBtn"/>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- end submitter  -->
+
+            <!-- start photographer -->
+            <script type="text/javascript">
+              $(document).ready(function() {
+                $("#editPhotographer").click(function(event) {
+                  event.preventDefault();
+
+                  $("#editPhotographer").hide();
+
+                  var contact = $("#photographer").val();
+                  var number = $("#photoNumber").val();
+                  var action = $("#photoAction").val();
+                  var name = $("#photoName").val();
+                  var email = $("#photoEmail").val();
+                  var phone = $("#photoPhone").val();
+                  var address = $("#photoAddress").val();
+
+
+                  $.post("../EncounterSetSubmitterPhotographerContactInfo", {"contact": contact, "number": number, "action": action, "name": name, "email": email, "phone": phone, "address": address},
+                  function() {
+                    $("#photoErrorDiv").hide();
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-success");
+                    $("#photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").show();
+                    $("#displayPhotoName").html(name);
+                    $("#displayPhotoEmail").html(email);
+                    $("#displayPhotoPhone").html(phone);
+                    $("#displayPhotoAddress").html(address);
+                  })
+                  .fail(function(response) {
+                    $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").addClass("has-error");
+                    $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError").show();
+                    $("#photoErrorDiv").html(response.responseText);
+                  });
+                });
+
+                $("#setPhotographerInfoForm").click(function() {
+                  $("#photoErrorDiv, #photoNameError, #photoEmailError, #photoPhoneError, #photoAddressError, #photoNameCheck, #photoEmailCheck, #photoPhoneCheck, #photoAddressCheck").hide()
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-success");
+                  $("#photoNameDiv, #photoEmailDiv, #photoPhoneDiv, #photoAddressDiv").removeClass("has-error");
+                  $("#editPhotographer").show();
+                });
+              });
+            </script>
+            <div>
+              <div class="highlight resultMessageDiv" id="photoErrorDiv"></div>
+
+              <p class="editTextContact"><strong><%=encprops.getProperty("editContactInfo")%> (<%=encprops.getProperty("photographer")%>)</strong></p>
+              <form id="setPhotographerInfoForm" class="editFormContact">
+                <input type="hidden" name="contact" value="photographer" id="photographer"/>
+                <input name="number" type="hidden" value="<%=num%>" id="photoNumber"/>
+                <input name="action" type="hidden" value="editcontact" id="photoAction"/>
+
+                <%
+
+                  String pName="";
+                  if(enc.getPhotographerName()!=null){pName=enc.getPhotographerName();}
+                  String pEmail="";
+                  if(enc.getPhotographerEmail()!=null){pEmail=enc.getPhotographerEmail();}
+                  String pPhone="";
+                  if(enc.getPhotographerPhone()!=null){pPhone=enc.getPhotographerPhone();}
+                  String pAddress="";
+                  if(enc.getPhotographerAddress()!=null){pAddress=enc.getPhotographerAddress();}
+
+                  %>
+
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("name")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoNameDiv">
+                      <input id="photoName" name="name" type="text" size="20" value="<%=pName %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="photoNameCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoNameError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("email")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoEmailDiv">
+                      <input id="photoEmail" name="email" type="text" value="<%=pEmail %>" class="form-control"></input>
+                      <span class="form-control-feedback" id="photoEmailCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoEmailError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("phone")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoPhoneDiv">
+                      <input id="photoPhone" name="phone" type="text" size="20" value="<%=pPhone %>" class="form-control"></input></input>
+                      <span class="form-control-feedback" id="photoPhoneCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoPhoneError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3">
+                      <label><%=encprops.getProperty("address")%></label>
+                    </div>
+                    <div class="col-sm-5" id="photoAddressDiv">
+                      <input id="photoAddress" name="address" type="text" value="<%=pAddress %>" class="form-control"/>
+                      <span class="form-control-feedback" id="photoAddressCheck">&check;</span>
+                      <span class="form-control-feedback" id="photoAddressError">X</span>
+                    </div>
+                  </div>
+                  <div class="form-group row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-5">
+                      <input name="EditContact" type="submit" id="editPhotographer" value="Update" class="btn btn-sm editFormBtn"/>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- end photographer  -->
+
+              <%-- start inform others --%>
+              <script type="text/javascript">
+                $(document).ready(function() {
+                  $("#setOthers").click(function(event) {
+                    event.preventDefault();
+
+                    $("#setOthers").hide();
+
+                    var encounter = $("#informEncounter").val();
+                    var informothers = $("#informOthers").val();
+
+                    $.post("../EncounterSetInformOthers", {"encounter": encounter, "informothers": informothers},
+                    function() {
+                      $("#informErrorDiv").hide();
+                      $("#informOthersDiv").addClass("has-success");
+                      $("#informCheck").show();
+                      $("#displayInformOthers").html(informothers);
+                    })
+                    .fail(function(response) {
+                      $("#informOthersDiv").addClass("has-error");
+                      $("#informError, #informErrorDiv").show();
+                      $("#informErrorDiv").html(response.responseText);
+                    });
+                  });
+
+                  $("#informOthers").click(function() {
+                    $("#informError, #informCheck, #informErrorDiv").hide()
+                    $("#informOthersDiv").removeClass("has-success");
+                    $("#informOthersDiv").removeClass("has-error");
+                    $("#setOthers").show();
+                  });
+                });
+              </script>
+
+              <div>
+                <div class="highlight resultMessageDiv" id="informErrorDiv"></div>
+
+                <p class="editTextContact">
+                  <strong><%=encprops.getProperty("setOthersToInform")%></strong>
+                  <span class="editTextContact"><em><%=encprops.getProperty("separateEmails") %></em></span>
+                </p>
+                <form name="setOthers" class="editFormContact">
+                  <input name="encounter" type="hidden" value="<%=num%>" id="informEncounter"/>
+                  <div class="form-group row">
+                    <div class="col-sm-6" id="informOthersDiv">
+                      <input class="form-control" name="informothers" type="text" id="informOthers"
+                        <%if(enc.getInformOthers()!=null){ %>
+                        value="<%=enc.getInformOthers().trim()%>"
+                        <%}%> />
+                        <span class="form-control-feedback" id="informCheck">&check;</span>
+                        <span class="form-control-feedback" id="informError">X</span>
+                      </div>
+                      <div class="col-sm-3">
+                        <input name="Set" type="submit" id="setOthers" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+                <!-- end inform others  -->
+                <%
+                  }
+                  %>
+        </div>
+<%-- END CONTACT INFORMATION --%>
+
 
 <%-- START METADATA --%>
 <table>
@@ -2541,19 +2551,19 @@ else {
                         if(thisUser.getAffiliation()!=null){
                         %>
                         <p><strong><%=displayName %></strong></p>
-                        <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                        <p><strong><%=encprops.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                         <%
                         }
 
                         if(thisUser.getUserProject()!=null){
                         %>
-                        <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                        <p><strong><%=encprops.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                         <%
                         }
 
                         if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
+                            <p><strong><%=encprops.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a></p>
                             <%
                           }
 
@@ -3200,47 +3210,6 @@ else {
   <%-- START RIGHT COLUMN --%>
   <div class="col-xs-12 col-sm-6" style="vertical-align:top">
 
-<%
-String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
-%>
-    <%-- START IMAGES --%>
-        <jsp:include page="encounterMediaGallery.jsp" flush="true">
-        	<jsp:param name="encounterNumber" value="<%=num%>" />
-        	<jsp:param name="queryString" value="<%=queryString%>" />
-        	
-        	<jsp:param name="isOwner" value="<%=isOwner %>" />
-        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
-      	</jsp:include>
-
-		<%
-		if(isOwner){
-		%>
-	        <div id="add-image-zone" class="bc4">
-	
-	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
-	
-	          <div class="flow-box bc4" style="text-align:center" >
-	
-	            <div id="file-activity" style="display:none"></div>
-	
-	            <div id="updone"></div>
-	
-	            <div id="upcontrols">
-	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
-	              <div id="flowbuttons">
-	
-	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
-	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
-	
-	              </div>
-	            </div>
-	          </div>
-	        </div>
-        <%
-        }
-        %>
-    <%-- END IMAGES --%>
-
 
     <!-- start DATE section -->
     <table>
@@ -3288,7 +3257,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="http://<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
@@ -3386,7 +3355,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
         </div>
       </form>
     </div>
-   
+
 
     <!-- start releaseDate -->
     <script type="text/javascript">
@@ -3511,6 +3480,47 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
     </td>
     </tr>
     </table>
+<%
+String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""+num+"\"";
+%>
+    <%-- START IMAGES --%>
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
+        	<jsp:param name="encounterNumber" value="<%=num%>" />
+        	<jsp:param name="queryString" value="<%=queryString%>" />
+
+        	<jsp:param name="isOwner" value="<%=isOwner %>" />
+        	<jsp:param name="loggedIn" value="<%=loggedIn %>" />
+      	</jsp:include>
+
+		<%
+		if(isOwner){
+		%>
+	        <div id="add-image-zone" class="bc4">
+
+	          <h2 style="text-align:left"><%=encprops.getProperty("addImage") %></h2>
+
+	          <div class="flow-box bc4" style="text-align:center" >
+
+	            <div id="file-activity" style="display:none"></div>
+
+	            <div id="updone"></div>
+
+	            <div id="upcontrols">
+	              <input type="file" id="file-chooser" multiple accept="audio/*,video/*,image/*" onChange="return filesChanged(this)" />
+	              <div id="flowbuttons">
+
+	                <button id="reselect-button" class="btn" style="display:none">choose a different image</button>
+	                <button id="upload-button" class="btn" style="display:none">begin upload</button>
+
+	              </div>
+	            </div>
+	          </div>
+	        </div>
+        <%
+        }
+        %>
+    <%-- END IMAGES --%>
+
 
       <%
 
@@ -3529,7 +3539,7 @@ String queryString="SELECT FROM org.ecocean.Encounter WHERE catalogNumber == \""
 
 
   <br /><br />
- 
+
 
 
 <%-- OBSERVATION ATTRIBUTES --%>
@@ -6194,7 +6204,7 @@ finally{
 
 <!--db: These are the necessary tools for photoswipe.-->
 <%
-String urlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
 String pswipedir = urlLoc+"/photoswipe";
 %>
 <link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>

@@ -91,8 +91,7 @@ context=ServletUtilities.getContext(request);
     .ui_tpicker_minute_label {margin-bottom:5px !important;}
 </style>
 
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
+<script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
 
 <script src="javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
 <script src="javascript/pages/submit.js"></script>
@@ -797,7 +796,7 @@ if(request.getRemoteUser()!=null){
 
     <div id="advancedInformation" fade="1" style="display: none;">
 
-      <h3>About the animal</h3>
+      <h3><%=props.getProperty("aboutAnimal") %></h3>
 
       <fieldset>
 
@@ -829,12 +828,12 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
       <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label">Species</label>
+            <label class="control-label"><%=props.getProperty("species") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected">unknown</option>
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
   <%
 
   					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
@@ -868,20 +867,20 @@ if(CommonConfiguration.showProperty("showTaxonomy",context)){
 
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
-            <label class="control-label">Status</label>
+            <label class="control-label"><%=props.getProperty("status") %></label>
           </div>
 
           <div class="col-xs-6 col-lg-8">
             <select class="form-control" name="livingStatus" id="livingStatus">
-              <option value="alive" selected="selected">Alive</option>
-              <option value="dead">Dead</option>
+              <option value="alive" selected="selected"><%=props.getProperty("alive") %></option>
+              <option value="dead"><%=props.getProperty("dead") %></option>
             </select>
           </div>
         </div>
 
 				<div class="form-group">
 					<div class="col-xs-6 col-md-4">
-						<label class="control-label">Alternate ID</label>
+						<label class="control-label"><%=props.getProperty("alternate_id") %></label>
 					</div>
 
 					<div class="col-xs-6 col-lg-8">
@@ -1003,7 +1002,7 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
       <br/>
 
        <fieldset>
-        <h3>Tags</h3>
+        <h3><%=props.getProperty("tags") %></h3>
       <%
   pageContext.setAttribute("showMetalTags", CommonConfiguration.showMetalTags(context));
   pageContext.setAttribute("showAcousticTag", CommonConfiguration.showAcousticTag(context));

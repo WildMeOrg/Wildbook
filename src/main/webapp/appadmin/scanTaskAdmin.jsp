@@ -277,7 +277,7 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
+      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
       if (st.getUniqueNumber().equals("TuningTask")) {
         gotoURL = "endTuningTask.jsp";
       }
@@ -468,6 +468,9 @@ single scan are allowed to exceed the total.</span>
   <%}%>
 
 </p>
+
+<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %></p>
+<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %></p>
 <%
 
   } catch (Exception e) {

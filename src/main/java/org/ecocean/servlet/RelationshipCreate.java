@@ -115,6 +115,13 @@ public class RelationshipCreate extends HttpServlet {
               rel.setMarkedIndividualRole2(null);
             }
             
+            if(request.getParameter("markedIndividualName1")!=null){
+              rel.setMarkedIndividualName1(request.getParameter("markedIndividualName1"));
+            }
+            
+            if(request.getParameter("markedIndividualName2")!=null){
+              rel.setMarkedIndividualName2(request.getParameter("markedIndividualName2"));
+            }
             
             if((request.getParameter("relatedCommunityName")!=null)&&(!request.getParameter("relatedCommunityName").trim().equals(""))){
               rel.setRelatedSocialUnitName(ServletUtilities.cleanFileName(request.getParameter("relatedCommunityName")));
@@ -210,8 +217,8 @@ public class RelationshipCreate extends HttpServlet {
               out.println("<strong>Failure:</strong>  I could not create the relationship. Have your administrator check the log files for you to understand the problem.");
               
             }
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName1")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName1")+ "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number="+request.getParameter("markedIndividualName2")+ "\">Return to Marked Individual "+request.getParameter("markedIndividualName2")+ "</a></p>\n");
             
             out.println(ServletUtilities.getFooter(context));
             
