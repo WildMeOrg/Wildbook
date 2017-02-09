@@ -125,11 +125,9 @@ System.out.println("HEYYYYYYY i am trying to getJobResult(" + jobID + ")");
 		all.put("jobResult", rlog);
 
 		JSONObject proc = IBEISIA.processCallback(taskID, rlog, context);
-    JSONObject procCopy = new JSONObject(proc, JSONObject.getNames(proc));
 
 System.out.println("processCallback returned --> " + proc);
 	}
-  JSONObject procCopy = pro
 } catch (Exception ex) {
 	System.out.println("whoops got exception: " + ex.toString());
 	ex.printStackTrace();
