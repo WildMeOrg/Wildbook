@@ -6,6 +6,7 @@ org.datanucleus.ExecutionContext,
 		 org.joda.time.DateTime,org.ecocean.*,org.ecocean.social.*,org.ecocean.servlet.ServletUtilities,java.io.File, java.util.*, org.ecocean.genetics.*,org.ecocean.security.Collaboration, com.google.gson.Gson,
 org.datanucleus.api.rest.RESTUtils, org.datanucleus.api.jdo.JDOPersistenceManager" %>
 
+
 <%
 String blocker = "";
 String context="context0";
@@ -44,16 +45,12 @@ context=ServletUtilities.getContext(request);
   String markedIndividualTypeCaps = props.getProperty("markedIndividualTypeCaps");
   String nickname = props.getProperty("nickname");
   String nicknamer = props.getProperty("nicknamer");
-  String alternateID = props.getProperty("alternateID");
-  String sex = props.getProperty("sex");
   String setsex = props.getProperty("setsex");
   String numencounters = props.getProperty("numencounters");
   String encnumber = props.getProperty("number");
-  String dataTypes = props.getProperty("dataTypes");
   String date = props.getProperty("date");
   String size = props.getProperty("size");
   String spots = props.getProperty("spots");
-  String location = props.getProperty("location");
   String mapping = props.getProperty("mapping");
   String mappingnote = props.getProperty("mappingnote");
   String setAlternateID = props.getProperty("setAlternateID");
@@ -67,7 +64,6 @@ context=ServletUtilities.getContext(request);
   String addDataFile = props.getProperty("addDataFile");
   String sendFile = props.getProperty("sendFile");
   String researcherComments = props.getProperty("researcherComments");
-  String edit = props.getProperty("edit");
   String matchingRecord = props.getProperty("matchingRecord");
   String tryAgain = props.getProperty("tryAgain");
   String addComments = props.getProperty("addComments");
@@ -76,6 +72,23 @@ context=ServletUtilities.getContext(request);
   String allEncounters = props.getProperty("allEncounters");
   String allIndividuals = props.getProperty("allIndividuals");
 
+  String sex = props.getProperty("sex");
+  String location = props.getProperty("location");
+  String alternateID = props.getProperty("alternateID");
+  String occurringWith = props.getProperty("occurringWith");
+  String behavior = props.getProperty("behavior");
+  String haplotype = props.getProperty("location");
+  String dataTypes = props.getProperty("dataTypes"); 
+  String catalogNumber = props.getProperty("catalogNumber");
+  String rolesOf = props.getProperty("roles");
+  String relationshipWith = props.getProperty("relationshipWith");
+  String typeOf = props.getProperty("type");
+  String socialUnit = props.getProperty("socialUnit");
+  String relationshipID = props.getProperty("relationshipID");
+  String edit = props.getProperty("edit");
+  String remove = props.getProperty("remove");
+  String occurrenceNumber = props.getProperty("occurrenceNumber");
+  
   String name = "";
   Shepherd myShepherd = new Shepherd(context);
   myShepherd.setAction("individuals.jsp");
@@ -84,12 +97,13 @@ context=ServletUtilities.getContext(request);
 	List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 %>
+
 <%
 if (request.getParameter("number")!=null) {
 	name=request.getParameter("number").trim();
 	myShepherd.beginDBTransaction();
 	try{
-		
+
 		if(myShepherd.isMarkedIndividual(name)){
 			MarkedIndividual indie=myShepherd.getMarkedIndividual(name);
 			Vector myEncs=indie.getEncounters();
@@ -193,12 +207,15 @@ if (request.getParameter("number")!=null) {
 
 <link rel="stylesheet" type="text/css" href="css/individualStyles.css">
 
-<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
-<script src="http://phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
+  <link rel="stylesheet" href="css/createadoption.css">
+
+
+<link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:200,600,200italic,600italic' rel='stylesheet' type='text/css'>
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/extarray.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/misc.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/cafej/src/micro-observer.js"></script>
+<script src="//phuonghuynh.github.io/js/bower_components/microplugin/src/microplugin.js"></script>
 <script src="javascript/bubbleDiagram/bubble-chart.js"></script>
 <script src="javascript/bubbleDiagram/encounter-calls.js"></script>
 <script src="javascript/relationshipDiagrams/familyTree.js"></script>
@@ -294,10 +311,39 @@ if (request.getParameter("number")!=null) {
   });
 
 </script>
+<script>
+ // Needed to get language specific values into javascript for table rendering.
+ 
+var tableDictionary = {}
 
+tableDictionary['sex'] = "<%= sex %>";
+tableDictionary['location'] = "<%= location %>";
+tableDictionary['alternateID'] = "<%= alternateID %>";
+tableDictionary['occurringWith'] = "<%= occurringWith %>";
+tableDictionary['behavior'] = "<%= behavior %>";
+tableDictionary['haplotype'] = "<%= haplotype %>";
+tableDictionary['dataTypes'] = "<%= dataTypes %>";
+tableDictionary['catalogNumber'] = "<%= catalogNumber %>";
+tableDictionary['roles'] = "<%= rolesOf %>";
+tableDictionary['relationshipWith'] = "<%= relationshipWith %>";
+tableDictionary['type'] = "<%= typeOf %>";
+tableDictionary['socialUnit'] = "<%= socialUnit %>";
+tableDictionary['relationshipID'] = "<%= relationshipWith %>";
+tableDictionary['edit'] = "<%= edit %>";
+tableDictionary['remove'] = "<%= remove %>";
+tableDictionary['date'] = "<%= date %>";
+tableDictionary['unknown'] = "<%= unknown %>";
+tableDictionary['nickname'] = "<%= nickname %>";
+tableDictionary['occurenceNumber'] = "<%= occurrenceNumber %>";
+
+
+$(document).ready(function() {
+    languageTable(tableDictionary);
+});
+</script>
 
 <%---------- Main Div ----------%>
-<div class="container row maincontent maincontainer">
+<div class="container maincontent">
   <%=blocker%>
   <%
   myShepherd.beginDBTransaction();
@@ -318,14 +364,20 @@ if (request.getParameter("number")!=null) {
               myNickname = sharky.getNickName();
             %>
 
-            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader" class="nickNameHeader" data-individualId ="<%=sharky.getIndividualID()%>"><span id="headerDisplayNickname"><%=myNickname%></span>
+                  <%
+                  if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md"><%=props.getProperty("adoptMe") %><span class="button-icon" aria-hidden="true"></button></a>
+                  <%
+                  }
+                  if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
 
             <div>
-              <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
-              <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+              <button class="btn btn-md" type="button" name="button" id="edit"><%=props.getProperty("edit") %></button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%=props.getProperty("closeEdit") %></button>
             </div>
             <%}%></h1>
-
 
 
             <%
@@ -333,10 +385,18 @@ if (request.getParameter("number")!=null) {
 
           } else {
             %>
-            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%><%if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
+            <h1 id="markedIndividualHeader"><%=markedIndividualTypeCaps%> <%=sharky.getIndividualID()%>
+            <%
+            if(CommonConfiguration.allowAdoptions(context)){
+                  %>
+                    <a href="createadoption.jsp?number=<%=sharky.getIndividualID()%>"><button class="btn btn-md">
+                    <%= props.getProperty("nicknameMe") %><span class="button-icon" aria-hidden="true"></button></a>
+                  <%
+                  }
+            if (isOwner && CommonConfiguration.isCatalogEditable(context)) {%>
             <div>
-              <button class="btn btn-md" type="button" name="button" id="edit">Edit</button>
-              <button class="btn btn-md" type="button" name="button" id="closeEdit">Close Edit</button>
+              <button class="btn btn-md" type="button" name="button" id="edit"><%= props.getProperty("edit") %></button>
+              <button class="btn btn-md" type="button" name="button" id="closeEdit"><%= props.getProperty("closeEditCaps") %>t</button>
             </div>
             <%}%></h1>
           <%
@@ -345,7 +405,7 @@ if (request.getParameter("number")!=null) {
           %>
 
 
-   
+
       <%-- Descriptions --%>
       <div class="row">
         <div class="col-sm-6">
@@ -754,12 +814,12 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 	}
 }
       ArrayList<JSONObject> photoObjectArray = sharky.getExemplarImages(request);
-      String imgurlLoc = "http://" + CommonConfiguration.getURLLocation(request);
+      String imgurlLoc = "//" + CommonConfiguration.getURLLocation(request);
 
       for (int extraImgNo=0; (extraImgNo<photoObjectArray.size() && extraImgNo<5); extraImgNo++) {
         JSONObject newMaJson = new JSONObject();
         newMaJson = photoObjectArray.get(extraImgNo);
-        String newimgUrl = newMaJson.optString("urlDisplay", imgurlLoc+"/cust/mantamatcher/img/hero_manta.jpg");
+        String newimgUrl = newMaJson.optString("urlDisplay", imgurlLoc+"/cust/mantamatcher/img/noimage.jpg");
 
         %>
         <div class="crop-outer">
@@ -798,7 +858,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       if (isOwner && CommonConfiguration.isCatalogEditable(context)) {
       %>
       <font size="-1"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
+      href="//<%=CommonConfiguration.getURLLocation(request) %>/individuals.jsp?number=<%=request.getParameter("number").trim()%>&edit=dynamicproperty&name=<%=nm%>#dynamicproperty"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a></font>
       <%
       }
       %>
@@ -836,9 +896,19 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
             $("#EditRELATIONSHIP").click(function(event) {
               event.preventDefault();
+		
+	      var persistenceID = "";
+	      var relationshipID = $("#inputPersistenceID").val();
+	      if ((relationshipID != null) && (relationshipID != "")) {
+              	persistenceID = relationshipID + "[OID]org.ecocean.social.Relationship";
 
+              }
+                 
+	      
               var type = $("#type").val();
               var markedIndividualName1 = $("#individual1").val();
+	      console.log("editRELATIONSHIP indy.jsp : " + markedIndividualName1);
+              console.log(markedIndividualName2);
               var markedIndividualRole1 = $("#role1").val();
               var markedIndividualName2 = $("#individual2").val();
               var markedIndividualRole2 = $("#role2").val();
@@ -849,7 +919,16 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               var markedIndividual2DirectionalDescriptor = $("#descriptor2").val();
               var bidirectional = $("#bidirectional").val();
 
+	      if (startTime == "-1") { 
+                 startTime = "";
+              }        
+              if (endTime == "-1") { 
+                 endTime = "";
+              }
+		
+   	      console.log("persistenceID sent to encounter-calls: " + persistenceID + " relationshipID: "+ relationshipID );
               $.post("RelationshipCreate", {
+	        "persistenceID": persistenceID,
                 "type": type,
                 "markedIndividualName1": markedIndividualName1,
                 "markedIndividualRole1": markedIndividualRole1,
@@ -863,16 +942,17 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                 "bidirectional": bidirectional
               },
               function(response) {
-                $("#setRelationshipResultDiv").show();
-                $("#relationshipSuccessDiv").html(response);
+                window.location.reload(true);
                 $("#relationshipErrorDiv").empty();
                 $("#addRelationshipForm").hide();
                 <% String relationshipIndividualID = sharky.getIndividualID();%>
                 getRelationshipTableData("<%=relationshipIndividualID%>");
+		
                 $("#communityTable").empty();
                 $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
               })
               .fail(function(response) {
+		console.log("Relationship update failure!");
                 $("#setRelationshipResultDiv").show();
                 $("#relationshipErrorDiv").html(response.responseText);
                 $("#relationshipSuccessDiv").empty();
@@ -918,6 +998,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               <div class="col-xs-9 col-sm-3">
                 <select required name="type" class="form-control relationshipInput" id="type">
                   <%
+		  String indID = sharky.getIndividualID();
                   List<String> types=CommonConfiguration.getIndexedPropertyValues("relationshipType",context);
                   int numTypes=types.size();
                   for(int g=0;g<numTypes;g++){
@@ -936,10 +1017,10 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               <div class="col-xs-3 col-sm-2">
                 <label class="requiredLabel"><%=props.getProperty("individualID1")%></label>
                 <p><small class="highlight"><%=props.getProperty("required")%></small></p>
-              </div>
+              </div>	
               <div class="col-xs-9 col-sm-3">
                 <p id="individual1set"><%=sharky.getIndividualID()%></p>
-                <input required class="form-control relationshipInput" type="text" id="individual1" placeholder="<%=props.getProperty("individualID1")%>"/>
+                <input required class="form-control relationshipInput" type="text" value="<%=indID%>" id="individual1" placeholder="<%=indID%>"/>
               </div>
 
             </div>
@@ -1018,16 +1099,19 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                 <label><%=props.getProperty("startTime")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="<%=props.getProperty("startTime")%>"/>
-              </div>
+                <input id="startTime" class="form-control relationshipInput" name="startTime" type="text" value="<%=startTime%>" placeholder="YYYY-MM-DD"/>
+           	<p style="font-size:0.6em;">YYYY-MM-DD</p>  
+	    </div>
             </div>
             <div class="form-group row">
               <div class="col-xs-3 col-sm-2">
                 <label><%=props.getProperty("endTime")%></label>
               </div>
               <div class="col-xs-9 col-sm-3">
-                <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="<%=props.getProperty("endTime")%>"/>
-              </div>
+		
+               <input id="endTime" class="form-control relationshipInput" name="endTime" type="text" size="20" maxlength="100" value="<%=endTime%>" placeholder="YYYY-MM-DD"/>
+	       <p style="font-size:0.6em;">YYYY-MM-DD</p>
+	      </div>
             </div>
             <div class="form-group row">
               <div class="col-xs-3 col-sm-2">
@@ -1051,6 +1135,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                   %>
                   <option value="false" <%=selected%>>false</option>
                 </select>
+		<input id="inputPersistenceID" class="form-control persistenceID" name="persistenceID" type="hidden" value="">
               </div>
             </div>
             <input class="btn btn-md" name="EditRELATIONSHIP" type="submit" id="EditRELATIONSHIP" value="<%=props.getProperty("update") %>">
@@ -1082,7 +1167,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         <div id="familyDiagram">
           <% String individualID = sharky.getIndividualID();%>
           <script type="text/javascript">
-            setupFamilyTree(<%=individualID%>);
+            setupFamilyTree("<%=individualID%>");
           </script>
         </div>
 
@@ -1112,8 +1197,10 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
               var deletedType = "";
               $(document).on('click', '.editRelationshipBtn', function () {
                 $("#setRelationshipResultDiv").hide();
-                var relationshipID = ($(this).attr("value"));
+                var relationshipID = $(".editRelationshipBtn").val();
                 getRelationshipData(relationshipID);
+		$("#inputPersistenceID").val(relationshipID);
+		$("#individual1").val("<%=individualID%>");
               });
 
               $(document).on('click', '.deleteRelationshipBtn', function () {
@@ -1147,6 +1234,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
                 $.post("RelationshipDelete", {"persistenceID": persistenceID, "markedIndividualName1": deletedMarkedIndividualName1, "markedIndividualName2": deletedMarkedIndividualName2, "type": deletedType},
                 function(response) {
+		  window.location.reload(true);
                   $("#communityTable").empty();
                   $("#communityTable").html("<table id='relationshipTable' class='table table-bordered table-sm table-striped'><thead id='relationshipHead'></thead><tbody id='relationshipBody'></tbody></table>");
                   getRelationshipTableData("<%=individualID%>");
@@ -1202,7 +1290,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         </script>
 
         <%
-        List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
+          List<Map.Entry> otherIndies=myShepherd.getAllOtherIndividualsOccurringWithMarkedIndividual(sharky.getIndividualID());
 
         if(otherIndies.size()>0){
 
@@ -1444,35 +1532,39 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
         <!-- End genetics -->
       </div>
       <br></br>
-      <%-- Start Adoption --%>
+
+      <%-- Map --%>
+      <br>
       <div>
+        <jsp:include page="individualMapEmbed.jsp" flush="true">
+          <jsp:param name="name" value="<%=name%>"/>
+        </jsp:include>
+      </div>
+      <%-- End of Map --%>
+
+
+
+              <%-- Start Adoption --%>
         <%
           if (CommonConfiguration.allowAdoptions(context)) {
         %>
 
-        <div id="rightcol" style="vertical-align: top;">
-          <div id="menu" style="vertical-align: top;">
+      <p><strong><%=props.getProperty("meetAdopters") %></strong></p>
+      <div style="width: 100%;">
 
-
-            <div class="module">
-              <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
-                <jsp:param name="name" value="<%=name%>"/>
-              </jsp:include>
-            </div>
-
-
-          </div><!-- end menu -->
-        </div>
+          <jsp:include page="individualAdoptionEmbed.jsp" flush="true">
+            <jsp:param name="name" value="<%=name%>"/>
+          </jsp:include>
+                </div>
 
           <%
            }
         %>
-      </div>
       <%-- End Adoption --%>
 
       <br>
       <%-- Start Collaborators --%>
-      <div>
+      <div style="width: 100%;clear:both;">
 
           <%
           if(CommonConfiguration.showUsersToPublic(context)){
@@ -1516,17 +1608,17 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
                         <%
                         if(thisUser.getAffiliation()!=null){
                           %>
-                          <p><strong>Affiliation:</strong> <%=thisUser.getAffiliation() %></p>
+                          <p><strong><%=props.getProperty("affiliation") %></strong> <%=thisUser.getAffiliation() %></p>
                           <%
                         }
                         if(thisUser.getUserProject()!=null){
                           %>
-                          <p><strong>Research Project:</strong> <%=thisUser.getUserProject() %></p>
+                          <p><strong><%=props.getProperty("researchProject") %></strong> <%=thisUser.getUserProject() %></p>
                           <%
                             }
                             if(thisUser.getUserURL()!=null){
                             %>
-                            <p><strong>Web site:</strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><p>
+                            <p><strong><%=props.getProperty("webSite") %></strong> <a style="font-weight:normal;color: blue" class="ecocean" href="<%=thisUser.getUserURL()%>"><%=thisUser.getUserURL() %></a><p>
                             <%
                               }
                               if(thisUser.getUserStatement()!=null){
@@ -1561,15 +1653,6 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
 
       <%-- End Collaborators --%>
       </div>
-
-      <%-- Map --%>
-      <br>
-      <div>
-        <jsp:include page="individualMapEmbed.jsp" flush="true">
-          <jsp:param name="name" value="<%=name%>"/>
-        </jsp:include>
-      </div>
-      <%-- End of Map --%>
 
       <br>
       <%-- Comments --%>
@@ -1661,14 +1744,14 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
   if (myShepherd.isEncounter(name)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=name%>">
     </HEAD>
     <%
   }
   else if(myShepherd.isOccurrence(name)) {
     %>
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/occurrence.jsp?number=<%=name%>">
     </HEAD>
     <%
   }
@@ -1680,7 +1763,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
     %>
 
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
     </HEAD>
     <%
   } else if (al2.size() > 0) {
@@ -1690,7 +1773,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
     %>
 
     <meta http-equiv="REFRESH"
-      content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
+      content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=realName%>">
     </HEAD>
     <%
   } else if (al3.size() > 0) {
@@ -1700,7 +1783,7 @@ for (Encounter enJ : sharky.getDateSortedEncounters()) {
       %>
 
       <meta http-equiv="REFRESH"
-        content="0;url=http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
+        content="0;url=//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=realName%>">
       </HEAD>
       <%
   } else {
