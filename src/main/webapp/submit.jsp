@@ -1120,19 +1120,13 @@ function sendButtonClicked() {
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 
-    <%
-    if(request.getUserPrincipal()!=null){
-    %>
-    	$("#encounterForm").attr("action", "EncounterForm");
-    	submitForm();
-    <%
-    }
-    else{
-    %>
-    	if(($('#myCaptcha > *').length < 1)){
+ 
+
+    	if(recaptchaCompleted()){
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
+    	/*
    		else{	console.log('Here!'); 	
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
    					
@@ -1142,10 +1136,9 @@ function sendButtonClicked() {
    						submitForm();
    					}
 		}
+    	*/
 	//alert(recaptachaResponse);
-	<%
-    }
-	%>
+
 	return true;
 }
 </script>
