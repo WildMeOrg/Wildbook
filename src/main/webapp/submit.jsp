@@ -4,9 +4,12 @@
                  org.ecocean.servlet.ServletUtilities,
                  org.ecocean.*,
                  java.util.Properties,
-                 java.util.List" %>
+                 java.util.List,
+                 org.ecocean.servlet.ReCAPTCHA" %>
 
-
+<%
+    boolean amHuman = ReCAPTCHA.sessionIsHuman(request);
+%>
 <!-- Add reCAPTCHA -->
 
 
@@ -18,9 +21,6 @@
 
 
 <jsp:include page="header.jsp" flush="true"/>
-
-<!-- add recaptcha -->
-<script src="https://www.google.com/recaptcha/api.js?render=explicit&onload=onloadCallback"></script>
 
 <%
 boolean isIE = request.getHeader("user-agent").contains("MSIE ");
@@ -1102,33 +1102,17 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 }
 %>
 
-         <%
-         if(request.getRemoteUser()==null){
-         %>
-         <div id="myCaptcha" style="width: 50%;margin: 0 auto; "></div>
-           <script>
-		         //we need to first check here if we need to do the background social image send... in which case,
-		        // we cancel do not do the form submit *here* but rather let the on('load') on the iframe do the task
+<% if (amHuman) { %>
+	<script>
+		function recaptchaCompleted() { return true; } //amHuman-certified
+	</script>
 
-		       var captchaWidgetId;
-		        function onloadCallback() {
-		        	captchaWidgetId = grecaptcha.render(
-
-			        	'myCaptcha', {
-				  			'sitekey' : '<%=recaptchaProps.getProperty("siteKey") %>',  // required
-				  			'theme' : 'light'
-						});
-		        }
-
-
-
-
-
-           </script>
-
-        <%
-         }
-        %>
+<% } else { //unknown human! %>
+	<div id="recaptcha-wrapper">
+	<p><%=props.getProperty("areYouHuman") %></p>
+	<%= ReCAPTCHA.captchaWidget(request, null, "data-callback=\"recaptchaSuccess\"") %>
+	</div>
+<% } %>
 <script>
 
 function sendButtonClicked() {
@@ -1165,7 +1149,7 @@ function sendButtonClicked() {
 	return true;
 }
 </script>
-
+<p>&nbsp;<p>
 
       <p class="text-center">
         <button class="btn btn-primary btn-large" style="background: #74d5f8;border-color: #74d5f8;color: #fff;font-family: 'open-sans',Helvetica,Arial,sans-serif;font-weight: lighter;text-transform: uppercase;border-radius:5px;font-size: 1.125rem;"  type="submit" onclick="return sendButtonClicked();">
