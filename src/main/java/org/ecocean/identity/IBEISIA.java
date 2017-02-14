@@ -272,7 +272,7 @@ myShepherd.closeDBTransaction();
     public static JSONObject sendDetect(ArrayList<MediaAsset> mas, String baseUrl) throws RuntimeException, MalformedURLException, IOException, NoSuchAlgorithmException, InvalidKeyException {
         if (!isIAPrimed()) System.out.println("WARNING: sendDetect() called without IA primed");
         String u = CommonConfiguration.getProperty("IBEISIARestUrlStartDetectImages", "context0");
-        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectAnnotations is not set");
+        if (u == null) throw new MalformedURLException("configuration value IBEISIARestUrlStartDetectImages is not set");
         URL url = new URL(u);
 
         HashMap<String,Object> map = new HashMap<String,Object>();
