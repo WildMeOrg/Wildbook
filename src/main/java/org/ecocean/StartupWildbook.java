@@ -106,25 +106,22 @@ public class StartupWildbook implements ServletContextListener {
 
     //these get run with each tomcat startup/shutdown, if web.xml is configured accordingly.  see, e.g. https://stackoverflow.com/a/785802
     public void contextInitialized(ServletContextEvent sce) {
+        if (skipInit(sce, null)) return;
         System.out.println("* StartupWildbook initialized called");
         ServletContext context = sce.getServletContext(); 
+/*
         URL res = null;
         try {
             res = context.getResource("/");
         } catch (Exception ex) {}
-System.out.println("  StartupWildbook.contextInitialized() res = " + res);
-        //this is very hacky but lets it prime IA only during tomcat restart (not .war deploy)
-        //if ((res == null) || !res.toString().equals("jndi:/localhost/")) return;
-        if ((res != null) && res.toString().equals("jndi:/localhost/")) {
-            IBEISIA.primeIA();
+        // res -> e.g. "jndi:/localhost/fubar"
+*/
+        if (!skipInit(sce, "PRIMEIA")) IBEISIA.primeIA();
         createMatchGraph();
-        }
 
         File qdir = ScheduledQueue.setQueueDir(context);
         if (qdir == null) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
-        } else if ((res == null) || !res.toString().equals("jndi:/localhost/")) {  //mimicking primeIA() here, and skipping for improper resource
-            System.out.println("+ INFO: queue service start skipped for res=" + res.toString());
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
             final ScheduledExecutorService schedExec = Executors.newScheduledThreadPool(5);
@@ -171,7 +168,13 @@ System.out.println("  StartupWildbook.contextInitialized() res = " + res);
       es.execute(new MatchGraphCreationThread());
       
     }
-    
+
+    private static boolean skipInit(ServletContextEvent sce, String extra) {
+        String fname = "/tmp/WB_SKIP_INIT" + ((extra == null) ? "" : "_" + extra);
+        boolean skip = new File(fname).exists();
+        System.out.println("++ StartupWildbook.skipInit() test on " + extra + " [" + fname + "] --> " + skip);
+        return skip;
+    }
 }
 
 
