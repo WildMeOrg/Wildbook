@@ -43,7 +43,7 @@ public class StartupWildbook implements ServletContextListener {
     ensureAssetStoreExists(request, myShepherd);
     ensureProfilePhotoKeywordExists(myShepherd);
 
-    
+
   }
 
   public static void ensureTomcatUserExists(Shepherd myShepherd) {
@@ -92,7 +92,7 @@ public class StartupWildbook implements ServletContextListener {
     myShepherd.commitDBTransaction();
 
   }
-  
+
   public static void ensureProfilePhotoKeywordExists(Shepherd myShepherd) {
     int numKeywords=myShepherd.getNumKeywords();
     if(numKeywords==0){
@@ -108,7 +108,7 @@ public class StartupWildbook implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         if (skipInit(sce, null)) return;
         System.out.println("* StartupWildbook initialized called");
-        ServletContext context = sce.getServletContext(); 
+        ServletContext context = sce.getServletContext();
 /*
         URL res = null;
         try {
@@ -160,13 +160,12 @@ public class StartupWildbook implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         System.out.println("* StartupWildbook destroyed called");
     }
-    
-    
+
+
     public static void createMatchGraph(){
       System.out.println("Entering createMatchGraph StartupWildbook method.");
       ThreadPoolExecutor es=SharkGridThreadExecutorService.getExecutorService();
       es.execute(new MatchGraphCreationThread());
-      
     }
 
     private static boolean skipInit(ServletContextEvent sce, String extra) {
@@ -176,5 +175,4 @@ public class StartupWildbook implements ServletContextListener {
         return skip;
     }
 }
-
 
