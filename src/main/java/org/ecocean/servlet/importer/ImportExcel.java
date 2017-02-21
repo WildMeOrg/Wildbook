@@ -68,7 +68,6 @@ public class ImportExcel extends HttpServlet {
     startShepherd=new Shepherd(context);
     startShepherd.setAction("ImportExcel.class");
     
-    //check for and inject a default user 'tomcat' if none exists
     if (!CommonConfiguration.isWildbookInitialized(startShepherd)) {
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
       StartupWildbook.initializeWildbook(request, startShepherd);
@@ -105,7 +104,7 @@ public class ImportExcel extends HttpServlet {
     // CHECK if local media store exist by calling static function in startupwildbook
     // get the code from index.jsp ~line 30-38
     // persist images in asset store, then associate with encounter
-    // be careful of commiting one and not the other, if you do it will contain a reference to 
+    // be careful of committing one and not the other, if you do it will contain a reference to 
     // that object in RAM, but not the persisted one if at all. 
   }
   
@@ -307,7 +306,9 @@ public class ImportExcel extends HttpServlet {
   }
   
   public Encounter parseEncounter(XSSFRow row) {
-    String indID = stripAccents(getString(row, 12)); 
+    // The individual ID should be the picture number, which should be the same as the ross number.
+    // Ross number is primary ID, but of it doesn't include photo discard. If no Ross number.
+    String indID = stripAccents(getString(row, 13)); 
     Encounter enc = new Encounter();
     
     enc.setIndividualID(indID);
@@ -334,6 +335,9 @@ public class ImportExcel extends HttpServlet {
     parseDynProp(enc, "vickiNum", row, 6);
     parseDynProp(enc, "encounterTime", row, 3);
     parseDynProp(enc, "imageNum", row, 13);
+    
+    // Weight Commmon configuration.labels.properties <-- define measurments in language folder
+    // Measurement object  
     
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
