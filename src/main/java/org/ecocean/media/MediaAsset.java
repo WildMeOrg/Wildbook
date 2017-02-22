@@ -794,15 +794,16 @@ public class MediaAsset implements java.io.Serializable {
     }
 
 
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             return sanitizeJson(request, jobj, true);
         }
 
         //fullAccess just gets cascaded down from Encounter -> Annotation -> us... not sure if it should win vs security(request) TODO
-	public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
+        public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
               org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
               jobj.put("id", this.getId());
+                jobj.put("detectionStatus", this.getDetectionStatus());
               jobj.remove("parametersAsString");
             //jobj.put("guid", "http://" + CommonConfiguration.getURLLocation(request) + "/api/org.ecocean.media.MediaAsset/" + id);
 
