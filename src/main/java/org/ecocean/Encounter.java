@@ -1806,7 +1806,10 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
     private void updateAnnotationTaxonomy() {
-        //TODO make this, duh
+        if ((getAnnotations() == null) || (getAnnotations().size() < 1)) return;
+        for (Annotation ann : getAnnotations()) {
+            ann.setSpecies(getTaxonomyString());  //TODO in some perfect world this would use IA-specific mapping calls and/or yet-to-be-made Taxonomy class etc
+        }
     }
 
     public String getTaxonomyString() {
