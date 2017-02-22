@@ -2704,6 +2704,29 @@ throw new Exception();
         return enc;
     }
 
+    //this is a special state only used now for match.jsp but basically means the data should be mostly hidden and soon deleted, roughly speaking???
+    //  TODO figure out what this really means
+    public void setMatchingOnly() {
+        this.setState(STATE_MATCHING_ONLY);
+    }
+
+
+    /*
+       note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
+       this probably should be upon some (mythical) BASE CLASS!!!! ... for now, this Encounter variation kinda fudges with existing "ownership" stuff,
+       namely, the submitterID - which maps (in theory!) to a User username.
+       TODO much much much  ... incl call via constructor maybe ??  etc.
+    */
+    // NOTE: not going to currently persist the AccessControl object yet, but create on the fly...  clever? stupid?
+    public AccessControl getAccessControl() {
+        if ((submitterID == null) || submitterID.equals("")) return new AccessControl();  //not sure if we really have some "" but lets be safe
+        return new AccessControl(submitterID);
+    }
+    public void setAccessControl(HttpServletRequest request) {   //really just setting submitterID duh
+        this.submitterID = AccessControl.simpleUserString(request);  //null if anon
+    }
+
+
     public String toString() {
         return new ToStringBuilder(this)
                 .append("catalogNumber", catalogNumber)

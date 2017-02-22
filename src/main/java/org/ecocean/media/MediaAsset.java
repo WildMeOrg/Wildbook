@@ -643,6 +643,7 @@ public class MediaAsset implements java.io.Serializable {
         //the throw-away Shepherd object is [mostly!] ok here since we arent returning the MediaAsset it is used to find
         Shepherd myShepherd = new Shepherd(context);
         myShepherd.setAction("MediaAsset.safeURL");
+        myShepherd.beginDBTransaction();
         URL u = safeURL(myShepherd, request);
         myShepherd.rollbackDBTransaction();
         myShepherd.closeDBTransaction();
@@ -833,7 +834,7 @@ public class MediaAsset implements java.io.Serializable {
             //note? warning? i guess this will traverse... gulp?
             String context = ServletUtilities.getContext(request);
             Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAsset.class");
+            myShepherd.setAction("MediaAsset.class_1");
             myShepherd.beginDBTransaction();
 
             URL u = safeURL(myShepherd, request);
