@@ -338,6 +338,7 @@ public class Annotation implements java.io.Serializable {
                 }
                 jobj.put("features", feats);
             }
+            jobj.put("identificationStatus", this.getIdentificationStatus());
             return jobj;
         }
 
