@@ -61,7 +61,8 @@ public class ImportExcel extends HttpServlet {
     context = ServletUtilities.getContext(request);
     baseURL = getBaseURL(request); 
     
-    out.println("Importer usage in browser: https://yourhost/ImportExcel?exceldir='yourexceldirectory'&imgdir='yourimagedirectory'&commit='trueorfalse' ");
+    out.println("Importer usage in browser: https://yourhost/ImportExcel?exceldir=yourexceldirectory&imgdir=yourimagedirectory&commit='trueorfalse' ");
+    out.println("The default directories are /opt/excel_imports and /opt/image_imports. commit=false to test data parsing, true to actually save.");
     // set up a Shepherd
     // He will make sure that the default asset store is created if Wildbook hasn't made one for whatever reason.
     Shepherd startShepherd=null;
@@ -73,9 +74,9 @@ public class ImportExcel extends HttpServlet {
       StartupWildbook.initializeWildbook(request, startShepherd);
     }
     
-    boolean committing =  (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
+    boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
     
-    String exceldir = "/excel_imports/";
+    String exceldir = "/opt/excel_imports";
     if (request.getParameter("exceldir") != null) exceldir = request.getParameter("exceldir");
     File[] excelFileList = getFiles(exceldir);
     boolean excelFound = excelFileList.length > 0;
@@ -84,7 +85,7 @@ public class ImportExcel extends HttpServlet {
       processExcel(file, response, committing);
     }
     
-    String imagedir = "/image_imports/";
+    String imagedir = "/opt/image_imports/";
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
     boolean imagesFound = imageFileList.length > 0;
@@ -94,7 +95,7 @@ public class ImportExcel extends HttpServlet {
     }
     
     out.println("Excel File(s) found = "+String.valueOf(excelFound)+" at "+excelFileList[0].getAbsolutePath());
-    out.println("Image File(s) found = "+String.valueOf(imagesFound)+" at "+imageFileList[0].getAbsolutePath());
+    //out.println("Image File(s) found = "+String.valueOf(imagesFound)+" at "+imageFileList[0].getAbsolutePath());
     
     //Create Workbook instance holding reference to .xls file 
     // XSSF is used for .xlxs files
@@ -126,60 +127,71 @@ public class ImportExcel extends HttpServlet {
       e.printStackTrace();      
     }
         
-    String encountersDirPath=assetStorePath+"/encounters";
     String photoFileName = null;
     String photoNumber = null;
+    boolean isValid = false;
     try {
       if (committing) myShepherd.beginDBTransaction();
       photoFileName = imageFile.getName();
-      photoNumber = photoFileName.substring(4,6);
+      photoNumber = photoFileName.substring(4,7);
+      if (Character.isDigit(photoFileName.substring(7).charAt(0))) {
+        isValid = false;
+        myShepherd.closeDBTransaction();
+        out.println("Image rejected. Image filename contains invalid characters for asset ID.");
+      }
       out.println("++++ Photo number "+photoNumber+" Identified! ++++");
     } catch (Exception e) {
       out.println("!!!! Error grabbing image number to search for matching encounter. !!!!");
       e.printStackTrace();
     }
     
-    File photo = new File(imagedir, photoFileName);
-    JSONObject params = assetStore.createParameters(photo);
-    MediaAsset ma = null;
-    try {
-      ma = new MediaAsset(assetStore, params);
-      out.println("++++ Created a media asset with params: "+ma.getParameters().toString()+" ++++");
-    } catch (Exception e) {
-      out.println("!!!! Error creating media asset for image number "+photoNumber+" !!!!");
-      e.printStackTrace();
-    }
-    
-    if (committing) {
-      try {
-        ma.copyIn(photo);
-        myShepherd.getPM().makePersistent(ma);
-        ma.updateStandardChildren(myShepherd);
-        ma.updateMinimalMetadata();
-      } catch (Exception e) {
-        out.println("!!!! Error persisting media asset !!!!");
-        e.printStackTrace(); 
+    if (isValid == true) {
+      File photo = new File(imagedir, photoFileName);
+      JSONObject params = assetStore.createParameters(photo);
+      MediaAsset ma = null;
+      if (committing && isValid == true) {
+        try {
+          ma = new MediaAsset(assetStore, params);
+          out.println("++++ Created a media asset with params: "+ma.getParameters().toString()+" ++++");
+        } catch (Exception e) {
+          out.println("!!!! Error creating media asset for image number "+photoNumber+" !!!!");
+          e.printStackTrace();
+        }
       }
-    }
-    
-    Annotation ann = new Annotation("Psammobates geometricus", ma);
-    if (committing) {
-      try {
-        myShepherd.storeNewAnnotation(ann);
-      } catch (Exception e) {
-        out.println("!!!! Error storing new annotation for media asset !!!!");
-        e.printStackTrace(); 
+      
+      if (committing) {
+        try {
+          ma.copyIn(photo);
+          myShepherd.getPM().makePersistent(ma);
+          ma.updateStandardChildren(myShepherd);
+          ma.updateMinimalMetadata();
+        } catch (Exception e) {
+          out.println("!!!! Error persisting media asset !!!!");
+          e.printStackTrace(); 
+        }
       }
-    }
-    
-    Encounter match = null;
-    Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
-    while (allEncs.hasNext() == true) {
-      Encounter enc = allEncs.next();
-      if (enc.getDynamicPropertyValue("imageNum") == photoNumber) {
-        // Associate after commiting
+      
+      Annotation ann = new Annotation("Psammobates geometricus", ma);
+      if (committing) {
+        try {
+          myShepherd.storeNewAnnotation(ann);
+        } catch (Exception e) {
+          out.println("!!!! Error storing new annotation for media asset !!!!");
+          e.printStackTrace(); 
+        }
       }
-    } 
+      // Hashmap --> annotations to id of enc
+      // Then add the map to the enc when creating it
+      // enc.addAnnotations
+      Encounter match = null;
+      Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
+      while (allEncs.hasNext() == true) {
+        Encounter enc = allEncs.next();
+        if (enc.getDynamicPropertyValue("imageNum") == photoNumber) {
+          // Associate after commiting
+        }
+      }    
+    }
     
     // You are trying to create media assets for each image file. Each image has a photo number
     // at the 4-6 character of it's file name.
@@ -279,11 +291,12 @@ public class ImportExcel extends HttpServlet {
   }
 
   public File[] getFiles(String path) {
+    File[] arr;
     try {
       File folder = new File(path);
       System.out.println("+++++ "+folder.toString()+" FOLDER STRING +++++");
-      File[] arr = folder.listFiles();
-      System.out.println(arr.toString() + "  ARRAY STRING");
+      arr = folder.listFiles();
+      System.out.println(Arrays.toString(arr) + "  ARRAY STRING");
       for (File file : arr) {
         if (file.isFile()) {
           System.out.println("++ FOUND FILE: "+file.getName()+" at "+ file.getAbsolutePath());
@@ -338,6 +351,10 @@ public class ImportExcel extends HttpServlet {
     
     // Weight Commmon configuration.labels.properties <-- define measurments in language folder
     // Measurement object  
+    
+    // Constructor for encounter takes annotation list - maybe useful
+    
+    // setAnnotations takes array list
     
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
