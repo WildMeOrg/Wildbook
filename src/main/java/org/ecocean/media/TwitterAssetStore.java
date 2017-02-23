@@ -92,6 +92,9 @@ public class TwitterAssetStore extends AssetStore {
         p.put("id", tweetId);
         return create(p);
     }
+    public MediaAsset create(final long tweetId) {
+        return create(Long.toString(tweetId));
+    }
     public MediaAsset create(final String id, final String type) {
         JSONObject p = new JSONObject();
         p.put("id", id);
