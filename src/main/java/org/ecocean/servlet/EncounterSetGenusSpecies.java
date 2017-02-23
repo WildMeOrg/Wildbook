@@ -22,6 +22,7 @@ package org.ecocean.servlet;
 import org.ecocean.CommonConfiguration;
 import org.ecocean.Encounter;
 import org.ecocean.Shepherd;
+import org.ecocean.Annotation;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -104,6 +105,11 @@ public class EncounterSetGenusSpecies extends HttpServlet {
       }
 
       if (!locked) {
+        if (myShark.getAnnotations() != null) {  //need to persist annots as well, since they have changed as well
+            for (Annotation ann : myShark.getAnnotations()) {
+                myShepherd.getPM().makePersistent(ann);
+            }
+        }
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
         //out.println(ServletUtilities.getHeader(request));
