@@ -58,7 +58,12 @@ context=ServletUtilities.getContext(request);
     height: 100% !important;
     margin-top: 0px !important;
     margin-bottom: 8px !important;
+    }
 
+	.required-missing {
+		outline: solid 4px rgba(255,0,0,0.5);
+		background-color: #FF0;
+	}
 
  .ui-timepicker-div .ui-widget-header { margin-bottom: 8px; }
 .ui-timepicker-div dl { text-align: left; }
@@ -767,6 +772,52 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 
 
 
+<%
+
+if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+%>
+
+      <div class="form-group">
+          <div class="col-xs-6 col-md-4">
+            <label class="control-label"><%=props.getProperty("species") %></label>
+          </div>
+
+          <div class="col-xs-6 col-lg-8">
+            <select class="form-control" name="genusSpecies" id="genusSpecies" onChange="$('.required-missing').removeClass('required-missing'); return true;">
+             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
+  <%
+
+  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
+  					int numGenusSpeciesProps=species.size();
+  					String selected="";
+  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
+
+                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
+
+                    	for(int q=0;q<numGenusSpeciesProps;q++){
+                           String currentGenuSpecies = "genusSpecies"+q;
+                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
+                               %>
+                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
+                               <%
+
+                        }
+
+
+                   }
+                   }
+ %>
+  </select>
+    </div>
+        </div>
+
+        <%
+}
+
+%>
+
+
 
   <h4 class="accordion">
     <a href="javascript:animatedcollapse.toggle('advancedInformation')" style="text-decoration:none">
@@ -801,50 +852,6 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
         </fieldset>
         <hr>
         <fieldset>
-<%
-
-if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-%>
-
-      <div class="form-group">
-          <div class="col-xs-6 col-md-4">
-            <label class="control-label"><%=props.getProperty("species") %></label>
-          </div>
-
-          <div class="col-xs-6 col-lg-8">
-            <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	<option value="" selected="selected"><%=props.getProperty("submit_unsure") %></option>
-  <%
-
-  					List<String> species=CommonConfiguration.getIndexedPropertyValues("genusSpecies", context);
-  					int numGenusSpeciesProps=species.size();
-  					String selected="";
-  					if(numGenusSpeciesProps==1){selected="selected=\"selected\"";}
-
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-
-                    	for(int q=0;q<numGenusSpeciesProps;q++){
-                           String currentGenuSpecies = "genusSpecies"+q;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>" <%=selected %>><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-
-                        }
-
-
-                   }
-                   }
- %>
-  </select>
-    </div>
-        </div>
-
-        <%
-}
-
-%>
 
   <div class="form-group">
           <div class="col-xs-6 col-md-4">
@@ -1110,6 +1117,14 @@ if(CommonConfiguration.showProperty("showLifestage",context)){
 
 function sendButtonClicked() {
 	console.log('sendButtonClicked()');
+	$('.required-missing').removeClass('required-missing')
+
+	if (!$('#genusSpecies').val()) {
+		$('#genusSpecies').closest('.form-group').addClass('required-missing');
+		window.setTimeout(function() { alert('You must set a species first.'); }, 100);
+		return false;
+	}
+
 	if (sendSocialPhotosBackground()) return false;
 	console.log('fell through -- must be no social!');
 
