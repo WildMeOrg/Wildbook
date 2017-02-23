@@ -29,7 +29,7 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.Util;
 import org.ecocean.identity.IdentityServiceLog;
 import org.ecocean.identity.IBEISIA;
-//import org.ecocean.Encounter;
+import org.ecocean.Encounter;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Files;
@@ -811,6 +811,12 @@ public class MediaAsset implements java.io.Serializable {
             HashMap<String,String> s = new HashMap<String,String>();
             s.put("type", store.getType().toString());
             jobj.put("store", s);
+
+            String context = ServletUtilities.getContext(request);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MediaAsset.class_1");
+            myShepherd.beginDBTransaction();
+
             ArrayList<Feature> fts = getFeatures();
             if ((fts != null) && (fts.size() > 0)) {
                 org.datanucleus.api.rest.orgjson.JSONArray jarr = new org.datanucleus.api.rest.orgjson.JSONArray();
@@ -821,6 +827,18 @@ public class MediaAsset implements java.io.Serializable {
                     jf.put("type", ft.getType());
                     JSONObject p = ft.getParameters();
                     if (p != null) jf.put("parameters", Util.toggleJSONObject(p));
+
+                    //we add this stuff for gallery/image to link to co-occurring indiv/enc
+                    Annotation ann = ft.getAnnotation();
+                    if (ann != null) {
+                        jf.put("annotationId", ann.getId());
+                        Encounter enc = ann.findEncounter(myShepherd);
+                        if (enc != null) {
+                            jf.put("encounterId", enc.getCatalogNumber());
+                            if (enc.hasMarkedIndividual()) jf.put("individualId", enc.getIndividualID());
+                        }
+                    }
+
                     jarr.put(jf);
                 }
                 jobj.put("features", jarr);
@@ -833,11 +851,6 @@ public class MediaAsset implements java.io.Serializable {
             if (dt != null) jobj.put("dateTime", dt.toString());  //DateTime.toString() gives iso8601, noice!
 
             //note? warning? i guess this will traverse... gulp?
-            String context = ServletUtilities.getContext(request);
-            Shepherd myShepherd = new Shepherd(context);
-            myShepherd.setAction("MediaAsset.class_1");
-            myShepherd.beginDBTransaction();
-
             URL u = safeURL(myShepherd, request);
             if (u != null) jobj.put("url", u.toString());
 
