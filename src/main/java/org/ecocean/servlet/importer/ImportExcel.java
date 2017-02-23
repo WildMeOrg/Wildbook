@@ -91,7 +91,8 @@ public class ImportExcel extends HttpServlet {
     boolean imagesFound = imageFileList.length > 0;
     for (File file : imageFileList) {
       out.println("++ Processing Image File: "+file.getName()+" at "+ file.getAbsolutePath());
-      processImage(file, response, committing, imagedir);
+      int[] arrIds = processImage(file, response, committing, imagedir);
+      System.out.println("====== "+Arrays.toString(arrIds)+"  AnnotationID, AssetID ======");
     }
     
     out.println("Excel File(s) found = "+String.valueOf(excelFound)+" at "+excelFileList[0].getAbsolutePath());
@@ -109,7 +110,7 @@ public class ImportExcel extends HttpServlet {
     // that object in RAM, but not the persisted one if at all. 
   }
   
-  public void processImage(File imageFile, HttpServletResponse response, boolean committing, String imagedir) throws IOException {
+  public int[] processImage(File imageFile, HttpServletResponse response, boolean committing, String imagedir) throws IOException {
     
     Shepherd myShepherd = new Shepherd(context);
     String rootDir = getServletContext().getRealPath("/");
@@ -129,15 +130,23 @@ public class ImportExcel extends HttpServlet {
         
     String photoFileName = null;
     String photoNumber = null;
+    int assetId = 0;
     boolean isValid = false;
     try {
       if (committing) myShepherd.beginDBTransaction();
       photoFileName = imageFile.getName();
       photoNumber = photoFileName.substring(4,7);
-      if (Character.isDigit(photoFileName.substring(7).charAt(0))) {
+      char x = 'x';
+      if (photoNumber.substring(2).charAt(0) == x) {
         isValid = false;
         myShepherd.closeDBTransaction();
         out.println("Image rejected. Image filename contains invalid characters for asset ID.");
+      } else {
+        isValid = true;
+      }
+      char z = '0';
+      if (photoNumber.charAt(0) == z) {
+        photoNumber = photoNumber.substring(1);
       }
       out.println("++++ Photo number "+photoNumber+" Identified! ++++");
     } catch (Exception e) {
@@ -175,14 +184,19 @@ public class ImportExcel extends HttpServlet {
       if (committing) {
         try {
           myShepherd.storeNewAnnotation(ann);
+          myShepherd.commitDBTransaction();
         } catch (Exception e) {
           out.println("!!!! Error storing new annotation for media asset !!!!");
           e.printStackTrace(); 
         }
       }
+      assetId = ma.getId();
       // Hashmap --> annotations to id of enc
       // Then add the map to the enc when creating it
       // enc.addAnnotations
+      
+      // MAYBE change this to return the asset, and store it in an array in main.
+      // Do the same with encounters, then we can try and associate only stuff from this batch.
       Encounter match = null;
       Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
       while (allEncs.hasNext() == true) {
@@ -199,9 +213,10 @@ public class ImportExcel extends HttpServlet {
     // Then associate each encounter with the appropriate media assets. 
     // SAVE ASSET --> GET NUMBER --> SEARCH ENCOUNTER NUMBERS -->>> SAVE PAIR 
     
-    
     // THE END
+    isValid = false;
     myShepherd.closeDBTransaction();
+    return new int[]{assetId,Integer.parseInt(photoNumber)};
   }
   
   public void processExcel(File dataFile, HttpServletResponse response, boolean committing) throws IOException {  
