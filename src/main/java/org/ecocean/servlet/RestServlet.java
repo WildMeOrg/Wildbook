@@ -535,9 +535,8 @@ public class RestServlet extends HttpServlet
             }
 
             Object pc = RESTUtils.getObjectFromJSONObject(jsonobj, className, ec);
-                        boolean restAccessOk = true;  //nope! now we are letting anyone in (go spring break! woohoo!)
                         //boolean restAccessOk = restAccessCheck(pc, req, jsonobj);
-                        //boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
+                        boolean restAccessOk = false;  //TEMPORARILY disable ALL access to POST/PUT until we really test things  TODO
 /*
 System.out.println(jsonobj);
 System.out.println("+++++");
