@@ -306,7 +306,7 @@ for (Encounter enJ : indie.getDateSortedEncounters()) {
 	}
 }
 
-          ArrayList<JSONObject> al = indie.getExemplarImages(request);
+          ArrayList<JSONObject> al = indie.getExemplarImages(request,25);
           JSONObject maJson=new JSONObject();
           if(al.size()>0){maJson=al.get(0);}
           pairCopyright[j] =
