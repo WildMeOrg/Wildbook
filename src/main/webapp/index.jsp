@@ -620,13 +620,17 @@ You too can assist with whale shark research, by submitting photos and sighting 
 <div class="container-fluid">
     <section class="container text-center  main-section">
         <div class="row">
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numMarkedIndividuals %></span> identified whale sharks</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
                 <p class="brand-primary"><i><span class="massive"><%=numEncounters %></span> reported sightings</i></p>
             </section>
-            <section class="col-xs-12 col-sm-4 col-md-4 col-lg-4 padding">
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
+
+                <p class="brand-primary"><i><span class="massive">5200</span> citizen scientists</i></p>
+            </section>
+            <section class="col-xs-12 col-sm-3 col-md-3 col-lg-3 padding">
 
                 <p class="brand-primary"><i><span class="massive"><%=numDataContributors %></span> researchers and volunteers</i></p>
             </section>
