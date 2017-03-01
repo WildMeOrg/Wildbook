@@ -243,7 +243,7 @@
 					/SubmitSpotsAndTransformImage = authc,roles[researcher]
 
 					/ResurrectDeletedEncounter = authc,roles[admin]
-					
+
 
 
             </param-value>
@@ -968,6 +968,12 @@
   </servlet>
 
   <servlet>
+    <servlet-name>EncounterSetPopulation</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetPopulation</servlet-class>
+  </servlet>
+
+
+  <servlet>
         <servlet-name>EncounterSetReleaseDate</servlet-name>
         <servlet-class>org.ecocean.servlet.EncounterSetReleaseDate</servlet-class>
   </servlet>
@@ -1512,6 +1518,11 @@
   </servlet-mapping>
 
   <servlet-mapping>
+    <servlet-name>EncounterSetPopulation</servlet-name>
+    <url-pattern>/EncounterSetPopulation</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
         <servlet-name>EncounterSetReleaseDate</servlet-name>
         <url-pattern>/EncounterSetReleaseDate</url-pattern>
   </servlet-mapping>
@@ -2012,6 +2023,25 @@
     <servlet-name>LoginUserSocial</servlet-name>
     <url-pattern>/LoginUserSocial</url-pattern>
   </servlet-mapping>
+
+
+  <servlet>
+    <servlet-name>GpsToUtm</servlet-name>
+    <servlet-class>org.ecocean.servlet.GpsToUtm</servlet-class>
+  </servlet>
+  <servlet-mapping>
+     <servlet-name>GpsToUtm</servlet-name>
+     <url-pattern>/GpsToUtm</url-pattern>
+   </servlet-mapping>
+   <servlet>
+     <servlet-name>UtmToGps</servlet-name>
+     <servlet-class>org.ecocean.servlet.UtmToGps</servlet-class>
+   </servlet>
+   <servlet-mapping>
+      <servlet-name>UtmToGps</servlet-name>
+      <url-pattern>/UtmToGps</url-pattern>
+    </servlet-mapping>
+
 
 
 </web-app>

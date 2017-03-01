@@ -119,7 +119,12 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //Properties encprops = new Properties();
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
 
+  System.out.println("langCode = "+langCode);
+
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+
+  System.out.println("printing ecprops: ");
+  encprops.list(System.out);
 
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
@@ -130,7 +135,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
   Shepherd myShepherd = new Shepherd(context);
-  myShepherd.setAction("encounter.jsp1");
+  myShepherd.setAction("encounter.jsp");
   //Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   //Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 //System.out.println("???? query=" + kwQuery);
@@ -963,6 +968,71 @@ $(function() {
 							</div>
 
 <!-- END INDIVIDUALID ATTRIBUTE -->
+<!-- START POPULATION -->
+
+  <%
+  String populationStr = enc.getPopulation();
+  if (populationStr == null || populationStr.equals("")) populationStr = encprops.getProperty("population");
+  %>
+
+  <p>
+    <img align="absmiddle" src="../images/alternateid.gif">
+    <%=encprops.getProperty("population")%>: <span id="displayAltID"><%=enc.getPopulation()%></span>
+  </p>
+
+  <div class="highlight resultMessageDiv" id="populationErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setPopulation")%></strong></p>
+
+  <form name="addPopulation" class="editForm">
+    <input name="number" type="hidden" value="<%=num%>" id="populationEncNum"/>
+
+        <div class="form-group row">
+          <div class="col-sm-3">
+            <label><%=encprops.getProperty("population")%>:</label>
+          </div>
+          <div class="col-sm-5 col-xs-10">
+            <input name="population" type="text" class="form-control" id="selectPopulation" value="<%=populationStr%>"/>
+          </div>
+          <div class="col-sm-4">
+            <input name="Set" type="submit" id="setPopulationBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn"/>
+          </div>
+        </div>
+    </form>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $("#setPopulationBtn").click(function(event) {
+        event.preventDefault();
+
+        $("#setPopulationBtn").hide();
+
+        var encounter = $("#populationEncNum").val();
+        var population = $("#selectPopulation").val();
+
+        $.post("../EncounterSetPopulation", {"encounter": encounter, "population": population},
+        function() {
+          $("#populationErrorDiv").hide();
+          $("#populationCheck").show();
+          $("#displayPopulation").html(population);
+        })
+        .fail(function(response) {
+          $("#populationError, #populationErrorDiv").show();
+          $("#populationErrorDiv").html(response.responseText);
+        });
+      });
+
+      $("#selectPopulation").click(function() {
+        $("#populationError, #populationCheck, #populationErrorDiv").hide()
+        $("#populationFormBtn").show();
+      });
+    });
+  </script>
+
+
+<!-- end population -->
+
+
 
 <!-- START ALTERNATEID ATTRIBUTE -->
             <%
@@ -1923,7 +1993,7 @@ if (prettyStudySiteID!=null) {
 <!-- end location -->
 
 
-<!-- start country -->
+<!-- start country and population-->
 <script type="text/javascript">
   $(document).ready(function() {
     $("#countryFormBtn").click(function(event) {
@@ -1951,6 +2021,8 @@ if (prettyStudySiteID!=null) {
       $("#countryFormBtn").show();
     });
   });
+
+
 </script>
 
 <div>

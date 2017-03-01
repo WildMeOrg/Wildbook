@@ -125,6 +125,10 @@ public class Encounter implements java.io.Serializable {
     * The following fields are specific to this mark-recapture project and do not have an easy to map Darwin Core equivalent.
     */
 
+  // For studies with named animal populations
+  public String population;
+
+
   private String studySiteID;
 
   //An URL to a thumbnail image representing the encounter.
@@ -305,6 +309,14 @@ public class Encounter implements java.io.Serializable {
       this.occurrenceID = occ.getOccurrenceID();
       this.individualID = individualID;
     }
+
+
+  public String getPopulation() {
+    return population;
+  }
+  public void setPopulation(String population) {
+    this.population = population;
+  }
 
 
 

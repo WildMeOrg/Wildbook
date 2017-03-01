@@ -393,6 +393,23 @@
       <version>${geotools.version}</version>
     </dependency>
 
+    <!-- Necessary for converting between UTM/GPS -->
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-xml</artifactId>
+      <version>${geotools.version}</version>
+    </dependency>
+
+    <!-- is this necessary? from
+     http://docs.geotools.org/latest/userguide/tutorial/geometry/geometrycrs.html
+    <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-swing</artifactId>
+        <version>${geotools.version}</version>
+    </dependency>
+    -->
+
+
     <dependency>
       <groupId>jstl</groupId>
       <artifactId>jstl</artifactId>
@@ -404,7 +421,7 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
-	
+
 <dependency>
     <groupId>org.twitter4j</groupId>
     <artifactId>twitter4j-core</artifactId>
