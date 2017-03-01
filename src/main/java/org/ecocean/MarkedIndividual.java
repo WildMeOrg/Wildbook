@@ -1870,6 +1870,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             String context = ServletUtilities.getContext(req);
             Shepherd myShepherd = new Shepherd(context);
             myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
             ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
             if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
             if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
