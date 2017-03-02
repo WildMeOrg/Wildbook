@@ -123,9 +123,6 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
-  System.out.println("printing ecprops: ");
-  encprops.list(System.out);
-
 	Properties collabProps = new Properties();
  	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
 
@@ -1892,6 +1889,13 @@ String governmentAreaStr = enc.getGovernmentArea();
 if (governmentAreaStr == null) governmentAreaStr = "";
 %>
 <em><%=encprops.getProperty("governmentArea")%>: <span id="displayGovernmentArea"><%=governmentAreaStr%></span></em>
+<br>
+
+<%
+String huntingStateStr = enc.getHuntingState();
+if (huntingStateStr == null) huntingStateStr = "";
+%>
+<em><%=encprops.getProperty("huntingState")%>: <span id="displayHuntingState"><%=huntingStateStr%></span></em>
 
 
 
@@ -2005,10 +2009,10 @@ if (governmentAreaStr == null) governmentAreaStr = "";
 <!-- START GOVERNMENT AREA -->
 <script type="text/javascript">
   $(document).ready(function() {
-    $("#setGovernmentAreaBtn").click(function(event) {
+    $("#governmentAreaFormBtn").click(function(event) {
       event.preventDefault();
 
-      $("#setGovernmentAreaBtn").hide();
+      $("#governmentAreaFormBtn").hide();
 
       var encounter = $("#governmentAreaEncNum").val();
       var governmentArea = $("#selectGovernmentArea").val();
@@ -2057,6 +2061,61 @@ if (governmentAreaStr2 == null) governmentAreaStr2 = "";
 </div>
 
 <!-- end governmentArea -->
+<!-- START HUNTING STATE -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#huntingStateFormBtn").click(function(event) {
+      event.preventDefault();
+
+      $("#huntingStateFormBtn").hide();
+
+      var encounter = $("#huntingStateEncNum").val();
+      var huntingState = $("#selectHuntingState").val();
+
+      $.post("../EncounterSetHuntingState", {"encounter": encounter, "huntingState": huntingState},
+      function() {
+        $("#huntingStateErrorDiv").hide();
+        $("#huntingStateCheck").show();
+        $("#displayHuntingState").html(huntingState);
+      })
+      .fail(function(response) {
+        $("#huntingStateError, #huntingStateErrorDiv").show();
+        $("#huntingStateErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectHuntingState").click(function() {
+      $("#huntingStateError, #huntingStateCheck, #huntingStateErrorDiv").hide()
+      $("#huntingStateFormBtn").show();
+    });
+  });
+</script>
+<%
+String huntingStateStr2 = enc.getHuntingState();
+if (huntingStateStr2 == null) huntingStateStr2 = "";
+%>
+
+<div>
+  <div class="highlight resultMessageDiv" id="huntingStateErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setHuntingState")%></strong></p>
+
+  <form name="addHuntingState" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="huntingStateEncNum"/>
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <input name="huntingState" type="text" class="form-control" id="selectHuntingState" value="<%=huntingStateStr2%>"/>
+      </div>
+      <div class="col-sm-3">
+        <input name="<%=encprops.getProperty("set")%>" type="submit" id="huntingStateFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn encFormBtn"/>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<!-- end huntingState -->
 
 
 <!-- start country -->
