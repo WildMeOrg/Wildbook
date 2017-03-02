@@ -7,7 +7,7 @@ import java.io.*;
 import org.ecocean.*;
 
 
-public class EncounterSetGovernmentArea extends HttpServlet {
+public class EncounterSetHuntingState extends HttpServlet {
 
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -24,14 +24,14 @@ public class EncounterSetGovernmentArea extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
-    myShepherd.setAction("EncounterSetGovernmentArea.class");
+    myShepherd.setAction("EncounterSetHuntingState.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
     boolean locked=false;
 
     String encNum = request.getParameter("encounter");
-    String governmentArea = request.getParameter("governmentArea");
+    String huntingState = request.getParameter("huntingState");
     myShepherd.beginDBTransaction();
 
     if (!myShepherd.isEncounter(encNum)) {
@@ -40,7 +40,7 @@ public class EncounterSetGovernmentArea extends HttpServlet {
 
       myShepherd.rollbackDBTransaction();
       //out.println(ServletUtilities.getHeader(request));
-      out.println("<strong>Error:</strong> I was unable to set the governmentArea. I cannot find encounter"+encNum+" that you intended in the database.");
+      out.println("<strong>Error:</strong> I was unable to set the huntingState. I cannot find encounter"+encNum+" that you intended in the database.");
       //out.println(ServletUtilities.getFooter(context));
       response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.close();
@@ -51,20 +51,20 @@ public class EncounterSetGovernmentArea extends HttpServlet {
 
     Encounter enc = myShepherd.getEncounter(encNum);
 
-    if (governmentArea.equals("")) enc.setGovernmentArea(null);
-    else enc.setGovernmentArea(governmentArea);
+    if (huntingState.equals("")) enc.setHuntingState(null);
+    else enc.setHuntingState(huntingState);
 
-    enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Changed governmentArea to " + governmentArea + ".</p>");
-    System.out.println("Encounter "+encNum+" added governmentArea "+governmentArea);
+    enc.addComments("<p><em>" + request.getRemoteUser() + " on " + (new java.util.Date()).toString() + "</em><br />Changed huntingState to " + huntingState + ".</p>");
+    System.out.println("Encounter "+encNum+" added huntingState "+huntingState);
 
     try {
       myShepherd.commitDBTransaction();
-      out.println("<strong>Success!</strong> I have successfully changed the reported governmentArea for encounter "+encNum+" to "+governmentArea+".</p>");
+      out.println("<strong>Success!</strong> I have successfully changed the reported huntingState for encounter "+encNum+" to "+huntingState+".</p>");
       response.setStatus(HttpServletResponse.SC_OK);
     }
 
     catch (Exception e) {
-      System.out.println("Exception called on encounter "+encNum+" .setGovernmentArea("+governmentArea+")");
+      System.out.println("Exception called on encounter "+encNum+" .setHuntingState("+huntingState+")");
       e.printStackTrace();
       myShepherd.rollbackDBTransaction();
 
