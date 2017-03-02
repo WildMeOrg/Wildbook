@@ -28,8 +28,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.ecocean.Util;
 import org.ecocean.Annotation;
+import org.ecocean.Shepherd;
 //import org.ecocean.ImageProcessor;
 import org.json.JSONObject;
 
@@ -95,6 +100,7 @@ public class LocalAssetStore extends AssetStore {
     {
         super(id, name, AssetStoreType.LOCAL, config, writable);
     }
+    
 
     /**
      * Create our config map.
@@ -252,6 +258,7 @@ System.out.println("LocalAssetStore attempting to delete file=" + file);
         }
 */
     }
+    
 
 
     /**

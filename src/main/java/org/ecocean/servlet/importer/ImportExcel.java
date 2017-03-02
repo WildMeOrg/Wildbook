@@ -57,21 +57,38 @@ public class ImportExcel extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException {
     out = response.getWriter();
     context = ServletUtilities.getContext(request);
-    baseURL = getBaseURL(request); 
+    baseURL = getBaseURL(request);
+    String dataURL = getDataURL(request);
     
     out.println("Importer usage in browser: https://yourhost/ImportExcel?commit='trueorfalse' ");
     out.println("The default directories are /opt/excel_imports/ and /opt/image_imports/. commit=false to test data parsing, true to actually save.");
     // set up a Shepherd
     // He will make sure that the default asset store is created if Wildbook hasn't made one for whatever reason.
-    Shepherd startShepherd=null;
-    startShepherd=new Shepherd(context);
-    startShepherd.setAction("ImportExcel.class");
-    if (!CommonConfiguration.isWildbookInitialized(startShepherd)) {
+    Shepherd myShepherd=null;
+    myShepherd=new Shepherd(context);
+    myShepherd.setAction("ImportExcel.class");
+    if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
+      myShepherd.beginDBTransaction();
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
-      StartupWildbook.initializeWildbook(request, startShepherd);
-      startShepherd.commitDBTransaction();
+      StartupWildbook.initializeWildbook(request, myShepherd);
+      myShepherd.commitDBTransaction();
     }
-    startShepherd.closeDBTransaction();
+    String assetStorePath="/data/wildbook_data_dir";
+     
+    String assetStoreURL= dataURL + "/wildbook_data_dir";
+    AssetStore assetStore = AssetStore.getDefault(myShepherd);
+    //try {
+    //  if (assetStore.toString() == null || assetStore.toString() == "") {
+    //myShepherd.beginDBTransaction();
+    //AssetStore assetStore = new LocalAssetStore("Turtle-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+    //myShepherd.getPM().makePersistent(assetStore);
+    //myShepherd.commitDBTransaction();        
+    //  }
+    //} catch (Exception e) {
+    //  out.println("!!!! Failed to find or create a local asset store at "+assetStoreURL+" !!!!");
+    //  e.printStackTrace();      
+    //}    
+    
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
     
@@ -82,12 +99,13 @@ public class ImportExcel extends HttpServlet {
     boolean imagesFound = imageFileList.length > 0;
     Hashtable<Integer,MediaAsset> assetHash = new Hashtable<Integer,MediaAsset>();
     for (File file : imageFileList) {
-      out.println("++ Processing Image File: "+file.getName()+" at "+ file.getAbsolutePath());
-      assetHash = processImage(file, response, committing, imagedir);
+      out.println("\n++ Processing Image File: "+file.getName()+" at "+ file.getAbsolutePath());
+      assetHash = processImage(file, response, committing, imagedir, assetStore, myShepherd);
       if (assetHash != null) {
         assetIds.putAll(assetHash);  
       }
     }       
+    
     String assetString = StringUtils.join(assetIds.keySet(), " ");
     System.out.println("All saved values in assetIds : " + assetString);
     
@@ -99,7 +117,7 @@ public class ImportExcel extends HttpServlet {
       excelFileList = getFiles(exceldir);
       excelFound = excelFileList.length > 0;
       for (File file : excelFileList) {
-        out.println("++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
+        out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
         processExcel(file, response, committing, assetIds);
       }      
     } catch (Exception e) {
@@ -118,31 +136,33 @@ public class ImportExcel extends HttpServlet {
     // persist images in asset store, then associate with encounter
     // be careful of committing one and not the other, if you do it will contain a reference to 
     // that object in RAM, but not the persisted one if at all. 
+    myShepherd.closeDBTransaction();
     out.close();
   }
   
-  public Hashtable<Integer,MediaAsset> processImage(File imageFile, HttpServletResponse response, boolean committing, String imagedir) throws IOException {
+  public Hashtable<Integer,MediaAsset> processImage(File imageFile, HttpServletResponse response, boolean committing, String imagedir, AssetStore assetStore, Shepherd myShepherd) throws IOException {
     
-    Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.beginDBTransaction();
     // String rootDir = getServletContext().getRealPath("/");
-    String assetStorePath="/data/wildbook_data_dir";
-    String assetStoreURL= baseURL + "/wildbook_data_dir";
-    LocalAssetStore assetStore = null;
+    //String assetStorePath="/data/wildbook_data_dir";
+    //String assetStoreURL= baseURL + "/wildbook_data_dir";
+    //LocalAssetStore assetStore = null;
     MediaAsset ma = null;
-    myShepherd.beginDBTransaction();
-    try {
-      if (committing) {
-        assetStore = new LocalAssetStore("Turtle-Conservancy-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
-        myShepherd.getPM().makePersistent(assetStore);
-        myShepherd.commitDBTransaction();
-      }
-    } catch (Exception e) {
-      out.println("!!!! Failed to create and persist local asset store at "+assetStoreURL+" !!!!");
-      e.printStackTrace();      
-    }
+    //try {
+    //  if (committing) {
+    //    assetStore = new LocalAssetStore("Turtle-Conservancy-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+    //    myShepherd.getPM().makePersistent(assetStore);
+    //    myShepherd.commitDBTransaction();
+    //  }
+    //} catch (Exception e) {
+    //  out.println("!!!! Failed to create and persist local asset store at "+assetStoreURL+" !!!!");
+    //  e.printStackTrace();      
+    //}
         
     String photoFileName = null;
     String photoNumber = null;
+    File photo = null;
+    JSONObject params = null;
     boolean isValid = false;
     try {
       photoFileName = imageFile.getName();
@@ -166,12 +186,24 @@ public class ImportExcel extends HttpServlet {
     }
     
     if (isValid == true) {
-      File photo = new File(imagedir, photoFileName);
-      JSONObject params = assetStore.createParameters(photo);
+      try {
+        photo = new File(imagedir, photoFileName);
+        out.println("++ Image Dir : "+ imagedir+" ++");
+        out.println("!!! photoFileName : "+photoFileName+" !!!");
+        out.println("!!! AssetStore : "+assetStore.toString()+" !!!");
+      } catch (Exception e) {
+        e.printStackTrace();
+        out.println("!!! Error Creating photo File !!!");
+      }
+      try {
+        params = assetStore.createParameters(photo);
+      } catch (Exception e) {
+        e.printStackTrace();
+        out.println("!!! Error Creating params in assetStore !!!");
+      }
       if (committing && isValid == true) {
         try {
           out.println("++++ Creating Media Asset ++++");
-          myShepherd.beginDBTransaction();
           ma = new MediaAsset(assetStore, params);
           ma.addDerivationMethod("createEncounter", System.currentTimeMillis());
           ma.addLabel("_original");
@@ -188,9 +220,10 @@ public class ImportExcel extends HttpServlet {
       if (committing && isValid == true) {
         try {
           out.println("++++ Persisting Media Asset ++++");
+          myShepherd.beginDBTransaction();
           myShepherd.getPM().makePersistent(ma);
           myShepherd.commitDBTransaction();
-          myShepherd.beginDBTransaction();
+          //myShepherd.beginDBTransaction();
         } catch (Exception e) {
           myShepherd.rollbackDBTransaction();
           out.println("!!!! Error persisting media asset !!!!");
@@ -198,18 +231,17 @@ public class ImportExcel extends HttpServlet {
         }
       }
       
-      Annotation ann = new Annotation("Psammobates geometricus", ma);
-      if (committing && isValid == true) {
-        try {
-          myShepherd.storeNewAnnotation(ann);
-          myShepherd.getPM().makePersistent(ann);
-          myShepherd.commitDBTransaction();
-          myShepherd.closeDBTransaction();
-        } catch (Exception e) {
-          out.println("!!!! Error storing new annotation for media asset !!!!");
-          e.printStackTrace(); 
-        }
-      }
+      //Annotation ann = new Annotation("Psammobates geometricus", ma);
+      //if (committing && isValid == true) {
+      //  try {
+      //    myShepherd.storeNewAnnotation(ann);
+      //    myShepherd.getPM().makePersistent(ann);
+      //    myShepherd.commitDBTransaction();
+      //  } catch (Exception e) {
+      //    out.println("!!!! Error storing new annotation for media asset !!!!");
+      //    e.printStackTrace(); 
+      //  }
+      //}
       // enc.addAnnotations  
     }
     // You are trying to create media assets for each image file. Each image has a photo number
@@ -295,11 +327,15 @@ public class ImportExcel extends HttpServlet {
             enc.setState("approved");
             if (committing && isValid == true) myShepherd.storeNewEncounter(enc, Util.generateUUID());
             MediaAsset ma = myShepherd.getMediaAsset(String.valueOf(encId));
-            
-            enc.addMediaAsset(ma);
+            try {
+              enc.addMediaAsset(ma);              
+            } catch (Exception npe) {
+              npe.printStackTrace();
+              out.println("!!! Failed to Add Media asset to Encounter  !!!");
+            }
           } catch (Exception e) {
             e.printStackTrace();
-            out.println("!!! Failed to Store New Encounter !!!");
+            out.println("!!! Failed to Store New Encounter  !!!");
           }
           
           if (needToAddEncToInd) ind.addEncounter(enc, context);
@@ -358,6 +394,15 @@ public class ImportExcel extends HttpServlet {
     String path = request.getContextPath();
     return scheme + name + port + path;
   }
+  
+  public static String getDataURL(HttpServletRequest request) {
+    String scheme = request.getScheme() + "://";
+    String name = request.getServerName();
+    String port = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
+    String path = request.getContextPath();
+    return scheme + name + port;
+  }
+  
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {
     // The encounter ID should be the ross number, which should be the same as the image number.
