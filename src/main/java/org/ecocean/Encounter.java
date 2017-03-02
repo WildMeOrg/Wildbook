@@ -128,6 +128,9 @@ public class Encounter implements java.io.Serializable {
   // For studies with named animal populations
   public String population;
 
+  // For studies with named government areas
+  public String governmentArea;
+
 
   private String studySiteID;
 
@@ -318,6 +321,12 @@ public class Encounter implements java.io.Serializable {
     this.population = population;
   }
 
+  public String getGovernmentArea() {
+    return governmentArea;
+  }
+  public void setGovernmentArea(String governmentArea) {
+    this.governmentArea = governmentArea;
+  }
 
 
   /**

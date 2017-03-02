@@ -972,6 +972,11 @@
     <servlet-class>org.ecocean.servlet.EncounterSetPopulation</servlet-class>
   </servlet>
 
+  <servlet>
+    <servlet-name>EncounterSetGovernmentArea</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetGovernmentArea</servlet-class>
+  </servlet>
+
 
   <servlet>
         <servlet-name>EncounterSetReleaseDate</servlet-name>
@@ -1521,6 +1526,12 @@
     <servlet-name>EncounterSetPopulation</servlet-name>
     <url-pattern>/EncounterSetPopulation</url-pattern>
   </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>EncounterSetGovernmentArea</servlet-name>
+    <url-pattern>/EncounterSetGovernmentArea</url-pattern>
+  </servlet-mapping>
+
 
   <servlet-mapping>
         <servlet-name>EncounterSetReleaseDate</servlet-name>

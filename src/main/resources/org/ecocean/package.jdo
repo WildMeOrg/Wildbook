@@ -177,6 +177,9 @@
       <field name="population" persistence-modifier="persistent">
         <column length="512"/>
       </field>
+      <field name="governmentArea" persistence-modifier="persistent">
+        <column length="512"/>
+      </field>
 
       <field name="genus" persistence-modifier="persistent">
         <column length="128"/>
