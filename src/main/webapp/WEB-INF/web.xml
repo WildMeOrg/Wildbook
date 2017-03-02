@@ -976,6 +976,10 @@
     <servlet-name>EncounterSetGovernmentArea</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterSetGovernmentArea</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>EncounterSetHuntingState</servlet-name>
+    <servlet-class>org.ecocean.servlet.EncounterSetHuntingState</servlet-class>
+  </servlet>
 
 
   <servlet>
@@ -1530,6 +1534,10 @@
   <servlet-mapping>
     <servlet-name>EncounterSetGovernmentArea</servlet-name>
     <url-pattern>/EncounterSetGovernmentArea</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>EncounterSetHuntingState</servlet-name>
+    <url-pattern>/EncounterSetHuntingState</url-pattern>
   </servlet-mapping>
 
 
