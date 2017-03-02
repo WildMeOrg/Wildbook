@@ -454,7 +454,7 @@ public class Util {
             Double s = 0.0;
             if (d.length > 1) m = Double.valueOf(d[1].substring(0, d[1].length() - 1));
             if (d.length > 2) s = Double.valueOf(d[2].substring(0, d[2].length() - 1));
-            dd = Math.signum(dd) * (Math.abs(dd) + ((m * 60) + s) / (60*60));
+            dd = ((dd < 0.0) ? -1.0 : 1.0) * (Math.abs(dd) + ((m * 60) + s) / (60*60));
 //System.out.println("  --> " + dd + " deg, " + m + " min, " + s + " sec => " + dd);
             return dd;
 
