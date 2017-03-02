@@ -1034,6 +1034,7 @@ $(function() {
 
 
 
+
 <!-- START ALTERNATEID ATTRIBUTE -->
             <%
             String alternateID="";
@@ -1831,7 +1832,7 @@ $(document).ready(function() {
     buttons.toggle();
   });
   $("#editLocation").click(function() {
-    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn, #AddElev, #setGPSbutton").show();
+    $(".editFormLocation, .editTextLocation, #AddDepth, #setLocationBtn, #addLocation, #countryFormBtn,  #AddElev, #setGPSbutton").show();
 
     $("#setLocationCheck, #setLocationError, #countryCheck, #countryError, #locationIDcheck, #studySiteIDcheck, #studySiteIDerror, #locationIDerror, #depthCheck, #depthError, #elevationCheck, #elevationError, #latCheck, #longCheck").hide();
 
@@ -1883,7 +1884,16 @@ if (prettyStudySiteID!=null) {
 %>
 
 
-<em><%=encprops.getProperty("studySiteID")%> <span id="displayStudySiteID">: <%=prettyStudySiteID%></span></em>
+<em><%=encprops.getProperty("studySiteID")%>: <span id="displayStudySiteID"><%=prettyStudySiteID%></span></em>
+<br>
+
+<%
+String governmentAreaStr = enc.getGovernmentArea();
+if (governmentAreaStr == null) governmentAreaStr = "";
+%>
+<em><%=encprops.getProperty("governmentArea")%>: <span id="displayGovernmentArea"><%=governmentAreaStr%></span></em>
+
+
 
 
 <%
@@ -1992,8 +2002,64 @@ if (prettyStudySiteID!=null) {
 </div>
 <!-- end location -->
 
+<!-- START GOVERNMENT AREA -->
+<script type="text/javascript">
+  $(document).ready(function() {
+    $("#setGovernmentAreaBtn").click(function(event) {
+      event.preventDefault();
 
-<!-- start country and population-->
+      $("#setGovernmentAreaBtn").hide();
+
+      var encounter = $("#governmentAreaEncNum").val();
+      var governmentArea = $("#selectGovernmentArea").val();
+
+      $.post("../EncounterSetGovernmentArea", {"encounter": encounter, "governmentArea": governmentArea},
+      function() {
+        $("#governmentAreaErrorDiv").hide();
+        $("#governmentAreaCheck").show();
+        $("#displayGovernmentArea").html(governmentArea);
+      })
+      .fail(function(response) {
+        $("#governmentAreaError, #governmentAreaErrorDiv").show();
+        $("#governmentAreaErrorDiv").html(response.responseText);
+      });
+    });
+
+    $("#selectGovernmentArea").click(function() {
+      $("#governmentAreaError, #governmentAreaCheck, #governmentAreaErrorDiv").hide()
+      $("#governmentAreaFormBtn").show();
+    });
+  });
+</script>
+<%
+String governmentAreaStr2 = enc.getGovernmentArea();
+if (governmentAreaStr2 == null) governmentAreaStr2 = "";
+%>
+
+<div>
+  <div class="highlight resultMessageDiv" id="governmentAreaErrorDiv"></div>
+
+  <p class="editTextLocation"><strong><%=encprops.getProperty("setGovernmentArea")%></strong></p>
+
+  <form name="addGovernmentArea" class="editFormLocation">
+    <input name="number" type="hidden" value="<%=num%>" id="governmentAreaEncNum"/>
+
+    <div class="form-group row">
+      <div class="col-sm-5">
+        <input name="governmentArea" type="text" class="form-control" id="selectGovernmentArea" value="<%=governmentAreaStr2%>"/>
+      </div>
+      <div class="col-sm-3">
+        <input name="<%=encprops.getProperty("set")%>" type="submit" id="governmentAreaFormBtn" value="<%=encprops.getProperty("set")%>" class="btn btn-sm editFormBtn encFormBtn"/>
+      </div>
+    </div>
+
+  </form>
+</div>
+
+<!-- end governmentArea -->
+
+
+<!-- start country -->
 <script type="text/javascript">
   $(document).ready(function() {
     $("#countryFormBtn").click(function(event) {
