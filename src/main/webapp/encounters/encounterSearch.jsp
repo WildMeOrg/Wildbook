@@ -418,14 +418,42 @@ function useData(doc){
 
 
       <div>
-      </br>
-      <p id="popname"><strong><%=encClassProps.getProperty("population")%></strong> <span class="para"></span> <br>
-        (<em><%=encprops.getProperty("locationIDExample")%>
-        </em>)</p>
+        </br>
+        <p id="popname">
+          <strong>
+            <%=encClassProps.getProperty("population")%>
+          </strong>
+          <br>
+          (<em><%=encprops.getProperty("locationIDExample")%></em>)
+        </p>
+        <input name="population" type="text" size="60" id="population" size="10"></input>
+      </div>
 
 
-      <input name="population" type="text" size="60" id="population" size="10"></input>
-    </div>
+      <div>
+        </br>
+        <p id="govName">
+          <strong>
+            <%=encClassProps.getProperty("governmentArea")%>
+          </strong>
+          <br>
+          (<em><%=encprops.getProperty("locationIDExample")%></em>)
+        </p>
+        <input name="governmentArea" type="text" size="60" id="governmentArea" size="10"></input>
+      </div>
+
+      <div>
+        </br>
+        <p id="huntName">
+          <strong>
+            <%=encClassProps.getProperty("huntingState")%>
+          </strong>
+          <br>
+          (<em><%=encprops.getProperty("locationIDExample")%></em>)
+        </p>
+        <input name="huntingState" type="text" size="60" id="huntingState" size="10"></input>
+      </div>
+
 
 
       <%

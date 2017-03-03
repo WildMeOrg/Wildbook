@@ -78,6 +78,26 @@ public class EncounterQueryProcessor {
     }
     //end population filter--------------------------------------------------------------------------------------
 
+    //filter for governmentArea------------------------------------------
+    String govString = request.getParameter("governmentArea");
+    if ((govString!=null) && !govString.equals("")) {
+      govString = Util.undoUrlEncoding(govString);
+      filter  = prepForCondition(filter);
+      filter += Util.jdoStringContainsConstraint("governmentArea", govString, true);
+      prettyPrint.append("governmentArea contains \""+govString+"\".<br />");
+    }
+    //end governmentArea filter--------------------------------------------------------------------------------------
+
+    //filter for huntingState------------------------------------------
+    String huntString = request.getParameter("huntingState");
+    if ((huntString!=null) && !huntString.equals("")) {
+      huntString = Util.undoUrlEncoding(huntString);
+      filter  = prepForCondition(filter);
+      filter += Util.jdoStringContainsConstraint("huntingState", huntString, true);
+      prettyPrint.append("huntingState contains \""+huntString+"\".<br />");
+    }
+    //end huntingState filter--------------------------------------------------------------------------------------
+
 
     //------------------------------------------------------------------
     //username filters-------------------------------------------------
