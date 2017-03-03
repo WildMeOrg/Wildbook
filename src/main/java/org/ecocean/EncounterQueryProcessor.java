@@ -71,19 +71,13 @@ public class EncounterQueryProcessor {
     String popString = request.getParameter("population");
     if ((popString!=null) && !popString.equals("")) {
 
-      popString = popString.toLowerCase().replaceAll("%20", " ").trim();
+      popString = Util.undoUrlEncoding(popString);
       filter = prepForCondition(filter);
-
-
-      if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-        filter+="(population.toLowerCase().indexOf('"+popString+"') != -1)";
-      }
-      else {
-        filter+=" && (population.toLowerCase().indexOf('"+popString+"') != -1)";
-      }
+      filter+= Util.jdoStringContainsConstraint("population", popString, true);
       prettyPrint.append("population contains \""+popString+"\".<br />");
     }
     //end population filter--------------------------------------------------------------------------------------
+
 
     //------------------------------------------------------------------
     //username filters-------------------------------------------------

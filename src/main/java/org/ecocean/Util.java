@@ -518,8 +518,22 @@ public class Util {
       return "("+fieldName+".indexOf('"+containsThis+"') != -1)";
     }
 
+    public static String jdoStringContainsConstraint(String fieldName, String containsThis, boolean ignoreCase) {
+      if (!ignoreCase) {
+        return (jdoStringContainsConstraint(fieldName, containsThis));
+      }
+      else {
+        return ("("+fieldName+".toLowerCase().indexOf('"+
+        containsThis.toLowerCase()+"') != -1)");
+      }
+    }
+
     public static String undoUrlEncoding(String str) {
       return str.replaceAll("%20", " ").trim();
+    }
+
+    public static String cleanWebStringForJdo(String str) {
+      return undoUrlEncoding(str.toLowerCase());
     }
 
     public static <T> String toString(Enumeration<T> things) {
