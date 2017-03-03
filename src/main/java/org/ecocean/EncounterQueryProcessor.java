@@ -33,6 +33,17 @@ public class EncounterQueryProcessor {
 
   private static final String SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE = "SELECT FROM org.ecocean.Encounter WHERE catalogNumber != null && ";
 
+  private static boolean isDefaultFilter(String filter) {
+    return (filter == SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE);
+  }
+
+  // returns 'filter' but ensuring it is ready to have another
+  // condition added
+  private static String prepForCondition(String filter) {
+    if (isDefaultFilter(filter)) return filter;
+    else return (filter += " && ");
+  }
+
   public static String queryStringBuilder(HttpServletRequest request, StringBuffer prettyPrint, Map<String, Object> paramMap){
     String filter= SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE;
     String jdoqlVariableDeclaration = "";
@@ -45,7 +56,7 @@ public class EncounterQueryProcessor {
     Shepherd myShepherd=new Shepherd(context);
     myShepherd.setAction("EncounterQueryProcessor.class");
 
-  //filter for location------------------------------------------
+    //filter for location------------------------------------------
     if((request.getParameter("locationField")!=null)&&(!request.getParameter("locationField").equals(""))) {
       String locString=request.getParameter("locationField").toLowerCase().replaceAll("%20", " ").trim();
       if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
@@ -55,6 +66,24 @@ public class EncounterQueryProcessor {
       prettyPrint.append("locationField contains \""+locString+"\".<br />");
     }
     //end location filter--------------------------------------------------------------------------------------
+
+    //filter for population------------------------------------------
+    String popString = request.getParameter("population");
+    if ((popString!=null) && !popString.equals("")) {
+
+      popString = popString.toLowerCase().replaceAll("%20", " ").trim();
+      filter = prepForCondition(filter);
+
+
+      if (filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+        filter+="(population.toLowerCase().indexOf('"+popString+"') != -1)";
+      }
+      else {
+        filter+=" && (population.toLowerCase().indexOf('"+popString+"') != -1)";
+      }
+      prettyPrint.append("population contains \""+popString+"\".<br />");
+    }
+    //end population filter--------------------------------------------------------------------------------------
 
     //------------------------------------------------------------------
     //username filters-------------------------------------------------
