@@ -98,6 +98,9 @@ String langCode=ServletUtilities.getLanguageCode(request);
   //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounterSearch.properties"));
   encprops=ShepherdProperties.getProperties("encounterSearch.properties", langCode, context);
 
+  Properties encClassProps = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+
+
 
 %>
 
@@ -394,7 +397,7 @@ function useData(doc){
         }
       %>
 
-      <p><strong><%=encprops.getProperty("studySiteName")%></strong> <span class="para"></span> <br>
+      <p id="studySiteIDName"><strong><%=encClassProps.getProperty("studySiteID")%></strong> <span class="para"></span> <br>
         (<em><%=encprops.getProperty("locationIDExample")%>
         </em>)</p>
 
@@ -412,6 +415,17 @@ function useData(doc){
           }
         %>
       </select>
+
+
+      <div>
+      </br>
+      <p id="popname"><strong><%=encClassProps.getProperty("population")%></strong> <span class="para"></span> <br>
+        (<em><%=encprops.getProperty("locationIDExample")%>
+        </em>)</p>
+
+
+      <input name="population" type="text" size="60" id="population" size="10"></input>
+    </div>
 
 
       <%
