@@ -95,12 +95,12 @@ public class ImportExcel extends HttpServlet {
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false")); //false by default
     
-    Hashtable<Integer,MediaAsset> assetIds = new Hashtable<Integer,MediaAsset>(); 
+    Hashtable<String,MediaAsset> assetIds = new Hashtable<String,MediaAsset>(); 
     String imagedir = "/opt/image_imports/";
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
     boolean imagesFound = imageFileList.length > 0;
-    Hashtable<Integer,MediaAsset> assetHash = new Hashtable<Integer,MediaAsset>();
+    Hashtable<String,MediaAsset> assetHash = new Hashtable<String,MediaAsset>();
     for (File file : imageFileList) {
       out.println("\n++ Processing Image File: "+file.getName()+" at "+ file.getAbsolutePath());
       assetHash = processImage(file, response, request, committing, imagedir, assetStore, myShepherd);
@@ -121,7 +121,7 @@ public class ImportExcel extends HttpServlet {
       excelFound = excelFileList.length > 0;
       for (File file : excelFileList) {
         out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
-        processExcel(file, response, committing, assetIds);
+        processExcel(file, response, committing, assetIds, myShepherd);
       }      
     } catch (Exception e) {
       e.printStackTrace();
@@ -143,15 +143,14 @@ public class ImportExcel extends HttpServlet {
     out.close();
   }
   
-  public Hashtable<Integer,MediaAsset> processImage(File imageFile, HttpServletResponse response, HttpServletRequest request,  boolean committing, String imagedir, AssetStore assetStore, Shepherd myShepherd) throws IOException {
+  public Hashtable<String,MediaAsset> processImage(File imageFile, HttpServletResponse response, HttpServletRequest request,  boolean committing, String imagedir, AssetStore assetStore, Shepherd myShepherd) throws IOException {
     
-
-    MediaAsset ma = null;
-        
+    MediaAsset ma = null;   
     String photoFileName = null;
     String photoNumber = null;
     File photo = null;
     JSONObject params = null;
+    String photoId = null;
     boolean isValid = false;
     try {
       photoFileName = imageFile.getName();
@@ -197,6 +196,7 @@ public class ImportExcel extends HttpServlet {
       if (committing && isValid == true) {
         try {
           out.println("++++ Creating Media Asset ++++");
+          photoId = (photoNumber+photoFileName.substring(photoFileName.length()-5).charAt(0)); 
           ma = new MediaAsset(assetStore, params);
           ma.addDerivationMethod("createEncounter", System.currentTimeMillis());
           ma.addLabel("_original");
@@ -206,7 +206,7 @@ public class ImportExcel extends HttpServlet {
           ma.updateStandardChildren(myShepherd);
           ma.generateUUIDFromId();
         } catch (Exception e) {
-          out.println("!!!! Error creating media asset for image number "+photoNumber+" !!!!");
+          out.println("!!!! Error creating media asset for image ID "+photoId+" !!!!");
           e.printStackTrace();
         }
       }
@@ -243,22 +243,20 @@ public class ImportExcel extends HttpServlet {
     // Each encounter should have a photo number as well. Create the media assets, then create the encounters.
     // Then associate each encounter with the appropriate media assets. 
     // SAVE ASSET --> GET NUMBER --> SEARCH ENCOUNTER NUMBERS -->>> SAVE PAIR 
-    Hashtable<Integer,MediaAsset> hashValues = new Hashtable<Integer, MediaAsset>();
+    Hashtable<String,MediaAsset> hashValues = new Hashtable<String, MediaAsset>();
     if (committing && isValid == true) {
-      System.out.println("Photonumber : " + Integer.valueOf(photoNumber));
-      hashValues.put(Integer.valueOf(photoNumber), ma);
+      System.out.println("Photo ID : " + photoId);
+      hashValues.put(photoId, ma);
     }
     isValid = false;
-    if (ma != null && photoNumber != null) {
+    if (ma != null && photoId != null) {
       return hashValues; 
     } else {
       return null;
     }
   }
   
-  public void processExcel(File dataFile, HttpServletResponse response, boolean committing, Hashtable<Integer, MediaAsset> assetIds) throws IOException {  
-    
-    Shepherd myShepherd = new Shepherd(context);
+  public void processExcel(File dataFile, HttpServletResponse response, boolean committing, Hashtable<String,MediaAsset> assetIds, Shepherd myShepherd) throws IOException {  
     
     FileInputStream fs = new FileInputStream(dataFile);
     XSSFWorkbook wb = new XSSFWorkbook(fs);
@@ -288,17 +286,17 @@ public class ImportExcel extends HttpServlet {
 
     int printPeriod = 25;
     out.println("+++++ LOOPING THROUGH FILE +++++");
-    Integer encId = null;
+    String encId = null;
     boolean isValid = true;
     for (int i=1; i<rows; i++) {
       try {
         if (committing) myShepherd.beginDBTransaction();
         row = sheet.getRow(i);
         if (getInteger(row, 7) != null) {
-          encId= getInteger(row, 7);          
+          encId = String.valueOf(getInteger(row, 7));          
         }
         out.println("---- CURRENT ID: "+encId+" ----");
-        if (assetIds.get(encId) == null) {
+        if (assetIds.get(encId + "l") == null && assetIds.get(encId + "r") == null && assetIds.get(encId + "c") == null && assetIds.get(encId + "p") == null) {
           isValid = false;
           out.println("!!! ID Not Found in Asset List !!!");
         }
@@ -317,12 +315,27 @@ public class ImportExcel extends HttpServlet {
             }
           }   
           try {
-            out.println("Adding media asset : "+String.valueOf(encId));
+            out.println("Adding media asset : "+encId);
             enc.setState("approved");
-            if (committing && isValid == true) myShepherd.storeNewEncounter(enc, Util.generateUUID());
-            MediaAsset ma = myShepherd.getMediaAsset(String.valueOf(encId));
+            if (committing && isValid == true) myShepherd.storeNewEncounter(enc, enc.getCatalogNumber());
+            String encIdS = String.valueOf(encId);
+            MediaAsset mal = assetIds.get(encIdS + "l");
+            MediaAsset mar = assetIds.get(encIdS + "r");
+            MediaAsset mac = assetIds.get(encIdS + "c");
+            MediaAsset map = assetIds.get(encIdS + "p");
             try {
-              enc.addMediaAsset(ma);              
+              if (mal != null) {
+                enc.addMediaAsset(mal);                
+              }
+              if (mac != null) {
+                enc.addMediaAsset(mac);                
+              }
+              if (map != null) {
+                enc.addMediaAsset(map);                
+              }
+              if (mar != null) {
+                enc.addMediaAsset(mar);                
+              }
             } catch (Exception npe) {
               npe.printStackTrace();
               out.println("!!! Failed to Add Media asset to Encounter  !!!");
@@ -398,8 +411,7 @@ public class ImportExcel extends HttpServlet {
   
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {
-    // The encounter ID should be the ross number, which should be the same as the image number.
-    // Ross number is primary ID, but of it doesn't match an image number discard.
+    
     Encounter enc = new Encounter();
     Integer encNum = getInteger(row, 7);
     String encNumString = String.valueOf(encNum);
@@ -456,16 +468,16 @@ public class ImportExcel extends HttpServlet {
     return enc;
   }
 
-  private String stripAccents(String s) {
-        try {
-      s = Normalizer.normalize(s, Normalizer.Form.NFD);
-      s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
-      return s;
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    }
-  }
+  //private String stripAccents(String s) {
+  //      try {
+  //    s = Normalizer.normalize(s, Normalizer.Form.NFD);
+  //    s = s.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+  //    return s;
+  //  } catch (Exception e) {
+  //    e.printStackTrace();
+  //    return null;
+  //  }
+  //}
   
   private void parseDynProp(Encounter enc, String name, XSSFRow row, int i) {
     String val = getString(row, i);
