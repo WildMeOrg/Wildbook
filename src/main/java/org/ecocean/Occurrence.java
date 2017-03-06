@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Properties;
 import java.util.Vector;
 import java.util.Arrays;
+import org.joda.time.DateTime;
 import java.text.SimpleDateFormat;
 import org.ecocean.media.MediaAsset;
 import org.ecocean.security.Collaboration;
@@ -14,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import org.datanucleus.api.rest.orgjson.JSONObject;
-import org.datanucleus.api.rest.orgjson.JSONArray;
 import org.datanucleus.api.rest.orgjson.JSONException;
 
 
@@ -43,8 +43,22 @@ public class Occurrence implements java.io.Serializable{
   //additional comments added by researchers
   private String comments = "None";
   private String modified;
-  //private String locationID;
   private String dateTimeCreated;
+    private String observer;
+    private Double distance;
+    private Double decimalLatitude;
+    private Double decimalLongitude;
+    private Double bearing;
+    private DateTime dateTime;
+    private String vegetation;
+    private String terrain;
+    private String monitoringZone;
+    private Integer groupSize;
+    private Integer numAdultMales;
+    private Integer numAdultFemales;
+    private Integer numSubMales;
+    private Integer numSubFemales;
+    private Integer numJuveniles;
 
 
   //empty constructor used by the JDO enhancer
@@ -151,7 +165,7 @@ public class Occurrence implements java.io.Serializable{
 
       for(int i=0;i<size;i++){
         Encounter enc=encounters.get(i);
-        if((enc.getIndividualID()!=null)&&(!names.contains(enc.getIndividualID()))){names.add(enc.getIndividualID());}
+        if (enc.hasMarkedIndividual() && !names.contains(enc.getIndividualID())) names.add(enc.getIndividualID());
       }
     }
     catch(Exception e){e.printStackTrace();}
@@ -237,6 +251,115 @@ public class Occurrence implements java.io.Serializable{
       comments = newComments;
     }
   }
+
+	public void setDecimalLatitude(Double d) {
+		this.decimalLatitude = d;
+	}
+
+	public Double getDecimalLatitude() {
+		return this.decimalLatitude;
+	}
+
+	public void setDecimalLongitude(Double d) {
+		this.decimalLongitude = d;
+	}
+
+	public Double getDecimalLongitude() {
+		return this.decimalLongitude;
+	}
+
+    public DateTime getDateTime() {
+        return this.dateTime;
+    }
+
+    public void setDateTime(DateTime dt) {
+        this.dateTime = dt;
+    }
+
+	public String getObserver() {
+		return this.observer;
+	}
+	public void setObserver(String o) {
+		this.observer = o;
+	}
+
+	public Double getDistance() {
+		return this.distance;
+	}
+	public void setDistance(Double d) {
+		this.distance = d;
+	}
+
+	public String getVegetation() {
+		return this.vegetation;
+	}
+	public void setVegetation(String h) {
+		this.vegetation = h;
+	}
+
+	public String getTerrain() {
+		return this.terrain;
+	}
+	public void setTerrain(String h) {
+		this.terrain = h;
+	}
+
+	public String getMonitoringZone() {
+		return this.monitoringZone;
+	}
+	public void setMonitoringZone(String h) {
+		this.monitoringZone = h;
+	}
+
+	public Integer getGroupSize() {
+		return this.groupSize;
+	}
+	public void setGroupSize(Integer s) {
+		this.groupSize = s;
+	}
+
+	public Integer getNumAdultMales() {
+		return this.numAdultMales;
+	}
+	public void setNumAdultMales(Integer s) {
+		this.numAdultMales = s;
+	}
+
+	public Integer getNumAdultFemales() {
+		return this.numAdultFemales;
+	}
+	public void setNumAdultFemales(Integer s) {
+		this.numAdultFemales = s;
+	}
+
+	public Integer getNumSubMales() {
+		return this.numSubMales;
+	}
+	public void setNumSubMales(Integer s) {
+		this.numSubMales = s;
+	}
+
+	public Integer getNumSubFemales() {
+		return this.numSubFemales;
+	}
+	public void setNumSubFemales(Integer s) {
+		this.numSubFemales = s;
+	}
+
+	public Integer getNumJuveniles() {
+		return this.numJuveniles;
+	}
+	public void setNumJuveniles(Integer s) {
+		this.numJuveniles = s;
+	}
+
+	public Double getBearing() {
+		return this.bearing;
+	}
+	public void setBearing(Double b) {
+		this.bearing = b;
+	}
+
 
   public Vector returnEncountersWithGPSData(boolean useLocales, boolean reverseOrder,String context) {
     //if(unidentifiableEncounters==null) {unidentifiableEncounters=new Vector();}
@@ -375,7 +498,6 @@ public class Occurrence implements java.io.Serializable{
 
   }
 
-/*  this was messing up the co-occur js (d3?), so lets kill for now?
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request,
                 org.datanucleus.api.rest.orgjson.JSONObject jobj) throws org.datanucleus.api.rest.orgjson.JSONException {
             return sanitizeJson(request, jobj, true);
@@ -384,25 +506,6 @@ public class Occurrence implements java.io.Serializable{
   public org.datanucleus.api.rest.orgjson.JSONObject sanitizeJson(HttpServletRequest request, org.datanucleus.api.rest.orgjson.JSONObject jobj, boolean fullAccess) throws org.datanucleus.api.rest.orgjson.JSONException {
     jobj.put("occurrenceID", this.occurrenceID);
     jobj.put("encounters", this.encounters);
-    if ((this.getEncounters() != null) && (this.getEncounters().size() > 0)) {
-        JSONArray jarr = new JSONArray();
-	///  *if* we want full-blown:  public JSONObject Encounter.sanitizeJson(HttpServletRequest request, JSONObject jobj) throws JSONException {
-        //but for *now* (see note way above) this is all we need for gallery/image display js:
-        for (Encounter enc : this.getEncounters()) {
-            JSONObject je = new JSONObject();
-            je.put("id", enc.getCatalogNumber());
-            if (enc.hasMarkedIndividual()) je.put("individualID", enc.getIndividualID());
-            if ((enc.getAnnotations() != null) && (enc.getAnnotations().size() > 0)) {
-                JSONArray ja = new JSONArray();
-                for (Annotation ann : enc.getAnnotations()) {
-                    ja.put(ann.getId());
-                }
-                je.put("annotations", ja);
-            }
-            jarr.put(je);
-        }
-        jobj.put("encounters", jarr);
-    }
     int[] assetIds = new int[this.assets.size()];
     for (int i=0; i<this.assets.size(); i++) {
       if (this.assets.get(i)!=null) assetIds[i] = this.assets.get(i).getId();
@@ -411,7 +514,7 @@ public class Occurrence implements java.io.Serializable{
     return jobj;
 
   }
-*/
+
 
     public String toString() {
         return new ToStringBuilder(this)

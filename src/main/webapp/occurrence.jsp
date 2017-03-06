@@ -181,88 +181,47 @@ context=ServletUtilities.getContext(request);
 </td>
 </tr></table> </td></tr></table>
 
-<p><%=props.getProperty("groupBehavior") %>: 
+
+
 <%
-if(sharky.getGroupBehavior()!=null){
+/*
+    private String observer;
+    private Double distance;
+    private Double decimalLatitude;
+    private Double decimalLongitude;
+    private Double bearing;
+    private DateTime dateTime;
+    private String vegetation;
+    private String terrain;
+    private String monitoringZone;
+    private Integer groupSize;
+    private Integer numAdultMales;
+    private Integer numAdultFemales;
+    private Integer numSubMales;
+    private Integer numSubFemales;
+    private Integer numJuveniles;
+*/
 %>
-	<%=sharky.getGroupBehavior() %>
-<%
-}
-%>
-&nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="groupB" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
-</p>
 
-
-<div id="dialogGroupB" title="<%=props.getProperty("setGroupBehavior") %>" style="display:none">
-                         			
-<table border="1" cellpadding="1" cellspacing="0" bordercolor="#FFFFFF">
-
-  <tr>
-    <td align="left" valign="top">
-      <form name="set_groupBhevaior" method="post" action="OccurrenceSetGroupBehavior">
-            <input name="number" type="hidden" value="<%=request.getParameter("number")%>" /> 
-            <%=props.getProperty("groupBehavior") %>:
-        
-        <%
-        if(CommonConfiguration.getProperty("occurrenceGroupBehavior0",context)==null){
-        %>
-        <textarea name="behaviorComment" type="text" id="behaviorComment" maxlength="500"></textarea> 
-        <%
-        }
-        else{   
-        %>
-        	
-        	<select name="behaviorComment" id="behaviorComment">
-        		<option value=""></option>
-   
-   				<%
-   				boolean hasMoreStages=true;
-   				int taxNum=0;
-   				while(hasMoreStages){
-   	  				String currentLifeStage = "occurrenceGroupBehavior"+taxNum;
-   	  				if(CommonConfiguration.getProperty(currentLifeStage,context)!=null){
-   	  				%>
-   	  	 
-   	  	  			<option value="<%=CommonConfiguration.getProperty(currentLifeStage,context)%>"><%=CommonConfiguration.getProperty(currentLifeStage,context)%></option>
-   	  				<%
-   					taxNum++;
-      				}
-      				else{
-         				hasMoreStages=false;
-      				}
-      
-   				}
-   			%>
-  			</select>
-        
-        
-        <%
-        }
-        %>
-        <input name="groupBehaviorName" type="submit" id="Name" value="<%=props.getProperty("set") %>">
-        </form>
-    </td>
-  </tr>
-</table>
-
-                         		</div>
-                         		<!-- popup dialog script -->
-<script>
-var dlgGroupB = $("#dialogGroupB").dialog({
-  autoOpen: false,
-  draggable: false,
-  resizable: false,
-  width: 600
-});
-
-$("a#groupB").click(function() {
-  dlgGroupB.dialog("open");
-});
-</script>
-
+<p>Observer: <b><%=sharky.getObserver()%></b></p>
+<p>Distance: <b><%=sharky.getDistance()%> m</b></p>
+<% if (sharky.getDecimalLatitude() != null) { %>
+<p>Lat/Lon: <b><%=sharky.getDecimalLatitude()%> / <%=sharky.getDecimalLongitude()%></b></p>
+<% } %>
+<p>Bearing: <b><%=sharky.getBearing()%></b></p>
+<p>Date: <b><%=sharky.getDateTime()%></b></p>
+<p>Vegetation: <b><%=sharky.getVegetation()%></b></p>
+<p>Terrain: <b><%=sharky.getTerrain()%></b></p>
+<p>Group size: <b><%=sharky.getGroupSize()%></b></p>
+<p>Adult males: <b><%=sharky.getNumAdultMales()%></b></p>
+<p>Adult females: <b><%=sharky.getNumAdultFemales()%></b></p>
+<p>Sub-males: <b><%=sharky.getNumSubMales()%></b></p>
+<p>Sub-females: <b><%=sharky.getNumSubFemales()%></b></p>
+<p>Juveniles: <b><%=sharky.getNumJuveniles()%></b></p>
 
 <p><%=props.getProperty("numMarkedIndividuals") %>: <%=sharky.getMarkedIndividualNamesForThisOccurrence().size() %></p>
 
+<!--
 <p><%=props.getProperty("estimatedNumMarkedIndividuals") %>: 
 <%
 if(sharky.getIndividualCount()!=null){
@@ -273,6 +232,7 @@ if(sharky.getIndividualCount()!=null){
 %>
 &nbsp; <%if (hasAuthority && CommonConfiguration.isCatalogEditable(context)) {%><a id="indies" style="color:blue;cursor: pointer;"><img align="absmiddle" width="20px" height="20px" style="border-style: none;" src="images/Crystal_Clear_action_edit.png" /></a><%}%>
 </p>
+-->
 
 
 
