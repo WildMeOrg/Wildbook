@@ -301,8 +301,13 @@
     <servlet-name>ImportExcel</servlet-name>
     <servlet-class>org.ecocean.servlet.importer.ImportExcel</servlet-class>
   </servlet>
-
-
+  
+  <servlet>
+    <description>HumpbackImporter</description>
+    <servlet-name>HumpbackImporter</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.HumpbackImporter</servlet-class>
+  </servlet>
+  
   <servlet>
     <description>Dynamic Image Servlet Unsynched</description>
     <servlet-name>ImgServlet</servlet-name>
@@ -1218,6 +1223,11 @@
   <servlet>
     <servlet-name>OccurrenceClusterMASet</servlet-name>
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
+  </servlet>
+  
+  <servlet>
+  	<servlet-name>HumpbackImporter</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.HumpbackImporter</servlet-class>
   </servlet>
 
 

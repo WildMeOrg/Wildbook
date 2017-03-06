@@ -77,15 +77,15 @@ public class ImportExcel extends HttpServlet {
      
     String assetStoreURL= dataURL + "/wildbook_data_dir";
     
-    myShepherd.beginDBTransaction();
-    AssetStore assetStore = AssetStore.getDefault(myShepherd);
-    myShepherd.commitDBTransaction();
+    //myShepherd.beginDBTransaction();
+    //AssetStore assetStore = AssetStore.getDefault(myShepherd);
+    //myShepherd.commitDBTransaction();
     //try {
     //  if (assetStore.toString() == null || assetStore.toString() == "") {
-    //myShepherd.beginDBTransaction();
-    //AssetStore assetStore = new LocalAssetStore("Turtle-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
-    //myShepherd.getPM().makePersistent(assetStore);
-    //myShepherd.commitDBTransaction();        
+    myShepherd.beginDBTransaction();
+    AssetStore assetStore = new LocalAssetStore("Turtle-Asset-Store", new File(assetStorePath).toPath(), assetStoreURL, true);
+    myShepherd.getPM().makePersistent(assetStore);
+    myShepherd.commitDBTransaction();        
     //  }
     //} catch (Exception e) {
     //  out.println("!!!! Failed to find or create a local asset store at "+assetStoreURL+" !!!!");
@@ -196,6 +196,7 @@ public class ImportExcel extends HttpServlet {
       if (committing && isValid == true) {
         try {
           out.println("++++ Creating Media Asset ++++");
+          myShepherd.beginDBTransaction();
           photoId = (photoNumber+photoFileName.substring(photoFileName.length()-5).charAt(0)); 
           ma = new MediaAsset(assetStore, params);
           ma.addDerivationMethod("createEncounter", System.currentTimeMillis());
@@ -205,6 +206,7 @@ public class ImportExcel extends HttpServlet {
           ma.updateMetadata();
           ma.updateStandardChildren(myShepherd);
           ma.generateUUIDFromId();
+          myShepherd.commitDBTransaction();
         } catch (Exception e) {
           out.println("!!!! Error creating media asset for image ID "+photoId+" !!!!");
           e.printStackTrace();
@@ -325,17 +327,22 @@ public class ImportExcel extends HttpServlet {
             MediaAsset map = assetIds.get(encIdS + "p");
             try {
               if (mal != null) {
-                enc.addMediaAsset(mal);                
+                enc.addMediaAsset(mal);      
+                out.println("MAL : "+mal.toString());
               }
               if (mac != null) {
-                enc.addMediaAsset(mac);                
+                enc.addMediaAsset(mac); 
+                out.println("MAC : "+mac.toString());
               }
               if (map != null) {
-                enc.addMediaAsset(map);                
+                enc.addMediaAsset(map);     
+                out.println("MAP : "+map.toString());
               }
               if (mar != null) {
-                enc.addMediaAsset(mar);                
+                enc.addMediaAsset(mar);    
+                out.println("MAR : "+mar.toString());
               }
+              out.println("ENC TO STRING : "+enc.toString());
             } catch (Exception npe) {
               npe.printStackTrace();
               out.println("!!! Failed to Add Media asset to Encounter  !!!");
