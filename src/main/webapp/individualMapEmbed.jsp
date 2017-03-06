@@ -171,7 +171,7 @@ String lastLatLong="";
 					              var encDate1 = '<br/><table><tr><td>' + '<%=props.getProperty("date")%><%=indieEnc.getDate()%>';
 
 					              var encSex2 = '<%if(indieEnc.getSex()!=null){%>'+'<br/>' + '<%=props.getProperty("sex")%><%=indieEnc.getSex()%><%}%>';
-					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+<%}%>+'<br/>';
+					              var encSize3 = '<%if(indieEnc.getSizeAsDouble()!=null){%>'+'<br/>Size:'+<%=indieEnc.getSize()%>+'m'+<%}%>'+'<br/>';
 					              var encURL4 = '<br/><a target=\"_blank\" href=\"http:\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/encounters/encounter.jsp?number='+'<%=indieEnc.getEncounterNumber()%>'+'\" >'+'<%=props.getProperty("gotoEncounter")%>'+'</a></td></tr></table>';
 					              var indyURL5 = '<strong><a target=\"_blank\" href=\"\/\/'+'<%=CommonConfiguration.getURLLocation(request)%>'+'/individuals.jsp?number='+'<%=indieEnc.getIndividualID()%>'+'\">'+'<%=indieEnc.getIndividualID()%>'+'</a></strong>';
 					             
