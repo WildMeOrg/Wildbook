@@ -303,9 +303,9 @@
   </servlet>
   
   <servlet>
-    <description>HumpbackImporter</description>
-    <servlet-name>HumpbackImporter</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.HumpbackImporter</servlet-class>
+    <description>ImportHumpback</description>
+    <servlet-name>ImportHumpback</servlet-name>
+    <servlet-class>org.ecocean.servlet.importer.ImportHumpback</servlet-class>
   </servlet>
   
   <servlet>
@@ -1225,10 +1225,7 @@
     <servlet-class>org.ecocean.servlet.OccurrenceClusterMASet</servlet-class>
   </servlet>
   
-  <servlet>
-  	<servlet-name>HumpbackImporter</servlet-name>
-    <servlet-class>org.ecocean.servlet.importer.HumpbackImporter</servlet-class>
-  </servlet>
+
 
 
 <servlet-mapping>
@@ -1237,7 +1234,10 @@
 <url-pattern>/rest/*</url-pattern>
 </servlet-mapping>
 
-
+<servlet-mapping>
+  <servlet-name>ImportHumpback</servlet-name>
+  <url-pattern>/ImportHumpback</url-pattern>
+</servlet-mapping>
 
 <servlet-mapping>
   <servlet-name>StripePayment</servlet-name>

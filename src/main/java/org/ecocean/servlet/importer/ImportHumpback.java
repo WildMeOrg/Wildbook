@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 
-public class HumpbackImporter extends HttpServlet {
+public class ImportHumpback extends HttpServlet {
   static PrintWriter out;
   static String context; 
   static String baseURL;
@@ -55,14 +55,13 @@ public class HumpbackImporter extends HttpServlet {
     out = response.getWriter();
     context = ServletUtilities.getContext(request);
     baseURL = getBaseURL(request);
-    String dataURL = getDataURL(request);
     
     out.println("Importer usage in browser: https://yourhost/HumpbackImporter?commit='trueorfalse' ");
     out.println("The default directories are /opt/excel_imports/ and /opt/image_imports/. commit=false to test data parsing, true to actually save.");
     
     Shepherd myShepherd=null;
     myShepherd=new Shepherd(context);
-    myShepherd.setAction("ImportExcel.class");
+    myShepherd.setAction("ImportHumpback.class");
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
       myShepherd.beginDBTransaction();
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
@@ -78,11 +77,9 @@ public class HumpbackImporter extends HttpServlet {
     
     String exceldir = "/opt/excel_humpback/";
     if (request.getParameter("exceldir") != null) exceldir = request.getParameter("exceldir");
-    boolean excelFound = false;
     File[] excelFileList = null;
     try {
       excelFileList = getFiles(exceldir);
-      excelFound = excelFileList.length > 0;
       for (File file : excelFileList) {
         out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
         processExcel(file, response, request, committing, myShepherd, assetStore);
@@ -121,10 +118,6 @@ public class HumpbackImporter extends HttpServlet {
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
     
     Encounter enc = null;
-    MarkedIndividual ind = null;
-    String indID = enc.getIndividualID();
-    String encId = null;
-    boolean isValid = true;
     for (int i=1; i<rows; i++) { 
       if (committing) {
         myShepherd.beginDBTransaction();
@@ -137,10 +130,10 @@ public class HumpbackImporter extends HttpServlet {
       ArrayList<Keyword> keywords = generateKeywords(row);
       
       enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
-      // Continue to process encounter.
-      
+      // Continue to process encounter.  
       // Get indy, make indy.
     }
+    wb.close();
   }
   
   public ArrayList<Keyword> generateKeywords(XSSFRow row) {
@@ -159,16 +152,16 @@ public class HumpbackImporter extends HttpServlet {
     JSONObject params = new JSONObject();
     myShepherd.beginDBTransaction();
     
-    Iterator<Encounter> allEncs = myShepherd.getAllEncountersNoQuery();
     myShepherd.commitDBTransaction();
     String imagedir = "/opt/image_humpback/";
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
-    boolean imagesFound = imageFileList.length > 0;
+    
     for (File imageFile : imageFileList) {
-      out.println("\n++ Processing Image File: "+imageFile.getName()+" at "+ imageFile.getAbsolutePath());
-      out.println("Image Filename : "+imageFile.getName()+" Image I'm looking for : "+imageName);
+      
       if (imageFile.getName().equals(imageName)) {
+        out.println("Image Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
+        out.println("!!!GOT A MATCH!!!");
         try {
           myShepherd.beginDBTransaction();
           photo = new File(imagedir, imageName);
@@ -207,7 +200,7 @@ public class HumpbackImporter extends HttpServlet {
           ma.setKeywords(keywords);
           myShepherd.commitDBTransaction();
         } catch (Exception e) {
-          out.println("!!!! Error Adding Media Asset to Encounter !!!!");
+          out.println("!!!! Error Adding Keywords to Encounter !!!!");
           e.printStackTrace();
         }
         
@@ -227,17 +220,13 @@ public class HumpbackImporter extends HttpServlet {
   
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
-    String picFile = getString(row, 0);
     String indyId = getString(row, 1);
-    String colorCat = getString(row, 2);
-    
     Encounter enc = new Encounter();
     
     if (indyId != null && indyId != "") {
       checkIndyExistence(indyId, enc, myShepherd);
       
-      enc.setIndividualID(indyId);   
-      
+      enc.setIndividualID(indyId);    
       
     }  
     return enc;
@@ -269,12 +258,6 @@ public class HumpbackImporter extends HttpServlet {
       File folder = new File(path);
       System.out.println("+++++ "+folder.toString()+" FOLDER STRING +++++");
       arr = folder.listFiles();
-      System.out.println(Arrays.toString(arr) + "  ARRAY STRING");
-      for (File file : arr) {
-        if (file.isFile()) {
-          System.out.println("++ FOUND FILE: "+file.getName()+" at "+ file.getAbsolutePath());
-        }
-      }
       return arr;
     } catch (Exception e) {
       System.out.println("+++++ ERROR: Failed to get list of files from folder. +++++");
@@ -319,13 +302,6 @@ public class HumpbackImporter extends HttpServlet {
     return scheme + name + port + path;
   }
   
-  public static String getDataURL(HttpServletRequest request) {
-    String scheme = request.getScheme() + "://";
-    String name = request.getServerName();
-    String port = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
-    String path = request.getContextPath();
-    return scheme + name + port;
-  }
   
   
   
