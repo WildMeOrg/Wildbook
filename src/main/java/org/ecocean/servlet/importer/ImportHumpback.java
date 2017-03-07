@@ -1,35 +1,19 @@
 package org.ecocean.servlet.importer;
 
-import org.joda.time.LocalDateTime;
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONObject;
 
-import java.net.*;
-import java.sql.Time;
-import java.text.Normalizer;
-
-import org.ecocean.grid.*;
 import java.io.*;
 import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
 import org.ecocean.media.*;
-import javax.jdo.*;
-import java.lang.StringBuffer;
-import java.lang.NumberFormatException;
+
 //import org.apache.poi.hssf.usermodel.*;
 //import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -39,9 +23,9 @@ import javax.servlet.http.HttpServletResponse;
 
 
 public class ImportHumpback extends HttpServlet {
-  static PrintWriter out;
-  static String context; 
-  static String baseURL;
+  private static PrintWriter out;
+  private static String context; 
+  private static ArrayList<String> unmatchedFiles = new ArrayList<String>(); 
   
   public void init(ServletConfig config) throws ServletException {
     super.init(config);
@@ -54,7 +38,6 @@ public class ImportHumpback extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,  IOException { 
     out = response.getWriter();
     context = ServletUtilities.getContext(request);
-    baseURL = getBaseURL(request);
     
     out.println("Importer usage in browser: https://yourhost/HumpbackImporter?commit='trueorfalse' ");
     out.println("The default directories are /opt/excel_imports/ and /opt/image_imports/. commit=false to test data parsing, true to actually save.");
@@ -89,7 +72,6 @@ public class ImportHumpback extends HttpServlet {
       out.println("!!!! Exception While Grabbing File List from "+exceldir+" !!!!");
     }
     unmatchedFilenames("", "get");
-    
     myShepherd.closeDBTransaction();
     out.close();
   }
@@ -115,7 +97,7 @@ public class ImportHumpback extends HttpServlet {
     out.println("Num Sheets = "+numSheets);
     out.println("Num Rows = "+rows);
     out.println("Num Columns = "+cols);
-    out.println("Committing ? =");
+    out.println("Committing ? ="+String.valueOf(committing));
     
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
     
@@ -128,19 +110,36 @@ public class ImportHumpback extends HttpServlet {
       enc = parseEncounter(row, myShepherd);
       
       String imageFile = getString(row, 0);
-      ArrayList<Keyword> keywords = generateKeywords(row);
+      
+      ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);
       
       enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
     }
     wb.close();
   }
   
-  public ArrayList<Keyword> generateKeywords(XSSFRow row) {
-    ArrayList<Keyword> keys = new ArrayList<Keyword>(2);
-    Keyword imf = new Keyword(getString(row, 0));
-    Keyword col = new Keyword(getString(row, 1));
-    keys.add(imf);
-    keys.add(col);
+  public ArrayList<Keyword> generateKeywords(XSSFRow row, File dataFile, Shepherd myShepherd) {
+    
+    ArrayList<Keyword> keys = new ArrayList<Keyword>();  
+    Keyword imf = null;
+    Keyword col = null;
+    
+    if (myShepherd.getKeyword(dataFile.getName()) != null) {
+      imf = myShepherd.getKeyword(dataFile.getName());
+    } else {
+      if (dataFile.getName() != null) {
+        imf = new Keyword(dataFile.getName());
+        keys.add(imf);
+      }
+    }
+    if (myShepherd.getKeywordDeepCopy(getString(row, 2)) != null) {
+      col = myShepherd.getKeywordDeepCopy(getString(row, 2));
+    } else {
+      if (getString(row, 2) != null) {
+        col = new Keyword(getString(row, 2));
+        keys.add(col);
+      }
+    }
     return keys;
   }
   
@@ -158,8 +157,7 @@ public class ImportHumpback extends HttpServlet {
     for (File imageFile : imageFileList) {  
       if (imageFile.getName().equals(imageName)) {
         match = true;
-        out.println("\nImage Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
-        out.println("!!!GOT A MATCH!!!");
+        out.println("\n MATCH! Image Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
         try {
           myShepherd.beginDBTransaction();
           photo = new File(imagedir, imageName);
@@ -224,7 +222,6 @@ public class ImportHumpback extends HttpServlet {
   }
   
   public void unmatchedFilenames(String name, String flag) {
-    ArrayList<String> unmatchedFiles = new ArrayList<String>();
     if (flag.equals("store")) {
       unmatchedFiles.add(name);
     }
@@ -331,16 +328,5 @@ public class ImportHumpback extends HttpServlet {
 
     return null;
   }
-  
-  public static String getBaseURL(HttpServletRequest request) {
-    String scheme = request.getScheme() + "://";
-    String name = request.getServerName();
-    String port = (request.getServerPort() == 80) ? "" : ":" + request.getServerPort();
-    String path = request.getContextPath();
-    return scheme + name + port + path;
-  }
-  
-  
-  
   
 }
