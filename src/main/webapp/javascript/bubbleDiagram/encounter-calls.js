@@ -308,11 +308,11 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
 var getEncounterTableData = function(occurrenceObjectArray, individualID) {
   var encounterData = [];
   var occurringWith = "";
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + individualID, function(error, json) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/?individualID=='" + individualID + "'", function(error, json) {
       if(error) {
         console.log("error")
       }
-      jsonData = json;
+      jsonData = json[0];
       for(var i=0; i < jsonData.encounters.length; i++) {
         for(var j = 0; j < occurrenceObjectArray.length; j++) {
           if (occurrenceObjectArray[j].occurrenceID == jsonData.encounters[i].occurrenceID) {
@@ -483,12 +483,12 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 var getIndividualData = function(relationshipArray) {
   var relationshipTableData = [];
   for(var i=0; i < relationshipArray.length; i++) {
-    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/" + relationshipArray[i].relationshipWith[0], function(error, json) {
+    d3.json(wildbookGlobals.baseUrl + "/api/org.ecocean.MarkedIndividual/?individualID=='" + relationshipArray[i].relationshipWith[0] + '"', function(error, json) {
       if(error) {
         console.log("error")
       }
       
-      jsonData = json;
+      jsonData = json[0];
       var individualInfo = relationshipArray.filter(function(obj) {
         return obj.relationshipWith[0] === jsonData.individualID;
       })[0];
