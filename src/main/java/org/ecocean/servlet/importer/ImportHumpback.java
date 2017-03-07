@@ -88,6 +88,8 @@ public class ImportHumpback extends HttpServlet {
       e.printStackTrace();
       out.println("!!!! Exception While Grabbing File List from "+exceldir+" !!!!");
     }
+    unmatchedFilenames("", "get");
+    
     myShepherd.closeDBTransaction();
     out.close();
   }
@@ -129,8 +131,6 @@ public class ImportHumpback extends HttpServlet {
       ArrayList<Keyword> keywords = generateKeywords(row);
       
       enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
-      // Continue to process encounter.  
-      // Get indy, make indy.
     }
     wb.close();
   }
@@ -153,9 +153,11 @@ public class ImportHumpback extends HttpServlet {
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
     
-    for (File imageFile : imageFileList) {
-      
+    boolean match = false;
+    
+    for (File imageFile : imageFileList) {  
       if (imageFile.getName().equals(imageName)) {
+        match = true;
         out.println("\nImage Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
         out.println("!!!GOT A MATCH!!!");
         try {
@@ -169,6 +171,15 @@ public class ImportHumpback extends HttpServlet {
           e.printStackTrace();
         }
         try {
+          out.println("++++ Persisting Media Asset ++++");
+          myShepherd.beginDBTransaction();
+          myShepherd.getPM().makePersistent(ma);
+          myShepherd.commitDBTransaction();
+        } catch (Exception e) {
+          out.println("!!!! Could not Persist Media Asset !!!!");
+          e.printStackTrace();
+        }
+        try {
           myShepherd.beginDBTransaction();
           ma.addDerivationMethod("HumpbackImporter", System.currentTimeMillis());
           ma.addLabel("_original");
@@ -179,15 +190,6 @@ public class ImportHumpback extends HttpServlet {
           myShepherd.commitDBTransaction();
         } catch (Exception e) {
           out.println("!!!! Error Trying to Save Media Asset Properties !!!!");
-          e.printStackTrace();
-        }
-        try {
-          out.println("++++ Persisting Media Asset ++++");
-          myShepherd.beginDBTransaction();
-          myShepherd.getPM().makePersistent(ma);
-          myShepherd.commitDBTransaction();
-        } catch (Exception e) {
-          out.println("!!!! Could not Persist Media Asset !!!!");
           e.printStackTrace();
         }
         
@@ -213,7 +215,25 @@ public class ImportHumpback extends HttpServlet {
         }       
       }
     } 
+    if (match == false) {
+      unmatchedFilenames(imageName, "store");
+    } else {      
+      match = false;
+    }
     return enc;
+  }
+  
+  public void unmatchedFilenames(String name, String flag) {
+    ArrayList<String> unmatchedFiles = new ArrayList<String>();
+    if (flag.equals("store")) {
+      unmatchedFiles.add(name);
+    }
+    if (flag.equals("get")) {
+      for (String file : unmatchedFiles) {
+        out.println("Unmatched File : "+file);
+      }
+      out.println("Total of "+Integer.toString(unmatchedFiles.size())+" Files Not Matched.");
+    } 
   }
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
@@ -240,7 +260,7 @@ public class ImportHumpback extends HttpServlet {
     try {
       if (indyId != null && indyId != "") {
         myShepherd.beginDBTransaction();
-        mi = myShepherd.getMarkedIndividual(indyId);      
+        mi = myShepherd.getMarkedIndividualQuiet(indyId);      
         myShepherd.commitDBTransaction();        
       } else {
         indyId = null;
