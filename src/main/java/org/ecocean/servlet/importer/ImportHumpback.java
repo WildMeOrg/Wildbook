@@ -126,7 +126,6 @@ public class ImportHumpback extends HttpServlet {
       enc = parseEncounter(row, myShepherd);
       
       String imageFile = getString(row, 0);
-      
       ArrayList<Keyword> keywords = generateKeywords(row);
       
       enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
@@ -150,9 +149,6 @@ public class ImportHumpback extends HttpServlet {
     File photo = null;
     
     JSONObject params = new JSONObject();
-    myShepherd.beginDBTransaction();
-    
-    myShepherd.commitDBTransaction();
     String imagedir = "/opt/image_humpback/";
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
@@ -160,7 +156,7 @@ public class ImportHumpback extends HttpServlet {
     for (File imageFile : imageFileList) {
       
       if (imageFile.getName().equals(imageName)) {
-        out.println("Image Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
+        out.println("\nImage Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
         out.println("!!!GOT A MATCH!!!");
         try {
           myShepherd.beginDBTransaction();
@@ -205,9 +201,11 @@ public class ImportHumpback extends HttpServlet {
         }
         
         try {
+          out.println("Media Asset Parameters : "+ma.getParametersAsString()+" !!!!");
           myShepherd.beginDBTransaction();
           enc.addMediaAsset(ma);
           myShepherd.commitDBTransaction();
+          out.println("Encounter As String : "+enc.toString()+" !!!!");
           out.println("++++ Adding Media Asset ++++");
         } catch (Exception e) {
           out.println("!!!! Error Adding Media Asset to Encounter !!!!");
@@ -218,31 +216,40 @@ public class ImportHumpback extends HttpServlet {
     return enc;
   }
   
-  
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
-    String indyId = getString(row, 1);
+    String indyId = getStringOrIntString(row, 1);
     Encounter enc = new Encounter();
-    
-    if (indyId != null && indyId != "") {
-      checkIndyExistence(indyId, enc, myShepherd);
-      
-      enc.setIndividualID(indyId);    
-      
-    }  
+    enc.setCatalogNumber(Util.generateUUID());
+    enc.setGenus("Megaptera");
+    enc.setSpecificEpithet("novaeangliae");
+    enc.setState("approved");
+    enc.setDWCDateAdded();
+    enc.setDWCDateLastModified();
+    enc.setSubmitterID("Bulk Import");
+    enc.setIndividualID(indyId); 
+    myShepherd.beginDBTransaction();
+    myShepherd.getPM().makePersistent(enc);
+    myShepherd.commitDBTransaction();
+    out.println("Here's the ID for this Encounter : "+indyId);
+    checkIndyExistence(indyId, enc, myShepherd);
     return enc;
   }
   
   public void checkIndyExistence(String indyId, Encounter enc, Shepherd myShepherd) {
     MarkedIndividual mi = null;
     try {
-      myShepherd.beginDBTransaction();
-      mi = myShepherd.getMarkedIndividual(indyId);      
-      myShepherd.commitDBTransaction();
+      if (indyId != null && indyId != "") {
+        myShepherd.beginDBTransaction();
+        mi = myShepherd.getMarkedIndividual(indyId);      
+        myShepherd.commitDBTransaction();        
+      } else {
+        indyId = null;
+      }
     } catch (Exception e) {
       e.printStackTrace();
-      out.println("No Individual with ID : "+indyId+" exists. Creating.");
     }
     if (mi == null) {
+      out.println("No Individual with ID : "+indyId+" exists. Creating.");
       myShepherd.beginDBTransaction();
       mi = new MarkedIndividual(indyId, enc);
       myShepherd.storeNewMarkedIndividual(mi);
@@ -250,13 +257,10 @@ public class ImportHumpback extends HttpServlet {
     }
   }
   
-  
-  
   public File[] getFiles(String path) {
     File[] arr;
     try {
       File folder = new File(path);
-      System.out.println("+++++ "+folder.toString()+" FOLDER STRING +++++");
       arr = folder.listFiles();
       return arr;
     } catch (Exception e) {
@@ -291,6 +295,20 @@ public class ImportHumpback extends HttpServlet {
       return str;
     }
     catch (Exception e) {}
+    return null;
+  }
+  
+  public String getStringOrIntString(XSSFRow row, int i) {
+    try {
+      String str = row.getCell(i).getStringCellValue();
+      if (str.equals("")) return null;
+      return str;
+    }
+    catch (Exception e) { try {
+      return getInteger(row, i).toString();
+    }
+    catch (Exception e2) {} }
+
     return null;
   }
   
