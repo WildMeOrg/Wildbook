@@ -298,8 +298,6 @@ td.measurement{
 
   <script>
             function initialize() {
-	            //alert("Initializing map!");
-	              //var mapZoom = 1;
 	              var mapZoom = 1;
 
 	              //var center = new google.maps.LatLng(10.8, 160.8);
@@ -318,9 +316,8 @@ td.measurement{
 
 	        	if(marker!=null){
 					marker.setMap(map);
-					//map.setCenter(marker.position);
-
-	 			//alert("Setting center!");
+					map.setCenter(marker.position);
+					map.setZoom(10);
 				}
 
 	        	google.maps.event.addListener(map, 'click', function(event) {

@@ -271,9 +271,12 @@ String lastLatLong="";
    });
  zoomChangeBoundsListener =
 	    google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
+		this.setZoom(9);
+/*
 	        if ((this.getZoom())&&(this.getZoom()>5)){
 	            this.setZoom(5);
 	        }
+*/
 	});
 
 var spiderWindow = new google.maps.InfoWindow();
