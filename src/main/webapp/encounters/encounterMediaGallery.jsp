@@ -165,6 +165,8 @@ try {
 		      
 		      //Start caption render JSP side
 		      String[] capos=new String[1];
+		      capos[0]= filename;
+/*
 		      capos[0]="<p style=\"color: white;\"><em>"+filename+"</em><br>";
 		      capos[0]+=individualID;
 		      
@@ -172,6 +174,7 @@ try {
 		      capos[0]+=encprops.getProperty("date")+" "+enc.getDate()+"<br>";
 		      
 		      capos[0]+=encprops.getProperty("location")+" "+enc.getLocation()+"<br>"+encprops.getProperty("locationID")+" "+enc.getLocationID()+"<br>"+encprops.getProperty("paredMediaAssetID")+" "+ma.getId()+"</p>";
+*/
 		      captionLinks.add(capos);
 		      //end caption render JSP side
 		      
