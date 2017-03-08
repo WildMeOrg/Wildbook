@@ -7,6 +7,7 @@ import java.util.*;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
+import org.joda.time.DateTime;
 import org.ecocean.media.*;
 
 //import org.apache.poi.hssf.usermodel.*;
@@ -258,6 +259,11 @@ public class ImportHumpback extends HttpServlet {
     enc.setGenus("Megaptera");
     enc.setSpecificEpithet("novaeangliae");
     enc.setState("approved");
+    
+    // Just here so that search will have a date to chew on.
+    DateTime dt = new DateTime();
+    if (dt!=null) enc.setDateInMilliseconds(dt.getMillis());
+    
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
