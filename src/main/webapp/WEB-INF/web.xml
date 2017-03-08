@@ -107,7 +107,7 @@
                 realmA = org.ecocean.security.ShepherdRealm
                 roles.unauthorizedUrl = /accessDenied.jsp
 				authcBasicWildbook = org.ecocean.security.WildbookBasicHttpAuthenticationFilter
-
+				securityManager.sessionManager.globalSessionTimeout = 5400000
 
                 authc.loginUrl = /login.jsp
 
