@@ -7517,7 +7517,7 @@ label {
   clear: both;
   float: none;
   display: block;
-  background: url(../img/tc_logo.png) no-repeat;
+  background: url(../img/logo_wildbook.jpg) no-repeat;
 }
 @media (min-width: 80px) {
   .navbar-brand {
@@ -8126,7 +8126,7 @@ ibeis-badge {
 /* Hero */
 .hero,
 .data-section {
-  background-image: url("../img/turtle_conservancy.jpg");
+  background-image: url("../img/hero_manta.jpg");
   background-size: cover;
   background-repeat: no-repeat;
   background-position: 50% 50%;

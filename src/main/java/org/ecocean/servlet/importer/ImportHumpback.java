@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletResponse;
 public class ImportHumpback extends HttpServlet {
   private static PrintWriter out;
   private static String context; 
+  private static boolean idColumn = false;
+  private static int colorColumn = 2;
   private static ArrayList<String> unmatchedFiles = new ArrayList<String>(); 
   
   public void init(ServletConfig config) throws ServletException {
@@ -99,6 +101,10 @@ public class ImportHumpback extends HttpServlet {
     out.println("Num Columns = "+cols);
     out.println("Committing ? ="+String.valueOf(committing));
     
+    if (String.valueOf(cols).equals("3")) {
+      idColumn = true;
+    }
+    
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
     
     Encounter enc = null;
@@ -124,6 +130,10 @@ public class ImportHumpback extends HttpServlet {
     Keyword imf = null;
     Keyword col = null;
     
+    if (getString(row, 1) != null && idColumn == false) {
+      colorColumn = 1;
+    }
+    
     if (myShepherd.getKeyword(dataFile.getName()) != null) {
       imf = myShepherd.getKeyword(dataFile.getName());
     } else {
@@ -132,11 +142,11 @@ public class ImportHumpback extends HttpServlet {
         keys.add(imf);
       }
     }
-    if (myShepherd.getKeywordDeepCopy(getString(row, 2)) != null) {
-      col = myShepherd.getKeywordDeepCopy(getString(row, 2));
+    if (myShepherd.getKeywordDeepCopy(getString(row, colorColumn)) != null) {
+      col = myShepherd.getKeywordDeepCopy(getString(row, colorColumn));
     } else {
-      if (getString(row, 2) != null) {
-        col = new Keyword(getString(row, 2));
+      if (getString(row, 2) != null && getString(row, colorColumn).length() < 5) {
+        col = new Keyword(getString(row, colorColumn));
         keys.add(col);
       }
     }
@@ -234,7 +244,10 @@ public class ImportHumpback extends HttpServlet {
   }
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
-    String indyId = getStringOrIntString(row, 1);
+    String indyId = null;
+    if (idColumn == true) {
+      indyId = getStringOrIntString(row, 1);
+    }
     Encounter enc = new Encounter();
     enc.setCatalogNumber(Util.generateUUID());
     enc.setGenus("Megaptera");
@@ -243,12 +256,16 @@ public class ImportHumpback extends HttpServlet {
     enc.setDWCDateAdded();
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
-    enc.setIndividualID(indyId); 
+    if (idColumn == true) {
+      enc.setIndividualID(indyId); 
+    } 
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
     myShepherd.commitDBTransaction();
-    out.println("Here's the ID for this Encounter : "+indyId);
-    checkIndyExistence(indyId, enc, myShepherd);
+    if (idColumn == true) {
+      out.println("Here's the ID for this Individual : "+indyId);
+      checkIndyExistence(indyId, enc, myShepherd);       
+    }
     return enc;
   }
   
