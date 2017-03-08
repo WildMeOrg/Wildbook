@@ -66,6 +66,7 @@ public class ImportHumpback extends HttpServlet {
     try {
       excelFileList = getFiles(exceldir);
       for (File file : excelFileList) {
+        idColumn = false;
         out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
         processExcel(file, response, request, committing, myShepherd, assetStore);
       }      
@@ -130,7 +131,7 @@ public class ImportHumpback extends HttpServlet {
     Keyword imf = null;
     Keyword col = null;
     
-    if (getString(row, 1) != null && idColumn == false) {
+    if (getStringOrIntString(row, 1) != null && idColumn == false) {
       colorColumn = 1;
     }
     
@@ -142,14 +143,16 @@ public class ImportHumpback extends HttpServlet {
         keys.add(imf);
       }
     }
-    if (myShepherd.getKeywordDeepCopy(getString(row, colorColumn)) != null) {
-      col = myShepherd.getKeywordDeepCopy(getString(row, colorColumn));
+    if (myShepherd.getKeyword(getStringOrIntString(row, colorColumn)) != null) {
+      col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
     } else {
+      // Right here. Null pointer. #149 now. Maybe it's that deep copy crap up top. Some shit dealing with wack color column placement.
       if (getString(row, 2) != null && getString(row, colorColumn).length() < 5) {
-        col = new Keyword(getString(row, colorColumn));
+        col = new Keyword(getStringOrIntString(row, colorColumn));
         keys.add(col);
       }
     }
+    colorColumn = 2;
     return keys;
   }
   
