@@ -104,6 +104,8 @@ public class ImportHumpback extends HttpServlet {
     
     if (String.valueOf(cols).equals("3")) {
       idColumn = true;
+    } else {
+      idColumn = false;
     }
     
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
