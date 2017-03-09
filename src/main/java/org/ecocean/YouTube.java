@@ -16,6 +16,8 @@ import java.security.InvalidKeyException;
 
 public class YouTube {
     private static String apiKey = null;
+    public static final double EXTRACT_FPS = 0.5;  //note: this *must* be synced with value in config/youtube_extract.sh
+
   //private String storyMediaURL;
   //public void setStoryTellerEmail(String email){this.storyTellerEmail=email;}
 
@@ -67,6 +69,29 @@ System.out.println("]=== done with .grab()");
 
         File[] flist = targetDir.listFiles();
         if ((flist == null) || (flist.length < 1)) throw new RuntimeException(targetDir + " is empty; grab failed");
+        return Arrays.asList(flist);
+    }
+
+    //this fills a directory with framegrabs from input video file (synchronously) and returns a list of Files that are its contents
+    // note: heavy lifting is done by youtube_extract.sh so look there for details (e.g. it will create the dir if needed/possible)
+    public static List<File> extractFrames(File videoFile, File targetDir) {
+        if ((videoFile == null) || (targetDir == null)) return null;
+        if (!videoFile.exists()) throw new RuntimeException(videoFile + " does not exist");
+        String[] cmd = new String[]{"/usr/local/bin/youtube_extract.sh", videoFile.toString(), targetDir.toString()};
+        ProcessBuilder pb = new ProcessBuilder();
+        pb.command(cmd);
+System.out.println("before .extractFrames() ===[");
+
+        try {
+            Process proc = pb.start();
+            proc.waitFor();
+System.out.println("]=== done with .extractFrames()");
+        } catch (Exception ex) {
+            throw new RuntimeException("YouTube.extractFrames(" + videoFile + ", " + targetDir + ") failed: " + ex.toString());
+        }
+
+        File[] flist = targetDir.listFiles();
+        if ((flist == null) || (flist.length < 1)) throw new RuntimeException(targetDir + " is empty; extractFrames failed");
         return Arrays.asList(flist);
     }
 
