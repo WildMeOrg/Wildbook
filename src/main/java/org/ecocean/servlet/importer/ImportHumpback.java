@@ -148,7 +148,7 @@ public class ImportHumpback extends HttpServlet {
       imf = myShepherd.getKeyword(dataFile.getName());
     } else {
       if (dataFile.getName() != null) {
-        imf = new Keyword(dataFile.getName()); 
+        imf = new Keyword(dataFile.getName().toUpperCase()); 
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(imf);
         myShepherd.commitDBTransaction();
@@ -162,7 +162,7 @@ public class ImportHumpback extends HttpServlet {
       col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
     } else {
       if (getString(row, 2) != null && getString(row, colorColumn).length() < 5) {
-        col = new Keyword(getStringOrIntString(row, colorColumn));
+        col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
         myShepherd.beginDBTransaction();
         myShepherd.getPM().makePersistent(col);
         myShepherd.commitDBTransaction();
@@ -174,7 +174,7 @@ public class ImportHumpback extends HttpServlet {
     
     //Handle poor quality image tags.
     out.println("Checking quality.");
-    if (getStringOrIntString(row, idColumn).equals("0")) {    
+    if (getStringOrIntString(row, idColumn).equals("0") || getStringOrIntString(row, idColumn).equals("PQ")) {    
       if (myShepherd.getKeyword("PQ - Poor Quality") == null) {
         pq = new Keyword("PQ - Poor Quality");        
         myShepherd.beginDBTransaction();
@@ -282,6 +282,7 @@ public class ImportHumpback extends HttpServlet {
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
     String indyId = null;
+    MarkedIndividual mi = null;
     
     try {
       indyId = getStringOrIntString(row, idColumn);      
@@ -300,16 +301,24 @@ public class ImportHumpback extends HttpServlet {
    
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
-    enc.setIndividualID(indyId); 
+    if (!indyId.equals("0")) {
+      enc.setIndividualID(indyId);       
+      mi = checkIndyExistence(indyId, enc, myShepherd); 
+      myShepherd.beginDBTransaction();
+      mi.addEncounter(enc, indyId);
+      myShepherd.commitDBTransaction();
+    }
+    
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
     myShepherd.commitDBTransaction();
+    
+    
     out.println("Here's the ID for this Individual : "+indyId);
-    checkIndyExistence(indyId, enc, myShepherd);       
     return enc;
   }
   
-  public void checkIndyExistence(String indyId, Encounter enc, Shepherd myShepherd) {
+  public MarkedIndividual checkIndyExistence(String indyId, Encounter enc, Shepherd myShepherd) {
     MarkedIndividual mi = null;
     try {
       if (indyId != null && indyId != "") {
@@ -329,6 +338,8 @@ public class ImportHumpback extends HttpServlet {
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();
     }
+    mi = myShepherd.getMarkedIndividualQuiet(indyId);
+    return mi;
   }
   
   public File[] getFiles(String path) {
