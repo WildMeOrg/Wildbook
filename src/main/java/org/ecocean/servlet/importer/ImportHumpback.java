@@ -142,19 +142,30 @@ public class ImportHumpback extends HttpServlet {
       imf = myShepherd.getKeyword(dataFile.getName());
     } else {
       if (dataFile.getName() != null) {
-        imf = new Keyword(dataFile.getName());
-        keys.add(imf);
+        imf = new Keyword(dataFile.getName()); 
+        myShepherd.beginDBTransaction();
+        myShepherd.getPM().makePersistent(imf);
+        myShepherd.commitDBTransaction();
       }
     }
+    if (imf != null) {
+      keys.add(imf);
+    }
+    
     if (myShepherd.getKeyword(getStringOrIntString(row, colorColumn)) != null) {
       col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
     } else {
-      // Right here. Null pointer. #149 now. Maybe it's that deep copy crap up top. Some shit dealing with wack color column placement.
       if (getString(row, 2) != null && getString(row, colorColumn).length() < 5) {
         col = new Keyword(getStringOrIntString(row, colorColumn));
-        keys.add(col);
+        myShepherd.beginDBTransaction();
+        myShepherd.getPM().makePersistent(col);
+        myShepherd.commitDBTransaction();
       }
     }
+    if (col != null) {
+      keys.add(col);
+    }
+    
     colorColumn = 2;
     return keys;
   }
@@ -265,6 +276,7 @@ public class ImportHumpback extends HttpServlet {
     if (dt!=null) enc.setDateInMilliseconds(dt.getMillis());
     
     enc.setDWCDateAdded();
+   
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
     if (idColumn == true) {
