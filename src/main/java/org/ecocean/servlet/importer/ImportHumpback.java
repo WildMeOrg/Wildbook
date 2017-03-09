@@ -26,8 +26,9 @@ import javax.servlet.http.HttpServletResponse;
 public class ImportHumpback extends HttpServlet {
   private static PrintWriter out;
   private static String context; 
-  private static boolean idColumn = false;
-  private static int colorColumn = 2;
+  // Values for Reference catalog are the alternates.
+  private static int idColumn = 2;
+  private static int colorColumn = 1;
   private static ArrayList<String> unmatchedFiles = new ArrayList<String>(); 
   
   public void init(ServletConfig config) throws ServletException {
@@ -66,11 +67,15 @@ public class ImportHumpback extends HttpServlet {
     File[] excelFileList = null;
     try {
       excelFileList = getFiles(exceldir);
-      for (File file : excelFileList) {
-        idColumn = false;
-        out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
-        processExcel(file, response, request, committing, myShepherd, assetStore);
-      }      
+      try {
+        for (File file : excelFileList) {
+          out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
+          processExcel(file, response, request, committing, myShepherd, assetStore);
+        }              
+      } catch (Exception e) {
+        e.printStackTrace();
+        out.println("Choked on the next file.");
+      }
     } catch (Exception e) {
       e.printStackTrace();
       out.println("!!!! Exception While Grabbing File List from "+exceldir+" !!!!");
@@ -103,10 +108,13 @@ public class ImportHumpback extends HttpServlet {
     out.println("Num Columns = "+cols);
     out.println("Committing ? ="+String.valueOf(committing));
     
-    if (String.valueOf(cols).equals("3")) {
-      idColumn = true;
+    if (dataFile.getName().equals("CRC XRefCat.xlsx")) {
+      out.println("HACK: File is Reference Catalog. ID Column = 1, Color Column = 2");
+      idColumn = 1;
+      colorColumn = 2;
     } else {
-      idColumn = false;
+      idColumn = 2;
+      colorColumn = 1;
     }
     
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
@@ -133,10 +141,8 @@ public class ImportHumpback extends HttpServlet {
     ArrayList<Keyword> keys = new ArrayList<Keyword>();  
     Keyword imf = null;
     Keyword col = null;
+    Keyword pq = null;
     
-    if (getStringOrIntString(row, 1) != null && idColumn == false) {
-      colorColumn = 1;
-    }
     
     if (myShepherd.getKeyword(dataFile.getName()) != null) {
       imf = myShepherd.getKeyword(dataFile.getName());
@@ -166,7 +172,21 @@ public class ImportHumpback extends HttpServlet {
       keys.add(col);
     }
     
-    colorColumn = 2;
+    //Handle poor quality image tags.
+    out.println("Checking quality.");
+    if (getStringOrIntString(row, idColumn).equals("0")) {    
+      if (myShepherd.getKeyword("PQ - Poor Quality") == null) {
+        pq = new Keyword("PQ - Poor Quality");        
+        myShepherd.beginDBTransaction();
+        myShepherd.getPM().makePersistent(pq);
+        myShepherd.commitDBTransaction();
+      } else {
+        pq = myShepherd.getKeyword("PQ - Poor Quality");
+        keys.add(pq);
+      }
+      out.println("Poor Quality Image! Tagging.");
+    }
+    
     return keys;
   }
   
@@ -262,33 +282,30 @@ public class ImportHumpback extends HttpServlet {
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
     String indyId = null;
-    if (idColumn == true) {
-      indyId = getStringOrIntString(row, 1);
+    
+    try {
+      indyId = getStringOrIntString(row, idColumn);      
+    } catch (Exception e) {
+      e.printStackTrace();
+      out.println("Error Getting Indy Id!");
     }
+    
     Encounter enc = new Encounter();
     enc.setCatalogNumber(Util.generateUUID());
     enc.setGenus("Megaptera");
     enc.setSpecificEpithet("novaeangliae");
     enc.setState("approved");
     
-    // Just here so that search will have a date to chew on.
-    DateTime dt = new DateTime();
-    if (dt!=null) enc.setDateInMilliseconds(dt.getMillis());
-    
     enc.setDWCDateAdded();
    
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
-    if (idColumn == true) {
-      enc.setIndividualID(indyId); 
-    } 
+    enc.setIndividualID(indyId); 
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
     myShepherd.commitDBTransaction();
-    if (idColumn == true) {
-      out.println("Here's the ID for this Individual : "+indyId);
-      checkIndyExistence(indyId, enc, myShepherd);       
-    }
+    out.println("Here's the ID for this Individual : "+indyId);
+    checkIndyExistence(indyId, enc, myShepherd);       
     return enc;
   }
   
