@@ -226,15 +226,18 @@ public abstract class AssetStore implements java.io.Serializable {
     }
 
 
+    /*
+      hello!  2017-03-09 important paradigm shift here!  now this no longer limiting search to parent-store.
+       (1) this "should be" backwards compatible; (2) we now have parent-child assets that cross store boundaries (YouTubeAssetStore / children)
+       (3) restricting to store is kinda silly cuz id is primary key so would never have duplicate id across more than one store anyway
+    */
+    
     public ArrayList<MediaAsset> findAllChildren(MediaAsset parent, Shepherd myShepherd) {
         if ((parent == null) || (parent.getId() < 1)) return null;
-        
         ArrayList<MediaAsset> all=new ArrayList<MediaAsset>();
-        //System.out.println("pid = " + parent.getId());
         Extent mac = myShepherd.getPM().getExtent(MediaAsset.class, true);
-        //System.out.println("parentId == " + parent.getId() + " && this.store.id == " + this.id);
-        Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
-        //Query matches = myShepherd.getPM().newQuery(mac, "parentId == 30 && this.store.id == " + this.id);
+        //Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId() + " && this.store.id == " + this.id);
+        Query matches = myShepherd.getPM().newQuery(mac, "parentId == " + parent.getId());
         try {
             Collection c = (Collection) (matches.execute());
             all = new ArrayList<MediaAsset>(c);
@@ -244,7 +247,6 @@ public abstract class AssetStore implements java.io.Serializable {
         } catch (javax.jdo.JDOException ex) {
             System.out.println(this.toString() + " .findAllChildren(" + parent.toString() + ") threw exception " + ex.toString());
             ex.printStackTrace();
-            //return null;
         }
         matches.closeAll();
         return all;
