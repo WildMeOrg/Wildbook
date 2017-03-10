@@ -48,13 +48,13 @@ public class ImportHumpback extends HttpServlet {
     
     Shepherd myShepherd=null;
     myShepherd=new Shepherd(context);
+    myShepherd.beginDBTransaction();
     myShepherd.setAction("ImportHumpback.class");
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-      myShepherd.beginDBTransaction();
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
       StartupWildbook.initializeWildbook(request, myShepherd);
-      myShepherd.commitDBTransaction();
     }
+    myShepherd.commitDBTransaction();
     
     myShepherd.beginDBTransaction();
     AssetStore assetStore = AssetStore.getDefault(myShepherd);
@@ -121,9 +121,9 @@ public class ImportHumpback extends HttpServlet {
     
     Encounter enc = null;
     for (int i=1; i<rows; i++) { 
-      if (committing) {
-        myShepherd.beginDBTransaction();
-      }      
+      //if (committing) {
+      //  myShepherd.beginDBTransaction();
+      //}      
       row = sheet.getRow(i);
       enc = parseEncounter(row, myShepherd);
       
