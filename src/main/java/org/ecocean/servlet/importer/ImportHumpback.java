@@ -4,6 +4,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import org.ecocean.*;
 import org.ecocean.servlet.*;
@@ -120,12 +121,10 @@ public class ImportHumpback extends HttpServlet {
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
     
     Encounter enc = null;
-    for (int i=1; i<rows; i++) { 
-      if (committing) {
-        myShepherd.beginDBTransaction();
-      }      
+    for (int i=1; i<rows; i++) {     
       row = sheet.getRow(i);
       enc = parseEncounter(row, myShepherd);
+      
       
       String imageFile = getString(row, 0);
       
@@ -225,12 +224,13 @@ public class ImportHumpback extends HttpServlet {
           e.printStackTrace();
         }
         try {
-          myShepherd.beginDBTransaction();
+          TimeUnit.MILLISECONDS.sleep(100);
           ma.addDerivationMethod("HumpbackImporter", System.currentTimeMillis());
           ma.addLabel("_original");
           ma.copyIn(photo);
           ma.setAccessControl(request);
           ma.updateMetadata();
+          myShepherd.beginDBTransaction();
           ma.updateStandardChildren(myShepherd);
           myShepherd.commitDBTransaction();
         } catch (Exception e) {
@@ -239,9 +239,7 @@ public class ImportHumpback extends HttpServlet {
         }
         
         try {
-          myShepherd.beginDBTransaction();
           ma.setKeywords(keywords);
-          myShepherd.commitDBTransaction();
         } catch (Exception e) {
           out.println("!!!! Error Adding Keywords to Encounter !!!!");
           e.printStackTrace();
@@ -301,18 +299,18 @@ public class ImportHumpback extends HttpServlet {
    
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
-    if (!indyId.equals("0")) {
-      enc.setIndividualID(indyId);       
-      mi = checkIndyExistence(indyId, enc, myShepherd); 
-      myShepherd.beginDBTransaction();
-      mi.addEncounter(enc, indyId);
-      myShepherd.commitDBTransaction();
-    }
     
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
     myShepherd.commitDBTransaction();
     
+    if (!indyId.equals("0")) {
+      mi = checkIndyExistence(indyId, enc, myShepherd); 
+      myShepherd.beginDBTransaction();
+      mi.addEncounter(enc, indyId);
+      myShepherd.commitDBTransaction();
+      enc.setIndividualID(indyId);       
+    }
     
     out.println("Here's the ID for this Individual : "+indyId);
     return enc;
@@ -320,25 +318,24 @@ public class ImportHumpback extends HttpServlet {
   
   public MarkedIndividual checkIndyExistence(String indyId, Encounter enc, Shepherd myShepherd) {
     MarkedIndividual mi = null;
+    
     try {
-      if (indyId != null && indyId != "") {
+      if (!indyId.equals("0")) {
         myShepherd.beginDBTransaction();
         mi = myShepherd.getMarkedIndividualQuiet(indyId);      
         myShepherd.commitDBTransaction();        
-      } else {
-        indyId = null;
-      }
+      } 
     } catch (Exception e) {
       e.printStackTrace();
     }
-    if (mi == null) {
+    
+    if (mi == null && !indyId.equals("0")) {
       out.println("No Individual with ID : "+indyId+" exists. Creating.");
       myShepherd.beginDBTransaction();
       mi = new MarkedIndividual(indyId, enc);
       myShepherd.storeNewMarkedIndividual(mi);
-      myShepherd.commitDBTransaction();
+      myShepherd.commitDBTransaction();    
     }
-    mi = myShepherd.getMarkedIndividualQuiet(indyId);
     return mi;
   }
   

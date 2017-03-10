@@ -130,7 +130,7 @@ String lastLatLong="";
 	  	}
 	  for(int g=0;g<numParticipatingIndies;g++){
 		  MarkedIndividual indie=myShepherd.getMarkedIndividual(occurIndies.get(g));
-		  if(indie.returnEncountersWithGPSData(tr	ue,false,context).size()>0){
+		  if(indie.returnEncountersWithGPSData(true,false,context).size()>0){
 			  Vector encsWithGPS=indie.returnEncountersWithGPSData(true,true,context);
 			  int numEncsWithGPS=encsWithGPS.size();
 			  for(int j=0;j<numEncsWithGPS;j++){
