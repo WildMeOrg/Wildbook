@@ -302,8 +302,11 @@ public class ImportHumpback extends HttpServlet {
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
     if (!indyId.equals("0")) {
-      enc.setIndividualID(indyId);       
+      
+      enc.setIndividualID(indyId);   
+      myShepherd.beginDBTransaction();
       mi = checkIndyExistence(indyId, enc, myShepherd); 
+      myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
       mi.addEncounter(enc, indyId);
       myShepherd.commitDBTransaction();
@@ -322,9 +325,7 @@ public class ImportHumpback extends HttpServlet {
     MarkedIndividual mi = null;
     try {
       if (indyId != null && indyId != "") {
-        myShepherd.beginDBTransaction();
-        mi = myShepherd.getMarkedIndividualQuiet(indyId);      
-        myShepherd.commitDBTransaction();        
+        mi = myShepherd.getMarkedIndividualQuiet(indyId);            
       } else {
         indyId = null;
       }
@@ -333,10 +334,10 @@ public class ImportHumpback extends HttpServlet {
     }
     if (mi == null) {
       out.println("No Individual with ID : "+indyId+" exists. Creating.");
-      myShepherd.beginDBTransaction();
       mi = new MarkedIndividual(indyId, enc);
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();
+      myShepherd.beginDBTransaction();
     }
     mi = myShepherd.getMarkedIndividualQuiet(indyId);
     return mi;
