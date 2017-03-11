@@ -124,11 +124,8 @@ public class ImportHumpback extends HttpServlet {
     for (int i=1; i<rows; i++) {     
 
       row = sheet.getRow(i);
-      enc = parseEncounter(row, myShepherd);
-      
-      
+      enc = parseEncounter(row, myShepherd);   
       String imageFile = getString(row, 0);
-      
       ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);
       
       enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
@@ -139,51 +136,43 @@ public class ImportHumpback extends HttpServlet {
   public ArrayList<Keyword> generateKeywords(XSSFRow row, File dataFile, Shepherd myShepherd) {
     
     ArrayList<Keyword> keys = new ArrayList<Keyword>();  
-    Keyword imf = null;
-    Keyword col = null;
-    Keyword pq = null;
+    Keyword imf = myShepherd.getKeyword(dataFile.getName());
+    Keyword col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
+    Keyword pq = myShepherd.getKeyword("PQ - Poor Quality");
+    
+    if (myShepherd.getKeyword("PQ - Poor Quality") == null) {
+      pq = new Keyword("PQ - Poor Quality");
+      myShepherd.beginDBTransaction();
+      myShepherd.getPM().makePersistent(pq);
+      myShepherd.commitDBTransaction();
+    }
     
     
-    if (myShepherd.getKeyword(dataFile.getName()) != null) {
-      imf = myShepherd.getKeyword(dataFile.getName());
-    } else {
-      if (dataFile.getName() != null) {
-        imf = new Keyword(dataFile.getName().toUpperCase()); 
-        myShepherd.beginDBTransaction();
-        myShepherd.getPM().makePersistent(imf);
-        myShepherd.commitDBTransaction();
-      }
+    if (imf == null && dataFile.getName() != null) {
+      imf = new Keyword(dataFile.getName().toUpperCase()); 
+      myShepherd.beginDBTransaction();
+      myShepherd.getPM().makePersistent(imf);
+      myShepherd.commitDBTransaction();
     }
     if (imf != null) {
       keys.add(imf);
     }
     
-    if (myShepherd.getKeyword(getStringOrIntString(row, colorColumn)) != null) {
-      col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
-    } else {
-      if (getString(row, 2) != null && getString(row, colorColumn).length() < 5) {
-        col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
-        myShepherd.beginDBTransaction();
-        myShepherd.getPM().makePersistent(col);
-        myShepherd.commitDBTransaction();
-      }
+    if (col == null && getString(row, colorColumn).length() < 5 && getStringOrIntString(row, colorColumn) != null) {
+      col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
+      myShepherd.beginDBTransaction();
+      myShepherd.getPM().makePersistent(col);
+      myShepherd.commitDBTransaction();
     }
+    
     if (col != null) {
       keys.add(col);
     }
     
     //Handle poor quality image tags.
     out.println("Checking quality.");
-    if (getStringOrIntString(row, idColumn).equals("0") || getStringOrIntString(row, idColumn).equals("PQ")) {    
-      if (myShepherd.getKeyword("PQ - Poor Quality") == null) {
-        pq = new Keyword("PQ - Poor Quality");        
-        myShepherd.beginDBTransaction();
-        myShepherd.getPM().makePersistent(pq);
-        myShepherd.commitDBTransaction();
-      } else {
-        pq = myShepherd.getKeyword("PQ - Poor Quality");
-        keys.add(pq);
-      }
+    if (getStringOrIntString(row, idColumn).equals("0") || getStringOrIntString(row, idColumn).equals("PQ")) {           
+      keys.add(pq);
       out.println("Poor Quality Image! Tagging.");
     }
     
@@ -206,11 +195,9 @@ public class ImportHumpback extends HttpServlet {
         match = true;
         out.println("\n MATCH! Image Filename : "+imageFile.getName()+" = Image I'm looking for : "+imageName);
         try {
-          myShepherd.beginDBTransaction();
           photo = new File(imagedir, imageName);
           params = assetStore.createParameters(photo);
-          ma = new MediaAsset(assetStore, params);
-          myShepherd.commitDBTransaction();          
+          ma = new MediaAsset(assetStore, params);         
         } catch (Exception e) {
           out.println("!!!! Error Trying to Create Media Asset!!!!");
           e.printStackTrace();
@@ -225,7 +212,6 @@ public class ImportHumpback extends HttpServlet {
           e.printStackTrace();
         }
         try {
-          TimeUnit.MILLISECONDS.sleep(100);
           ma.addDerivationMethod("HumpbackImporter", System.currentTimeMillis());
           ma.addLabel("_original");
           ma.copyIn(photo);
@@ -248,9 +234,7 @@ public class ImportHumpback extends HttpServlet {
         
         try {
           out.println("Media Asset Parameters : "+ma.getParametersAsString()+" !!!!");
-          myShepherd.beginDBTransaction();
           enc.addMediaAsset(ma);
-          myShepherd.commitDBTransaction();
           out.println("Encounter As String : "+enc.toString()+" !!!!");
           out.println("++++ Adding Media Asset ++++");
         } catch (Exception e) {
@@ -306,12 +290,10 @@ public class ImportHumpback extends HttpServlet {
     myShepherd.commitDBTransaction();
     
     if (!indyId.equals("0")) {
-
+      myShepherd.beginDBTransaction();
       mi = checkIndyExistence(indyId, enc, myShepherd); 
       myShepherd.commitDBTransaction();
-      myShepherd.beginDBTransaction();
       mi.addEncounter(enc, indyId);
-      myShepherd.commitDBTransaction();
       enc.setIndividualID(indyId);       
     }
     
@@ -336,6 +318,7 @@ public class ImportHumpback extends HttpServlet {
     if (mi == null && !indyId.equals("0")) {
       out.println("No Individual with ID : "+indyId+" exists. Creating.");
       mi = new MarkedIndividual(indyId, enc);
+      myShepherd.beginDBTransaction();
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();    
 
