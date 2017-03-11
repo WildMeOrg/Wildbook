@@ -49,13 +49,13 @@ public class ImportHumpback extends HttpServlet {
     
     Shepherd myShepherd=null;
     myShepherd=new Shepherd(context);
+    myShepherd.beginDBTransaction();
     myShepherd.setAction("ImportHumpback.class");
     if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
-      myShepherd.beginDBTransaction();
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
       StartupWildbook.initializeWildbook(request, myShepherd);
-      myShepherd.commitDBTransaction();
     }
+    myShepherd.commitDBTransaction();
     
     myShepherd.beginDBTransaction();
     AssetStore assetStore = AssetStore.getDefault(myShepherd);
@@ -122,6 +122,7 @@ public class ImportHumpback extends HttpServlet {
     
     Encounter enc = null;
     for (int i=1; i<rows; i++) {     
+
       row = sheet.getRow(i);
       enc = parseEncounter(row, myShepherd);
       
@@ -305,7 +306,9 @@ public class ImportHumpback extends HttpServlet {
     myShepherd.commitDBTransaction();
     
     if (!indyId.equals("0")) {
+
       mi = checkIndyExistence(indyId, enc, myShepherd); 
+      myShepherd.commitDBTransaction();
       myShepherd.beginDBTransaction();
       mi.addEncounter(enc, indyId);
       myShepherd.commitDBTransaction();
@@ -325,16 +328,17 @@ public class ImportHumpback extends HttpServlet {
         mi = myShepherd.getMarkedIndividualQuiet(indyId);      
         myShepherd.commitDBTransaction();        
       } 
+
     } catch (Exception e) {
       e.printStackTrace();
     }
     
     if (mi == null && !indyId.equals("0")) {
       out.println("No Individual with ID : "+indyId+" exists. Creating.");
-      myShepherd.beginDBTransaction();
       mi = new MarkedIndividual(indyId, enc);
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();    
+
     }
     return mi;
   }
