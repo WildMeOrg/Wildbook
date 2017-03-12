@@ -1,10 +1,10 @@
 package org.ecocean;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.GregorianCalendar;
+//import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,19 +16,15 @@ import java.io.*;
 
 import javax.jdo.Query;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
+
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
 
 import org.ecocean.Util.MeasurementDesc;
 import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -1236,18 +1232,19 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     
 
     //filter for sex------------------------------------------
-
-    if(request.getParameter("male")==null) {
-      filter+=" && !sex.startsWith('male')";
-      prettyPrint.append("Sex is not male.<br />");
-    }
-    if(request.getParameter("female")==null) {
-      filter+=" && !sex.startsWith('female')";
-      prettyPrint.append("Sex is not female.<br />");
-    }
-    if(request.getParameter("unknown")==null) {
-      filter+=" && !sex.startsWith('unknown') && sex != null";
-      prettyPrint.append("Sex is not unknown.<br />");
+    if((request.getParameter("male")!=null)||(request.getParameter("female")!=null)||(request.getParameter("unknown")!=null)){
+      if(request.getParameter("male")==null) {
+        filter+=" && !sex.startsWith('male')";
+        prettyPrint.append("Sex is not male.<br />");
+      }
+      if(request.getParameter("female")==null) {
+        filter+=" && !sex.startsWith('female')";
+        prettyPrint.append("Sex is not female.<br />");
+      }
+      if(request.getParameter("unknown")==null) {
+        filter+=" && !sex.startsWith('unknown') && sex != null";
+        prettyPrint.append("Sex is not unknown.<br />");
+      }
     }
 
     //filter by sex--------------------------------------------------------------------------------------

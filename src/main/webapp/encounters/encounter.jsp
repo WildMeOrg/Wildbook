@@ -3257,7 +3257,7 @@ else {
     <p>
     <%if(enc.getDateInMilliseconds()!=null){ %>
       <a
-        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
+        href="//<%=CommonConfiguration.getURLLocation(request)%>/xcalendar/calendar2.jsp?scDate=<%=enc.getMonth()%>/1/<%=enc.getYear()%>">
         <span id="displayDate"><%=enc.getDate()%></span>
       </a>
         <%
