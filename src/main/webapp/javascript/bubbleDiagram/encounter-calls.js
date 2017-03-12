@@ -1,3 +1,11 @@
+// lang  dictionary contains all language specific text. It is loaded in individuals jsp and contains
+// all the necessary keys from individuals.properties with the same syntax.
+var dict = {}; 
+var languageTable = function(words) {
+	dict = words;
+}
+
+
 var makeCooccurrenceChart = function(items) {
   var bubbleChart = new d3.svg.BubbleChart({
     supportResponsive: true,
@@ -129,7 +137,7 @@ var getData = function(individualID) {
       for (var prop in dataObject) {
         var whale = new Object();
         whale = {text:prop, count:dataObject[prop], sex: "", haplotype: ""};
-        items.push(whale);
+        items.push(whale);	
       }
       if (items.length > 0) {
         getSexHaploData(individualID, items);
@@ -166,41 +174,41 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     .data(d3.keys(items[0]))
     .enter().append("th").text(function(d){
       if(d === "text") {
-        return "Occurring With";
+        return dict['occurringWith'];
       } if (d === "count"){
-        return "# Co-occurrences";
+        return dict['occurrenceNumber'];
       } if (d === "behavior") {
-        return "Behavior";
+        return dict['behavior'];
       } if(d === "alternateID") {
-        return "Alt ID";
+        return dict['alternateID'];
       }if (d === "sex") {
-        return "Sex";
+        return dict['sex'];
       } if (d === "haplotype") {
-        return "Haplotype";
+        return dict['haplotype'];
       } if (d === "location") {
-        return "Location";
+        return dict['location'];
       } if (d === "dataTypes") {
-        return "Data Types";
+        return dict['dataTypes'];
       } if (d === "date") {
-        return "Date";
+        return dict['date'];
       } if(d === "occurringWith") {
-        return "Occurring With";
+        return dict['occurringWith'];
       } if(d === "catalogNumber") {
-        return "Catalog Number";
+        return dict['catalogNumber'];
       } if(d === "roles") {
-        return "Roles";
+        return dict['roles'];
       } if(d === "relationshipWith") {
-        return "Relationship With";
+        return dict['relationshipWith'];
       } if(d === "type") {
-        return "Type";
+        return dict['type'];
       } if(d === "socialUnit") {
-        return "Social Unit";
+        return dict['socialUnit'];
       } if(d === "edit") {
-        return "Edit";
+        return dict['edit'];
       } if(d === "remove") {
-        return "Remove";
+        return dict['remove'];
       } if(d === "relationshipID") {
-        return "Relationship ID";
+        return  dict['relationshipID'];
       }
     })
     .on("click", function(d){
@@ -212,7 +220,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
     var tr = d3.select(tableBodyLocation).selectAll("tr").data(items);
     tr.enter().append("tr").attr("class", function(d){
       if(d.relationshipID !=null && d.relationshipID != 'undefined') {
-        return d.relationshipID;
+        return	 d.relationshipID;
       }
       return d3.values(d)[0];
     });
@@ -237,7 +245,7 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
           return d[0].italics() + "-" + d[1];
         }
         if(d.length > 2) {
-          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>Nickname: " + d[1]+ "</span><br><span>Alternate ID: " + d[2] + "</span><br><span>Sex: " + d[3] + "</span><br><span>Haplotype: " + d[4] + "</span>";
+          return "<a target='_blank' href='/individuals.jsp?number=" + d[0] + "'>" + d[0] + "</a><br><span>" + dict['nickname'] + " : " + d[1]+ "</span><br><span>" + dict['alternateID'] + ": " + d[2] + "</span><br><span>" + dict['sex'] + ": " + d[3] + "</span><br><span>" + dict['haplotype'] +": " + d[4] + "</span>";
           }
         }
         if(d == "GOS") {
@@ -275,10 +283,10 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       }if (b === "") {
         b = "0";
       }
-      var parseA = parseInt(a);
+      var parseA = unixCrunch(a);
       if(parseA) {
         var whaleA = parseA;
-        var whaleB = parseInt(b);
+        var whaleB = unixCrunch(b);
         return whaleA < whaleB ? 1 : whaleA == whaleB ? 0 : -1;
       } else
         return a.localeCompare(b);
@@ -288,6 +296,12 @@ var makeTable = function(items, tableHeadLocation, tableBodyLocation, sortOn) {
       return b ? 1 : a ? -1 : 0;
     }
   }
+  
+  function unixCrunch(date) {
+	  date = date.replace("-","/");
+	  return new Date(date).getTime()/1000;
+  }
+  
 };
 
 
@@ -316,7 +330,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
 		  if(jsonData.encounters[i].month<0){date=date.substring(0,4);}
 
         } else {
-          date = "Unknown";
+          date = dict['unknown'];
         }
         if(jsonData.encounters[i].verbatimLocality) {
           var location = jsonData.encounters[i].verbatimLocality;
@@ -327,7 +341,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         if(jsonData.encounters[i].tissueSamples || jsonData.encounters[i].annotations) {
           if((jsonData.encounters[i].tissueSamples)&&(jsonData.encounters[i].tissueSamples.length > 0)) {
             var dataTypes = jsonData.encounters[i].tissueSamples[0].type;
-          } else if(jsonData.encounters[i].annotations.length > 0) {
+          } else if((jsonData.encounters[i].annotations)&&(jsonData.encounters[i].annotations.length > 0)) {
             var dataTypes = "image";
           } else if (jsonData.encounters[i].tissueSamples && jsonData.encounters[i].tissueSamples.length > 0 && jsonData.encounters[i].annotations.length > 0){
             var dataTypes = "both"
@@ -363,7 +377,7 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
         console.log("error")
       }
       jsonData = json;
-
+      console.log("Relationship ID in getRelationshipData: " + relationshipID);
       var type = jsonData.type;
       var individual1 = jsonData.markedIndividualName1;
       var individual2 = jsonData.markedIndividualName2;
@@ -372,8 +386,21 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       var descriptor1 = jsonData.markedIndividual1DirectionalDescriptor;
       var descriptor2 = jsonData.markedIndividual2DirectionalDescriptor
       var socialUnit = jsonData.relatedSocialUnitName;
-      var startTime = new Date(jsonData.startTime);
-      var endTime = new Date(jsonData.endTime);
+
+      var startTime;
+      var endTime;
+     
+      if (jsonData.startTime == "-1") {
+    	  startTime = null;;
+      } else {
+    	  startTime = new Date(jsonData.startTime);
+      }
+      if (jsonData.endTime == "-1") {
+    	  endTime = null;
+      } else {
+    	  endTime = new Date(jsonData.endTime);
+      }
+
       var bidirectional = jsonData.bidirectional;
 
       $("#addRelationshipForm").show();
@@ -388,8 +415,8 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
       $("#role2").val(role2);
       $("#descriptor2").val(descriptor2);
       $("#socialUnit").val(socialUnit);
-      $("#startTime").val(startTime);
-      $("#endTime").val(endTime);
+      $("#startTime").val(startTime.toISOString().substr(0,10));
+      $("#endTime").val(endTime.toISOString().substr(0,10));
       $("#bidirectional").val(bidirectional);
     });
   }
@@ -422,6 +449,15 @@ var getEncounterTableData = function(occurrenceObjectArray, individualID) {
     jsonData = json;
     for(var i = 0; i < jsonData.length; i++) {
       var relationshipID = jsonData[i]._id;
+      var startTime = jsonData[i].startTime;
+      var endTime = jsonData[i].endTime;
+      if (startTime == "-1") {
+        startTime = "Start Time";
+      } 
+      if (endTime == "-1") {
+	endTime = "End Time";
+      }
+		
       if(jsonData[i].markedIndividualName1 != individualID) {
         var whaleID = jsonData[i].markedIndividualName1;
         var markedIndividual = jsonData[i].markedIndividualName2;
@@ -451,10 +487,12 @@ var getIndividualData = function(relationshipArray) {
       if(error) {
         console.log("error")
       }
+      
       jsonData = json;
       var individualInfo = relationshipArray.filter(function(obj) {
         return obj.relationshipWith[0] === jsonData.individualID;
       })[0];
+      console.log(individualInfo.relationshipWith);
       individualInfo.relationshipWith[1] = jsonData.nickName;
       individualInfo.relationshipWith[2] = jsonData.alternateid;
       individualInfo.relationshipWith[3] = jsonData.sex;
@@ -470,7 +508,7 @@ var getIndividualData = function(relationshipArray) {
             relationshipArray[j].relationshipWith[3] = jsonData.sex;
             relationshipArray[j].relationshipWith[4] = jsonData.localHaplotypeReflection;
           }
-        }
+	}
         makeTable(relationshipArray, "#relationshipHead", "#relationshipBody",null);
       }
     });

@@ -21,6 +21,7 @@ package org.ecocean;
 
 import java.io.IOException;
 import java.util.*;
+import java.net.URL;
 
 import org.ecocean.genetics.*;
 import org.ecocean.social.Relationship;
@@ -1842,8 +1843,12 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
     return resultArray;
   }
 
-
+  
   public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req) throws JSONException {
+    return getExemplarImages(req, 5);
+  }
+
+  public ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> getExemplarImages(HttpServletRequest req, int numResults) throws JSONException {
     ArrayList<org.datanucleus.api.rest.orgjson.JSONObject> al=new ArrayList<org.datanucleus.api.rest.orgjson.JSONObject>();
     //boolean haveProfilePhoto=false;
     for (Encounter enc : this.getDateSortedEncounters()) {
@@ -1858,9 +1863,20 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
           if (ma != null) {
             //JSONObject j = new JSONObject();
             JSONObject j = ma.sanitizeJson(req, new JSONObject());
-            
-            
-            
+
+            //we get a url which is potentially more detailed than we might normally be allowed (e.g. anonymous user)
+            // we have a throw-away shepherd here which is fine since we only care about the url ultimately
+            URL midURL = null;
+            String context = ServletUtilities.getContext(req);
+            Shepherd myShepherd = new Shepherd(context);
+            myShepherd.setAction("MarkedIndividual.getExemplarImages");
+            myShepherd.beginDBTransaction();
+            ArrayList<MediaAsset> kids = ma.findChildrenByLabel(myShepherd, "_mid");
+            if ((kids != null) && (kids.size() > 0)) midURL = kids.get(0).webURL();
+            if (midURL != null) j.put("url", midURL.toString()); //this overwrites url that was set in ma.sanitizeJson()
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
+
             if ((j!=null)&&(ma.getMimeTypeMajor()!=null)&&(ma.getMimeTypeMajor().equals("image"))) {
               
               
@@ -1879,6 +1895,7 @@ public Float getMinDistanceBetweenTwoMarkedIndividuals(MarkedIndividual otherInd
             
             
           }
+          if(al.size()>numResults){return al;}
         }
     //}
     }
