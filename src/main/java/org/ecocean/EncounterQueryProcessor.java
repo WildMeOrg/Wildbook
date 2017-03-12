@@ -1081,7 +1081,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
           DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
           DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
     
-          prettyPrint.append("Dates between: "+date1.toString(parser)+" and "+date2.toString(parser)+"<br />");
+          prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
           
         //get our date values
           /*
