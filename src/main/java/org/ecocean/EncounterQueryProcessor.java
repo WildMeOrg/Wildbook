@@ -28,6 +28,9 @@ import org.ecocean.servlet.ServletUtilities;
 import org.ecocean.security.Collaboration;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 public class EncounterQueryProcessor {
 
@@ -1071,45 +1074,32 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
 
     //start date filter----------------------------
-    if((request.getParameter("day1")!=null)&&(request.getParameter("month1")!=null)&&(request.getParameter("year1")!=null)&&(request.getParameter("day2")!=null)&&(request.getParameter("month2")!=null)&&(request.getParameter("year2")!=null)) {
+    if((request.getParameter("datepicker1")!=null)&&(!request.getParameter("datepicker1").trim().equals(""))&&(request.getParameter("datepicker2")!=null)&&(!request.getParameter("datepicker2").trim().equals(""))){
+        
       try{
-
-    //get our date values
-    int day1=(new Integer(request.getParameter("day1"))).intValue();
-    int day2=(new Integer(request.getParameter("day2"))).intValue();
-    int month1=(new Integer(request.getParameter("month1"))).intValue();
-    int month2=(new Integer(request.getParameter("month2"))).intValue();
-    int year1=(new Integer(request.getParameter("year1"))).intValue();
-    int year2=(new Integer(request.getParameter("year2"))).intValue();
-
-    prettyPrint.append("Dates between: "+year1+"-"+month1+"-"+day1+" and "+year2+"-"+month2+"-"+day2+"<br />");
-
-    //order our values
-    int minYear=year1;
-    int minMonth=month1;
-    int minDay=day1;
-    int maxYear=year2;
-    int maxMonth=month2;
-    int maxDay=day2;
-    if(year1>year2) {
-      minDay=day2;
-      minMonth=month2;
-      minYear=year2;
-      maxDay=day1;
-      maxMonth=month1;
-      maxYear=year1;
-    }
-    else if(year1==year2) {
-      if(month1>month2) {
-        minDay=day2;
-        minMonth=month2;
-        minYear=year2;
-        maxDay=day1;
-        maxMonth=month1;
-        maxYear=year1;
-      }
-      else if(month1==month2) {
-        if(day1>day2) {
+          DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+          DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+          DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
+    
+          prettyPrint.append("Dates between: "+date1.toString(parser)+" and "+date2.toString(parser)+"<br />");
+          
+        //get our date values
+          /*
+        int day1=date1.getDayOfMonth();
+        int day2=date2.getDayOfMonth();
+        int month1=date1.getMonthOfYear();
+        int month2=date2.getMonthOfYear();
+        int year1=date1.getYear();
+        int year2=(new Integer(request.getParameter("year2"))).intValue();
+ 
+        //order our values
+        int minYear=year1;
+        int minMonth=month1;
+        int minDay=day1;
+        int maxYear=year2;
+        int maxMonth=month2;
+        int maxDay=day2;
+        if(year1>year2) {
           minDay=day2;
           minMonth=month2;
           minYear=year2;
@@ -1117,29 +1107,49 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
           maxMonth=month1;
           maxYear=year1;
         }
+        else if(year1==year2) {
+          if(month1>month2) {
+            minDay=day2;
+            minMonth=month2;
+            minYear=year2;
+            maxDay=day1;
+            maxMonth=month1;
+            maxYear=year1;
+          }
+          else if(month1==month2) {
+            if(day1>day2) {
+              minDay=day2;
+              minMonth=month2;
+              minYear=year2;
+              maxDay=day1;
+              maxMonth=month1;
+              maxYear=year1;
+            }
+          }
+        }
+    */
+        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
+        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
+    
+        //let's do some month and day checking to avoid exceptions
+        //org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
+       // if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
+       // org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
+       // if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
+        
+        
+        //org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
+        //org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
+        
+        
+        if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
+          filter+="((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
+        }
+        else{filter+=" && ((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
+        }
       }
-    }
-
-    //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-    //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-
-    //let's do some month and day checking to avoid exceptions
-    org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
-    if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
-    org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
-    if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
-    
-    
-    org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
-    org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-    
-    
-    if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-      filter+="((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
-    }
-    else{filter+=" && ((dateInMilliseconds >= "+gcMin.getMillis()+") && (dateInMilliseconds <= "+gcMax.getMillis()+"))";
-    }
-      
+      catch(Exception e){e.printStackTrace();}
+      }  
     //end date filter------------------------------------------
     
     
@@ -1242,11 +1252,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
 
     //filter by sex--------------------------------------------------------------------------------------
 
-      } catch(NumberFormatException nfe) {
-        //do nothing, just skip on
-        nfe.printStackTrace();
-          }
-        }
+
  
 
     String releaseDateFromStr = request.getParameter("releaseDateFrom");
