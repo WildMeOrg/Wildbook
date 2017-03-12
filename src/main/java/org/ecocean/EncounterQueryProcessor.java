@@ -1078,66 +1078,7 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
           DateTime date2 = parser.parseDateTime(request.getParameter("datepicker2"));
     
           prettyPrint.append("Dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
-          
-        //get our date values
-          /*
-        int day1=date1.getDayOfMonth();
-        int day2=date2.getDayOfMonth();
-        int month1=date1.getMonthOfYear();
-        int month2=date2.getMonthOfYear();
-        int year1=date1.getYear();
-        int year2=(new Integer(request.getParameter("year2"))).intValue();
- 
-        //order our values
-        int minYear=year1;
-        int minMonth=month1;
-        int minDay=day1;
-        int maxYear=year2;
-        int maxMonth=month2;
-        int maxDay=day2;
-        if(year1>year2) {
-          minDay=day2;
-          minMonth=month2;
-          minYear=year2;
-          maxDay=day1;
-          maxMonth=month1;
-          maxYear=year1;
-        }
-        else if(year1==year2) {
-          if(month1>month2) {
-            minDay=day2;
-            minMonth=month2;
-            minYear=year2;
-            maxDay=day1;
-            maxMonth=month1;
-            maxYear=year1;
-          }
-          else if(month1==month2) {
-            if(day1>day2) {
-              minDay=day2;
-              minMonth=month2;
-              minYear=year2;
-              maxDay=day1;
-              maxMonth=month1;
-              maxYear=year1;
-            }
-          }
-        }
-    */
-        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-    
-        //let's do some month and day checking to avoid exceptions
-        //org.joda.time.DateTime testMonth1=new org.joda.time.DateTime(minYear,minMonth,1,0,0);
-       // if(testMonth1.dayOfMonth().getMaximumValue()<minDay) minDay=testMonth1.dayOfMonth().getMaximumValue();    
-       // org.joda.time.DateTime testMonth2=new org.joda.time.DateTime(maxYear,maxMonth,1,0,0);
-       // if(testMonth2.dayOfMonth().getMaximumValue()<maxDay) maxDay=testMonth2.dayOfMonth().getMaximumValue();
-        
-        
-        //org.joda.time.DateTime gcMin =new org.joda.time.DateTime(minYear, (minMonth), minDay, 0, 0);
-        //org.joda.time.DateTime gcMax =new org.joda.time.DateTime(maxYear, (maxMonth), maxDay, 23, 59);
-        
-        
+
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
           filter+="((dateInMilliseconds >= "+date1.getMillis()+") && (dateInMilliseconds <= "+date2.getMillis()+"))";
         }
@@ -1150,85 +1091,31 @@ This code is no longer necessary with Charles Overbeck's new multi-measurement f
     
     
     //start date added filter----------------------------
-    if((request.getParameter("addedday1")!=null)&&(request.getParameter("addedmonth1")!=null)&&(request.getParameter("addedyear1")!=null)&&(request.getParameter("addedday2")!=null)&&(request.getParameter("addedmonth2")!=null)&&(request.getParameter("addedyear2")!=null)) {
+    if((request.getParameter("dateaddedpicker1")!=null)&&(!request.getParameter("dateaddedpicker1").trim().equals(""))&&(request.getParameter("dateaddedpicker2")!=null)&&(!request.getParameter("dateaddedpicker2").trim().equals(""))){
+      
       try{
-
-        //get our date values
-        int addedday1=(new Integer(request.getParameter("addedday1"))).intValue();
-        int addedday2=(new Integer(request.getParameter("addedday2"))).intValue();
-        int addedmonth1=(new Integer(request.getParameter("addedmonth1"))).intValue();
-        int addedmonth2=(new Integer(request.getParameter("addedmonth2"))).intValue();
-        int addedyear1=(new Integer(request.getParameter("addedyear1"))).intValue();
-        int addedyear2=(new Integer(request.getParameter("addedyear2"))).intValue();
-
-        prettyPrint.append("Encounter creation dates between: "+addedyear1+"-"+addedmonth1+"-"+addedday1+" and "+addedyear2+"-"+addedmonth2+"-"+addedday2+"<br />");
-
-        //order our values
-        int addedminYear=addedyear1;
-        int addedminMonth=addedmonth1;
-        int addedminDay=addedday1;
-        int addedmaxYear=addedyear2;
-        int addedmaxMonth=addedmonth2;
-        int addedmaxDay=addedday2;
-        if(addedyear1>addedyear2) {
-          addedminDay=addedday2;
-          addedminMonth=addedmonth2;
-          addedminYear=addedyear2;
-          addedmaxDay=addedday1;
-          addedmaxMonth=addedmonth1;
-          addedmaxYear=addedyear1;
-        }
-        else if(addedyear1==addedyear2) {
-          if(addedmonth1>addedmonth2) {
-              addedminDay=addedday2;
-              addedminMonth=addedmonth2;
-              addedminYear=addedyear2;
-              addedmaxDay=addedday1;
-              addedmaxMonth=addedmonth1;
-              addedmaxYear=addedyear1;
-          }
-          else if(addedmonth1==addedmonth2) {
-            if(addedday1>addedday2) {
-              addedminDay=addedday2;
-              addedminMonth=addedmonth2;
-              addedminYear=addedyear2;
-              addedmaxDay=addedday1;
-              addedmaxMonth=addedmonth1;
-              addedmaxYear=addedyear1;
-            }
-          }
-        }
-
-        //GregorianCalendar gcMin=new GregorianCalendar(minYear, (minMonth-1), minDay, 0, 0);
-        //GregorianCalendar gcMax=new GregorianCalendar(maxYear, (maxMonth-1), maxDay, 23, 59);
-
-        //let's do some month and day checking to avoid exceptions
-        org.joda.time.DateTime addedtestMonth1=new org.joda.time.DateTime(addedminYear,addedminMonth,1,0,0);
-        if(addedtestMonth1.dayOfMonth().getMaximumValue()<addedminDay) addedminDay=addedtestMonth1.dayOfMonth().getMaximumValue();    
-        org.joda.time.DateTime addedtestMonth2=new org.joda.time.DateTime(addedmaxYear,addedmaxMonth,1,0,0);
-        if(addedtestMonth2.dayOfMonth().getMaximumValue()<addedmaxDay) addedmaxDay=addedtestMonth2.dayOfMonth().getMaximumValue();
+          DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+          DateTime date1 = parser.parseDateTime(request.getParameter("dateaddedpicker1"));
+          DateTime date2 = parser.parseDateTime(request.getParameter("dateaddedpicker2"));
     
-    
-        org.joda.time.DateTime addedgcMin =new org.joda.time.DateTime(addedminYear, (addedminMonth), addedminDay, 0, 0);
-        org.joda.time.DateTime addedgcMax =new org.joda.time.DateTime(addedmaxYear, (addedmaxMonth), addedmaxDay, 23, 59);
-    
+          prettyPrint.append("Encounter creation dates between: "+date1.toString(ISODateTimeFormat.date())+" and "+date2.toString(ISODateTimeFormat.date())+"<br />");
     
         
         if(filter.equals(SELECT_FROM_ORG_ECOCEAN_ENCOUNTER_WHERE)){
-          filter+="((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+          filter+="((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
         }
         else{
-          filter+=" && ((dwcDateAddedLong >= "+addedgcMin.getMillis()+") && (dwcDateAddedLong <= "+addedgcMax.getMillis()+"))";
+          filter+=" && ((dwcDateAddedLong >= "+date1.getMillis()+") && (dwcDateAddedLong <= "+date2.getMillis()+"))";
     
         }
         
-    //end date added filter------------------------------------------
+    
       } catch(NumberFormatException nfe) {
         //do nothing, just skip on
         nfe.printStackTrace();
           }
         }
-    
+  //end date added filter------------------------------------------
     
 
     //filter for sex------------------------------------------
