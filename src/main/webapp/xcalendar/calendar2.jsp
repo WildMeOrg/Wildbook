@@ -137,7 +137,7 @@ context=ServletUtilities.getContext(request);
      if(request.getParameter("scDate")!=null){
        dateString=request.getParameter("scDate");
      }
-     else if((request.getParameter("datepicker1")!=null)){
+     else if(((request.getParameter("datepicker1")!=null))&&(!request.getParameter("datepicker1").trim().equals(""))){
     	 DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
          org.joda.time.DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
         
