@@ -1067,11 +1067,12 @@
     <servlet-name>EncounterAddImage</servlet-name>
     <servlet-class>org.ecocean.servlet.EncounterAddImage</servlet-class>
   </servlet>
-
+<!--
   <servlet>
     <servlet-name>CalendarXMLServer2</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer2</servlet-class>
   </servlet>
+  -->
   <servlet>
     <servlet-name>CalendarXMLServer</servlet-name>
     <servlet-class>org.ecocean.servlet.CalendarXMLServer</servlet-class>
@@ -1852,10 +1853,12 @@
     <url-pattern>/IndividualSetSex</url-pattern>
   </servlet-mapping>
 
+  <!--
   <servlet-mapping>
     <servlet-name>CalendarXMLServer2</servlet-name>
     <url-pattern>/CalendarXMLServer2</url-pattern>
   </servlet-mapping>
+  -->
 
   <servlet-mapping>
     <servlet-name>CalendarXMLServer</servlet-name>

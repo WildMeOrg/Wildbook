@@ -1,5 +1,11 @@
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.ecocean.servlet.ServletUtilities,org.ecocean.*,java.util.Calendar, java.util.Properties" %>
+         import="org.ecocean.servlet.ServletUtilities,
+         org.ecocean.*,
+         java.util.Calendar, 
+         java.util.Properties,
+         org.joda.time.format.DateTimeFormatter,
+		 org.joda.time.format.ISODateTimeFormat,
+		 org.joda.time.DateTime" %>
 
 
 <%
@@ -131,8 +137,13 @@ context=ServletUtilities.getContext(request);
      if(request.getParameter("scDate")!=null){
        dateString=request.getParameter("scDate");
      }
-     else if((request.getParameter("year1")!=null)&&(request.getParameter("month1")!=null)){
-    	 dateString=request.getParameter("month1")+"/1/"+request.getParameter("year1");
+     else if((request.getParameter("datepicker1")!=null)){
+    	 DateTimeFormatter parser = ISODateTimeFormat.dateTimeParser();
+         org.joda.time.DateTime date1 = parser.parseDateTime(request.getParameter("datepicker1"));
+        
+    	 int thisMonth=1;
+    	 if(date1.getMonthOfYear()>1){thisMonth=date1.getMonthOfYear();}
+    	 dateString=thisMonth+"/1/"+date1.getYear();
        }
      else{
        Calendar cal=Calendar.getInstance();
@@ -162,7 +173,9 @@ context=ServletUtilities.getContext(request);
 
       <h1><%=calprops.getProperty("titleSearch") %></h1>
 
-
+<%
+if(request.getParameter("scDate")==null){
+%>
 
       <ul id="tabmenu">
 
@@ -186,6 +199,10 @@ context=ServletUtilities.getContext(request);
 
       </ul>
       <p></p>
+      
+      <%
+}
+      %>
 
       <div id="maincol-calendar" style='overflow: auto; z-index: 0;'>
         <div id="maintext" style='overflow: auto; z-index: 0;'>
