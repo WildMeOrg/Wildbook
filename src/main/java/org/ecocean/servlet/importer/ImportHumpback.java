@@ -47,19 +47,17 @@ public class ImportHumpback extends HttpServlet {
     out.println("Importer usage in browser: https://yourhost/HumpbackImporter?commit='trueorfalse' ");
     out.println("The default directories are /opt/excel_imports/ and /opt/image_imports/. commit=false to test data parsing, true to actually save.");
     
-    Shepherd myShepherd=null;
-    myShepherd=new Shepherd(context);
-    myShepherd.beginDBTransaction();
-    myShepherd.setAction("ImportHumpback.class");
-    if (!CommonConfiguration.isWildbookInitialized(myShepherd)) {
+    Shepherd initShepherd=null;
+    initShepherd=new Shepherd(context);
+    initShepherd.beginDBTransaction();
+    initShepherd.setAction("ImportHumpback.class");
+    if (!CommonConfiguration.isWildbookInitialized(initShepherd)) {
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
-      StartupWildbook.initializeWildbook(request, myShepherd);
+      StartupWildbook.initializeWildbook(request, initShepherd);
     }
-    myShepherd.commitDBTransaction();
+    initShepherd.commitDBTransaction();
+    initShepherd.closeDBTransaction();
     
-    myShepherd.beginDBTransaction();
-    AssetStore assetStore = AssetStore.getDefault(myShepherd);
-    myShepherd.commitDBTransaction();
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false"));
     
@@ -71,7 +69,7 @@ public class ImportHumpback extends HttpServlet {
       try {
         for (File file : excelFileList) {
           out.println("\n++ Processing Excel File: "+file.getName()+" at "+ file.getAbsolutePath());
-          processExcel(file, response, request, committing, myShepherd, assetStore);
+          processExcel(file, response, request, committing);
         }              
       } catch (Exception e) {
         e.printStackTrace();
@@ -82,12 +80,11 @@ public class ImportHumpback extends HttpServlet {
       out.println("!!!! Exception While Grabbing File List from "+exceldir+" !!!!");
     }
     unmatchedFilenames("", "get");
-    myShepherd.closeDBTransaction();
     out.close();
   }
   
   
-  public void processExcel(File dataFile, HttpServletResponse response, HttpServletRequest request, boolean committing, Shepherd myShepherd, AssetStore assetStore) throws IOException { 
+  public void processExcel(File dataFile, HttpServletResponse response, HttpServletRequest request, boolean committing) throws IOException { 
     FileInputStream fs = new FileInputStream(dataFile);
     XSSFWorkbook wb = new XSSFWorkbook(fs);
     XSSFSheet sheet = wb.getSheetAt(0);
@@ -107,7 +104,7 @@ public class ImportHumpback extends HttpServlet {
     out.println("Num Sheets = "+numSheets);
     out.println("Num Rows = "+rows);
     out.println("Num Columns = "+cols);
-    out.println("Committing ? ="+String.valueOf(committing));
+    out.println("Committing ? = "+String.valueOf(committing));
     
     if (dataFile.getName().equals("CRC XRefCat.xlsx")) {
       out.println("HACK: File is Reference Catalog. ID Column = 1, Color Column = 2");
@@ -119,26 +116,61 @@ public class ImportHumpback extends HttpServlet {
     }
     
     out.println("++++ PROCESSING EXCEL FILE, NOM NOM ++++");
-    
+    Shepherd myShepherd = null;
+    myShepherd = new Shepherd(context);
     Encounter enc = null;
     for (int i=1; i<rows; i++) {     
+      
+      myShepherd.beginDBTransaction();
+      AssetStore assetStore = AssetStore.getDefault(myShepherd);
+      myShepherd.commitDBTransaction();
 
       row = sheet.getRow(i);
-      enc = parseEncounter(row, myShepherd);   
       String imageFile = getString(row, 0);
+      
+      enc = parseEncounter(row, myShepherd);   
+      
       ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);
       
-      enc = attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
+      attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
     }
+    
+    // Lets just pull out the encounter/individual association to try to get this gnarly thread pile-up fixed.
+    // This is totally a hack. Associating in the main loop overloaded postgres connections.
+    Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
+    Encounter encToAssociate = null;
+    MarkedIndividual thisIndy = null;
+    while (allEncs.hasNext()) {
+      encToAssociate = allEncs.next();
+      if (encToAssociate.getIndividualID() != null && !encToAssociate.getIndividualID().equals("0")) {
+        try {
+          thisIndy = myShepherd.getMarkedIndividual(encToAssociate.getIndividualID());
+          findOrCreateIndy(thisIndy.getIndividualID(), encToAssociate, myShepherd);   
+          out.println("\nSuccess Associating Encounter Indy : "+encToAssociate.getIndividualID()+" and "+thisIndy.getIndividualID());
+        } catch (Exception e) {
+          e.printStackTrace(out);
+          out.println("\n !!! Error Associating Encounter Indy : "+encToAssociate.getIndividualID()+" and "+thisIndy.getIndividualID()+" !!!");
+        }
+      }
+    
+    }
+    myShepherd.closeDBTransaction();
     wb.close();
   }
   
   public ArrayList<Keyword> generateKeywords(XSSFRow row, File dataFile, Shepherd myShepherd) {
     
-    ArrayList<Keyword> keys = new ArrayList<Keyword>();  
+    ArrayList<Keyword> keys = new ArrayList<Keyword>(); 
+    
+    myShepherd.beginDBTransaction();
     Keyword imf = myShepherd.getKeyword(dataFile.getName());
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
     Keyword col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
+    myShepherd.commitDBTransaction();
+    myShepherd.beginDBTransaction();
     Keyword pq = myShepherd.getKeyword("PQ - Poor Quality");
+    myShepherd.commitDBTransaction();
     
     if (myShepherd.getKeyword("PQ - Poor Quality") == null) {
       pq = new Keyword("PQ - Poor Quality");
@@ -158,11 +190,17 @@ public class ImportHumpback extends HttpServlet {
       keys.add(imf);
     }
     
-    if (col == null && getString(row, colorColumn).length() < 5 && getStringOrIntString(row, colorColumn) != null) {
-      col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
-      myShepherd.beginDBTransaction();
-      myShepherd.getPM().makePersistent(col);
-      myShepherd.commitDBTransaction();
+    try {
+      if (col == null) {
+        if (getStringOrIntString(row, colorColumn).length() < 5) {
+          col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
+          myShepherd.beginDBTransaction();
+          myShepherd.getPM().makePersistent(col);
+          myShepherd.commitDBTransaction();          
+        }
+      }      
+    } catch (Exception e) {
+      out.println("Can't create color keyword!");
     }
     
     if (col != null) {
@@ -179,7 +217,7 @@ public class ImportHumpback extends HttpServlet {
     return keys;
   }
   
-  public Encounter attachAsset(Encounter enc, String imageName, HttpServletRequest request, Shepherd myShepherd, AssetStore assetStore, ArrayList<Keyword> keywords ) {
+  public void attachAsset(Encounter enc, String imageName, HttpServletRequest request, Shepherd myShepherd, AssetStore assetStore, ArrayList<Keyword> keywords ) {
     MediaAsset  ma = null;
     File photo = null;
     
@@ -234,7 +272,9 @@ public class ImportHumpback extends HttpServlet {
         
         try {
           out.println("Media Asset Parameters : "+ma.getParametersAsString()+" !!!!");
+          myShepherd.beginDBTransaction();
           enc.addMediaAsset(ma);
+          myShepherd.commitDBTransaction();
           out.println("Encounter As String : "+enc.toString()+" !!!!");
           out.println("++++ Adding Media Asset ++++");
         } catch (Exception e) {
@@ -248,7 +288,6 @@ public class ImportHumpback extends HttpServlet {
     } else {      
       match = false;
     }
-    return enc;
   }
   
   public void unmatchedFilenames(String name, String flag) {
@@ -265,7 +304,6 @@ public class ImportHumpback extends HttpServlet {
   
   public Encounter parseEncounter(XSSFRow row, Shepherd myShepherd) {  
     String indyId = null;
-    MarkedIndividual mi = null;
     
     try {
       indyId = getStringOrIntString(row, idColumn);      
@@ -279,29 +317,22 @@ public class ImportHumpback extends HttpServlet {
     enc.setGenus("Megaptera");
     enc.setSpecificEpithet("novaeangliae");
     enc.setState("approved");
-    
-    enc.setDWCDateAdded();
-   
+    enc.setDWCDateAdded();   
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
+    if (indyId != null && !indyId.equals("0") && !indyId.equals("PQ")) {
+      enc.setIndividualID(indyId); 
+    }
     
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
     myShepherd.commitDBTransaction();
     
-    if (!indyId.equals("0")) {
-      myShepherd.beginDBTransaction();
-      mi = checkIndyExistence(indyId, enc, myShepherd); 
-      myShepherd.commitDBTransaction();
-      mi.addEncounter(enc, indyId);
-      enc.setIndividualID(indyId);       
-    }
-    
     out.println("Here's the ID for this Individual : "+indyId);
     return enc;
   }
   
-  public MarkedIndividual checkIndyExistence(String indyId, Encounter enc, Shepherd myShepherd) {
+  public void findOrCreateIndy(String indyId, Encounter enc, Shepherd myShepherd) {
     MarkedIndividual mi = null;
     
     try {
@@ -321,9 +352,16 @@ public class ImportHumpback extends HttpServlet {
       myShepherd.beginDBTransaction();
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();    
-
     }
-    return mi;
+    try {
+      myShepherd.beginDBTransaction();
+      mi.addEncounter(enc, indyId);
+      myShepherd.commitDBTransaction();      
+    } catch (Exception e) {
+      e.printStackTrace(out);
+      out.println("Choked while saving Indy to Enc");
+    }
+    
   }
   
   public File[] getFiles(String path) {
