@@ -18,6 +18,7 @@ String context=ServletUtilities.getContext(request);
       int newThrottle = (new Integer(request.getParameter("numAllowedNodes"))).intValue();
       gm.setNumAllowedNodes(newThrottle);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("nodeTimeout") != null) {
@@ -25,6 +26,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("nodeTimeout"))).intValue();
       gm.setNodeTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("checkoutTimeout") != null) {
@@ -32,6 +34,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("checkoutTimeout"))).intValue();
       gm.setCheckoutTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("scanTaskLimit") != null) {
@@ -39,6 +42,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("scanTaskLimit"))).intValue();
       gm.setScanTaskLimit(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("maxGroupSize") != null) {
@@ -46,6 +50,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("maxGroupSize"))).intValue();
       gm.setMaxGroupSize(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
 
