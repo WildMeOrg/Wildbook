@@ -325,7 +325,7 @@ String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><%=props.getProperty("participate")%> <span class="caret"></span></a>
                         <ul class="dropdown-menu" role="menu">
                         <%
-                        if(CommonConfiguration.getProperty("allowAdoptions", context).equals("true")){
+                        if(CommonConfiguration.allowAdoptions(context)){
                         %>
                           <li><a href="<%=urlLoc %>/adoptananimal.jsp"><%=props.getProperty("adoptions")%></a></li>
                         <%

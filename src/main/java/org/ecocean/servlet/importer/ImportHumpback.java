@@ -119,31 +119,33 @@ public class ImportHumpback extends HttpServlet {
     Shepherd myShepherd = null;
     myShepherd = new Shepherd(context);
     Encounter enc = null;
+    myShepherd.beginDBTransaction();
+    AssetStore assetStore = AssetStore.getDefault(myShepherd);
+    myShepherd.commitDBTransaction();
+    
     for (int i=1; i<rows; i++) {     
       
-      myShepherd.beginDBTransaction();
-      AssetStore assetStore = AssetStore.getDefault(myShepherd);
-      myShepherd.commitDBTransaction();
-
       row = sheet.getRow(i);
       String imageFile = getString(row, 0);
       
-      enc = parseEncounter(row, myShepherd);   
+      enc = parseEncounter(row, myShepherd);  
       
-      ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);
       
+      ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);    
       attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
     }
+    
+    
     
     // Lets just pull out the encounter/individual association to try to get this gnarly thread pile-up fixed.
     // This is totally a hack. Associating in the main loop overloaded postgres connections.
     Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
     Encounter encToAssociate = null;
-    MarkedIndividual thisIndy = null;
     while (allEncs.hasNext()) {
       encToAssociate = allEncs.next();
       if (encToAssociate.getIndividualID() != null && !encToAssociate.getIndividualID().equals("0")) {
         findOrCreateIndy(encToAssociate.getIndividualID(), encToAssociate, myShepherd);   
+        encToAssociate.refreshAssetFormats(myShepherd);
       }
     }
     myShepherd.closeDBTransaction();
@@ -252,7 +254,7 @@ public class ImportHumpback extends HttpServlet {
           myShepherd.commitDBTransaction();
         } catch (Exception e) {
           out.println("!!!! Error Trying to Save Media Asset Properties !!!!");
-          e.printStackTrace();
+          e.printStackTrace(out);
         }
         
         try {
