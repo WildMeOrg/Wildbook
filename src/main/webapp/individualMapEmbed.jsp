@@ -84,7 +84,7 @@ context=ServletUtilities.getContext(request);
 
 <script src="//maps.google.com/maps/api/js?language=<%=langCode%>"></script>
 <script type="text/javascript" src="javascript/markerclusterer/markerclusterer.js"></script>
- 
+<script type="text/javascript" src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script> 
 <script src="javascript/oms.min.js"></script>
 <p><strong><%=mapping %></strong></p>
 <%
@@ -109,7 +109,8 @@ context=ServletUtilities.getContext(request);
           disableDoubleClickZoom: true
         });
         var markers = [];
- 	      var movePathCoordinates = [];
+ 	var movePathCoordinates = [];
+	var oms = new OverlappingMarkerSpiderfier(map, {nearbyDistance: 15, legWeight: 1});
         <%
         String haploColor="CC0000";
         if((props.getProperty("defaultMarkerColor")!=null)&&(!props.getProperty("defaultMarkerColor").trim().equals(""))){
@@ -270,16 +271,32 @@ String lastLatLong="";
    });
  zoomChangeBoundsListener =
 	    google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
-	        if ((this.getZoom())&&(this.getZoom()>7)){
-	            this.setZoom(7);
+	        if ((this.getZoom())&&(this.getZoom()>5)){
+	            this.setZoom(5);
 	        }
 	});
+
+var spiderWindow = new google.maps.InfoWindow();
+oms.addListener('click', function(marker, event) {
+	spiderWindow.setContent(marker.desc);
+	// spiderWindow.open(map, marker);
+});
+
+oms.addListener('spiderfy', function(markers) {
+  spiderWindow.close();
+});
+
+for (var i = 0; i < markers.length; i ++) {
+  oms.addMarker(markers[i]);
+  console.log(markers[i])
+}
+ 
 setTimeout(function(){google.maps.event.removeListener(zoomChangeBoundsListener)}, 2000);
 var options = {
-        imagePath: 'javascript/markerclusterer/m',
-        maxZoom: 12
+        imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m',
+        maxZoom: 8
     };
-var markerCluster = new MarkerClusterer(map, markers, options);
+var markerCluster = new MarkerClusterer(map, markers, options)
  } // end initialize function
       google.maps.event.addDomListener(window, 'load', initialize);
     </script>
