@@ -174,8 +174,8 @@ public class ImportHumpback extends HttpServlet {
     }
     
     
-    if (imf == null && dataFile.getName() != null) {
-      imf = new Keyword(dataFile.getName().toUpperCase()); 
+    if (myShepherd.getKeyword(dataFile.getName()) == null) {
+      imf = new Keyword(dataFile.getName()); 
       myShepherd.beginDBTransaction();
       myShepherd.getPM().makePersistent(imf);
       myShepherd.commitDBTransaction();
