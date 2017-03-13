@@ -247,7 +247,7 @@ public class ImportHumpback extends HttpServlet {
           ma.addDerivationMethod("HumpbackImporter", System.currentTimeMillis());
           ma.addLabel("_original");
           ma.copyIn(photo);
-          ma.setAccessControl(request);
+          //ma.setAccessControl(request);
           ma.updateMetadata();
           myShepherd.beginDBTransaction();
           ma.updateStandardChildren(myShepherd);
