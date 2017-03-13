@@ -350,7 +350,7 @@ public class ImportHumpback extends HttpServlet {
     if (mi != null && !indyId.equals("0")) {
       try {
         myShepherd.beginDBTransaction();
-        mi.addEncounter(enc, indyId);
+        mi.addEncounter(enc, context);
         myShepherd.commitDBTransaction();      
       } catch (Exception e) {
         e.printStackTrace(out);
