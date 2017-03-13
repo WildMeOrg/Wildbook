@@ -143,16 +143,8 @@ public class ImportHumpback extends HttpServlet {
     while (allEncs.hasNext()) {
       encToAssociate = allEncs.next();
       if (encToAssociate.getIndividualID() != null && !encToAssociate.getIndividualID().equals("0")) {
-        try {
-          thisIndy = myShepherd.getMarkedIndividual(encToAssociate.getIndividualID());
-          findOrCreateIndy(thisIndy.getIndividualID(), encToAssociate, myShepherd);   
-          out.println("\nSuccess Associating Encounter Indy : "+encToAssociate.getIndividualID()+" and "+thisIndy.getIndividualID());
-        } catch (Exception e) {
-          e.printStackTrace(out);
-          out.println("\n !!! Error Associating Encounter Indy : "+encToAssociate.getIndividualID()+" and "+thisIndy.getIndividualID()+" !!!");
-        }
+        findOrCreateIndy(encToAssociate.getIndividualID(), encToAssociate, myShepherd);   
       }
-    
     }
     myShepherd.closeDBTransaction();
     wb.close();
@@ -353,13 +345,15 @@ public class ImportHumpback extends HttpServlet {
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();    
     }
-    try {
-      myShepherd.beginDBTransaction();
-      mi.addEncounter(enc, indyId);
-      myShepherd.commitDBTransaction();      
-    } catch (Exception e) {
-      e.printStackTrace(out);
-      out.println("Choked while saving Indy to Enc");
+    if (mi != null && !indyId.equals("0")) {
+      try {
+        myShepherd.beginDBTransaction();
+        mi.addEncounter(enc, indyId);
+        myShepherd.commitDBTransaction();      
+      } catch (Exception e) {
+        e.printStackTrace(out);
+        out.println("Choked while saving Indy to Enc");
+      }      
     }
     
   }
