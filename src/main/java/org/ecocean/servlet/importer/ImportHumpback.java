@@ -145,7 +145,7 @@ public class ImportHumpback extends HttpServlet {
       encToAssociate = allEncs.next();
       if (encToAssociate.getIndividualID() != null && !encToAssociate.getIndividualID().equals("0")) {
         findOrCreateIndy(encToAssociate.getIndividualID(), encToAssociate, myShepherd);   
-        encToAssociate.refreshAssetFormats(myShepherd);
+
       }
     }
     myShepherd.closeDBTransaction();
