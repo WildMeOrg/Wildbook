@@ -186,7 +186,7 @@ public class ImportHumpback extends HttpServlet {
     
     try {
       if (col == null) {
-        if (getStringOrIntString(row, colorColumn).length() < 5) {
+        if (getStringOrIntString(row, colorColumn).length() < 5 && !getStringOrIntString(row, colorColumn).equals("PQ")) {
           col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
           myShepherd.beginDBTransaction();
           myShepherd.getPM().makePersistent(col);
