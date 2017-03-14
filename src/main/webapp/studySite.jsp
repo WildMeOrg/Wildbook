@@ -79,7 +79,7 @@
     studySiteID = sitey.getID();
   }
 
-  String[] studySiteFieldGetters = new String[]{"getName", "getTypeOfSite", "getLatitude","getLongitude", "getComments"};
+  String[] studySiteFieldGetters = new String[]{"getName", "getTypeOfSite", "getUtmX", "getUtmY","getEpsgProjCode", "getGovernmentArea", "getPopulation", "getHuntingState", "getReferenceSystem", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
 
   String[] studySiteFieldDTGetters = new String[]{"getDate", "getDateEnd"};
 
@@ -169,6 +169,9 @@
         String[] possLocations = possLocationsAList.toArray(new String[possLocationsAList.size()]);
 
         ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, locationIDMeth, possLocations, out);
+
+        // TODO: handle epsgProjCode with select and options, like possLocations above
+
 
 
 
