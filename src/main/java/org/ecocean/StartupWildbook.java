@@ -120,7 +120,7 @@ public class StartupWildbook implements ServletContextListener {
         createMatchGraph();
 
         File qdir = ScheduledQueue.setQueueDir(context);
-        if (qdir == null) {
+        if ((qdir == null) || skipInit(sce, "SCHEDULED_QUEUE")) {
             System.out.println("+ WARNING: queue service NOT started: could not determine queue directory");
         } else {
             System.out.println("+ queue service starting; dir = " + qdir.toString());
