@@ -2,6 +2,7 @@ package org.ecocean;
 
 import org.ecocean.*;
 import java.io.*;
+import java.util.Set;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Collections;
@@ -50,6 +51,11 @@ public class GeocoordConverter {
      epsgCodeToUtmZone.put("EPSG:23030", 30); // Eastern Spain/Britain
      // this is a pan-european projection used
      epsgCodeToUtmZone.put("EPSG:3035", null); // Western Spain/Britain
+  }
+
+  public static String[] epsgCodes() {
+    Set<String> codeSet = epsgCodeToUtmZone.keySet();
+    return (codeSet.toArray(new String[codeSet.size()]));
   }
 
 
