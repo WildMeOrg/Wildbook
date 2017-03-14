@@ -150,7 +150,7 @@
   <form method="post" onsubmit="return classEditTemplate.checkBeforeDeletion()" action="studySite.jsp?number=<%=studySiteID%>" id="classEditTemplateForm">
 
 
-  <div class="col-xs-12">
+  <div class="col-sm-6 col-xs-12">
     <h1><%= stuprops.getProperty("StudySite") %></h1>
     <p class="studySiteidlabel"><em>id <%=studySiteID%></em><p>
 
@@ -212,23 +212,23 @@
 
         %>
       </table>
+    </hr>
+    <div class="submit" style="position:relative">
+      <input type="submit" name="save" value="Save" />
+      <span class="note" style="position:absolute;bottom:9"></span>
     </div>
-    <div class="col-sm-12">
-      </hr>
-      <div class="submit" style="position:relative">
-        <input type="submit" name="save" value="Save" />
-        <span class="note" style="position:absolute;bottom:9"></span>
-      </div>
-    </div>
-
-  </div>
 </form>
+</div>
 
-<div class="row">
-<div class="col-md-6">
+<div class="col-sm-6">
 
 <h2> Map </h2>
-<p><em>For illustration only. To set lat/long, please use form.</em></p>
+<em>
+<%=stuprops.getProperty("projectionComment")%>
+</em>
+
+
+<p><em>For illustration only. To set position, please use form.</em></p>
 
 <script type="text/javascript">
 
@@ -341,11 +341,9 @@ else {
       <div class="highlight resultMessageDiv" id="gpsErrorDiv"></div>
 
       <br/>
-      <span class="editTextLocation"><%=encprops.getProperty("gpsConverter")%></span><a class="editTextLocation" href="http://www.csgnetwork.com/gpscoordconv.html" target="_blank">Click here to find a converter.</a>
     </div>
 <br /> <br />
-<!--end adding submit GPS-->
-</div> </div><!-- END MAP and GPS SETTER -->
+</div>
 
 
 
