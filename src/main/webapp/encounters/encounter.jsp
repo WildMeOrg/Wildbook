@@ -970,11 +970,13 @@ $(function() {
   <%
   String populationStr = enc.getPopulation();
   if (populationStr == null || populationStr.equals("")) populationStr = encprops.getProperty("population");
+  String displayPopStr = enc.getPopulation();
+  if (displayPopStr == null) displayPopStr = "";
   %>
 
   <p>
     <img align="absmiddle" src="../images/alternateid.gif">
-    <%=encprops.getProperty("population")%>: <span id="displayAltID"><%=enc.getPopulation()%></span>
+    <%=encprops.getProperty("population")%>: <span id="displayAltID"><%=displayPopStr%></span>
   </p>
 
   <div class="highlight resultMessageDiv" id="populationErrorDiv"></div>
