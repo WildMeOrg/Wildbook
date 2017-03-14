@@ -1657,6 +1657,33 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         gpsLongitude = Util.decimalLatLonToString(lon);
     }
 
+    // getters and setters for decimal lat/long using UTM conversion
+    public double[] getUTMCoords(){
+      if (decimalLatitude == null || decimalLongitude == null) {
+        return GeocoordConverter.ERROR_dOUBLE_TUPLE;
+      }
+      return GeocoordConverter.gpsToUtm(decimalLatitude.doubleValue(), decimalLongitude.doubleValue());
+    }
+    // since the lynx project uses multiple epsg projections
+    public void setFromUTMCoords(int easting, int northing, String epsgProjCode) {
+      this.setLatLon(GeocoordConverter.utmToGps(easting, northing, epsgProjCode));
+    }
+
+
+    public void setFromUTMCoords(int easting, int northing, int utmZoneNum) {
+      this.setLatLon(GeocoordConverter.utmToGps(easting, northing, utmZoneNum));
+    }
+    // Like above but uses GeocoordConverter's internal default zone number
+    public void setFromUTMCoords(int easting, int northing) {
+      this.setLatLon(GeocoordConverter.utmToGps(easting, northing));
+    }
+    // readability helper for all the coordinate translation going on
+    private void setLatLon(double[] latLon) {
+      this.setDecimalLatitude (latLon[0]);
+      this.setDecimalLongitude(latLon[1]);
+    }
+
+
 
   public String getOccurrenceRemarks() {
     return occurrenceRemarks;

@@ -447,6 +447,8 @@ System.out.println(" **** here is what i think locationID is: " + fv.get("locati
         //end location code setter
         fv.put("locCode", locCode);
 
+
+
         //TODO this should live somewhere else as constant? (e.g. to build in form as well)
         String[] scarType = new String[]{"None", "Tail (caudal) fin", "1st dorsal fin", "2nd dorsal fin", "Left pectoral fin", "Right pectoral fin", "Head", "Body"};
         int scarNum = -1;
@@ -843,6 +845,9 @@ System.out.println("depth --> " + fv.get("depth").toString());
 
       }
 
+
+
+
       //enc.setMeasureUnits("Meters");
       enc.setSubmitterPhone(getVal(fv, "submitterPhone"));
       enc.setSubmitterAddress(getVal(fv, "submitterAddress"));
@@ -936,6 +941,46 @@ System.out.println("depth --> " + fv.get("depth").toString());
         enc.setDynamicProperty("End Waypoint", (getVal(fv, "endWaypoint")));
       }
 
+      if (!getVal(fv, "population").equals("")) {
+        enc.setPopulation (getVal(fv, "population"));
+      }
+      if (!getVal(fv, "governmentArea").equals("")) {
+        enc.setGovernmentArea(getVal(fv, "governmentArea"));
+      }
+      if (!getVal(fv, "huntingState").equals("")) {
+        enc.setHuntingState(getVal(fv, "huntingState"));
+      }
+
+
+
+      // Start UTM setting
+      System.out.println("START UTM SETTING");
+      if ((fv.get("easting") != null) && (fv.get("northing") != null) && !fv.get("easting").toString().equals("") && !fv.get("northing").toString().equals("")) {
+      //enc.setGPSLatitude(lat + "&deg; " + gpsLatitudeMinutes + "\' " + gpsLatitudeSeconds + "\" " + latDirection);
+
+
+      try {
+        int easting = (new Integer(fv.get("easting").toString())).intValue();
+        int northing = (new Integer(fv.get("northing").toString())).intValue();
+
+        String epsgProjCode = fv.get("epsgProjCode").toString();
+        // set using the proj code if it was supplied
+        if (epsgProjCode!=null && !epsgProjCode.equals(""))         enc.setFromUTMCoords(easting, northing, epsgProjCode);
+        else enc.setFromUTMCoords(easting, northing);
+
+        System.out.println("EncForm found easting, northing of ("+easting+", "+northing+")");
+        System.out.println("EncForm found epsgProjCode of("+epsgProjCode+")");
+        System.out.println("EncForm translated that to lat="+enc.getDecimalLatitude()+" and long="+enc.getDecimalLongitude());
+      } catch (Exception e) {
+        System.out.println("EncounterSetGPSFromUTM: problem!");
+        e.printStackTrace();
+      }
+    }
+    System.out.println("END UTM SETTING");
+
+      // end UTM setting
+
+
 
 
       //xxxxxxxx
@@ -979,7 +1024,7 @@ System.out.println("ENCOUNTER SAVED???? newnum=" + newnum);
                 String baseUrl = "";
                 try {baseUrl = CommonConfiguration.getServerURL(request, request.getContextPath());}
                 catch (Exception E) {};
-                System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
+                if (assetsForDetection.size() > 0) System.out.println("About to send assets! First asset = "+assetsForDetection.get(0).toString());
                 IBEISIA.beginDetect(assetsForDetection, baseUrl, context);
 
 
