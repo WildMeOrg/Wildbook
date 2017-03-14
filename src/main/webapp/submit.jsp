@@ -5,7 +5,8 @@
                  org.ecocean.*,
                  java.util.Properties,
                  java.util.List,
-                 java.util.Locale" %>
+                 java.util.Locale,
+								 java.util.Map" %>
 
 
 <!-- Add reCAPTCHA -->
@@ -14,7 +15,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <link href="tools/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
-	
+
 <link type='text/css' rel='stylesheet' href='javascript/timepicker/jquery-ui-timepicker-addon.css' />
 
 
@@ -631,6 +632,54 @@ if(CommonConfiguration.showProperty("showCountry",context)){
         <%=props.getProperty("gpsConverter") %></p>
     </div>
 
+		<div>
+			<p class="help-block"><%=props.getProperty("submit_utm_comment") %></p>
+			<div class=" form-group form-inline">
+				<div class="col-xs-12 col-sm-6">
+					<label class="control-label pull-left"><%=props.getProperty("submit_utm_easting") %>&nbsp;</label>
+					<input class="form-control" name="easting" type="text" id="easting">
+				</div>
+				<div class="col-xs-12 col-sm-6">
+					<label class="control-label  pull-left"><%=props.getProperty("submit_utm_northing") %>&nbsp;</label>
+					<input class="form-control" name="northing" type="text" id="northing">
+				</div>
+
+				<div class="col-xs-12 col-sm-6">
+
+					<label class="control-label  pull-left"><%=props.getProperty("submit_epsg_proj_code") %>&nbsp;</label>
+					<select class="form-control" name="epsgProjCode" id="epsgProjCode">
+						<%
+						System.out.println("The reference map size = " +GeocoordConverter.epsgCodeToUtmZone.size());
+						System.out.println("and get(EPSG:25830)="+GeocoordConverter.epsgCodeToUtmZone.get("EPSG:25830"));
+
+						// Iterate through the epsg codes and list them in a dropdown
+						for (Map.Entry<String, Integer> codeToZone : GeocoordConverter.epsgCodeToUtmZone.entrySet()) {
+
+							String webDisplayCode;
+							if (codeToZone.getValue()!=null) {
+								webDisplayCode=codeToZone.getValue()+"N ("+codeToZone.getKey()+")";
+							} else webDisplayCode = codeToZone.getKey();
+							String webCodeValue = codeToZone.getKey();
+							System.out.println("epsg webDisplay, webValue: ("+webDisplayCode+", "+webCodeValue+")");
+							String selectString="";
+							if (webCodeValue.equals(GeocoordConverter.DEFAULT_EPSG_CODE_STRING)) {
+								selectString="selected=\"selected\"";
+							}
+
+							// for code "EPSG:23029" zone 29, webDisplay = "29N (EPSG:23029)"
+							// but the actual value is EPSG:23029
+							%>
+							<option value="<%=webCodeValue%>" <%=selectString%>> <%=webDisplayCode%> </option>
+							<%
+						}
+						%>
+					</select>
+
+				</div>
+			</div>
+		</div>
+
+
 
 <%
 if(CommonConfiguration.showProperty("maximumDepthInMeters",context)){
@@ -654,8 +703,38 @@ if(CommonConfiguration.showProperty("maximumElevationInMeters",context)){
 }
 %>
 
+<hr />
+<div>
+	<div class="row">
+		<div class="col-xs-6">
+			<label class="control-label pull-left"><%=props.getProperty("submit_population") %>&nbsp;</label>
+		</div>
+		<div class="col-xs-6">
+			<input class="form-control" name="population" type="text" id="population">
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<label class="control-label  pull-left"><%=props.getProperty("submit_huntingstate") %>&nbsp;</label>
+		</div>
+		<div class="col-xs-6">
+			<input class="form-control" name="huntingState" type="text" id="huntingState">
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-6">
+			<label class="control-label  pull-left"><%=props.getProperty("submit_governmentarea") %>&nbsp;</label>
+		</div>
+		<div class="col-xs-6">
+			<input class="form-control" name="governmentArea" type="text" id="governmentArea">
+		</div>
+	</div>
+</div>
+
+
 </fieldset>
 <hr />
+
 
 
     <%
@@ -1126,11 +1205,11 @@ function sendButtonClicked() {
     	    $("#encounterForm").attr("action", "EncounterForm");
 			submitForm();
    		}
-   		else{	console.log('Here!'); 	
+   		else{	console.log('Here!');
    			    	var recaptachaResponse = grecaptcha.getResponse( captchaWidgetId );
-   					
+
    					console.log( 'g-recaptcha-response: ' + recaptachaResponse );
-   					if(!isEmpty(recaptachaResponse)) {		
+   					if(!isEmpty(recaptachaResponse)) {
    						$("#encounterForm").attr("action", "EncounterForm");
    						submitForm();
    					}
