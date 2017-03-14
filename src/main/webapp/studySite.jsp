@@ -45,6 +45,9 @@
 
   Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
 
+  Properties stuprops = ShepherdProperties.getProperties("studySite.properties", langCode, context);
+
+
   String studySiteID = request.getParameter("number");
   int nFieldsPerSubtable = 8;
 
@@ -79,7 +82,13 @@
     studySiteID = sitey.getID();
   }
 
-  String[] studySiteFieldGetters = new String[]{"getName", "getTypeOfSite", "getUtmX", "getUtmY","getEpsgProjCode", "getGovernmentArea", "getPopulation", "getHuntingState", "getReferenceSystem", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
+  String[] studySiteFieldGetters1 = new String[]{"getName", "getTypeOfSite", "getUtmX", "getUtmY"};
+
+  String[] epsgCodes = GeocoordConverter.epsgCodes();
+
+  String[] studySiteFieldGetters2 = new String[]{"getGovernmentArea", "getPopulation", "getHuntingState", "getDaysNotWorking", "getLure", "getReward", "getTypeOfCamera", "getTrapsPerNight", "getComments"};
+
+
 
   String[] studySiteFieldDTGetters = new String[]{"getDate", "getDateEnd"};
 
@@ -142,7 +151,7 @@
 
 
   <div class="col-xs-12">
-    <h1>StudySite</h1>
+    <h1><%= stuprops.getProperty("StudySite") %></h1>
     <p class="studySiteidlabel"><em>id <%=studySiteID%></em><p>
 
       <table class="studySite-field-table edit-table">
@@ -165,22 +174,34 @@
 
         Method locationIDMeth = sitey.getClass().getMethod("getLocationID");
 
+        Method epsgCodeMeth = sitey.getClass().getMethod("getEpsgProjCode");
+
         ArrayList<String> possLocationsAList = CommonConfiguration.getSequentialPropertyValues("locationID", context);
         String[] possLocations = possLocationsAList.toArray(new String[possLocationsAList.size()]);
 
-        ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, locationIDMeth, possLocations, out);
+        //ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, locationIDMeth, possLocations, out);
 
         // TODO: handle epsgProjCode with select and options, like possLocations above
 
 
 
 
-        for (String getterName : studySiteFieldGetters) {
+        for (String getterName : studySiteFieldGetters1) {
           Method studySiteMeth = sitey.getClass().getMethod(getterName);
           if (ClassEditTemplate.isDisplayableGetter(studySiteMeth)) {
             ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, studySiteMeth, out);
           }
         }
+
+        ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, epsgCodeMeth, epsgCodes, out);
+
+        for (String getterName : studySiteFieldGetters2) {
+          Method studySiteMeth = sitey.getClass().getMethod(getterName);
+          if (ClassEditTemplate.isDisplayableGetter(studySiteMeth)) {
+            ClassEditTemplate.printOutClassFieldModifierRow((Object) sitey, studySiteMeth, out);
+          }
+        }
+
 
         for (String getterName : studySiteFieldDTGetters) {
           Method studySiteMeth = sitey.getClass().getMethod(getterName);
