@@ -183,6 +183,22 @@ try {
 		  			JSONObject j = ma.sanitizeJson(request, new JSONObject());
 		  			if (j != null) {
 						j.put("annotationId", ann.getId());
+						if (ma.hasLabel("_frame") && (ma.getParentId() != null)) {
+							j.put("extractFPS", ma.getParameters().optDouble("extractFPS",0));
+							j.put("extractOffset", ma.getParameters().optDouble("extractOffset",0));
+							MediaAsset p = MediaAssetFactory.load(ma.getParentId(), imageShepherd);
+							if (p != null) {
+		  						j.put("videoParent", p.sanitizeJson(request, new JSONObject()));
+								if (p.getParentId() != null) {
+									MediaAsset sourceMA = MediaAssetFactory.load(p.getParentId(), imageShepherd);
+									if (sourceMA != null) {
+										JSONObject sj = sourceMA.sanitizeJson(request, new JSONObject());
+										if (sourceMA.getMetadata() != null) sj.put("metadata", Util.toggleJSONObject(sourceMA.getMetadata().getData()));
+										j.put("sourceAsset", sj);
+									}
+								}
+							}
+						}
 						all.put(j);
 					}
 		  		}
@@ -303,6 +319,25 @@ if(request.getParameter("encounterNumber")!=null){
       maLib.maJsonToFigureElemCaptionGrid(elem, $('#enc-gallery'), captions[index], maLib.testCaptionFunction)
     } else {
       maLib.maJsonToFigureElemCaption(elem, $('#enc-gallery'), captions[index]);
+	if (elem.sourceAsset && elem.sourceAsset.store.type == 'YouTube') {
+		var title = elem.sourceAsset.filename || '';
+		if (elem.sourceAsset.metadata && elem.sourceAsset.metadata.basic) {
+			title = elem.sourceAsset.metadata.basic.title || 'Untitled';
+			title += ' [from ' + (elem.sourceAsset.metadata.basic.author_name || 'Unknown source') + ']';
+		}
+		var time;
+		if ((elem.extractFPS > 0) && (elem.extractOffset != undefined)) {
+			time = (1 / elem.extractFPS) * elem.extractOffset - 2;  //rewind a couple seconds
+			if (t < 4) {
+				time = false;
+			} else {
+				time = Math.floor(time / 60) + 'm' + (time % 60) + 's';
+			}
+		}
+		var tlink = (time ? '#t=' + time : '');
+		var timeDisp = (time ? 'At approx <b>' + time + '</b> in ' : '');
+		$('#enc-gallery').after('<div>' + timeDisp + '<a target="_new" href="https://www.youtube.com/watch?v=' + elem.sourceAsset.filename + tlink + '" title="' + title + '">YouTube video</a></div>');
+	}
     }
 
 /*   now added to image hamburger menu
