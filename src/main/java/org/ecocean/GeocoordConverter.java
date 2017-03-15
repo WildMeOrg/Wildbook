@@ -43,8 +43,8 @@ public class GeocoordConverter {
   public static Map<String, Integer> epsgCodeToUtmZone = new HashMap<String, Integer>();
   static {
     // next two projections are currently used
+    epsgCodeToUtmZone.put("EPSG:25829", 29); // Western Spain/Britain
     epsgCodeToUtmZone.put("EPSG:25830", 30);
-    epsgCodeToUtmZone.put("EPSG:25831", 31); // Western Spain/Britain
      //epsgCodeToUtmZone.put("EPSG:32610", 10); // Pacific NW
      // "historical" lynx populations on following two projections:
      epsgCodeToUtmZone.put("EPSG:23029", 29); // Western Spain/Britain
