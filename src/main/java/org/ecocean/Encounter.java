@@ -291,7 +291,7 @@ public class Encounter implements java.io.Serializable {
         this.catalogNumber = Util.generateUUID();
         this.annotations = anns;
         this.setDateFromAssets();
-        this.setSpeciesFromAssets();
+        this.setSpeciesFromAnnotations();
         this.setLatLonFromAssets();
         this.setDWCDateAdded();
         this.setDWCDateLastModified();
@@ -1834,7 +1834,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (dt != null) setDateInMilliseconds(dt.getMillis());
     }
 
-    public void setSpeciesFromAssets() {
+    public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
         String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
         if (sp.length > 0) this.setGenus(sp[0]);
@@ -2147,6 +2147,27 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
         if (annotations == null) annotations = new ArrayList<Annotation>();
         annotations.add(ann);
     }
+
+    public void addAnnotationReplacingUnityFeature(Annotation ann) {
+        int unityAnnotIndex = -1;
+        if (annotations == null) annotations = new ArrayList<Annotation>();
+        System.out.println("n annotations = "+annotations.size());
+
+        for (int i=0; i<annotations.size(); i++) {
+          if (annotations.get(i).isTrivial()) {
+            System.out.println("annotation "+i+" is unity!");
+            unityAnnotIndex = i;
+            break;
+          }
+        }
+        System.out.println("unityAnnotIndex = "+unityAnnotIndex);
+        if (unityAnnotIndex > -1) { // there is a unity annot; replace it
+          annotations.set(unityAnnotIndex, ann);
+        } else {
+          annotations.add(ann);
+        }
+    }
+
 
     //convenience method
     public ArrayList<MediaAsset> getMedia() {
@@ -2701,9 +2722,14 @@ throw new Exception();
     }
 
 
+    //note this sets some things (e.g. species) which might (should!) need to be adjusted after, e.g. with setSpeciesFromAnnotations()
     public Encounter cloneWithoutAnnotations() {
         Encounter enc = new Encounter(this.day, this.month, this.year, this.hour, this.minutes, this.size_guess, this.verbatimLocality, this.recordedBy, this.submitterEmail, null);
         enc.setCatalogNumber(Util.generateUUID());
+        enc.setGenus(this.getGenus());
+        enc.setSpecificEpithet(this.getSpecificEpithet());
+        enc.setDecimalLatitude(this.getDecimalLatitudeAsDouble());
+        enc.setDecimalLongitude(this.getDecimalLongitudeAsDouble());
         return enc;
     }
 
@@ -2713,6 +2739,10 @@ throw new Exception();
         this.setState(STATE_MATCHING_ONLY);
     }
 
+    //ann is the Annotation that was created after IA detection.  mostly this is just to notify... someone
+    public void detectedAnnotation(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println(">>>>> detectedAnnotation() on " + this);
+    }
 
     /*
        note: these are baby steps into proper ownership of Encounters.  a similar (but cleaner) attempt is done in MediaAssets... however, really
