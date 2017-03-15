@@ -83,6 +83,9 @@ public class MediaAssetFactory {
      * Store to the given database.
      */
     public static void save(MediaAsset ma, Shepherd myShepherd) {
+        if ((ma.getParentId() != null) && (ma.getParentId() == NOT_SAVED)) {
+            throw new RuntimeException(ma + " has a parentId == " + NOT_SAVED + "; parent MediaAsset object likely not yet persisted; aborting save"); 
+        }
         //ma.setRevision();
         //for some reason (!?) parameters are getting lost when saving... sigh.  HACK for now... lookout.  TODO
         ////JSONObject p = ma.getParameters();
