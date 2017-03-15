@@ -132,7 +132,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       Boolean emailEdit = false;
       if ((Boolean)session.getAttribute( "emailEdit") != false) {
         emailEdit = (Boolean)session.getAttribute( "emailEdit");
-	number = (String)session.getAttribute("sessionAdoptionID");     
+        number = (String)session.getAttribute("sessionAdoptionID");     
       }
         //setup data dir
         String rootWebappPath = getServletContext().getRealPath("/");
@@ -182,7 +182,7 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
 
 
         System.out.println("Starting an adoption submission...");
-        Calendar todayDate = Calendar.getInstance();
+        //Calendar todayDate = Calendar.getInstance();
 
 
         if (ServletFileUpload.isMultipartContent(request)) {
@@ -309,9 +309,9 @@ public void doPost(HttpServletRequest request, HttpServletResponse response) thr
       //if((submitterID!=null)&&(submitterID.equals("deepblue"))) {
       if (adoptionSuccess) {
         response.setStatus(HttpServletResponse.SC_OK);
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
+        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionSuccess.jsp?id=" + id);
       } else {
-        response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
+        response.sendRedirect(request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/adoptions/adoptionFailure.jsp?message=" + failureMessage);
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
