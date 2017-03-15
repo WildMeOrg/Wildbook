@@ -14,6 +14,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import javax.jdo.Query;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -221,6 +222,16 @@ public class Annotation implements java.io.Serializable {
     }
 */
 
+    //returns null if not MediaAsset (whaaa??), otherwise a list (possibly empty) of siblings on the MediaAsset
+    public List<Annotation> getSiblings() {
+        if (this.getMediaAsset() == null) return null;
+        List<Annotation> sibs = new ArrayList<Annotation>();
+        for (Annotation ann : this.getMediaAsset().getAnnotations()) {  //fyi .getAnnotations() doesnt return null
+            if (!ann.getId().equals(this.getId())) sibs.add(ann);
+        }
+        return sibs;
+    }
+
     public String getSpecies() {
         return species;
     }
@@ -407,6 +418,42 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
+
+    //this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
+    // if it is new, its pretty straight forward (uses findEncounter) .. if not, creation is as follows:
+    // look for "sibling" Annotations on same MediaAsset.  if one of them has an Encounter, we clone that.
+    // additionally, if one is a trivial annotation, we drop it after.  if no siblings are found, we create
+    // an Encounter based on this Annotation (which may get us something, e.g. species, date, loc)
+    public Encounter toEncounter(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+        if (enc != null) return enc;
+        List<Annotation> sibs = this.getSiblings();
+        Annotation sourceSib = null;
+        Encounter sourceEnc = null;
+        if (sibs != null) {
+            //we look for one that has an Encounter, favoring the trivial one (so we can replace it) otherwise any will do
+            for (Annotation sib : sibs) {
+                sourceEnc = sib.findEncounter(myShepherd);
+                if (sourceEnc == null) continue;
+                sourceSib = sib;
+                if (sib.isTrivial()) break;  //we have a winner
+            }
+        }
+
+        if (sourceSib == null) return new Encounter(this);  //from scratch it is then!
+
+        if (sourceSib.isTrivial()) {
+            System.out.println("INFO: annot.toEncounter() replaced trivial " + sourceSib + " with " + this + " on " + sourceEnc);
+            sourceEnc.addAnnotationReplacingUnityFeature(this);
+            sourceEnc.setSpeciesFromAnnotations();
+            return sourceEnc;
+        }
+
+        enc = sourceEnc.cloneWithoutAnnotations();
+        enc.addAnnotation(this);
+        enc.setSpeciesFromAnnotations();
+        return enc;
+    }
 
 /*  deprecated, maybe?
     public String toHtmlElement(HttpServletRequest request, Shepherd myShepherd) {
