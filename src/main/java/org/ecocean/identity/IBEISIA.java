@@ -38,8 +38,7 @@ public class IBEISIA {
     private static final Map<String, String[]> speciesMap;
     static {
         speciesMap = new HashMap<String, String[]>();
-        speciesMap.put("zebra_plains", new String[]{"Equus","quagga"});
-        speciesMap.put("zebra_grevys", new String[]{"Equus","grevyi"});
+        speciesMap.put("humpback_whale", new String[]{"Megaptera", "novaeangliae"});
     }
 
     public static String STATUS_PENDING = "pending";  //pending review (needs action by user)

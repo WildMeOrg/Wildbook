@@ -280,6 +280,12 @@
     <servlet-name>StripePayment</servlet-name>
     <servlet-class>org.ecocean.servlet.StripePayment</servlet-class>
   </servlet>
+  
+  <servlet>
+    <description>TestIA</description>
+    <servlet-name>TestIA</servlet-name>
+    <servlet-class>org.ecocean.servlet.TestIA</servlet-class>
+  </servlet>
 
 	<servlet>
                 <servlet-name>ReCAPTCHA</servlet-name>
@@ -1471,7 +1477,10 @@
     <url-pattern>/ScanTaskHandler</url-pattern>
   </servlet-mapping>
 
-
+  <servlet-mapping>
+    <servlet-name>TestIA</servlet-name>
+    <url-pattern>/TestIA</url-pattern>
+  </servlet-mapping>
 
   <!--
   <servlet-mapping>

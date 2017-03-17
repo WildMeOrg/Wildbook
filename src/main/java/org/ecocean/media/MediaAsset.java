@@ -1162,6 +1162,20 @@ System.out.println(">> updateStandardChildren(): type = " + type);
             throw new IOException("copyInBase64() could not write " + file);
         }
     }
+    
+    public boolean isCleanForIBEIS() {
+      boolean ans = (this.isMimeTypeMajor("image") &&
+              this.getWidth()!=0 &&
+              this.getHeight()!=0);
+      if (!ans) {
+        System.out.print("Dirty Asset report for asset "+this.getId()+": ");
+        if (!this.isMimeTypeMajor("image")) System.out.print("Not an image (mimeTypeMajor = "+this.getMimeTypeMajor()+"). ");
+        if (this.getWidth()==0) System.out.print("Width=0. ");
+        if (this.getHeight()==0) System.out.print("Height=0. ");
+        System.out.println();
+      }
+      return ans;
+    }
 
 
     public boolean isValidChildType(String type) {
