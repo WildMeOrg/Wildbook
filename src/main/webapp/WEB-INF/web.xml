@@ -282,6 +282,12 @@
   </servlet>
   
   <servlet>
+    <description>ImportBass</description>
+    <servlet-name>ImportBass</servlet-name>
+    <servlet-class>org.ecocean.servlet.ImportBass</servlet-class>
+  </servlet>
+  
+  <servlet>
     <description>TestIA</description>
     <servlet-name>TestIA</servlet-name>
     <servlet-class>org.ecocean.servlet.TestIA</servlet-class>
@@ -1248,6 +1254,11 @@
 <servlet-mapping>
   <servlet-name>ImportHumpback</servlet-name>
   <url-pattern>/ImportHumpback</url-pattern>
+</servlet-mapping>
+
+<servlet-mapping>
+  <servlet-name>ImportBass</servlet-name>
+  <url-pattern>/ImportBass</url-pattern>
 </servlet-mapping>
 
 <servlet-mapping>
