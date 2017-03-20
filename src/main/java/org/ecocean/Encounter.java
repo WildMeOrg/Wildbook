@@ -2206,7 +2206,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     //down-n-dirty with no myShepherd passed!  :/
     public ArrayList<MediaAsset> findAllMediaByFeatureId(String[] featureIds) {
         Shepherd myShepherd = new Shepherd("context0");
-        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");  
+        myShepherd.setAction("Encounter.class.findAllMediaByFeatureID");
         myShepherd.beginDBTransaction();
         ArrayList<MediaAsset> all = findAllMediaByFeatureId(myShepherd, featureIds);
         myShepherd.rollbackDBTransaction();

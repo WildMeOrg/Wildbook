@@ -17,6 +17,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+/// please also see:   src/main/java/org/ecocean/servlet/SubmitSpotsAnd_README.txt
+
 package org.ecocean.servlet;
 
 import org.ecocean.*;
