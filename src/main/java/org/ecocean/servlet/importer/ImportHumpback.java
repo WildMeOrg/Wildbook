@@ -156,11 +156,16 @@ public class ImportHumpback extends HttpServlet {
     
     ArrayList<Keyword> keys = new ArrayList<Keyword>(); 
     
+    String colorCode = getStringOrIntString(row, colorColumn);
+    if (colorCode != null) {
+      colorCode = colorCode.toUpperCase();
+    }
+    
     myShepherd.beginDBTransaction();
     Keyword imf = myShepherd.getKeyword(dataFile.getName());
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
-    Keyword col = myShepherd.getKeyword(getStringOrIntString(row, colorColumn));
+    Keyword col = myShepherd.getKeyword(colorCode);
     myShepherd.commitDBTransaction();
     myShepherd.beginDBTransaction();
     Keyword pq = myShepherd.getKeyword("PQ - Poor Quality");
@@ -186,8 +191,8 @@ public class ImportHumpback extends HttpServlet {
     
     try {
       if (col == null) {
-        if (getStringOrIntString(row, colorColumn).length() < 5 && !getStringOrIntString(row, colorColumn).equals("PQ")) {
-          col = new Keyword(getStringOrIntString(row, colorColumn).toUpperCase());
+        if (colorCode.length() < 5 && !colorCode.equals("PQ")) {
+          col = new Keyword(colorCode);
           myShepherd.beginDBTransaction();
           myShepherd.getPM().makePersistent(col);
           myShepherd.commitDBTransaction();          
