@@ -21,9 +21,8 @@ package org.ecocean.grid;
 
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.util.GregorianCalendar;
 import java.util.Random;
 import java.util.Vector;
@@ -44,7 +43,7 @@ public class WorkAppletHeadlessEpic {
   //thread pool handling comparison threads
   ThreadPoolExecutor threadHandler;
 
-  public static final String thisURLRoot = "www.spotashark.com";
+  public static String thisURLRoot = "https://www.whaleshark.org";
 
   //polling heartbeat thread
   AppletHeartbeatThread hb;
@@ -62,7 +61,7 @@ public class WorkAppletHeadlessEpic {
     if (!newEncounterNumber.equals("")) {
       encNumParam = "&newEncounterNumber=" + newEncounterNumber;
     }
-    URL u = new URL("http://" + thisURLRoot + "/ScanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+    URL u = new URL("http://" + thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + action + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
     System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
     URLConnection con = u.openConnection();
     con.setDoInput(true);
@@ -82,6 +81,7 @@ public class WorkAppletHeadlessEpic {
 
 
     WorkAppletHeadlessEpic a = new WorkAppletHeadlessEpic();
+    if(args[0]!=null)thisURLRoot=args[0];
     a.getGoing();
   }
 
@@ -98,7 +98,7 @@ public class WorkAppletHeadlessEpic {
     long startTime=(new GregorianCalendar()).getTimeInMillis();
     
     //server connection
-    URLConnection con=null;
+    HttpsURLConnection con=null;
 
 
     //whether this is a right-side pattern scan or a left-side
@@ -179,10 +179,10 @@ public class WorkAppletHeadlessEpic {
             //con = getConnection("getWorkItemGroup", holdEncNumber, groupSize, nodeID, numProcessors);
             String encNumParam = "&newEncounterNumber=" + holdEncNumber;
            
-            URL u = new URL("http://" + thisURLRoot + "/ScanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
+            java.net.URL u = new java.net.URL(thisURLRoot + "/scanAppletSupport?version=" + version + "&nodeIdentifier=" + nodeID + "&action=" + "getWorkItemGroup" + encNumParam + "&groupSize=" + groupSize + "&numProcessors=" + numProcessors);
             System.out.println("...Using nodeIdentifier: " + nodeID + "...with URL: "+u.toString());
            
-            con = u.openConnection();
+            con = (HttpsURLConnection)u.openConnection();
             
             con.setDoInput(true);
             con.setDoOutput(true);
@@ -266,6 +266,7 @@ public class WorkAppletHeadlessEpic {
 
               } 
               catch (NullPointerException npe) {
+                npe.printStackTrace();
                 //generic, non-specific applet operation
                 //just sleep because there are no other tasks to do
                 //if(!getParameter("encounter").equals("null")) status.setValue(0);
@@ -292,35 +293,40 @@ public class WorkAppletHeadlessEpic {
                 //we also pass in workItemResults, which is a threadsafe vector of the results returned from each thread
                 threadHandler.submit(new AppletWorkItemThread(tempSWI, workItemResults));
               }
+              System.out.println("...done spawning threads...");
 
 
               //block until all threads are done
               long vSize = vectorSize;
-              while (threadHandler.getCompletedTaskCount() < vSize) {
-              }
+              while (threadHandler.getCompletedTaskCount() < vSize) {}
+              
+              
+              System.out.println("...all threads done!...");
 
               //check the results and make variable changes as needed
               int resultsSize = workItemResults.size();
+              
+              System.out.println("Trying to return num results:"+resultsSize);
+              
+              /**
               for (int d = 0; d < resultsSize; d++) {
                 b++;
-                try {
-
-                  //if(!getParameter("encounter").equals("null")) status.setValue(swi.getWorkItemsCompleteInTask()+d);
-                } catch (NullPointerException npe) {
-                }
+                
                 ScanWorkItemResult swir = (ScanWorkItemResult) workItemResults.get(d);
                 MatchObject thisResult = swir.getResult();
                 if ((thisResult.getMatchValue() * thisResult.getAdjustedMatchValue()) >= 115) {
                   numMatches++;
                 }
               }
+              */
 
 
               //if we have results to send, send 'em!
               if (resultsSize > 0) {
 
-                URL finishScan = new URL("http://" + thisURLRoot + "/scanWorkItemResultsHandler2?" + targeted + "group=true&nodeIdentifier=" + nodeID);
-                URLConnection finishConnection = finishScan.openConnection();
+                URL finishScan = new URL(thisURLRoot+"/ScanWorkItemResultsHandler2?" + "group=true&nodeIdentifier=" + nodeID);
+                System.out.println("Trying to send results to: "+finishScan.toString());
+                HttpsURLConnection finishConnection = (HttpsURLConnection)finishScan.openConnection();
 
                 // inform the connection that we will send output and accept input
                 finishConnection.setDoInput(true);
@@ -376,6 +382,7 @@ public class WorkAppletHeadlessEpic {
                 catch(Exception except){
                   if(outputToFinalServlet!=null){outputToFinalServlet.close();}
                   if(inputStreamFromServlet!=null){inputStreamFromServlet.close();}
+                  except.printStackTrace();
                 }
                 
                 if (line.equals("success")) {
@@ -419,6 +426,7 @@ public class WorkAppletHeadlessEpic {
     catch (Exception mue) {
       System.out.println("I hit an Exception while trying to create the recoverURL for OutOfMemoryErrors");
       //mue.printStackTrace();
+      mue.printStackTrace();
       System.exit(0);
 
     }

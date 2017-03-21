@@ -84,6 +84,7 @@ public class UserSelfUpdate extends HttpServlet {
       
       
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("UserSelfUpdate.class");
       
       User newUser=myShepherd.getUser(username);
       
@@ -203,7 +204,7 @@ public class UserSelfUpdate extends HttpServlet {
           
               out.println("<strong>Success:</strong> User '" + username + "' was successfully updated.");
          
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to Your Account" + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to Your Account" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             
     }
@@ -213,7 +214,7 @@ public class UserSelfUpdate extends HttpServlet {
         //output failure statement
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure:</strong> User was NOT found.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to our Account" + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/myAccount.jsp" + "\">Return to our Account" + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         
         

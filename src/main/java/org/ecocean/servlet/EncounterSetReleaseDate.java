@@ -26,6 +26,7 @@ public class EncounterSetReleaseDate extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd=new Shepherd(context);
+    myShepherd.setAction("EncounterSetReleaseDate.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -46,19 +47,6 @@ public class EncounterSetReleaseDate extends HttpServlet {
         if (releaseDateStr != null && releaseDateStr.trim().length() > 0) {
           
           
-          /*
-          String pattern = CommonConfiguration.getProperty("releaseDateFormat",context);
-          SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-          try {
-            Date releaseDate = simpleDateFormat.parse(releaseDateStr);
-            enc.setReleaseDate(releaseDate.getTime());
-            sb.append(MessageFormat.format("Release Date set to {0}", releaseDateStr));
-          } 
-          catch (Exception e) {
-            sb.append(MessageFormat.format("Error reading release date {0}. Expecting value in format {1}", releaseDateStr, pattern));
-            badFormat = true;
-          }
-          */
           
          if(enc.getReleaseDateLong()!=null){
          
@@ -97,32 +85,35 @@ public class EncounterSetReleaseDate extends HttpServlet {
         myShepherd.rollbackDBTransaction();
         out.println(sb.toString());
         out.println("No changes were made.");
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        out.println("<p><a href=\""+request.getScheme()+"://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
       }
       else if (!locked) {
         myShepherd.commitDBTransaction();
         myShepherd.closeDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_OK);
         out.println("<p><strong>Success!</strong> I have successfully set the following new release date: " +newReleaseDate);
         out.println(sb.toString());
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
       }
       else {
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure!</strong> This encounter is currently being modified by another user, or an exception occurred. Please wait a few seconds before trying to modify this encounter again.");
 
-        out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println("<p><a href=\"http://"+CommonConfiguration.getURLLocation(request)+"/encounters/encounter.jsp?number="+encNum+"\">Return to encounter "+encNum+"</a></p>\n");
+        //out.println(ServletUtilities.getFooter(context));
       }
       
     }
     else {
       myShepherd.rollbackDBTransaction();
-      out.println(ServletUtilities.getHeader(request));
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I was unable to set the tag. I cannot find the encounter that you intended in the database.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
     out.close();

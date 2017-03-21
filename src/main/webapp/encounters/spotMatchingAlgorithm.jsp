@@ -1,4 +1,7 @@
-<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*, org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
+<%@ page contentType="text/html; charset=utf-8" language="java" import="org.ecocean.servlet.ServletUtilities,java.awt.Dimension,org.ecocean.*,
+org.ecocean.media.MediaAsset,
+java.net.URL,
+org.ecocean.servlet.*, java.util.*,javax.jdo.*,java.io.File" %>
 <%@ taglib uri="http://www.sunwesttek.com/di" prefix="di" %>
 <%--
   ~ The Shepherd Project - A Mark-Recapture Framework
@@ -30,6 +33,7 @@ String encNum = request.getParameter("encounterNumber");
 
 
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("spotMatchingAlgorithm.jsp");
 		  
 //let's set up references to our file system components
 		 
@@ -90,6 +94,21 @@ try {
   <p class="para"><strong><em>Extracted Spots</em></strong></p>
   		<%
 		//kick off a scan
+		MediaAsset spotLeftMA = null;
+		MediaAsset spotRightMA = null;
+		ArrayList<MediaAsset> allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spot");
+		////////if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotLeftMA = allSpotMAs.get(0);
+//// warning, hack to get around bug cause by gap in code changes post-migration
+if (allSpotMAs != null) {
+  for (MediaAsset maL : allSpotMAs) {
+    if (maL.getFilename().indexOf("extractRight") < 0) {
+      spotLeftMA = maL;
+      break;
+    }
+  }
+}
+		allSpotMAs = enc.findAllMediaByLabel(myShepherd, "_spotRight");
+		if ((allSpotMAs != null) && (allSpotMAs.size() > 0)) spotRightMA = allSpotMAs.get(0);
 		if (((enc.getNumSpots()>0)||(enc.getNumRightSpots()>0))) {
 		%> 
 		
@@ -192,7 +211,8 @@ try {
   			File I3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullI3SScan.xml");
   			File rightI3SScanResults = new File(encounterDir.getAbsolutePath() + "/lastFullRightI3SScan.xml");
 
-  	
+  	//if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("ModifiedGroth")!=-1)){
+  				
 	  		if((leftScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
@@ -205,6 +225,10 @@ try {
 	  			<a class="para" href="scanEndApplet.jsp?writeThis=true&number=<%=encNum%>&rightSide=true">Groth: Right-side scan results</a><br /> 
 	  		<%
 	  		}
+		//}
+	  		
+  	//if((CommonConfiguration.getProperty("algorithms", context)!=null)&&(CommonConfiguration.getProperty("algorithms", context).indexOf("I3S")!=-1)){
+			
 	  		if((I3SScanResults.exists())&&(enc.getNumSpots()>0)) {
 	  		%> 
 	  			
@@ -217,14 +241,11 @@ try {
 	  			<%
 	  		}
 	  		
-	  		%>
-			<!-- End Display spot patterning so long as show_spotpatterning is not false in commonConfiguration.properties-->
-
-  
+	  		
+  	//}
 
 
-<%
-		} //if use spot pattern reognition
+		} //if use spot pattern recognition
 		else{
 		%>
 		<p>No spots have been added.</p>
@@ -271,12 +292,14 @@ try {
 		 			
 		 			if((uploadedFile.exists())&&(uploadedFile.isFile())&&(uploadedFile.length()>0)&&(enc.getNumSpots()>0)) {
 
+		 				//System.out.println("     uploadedFile exists!");
+		 				
 		 				Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedFile);
 		 				
-/*
+
 		 				//iInfo.setInput(new FileInputStream(uploadedFile));
 		 				if (!extractImage.exists()) {
-		 					//System.out.println("Made it here.");
+		 					System.out.println("Made it here.");
 		 					
 		 					height+=Double.toString(imageDimensions.getHeight());
 		 					width+=Double.toString(imageDimensions.getWidth());
@@ -301,7 +324,7 @@ try {
   							
   							<%
 							}
-*/
+
 						}
 									//set the right file
 									
@@ -310,10 +333,10 @@ try {
 									//iInfo=new ImageInfo();
 									Dimension imageDimensions = org.apache.sanselan.Sanselan.getImageSize(uploadedRightFile);
 		 				
-/*
+
 									//iInfo.setInput(new FileInputStream(uploadedRightFile));
 									if (!extractRightImage.exists()) {
-										//System.out.println("Made it here.");
+										System.out.println("extractRight does not exist: Made it here.");
 										//heightR+=iInfo.getHeight();
 										//widthR+=iInfo.getWidth();
 										//System.out.println(height+"and"+width);
@@ -334,11 +357,13 @@ try {
   										</di:img> 
   									<%
 									}
-*/
+									else{
+										System.out.println("extractRight exists at: "+extractRightImage.getAbsolutePath());
+										
+									}
+
 								}
 									
-								String fileloc="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getSpotImageFileName());
-								String filelocR="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+(Encounter.subdir(encNum)+"/"+enc.getRightSpotImageFileName());
 					%>
 
 <p class="para"><strong><em>Spot data image files used for matching</em></strong><br/> 
@@ -391,7 +416,8 @@ var spotJson = {};
 
 	ArrayList<SuperSpot> spots = new ArrayList<SuperSpot>();
 
-  if ((enc.getNumSpots() > 0)&&(uploadedFile.exists())&&(uploadedFile.isFile())) {
+  if ((enc.getNumSpots() > 0) && (spotLeftMA != null)) {
+	URL spotMAUrl = spotLeftMA.webURL();
       spots = enc.getSpots();
 			spotJsonLeft = "[";
 			for (SuperSpot s : spots) {
@@ -401,14 +427,15 @@ var spotJson = {};
 %>
 <td valign="top" class="spot-td spot-td-left"><div>Left-side</div>
 <div id="spot-image-wrapper-left">
-	<img src="<%=fileloc%>" alt="image" id="spot-image-left" />
+	<img src="<%=spotMAUrl%>" alt="image" id="spot-image-left" />
 	<canvas id="spot-image-canvas-left"></canvas>
 </div>
 </td> 
   <%
     }
 
-    if ((enc.getNumRightSpots() > 0)&&(uploadedRightFile.exists())&&(uploadedRightFile.isFile())) {
+    if ((enc.getNumRightSpots() > 0) && (spotRightMA != null)) {
+	URL spotMAUrl = spotRightMA.webURL();
       spots = enc.getRightSpots();
 			spotJsonRight = "[";
 			for (SuperSpot s : spots) {
@@ -418,7 +445,7 @@ var spotJson = {};
   %>
 <td valign="top" class="spot-td spot-td-right"><div>Right-side</div>
 <div id="spot-image-wrapper-right">
-	<img src="<%=filelocR%>" alt="image" id="spot-image-right"  />
+	<img src="<%=spotMAUrl%>" alt="image" id="spot-image-right"  />
 	<canvas id="spot-image-canvas-right"></canvas>
 </div>
 </td> 
@@ -550,6 +577,13 @@ $(document).ready(function() {
               						}
             						%>
           						</tr>
+          						<%
+          						if(request.isUserInRole("admin")){
+          						%>
+          						<tr><i>Optional JDOQL filter: </i> <input name="jdoql" type="text" id="jdoql" size="80"/> </tr>
+        						<%
+          						}
+        						%>
         					</table>
 
         					<input name="writeThis" type="hidden" id="writeThis" value="true" />
@@ -572,6 +606,5 @@ finally {
   myShepherd.rollbackDBTransaction();
   myShepherd.closeDBTransaction();
 }
-
 }
 %>

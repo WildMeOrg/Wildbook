@@ -38,10 +38,10 @@ context=ServletUtilities.getContext(request);
   </script>
   <!-- /STEP2 Place inside the head section -->
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false"></script>
 <script src="visual_files/keydragzoom.js" type="text/javascript"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-<script type="text/javascript" src="http://geoxml3.googlecode.com/svn/trunk/ProjectedOverlay.js"></script>
+<script type="text/javascript" src="../javascript/geoxml3.js"></script>
+<script type="text/javascript" src="../javascript/ProjectedOverlay.js"></script>
 
 </head>
 
@@ -86,6 +86,7 @@ margin-bottom: 8px !important;
   int firstYear = 1980;
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("searchComparison.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
   myShepherd.beginDBTransaction();
@@ -179,7 +180,7 @@ var overlaysSet=false;
 var geoXml = null;
 var geoXmlDoc = null;
 var kml = null;
-var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
+var filename="//<%=CommonConfiguration.getURLLocation(request)%>/EncounterSearchExportKML?encounterSearchUse=true&barebones=true";
  
 
   function initialize() {
@@ -214,7 +215,7 @@ var filename="http://<%=CommonConfiguration.getURLLocation(request)%>/EncounterS
           visualPosition: google.maps.ControlPosition.LEFT,
           visualPositionOffset: new google.maps.Size(35, 0),
           visualPositionIndex: null,
-          visualSprite: "http://maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
+          visualSprite: "//maps.gstatic.com/mapfiles/ftr/controls/dragzoom_btn.png",
           visualSize: new google.maps.Size(20, 20),
           visualTips: {
             off: "Turn on",

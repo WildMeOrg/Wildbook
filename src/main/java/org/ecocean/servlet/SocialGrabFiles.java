@@ -94,6 +94,7 @@ import org.scribe.oauth.*;
         PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("SocialGrabFiles.class");
         //myShepherd.beginDBTransaction();
 
         String[] fileUrls = request.getParameterValues("fileUrl");
@@ -149,7 +150,7 @@ User user = null;
             }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialGrabFiles";
             fbclient.setCallbackUrl(callbackUrl);
 
             OAuthCredentials credentials = null;

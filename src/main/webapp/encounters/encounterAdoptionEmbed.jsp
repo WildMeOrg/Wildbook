@@ -24,6 +24,7 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
   Shepherd adoptShepherd = new Shepherd(context);
+  adoptShepherd.setAction("encounterAdoptionEmbed.jsp");
   String num = request.getParameter("encounterNumber");
 
   try {
@@ -90,11 +91,12 @@ div.scroll {
 
 
 <%
-  List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
-  int numAdoptions = adoptions.size();
-if(numAdoptions>0){
-  for (int ia = 0; ia < numAdoptions; ia++) {
-    Adoption ad = adoptions.get(ia);
+	adoptShepherd.beginDBTransaction();
+  	List<Adoption> adoptions = adoptShepherd.getAllAdoptionsForEncounter(num);
+  	int numAdoptions = adoptions.size();
+	if(numAdoptions>0){
+  		for (int ia = 0; ia < numAdoptions; ia++) {
+    		Adoption ad = adoptions.get(ia);
 %>
 <table class="adopter" width="250px">
   <%
@@ -156,7 +158,7 @@ if(numAdoptions>0){
   </tr>
   <tr>
     <td align="left"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/adoption.jsp?number=<%=ad.getID()%>#create">[edit
       this adoption]</a></td>
   </tr>
   <tr>
@@ -190,7 +192,9 @@ if(numAdoptions>0){
 
 
 <%
-  } catch (Exception e) {
+  } 
+  catch (Exception e) {
+	e.printStackTrace();  
   }
   adoptShepherd.rollbackDBTransaction();
   adoptShepherd.closeDBTransaction();

@@ -65,6 +65,7 @@ public class IndividualAddFile extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualAddFile.class");
     
     //setup data dir
     String rootWebappPath = getServletContext().getRealPath("/");
@@ -151,14 +152,14 @@ public class IndividualAddFile extends HttpServlet {
           myShepherd.commitDBTransaction();
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have successfully uploaded your data file.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
           //String message="A new data file named "+fileName+" has been added to "+request.getParameter("individual")+".";
         } else {
 
           out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I failed to add your file. This record is currently being modified by another user. Please try to add the file again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
+          out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + individualName + "\">Return to " + individualName + "</a></p>\n");
           out.println(ServletUtilities.getFooter(context));
         }
       } else {

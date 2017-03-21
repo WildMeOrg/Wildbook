@@ -56,6 +56,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualSearchResults.jsp");
 
 
 
@@ -94,7 +95,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial", sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -247,13 +248,13 @@ var colDefn = [
 */
 	{
 		key: 'thumb',
-		label: 'Thumb',
+		label: '<%=props.getProperty("thumbnail") %>',
 		value: _colThumb,
 		nosort: true,
 	},
 	{
 		key: 'individual',
-		label: 'Individual',
+		label: '<%=props.getProperty("markedIndividual")%>',
 		value: _colIndividual,
 		sortValue: function(o) { return o.individualID.toLowerCase(); },
 		//sortFunction: function(a,b) {},
@@ -261,22 +262,22 @@ var colDefn = [
 
 	{
 		key: 'numberEncounters',
-		label: 'Encounters',
+		label: '<%=props.getProperty("numEncounters")%>',
 		value: _colNumberEncounters,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'maxYearsBetweenResightings',
-		label: 'Max yrs between resights',
+		label: '<%=props.getProperty("maxYearsBetweenResights")%>',
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	},
 	{
 		key: 'sex',
-		label: 'Sex',
+		label: '<%=props.getProperty("sex")%>',//'Sex',
 	},
 	{
 		key: 'numberLocations',
-		label: 'No. Locations sighted',
+		label: '<%=props.getProperty("numLocationsSighted")%>',
 		value: _colNumberLocations,
 		sortFunction: function(a,b) { return parseFloat(a) - parseFloat(b); }
 	}
@@ -571,54 +572,7 @@ if (percentage % 3 == 0) console.log(percentage);
 function _colIndividual(o) {
 	var i = '<b>' + o.individualID + '</b>';
 	var fi = o.dateFirstIdentified;
-  // this line re-orders fi to look spotashark-like
-  if (fi) {
-  var monthYear = fi.split('/');
-  var monthStr = "";
-  if (monthYear.length>1 && !isNaN(parseInt(monthYear[0]))) {
-    var monthNo = parseInt(monthYear[0]);
-    switch(monthNo) {
-      case 1:
-        monthStr="JAN";
-        break;
-      case 2:
-        monthStr="FEB";
-        break;
-      case 3:
-        monthStr="MAR";
-        break;
-      case 4:
-        monthStr="APR";
-        break;
-      case 5:
-        monthStr="MAY";
-        break;
-      case 6:
-        monthStr="JUN";
-        break;
-      case 7:
-        monthStr="JUL";
-        break;
-      case 8:
-        monthStr="AUG";
-        break;
-      case 9:
-        monthStr="SEP";
-        break;
-      case 10:
-        monthStr="OCT";
-        break;
-      case 11:
-        monthStr="NOV";
-        break;
-      case 12:
-        monthStr="DEC";
-        break;
-    }
-    fi = monthYear[1]+"-"+monthStr;
-  }
-  i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
-  }
+	if (fi) i += '<br /><%=props.getProperty("firstIdentified") %> ' + fi;
 	return i;
 }
 
@@ -687,7 +641,7 @@ console.log(t);
 
 </script>
 
-<p>
+<p class="table-filter-text">
 <input placeholder="filter by text" id="filter-text" onChange="return applyFilter()" />
 <input type="button" value="filter" />
 <input type="button" value="clear" onClick="$('#filter-text').val(''); applyFilter(); return true;" />

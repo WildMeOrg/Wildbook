@@ -12,6 +12,7 @@ String context="context0";
   	
   	
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("users.jsp");
   	//get the available user roles
   	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
 	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);

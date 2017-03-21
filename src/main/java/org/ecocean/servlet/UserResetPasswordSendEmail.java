@@ -95,6 +95,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
 
         
         Shepherd myShepherd = new Shepherd(context);
+        myShepherd.setAction("UserResetPasswordSendEmail.class");
         
         
       
@@ -122,7 +123,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
           otpString=ServletUtilities.hashAndSaltPassword(otpString, myUser.getSalt());
           
           // Build the link and send email.
-          final String npLink = String.format("http://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
+          final String npLink = String.format(request.getScheme()+"://%s/setNewPassword.jsp?username=%s&time=%s&OTP=%s", CommonConfiguration.getURLLocation(request), myUser.getUsername(), time, otpString);
           ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();
           Map<String, String> tagMap = new HashMap<String, String>(){{
             put("@RESET_LINK@", npLink);
@@ -151,7 +152,7 @@ public class UserResetPasswordSendEmail extends HttpServlet {
             
             
             
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             
 
@@ -162,7 +163,7 @@ else{
   //output failure statement
   out.println(ServletUtilities.getHeader(request));
   out.println("<strong>Failure:</strong> Username was NOT successfully reset. I did not have all of the username information I needed.");
-  out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to login" + "</a></p>\n");
+  out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to login" + "</a></p>\n");
   out.println(ServletUtilities.getFooter(context));
   
 }

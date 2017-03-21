@@ -1,13 +1,13 @@
-<%@ page contentType="text/html; charset=utf-8" 
+f<%@ page contentType="text/html; charset=utf-8"
 		language="java"
  		import="org.ecocean.servlet.ServletUtilities,javax.jdo.Query,com.drew.imaging.jpeg.JpegMetadataReader,com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.mmutil.MediaUtilities,org.ecocean.*,java.io.File, java.util.*,org.ecocean.security.Collaboration, java.io.FileInputStream, javax.jdo.Extent" %>
 
 
   <%
-  
+
   String context="context0";
   context=ServletUtilities.getContext(request);
-  
+
   //setup data dir
   String rootWebappPath = getServletContext().getRealPath("/");
   File webappsDir = new File(rootWebappPath).getParentFile();
@@ -16,7 +16,7 @@
   File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
   //if(!encountersDir.exists()){encountersDir.mkdirs();}
 
-  
+
     int startNum = 0;
     int endNum = 45;
 
@@ -38,34 +38,25 @@
 //let's load thumbnailSearch.properties
     //String langCode = "en";
     String langCode=ServletUtilities.getLanguageCode(request);
-    
+
 
     Properties encprops = new Properties();
     //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/thumbnailSearchResults.properties"));
     encprops = ShepherdProperties.getProperties("thumbnailSearchResults.properties", langCode, context);
 
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.setAction("thumbnailSearchResults.jsp");
 
     List<SinglePhotoVideo> rEncounters = new ArrayList<SinglePhotoVideo>();
 
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
     //EncounterQueryResult queryResult = new EncounterQueryResult(new Vector<Encounter>(), "", "");
-	
+
   	StringBuffer prettyPrint=new StringBuffer("");
   	Map<String,Object> paramMap = new HashMap<String, Object>();
 
-  	/**
-  	String filter="";
-    if (request.getParameter("noQuery") == null) {
-    	filter="SELECT from org.ecocean.SinglePhotoVideo WHERE ("+EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap).replaceAll("SELECT FROM", "SELECT DISTINCT catalogNumber FROM")+").contains(this.correspondingEncounterNumber)";
-    } 
-    else {
 
-		filter="SELECT from org.ecocean.SinglePhotoVideo";
-    	
-    }
-    */
-    
+
     String[] keywords = request.getParameterValues("keyword");
     if (keywords == null) {
       keywords = new String[0];
@@ -74,27 +65,12 @@
 		List<Collaboration> collabs = Collaboration.collaborationsForCurrentUser(request);
 
 
-    if (request.getParameter("noQuery") == null) {
-    	
-    	
-    	String jdoqlQueryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
-    	Extent encClass = myShepherd.getPM().getExtent(Encounter.class, true);
-        Query query = myShepherd.getPM().newQuery(jdoqlQueryString);
-        //query.setFilter("SELECT "+jdoqlQueryString);
-        query.setResult("catalogNumber");
-        Collection c = (Collection) (query.execute());
-        ArrayList<String> enclist = new ArrayList<String>(c);
-        query.closeAll();
-    	
-	  //queryResult = EncounterQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
-	
-    rEncounters=myShepherd.getThumbnails(myShepherd, request, enclist, startNum, endNum, keywords);
-    }
-    else{
-    	Query allQuery=myShepherd.getPM().newQuery("SELECT from org.ecocean.SinglePhotoVideo WHERE correspondingEncounterNumber != null");    	
-    	allQuery.setRange(startNum, endNum);
-    	rEncounters=new ArrayList<SinglePhotoVideo>((Collection<SinglePhotoVideo>)allQuery.execute());
-   }
+    //if (request.getParameter("noQuery") == null) {
+
+
+    	String queryString=EncounterQueryProcessor.queryStringBuilder(request, prettyPrint, paramMap);
+
+
 
   %>
  <jsp:include page="../header.jsp" flush="true"/>
@@ -178,7 +154,6 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -198,7 +173,7 @@
   }
 
   #tabmenu a:visited {
-    
+
   }
 
   #tabmenu a.active:hover {
@@ -233,8 +208,8 @@
 
       <h1 class="intro"><%=encprops.getProperty("title")%>
       </h1>
-      </p>    
-    
+      </p>
+
     </td>
   </tr>
 </table>
@@ -262,9 +237,8 @@
 <%
   }
 %>
-
-<p><%=encprops.getProperty("belowMatches")%> <%=startNum%>
-        - <%=endNum%> <%=encprops.getProperty("thatMatched")%>
+<br>
+<p><%=encprops.getProperty("belowMatches")%> <%=encprops.getProperty("thatMatched")%>
       </p>
 
 <%
@@ -275,570 +249,44 @@
   }
 
 %>
-<table width="810px">
+<table width="100%">
   <tr>
     <%
-      if ((startNum) > 1) {%>
+      if (startNum > 1) {
+      %>
     <td align="left">
-      <p><a
+      <p>
+      <a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-45)%>&endNum=<%=(startNum-1)%>"><%=(startNum - 45)%>
-        - <%=(startNum - 1)%>
-      </a></p>
+        title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
+         
+      </p>
     </td>
     <%
       }
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><%=(startNum + 45)%>
-        - <%=(endNum + 45)%>
-      </a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum+45)%>&endNum=<%=(endNum+45)%>"><img
-        src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum+45%>&endNum=<%=endNum+45%>">
+        <%=encprops.getProperty("next")%> <img
+        src="../images/Black_Arrow_right.png" width="28" height="28" border="0" align="absmiddle"
+        title="<%=encprops.getProperty("seePreviousResults")%>"/>
+      </a>
+      </p>
     </td>
   </tr>
 </table>
 
 
-<table id="results" border="0" width="100%">
-    <%
 
-			
-			int countMe=0;
-			List<SinglePhotoVideo> thumbLocs=new ArrayList<SinglePhotoVideo>();
-			
-			try {
-				//thumbLocs=myShepherd.getThumbnails(request, rEncounters.iterator(), startNum, endNum, keywords);
-				thumbLocs=rEncounters;	
-				//System.out.println("thumLocs.size="+thumbLocs.size());
-					for(int rows=0;rows<15;rows++) {		%>
+        <jsp:include page="encounterMediaGallery.jsp" flush="true">
+					<jsp:param name="grid" value="true" />
+        	<jsp:param name="queryString" value="<%=queryString %>" />
+        	<jsp:param name="rangeStart" value="<%=startNum %>" />
+        	<jsp:param name="rangeEnd" value="<%=endNum %>" />
 
-  <tr valign="top">
-
-      <%
-							for(int columns=0;columns<3;columns++){
-								if(countMe<thumbLocs.size()) {
-									Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-									boolean visible = thisEnc.canUserAccess(request);
-									//String encUrlDir = "/" + CommonConfiguration.getDataDirectoryName(context) + "/" + enc.dir("encounters");
-									String encSubdir = thisEnc.subdir();
-
-									String thumbLink="";
-									boolean video=true;
-									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
-										video=false;
-									}
-									else{
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
-										
-									}
-									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
-						
-							%>
-
-    <td>
-      <table class="<%= (visible ? "" : " no-access") %>">
-        <tr>
-          <td valign="top">
-<% if (visible) { %>
-            <a href="<%=link%>" 
-            
-            <%
-            if(!thumbLink.endsWith("video.jpg")){
-            %>
-            class="highslide" onclick="return hs.expand(this)"
-            <%
-            }
-            %>
-            
-            >
-<% } else { %><a><% } %>
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
-
-            <div 
-            <%
-            if(!thumbLink.endsWith("video.jpg")){
-            %>
-            class="highslide-caption"
-            <%
-            }
-            %>
-            >
-			
-              <%
-                if ((request.getParameter("referenceImageName") != null)&&(!thumbLink.endsWith("video.jpg"))) {
-                	if(myShepherd.isSinglePhotoVideo(request.getParameter("referenceImageName"))){
-        				
-                	SinglePhotoVideo mySPV=myShepherd.getSinglePhotoVideo(request.getParameter("referenceImageName"));
-    				//int slashPosition=request.getParameter("referenceImageName").indexOf("/");
-    				String encNum=mySPV.getCorrespondingEncounterNumber();
-    				Encounter refImageEnc = myShepherd.getEncounter(encNum);
-               %>
-              <h4>Reference Image</h4>
-              <table id="table<%=(countMe+startNum) %>">
-                <tr>
-                  <td>
-
-                    <img width="790px" 
-                    
-                    <%
-            		if(!thumbLink.endsWith("video.jpg")){
-            		%>
-                    class="highslide-image"
-                    <%
-            		}
-                    %>
-                    
-                    id="refImage<%=(countMe+startNum) %>"
-                         src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/encounters/<%=refImageEnc.subdir(refImageEnc.getCatalogNumber()) %>/<%=mySPV.getFilename() %>"/>
-
-                  </td>
-                </tr>
-              </table>
-              <%
-                }
-                }
-              %>
-              
-              <%
-            	if(!thumbLink.endsWith("video.jpg")){
-            	%>
-              <h4><%=encprops.getProperty("imageMetadata") %>
-              </h4>
-              <%
-            	}
-              %>
-
- 				
-              <table>
-                <tr>
-                  <td align="left" valign="top">
-
-
-
-                    <table>
-                      <%
-
-                        int kwLength = keywords.length;
-                        //Encounter thisEnc = myShepherd.getEncounter(thumbLocs.get(countMe).getCorrespondingEncounterNumber());
-                      %>
-                      
-                      	<%
-            	if(!thumbLink.endsWith("video.jpg")){
-            	%>
-                      <tr>
-                        <td><span class="caption"><em><%=(countMe + startNum) %>
-                        </em></span></td>
-                      </tr>
-                      <tr>
-                        <td>
-                        	<span class="caption"><%=encprops.getProperty("location") %>: 
-                          			<%
-  			try{
-  				if(thisEnc.getLocation()!=null){
-  				%>
-  				<em><%=thisEnc.getLocation() %></em>
-  				<%
-  				}
-  			}
-  			catch(Exception e){}
-  			%>
-                          	</span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span
-                          class="caption"><%=encprops.getProperty("locationID") %>: 
-                          <%
-  			try{
-  				if(thisEnc.getLocationID()!=null){
-  				%>
-  				<em><%=thisEnc.getLocationID() %></em>
-  				<%
-  				}
-  			}
-  			catch(Exception e){}
-  			%>
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="caption">
-                        	<%=encprops.getProperty("date") %>: 
-                        	<%
-                        	try{
-                        		if(thisEnc.getDate()!=null){
-                        		%>
-                        			<%=thisEnc.getDate() %>
-                        		<%
-                        		}
-                        	}
-                        	catch(Exception e){}
-                        	%>
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
-                        	<%
-                        	try{
-                        	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
-                        	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
-                        	
-                        	<%=thisEnc.getIndividualID() %>
-                        	
-                        	</a>
-                        	<%
-                        	}
-                        	}
-                        catch(Exception e){}
-                        	%>
-                        	
-                        </span></td>
-                      </tr>
-                        <%
-		            			if(CommonConfiguration.showProperty("showTaxonomy",context)){
-		            				%>
-		                            <tr>
-		                            <td>
-		                              <span class="caption">
-		                            		<em><%=encprops.getProperty("taxonomy") %>: 
-		                            		<%
-		                            		try{
-		                            		if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
-		      		            		      
-		                            		%>
-		                            		<%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%>
-		                            		<%
-		                            		}
-		                            		}
-		                            		catch(Exception e){}
-		                            		%>
-		                            		</em>
-		                            	</span>
-		                            </td>
-		                            </tr>
-		                           <%
-		            			
-		      		     }
-                      %>
-                      <tr>
-                        <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
-                        <%
-                        try{
-                        if(thisEnc.getCatalogNumber()!=null){
-                        %>
-                        <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank">
-                          <%=thisEnc.getCatalogNumber() %>
-                        </a>
-                        <%
-                        }
-                        }
-                        catch(Exception e){}
-                        %>
-                        </span></td>
-                      </tr>
-                      <%
-                      try{
-                        if (thisEnc.getVerbatimEventDate() != null) {
-                      %>
-                      <tr>
-
-                        <td><span
-                          class="caption"><%=encprops.getProperty("verbatimEventDate") %>: <%=thisEnc.getVerbatimEventDate() %></span>
-                        </td>
-                      </tr>
-                      <%
-                        
-                        }
-                      }
-                      catch(Exception e){}
-
-                        if (request.getParameter("keyword") != null) {
-                      %>
-
-
-                      <tr>
-                        <td><span class="caption">
-											<%=encprops.getProperty("matchingKeywords") %>
-											<%
-                        //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
-                        //while (allKeywords2.hasNext()) {
-                          //Keyword word = allKeywords2.next();
-                          
-                          
-                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-						  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-                        	  
-                            //String renderMe = word.getReadableName();
-							List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-							int myWordsSize=myWords.size();
-                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-                              //String kwParam = keywords[kwIter];
-                              //if (kwParam.equals(word.getIndexname())) {
-                              //  renderMe = "<strong>" + renderMe + "</strong>";
-                              //}
-                      		 	%>
- 								<br/><%=myWords.get(kwIter).getReadableName()%>
- 								<%
-                            }
-
-
-
-
-                          //    }
-                       // } 
-                            }
-
-                          %>
-										</span></td>
-                      </tr>
-                      <%
-                        }
-                      %>
-
-                    </table>
-                    
-                    	<%
-            	if(!thumbLink.endsWith("video.jpg")){
-            	%>
-                    <br/>
-                    <%
-            	}
-                    %>
-
-                    <%
-                      if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
-                    %>
-                    
-                    <p><strong>EXIF</strong></p>
-												
-				   <span class="caption">
-						<div class="scroll">
-						<span class="caption">
-					<%
-            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-            	FileInputStream jin=null;
-            	try{
-              		//File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-              		File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.subdir() + "/" + thumbLocs.get(countMe).getFilename());
-              		jin=new FileInputStream(exifImage);
-              	
-              		if(exifImage.exists()){
-              			Metadata metadata = JpegMetadataReader.readMetadata(jin);
-              			// iterate through metadata directories
-                  		for (Tag tag : MediaUtilities.extractMetadataTags(metadata)) {
-                    		%>
-                    		<%=tag.toString() %><br/>
-                    		<%
-                  		}
-              		} //end if
-              		else{
-            	 	%>
-		            	<p>File not found on file system. No EXIF data available.</p>
-		            	<p>I looked for the file at: <%=exifImage.getAbsolutePath()%></p>
-          			<%  
-              		}
-              	} //end try
-              	catch(Exception e){
-              	%>
-              	<p>Cannot read metadata for this file.</p>
-              	<%
-              	e.printStackTrace();
-              	}
-              	finally{
-              		if(jin!=null){jin.close();}
-              	}
-             }
-                %>
-   									</span>
-            </div>
-   								</span>
-
-
-                  </td>
-                  <%
-                    }
-                  %>
-                </tr>
-              </table>
-            </div>
-</div>
-</td>
-</tr>
-
-
-<tr>
-  <td>
-  		<span class="caption">
-<%
-	if (!visible) out.println("<div class=\"lock-right\">" + thisEnc.collaborationLockHtml(collabs) + "</div>");
-%>
-  			<%=encprops.getProperty("location") %>: 
-  			<%
-  			try{
-  				if(thisEnc.getLocation()!=null){
-  				%>
-  				<em><%=thisEnc.getLocation() %></em>
-  				<%
-  				}
-  			}
-  			catch(Exception e){}
-  			%>
-  		</span>
-  </td>
-</tr>
-<tr>
-  <td><span
-    class="caption"><%=encprops.getProperty("locationID") %>: 
-    <%
-  			try{
-  				if(thisEnc.getLocationID()!=null){
-  				%>
-  				<em><%=thisEnc.getLocationID() %></em>
-  				<%
-  				}
-  			}
-  			catch(Exception e){}
-  			%>
-    </span>
-  </td>
-</tr>
-<tr>
-  <td>
-  	<span class="caption"><%=encprops.getProperty("date") %>: 
-  		<%
-        try{
-  			if(thisEnc.getDate()!=null){
-                        	%>
-                        		<%=thisEnc.getDate() %>
-                        	<%
-                        	}
-        }
-  	catch(Exception e){}
-                        	%>
-  	</span>
-  </td>
-</tr>
-<tr>
-  <td><span class="caption"><%=encprops.getProperty("individualID") %>: 
-      						<%
-      						try{
-                        	if((thisEnc.getIndividualID()!=null)&&(!thisEnc.getIndividualID().equals("Unassigned"))){
-                        	%>
-                        	<a href="../individuals.jsp?number=<%=thisEnc.getIndividualID() %>" target="_blank">
-                        	
-                        	<%=thisEnc.getIndividualID() %>
-                        	
-                        	</a>
-                        	<%
-            				}
-      						}
-  							catch(Exception e){}
-                        	%>
-  </span></td>
-</tr>
- <%
-		            			if(CommonConfiguration.showProperty("showTaxonomy",context)){
-		            				try{
-		            				if((thisEnc.getGenus()!=null)&&(thisEnc.getSpecificEpithet()!=null)){
-		            		      %>
-		                            <tr>
-		                            <td>
-		                              <span class="caption">
-		                            		<em><%=encprops.getProperty("taxonomy") %>: <%=(thisEnc.getGenus()+" "+thisEnc.getSpecificEpithet())%></em>
-		                            	</span>
-		                            </td>
-		                            </tr>
-		                           <%
-		                           }
-		            				}
-		            				catch(Exception e){}
-		      		     }
-                      %>
-<tr>
-  <td><span class="caption"><%=encprops.getProperty("catalogNumber") %>: 
-  <%
-  try{
-  if(thisEnc.getCatalogNumber()!=null){
-  %>
-  <a href="encounter.jsp?number=<%=thisEnc.getCatalogNumber() %>" target="_blank"><%=thisEnc.getCatalogNumber() %>
-  </a>
-  <%
-  }
-  }
-  catch(Exception e){}
-  %>
-  </span></td>
-</tr>
-<tr>
-  <td><span class="caption">
-											<%=encprops.getProperty("matchingKeywords") %>
-											<%
-                        //int numKeywords=myShepherd.getNumKeywords();
-									          //Iterator<Keyword> allKeywords2 = myShepherd.getAllKeywords();
-					                        //while (allKeywords2.hasNext()) {
-					                          //Keyword word = allKeywords2.next();
-					                          
-					                          
-					                          //if (word.isMemberOf(encNum + "/" + fileName)) {
-											  //if(thumbLocs.get(countMe).getKeywords().contains(word)){
-					                        	  
-					                            //String renderMe = word.getReadableName();
-												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              //String kwParam = keywords[kwIter];
-					                              //if (kwParam.equals(word.getIndexname())) {
-					                              //  renderMe = "<strong>" + renderMe + "</strong>";
-					                              //}
-					                      		 	%>
-					 								<br/><%=myWords.get(kwIter).getReadableName() %>
-					 								<%
-					                            }
-
-
-
-
-					                          //    }
-					                       // } 
-
-                          %>
-										</span></td>
-</tr>
-
-</table>
-</td>
-<%
-
-      countMe++;
-    } //end if
-  } //endFor
-%>
-</tr>
-<%
-  } //endFor
-
-} catch (Exception e) {
-  e.printStackTrace();
-%>
-<tr>
-  <td>
-    <p><%=encprops.getProperty("error")%>
-    </p>.</p>
-  </td>
-</tr>
-<%
-  }
-%>
-
-</table>
+        </jsp:include>
 
 <%
 
@@ -848,7 +296,7 @@
 
 %>
 
-<table width="810px">
+<table width="100%">
   <tr>
     <%
       if ((startNum - 45) > 1) {%>
@@ -856,34 +304,33 @@
       <p><a
         href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><img
         src="../images/Black_Arrow_left.png" width="28" height="28" border="0" align="absmiddle"
-        title="<%=encprops.getProperty("seePreviousResults")%>"/></a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=(startNum-90)%>&endNum=<%=(startNum-46)%>"><%=(startNum - 90)%>
-        - <%=(startNum - 46)%>
-      </a></p>
+        title="<%=encprops.getProperty("seePreviousResults")%>"/> <%=encprops.getProperty("previous")%></a>
+        </p>
     </td>
     <%
       }
     %>
     <td align="right">
       <p><a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=startNum%>
-        - <%=endNum%>
-      </a> <a
-        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><img
+        href="thumbnailSearchResults.jsp?<%=qString%>&startNum=<%=startNum%>&endNum=<%=endNum%>"><%=encprops.getProperty("next")%> <img
         src="../images/Black_Arrow_right.png" border="0" align="absmiddle"
         title="<%=encprops.getProperty("seeNextResults")%>"/></a></p>
     </td>
   </tr>
 </table>
-<%
-  myShepherd.rollbackDBTransaction();
-  myShepherd.closeDBTransaction();
 
- 
-%>
 
 </div>
+
+<!--db: These are the necessary tools for photoswipe.-->
+<%
+String urlLoc = "//" + CommonConfiguration.getURLLocation(request);
+String pswipedir = urlLoc+"/photoswipe";
+%>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/photoswipe.css'>
+<link rel='stylesheet prefetch' href='<%=pswipedir %>/default-skin/default-skin.css'>
+<!--  <p>Looking for photoswipe in <%=pswipedir%></p>-->
+<jsp:include page="../photoswipe/photoswipeTemplate.jsp" flush="true"/>
+<script src='<%=pswipedir%>/photoswipe.js'></script>
+<script src='<%=pswipedir%>/photoswipe-ui-default.js'></script>
 <jsp:include page="../footer.jsp" flush="true"/>
-
-
-

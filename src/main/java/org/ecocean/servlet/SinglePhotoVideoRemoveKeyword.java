@@ -48,6 +48,7 @@ public class SinglePhotoVideoRemoveKeyword extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("SinglePhotoVideoRemoveKeyword.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();

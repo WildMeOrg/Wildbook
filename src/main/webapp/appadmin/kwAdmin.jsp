@@ -7,6 +7,7 @@
 
 	String context=ServletUtilities.getContext(request);
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("kwAdmin.jsp");
   Extent allKeywords = myShepherd.getPM().getExtent(Keyword.class, true);
   Query kwQuery = myShepherd.getPM().newQuery(allKeywords);
 

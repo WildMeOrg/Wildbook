@@ -48,15 +48,18 @@ public class AppletWorkItemThread implements Runnable {
   public void run() {
     //executeComparison();
 
-    System.out.println();
+    System.out.println("...in the run method of AppletWorkItemThread...");
     try {
       org.ecocean.grid.MatchObject thisResult;
       thisResult = swi.execute();
+      System.out.println("...thisResult returned!!!");
       results.add(new ScanWorkItemResult(swi.getTaskIdentifier(), swi.getUniqueNumber(), thisResult));
-
-    } catch (OutOfMemoryError oome) {
+      System.out.println("results size: " +results.size());
+    } 
+    catch (OutOfMemoryError oome) {
       oome.printStackTrace();
-    } catch (Exception e) {
+    } 
+    catch (Exception e) {
       e.printStackTrace();
 
     }

@@ -29,7 +29,7 @@
    
     <div class="col-xs-12 col-sm-7 col-md-7 col-lg-7">
     	<h3>We have many collaborating researchers and volunteers</h3>
-        <p>Want to be a part of this team? <a>Become a volunteer!</a></p>
+  
           
         <ul class="list-unstyled list-inline block-list volunteer-list">
 
@@ -38,6 +38,7 @@
 	if(CommonConfiguration.showUsersToPublic(context)){
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("whoAreWe.jsp");
     myShepherd.beginDBTransaction();
     List<User> allUsers=myShepherd.getAllUsers();
     for (ListIterator<User> it = allUsers.listIterator(); it.hasNext();) {

@@ -24,7 +24,7 @@
     
     //get our Shepherd
     Shepherd myShepherd = new Shepherd(context);
-
+    myShepherd.setAction("searchComparisonResults.jsp");
 
 
 
@@ -448,7 +448,7 @@
   
 
 
-<script src="http://maps.google.com/maps/api/js?sensor=false"></script>
+<script src="//maps.google.com/maps/api/js?sensor=false"></script>
     
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 
@@ -751,9 +751,9 @@ var selectedRectangle2;
 
      <div class="container maincontent">
  
-<h1><%=encprops.getProperty("title")%></h1>
+<h1 class="intro"><%=encprops.getProperty("title")%></h1>
       
-<table width="810px">
+<table width="100%">
 	<tr>
 		<td bgcolor="#EEEEFF">
 			<p><strong><%=encprops.getProperty("comparisonOverview")%></strong></p>
@@ -1255,9 +1255,9 @@ else{
  <tr>
  <td>
  <p><strong><%=encprops.getProperty("exportOptions")%></strong></p>
- <p><%=encprops.getProperty("genepopExport")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
- <p><%=encprops.getProperty("genalexExportMS")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
- <p><%=encprops.getProperty("genalexExportHaplotypes")%>: <a href="http://<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>&exportHaplos=true"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genepopExport")%>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/GenePopExport?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genalexExportMS")%>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>"><%=encprops.getProperty("link")%></a></p>
+ <p><%=encprops.getProperty("genalexExportHaplotypes")%>: <a href="//<%=CommonConfiguration.getURLLocation(request)%>/GenalexExportCodominantMSDataBySize?<%=request.getQueryString() %>&exportHaplos=true"><%=encprops.getProperty("link")%></a></p>
  
  </td>
  

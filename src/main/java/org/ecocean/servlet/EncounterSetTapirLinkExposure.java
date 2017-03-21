@@ -50,6 +50,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetTapirLinkExposure.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -111,7 +112,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
             myShepherd.commitDBTransaction(action);
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Success:</strong> I have changed encounter " + request.getParameter("number") + " TapirLink exposure status.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a>.</p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){
@@ -126,7 +127,7 @@ public class EncounterSetTapirLinkExposure extends HttpServlet {
           } else {
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> I have NOT changed encounter " + request.getParameter("number") + " TapirLink status. This encounter is currently being modified by another user, or an unknown error occurred.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
             List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
             int allStatesSize=allStates.size();
             if(allStatesSize>0){

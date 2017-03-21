@@ -52,6 +52,7 @@ public class IndividualSetYearOfDeath extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("IndividualSetYearOfDeath.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -88,7 +89,7 @@ public class IndividualSetYearOfDeath extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success!</strong> I have successfully changed the time of death for individual " + sharky + " to " + timeOfDeath + ".</p>");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "\">Return to " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
         String message = "The time of death for " + sharky + " was set to " + timeOfDeath + ".";
       } else {
@@ -96,7 +97,7 @@ public class IndividualSetYearOfDeath extends HttpServlet {
         out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Failure!</strong> This individual is currently being modified by another user. Please wait a few seconds before trying to modify this individual again.");
 
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#deathdate\">Return to " + sharky + "</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/individuals.jsp?number=" + sharky + "#deathdate\">Return to " + sharky + "</a></p>\n");
         out.println(ServletUtilities.getFooter(context));
 
       }

@@ -62,6 +62,7 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
     context=ServletUtilities.getContext(request);
     String langCode = ServletUtilities.getLanguageCode(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetAsUnidentifiable.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -96,18 +97,12 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
         if (!locked) {
           String submitterEmail = enc2reject.getSubmitterEmail();
           myShepherd.commitDBTransaction();
-          out.println(ServletUtilities.getHeader(request));
+          //out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> I have set encounter " + request.getParameter("number") + " as unidentifiable in the database.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-          int allStatesSize=allStates.size();
-          if(allStatesSize>0){
-            for(int i=0;i<allStatesSize;i++){
-              String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-            }
-          }
-          out.println(ServletUtilities.getFooter(context));
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
+          response.setStatus(HttpServletResponse.SC_OK);
+       
+          //out.println(ServletUtilities.getFooter(context));
           String message = "Encounter " + request.getParameter("number") + " was set as unidentifiable in the database.";
           ServletUtilities.informInterestedParties(request, request.getParameter("number"),message,context);
 
@@ -119,31 +114,31 @@ public class EncounterSetAsUnidentifiable extends HttpServlet {
           es.execute(mailer);
           es.shutdown();
 
-        } else {
-          out.println(ServletUtilities.getHeader(request));
+        } 
+        else {
+          //out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> I have NOT modified encounter " + request.getParameter("number") + " in the database because another user is currently modifying its entry. Please try this operation again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
-          List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-          int allStatesSize=allStates.size();
-          if(allStatesSize>0){
-            for(int i=0;i<allStatesSize;i++){
-              String stateName=allStates.get(i);
-              out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-            }
-          }
-          out.println(ServletUtilities.getFooter(context));
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">View unidentifiable encounter #" + request.getParameter("number") + "</a></p>\n");
+         
+          //out.println(ServletUtilities.getFooter(context));
+          
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
 
-      } else {
-        out.println(ServletUtilities.getHeader(request));
-        out.println("Encounter# " + request.getParameter("number") + " is assigned to an individual and cannot be set as unidentifiable until it has been removed from that individual.");
-        out.println(ServletUtilities.getFooter(context));
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        out.println("Encounter " + request.getParameter("number") + " is assigned to an individual and cannot be set as unidentifiable until it has been removed from that individual.");
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
-    } else {
-      out.println(ServletUtilities.getHeader(request));
+    } 
+    else {
+      //out.println(ServletUtilities.getHeader(request));
       out.println("<strong>Error:</strong> I do not know which encounter you are trying to remove.");
-      out.println(ServletUtilities.getFooter(context));
+      //out.println(ServletUtilities.getFooter(context));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
     }
 

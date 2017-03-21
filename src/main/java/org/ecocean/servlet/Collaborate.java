@@ -50,6 +50,7 @@ public class Collaborate extends HttpServlet {
   public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     String context = ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("Collaborate.class");
 
 		Properties props = new Properties();
 		String langCode = ServletUtilities.getLanguageCode(request);
@@ -125,7 +126,8 @@ System.out.println(collabs);
           Map<String, String> tagMap = new HashMap<>();
           tagMap.put("@CONTEXT_NAME@", ContextConfiguration.getNameForContext(context));
           tagMap.put("@USER@", username);
-          tagMap.put("@LINK@", String.format("http://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
+          tagMap.put("@SENDER@", currentUsername);
+          tagMap.put("@LINK@", String.format(request.getScheme()+"://%s/myAccount.jsp", CommonConfiguration.getURLLocation(request)));
           tagMap.put("@TEXT_CONTENT@", optionalMessage == null ? "" : optionalMessage);
 					System.out.println("/Collaborate: attempting email to (" + username + ") " + mailTo);
 					ThreadPoolExecutor es = MailThreadExecutorService.getExecutorService();

@@ -9,6 +9,7 @@ String context="context0";
 context=ServletUtilities.getContext(request);
   String number = request.getParameter("number").trim();
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("confirmSubmit.jsp");
 	//HttpSession session = request.getSession(false);
 
 
@@ -54,7 +55,7 @@ context=ServletUtilities.getContext(request);
 new_message.append("<html><body>");
 
   new_message.append("The "+CommonConfiguration.getProperty("htmlTitle",context)+" library has received a new encounter submission. You can " +
-    "view it at:<br>http://" + CommonConfiguration.getURLLocation(request) +
+    "view it at:<br>" + CommonConfiguration.getURLLocation(request) +
     "/encounters/encounter" +
     ".jsp?number="+ number);
   new_message.append("<br><br>Quick stats:<br>");
@@ -206,7 +207,7 @@ new_message.append("<html><body>");
 <%=props.getProperty("questions") %> <a href="mailto:<%=CommonConfiguration.getAutoEmailAddress(context) %>"><%=CommonConfiguration.getAutoEmailAddress(context) %></a></p>
 
 <p>
-	<a href="http://<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
+	<a href="//<%=CommonConfiguration.getURLLocation(request)%>/encounters/encounter.jsp?number=<%=number%>"><%=props.getProperty("viewEncounter") %> <%=number%></a>.
 </p>
 <%
 
@@ -221,7 +222,7 @@ if(CommonConfiguration.sendEmailNotifications(context)){
   List<String> mailTo = NotificationMailer.splitEmails(CommonConfiguration.getNewSubmissionEmail(context));
   String mailSubj = "New encounter submission: " + number;
   for (String emailTo : mailTo) {
-    NotificationMailer mailer = new NotificationMailer(context, null, emailTo, "newSubmission-summary", tagMap);
+    NotificationMailer mailer = new NotificationMailer(context, langCode, emailTo, "newSubmission-summary", tagMap);
     es.execute(mailer);
   }
 

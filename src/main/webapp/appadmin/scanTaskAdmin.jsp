@@ -9,6 +9,7 @@ String context=ServletUtilities.getContext(request);
 
 //get a shepherd
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("scanTaskAdmin.jsp");
 
 //summon thee a gridManager!
   GridManager gm = GridManagerFactory.getGridManager();
@@ -17,6 +18,7 @@ String context=ServletUtilities.getContext(request);
       int newThrottle = (new Integer(request.getParameter("numAllowedNodes"))).intValue();
       gm.setNumAllowedNodes(newThrottle);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("nodeTimeout") != null) {
@@ -24,6 +26,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("nodeTimeout"))).intValue();
       gm.setNodeTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("checkoutTimeout") != null) {
@@ -31,6 +34,7 @@ String context=ServletUtilities.getContext(request);
       int newTimeout = (new Integer(request.getParameter("checkoutTimeout"))).intValue();
       gm.setCheckoutTimeout(newTimeout);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("scanTaskLimit") != null) {
@@ -38,6 +42,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("scanTaskLimit"))).intValue();
       gm.setScanTaskLimit(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
   if (request.getParameter("maxGroupSize") != null) {
@@ -45,6 +50,7 @@ String context=ServletUtilities.getContext(request);
       int limit = (new Integer(request.getParameter("maxGroupSize"))).intValue();
       gm.setMaxGroupSize(limit);
     } catch (NumberFormatException nfe) {
+    	nfe.printStackTrace();
     }
   }
 
@@ -130,7 +136,7 @@ else{
   <%
   Iterator<ScanTask> it = null;
   if(request.getParameter("showAll")!=null){it=myShepherd.getAllScanTasksNoQuery();}
-  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}
+  else{it=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}
   	
     
     
@@ -244,7 +250,7 @@ else{
   <%
     Iterator it2 = null;
   if(request.getParameter("showAll")!=null){it2=myShepherd.getAllScanTasksNoQuery();}
-  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString());}	
+  else{it2=myShepherd.getAllScanTasksForUser(request.getUserPrincipal().toString()).iterator();}	
   
     scanNum = 0;
     while ((it2!=null)&&(it2.hasNext())) {
@@ -276,7 +282,7 @@ else{
     <td><%=st.getSubmitter()%>
     </td>
     <%
-      String gotoURL = "http://" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
+      String gotoURL = "//" + CommonConfiguration.getURLLocation(request) + "/"+CommonConfiguration.getProperty("patternMatchingResultsPage", context);
       if (st.getUniqueNumber().equals("TuningTask")) {
         gotoURL = "endTuningTask.jsp";
       }
@@ -459,7 +465,7 @@ single scan are allowed to exceed the total.</span>
 </table>
 <h3>Creation/deletion threads</h3>
 
-<p>Number of tasks creating/deleteing: <%=es.getActiveCount()%>
+<p>Number of tasks creating/deleting: <%=es.getActiveCount()%>
   (<%=(es.getTaskCount() - es.getCompletedTaskCount())%>
   total in queue)<br> <br>
 
@@ -467,6 +473,9 @@ single scan are allowed to exceed the total.</span>
   <%}%>
 
 </p>
+
+<p>Number left-side patterns in the potential match graph: <%=gm.getNumLeftPatterns() %></p>
+<p>Number right-side patterns in the potential match graph: <%=gm.getNumRightPatterns() %></p>
 <%
 
   } catch (Exception e) {
@@ -478,97 +487,7 @@ single scan are allowed to exceed the total.</span>
   myShepherd.closeDBTransaction();
 
   
- if(request.isUserInRole("machinelearning")){ 
-%>
 
-
-<h2>Build Weka Instances</h2>
-<p><em>(resource intensive: use only in offline Wildbooks)</em></p>
-
-<form id="arffForm" 
-	  action="../GenerateARFF4Species" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     boolean hasMoreTax=true;
-                     int taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Train Classifier by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-
-
-
-
-
-<h2>Sequence Weighted ALignmEnt (SWALE) Tuning</h2>
-<p><em>(use only in offline Wildbooks)</em></p>
-
-<form id="swaleForm" 
-	  action="../TrainSwale" 
-	  method="post" 
-	  
-      target="_self" dir="ltr" 
-      lang="en"
-      
-      
->
-
-  <select class="form-control" name="genusSpecies" id="genusSpecies">
-             	
-  <%
-                     hasMoreTax=true;
-                     taxNum=0;
-                     if(CommonConfiguration.showProperty("showTaxonomy",context)){
-                     while(hasMoreTax){
-                           String currentGenuSpecies = "genusSpecies"+taxNum;
-                           if(CommonConfiguration.getProperty(currentGenuSpecies,context)!=null){
-                               %>
-                                 <option value="<%=CommonConfiguration.getProperty(currentGenuSpecies,context)%>"><%=CommonConfiguration.getProperty(currentGenuSpecies,context).replaceAll("_"," ")%></option>
-                               <%
-                             taxNum++;
-                        }
-                        else{
-                           hasMoreTax=false;
-                        }
-                        
-                   }
-                   }
- %>
-  </select>
-<button class="large" type="submit">
-          Tune Swale Performance by Species 
-          <span class="button-icon" aria-hidden="true" />
-        </button>
-</form>
-<%
-}
 %>
 
 </div>

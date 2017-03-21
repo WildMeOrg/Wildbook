@@ -20,7 +20,10 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <%@ page contentType="text/html; charset=utf-8" language="java"
-         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,org.ecocean.security.Collaboration" %>
+         import="org.joda.time.format.DateTimeFormat,org.joda.time.format.DateTimeFormatter,org.joda.time.LocalDateTime ,org.ecocean.servlet.ServletUtilities,com.drew.imaging.jpeg.JpegMetadataReader, com.drew.metadata.Directory, com.drew.metadata.Metadata, com.drew.metadata.Tag, org.ecocean.*,org.ecocean.servlet.ServletUtilities,org.ecocean.Util,org.ecocean.Measurement, org.ecocean.Util.*, org.ecocean.genetics.*, org.ecocean.tag.*, java.awt.Dimension, javax.jdo.Extent, javax.jdo.Query, java.io.File, java.text.DecimalFormat, java.util.*,
+org.ecocean.media.MediaAsset,
+org.ecocean.media.MediaAssetFactory,
+org.ecocean.security.Collaboration" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>         
 
@@ -32,94 +35,74 @@
 String context="context0";
 context=ServletUtilities.getContext(request);
 Shepherd myShepherd = new Shepherd(context);
+myShepherd.setAction("encounterSpotTool.jsp");
+myShepherd.beginDBTransaction();
+int imageID = Integer.parseInt(request.getParameter("imageID"));
+String imgSrc="";
+String encNum="";
+try{
 
+	
+	MediaAsset ma = MediaAssetFactory.load(imageID, myShepherd);
+	if (ma == null) throw new Exception("unknown MediaAsset id=" + imageID);
+	Encounter enc = null;
+	for (Annotation ann : ma.getAnnotations()) {
+		enc = Encounter.findByAnnotation(ann, myShepherd);
+		encNum=enc.getCatalogNumber();
+		if (enc != null) break;
+	}
+	if (enc == null) throw new Exception("could not find Encounter for MediaAsset id=" + imageID);
+	
+	//let's set up references to our file system components
+	String rootWebappPath = getServletContext().getRealPath("/");
+	//String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
+	String baseDir = CommonConfiguration.getDataDirectoryName(context);
+	/*
+	File webappsDir = new File(rootWebappPath).getParentFile();
+	File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
+	File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
+	File encounterDir = new File(encountersDir, num);
+	*/
+	
+	imgSrc = ma.webURL().toString();
+	
+	
+	//handle some cache-related security
+	  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
+	  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
+	  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
+	  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
+	
+	
+	//handle translation
+	  //String langCode = "en";
+	String langCode=ServletUtilities.getLanguageCode(request);
+	    
+	
+	
+	
+	//let's load encounters.properties
+	  //Properties encprops = new Properties();
+	  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
+	
+	  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
+	
+		Properties collabProps = new Properties();
+	 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
+}
+catch(Exception e){
+	e.printStackTrace();
+}
+finally{
+ 	myShepherd.rollbackDBTransaction();
+ 	myShepherd.closeDBTransaction();
+}
 
-String imageID = request.getParameter("imageID");
-SinglePhotoVideo spv = myShepherd.getSinglePhotoVideo(imageID);
-String num = spv.getCorrespondingEncounterNumber();
-Encounter enc = myShepherd.getEncounter(num);
-
-//let's set up references to our file system components
-String rootWebappPath = getServletContext().getRealPath("/");
-//String fooDir = ServletUtilities.dataDir(context, rootWebappPath);
-String baseDir = CommonConfiguration.getDataDirectoryName(context);
-/*
-File webappsDir = new File(rootWebappPath).getParentFile();
-File shepherdDataDir = new File(webappsDir, CommonConfiguration.getDataDirectoryName(context));
-File encountersDir=new File(shepherdDataDir.getAbsolutePath()+"/encounters");
-File encounterDir = new File(encountersDir, num);
-*/
-
-String imgSrc = spv.asUrl(enc, baseDir);
-
-
-//handle some cache-related security
-  response.setHeader("Cache-Control", "no-cache"); //Forces caches to obtain a new copy of the page from the origin server
-  response.setHeader("Cache-Control", "no-store"); //Directs caches not to store the page under any circumstance
-  response.setDateHeader("Expires", 0); //Causes the proxy cache to see the page as "stale"
-  response.setHeader("Pragma", "no-cache"); //HTTP 1.0 backward compatibility
-
-
-//handle translation
-  //String langCode = "en";
-String langCode=ServletUtilities.getLanguageCode(request);
-    
-
-
-
-//let's load encounters.properties
-  //Properties encprops = new Properties();
-  //encprops.load(getClass().getResourceAsStream("/bundles/" + langCode + "/encounter.properties"));
-
-  Properties encprops = ShepherdProperties.getProperties("encounter.properties", langCode, context);
-
-	Properties collabProps = new Properties();
- 	collabProps=ShepherdProperties.getProperties("collaboration.properties", langCode, context);
-
-
-
-  //pageContext.setAttribute("num", num);
-
-
-
-  //pageContext.setAttribute("set", encprops.getProperty("set"));
 %>
 
-<html>
 
-<head prefix="og:http://ogp.me/ns#">
-  <title><%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=num%>
-  </title>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <meta name="Description"
-        content="<%=CommonConfiguration.getHTMLDescription(context) %>"/>
-  <meta name="Keywords"
-        content="<%=CommonConfiguration.getHTMLKeywords(context) %>"/>
-  <meta name="Author" content="<%=CommonConfiguration.getHTMLAuthor(context) %>"/>
-  
-  
-<!-- social meta start -->
-<meta property="og:site_name" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
+<jsp:include page="../header.jsp" flush="true"/>
 
-<link rel="canonical" href="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-<meta itemprop="name" content="<%=encprops.getProperty("encounter")%> <%=request.getParameter("number")%>" />
-<meta itemprop="description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-<meta property="og:title" content="<%=CommonConfiguration.getHTMLTitle(context) %> - <%=encprops.getProperty("encounter") %> <%=request.getParameter("number") %>" />
-<meta property="og:description" content="<%=CommonConfiguration.getHTMLDescription(context)%>" />
-
-<meta property="og:url" content="http://<%=CommonConfiguration.getURLLocation(request) %>/encounters/encounter.jsp?number=<%=request.getParameter("number") %>" />
-
-
-<meta property="og:type" content="website" />
-
-<!-- social meta end -->
-
-  
-  <link href="<%=CommonConfiguration.getCSSURLLocation(request,context) %>"
-        rel="stylesheet" type="text/css"/>
-  <link rel="shortcut icon"
-        href="<%=CommonConfiguration.getHTMLShortcutIcon(context) %>"/>
   <style type="text/css">
     <!--
 
@@ -172,6 +155,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 }
 
 #imageTools-control {
+	margin: 6px;
 	position: absolute;
 	top: 402px;
 	left: 0;
@@ -228,58 +212,7 @@ String langCode=ServletUtilities.getLanguageCode(request);
 	margin: 0 6px;
 }
 
-    .style2 {
-      color: #000000;
-      font-size: small;
-    }
-
-    .style3 {
-      font-weight: bold
-    }
-
-    .style4 {
-      color: #000000
-    }
-
-    table.adopter {
-      border-width: 1px 1px 1px 1px;
-      border-spacing: 0px;
-      border-style: solid solid solid solid;
-      border-color: black black black black;
-      border-collapse: separate;
-      background-color: white;
-    }
-
-    table.adopter td {
-      border-width: 1px 1px 1px 1px;
-      padding: 3px 3px 3px 3px;
-      border-style: none none none none;
-      border-color: gray gray gray gray;
-      background-color: white;
-      -moz-border-radius: 0px 0px 0px 0px;
-      font-size: 12px;
-      color: #330099;
-    }
-
-    table.adopter td.name {
-      font-size: 12px;
-      text-align: center;
-    }
-
-    table.adopter td.image {
-      padding: 0px 0px 0px 0px;
-    }
-
-    div.scroll {
-      height: 200px;
-      overflow: auto;
-      border: 1px solid #666;
-      background-color: #ccc;
-      padding: 8px;
-    }
-
-    -->
-
+ -->
 
 
 
@@ -292,7 +225,8 @@ String langCode=ServletUtilities.getLanguageCode(request);
 
 
 
-var encounterNumber = '<%=num%>';
+var encounterNumber = '<%=encNum %>';
+var mediaAssetId = '<%=imageID%>';
 var itool = false;
 document.addEventListener('imageTools:workCanvas:update', function(ev) {
 	updateSpotCounts();
@@ -559,10 +493,21 @@ function spotsSave() {
 	if (sp.length < 1) return;
 //TODO verify we really have all we need (like when we updateSaveButton())
 
+	$('#imageTools-spot-type-picker').hide();
 	$('#imageTools-buttons').hide();
 	$('#imageTools-message').html('saving spot data...');
 
 	var scale = itool.wCanvas.width / itool.wCanvas.offsetWidth;
+	var sdata = { encId: encounterNumber, mediaAssetId: mediaAssetId, rightSide: (side == 'right'), spots: [], refSpots: [] };
+	sdata.imageToolValues = {
+		scale: itool.scale,
+		rotation: itool.rotation,
+		rect: itool.rect,
+		_finalScale: scale
+	};
+	sdata.imageData = itool.wCanvas.toDataURL('image/jpeg', 0.9).substring(23);
+
+/*
 	var pdata = 'number=' + encounterNumber;
 	if (side == 'right') pdata += '&rightSide=true';
 	var scount = 0;
@@ -579,14 +524,34 @@ function spotsSave() {
 			pdata += '&' + sp[i].type + 'y=' + xy[1];
 		}
 	}
+*/
+	for (var i = 0 ; i < sp.length ; i++) {
+		var xy = itool.xyOrigToWork(sp[i].xy);
+		xy[0] *= scale;
+		xy[1] *= scale;
+		var regex = new RegExp(/^ref(\d+)$/);
+		var m = regex.exec(sp[i].type);
+		if (sp[i].type == 'spot') {
+			sdata.spots.push(xy);
+		} else if (m) {  //refN
+			var ind = m[1] - 1;  //("ref1" -> 0)
+			sdata.refSpots[ind] = xy;
+		} else {  //not sure if we will have other types, but....
+			var key = sp[i].type + 'Spots';
+			if (!sdata[key]) sdata[key] = [];
+			sdata[key].push(xy);
+		}
+	}
 
-console.log(pdata);
+console.log(sdata);
 
 
 	$.ajax({
-		url: '../SubmitSpots',
-		data: pdata,
-		success: function(d) { sendImage(d); },
+		url: '../SubmitSpotsAndImage',
+		data: JSON.stringify(sdata),
+		contentType: 'application/javascript',
+		dataType: 'json',
+		success: function(d) { allGood(d); },
 		error: function(a,b,c) {
 			console.error('%o %o %o', a,b,c);
 			$('#imageTools-buttons').show();
@@ -597,6 +562,7 @@ console.log(pdata);
 }
 
 
+/*  old non-MA cruft
 function sendImage(d) {
 	console.info('SUCCESS saving spots: %o', d);
 	$('#imageTools-message').html('saving image...');
@@ -615,9 +581,16 @@ function sendImage(d) {
 		type: 'POST'
 	});
 }
+*/
 
 
 function allGood(d) {
+	if (!d.success) {
+		console.error("error api return %o", d);
+		$('#imageTools-buttons').show();
+		$('#imageTools-message').html(d.error || 'error saving');
+		return;
+	}
 	console.info('SUCCESS saving image: %o', d);
 	$('#imageTools-message').html('spot data and image saved.<div style="margin-top: 7px;"><input type="button" value="start ScanTask" onClick="var win = window.open(\'../ScanTaskHandler?action=addTask&encounterNumber=' + encounterNumber + '&rightSide=' + ((side == 'right') ? 'true' : 'false') + '&cutoff=0.02&writeThis=true\', \'_blank\'); win.focus(); return true;" /> <input type="button" value="return to encounter" onClick="spotsCancel();" /></div>');
 }
@@ -631,44 +604,12 @@ function allGood(d) {
 
 
 
-<!--  FACEBOOK LIKE BUTTON -->
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) return;
-  js = d.createElement(s); js.id = id;
-  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
-
-<!-- GOOGLE PLUS-ONE BUTTON -->
-<script type="text/javascript">
-  (function() {
-    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-    po.src = 'https://apis.google.com/js/plusone.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-  })();
-</script>
-</head>
-
 
 
 <body <%if (request.getParameter("noscript") == null) {%>
   xonload="initialize()" <%}%>>
 
-	<div id="wrapper">
-		<div id="page">
-			<jsp:include page="../header.jsp" flush="true">
-  				<jsp:param name="isAdmin" value="<%=request.isUserInRole(\"admin\")%>" />
-			</jsp:include>
-			
-			
-			<script src="http://maps.google.com/maps/api/js?sensor=false&language=<%=langCode%>"></script>
 
-
- <script type="text/javascript" src="http://geoxml3.googlecode.com/svn/branches/polys/geoxml3.js"></script>
-
-  <script src="../javascript/timepicker/jquery-ui-timepicker-addon.js"></script>
  
 <script src="../javascript/imageTools.js"></script>
 <script>
@@ -677,8 +618,9 @@ $(document).ready(function() {
 });
 </script>
 
-			
-			<div id="main">
+		<div class="container maincontent">
+		
+		
 <div id="imageTools-wrapper">
 	<div id="imageTools-wl-wrapper">
 		<div class="instruction">Place spots here</div>
@@ -705,25 +647,14 @@ $(document).ready(function() {
 
 
 </div>
-
-
+<div style="height: 800px;"></div>
 
 </div>
+
 
 
 
 <jsp:include page="../footer.jsp" flush="true"/>
 
-</div>
-<!-- end page -->
-
-</div>
-
-<!--end wrapper -->
-
-
-
-</body>
-</html>
 
 

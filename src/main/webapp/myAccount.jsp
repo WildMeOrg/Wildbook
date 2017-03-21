@@ -34,6 +34,7 @@ if (session.getAttribute("message") != null) {
   	
   	
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("myAccount.jsp");
   	//get the available user roles
   	List<String> roles=CommonConfiguration.getIndexedPropertyValues("role",context);
 	List<String> roleDefinitions=CommonConfiguration.getIndexedPropertyValues("roleDefinition",context);
@@ -214,18 +215,18 @@ if((CommonConfiguration.getProperty("allowFacebookLogin", "context0")!=null)&&(C
 
 		String socialType="facebook";
 		if (thisUser.getSocial(socialType) == null) {
-			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+			out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
 		} else {
-			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+			out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
 		}
 }
 if((CommonConfiguration.getProperty("allowFlickrLogin", "context0")!=null)&&(CommonConfiguration.getProperty("allowFlickrLogin", "context0").equals("true"))){
 
 	String socialType="flickr";
 	if (thisUser.getSocial(socialType) == null) {
-		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\"connect to " + socialType + "\" /></div>");
+		out.println("<div class=\"social-disconnected\"><input type=\"button\" onClick=\"return socialConnect('" + socialType + "');\" value=\""+props.getProperty("connect2")+ socialType + "\" /></div>");
 	} else {
-		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\"disconnect\" /></div>");
+		out.println("<div class=\"social-connected\">" +props.getProperty("connectedTo") +" "+ socialType + " <input type=\"button\" class=\"social-connect\" onClick=\"return socialDisconnect('" + socialType + "');\" value=\""+props.getProperty("disconnect")+"\" /></div>");
 	}
 }
 %>
@@ -307,7 +308,7 @@ String jdoqlString="SELECT FROM org.ecocean.Encounter where submitterID == '"+th
     	<jsp:param name="jdoqlString" value="<%=jdoqlString %>" />
     </jsp:include>
     
-    <p><strong>Links to My Data</strong></p>
+    <p><strong><%=props.getProperty("links2mydata") %></strong></p>
         <p class="caption"><a href="individualSearchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("individualsAssociated") %></a></p>
     
     <p class="caption"><a href="encounters/searchResultsAnalysis.jsp?username=<%=localUsername%>"><%=props.getProperty("encountersAssociated") %></a></p>

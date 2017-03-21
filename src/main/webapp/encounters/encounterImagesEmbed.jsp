@@ -23,15 +23,18 @@
 <%
 String context="context0";
 context=ServletUtilities.getContext(request);
+Shepherd imageShepherd = new Shepherd(context);
+imageShepherd.beginDBTransaction();
+Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
+Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
 try {
 
 //get the encounter number
 String imageEncNum = request.getParameter("encounterNumber");
 	
 //set up the JDO pieces and Shepherd
-Shepherd imageShepherd = new Shepherd(context);
-Extent allKeywords = imageShepherd.getPM().getExtent(Keyword.class, true);
-Query kwImagesQuery = imageShepherd.getPM().newQuery(allKeywords);
+
+
 boolean haveRendered = false;
 
 //let's set up references to our file system components
@@ -156,9 +159,20 @@ int imageCount = 0;
 
 <%
 if(CommonConfiguration.useSpotPatternRecognition(context)){
+	
+	String isDorsalFin="";
+	String genusSpecies="";
+	if((imageEnc.getGenus()!=null)&&(imageEnc.getSpecificEpithet()!=null)){genusSpecies=imageEnc.getGenus()+imageEnc.getSpecificEpithet();}
+	if((genusSpecies.equals("Physetermacrocephalus"))||(genusSpecies.equals("Megapteranovaeangliae"))){
+		isDorsalFin="&isDorsalFin=false";
+	}
+	else if(genusSpecies.equals("Tursiopstruncatus")){
+		isDorsalFin="&isDorsalFin=true";
+	}
+	
 %>
 <li>
-	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%>"><%=encprops.getProperty("doImageSpots") %></a>
+	<a href="encounterSpotTool.jsp?imageID=<%=images.get(myImage).getDataCollectionEventID()%><%=isDorsalFin %>"><%=encprops.getProperty("matchPattern") %></a>
 </li>
 <%
 }
@@ -167,6 +181,8 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
 <li>
 	<a href="encounterSearch.jsp?referenceImageName=<%=images.get(myImage).getDataCollectionEventID() %>"><%=encprops.getProperty("look4photos") %></a>
 </li>
+
+
 </td>
 </tr>
 
@@ -311,16 +327,17 @@ if(CommonConfiguration.useSpotPatternRecognition(context)){
       }
       if (request.getParameter("isOwner").equals("true") && (!isBMP) && (!isVideo)) {
     %>
-    <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
+    <a id="<%=images.get(myImage).getDataCollectionEventID() %>" href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" class="highslide" onclick="return hs.expand(this)"
        title="<%=encprops.getProperty("clickEnlarge")%>">
       <%
-      } else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
+      } 
+      else if (request.getParameter("isOwner").equals("true")||(request.getParameter("loggedIn").equals("true"))) {
       %>
-      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>"
+      <a href="<%= images.get(myImage).asUrl(imageEnc, CommonConfiguration.getDataDirectoryName(context)) %>" id="<%=images.get(myImage).getDataCollectionEventID() %>"
         <%
         if(!isVideo){
         %>
-      class="highslide" onclick="return hs.expand(this)"
+      class="highslide" onclick="return hs.expand(this)" 
 		<%
             }
 		%>
@@ -407,7 +424,7 @@ System.out.println("trying to fork/create " + thumbPath);
                  fillPaint="#000000"><%=encprops.getProperty("nocopying") %>
         </di:text>
       </di:img>
-      <img width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
+      <img id="<%= images.get(myImage).getDataCollectionEventID()%>" width="<%=thumbnailWidth %>" class="enc-photo" alt="photo <%=imageEnc.getLocation()%>"
            src="<%=encUrlDir%>/<%=(images.get(myImage).getDataCollectionEventID()+".jpg")%>" border="0" align="left" valign="left"> <%
 				}
 
@@ -441,7 +458,7 @@ System.out.println("trying to fork/create " + thumbPath);
             <%
             if(!isVideo){
             %>
-            class="highslide-caption"
+            class="highslide-caption" 
             <%
             }
             %>
@@ -485,15 +502,15 @@ System.out.println("trying to fork/create " + thumbPath);
               </tr>
               <tr>
                 <td>
-	                <span class="caption"><%=encprops.getProperty("individualID") %>
+	                <span class="caption"><%=encprops.getProperty("individualID") %>: 
 	                <%
 	                if(imageEnc.getIndividualID()!=null){
-	                %> 
-	                	<a href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
-	                	</a>
+	                %>
+	                <a href="../individuals.jsp?number=<%=imageEnc.getIndividualID() %>"><%=imageEnc.getIndividualID() %>
+	                </a>
 	                <%
-					}
-	                %>	
+	                }
+	                %>
 	                </span>
                 </td>
               </tr>
@@ -697,6 +714,19 @@ catch (Exception e) {
   </tr>
 </table>
 
+<!-- ***** START EDITS ***** 
+
+     Ecological Software Solutions LLC Fluke Tracer.-->
+<!-- Requires jQuery. Also get the lastest version of jQuery if needed.  -->
+<!-- <script type="text/javascript" src="//code.jquery.com/jquery-2.1.3.js"></script> -->
+<script type="text/javascript" src="../tracing/js/paper.js"></script>
+<script type="text/javascript" src="../tracing/js/tracing.js"></script>
+<script type="text/javascript">
+  comEcostatsTracing.addFlukeTrace('.highslide','<%=imageEncNum%>');
+</script>
+
+<!-- ***** END EDITS *****  -->
+
 <%
   }
 
@@ -704,4 +734,9 @@ catch (Exception e) {
 catch(Exception e){
 	e.printStackTrace();
 }
+finally{
+	imageShepherd.rollbackDBTransaction();
+	imageShepherd.closeDBTransaction();
+}
+kwImagesQuery.closeAll();
 %>

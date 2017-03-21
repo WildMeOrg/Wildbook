@@ -57,6 +57,7 @@ public class EncounterSetState extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("EncounterSetState.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -89,51 +90,26 @@ public class EncounterSetState extends HttpServlet {
 
       if (!locked) {
         myShepherd.commitDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Success:</strong> Encounter state has been updated from " + oldScar + " to " + state + ".");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_OK);
+        
         String message = "Encounter " + request.getParameter("number") + " state has been updated from " + oldScar + " to " + state + ".";
         ServletUtilities.informInterestedParties(request, request.getParameter("number"), message,context);
-      } else {
-        out.println(ServletUtilities.getHeader(request));
+      } 
+      else {
+        //out.println(ServletUtilities.getHeader(request));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         out.println("<strong>Failure:</strong> Encounter state was NOT updated because another user is currently modifying this reconrd. Please try to reset the scarring again in a few seconds.");
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-        List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-        int allStatesSize=allStates.size();
-        if(allStatesSize>0){
-          for(int i=0;i<allStatesSize;i++){
-            String stateName=allStates.get(i);
-            out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-          }
-        }
-        out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-        out.println(ServletUtilities.getFooter(context));
+        
 
       }
-    } else {
-      out.println(ServletUtilities.getHeader(request));
+    } 
+    else {
+     // out.println(ServletUtilities.getHeader(request));
+      response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       out.println("<strong>Error:</strong> I don't have enough information to complete your request.");
-      out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter #" + request.getParameter("number") + "</a></p>\n");
-      List<String> allStates=CommonConfiguration.getIndexedPropertyValues("encounterState",context);
-      int allStatesSize=allStates.size();
-      if(allStatesSize>0){
-        for(int i=0;i<allStatesSize;i++){
-          String stateName=allStates.get(i);
-          out.println("<p><a href=\"encounters/searchResults.jsp?state="+stateName+"\">View all "+stateName+" encounters</a></font></p>");   
-        }
-      }
-      out.println("<p><a href=\"individualSearchResults.jsp\">View all individuals</a></font></p>");
-      out.println(ServletUtilities.getFooter(context));
+      
 
     }
 

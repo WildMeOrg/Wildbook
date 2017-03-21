@@ -77,6 +77,7 @@ public class UserResetPassword extends HttpServlet {
 
     if ((request.getParameter("username") != null) &&  (!request.getParameter("username").trim().equals("")) && (((request.getParameter("password") != null) &&  (!request.getParameter("password").trim().equals("")) && (request.getParameter("password2") != null) &&  (!request.getParameter("password2").trim().equals(""))))) {
       Shepherd myShepherd = new Shepherd(context);
+      myShepherd.setAction("UserResetPassword.class");
       try{
           
           String username=request.getParameter("username").trim();
@@ -116,7 +117,7 @@ public class UserResetPassword extends HttpServlet {
                 
                   out.println("<strong>Success:</strong> Password successfully reset.");
                 
-                out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
+                out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/login.jsp" + "\">Return to login page" + "</a></p>\n");
                 out.println(ServletUtilities.getFooter(context));
               }
               else{
@@ -124,7 +125,7 @@ public class UserResetPassword extends HttpServlet {
               //output failure statement
                 out.println(ServletUtilities.getHeader(request));
                 out.println("<strong>Failure:</strong> Password was NOT successfully reset. URL parameters could not be validated.");
-                out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+                out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
                 out.println(ServletUtilities.getFooter(context));
                 myShepherd.rollbackDBTransaction();
               }
@@ -138,7 +139,7 @@ public class UserResetPassword extends HttpServlet {
           //output failure statement
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Password was NOT successfully reset. I could not find the specified user.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             myShepherd.rollbackDBTransaction();
           }
@@ -149,7 +150,7 @@ public class UserResetPassword extends HttpServlet {
             //output failure statement
             out.println(ServletUtilities.getHeader(request));
             out.println("<strong>Failure:</strong> Password was NOT successfully reset. Your passwords did not match.");
-            out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
+            out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "\">Return to homepage" + "</a></p>\n");
             out.println(ServletUtilities.getFooter(context));
             
           }
@@ -166,7 +167,7 @@ else{
   //output failure statement
   out.println(ServletUtilities.getHeader(request));
   out.println("<strong>Failure:</strong> User was NOT successfully created. I did not have all of the information I needed.");
-  out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
+  out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0" + "\">Return to User Administration" + "</a></p>\n");
   out.println(ServletUtilities.getFooter(context));
   
 }

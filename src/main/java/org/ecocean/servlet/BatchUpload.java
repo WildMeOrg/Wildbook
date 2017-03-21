@@ -613,6 +613,7 @@ public final class BatchUpload extends DispatchServlet {
     String context="context0";
     context=ServletUtilities.getContext(req);
     Shepherd shepherd = new Shepherd(context);
+    shepherd.setAction("BatchUpload.class");
 
     // Validate individuals.
     List<String> indIDs = new ArrayList<String>();

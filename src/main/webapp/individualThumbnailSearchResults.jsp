@@ -42,13 +42,14 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("individualThumbnailSearchResults.jsp");
 
     //Iterator allIndividuals;
     Vector<MarkedIndividual> rIndividuals = new Vector<MarkedIndividual>();
 
     myShepherd.beginDBTransaction();
 
-    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "year descending, month descending, day descending");
+    MarkedIndividualQueryResult queryResult = IndividualQueryProcessor.processQuery(myShepherd, request, "individualID ascending");
     rIndividuals = queryResult.getResult();
 
     String[] keywords = request.getParameterValues("keyword");
@@ -150,7 +151,7 @@
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+    
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -197,10 +198,12 @@
       <h1 class="intro">
         <%
           if (request.getParameter("noQuery") == null) {
-        %>
-        <%=encprops.getProperty("searchTitle")%>
-        <%
-        } else {
+	        %>
+	        <%=encprops.getProperty("searchTitle")%>
+	        <%
+        	
+          } 
+        else {
         %>
         <%=encprops.getProperty("title")%>
         <%
@@ -328,14 +331,14 @@
 									String thumbLink="";
 									boolean video=true;
 									if(!myShepherd.isAcceptableVideoFile(thumbLocs.get(countMe).getFilename())){
-										thumbLink="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getDataCollectionEventID()+".jpg";
+										thumbLink=thumbLocs.get(countMe).getWebURL();
 										video=false;
 									}
 									else{
-										thumbLink="http://"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
+										thumbLink="//"+CommonConfiguration.getURLLocation(request)+"/images/video.jpg";
 										
 									}
-									String link="/"+CommonConfiguration.getDataDirectoryName(context)+"/encounters/"+ encSubdir +"/"+thumbLocs.get(countMe).getFilename();
+									String link=thumbLocs.get(countMe).getWebURL();
 						
 							%>
 
@@ -354,7 +357,7 @@
             %>
 >
 <% } else { %><a><% } %>
-            <img src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
+            <img width="250px" height="*" class="lazyload" src="//<%=CommonConfiguration.getURLLocation(request) %>/cust/mantamatcher/img/individual_placeholder_image.jpg" data-src="<%=thumbLink%>" alt="photo" border="1" title="<%= (visible ? encprops.getProperty("clickEnlarge") : "") %>" /></a>
 
             <div 
             	<%
@@ -455,12 +458,14 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
                       						List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
+											if(myWords!=null){	
 												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                              %>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
+						                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+						                              %>
+						 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+						 								<%
+						                            }
+											}    
 
 
 
@@ -487,32 +492,7 @@
                       if (CommonConfiguration.showEXIFData(context)&&!thumbLink.endsWith("video.jpg")) {
                     %>
 
-                    <p><strong>EXIF</strong></p>
-												<span class="caption">
-						<div class="scroll">	
-						<span class="caption">
-					<%
-            if ((thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpg")) || (thumbLocs.get(countMe).getFilename().toLowerCase().endsWith("jpeg"))) {
-              FileInputStream jin=null;
-              try{
-            	  
-            	  //File exifImage = new File(encountersDir.getAbsolutePath() + "/" + thisEnc.getCatalogNumber() + "/" + thumbLocs.get(countMe).getFilename());
-            	  File exifImage = new File(Encounter.dir(shepherdDataDir, thisEnc.getCatalogNumber()) + "/" + thumbLocs.get(countMe).getFilename());
-				  jin=new FileInputStream(exifImage);
-            	  %>
-              	<%=Util.getEXIFDataFromJPEGAsHTML(exifImage) %>
-              	<%
-
-                  }
-              catch(Exception e){e.printStackTrace();}
-              finally{
-            	  if(jin!=null){jin.close();}
-              }
-                      }
-                %>
-   									</span>
-            </div>
-   								</span>
+                 
 
 
                   </td>
@@ -575,13 +555,15 @@
 											<%=encprops.getProperty("matchingKeywords") %>
 											<%
 												List<Keyword> myWords = thumbLocs.get(countMe).getKeywords();
-												int myWordsSize=myWords.size();
-					                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
-					                          
-					                      		 	%>
-					 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
-					 								<%
-					                            }
+												if(myWords!=null){		
+													int myWordsSize=myWords.size();
+							                            for (int kwIter = 0; kwIter<myWordsSize; kwIter++) {
+							                          
+							                      		 	%>
+							 								<br/><%= ("<strong>" + myWords.get(kwIter).getReadableName() + "</strong>")%>
+							 								<%
+							                            }
+												}
 
 
 

@@ -86,7 +86,8 @@ import org.scribe.oauth.*;
     PrintWriter out = response.getWriter();
         String context = "context0";
         Shepherd myShepherd = new Shepherd(context);
-        //myShepherd.beginDBTransaction();
+        myShepherd.setAction("SocialConnect.class");
+        myShepherd.beginDBTransaction();
 
         String socialType = request.getParameter("type");
 
@@ -97,6 +98,8 @@ import org.scribe.oauth.*;
 
         if (user == null) {
             response.sendRedirect("login.jsp");
+            myShepherd.rollbackDBTransaction();
+            myShepherd.closeDBTransaction();
             return;
         }
 
@@ -109,7 +112,7 @@ import org.scribe.oauth.*;
         }
             WebContext ctx = new J2EContext(request, response);
             //String callbackUrl = "http://localhost.wildme.org/a/SocialConnect?type=facebook";
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=facebook";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             fbclient.setCallbackUrl(callbackUrl);
 
@@ -130,11 +133,15 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "disconnected from facebook");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else if (fbuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else {  //lets do this
@@ -142,6 +149,8 @@ if (fbuser != null) System.out.println("user = " + user.getUsername() + "; fbuse
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to facebook");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
                 }
             } else {
@@ -152,6 +161,8 @@ System.out.println("*** trying redirect?");
                 } catch (Exception ex) {
                     System.out.println("caught exception on facebook processing: " + ex.toString());
                 }
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
             }
 
@@ -161,7 +172,7 @@ System.out.println("*** trying redirect?");
             String otoken = request.getParameter("oauth_token");
 
             OAuthService service = null;
-            String callbackUrl = "http://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
+            String callbackUrl = request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/SocialConnect?type=flickr";
             if (request.getParameter("disconnect") != null) callbackUrl += "&disconnect=1";
             try {
                 service = SocialAuth.getFlickrOauth(context, callbackUrl);
@@ -185,6 +196,8 @@ System.out.println(authorizationUrl);
 
 //http://localhost.wildme.org/a/SocialConnect?type=xxflickr&oauth_token=72157652805581432-a5b8f3598c13e2a6&oauth_verifier=d3325223f923442e
                 response.sendRedirect(authorizationUrl);
+                myShepherd.rollbackDBTransaction();
+                myShepherd.closeDBTransaction();
                 return;
 
             } else {
@@ -218,11 +231,15 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     fuser.unsetSocial("flickr");
                     session.setAttribute("message", "disconnected from flickr");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else if (fuser != null) {
                     session.setAttribute("error", "looks like this account is already connected to an account");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
 
                 } else {  //lets do this
@@ -230,6 +247,8 @@ if (fuser != null) System.out.println("user = " + user.getUsername() + "; fuser 
                     //myShepherd.getPM().makePersistent(user);
                     session.setAttribute("message", "connected to flickr");
                     response.sendRedirect("myAccount.jsp");
+                    myShepherd.rollbackDBTransaction();
+                    myShepherd.closeDBTransaction();
                     return;
                 }
 
@@ -311,6 +330,8 @@ System.out.println("*** trying redirect?");
             session.setAttribute("error", "invalid type");
          //response.sendRedirect("http://" + CommonConfiguration.getURLLocation(request) + "/login.jsp");
          response.sendRedirect("login.jsp");
+         myShepherd.rollbackDBTransaction();
+         myShepherd.closeDBTransaction();
             return;
         }
 

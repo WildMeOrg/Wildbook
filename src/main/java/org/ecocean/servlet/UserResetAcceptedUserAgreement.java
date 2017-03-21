@@ -33,6 +33,7 @@ public class UserResetAcceptedUserAgreement extends HttpServlet {
     String context="context0";
     //context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("UserResetAcceptedUserAgreement.class");
 
     //set up for response
     response.setContentType("text/html");
@@ -71,7 +72,7 @@ public class UserResetAcceptedUserAgreement extends HttpServlet {
         myShepherd.closeDBTransaction();
         out.println(ServletUtilities.getHeader(request));
         out.println(("<strong>Success!</strong> I have successfully reset the User Agreement status for all users. Each will now need to accept the User Agreement again after login."));
-        out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to the User Administration page.</a></p>\n");
+        out.println("<p><a href=\""+request.getScheme()+"://" + CommonConfiguration.getURLLocation(request) + "/appadmin/users.jsp?context=context0\">Return to the User Administration page.</a></p>\n");
         out.println(ServletUtilities.getFooter(ServletUtilities.getContext(request)));
       }
       //failure due to exception

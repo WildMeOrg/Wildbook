@@ -18,6 +18,7 @@
 
 
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("socialUnit.jsp");
 
 
 
@@ -159,7 +160,7 @@
                             	%>
       </td>
     <td class="lineitem"><a
-      href="http://<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
+      href="//<%=CommonConfiguration.getURLLocation(request)%>/individuals.jsp?number=<%=indie.getName()%>"><%=indie.getName()%>
     </a>
       <%
         if ((indie.getAlternateID() != null) && (!indie.getAlternateID().equals("None")) && (!indie.getAlternateID().equals(""))) {
@@ -215,6 +216,7 @@ if(indie.getSex()!=null){sexValue=indie.getSex();}
 
 <%
   myShepherd.rollbackDBTransaction();
+  myShepherd.closeDBTransaction();
 
 %>
 

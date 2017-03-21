@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ecocean</groupId>
   <artifactId>wildbook</artifactId>
-  <version>5.4.1-RELEASE</version>
+  <version>6.0.0-EXPERIMENTAL</version>
   <packaging>war</packaging>
 
   <properties>
@@ -42,7 +42,47 @@
     </repository>
   </repositories>
 
+
+
   <dependencies>
+
+    <dependency>
+        <groupId>com.healthmarketscience.jackcess</groupId>
+        <artifactId>jackcess</artifactId>
+        <version>1.2.14.2</version>
+    </dependency>
+  <!--
+   <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>0.109</version>
+        </dependency>
+		-->
+
+        <!-- Optional Jars (for certain features) but required by maven for building. -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>[2.1_3,)</version>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.thoughtworks.proxytoys</groupId>
+            <artifactId>proxytoys</artifactId>
+            <version>1.0</version>
+            <type>jar</type>
+            <optional>true</optional>
+        </dependency>
+
+
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>7.0</version>
+      <scope>provided</scope>
+    </dependency>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
@@ -56,11 +96,13 @@
       <version>1.2.1</version>
     </dependency>
 
-    <dependency>
+	   <dependency>
       <groupId>org.apache.shiro</groupId>
       <artifactId>shiro-web</artifactId>
       <version>1.2.1</version>
     </dependency>
+
+
 
     <dependency>
         <groupId>org.pac4j</groupId>
@@ -68,12 +110,19 @@
         <version>1.7.0</version>
     </dependency>
 
+<dependency>
+	<groupId>com.amazonaws</groupId>
+	<artifactId>aws-java-sdk</artifactId>
+	<version>1.10.34</version>
+</dependency>
 
+<!--
     <dependency>
       <groupId>commons-dbcp</groupId>
       <artifactId>commons-dbcp</artifactId>
       <version>1.4</version>
     </dependency>
+	-->
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
@@ -86,6 +135,7 @@
       <artifactId>opencsv</artifactId>
       <version>2.0</version>
     </dependency>
+
 
 
     <dependency>
@@ -123,11 +173,11 @@
       <version>2.3</version>
     </dependency>
 
-    <dependency>
-      <groupId>postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>9.1-901.jdbc4</version>
-    </dependency>
+<dependency>
+	<groupId>org.postgresql</groupId>
+	<artifactId>postgresql</artifactId>
+	<version>9.4.1208.jre7</version>
+</dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -146,7 +196,6 @@
 	<artifactId>commons-fileupload</artifactId>
 	<version>1.3.1</version>
 </dependency>
-
 
 
     <dependency>
@@ -171,18 +220,22 @@
       <groupId>javax.sql</groupId>
       <artifactId>jdbc-stdext</artifactId>
       <version>2.0</version>
-    </dependency>
-	  
+</dependency>
+
+
 <dependency>
 	<groupId>org.springframework</groupId>
 	<artifactId>spring-test</artifactId>
 	<version>3.1.1.RELEASE</version>
 </dependency>
+
+<!--
 <dependency>
 	<groupId>org.springframework</groupId>
 	<artifactId>spring-core</artifactId>
 	<version>3.1.1.RELEASE</version>
 </dependency>
+-->
 
 
 <dependency>
@@ -196,8 +249,8 @@
 	<artifactId>json</artifactId>
 	<version>20131018</version>
 </dependency>
-            
-	
+
+
 	<!--Start JDO and DataNucleus dependencies -->
 <dependency>
 	<groupId>org.datanucleus</groupId>
@@ -250,12 +303,7 @@
 
 
 	<!--End JDO and DataNucleus dependencies -->
-	
-    <dependency>
-      <groupId>org.apache.derby</groupId>
-      <artifactId>derby</artifactId>
-      <version>10.11.1.1</version>
-    </dependency>
+
 
 
     <dependency>
@@ -274,7 +322,10 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-ec2</artifactId>
+      <version>1.10.53</version>
+<!--
       <version>1.9.13</version>
+-->
     </dependency>
 
     <dependency>
@@ -283,13 +334,20 @@
       <version>3.2</version>
       <scope>test</scope>
     </dependency>
-    
+
         <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi</artifactId>
         <version>3.11</version>
     </dependency>
-    
+
+
+        <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi</artifactId>
+        <version>3.11</version>
+    </dependency>
+
     <dependency>
     <groupId>org.apache.poi</groupId>
     <artifactId>poi-ooxml</artifactId>
@@ -346,7 +404,43 @@
       <artifactId>slf4j-api</artifactId>
       <version>1.7.12</version>
     </dependency>
+	
+<dependency>
+    <groupId>org.twitter4j</groupId>
+    <artifactId>twitter4j-core</artifactId>
+    <version>4.0.5</version>
+</dependency>
 
+
+<dependency>
+    <groupId>org.apache.commons</groupId>
+    <artifactId>commons-dbcp2</artifactId>
+    <version>2.1</version>
+</dependency>
+
+<dependency>
+    <groupId>org.tuckey</groupId>
+    <artifactId>urlrewritefilter</artifactId>
+    <version>4.0.3</version>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-test</artifactId>
+	<version>3.1.1.RELEASE</version>
+</dependency>
+
+<dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-core</artifactId>
+	<version>3.1.1.RELEASE</version>
+</dependency>
+
+<dependency>
+  <groupId>com.stripe</groupId>
+  <artifactId>stripe-java</artifactId>
+  <version>3.1.0</version>
+</dependency>
 
 
   </dependencies>
@@ -501,6 +595,8 @@
             <argument>target/classes/org/ecocean/genetics/package.jdo</argument>
             <argument>target/classes/org/ecocean/grid/package.jdo</argument>
             <argument>target/classes/org/ecocean/tag/package.jdo</argument>
+            <argument>target/classes/org/ecocean/media/package.jdo</argument>
+            <argument>target/classes/org/ecocean/identity/package.jdo</argument>
             <argument>target/classes/org/ecocean/social/package.jdo</argument>
           </arguments>
         </configuration>
@@ -511,6 +607,19 @@
               <goal>exec</goal>
             </goals>
           </execution>
+
+    		<execution>
+      			<id>Git Version Stamper</id>
+      			<phase>clean</phase>
+      			<goals>
+        			<goal>exec</goal>
+      			</goals>
+      			<configuration> <!-- note: this is unix-centric... so thats probably bad -->
+        			<executable>${basedir}/config/git-json-info.sh</executable>
+				<workingDirectory>${basedir}/src/main/webapp/javascript</workingDirectory>
+      			</configuration>
+    		</execution>
+
         </executions>
       </plugin>
 

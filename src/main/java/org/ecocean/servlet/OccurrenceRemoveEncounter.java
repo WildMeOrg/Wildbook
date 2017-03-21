@@ -52,6 +52,7 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
     String context="context0";
     context=ServletUtilities.getContext(request);
     Shepherd myShepherd = new Shepherd(context);
+    myShepherd.setAction("OccurrenceRemoveEncounter.class");
     //set up for response
     response.setContentType("text/html");
     PrintWriter out = response.getWriter();
@@ -101,27 +102,31 @@ public class OccurrenceRemoveEncounter extends HttpServlet {
 
         if (!locked) {
           myShepherd.commitDBTransaction();
-          out.println(ServletUtilities.getHeader(request));
+          //out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Success:</strong> Encounter " + request.getParameter("number") + " was successfully removed from occurrence " + old_name + ".");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+          response.setStatus(HttpServletResponse.SC_OK);
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
           if (wasRemoved) {
             out.println("Occurrence <strong>" + name_s + "</strong> was also removed because it contained no encounters.");
           }
-          out.println(ServletUtilities.getFooter(context));
+          //out.println(ServletUtilities.getFooter(context));
 
-        } else {
-          out.println(ServletUtilities.getHeader(request));
+        } 
+        else {
+          //out.println(ServletUtilities.getHeader(request));
           out.println("<strong>Failure:</strong> Encounter " + request.getParameter("number") + " was NOT removed from occurrence " + old_name + ". Another user is currently modifying this record entry. Please try again in a few seconds.");
-          out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
-          out.println(ServletUtilities.getFooter(context));
+          //out.println("<p><a href=\"http://" + CommonConfiguration.getURLLocation(request) + "/encounters/encounter.jsp?number=" + request.getParameter("number") + "\">Return to encounter " + request.getParameter("number") + ".</a></p>\n");
+          //out.println(ServletUtilities.getFooter(context));
+          response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
         }
 
       } else {
         myShepherd.rollbackDBTransaction();
-        out.println(ServletUtilities.getHeader(request));
+        //out.println(ServletUtilities.getHeader(request));
         out.println("<strong>Error:</strong> You can't remove this encounter from an occurrence because it is not assigned to one.");
-        out.println(ServletUtilities.getFooter(context));
+        //out.println(ServletUtilities.getFooter(context));
+        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
       }
 
 

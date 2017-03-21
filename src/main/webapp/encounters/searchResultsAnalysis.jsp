@@ -86,7 +86,7 @@ td.tdw:hover div {
   #tabmenu a, a.active {
     color: #000;
     background: #E6EEEE;
-    font: 0.5em "Arial, sans-serif;
+     
     border: 1px solid #CDCDCD;
     padding: 2px 5px 0px 5px;
     margin: 0;
@@ -154,11 +154,12 @@ td.tdw:hover div {
 
 
     //get our Shepherd
-    Shepherd myShepherd = new Shepherd(context);
+    //Shepherd myShepherd = new Shepherd(context);
+    //myShepherd.setAction("searchResultsAnalysis.jsp");
 
 
     //kick off the transaction
-    myShepherd.beginDBTransaction();
+    //myShepherd.beginDBTransaction();
 
     //start the query and get the results
     String order = "";

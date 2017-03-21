@@ -130,9 +130,15 @@ public class Collaboration implements java.io.Serializable {
 		}
 //System.out.println("qry -> " + queryString);
 		Shepherd myShepherd = new Shepherd(context);
+		myShepherd.setAction("Collaboration.class1");
+		myShepherd.beginDBTransaction();
 		Query query = myShepherd.getPM().newQuery(queryString);
-    //List<Collaboration> got = myShepherd.getAllOccurrences(query);
-    return myShepherd.getAllOccurrences(query);
+    //ArrayList got = myShepherd.getAllOccurrences(query);
+		List returnMe=myShepherd.getAllOccurrences(query);
+		query.closeAll();
+		myShepherd.rollbackDBTransaction();
+		myShepherd.closeDBTransaction();
+    return returnMe;
 	}
 
 	public static Collaboration collaborationBetweenUsers(String context, String u1, String u2) {

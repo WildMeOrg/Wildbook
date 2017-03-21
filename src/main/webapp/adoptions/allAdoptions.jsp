@@ -17,6 +17,7 @@ context=ServletUtilities.getContext(request);
   
 
   Shepherd myShepherd = new Shepherd(context);
+  myShepherd.setAction("allAdoptions.jsp");
   String currentSort = "nosort";
   String displaySort = "";
   if (request.getParameter("sort") != null) {
@@ -83,12 +84,12 @@ context=ServletUtilities.getContext(request);
                   String userLink = "";
 
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 1) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
               <td colspan="6" align="right">
@@ -151,12 +152,12 @@ context=ServletUtilities.getContext(request);
             %>
             <tr class="lineitems">
               <td width="102" height="60" class="lineitems"><a
-                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
+                href="//<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?individual=<%=enc.getID()%>"><img
                 src="/<%=CommonConfiguration.getDataDirectoryName(context) %>/adoptions/<%=(enc.getID()+"/thumb.jpg")%>"
                 width="100" height="75" alt="adopter photo" border="0"/></a></td>
 
               <td class="lineitems"><a
-                href="http://<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
+                href="//<%=CommonConfiguration.getURLLocation(request) %>/adoptions/adoption.jsp?number=<%=enc.getID()%>"><%=enc.getID()%>
               </a></td>
               <td class="lineitems"><%=enc.getAdopterName()%>
               </td>
@@ -180,12 +181,12 @@ context=ServletUtilities.getContext(request);
               <td align="left">
                 <%
                   if (highCount < totalCount) {%> <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount+10)%>&amp;end=<%=(highCount+10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Next</a>
                 <%
                   }
                   if ((lowCount - 10) >= 0) {
                 %> | <a
-                href="http://<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
+                href="//<%=CommonConfiguration.getURLLocation(request)%>/adoptions/allAdoptions.jsp?langCode=<%=langCode%>&amp;start=<%=(lowCount-10)%>&amp;end=<%=(highCount-10)%><%=rejectsLink%><%=unapprovedLink%><%=userLink%><%=currentSort%>">Previous</a>
                 <%}%>
               </td>
               <td colspan="6" align="right">Viewing: <%=lowCount%> - <%=highCount%><%=displaySort%>
