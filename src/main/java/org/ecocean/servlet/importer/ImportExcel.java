@@ -1031,22 +1031,22 @@ public class ImportExcel extends HttpServlet {
                   // ArrayList<SuperSpot> normed_spots = loadFgpSpots(spotData, nPoints);
                   // Now load spots into encounter object; defaults to left side if no flank info
                   if ((flank!=null)&&(flank.equals("R"))){
-                    enc.setNumRightSpots(nPoints);
+                    //enc.setNumRightSpots(nPoints);
                     //System.out.println("\tn R-spots: " + nPoints);
                     enc.setRightReferenceSpots(reference_spots);
                     //System.out.println("\tR-reference spots:"+ printSpotList(reference_spots));
                     enc.setRightSpots(spots);
                     //System.out.println("\tR-spots:"+ printSpotList(spots));
-                    enc.hasRightSpotImage = true;
+                    //enc.hasRightSpotImage = true;
                   }
                   else {
-                    enc.setNumLeftSpots(nPoints);
+                    //enc.setNumLeftSpots(nPoints);
                     //System.out.println("\tn spots: " + nPoints);
                     enc.setLeftReferenceSpots(reference_spots);
                     //System.out.println("\treference spots:"+ printSpotList(reference_spots));
                     enc.setSpots(spots);
                     //System.out.println("\tspots:"+ printSpotList(spots));
-                    enc.hasSpotImage = true;
+                    //enc.hasSpotImage = true;
                   }
                   System.out.println("FGP file parsed and added to encounter.");
                 } catch (IOException e) {
@@ -1081,7 +1081,7 @@ public class ImportExcel extends HttpServlet {
             if(loadPicture){
               String baseDir = shepherdDataDir.getCanonicalPath();
               System.out.println("\tRefreshing asset formats with baseDir = "+baseDir);
-              enc.refreshAssetFormats(context, baseDir, picture, true);
+              //enc.refreshAssetFormats(context, baseDir, picture, true);
             }
               
               
