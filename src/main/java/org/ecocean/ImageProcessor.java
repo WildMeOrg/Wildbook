@@ -176,8 +176,7 @@ public final class ImageProcessor implements Runnable {
                                   //.replaceAll("%imagesource", this.imageSourcePath)
                                   //.replaceAll("%imagetarget", this.imageTargetPath)
                                   .replaceAll("%maId", maId)
-                                  .replaceAll("%additional", rotation)
-                                  .replaceAll("%arg", this.arg);
+                                  .replaceAll("%additional", rotation);
 
         //walk thru transform array and replace "tN" with transform[N]
         if (this.transform.length > 0) {
