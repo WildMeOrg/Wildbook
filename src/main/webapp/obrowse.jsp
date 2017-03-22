@@ -82,6 +82,7 @@ java.util.Properties" %>
 
 	private String showMediaAsset(MediaAsset ma) {
 		if (ma == null) return "asset: <b>[none]</b>";
+    		ArrayList<MediaAsset> kids = ma.findChildren(myShepherd);
 		if (shown.contains(ma)) return "<div class=\"mediaasset shown\">MediaAsset <b>" + ma.getId() + "</b></div>";
 		shown.add(ma);
 		String h = "<div class=\"mediaasset\">MediaAsset <b>" + ma.getId() + "</b><ul style=\"width: 65%\">";
@@ -95,6 +96,15 @@ java.util.Properties" %>
 		h += "<li>features: " + showFeatureList(ma.getFeatures()) + "</li>";
 		h += "<li>safeURL(): " + ma.safeURL() + "</li>";
 		h += "<li>parameters: " + niceJson(ma.getParameters()) + "</li>";
+
+		if ((kids != null) && (kids.size() > 0)) {
+			h += "<li>children: <ul>";
+			for (MediaAsset kid : kids) {
+				h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAsset&id=" + kid.getId() + "\"><b>" + kid.getId() + "</b></a> - " + kid + "</a></li>";
+			}
+			h += "</ul></li>";
+		}
+
 		if ((ma.getMetadata() != null) && (ma.getMetadata().getData() != null)) {
 			h += "<li><a target=\"_new\" href=\"obrowse.jsp?type=MediaAssetMetadata&id=" + ma.getId() + "\">[show Metadata]</a></li>";
 		}
