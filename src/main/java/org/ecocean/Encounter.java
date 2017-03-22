@@ -1103,6 +1103,7 @@ public class Encounter implements java.io.Serializable {
 
         //we need to have the spot image as a child under *some* MediaAsset from above, but unfortunately we do not know its lineage.  so we just pick one.  :/
         MediaAsset sma = spotImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
+        MediaAsset srma = spotRightImageAsMediaAsset(((annotations.size() < 1) ? null : annotations.get(0).getMediaAsset()), baseDir, myShepherd);
         return annotations;
     }
 
@@ -1143,8 +1144,7 @@ System.out.println("creating new MediaAsset for key=" + key);
     }
 
 
-    //this makes assumption (for flukes) that both right and left image files are identical
-    //  TODO handle that they are different
+    //same for spotRight below...
     //  TODO also maybe should reuse addMediaIfNeeded() for some of this where redundant
     public MediaAsset spotImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
         if ((spotImageFileName == null) || spotImageFileName.equals("")) return null;
@@ -1173,10 +1173,49 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 //System.out.println("params? " + ma.getParameters());
                 ma.addLabel("_spot");
                 ma.addLabel("_annotation");
+                ma.setParentId(parent.getId());
                 MediaAssetFactory.save(ma, myShepherd);
 //System.out.println("params? " + ma.getParameters());
             } catch (java.io.IOException ex) {
                 System.out.println("spotImageAsMediaAsset threw IOException " + ex.toString());
+            }
+        }
+        ma.setParentId(parent.getId());
+        return ma;
+    }
+
+    public MediaAsset spotRightImageAsMediaAsset(MediaAsset parent, String baseDir, Shepherd myShepherd) {
+        if ((rightSpotImageFileName == null) || rightSpotImageFileName.equals("")) return null;
+        File fullPath = new File(this.dir(baseDir) + "/" + rightSpotImageFileName);
+//System.out.println("**** * ***** looking for spot file " + fullPath.toString());
+        if (!fullPath.exists()) return null;  //note: this only technically matters if we are *creating* the MediaAsset
+        if (parent == null) {
+            System.out.println("seems like we do not have a parent MediaAsset on enc " + this.getCatalogNumber() + ", so cannot add (right) spot MediaAsset for " + fullPath.toString());
+            return null;
+        }
+        AssetStore astore = AssetStore.getDefault(myShepherd);
+        if (astore == null) {
+            System.out.println("No AssetStore in Encounter.spotRightImageAsMediaAsset()");
+            return null;
+        }
+System.out.println("trying spotRightImageAsMediaAsset with file=" + fullPath.toString());
+        org.json.JSONObject sp = astore.createParameters(fullPath);
+        sp.put("key", this.subdir() + "/spotRightImage-" + rightSpotImageFileName);  //note: this really only applies to S3 AssetStores, but shouldnt hurt others?
+        MediaAsset ma = astore.find(sp, myShepherd);
+        if (ma == null) {
+System.out.println("did not find MediaAsset for params=" + sp + "; creating one?");
+            try {
+                ma = astore.copyIn(fullPath, sp);
+                ma.addDerivationMethod("historicRightSpotImageConversion", true);
+                ma.updateMinimalMetadata();
+//System.out.println("params? " + ma.getParameters());
+                ma.addLabel("_spotRight");
+                ma.addLabel("_annotation");
+                ma.setParentId(parent.getId());
+                MediaAssetFactory.save(ma, myShepherd);
+//System.out.println("params? " + ma.getParameters());
+            } catch (java.io.IOException ex) {
+                System.out.println("spotRightImageAsMediaAsset threw IOException " + ex.toString());
             }
         }
         ma.setParentId(parent.getId());
