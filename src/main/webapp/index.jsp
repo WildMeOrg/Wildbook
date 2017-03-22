@@ -68,18 +68,6 @@ myShepherd=new Shepherd(context);
 
 %>
 
-<style type="text/css">
-.full_screen_map {
-position: absolute !important;
-top: 0px !important;
-left: 0px !important;
-z-index: 1 !imporant;
-width: 100% !important;
-height: 100% !important;
-margin-top: 0px !important;
-margin-bottom: 8px !important;
-</style>
-
 <script src="http://maps.google.com/maps/api/js?sensor=false"></script>
 
 
@@ -152,6 +140,7 @@ margin-bottom: 8px !important;
 
   		//map
   		var map;
+  		var bounds = new google.maps.LatLngBounds();
 
       function initialize() {
 
@@ -161,14 +150,18 @@ margin-bottom: 8px !important;
 
 
         var center = new google.maps.LatLng(0,0);
-        var mapZoom = 1;
+        var mapZoom = 8;
     	if($("#map_canvas").hasClass("full_screen_map")){mapZoom=3;}
-    	var bounds = new google.maps.LatLngBounds();
+
 
         map = new google.maps.Map(document.getElementById('map_canvas'), {
           zoom: mapZoom,
           center: center,
-          mapTypeId: google.maps.MapTypeId.HYBRID
+          mapTypeId: google.maps.MapTypeId.HYBRID,
+          zoomControl: true,
+          scaleControl: false,
+          scrollwheel: false,
+          disableDoubleClickZoom: true,
         });
 
     	  //adding the fullscreen control to exit fullscreen
@@ -208,52 +201,57 @@ margin-bottom: 8px !important;
  		int numLocationIDs = locs.size();
  		Properties locProps=ShepherdProperties.getProperties("locationIDGPS.properties", "", context);
  		myShepherd.beginDBTransaction();
+ 		try{
+	 		for(int i=0;i<numLocationIDs;i++){
 
- 		for(int i=0;i<numLocationIDs;i++){
+	 			String locID = locs.get(i);
+	 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
 
- 			String locID = locs.get(i);
- 			if((locProps.getProperty(locID)!=null)&&(locProps.getProperty(locID).indexOf(",")!=-1)){
+	 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
+	 				String lat = st.nextToken();
+	 				String longit=st.nextToken();
+	 				String thisLatLong=lat+","+longit;
 
- 				StringTokenizer st = new StringTokenizer(locProps.getProperty(locID), ",");
- 				String lat = st.nextToken();
- 				String longit=st.nextToken();
- 				String thisLatLong=lat+","+longit;
+	 		        //now  let's calculate how many
+	 		        int numSightings=myShepherd.getNumEncounters(locID);
+	 		        if(numSightings>0){
 
- 		        //now  let's calculate how many
- 		        int numSightings=myShepherd.getNumEncounters(locID);
- 		        if(numSightings>0){
-
- 		        	Integer numSightingsInteger=new Integer(numSightings);
-
-
- 		          %>
-
- 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
-		          bounds.extend(latLng);
-
- 		          var divString<%=i%> = "<div style=\"font-weight:bold;text-align: center;line-height: 45px;vertical-align: middle;width:60px;height:49px;padding: 2px; background-image: url('http://www.flukebook.org/cust/mantamatcher/img/fin-silhouette.svg');background-size: cover\"><a href=\"http://www.mantamatcher.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
- 		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
-
- 		         var marker<%=i%> = new RichMarker({
- 		            position: latLng,
- 		            map: map,
- 		            draggable: false,
- 		           content: divString<%=i%>,
- 		           flat: true
- 		        });
+	 		        	Integer numSightingsInteger=new Integer(numSightings);
 
 
+	 		          %>
 
- 			      markers.push(marker<%=i%>);
- 		          map.fitBounds(bounds);
+	 		         var latLng = new google.maps.LatLng(<%=thisLatLong%>);
+			          bounds.extend(latLng);
 
- 				<%
- 			} //end if
+	 		          var divString<%=i%> = "<div style=\"padding-top: 25px;font-weight:bold;text-align: center;line-height: 35px;vertical-align: middle;width:60px;height:49px; background-image: url('//www.whaleshark.org/cust/mantamatcher/img/fin-silhouette.svg');background-size: cover\"><a href=\"http://www.whaleshark.org/encounters/searchResults.jsp?locationCodeField=<%=locID %>\"><%=numSightingsInteger.toString() %></a></div>";
+	 		          //http://www.flukebook.org/cust/mantamatcher/img/manta-silhouette.png
 
- 			}  //end if
+	 		         var marker<%=i%> = new RichMarker({
+	 		            position: latLng,
+	 		            map: map,
+	 		            draggable: false,
+	 		           content: divString<%=i%>,
+	 		           flat: true
+	 		        });
 
- 		}  //end for
- 		myShepherd.rollbackDBTransaction();
+
+
+	 			      markers.push(marker<%=i%>);
+	 		          map.fitBounds(bounds);
+
+	 				<%
+	 			} //end if
+
+	 			}  //end if
+
+	 		}  //end for
+ 		}
+ 		catch(Exception e){e.printStackTrace();}
+ 		finally{
+ 			//myShepherd.rollbackDBTransaction();
+ 			//myShepherd.closeDBTransaction();
+ 		}
  	 	%>
 
 
@@ -679,8 +677,7 @@ finally{
 <div class="container-fluid main-section">
     <h2 class="section-header">Encounters around the world</h2>
 
-      <div id="map_canvas" style="width: 770px; height: 510px; margin: 0 auto;"></div>
-
+      <div id="map_canvas" style="width: 100% !important; height: 510px; margin: 0 auto;"></div>
 </div>
 
 <div class="container-fluid">
