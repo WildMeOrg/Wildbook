@@ -138,12 +138,12 @@
                 /MassSwapLocationCode = authc, roles[admin]
                 /logs/** = authc, roles[admin]
                 /xcalendar/** = authc, roles[researcher]
-                /SubmitSpots = authc, roles[machinelearning]
-				/InterconnectSubmitSpots = authc, roles[machinelearning]
-				/interconnectSubmitSpots = authc, roles[machinelearning]
+                /SubmitSpots = authc, roles[researcher]
+				/InterconnectSubmitSpots = authc, roles[researcher]
+				/interconnectSubmitSpots = authc, roles[researcher]
 
-				/encounters/encounterSpotTool.jsp = authc, roles[machinelearning]
-				/SubmitSpotsAndImage = authc, roles[machinelearning]
+				/encounters/encounterSpotTool.jsp = authc, roles[researcher]
+				/SubmitSpotsAndImage = authc, roles[researcher]
 	
 		/GenePopExport = authc, roles[researcher]
 
