@@ -37,6 +37,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import java.security.MessageDigest;
 import javax.servlet.http.HttpServletRequest;
+import org.joda.time.DateTime;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
@@ -168,6 +169,12 @@ public abstract class AssetStore implements java.io.Serializable {
     //this should be unique (as possible) for a combination of params -- used for searching, see find()
     // limit to the somewhat arbitrary 75 char (which is enough for 64char of sha256 has + 11 "extra"?)
     public abstract String hashCode(JSONObject params);
+
+    //not so much creation date/time but sourced from asset (e.g. exif or youtube metadata)
+    //  override as desired per type but probably should really call asset.getDateTime() which will do other work to check metadata etc
+    public DateTime getDateTime(MediaAsset ma) {
+        return null;
+    }
 
     //these have to do with "child types" which are essentially derived MediaAssets ... much work TODO here -- including possibly making this its own class?
     //  i am not making this an abstract now but rather subclass can override. maybe silly? future will decide
