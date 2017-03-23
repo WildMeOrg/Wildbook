@@ -284,7 +284,7 @@
   <servlet>
     <description>ImportBass</description>
     <servlet-name>ImportBass</servlet-name>
-    <servlet-class>org.ecocean.servlet.ImportBass</servlet-class>
+    <servlet-class>org.ecocean.servlet.importer.ImportBass</servlet-class>
   </servlet>
   
   <servlet>

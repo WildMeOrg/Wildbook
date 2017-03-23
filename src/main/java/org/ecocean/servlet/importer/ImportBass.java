@@ -49,7 +49,7 @@ public class ImportBass extends HttpServlet {
     Shepherd initShepherd=null;
     initShepherd=new Shepherd(context);
     initShepherd.beginDBTransaction();
-    initShepherd.setAction("ImportHumpback.class");
+    initShepherd.setAction("ImportBass.class");
     if (!CommonConfiguration.isWildbookInitialized(initShepherd)) {
       System.out.println("WARNING: Wildbook not initialized. Starting Wildbook");    
       StartupWildbook.initializeWildbook(request, initShepherd);
@@ -60,7 +60,7 @@ public class ImportBass extends HttpServlet {
     
     boolean committing = (request.getParameter("commit")!=null && !request.getParameter("commit").toLowerCase().equals("false"));
     
-    String exceldir = "/opt/excel_bass/";
+    String exceldir = "/opt/bass_excel/";
     if (request.getParameter("exceldir") != null) exceldir = request.getParameter("exceldir");
     File[] excelFileList = null;
     try {
@@ -87,7 +87,7 @@ public class ImportBass extends HttpServlet {
     FileInputStream fs = new FileInputStream(dataFile);
     XSSFWorkbook wb = new XSSFWorkbook(fs);
     XSSFSheet sheet = wb.getSheetAt(0);
-    XSSFRow row;
+    XSSFRow row = null;
     
     if (wb.getNumberOfSheets() < 1) {  
       out.println("!!! XSSFWorkbook did not find any sheets. !!!");
@@ -113,29 +113,36 @@ public class ImportBass extends HttpServlet {
     AssetStore assetStore = AssetStore.getDefault(myShepherd);
     myShepherd.commitDBTransaction();
     
+    HashMap<String,String> nicks = new HashMap<String,String>();
     for (int i=1; i<rows; i++) {     
       
       row = sheet.getRow(i);
-      String imageFile = getString(row, 0);
+      String imageFile = getString(row, 4);
       
       enc = parseEncounter(row, myShepherd);  
       
       
       ArrayList<Keyword> keywords = generateKeywords(row, dataFile, myShepherd);    
       attachAsset(enc, imageFile, request, myShepherd, assetStore, keywords);
+      
+      nicks.put(enc.getCatalogNumber(), getString(row, 2));
+      //Gonna try to make a hacky nickname handover here.
     }
     
     
     
     // Lets just pull out the encounter/individual association to try to get this gnarly thread pile-up fixed.
     // This is totally a hack. Associating in the main loop overloaded postgres connections.
+    
+    // There is a problem here where we still need to add data from each row to the individual, but this only iterates 
+    // through encounters. Either fon a way store what you need on the encounter, or find a better way to feed it in.
     Iterator<Encounter> allEncs = myShepherd.getAllEncounters();
     Encounter encToAssociate = null;
     while (allEncs.hasNext()) {
       encToAssociate = allEncs.next();
-      if (encToAssociate.getIndividualID() != null && !encToAssociate.getIndividualID().equals("0")) {
-        findOrCreateIndy(encToAssociate.getIndividualID(), encToAssociate, myShepherd);   
-
+      if (encToAssociate.getIndividualID() != null) {
+        out.println("Trying to process "+encToAssociate.getIndividualID());
+        findOrCreateIndy(encToAssociate.getIndividualID(), encToAssociate, myShepherd, nicks);    
       }
     }
     myShepherd.closeDBTransaction();
@@ -146,12 +153,19 @@ public class ImportBass extends HttpServlet {
     
     ArrayList<Keyword> keys = new ArrayList<Keyword>(); 
     
+    // Get dis keyword workin
     String sideString = getStringOrIntString(row, 9);
     if (sideString != null) {
       sideString = sideString.toLowerCase() + " side picture";
     }
     String mediaType = getStringOrIntString(row, 10);
     if (mediaType != null) {
+      if (mediaType.contains("vid")) {
+        mediaType = "video";
+      }
+      if (mediaType.contains("pho")) {
+        mediaType = "photograph";
+      }
       mediaType = "Media Type : "+mediaType.toLowerCase();
     }
     String downloaded = getStringOrIntString(row, 12);
@@ -180,7 +194,7 @@ public class ImportBass extends HttpServlet {
     }
     
     if (myShepherd.getKeyword(downloaded) == null && downloaded != null) {
-      dl = new Keyword(dataFile.getName()); 
+      dl = new Keyword(downloaded); 
       myShepherd.beginDBTransaction();
       myShepherd.getPM().makePersistent(dl);
       myShepherd.commitDBTransaction();
@@ -207,7 +221,7 @@ public class ImportBass extends HttpServlet {
     File photo = null;
     
     JSONObject params = new JSONObject();
-    String imagedir = "/opt/image_bass/";
+    String imagedir = "/opt/bass_image/";
     if (request.getParameter("imagedir") != null) imagedir = request.getParameter("imagedir");
     File[] imageFileList = getFiles(imagedir);
     
@@ -298,6 +312,12 @@ public class ImportBass extends HttpServlet {
     }
     
     Encounter enc = new Encounter();
+    
+    DateTime dt = processDate(row);
+    if (dt!=null) enc.setDateInMilliseconds(dt.getMillis());
+    String vDate = getStringOrIntString(row, 8);
+    enc.setVerbatimEventDate(vDate);
+    
     enc.setCatalogNumber(Util.generateUUID());
     enc.setGenus("Stereolepis");
     enc.setSpecificEpithet("gigas");
@@ -305,9 +325,43 @@ public class ImportBass extends HttpServlet {
     enc.setDWCDateAdded();   
     enc.setDWCDateLastModified();
     enc.setSubmitterID("Bulk Import");
+    enc.setVerbatimLocality(getString(row, 5));
+    
+    if (getString(row, 17) != null) {
+      enc.setComments(getString(row, 17));      
+    }
+    if (getString(row, 14) != null) {
+      enc.setPhotographerName(getString(row, 14));      
+    }
+    if (getString(row, 15) != null) {
+      String email = getString(row, 15);
+      String[] emails = email.split(",");
+      enc.setPhotographerEmail(emails[0].trim());
+    }
+    
+    double lat = 0;
+    double lon = 0;
+    if (getStringOrIntString(row,6) != null && getStringOrIntString(row,7) != null) {
+      lat = getLatLon(getString(row, 6));
+      lon = getLatLon(getString(row, 7));
+      out.println("LAT : "+lat);
+      out.println("LON : "+lon);
+    }
+    if (lat != 0 && lon != 0) {
+      enc.setDecimalLatitude(lat);
+      enc.setDecimalLongitude(lon);      
+    }
+    
     if (indyId != null ) {
       enc.setIndividualID(indyId); 
     }
+    
+    parseDynProp(enc, "Original File Name ", row, 3);
+    parseDynProp(enc, "Video File Name ", row, 11);
+    parseDynProp(enc, "Video URL ", row, 13);
+    parseDynProp(enc, "Photographer ", row, 14);
+    parseDynProp(enc, "Contact Info ", row, 15);
+    parseDynProp(enc, "Previous Invalid Name ", row, 16);
     
     myShepherd.beginDBTransaction();
     myShepherd.getPM().makePersistent(enc);
@@ -317,38 +371,112 @@ public class ImportBass extends HttpServlet {
     return enc;
   }
   
-  public void findOrCreateIndy(String indyId, Encounter enc, Shepherd myShepherd) {
+  public void findOrCreateIndy(String indyId, Encounter enc, Shepherd myShepherd, HashMap<String,String> nicks) {
     MarkedIndividual mi = null;
     
     try {
       if (indyId != null) {
         myShepherd.beginDBTransaction();
         mi = myShepherd.getMarkedIndividualQuiet(indyId);      
-        myShepherd.commitDBTransaction();        
+        myShepherd.commitDBTransaction();
+        out.println("Looking for "+indyId);
       } 
 
     } catch (Exception e) {
       e.printStackTrace();
     }
     
-    if (mi == null && !indyId.equals("0")) {
+    if (mi == null) {
       out.println("No Individual with ID : "+indyId+" exists. Creating.");
       mi = new MarkedIndividual(indyId, enc);
       myShepherd.beginDBTransaction();
       myShepherd.storeNewMarkedIndividual(mi);
       myShepherd.commitDBTransaction();    
     }
-    if (mi != null && !indyId.equals("0")) {
+    if (mi != null) {
       try {
         myShepherd.beginDBTransaction();
         mi.addEncounter(enc, context);
+        mi.setNickName(nicks.get(enc.getCatalogNumber()));
+        //mi.setAlternateID(getString(row, 0));
         myShepherd.commitDBTransaction();      
       } catch (Exception e) {
         e.printStackTrace(out);
         out.println("Choked while saving Indy to Enc");
       }      
+    }  
+  }
+  
+  public DateTime processDate(XSSFRow row) {
+    DateTime dateTime = null;
+    String dateRow = getStringOrIntString(row, 8);
+    Date date = getDate(row, 8);
+    if (date != null) {
+      try {
+        dateTime = new DateTime(date);
+        if (dateTime != null) {
+          out.println("New dateTime from getDate: "+dateTime);
+          return dateTime;
+        }
+      } catch (Exception e) {
+        out.println("Value from getDate was wack. Continuing.");
+      }
     }
-    
+    int year = 0;
+    int month = 0;
+    int day = 0;
+    // There is something super fishy (hah) going on here.
+    out.println("DATEROW SAYS : "+dateRow);
+    if (dateRow != null) {
+      if (dateRow.contains("/")) {
+        //Split on character instead.
+        String[] arr = dateRow.split("/");
+        for (String i : arr) {
+          if (i.length() < 2) {
+            i = "0" + i;
+          }
+        }
+        try {
+          year = Integer.parseInt(arr[2]);
+          month = Integer.parseInt(arr[0]);
+          day = Integer.parseInt(arr[1]);          
+        } catch (Exception e) {}
+      } 
+      if (dateRow.length() > 7 && !dateRow.contains("/")) {
+        try {
+          year = Integer.parseInt(dateRow.substring(0,4));
+          month = Integer.parseInt(dateRow.substring(4,6));
+          day = Integer.parseInt(dateRow.substring(6));          
+        } catch (Exception e) {}
+      }       
+      
+    }
+    try {
+      if (year != 0 && month != 0 && day != 0) {
+        dateTime = new DateTime(year, month, day, 0, 0);        
+      }
+    } catch (Exception e) {
+      out.println("You can't make a date out of that! --BARF--");
+    }
+    out.println("New dateTime from string: "+dateTime);
+    return dateTime;
+  }
+  
+  public double getLatLon(String inputString) {
+    double degrees = 0;
+    double minutes = 0;
+    double result = 0;
+    try {
+      String[] arr = inputString.split("\u00b0");
+      arr[1] = arr[1].substring(0, arr[1].length());
+      degrees = Double.parseDouble(arr[0]);
+      minutes = (Double.parseDouble(arr[0]) * 60.0) / 3600.0;
+      result = degrees + minutes;      
+    } catch (Exception e) {
+      e.printStackTrace();
+      out.println("Could not parse Lat/Lon value into double for storage.");
+    }
+    return result;
   }
   
   public File[] getFiles(String path) {
@@ -362,6 +490,12 @@ public class ImportBass extends HttpServlet {
       e.printStackTrace();
       return null;
     }
+  }
+  
+  private void parseDynProp(Encounter enc, String name, XSSFRow row, int i) {
+    String val = getString(row, i);
+    if (val == null) return;
+    enc.setDynamicProperty(name, val);
   }
   
   public Integer getInteger(XSSFRow row, int i) {
@@ -389,6 +523,17 @@ public class ImportBass extends HttpServlet {
       return str;
     }
     catch (Exception e) {}
+    return null;
+  }
+  
+  public Date getDate(XSSFRow row, int i) {
+    Date date = null;
+    try {
+      date = row.getCell(i).getDateCellValue();
+      if (date != null) {
+        return date;
+      }
+    } catch (Exception e) {}    
     return null;
   }
   
