@@ -20,6 +20,9 @@ org.ecocean.media.*
 
 JSONObject rtn = new JSONObject("{\"success\": false}");
 
+//will create an Encounter with all MediaAssets connected via trivial Annotations
+boolean createEncounter = ((request.getParameter("createEncounter") != null) && !request.getParameter("createEncounter").toLowerCase().equals("false"));
+
 Shepherd myShepherd = new Shepherd("context0");
 myShepherd.beginDBTransaction();
 
@@ -44,18 +47,28 @@ if ((frameMAs == null) || (frameMAs.size() < 1)) {
 		return;
 	}
 
-	myShepherd.commitDBTransaction();
 	frameMAs = YouTubeAssetStore.findFrames(ma, myShepherd);
 
 } else {
 	rtn.put("info", "frames already existed; not remaking");
+	createEncounter = false;  //nope you dont get one!
 }
 
+ArrayList<Annotation> anns = new ArrayList<Annotation>();
 JSONArray fs = new JSONArray();
 for (MediaAsset fma : frameMAs) {
 	fs.put(fma.getId());
+	if (createEncounter) anns.add(new Annotation(null, fma));
 }
 rtn.put("frameAssets", fs);
+
+if (createEncounter) {
+	Encounter enc = new Encounter(anns);
+	myShepherd.getPM().makePersistent(enc);
+	rtn.put("encounterId", enc.getCatalogNumber());
+}
+
+myShepherd.commitDBTransaction();
 
 rtn.put("success", true);
 
