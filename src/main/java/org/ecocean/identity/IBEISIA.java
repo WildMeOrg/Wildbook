@@ -1058,11 +1058,7 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
     public static Annotation createAnnotationFromIAResult(JSONObject jann, MediaAsset asset, Shepherd myShepherd) {
         Annotation ann = convertAnnotation(asset, jann);
         if (ann == null) return null;
-        Encounter enc = new Encounter(ann);
-        String[] sp = convertSpecies(ann.getSpecies());
-        if (sp.length > 0) enc.setGenus(sp[0]);
-        if (sp.length > 1) enc.setSpecificEpithet(sp[1]);
-//TODO other fields on encounter!!  (esp. dates etc)
+        Encounter enc = ann.toEncounter(myShepherd);  //this does the magic of making a new Encounter if needed etc.  good luck!
         Occurrence occ = asset.getOccurrence();
         if (occ != null) {
             enc.setOccurrenceID(occ.getOccurrenceID());
@@ -1071,14 +1067,16 @@ System.out.println("!!!! waitForTrainingJobs() has finished.");
         myShepherd.getPM().makePersistent(ann);
         myShepherd.getPM().makePersistent(enc);
         if (occ != null) myShepherd.getPM().makePersistent(occ);
-System.out.println("* CREATED " + ann + " and Encounter " + enc.getCatalogNumber());
+System.out.println("* CREATED " + ann + " on Encounter " + enc.getCatalogNumber());
         return ann;
     }
 
     public static Annotation convertAnnotation(MediaAsset ma, JSONObject iaResult) {
         if (iaResult == null) return null;
+        JSONObject fparams = new JSONObject();
+        fparams.put("detectionConfidence", iaResult.optDouble("confidence", -2.0));
         Feature ft = ma.generateFeatureFromBbox(iaResult.optDouble("width", 0), iaResult.optDouble("height", 0),
-                                                iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0));
+                                                iaResult.optDouble("xtl", 0), iaResult.optDouble("ytl", 0), fparams);
 System.out.println("convertAnnotation() generated ft = " + ft + "; params = " + ft.getParameters());
         return new Annotation(convertSpeciesToString(iaResult.optString("class", null)), ft);
     }
@@ -1194,7 +1192,7 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
                     for (int a = 0 ; a < janns.length() ; a++) {
                         JSONObject jann = janns.optJSONObject(a);
                         if (jann == null) continue;
-                        if (jann.optDouble("confidence") < getDetectionCutoffValue()) {
+                        if (jann.optDouble("confidence", -1.0) < getDetectionCutoffValue()) {
                             needsReview = true;
                             continue;
                         }
@@ -1241,7 +1239,9 @@ System.out.println("RESP ===>>>>>> " + resp.toString(2));
     }
 
     private static void _tellEncounter(Shepherd myShepherd, HttpServletRequest request, Annotation ann) {
+System.out.println("/------ _tellEncounter ann = " + ann);
         Encounter enc = ann.toEncounter(myShepherd);
+System.out.println("\\------ _tellEncounter enc = " + enc);
         if (enc == null) return;
         myShepherd.getPM().makePersistent(enc);
         enc.detectedAnnotation(myShepherd, request, ann);
@@ -1335,7 +1335,7 @@ System.out.println("*****************\nhey i think we are happy with these annot
 
     //scores < these will require human review (otherwise they carry on automatically)
     public static double getDetectionCutoffValue() {
-        return 0.4;
+        return 0.8;
     }
     public static double getIdentificationCutoffValue() {
         return 0.8;
