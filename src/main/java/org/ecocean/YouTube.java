@@ -123,6 +123,9 @@ System.out.println("]=== done with .extractFrames()");
 
 
     public static List<SearchResult> searchByKeyword(String keyword) {
+        return searchByKeyword(keyword, -1);
+    }
+    public static List<SearchResult> searchByKeyword(String keyword, long pubAfter) {  //pubAfter is ms since epoch
         if (!isActive()) throw new RuntimeException("YouTube API not active (invalid api key?)");
         if (youtube == null) throw new RuntimeException("YouTube API 'youtube' is null");
         try {
@@ -130,7 +133,7 @@ System.out.println("]=== done with .extractFrames()");
             com.google.api.services.youtube.YouTube.Search.List search = youtube.search().list("id,snippet");
             search.setKey(apiKey);
             search.setQ(keyword);
-            //search.setPublishedAfter(); //com.google.api.client.util.DateTime
+            if (pubAfter > 0) search.setPublishedAfter(new com.google.api.client.util.DateTime(pubAfter));
 
             // Restrict the search results to only include videos. See:
             // https://developers.google.com/youtube/v3/docs/search/list#type
@@ -138,7 +141,7 @@ System.out.println("]=== done with .extractFrames()");
 
             // To increase efficiency, only retrieve the fields that the application uses.
             search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
-            search.setMaxResults(25l);
+            search.setMaxResults(100l);
 
             // Call the API and print results.
             SearchListResponse searchResponse = search.execute();
