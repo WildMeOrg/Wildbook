@@ -1591,14 +1591,14 @@ System.out.println("did not find MediaAsset for params=" + sp + "; creating one?
 /* i cant for the life of me figure out why/how gps stuff is stored on encounters, cuz we have
 some strings and decimal (double, er Double?) values -- so i am doing my best to standardize on
 the decimal one (Double) .. half tempted to break out a class for this: lat/lon/alt/bearing etc */
-  public double getDecimalLatitudeAsDouble(){return decimalLatitude.doubleValue();}
+  public Double getDecimalLatitudeAsDouble(){return (decimalLatitude == null) ? null : decimalLatitude.doubleValue();}
 
     public void setDecimalLatitude(Double lat){
         this.decimalLatitude = lat;
         gpsLatitude = Util.decimalLatLonToString(lat);
      }
 
-  public double getDecimalLongitudeAsDouble(){return decimalLongitude.doubleValue();}
+  public Double getDecimalLongitudeAsDouble(){return (decimalLongitude == null) ? null : decimalLongitude.doubleValue();}
 
     public void setDecimalLongitude(Double lon) {
         this.decimalLongitude = lon;
@@ -1769,6 +1769,7 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
   }
 
   public static String getHashOfEmailString(String hashMe) {
+    if (hashMe == null) return null;
     String returnString = "";
     StringTokenizer tokenizer = new StringTokenizer(hashMe, ",");
     while (tokenizer.hasMoreTokens()) {
@@ -1837,6 +1838,9 @@ the decimal one (Double) .. half tempted to break out a class for this: lat/lon/
     public void setSpeciesFromAnnotations() {
         if ((annotations == null) || (annotations.size() < 1)) return;
         String[] sp = IBEISIA.convertSpecies(annotations.get(0).getSpecies());
+        this.setGenus(null);  //we reset these no matter what, so only parts get set as available
+        this.setSpecificEpithet(null);
+        if (sp == null) return;
         if (sp.length > 0) this.setGenus(sp[0]);
         if (sp.length > 1) this.setSpecificEpithet(sp[1]);
     }
