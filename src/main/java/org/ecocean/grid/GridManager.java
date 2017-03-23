@@ -483,12 +483,15 @@ public class GridManager {
 
   public boolean doneContains(ScanWorkItemResult swir) {
     boolean hasit = false;
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem())) {
-        hasit = true;
+    try{
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberWorkItem().equals(swir.getUniqueNumberWorkItem()))) {
+          hasit = true;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return hasit;
   }
 
@@ -505,13 +508,16 @@ public class GridManager {
 
   public int getNumWorkItemsCompleteForTask(String taskID) {
     int num = 0;
-    if(done==null){done = new ArrayList<ScanWorkItemResult>();}
-    int iter = done.size();
-    for (int i = 0; i < iter; i++) {
-      if (done.get(i).getUniqueNumberTask().equals(taskID)) {
-        num++;
+    try{
+      if(done==null){done = new ArrayList<ScanWorkItemResult>();}
+      int iter = done.size();
+      for (int i = 0; i < iter; i++) {
+        if ((done.get(i)!=null)&&(done.get(i).getUniqueNumberTask().equals(taskID))) {
+          num++;
+        }
       }
-    }
+      }
+    catch(Exception e){}
     return num;
   }
 
