@@ -180,6 +180,10 @@ public class Annotation implements java.io.Serializable {
     public boolean isTrivial() {
         MediaAsset ma = this.getMediaAsset();
         if (ma == null) return false;
+        for (Feature ft : getFeatures()) {
+            if (ft.isUnity()) return true;  //TODO what *really* of multiple features?? does "just one unity" make sense?
+        }
+        //see note above. this is to attempt to be backwards-compatible.  :/  "untested"
         return (!needsTransform() && (getWidth() == (int)ma.getWidth()) && (getHeight() == (int)ma.getHeight()));
     }
 
@@ -223,7 +227,7 @@ public class Annotation implements java.io.Serializable {
 */
 
     //returns null if not MediaAsset (whaaa??), otherwise a list (possibly empty) of siblings on the MediaAsset
-    public List<Annotation> getSiblings() {
+    public List<Annotation> getMediaAssetSiblings() {
         if (this.getMediaAsset() == null) return null;
         List<Annotation> sibs = new ArrayList<Annotation>();
         for (Annotation ann : this.getMediaAsset().getAnnotations()) {  //fyi .getAnnotations() doesnt return null
@@ -418,6 +422,23 @@ public class Annotation implements java.io.Serializable {
         return Encounter.findByAnnotation(this, myShepherd);
     }
 
+/* untested!
+    public Encounter findEncounterDeep(Shepherd myShepherd) {
+        Encounter enc = this.findEncounter(myShepherd);
+System.out.println(">>>> findEncounterDeep(" + this + ") -> enc1 = " + enc);
+        if (enc != null) return enc;
+        MediaAsset ma = this.getMediaAsset();
+System.out.println("  >> findEncounterDeep() -> ma = " + ma + " .... getting Annotations:");
+        if (ma == null) return null;
+        ArrayList<Annotation> anns = ma.getAnnotations();
+        for (Annotation ann : anns) {
+System.out.println("  >> findEncounterDeep() -> ann = " + ann);
+            //question: do we *only* look for trivial here? seems like we would want that... cuz we crawl hierarchy only in weird video cases etc
+            if (ann.isTrivial()) return ann.findEncounterDeep(myShepherd); //recurse! (and effectively bottom-out here... do or die
+        }
+        return null;  //fall thru, no luck!
+    }
+*/
 
     //this is a little tricky. the idea is the end result will get us an Encounter, which *may* be new
     // if it is new, its pretty straight forward (uses findEncounter) .. if not, creation is as follows:
@@ -427,7 +448,8 @@ public class Annotation implements java.io.Serializable {
     public Encounter toEncounter(Shepherd myShepherd) {
         Encounter enc = this.findEncounter(myShepherd);
         if (enc != null) return enc;
-        List<Annotation> sibs = this.getSiblings();
+System.out.println(".toEncounter() on " + this + " found no Encounter.... trying to find one on siblings or make one....");
+        List<Annotation> sibs = this.getMediaAssetSiblings();
         Annotation sourceSib = null;
         Encounter sourceEnc = null;
         if (sibs != null) {
@@ -440,6 +462,7 @@ public class Annotation implements java.io.Serializable {
             }
         }
 
+System.out.println(" * sourceSib = " + sourceSib + "; sourceEnc = " + sourceEnc);
         if (sourceSib == null) return new Encounter(this);  //from scratch it is then!
 
         if (sourceSib.isTrivial()) {
